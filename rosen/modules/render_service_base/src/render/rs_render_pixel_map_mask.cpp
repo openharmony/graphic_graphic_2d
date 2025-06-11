@@ -36,7 +36,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderPixelMapMaskPara::CreateRenderProp
         case RSUIFilterType::PIXEL_MAP_MASK_DST:
         case RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR: {
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-                Vector4f(), 0, RSPropertyType::VECTOR4F);
+                Vector4f(), 0);
         }
         default:
             ROSEN_LOGE("RSRenderPixelMapMaskPara::CreateRenderProperty mask nullptr");
@@ -67,7 +67,7 @@ bool RSRenderPixelMapMaskPara::WriteToParcel(Parcel& parcel)
         return false;
     }
 
-    auto property = GetRenderPropert(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP);
+    auto property = GetRenderProperty(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP);
     if (property == nullptr) {
         ROSEN_LOGE("RSRenderPixelMapMaskPara::WriteToParcel pixel map not found");
         return false;

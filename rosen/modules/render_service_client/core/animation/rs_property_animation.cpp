@@ -173,18 +173,16 @@ void RSPropertyAnimation::InitAdditiveMode()
 void RSPropertyAnimation::DumpAnimationInfo(std::string& dumpInfo) const
 {
     dumpInfo += ", isCustom:" + std::to_string(isCustom_);
-    RSPropertyType type = RSPropertyType::INVALID;
     if (property_) {
-        type = property_->GetPropertyType();
         dumpInfo += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->type_));
     }
     if (startValue_) {
         dumpInfo += ", StartValue: " +
-            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_->GetRenderProperty(), type);
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_->GetRenderProperty());
     }
     if (endValue_) {
         dumpInfo += ", EndValue: " +
-            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_->GetRenderProperty(), type);
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_->GetRenderProperty());
     }
 }
 } // namespace Rosen

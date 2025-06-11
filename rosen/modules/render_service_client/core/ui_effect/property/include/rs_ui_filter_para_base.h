@@ -42,6 +42,13 @@ public:
     virtual void SetProperty(const std::shared_ptr<RSUIFilterParaBase>& other) = 0;
 
     void OnAttach(RSNode& node);
+    // temporary fix
+    RSPropertyType GetPropertyType() const override { return RSPropertyType::UI_FILTER; }
+    void SetIsCustom(bool isCustom) override {}
+    bool GetIsCustom() const override { return false; }
+    void SetValue(const std::shared_ptr<RSPropertyBase>& value) override {}
+    std::shared_ptr<RSPropertyBase> Clone() const override { return nullptr; }
+    std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() override { return nullptr; }
 
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter()
     {

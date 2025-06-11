@@ -49,7 +49,7 @@ bool RSRenderBezierWarpFilterPara::WriteToParcel(Parcel& parcel)
     }
     for (const auto& [key, value] : properties_) {
         if (!RSMarshallingHelper::Marshalling(parcel, key) ||
-            !RSRenderPropertyBase::Marshalling(parcel, value)) {
+            !RSMarshallingHelper::Marshalling(parcel, value)) {
             return false;
         }
         ROSEN_LOGD("RSRenderBezierWarpFilterPara::WriteToParcel type %{public}d", static_cast<int>(key));
@@ -87,7 +87,7 @@ bool RSRenderBezierWarpFilterPara::ReadFromParcel(Parcel& parcel)
             return false;
         }
         std::shared_ptr<RSRenderPropertyBase> value = CreateRenderProperty(key);
-        if (!RSRenderPropertyBase::Unmarshalling(parcel, value)) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
             ROSEN_LOGE("RSRenderBezierWarpFilterPara::ReadFromParcel value %{public}d", static_cast<int>(key));
             return false;
         }
@@ -112,7 +112,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderBezierWarpFilterPara::CreateRender
         case RSUIFilterType::BEZIER_CONTROL_POINT10 :
         case RSUIFilterType::BEZIER_CONTROL_POINT11 : {
             return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-                Vector2f(0.f, 0.f), 0, RSPropertyType::VECTOR2F);
+                Vector2f(0.f, 0.f), 0);
         }
         default: {
             ROSEN_LOGD("RSRenderBezierWarpFilterPara::CreateRenderProperty is nullptr");
@@ -151,9 +151,9 @@ bool RSRenderBezierWarpFilterPara::ParseFilterValues()
     std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> ctrlPointProperty;
     for (size_t i = 0; i < BEZIER_WARP_POINT_NUM; ++i) {
         ctrlPointProperty =
-            std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetRenderPropert(ctrlPointsType[i]));
+            std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetRenderProperty(ctrlPointsType[i]));
         if (ctrlPointProperty == nullptr) {
-            ROSEN_LOGE("RSRenderBezierWarpFilterPara::ParseFilterValues GetRenderPropert nullptr, index:%zu", i);
+            ROSEN_LOGE("RSRenderBezierWarpFilterPara::ParseFilterValues GetRenderProperty nullptr, index:%zu", i);
             return false;
         }
         tmpBezierCtrlPoint = ctrlPointProperty->Get();

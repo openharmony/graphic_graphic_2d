@@ -17,28 +17,25 @@
 #include "render/rs_render_ripple_mask.h"
 namespace OHOS {
 namespace Rosen {
-    std::shared_ptr<RSRenderPropertyBase> RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType type)
+    std::shared_ptr<RSRenderPropertyBase> RSRenderRippleMaskPara::CreateRenderProperty(RSUIFilterType type)
     {
         switch (type) {
             case RSUIFilterType::RIPPLE_MASK_RADIUS : {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(
-                    0.f, 0, RSPropertyType::FLOAT);
+                return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
             }
-            case RSUIFilterType::RIPPLE_MASK_WIDTH : {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(
-                    0.f, 0, RSPropertyType::FLOAT);
+            case RSUIFilterType::RIPPLE_MASK_WIDTH: {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
             }
-            case RSUIFilterType::RIPPLE_MASK_CENTER : {
-                Vector2f value = {0.f, 0.f};
-                return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-                    value, 0, RSPropertyType::VECTOR2F);
+            case RSUIFilterType::RIPPLE_MASK_CENTER: {
+                Vector2f value = { 0.f, 0.f };
+                return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(value, 0);
             }
             case RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
-                    0.f, 0, RSPropertyType::FLOAT);
+                    0.f, 0);
             }
             default:
-                ROSEN_LOGE("RSRenderRippleMaskPara::CreateRenderPropert mask nullptr");
+                ROSEN_LOGE("RSRenderRippleMaskPara::CreateRenderProperty mask nullptr");
                 return nullptr;
         }
         return nullptr;
@@ -63,7 +60,7 @@ namespace Rosen {
         }
         for (const auto& [key, value] : properties_) {
             if (!RSMarshallingHelper::Marshalling(parcel, key) ||
-                !RSRenderPropertyBase::Marshalling(parcel, value)) {
+                !RSMarshallingHelper::Marshalling(parcel, value)) {
                 return false;
             }
             ROSEN_LOGD("RSRenderRippleMaskPara::WriteToParcel type %{public}d", static_cast<int>(key));
@@ -100,8 +97,8 @@ namespace Rosen {
                 ROSEN_LOGE("RSRenderRippleMaskPara::ReadFromParcel type %{public}d", static_cast<int>(key));
                 return false;
             }
-            std::shared_ptr<RSRenderPropertyBase> value = CreateRenderPropert(key);
-            if (!RSRenderPropertyBase::Unmarshalling(parcel, value)) {
+            std::shared_ptr<RSRenderPropertyBase> value = CreateRenderProperty(key);
+            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
                 ROSEN_LOGE("RSRenderRippleMaskPara::ReadFromParcel value %{public}d", static_cast<int>(key));
                 return false;
             }

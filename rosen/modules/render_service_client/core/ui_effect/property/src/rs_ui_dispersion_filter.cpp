@@ -205,13 +205,13 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIDispersionFilterPara::CreateRSRender
     }
 
     auto opacityProperty = std::make_shared<RSRenderAnimatableProperty<float>>(
-        opacity->Get(), opacity->GetId(), RSPropertyType::FLOAT);
+        opacity->Get(), opacity->GetId());
     auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        redOffset->Get(), redOffset->GetId(), RSPropertyType::VECTOR2F);
+        redOffset->Get(), redOffset->GetId());
     auto greenOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        greenOffset->Get(), greenOffset->GetId(), RSPropertyType::VECTOR2F);
+        greenOffset->Get(), greenOffset->GetId());
     auto blueOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        blueOffset->Get(), blueOffset->GetId(), RSPropertyType::VECTOR2F);
+        blueOffset->Get(), blueOffset->GetId());
 
     frProperty->Setter(RSUIFilterType::DISPERSION_OPACITY, opacityProperty);
     frProperty->Setter(RSUIFilterType::DISPERSION_RED_OFFSET, redOffsetProperty);

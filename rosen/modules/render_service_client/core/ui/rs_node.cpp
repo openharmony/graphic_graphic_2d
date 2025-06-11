@@ -1561,7 +1561,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     }
 
     SetParticleDrawRegion(particleParams);
-    auto property = std::make_shared<RSPropertyBase>();
+    auto property = std::make_shared<RSProperty<int>>();
     auto propertyId = property->GetId();
     auto uiAnimation = std::make_shared<RSAnimationGroup>();
     auto animationId = uiAnimation->GetId();
@@ -1777,9 +1777,8 @@ void RSNode::SetBorderStyle(uint32_t styleValue)
 // set inner border style
 void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
-    Vector4<BorderStyle> style(static_cast<BorderStyle>(left), static_cast<BorderStyle>(top),
-                               static_cast<BorderStyle>(right), static_cast<BorderStyle>(bottom));
-    SetBorderStyle(style);
+    Vector4<uint32_t> style(left, top, right, bottom);
+    SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, style);
 }
 
 // set inner border style

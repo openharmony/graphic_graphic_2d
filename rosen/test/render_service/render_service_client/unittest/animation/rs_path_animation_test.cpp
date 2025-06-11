@@ -170,7 +170,7 @@ HWTEST_F(RSPathAnimationTest, SetBeginFractionTest002, Level1)
 HWTEST_F(RSPathAnimationTest, InitRotationIdTest, Level1)
 {
     auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSPropertyBase>();
+    auto prop = std::make_shared<RSProperty<float>>();
     auto animationPath = std::make_shared<RSPath>();
     RSPathAnimation rsPathAnimation(prop, animationPath);
     rsPathAnimation.InitRotationId(node);
@@ -187,7 +187,7 @@ HWTEST_F(RSPathAnimationTest, InitRotationIdTest, Level1)
 HWTEST_F(RSPathAnimationTest, GetRotationPropertyIdTest, Level1)
 {
     auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSPropertyBase>();
+    auto prop = std::make_shared<RSProperty<float>>();
     auto animationPath = std::make_shared<RSPath>();
     RSPathAnimation rsPathAnimation(prop, animationPath);
     rsPathAnimation.GetRotationPropertyId(node);
@@ -205,7 +205,7 @@ HWTEST_F(RSPathAnimationTest, SetRotationTest, Level1)
 {
     float rotation = 0.f;
     auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSPropertyBase>();
+    auto prop = std::make_shared<RSProperty<float>>();
     auto animationPath = std::make_shared<RSPath>();
     RSPathAnimation rsPathAnimation(prop, animationPath);
     rsPathAnimation.SetRotation(node, rotation);
@@ -222,10 +222,10 @@ HWTEST_F(RSPathAnimationTest, SetRotationTest, Level1)
 HWTEST_F(RSPathAnimationTest, PreProcessPathTest, Level1)
 {
     string path = "PATH";
-    auto startValue = std::make_shared<RSPropertyBase>();
-    auto endValue = std::make_shared<RSPropertyBase>();
+    auto startValue = std::make_shared<RSProperty<float>>();
+    auto endValue = std::make_shared<RSProperty<float>>();
     auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSPropertyBase>();
+    auto prop = std::make_shared<RSProperty<float>>();
     auto animationPath = std::make_shared<RSPath>();
     RSPathAnimation rsPathAnimation(prop, animationPath);
     rsPathAnimation.PreProcessPath(path, startValue, endValue);
@@ -241,10 +241,10 @@ HWTEST_F(RSPathAnimationTest, PreProcessPathTest, Level1)
  */
 HWTEST_F(RSPathAnimationTest, InitNeedPathTest, Level1)
 {
-    auto startValue = std::make_shared<RSPropertyBase>();
-    auto endValue = std::make_shared<RSPropertyBase>();
+    auto startValue = std::make_shared<RSProperty<float>>();
+    auto endValue = std::make_shared<RSProperty<float>>();
     auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSPropertyBase>();
+    auto prop = std::make_shared<RSProperty<float>>();
     auto animationPath = std::make_shared<RSPath>();
     RSPathAnimation rsPathAnimation(prop, animationPath);
     rsPathAnimation.InitNeedPath(startValue, endValue);
@@ -260,10 +260,10 @@ HWTEST_F(RSPathAnimationTest, InitNeedPathTest, Level1)
  */
 HWTEST_F(RSPathAnimationTest, InitInterpolationVector2fTest, Level1)
 {
-    auto startValue = std::make_shared<RSPropertyBase>();
-    auto endValue = std::make_shared<RSPropertyBase>();
+    auto startValue = std::make_shared<RSProperty<float>>();
+    auto endValue = std::make_shared<RSProperty<float>>();
     auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSPropertyBase>();
+    auto prop = std::make_shared<RSProperty<float>>();
     auto animationPath = std::make_shared<RSPath>();
     RSPathAnimation rsPathAnimation(prop, animationPath);
     bool res = rsPathAnimation.InitInterpolationVector2f(startValue, endValue);
@@ -280,10 +280,10 @@ HWTEST_F(RSPathAnimationTest, InitInterpolationVector2fTest, Level1)
  */
 HWTEST_F(RSPathAnimationTest, InitInterpolationVector4fTest, Level1)
 {
-    auto startValue = std::make_shared<RSPropertyBase>();
-    auto endValue = std::make_shared<RSPropertyBase>();
+    auto startValue = std::make_shared<RSProperty<float>>();
+    auto endValue = std::make_shared<RSProperty<float>>();
     auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSPropertyBase>();
+    auto prop = std::make_shared<RSProperty<float>>();
     auto animationPath = std::make_shared<RSPath>();
     RSPathAnimation rsPathAnimation(prop, animationPath);
     bool res = rsPathAnimation.InitInterpolationVector4f(startValue, endValue);

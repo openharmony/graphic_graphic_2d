@@ -84,10 +84,10 @@ HWTEST_F(RSRenderDisplacementDistortFilterTest, CreateRenderPropert001, TestSize
 {
     auto rsRenderDispDistortFilterPara = std::make_shared<RSRenderDispDistortFilterPara>(0);
 
-    auto renderPropert = rsRenderDispDistortFilterPara->CreateRenderPropert(RSUIFilterType::RIPPLE_MASK);
+    auto renderPropert = rsRenderDispDistortFilterPara->CreateRenderProperty(RSUIFilterType::RIPPLE_MASK);
     EXPECT_NE(renderPropert, nullptr);
 
-    renderPropert = rsRenderDispDistortFilterPara->CreateRenderPropert(RSUIFilterType::RADIAL_GRADIENT_MASK);
+    renderPropert = rsRenderDispDistortFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
     EXPECT_EQ(renderPropert, nullptr);
 }
 

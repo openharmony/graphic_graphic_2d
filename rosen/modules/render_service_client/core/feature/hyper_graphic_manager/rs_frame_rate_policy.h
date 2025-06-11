@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class RSPropertyUnit : int16_t;
+enum class RSPropertyUnit : uint8_t;
 
 enum TouchStatus : uint32_t {
     TOUCH_CANCEL = 1,
