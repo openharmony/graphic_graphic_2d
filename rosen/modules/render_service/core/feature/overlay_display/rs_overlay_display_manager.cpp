@@ -98,7 +98,8 @@ void RSOverlayDisplayManager::PostProcFilter(RSPaintFilterCanvas& canvas)
 }
 
 void RSOverlayDisplayManager::ExpandDirtyRegion(
-    RSDirtyRegionManager& dirtyManager, const ScreenInfo& screenInfo, Occlusion::Region& dirtyRegion)
+    RSDirtyRegionManager& dirtyManager, const ScreenInfo& screenInfo, Occlusion::Region& drawnRegion,
+    Occlusion::Region& damageRegion)
 {
     std::shared_lock lock(mutex_);
     if (modeOfCurrentVsync_ == 0) {
@@ -108,7 +109,8 @@ void RSOverlayDisplayManager::ExpandDirtyRegion(
         RS_LOGI("%{public}s function is null.", __func__);
         return;
     }
-    expandDirtyRegionFunc_(dirtyManager, screenInfo, dirtyRegion);
+    expandDirtyRegionFunc_(dirtyManager, screenInfo, drawnRegion);
+    damageRegion = drawnRegion;
 }
 
 bool RSOverlayDisplayManager::LoadLibrary()

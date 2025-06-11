@@ -33,7 +33,8 @@ public:
 
     void PostProcFilter(RSPaintFilterCanvas& canvas);
     void ExpandDirtyRegion(
-        RSDirtyRegionManager& dirtyManager, const ScreenInfo& screenInfo, Occlusion::Region& dirtyRegion);
+        RSDirtyRegionManager& dirtyManager, const ScreenInfo& screenInfo, Occlusion::Region& dirtyRegion,
+        Occlusion::Region& damageRegion);
     int32_t SetOverlayDisplayMode(int32_t mode);
     // pre-process before render for judge whether the mode changed
     void PreProcForRender();
