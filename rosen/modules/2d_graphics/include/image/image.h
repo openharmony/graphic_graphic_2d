@@ -456,6 +456,19 @@ public:
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
 
+    /**
+     * @brief Set whether to support opaque optimization.
+     *
+     * @param supportOpaqueOpt Whether to support opaque optimization.
+     */
+    void SetSupportOpaqueOpt(bool supportOpaqueOpt);
+
+    /**
+     * @brief Get whether to support opaque optimization.
+     *
+     * @return True if support opaque optimization, otherwise return false.
+     */
+    bool GetSupportOpaqueOpt() const;
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };

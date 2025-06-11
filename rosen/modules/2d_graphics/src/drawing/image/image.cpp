@@ -232,6 +232,17 @@ bool Image::Deserialize(std::shared_ptr<Data> data)
 {
     return imageImplPtr->Deserialize(data);
 }
+
+void Image::SetSupportOpaqueOpt(bool supportOpaqueOpt)
+{
+    return imageImplPtr->SetSupportOpaqueOpt(supportOpaqueOpt);
+}
+
+bool Image::GetSupportOpaqueOpt() const
+{
+    return imageImplPtr->GetSupportOpaqueOpt();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

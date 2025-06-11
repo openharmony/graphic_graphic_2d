@@ -113,6 +113,10 @@ public:
     bool Deserialize(std::shared_ptr<Data> data) override;
 
     void PostSkImgToTargetThread();
+
+    void SetSupportOpaqueOpt(bool supportOpaqueOpt) override;
+
+    bool GetSupportOpaqueOpt() const override;
 private:
 #ifdef RS_ENABLE_GPU
     sk_sp<GrDirectContext> grContext_ = nullptr;
