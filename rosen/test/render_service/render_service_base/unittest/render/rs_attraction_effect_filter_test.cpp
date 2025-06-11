@@ -39,6 +39,23 @@ void RSAttractionEffectFilterTest::TearDownTestCase() {}
 void RSAttractionEffectFilterTest::SetUp() {}
 void RSAttractionEffectFilterTest::TearDown() {}
 
+static std::shared_ptr<Drawing::Image> CreateDrawingImage(int width, int height)
+{
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    Drawing::ImageInfo imageInfo =
+        Drawing::ImageInfo(1, 0, Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    return image;
+}
+
 /**
  * @tc.name: DrawImageRect001
  * @tc.desc: test results of DrawImageRect
@@ -386,6 +403,118 @@ HWTEST_F(RSAttractionEffectFilterTest, GetDescriptionTest, TestSize.Level1)
     RSAttractionEffectFilter effectFilter(attractionFraction);
     std::string expectRes = "RSAttractionEffectFilter " + std::to_string(attractionFraction);
     EXPECT_EQ(effectFilter.GetDescription(), expectRes);
+}
+
+/**
+ * @tc.name: GetBrush001
+ * @tc.desc: test GetBrush image is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAttractionEffectFilterTest, GetBrush001, TestSize.Level1)
+{
+    RSAttractionEffectFilter effectFilter(0.5f);
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    auto brush = effectFilter.GetBrush(image);
+    EXPECT_EQ(brush.GetShaderEffect(), nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    EXPECT_TRUE(image);
+
+    brush = effectFilter.GetBrush(image);
+    EXPECT_TRUE(brush.GetShaderEffect());
+}
+
+/**
+ * @tc.name: GetBrush002
+ * @tc.desc: test GetBrush image GetBlendMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAttractionEffectFilterTest, GetBrush002, TestSize.Level1)
+{
+    RSAttractionEffectFilter effectFilter(0.5f);
+    effectFilter.isBelowTarget_ = true;
+    effectFilter.location_ = 1;
+    effectFilter.attractionFraction_ = 0.5f;
+
+    auto image = CreateDrawingImage(2, 1);
+    EXPECT_TRUE(image);
+    Drawing::Brush brush = effectFilter.GetBrush(image);
+
+    EXPECT_NE(brush.GetShaderEffect(), nullptr);
+    EXPECT_EQ(brush.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+}
+
+/**
+ * @tc.name: GetBrush003
+ * @tc.desc: test GetBrush with different isBelowTarget_ and location_ combinations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAttractionEffectFilterTest, GetBrush003, TestSize.Level1)
+{
+    RSAttractionEffectFilter effectFilter(0.5f);
+    auto image = CreateDrawingImage(10, 10);
+
+    // Test isBelowTarget_ = false, location_ = 1
+    effectFilter.isBelowTarget_ = false;
+    effectFilter.location_ = 1;
+    auto brush1 = effectFilter.GetBrush(image);
+    EXPECT_NE(brush1.GetShaderEffect(), nullptr);
+
+    // Test isBelowTarget_ = false, location_ = -1
+    effectFilter.isBelowTarget_ = false;
+    effectFilter.location_ = -1;
+    auto brush2 = effectFilter.GetBrush(image);
+    EXPECT_NE(brush2.GetShaderEffect(), nullptr);
+
+    // Test isBelowTarget_ = true, location_ = 1
+    effectFilter.isBelowTarget_ = true;
+    effectFilter.location_ = 1;
+    auto brush3 = effectFilter.GetBrush(image);
+    EXPECT_NE(brush3.GetShaderEffect(), nullptr);
+
+    // Test isBelowTarget_ = true, location_ = -1
+    effectFilter.isBelowTarget_ = true;
+    effectFilter.location_ = -1;
+    auto brush4 = effectFilter.GetBrush(image);
+    EXPECT_NE(brush4.GetShaderEffect(), nullptr);
+}
+
+/**
+ * @tc.name: GetBrush004
+ * @tc.desc: test GetBrush with different attractionFraction_ values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAttractionEffectFilterTest, GetBrush004, TestSize.Level1)
+{
+    auto image = CreateDrawingImage(5, 5);
+
+    // Test attractionFraction_ = 0.0f
+    RSAttractionEffectFilter effectFilter1(0.0f);
+    effectFilter1.isBelowTarget_ = false;
+    effectFilter1.location_ = 1;
+    auto brush1 = effectFilter1.GetBrush(image);
+    EXPECT_NE(brush1.GetShaderEffect(), nullptr);
+
+    // Test attractionFraction_ = 0.5f
+    RSAttractionEffectFilter effectFilter2(0.5f);
+    effectFilter2.isBelowTarget_ = false;
+    effectFilter2.location_ = 1;
+    auto brush2 = effectFilter2.GetBrush(image);
+    EXPECT_NE(brush2.GetShaderEffect(), nullptr);
+
+    // Test attractionFraction_ = 1.0f
+    RSAttractionEffectFilter effectFilter3(1.0f);
+    effectFilter3.isBelowTarget_ = false;
+    effectFilter3.location_ = 1;
+    auto brush3 = effectFilter3.GetBrush(image);
+    EXPECT_NE(brush3.GetShaderEffect(), nullptr);
+
+     // Test attractionFraction_ > 0.5f
+    RSAttractionEffectFilter effectFilter4(0.8f);
+    effectFilter4.isBelowTarget_ = false;
+    effectFilter4.location_ = 1;
+    auto brush4 = effectFilter4.GetBrush(image);
+    EXPECT_NE(brush4.GetShaderEffect(), nullptr);
 }
 
 } // namespace Rosen
