@@ -53,10 +53,10 @@ std::string RSAnimationTraceUtils::GetColorString(const Color& value) const
 }
 
 std::string RSAnimationTraceUtils::ParseRenderPropertyValueInner(
-    const std::shared_ptr<RSRenderPropertyBase>& value, const RSPropertyType type) const
+    const std::shared_ptr<RSRenderPropertyBase>& value) const
 {
     std::string str;
-    auto propertyType = value->GetPropertyType() == RSPropertyType::INVALID ? type : value->GetPropertyType();
+    auto propertyType = value->GetPropertyType();
     switch (propertyType) {
         case RSPropertyType::FLOAT: {
             str = "float:" + std::to_string(std::static_pointer_cast<RSRenderAnimatableProperty<float>>(value)->Get());
@@ -101,14 +101,13 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyValueInner(
     return str;
 }
 
-std::string RSAnimationTraceUtils::ParseRenderPropertyValue(
-    const std::shared_ptr<RSRenderPropertyBase>& value, const RSPropertyType type) const
+std::string RSAnimationTraceUtils::ParseRenderPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value) const
 {
     if (value == nullptr) {
-        return std::string();
+        return {};
     }
     // Cyclomatic complexity exceeds 20
-    return ParseRenderPropertyValueInner(value, type);
+    return ParseRenderPropertyValueInner(value);
 }
 
 void RSAnimationTraceUtils::AddAnimationNameTrace(const std::string& str) const
@@ -311,8 +310,7 @@ void RSAnimationTraceUtils::AddSpringInitialVelocityTrace(const uint64_t propert
     const std::shared_ptr<RSRenderPropertyBase>& value) const
 {
     if (isDebugEnabled_) {
-        auto type = (value == nullptr) ? RSPropertyType::INVALID : value->GetPropertyType();
-        auto propertyValue = ParseRenderPropertyValue(initialVelocity, type);
+        auto propertyValue = ParseRenderPropertyValue(initialVelocity);
         RS_TRACE_NAME_FMT("spring pro[%llu] animate[%llu], initialVelocity[%s]",
             propertyId, animationId, propertyValue.c_str());
     }

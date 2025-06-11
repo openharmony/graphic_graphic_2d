@@ -23,7 +23,10 @@ namespace Rosen {
 
 class RSB_EXPORT RSRenderRadialGradientMaskPara : public RSRenderMaskPara {
 public:
-    RSRenderRadialGradientMaskPara(PropertyId id) : RSRenderMaskPara(RSUIFilterType::RADIAL_GRADIENT_MASK), id_(id) {}
+    RSRenderRadialGradientMaskPara(PropertyId id) : RSRenderMaskPara(RSUIFilterType::RADIAL_GRADIENT_MASK)
+    {
+        id_ = id;
+    }
 
     virtual ~RSRenderRadialGradientMaskPara() = default;
 
@@ -32,7 +35,7 @@ public:
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetAnimatRenderProperty(const RSUIFilterType type)
     {
-        auto property = GetRenderPropert(type);
+        auto property = GetRenderProperty(type);
         if (property == nullptr) {
             return nullptr;
         }

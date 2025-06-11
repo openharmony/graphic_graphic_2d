@@ -22,26 +22,26 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderRadialGradientMaskPara::CreateRend
     switch (type) {
         case RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSX: {
             return std::make_shared<RSRenderAnimatableProperty<float>>(
-                0.f, 0, RSPropertyType::FLOAT);
+                0.f, 0);
         }
         case RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSY: {
             return std::make_shared<RSRenderAnimatableProperty<float>>(
-                0.f, 0, RSPropertyType::FLOAT);
+                0.f, 0);
         }
         case RSUIFilterType::RADIAL_GRADIENT_MASK_CENTER: {
             Vector2f value = {0.f, 0.f};
             return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-                value, 0, RSPropertyType::VECTOR2F);
+                value, 0);
         }
         case RSUIFilterType::RADIAL_GRADIENT_MASK_COLORS: {
             std::vector<float> value = {};
             return std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-                value, 0, RSPropertyType::SHADER_PARAM);
+                value, 0);
         }
         case RSUIFilterType::RADIAL_GRADIENT_MASK_POSITIONS: {
             std::vector<float> value = {};
             return std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-                value, 0, RSPropertyType::SHADER_PARAM);
+                value, 0);
         }
         default:
             ROSEN_LOGE("RSRenderRadialGradientMaskPara::CreateRenderProperty mask nullptr");
@@ -69,7 +69,7 @@ bool RSRenderRadialGradientMaskPara::WriteToParcel(Parcel& parcel)
     }
     for (const auto& [key, value] : properties_) {
         if (!RSMarshallingHelper::Marshalling(parcel, key) ||
-            !RSRenderPropertyBase::Marshalling(parcel, value)) {
+            !RSMarshallingHelper::Marshalling(parcel, value)) {
             return false;
         }
         ROSEN_LOGD("RSRenderRadialGradientMaskPara::WriteToParcel type %{public}d", static_cast<int>(key));
@@ -107,7 +107,7 @@ bool RSRenderRadialGradientMaskPara::ReadFromParcel(Parcel& parcel)
             return false;
         }
         std::shared_ptr<RSRenderPropertyBase> value = CreateRenderProperty(key);
-        if (!RSRenderPropertyBase::Unmarshalling(parcel, value)) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
             ROSEN_LOGE("RSRenderRadialGradientMaskPara::ReadFromParcel value %{public}d", static_cast<int>(key));
             return false;
         }

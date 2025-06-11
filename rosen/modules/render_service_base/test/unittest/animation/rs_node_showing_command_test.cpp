@@ -44,7 +44,7 @@ HWTEST_F(RSShowingNodeCommandTest, RSShowingNodeCommandTest001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingNodeCommandTest RSShowingNodeCommandTest001 start";
     NodeId id = static_cast<NodeId>(-1);
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, 0, RSPropertyType::FLOAT);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, 0);
 
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(id, property);
     EXPECT_TRUE(task != nullptr);

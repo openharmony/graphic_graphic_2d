@@ -185,7 +185,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIColorGradientFilterPara::CreateRSRen
         return nullptr;
     }
     auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        colors->Get(), colors->GetId(), RSPropertyType::SHADER_PARAM);
+        colors->Get(), colors->GetId());
     frProperty->Setter(RSUIFilterType::COLOR_GRADIENT_COLOR, colorsProperty);
 
     auto positions = std::static_pointer_cast<RSAnimatableProperty<std::vector<float>>>(
@@ -195,7 +195,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIColorGradientFilterPara::CreateRSRen
         return nullptr;
     }
     auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        positions->Get(), positions->GetId(), RSPropertyType::SHADER_PARAM);
+        positions->Get(), positions->GetId());
     frProperty->Setter(RSUIFilterType::COLOR_GRADIENT_POSITION, positionsProperty);
 
     auto strengths = std::static_pointer_cast<RSAnimatableProperty<std::vector<float>>>(
@@ -205,7 +205,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIColorGradientFilterPara::CreateRSRen
         return nullptr;
     }
     auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        strengths->Get(), strengths->GetId(), RSPropertyType::SHADER_PARAM);
+        strengths->Get(), strengths->GetId());
     frProperty->Setter(RSUIFilterType::COLOR_GRADIENT_STRENGTH, strengthsProperty);
 
     if (maskType_ != RSUIFilterType::NONE) {

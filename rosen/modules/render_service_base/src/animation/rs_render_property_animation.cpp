@@ -31,8 +31,8 @@ RSRenderPropertyAnimation::RSRenderPropertyAnimation(
         originValue_ = originValue->Clone();
         lastValue_ = originValue->Clone();
     } else {
-        originValue_ = std::make_shared<RSRenderPropertyBase>();
-        lastValue_ = std::make_shared<RSRenderPropertyBase>();
+        originValue_ = std::make_shared<RSRenderAnimatableProperty<float>>();
+        lastValue_ = std::make_shared<RSRenderAnimatableProperty<float>>();
     }
 }
 
@@ -75,9 +75,6 @@ void RSRenderPropertyAnimation::AttachRenderProperty(const std::shared_ptr<RSRen
         return;
     }
     InitValueEstimator();
-    if (originValue_ != nullptr) {
-        property_->SetPropertyType(originValue_->GetPropertyType());
-    }
 }
 
 void RSRenderPropertyAnimation::SetPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value)

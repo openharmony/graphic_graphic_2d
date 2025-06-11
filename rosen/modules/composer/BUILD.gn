@@ -37,6 +37,7 @@ config("composer_public_config") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/interfaces/inner_api/composer",
   ]
 }

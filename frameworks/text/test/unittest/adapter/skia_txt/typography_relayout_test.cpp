@@ -724,6 +724,8 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest019, TestSize.Le
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    EXPECT_FALSE(paragraphImpl->isRunCombinated());
     auto runMetrics = typography->GetLineMetrics()[0].runMetrics;
     for (const auto& item : runMetrics) {
         EXPECT_EQ(item.second.textStyle->styleId, 17);
@@ -1243,6 +1245,44 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest030, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     typography->Relayout(maxWidth / 2, typographyStyle, relayoutTextStyles);
     EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetMaxWidth(), maxWidth / 2));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest031
+ * @tc.desc: Test for combination run caused the background color update to fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest031, TestSize.Level1)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.textStyleUid = UNIQUEID;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"12";
+    std::u16string textTwo = u"34";
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle textStyleExtra = textStyle;
+    textStyleExtra.textStyleUid = UNIQUEID + 1;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(textTwo);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    textStyle.backgroundRect = { 0xFFFF0000, 16.0, 16.0, 16.0, 16.0 };
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    textStyleExtra.relayoutChangeBitmap = styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::BACKGROUND_RECT));
+    textStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    EXPECT_TRUE(paragraphImpl->isRunCombinated());
 }
 } // namespace Rosen
 } // namespace OHOS

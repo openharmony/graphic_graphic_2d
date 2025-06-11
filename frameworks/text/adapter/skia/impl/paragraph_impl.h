@@ -151,6 +151,8 @@ public:
 
     void SetTextEffectState(bool state) override;
 
+    bool isRunCombinated() { return paragraph_->isRunCombinated(); }
+
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);

@@ -77,6 +77,7 @@ public:
 
 private:
     float attractionFraction_ = 0.0f;
+    int location_ = 0;
     Drawing::Point windowStatusPoints_[12] = {
         {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f},
         {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}

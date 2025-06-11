@@ -392,55 +392,15 @@ bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
     return !value.IsInfinite();
 }
 
-template<>
-RSPropertyType RSAnimatableProperty<float>::GetPropertyType() const
-{
-    return RSPropertyType::FLOAT;
-}
-template<>
-RSPropertyType RSAnimatableProperty<Color>::GetPropertyType() const
-{
-    return RSPropertyType::RS_COLOR;
-}
-template<>
-RSPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const
-{
-    return RSPropertyType::MATRIX3F;
-}
-template<>
-RSPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const
-{
-    return RSPropertyType::VECTOR2F;
-}
-template<>
-RSPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const
-{
-    return RSPropertyType::VECTOR3F;
-}
-template<>
-RSPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const
-{
-    return RSPropertyType::VECTOR4F;
-}
-template<>
-RSPropertyType RSAnimatableProperty<Quaternion>::GetPropertyType() const
-{
-    return RSPropertyType::QUATERNION;
-}
-template<>
-RSPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const
-{
-    return RSPropertyType::VECTOR4_COLOR;
-}
-template<>
-RSPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const
-{
-    return RSPropertyType::RRECT;
-}
-template<>
-RSPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const
-{
-    return RSPropertyType::SHADER_PARAM;
-}
+#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
+    template class RSAnimatableProperty<T>;       \
+    template class RSProperty<T>
+
+#include "modifier/rs_property_def.in"
+
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
+
 } // namespace Rosen
 } // namespace OHOS

@@ -3367,7 +3367,7 @@ HWTEST_F(RSNodeTest, SetBoundsWidth, TestSize.Level1)
     rsNode->SetBoundsWidth(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::BOUNDS;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3388,7 +3388,7 @@ HWTEST_F(RSNodeTest, SetBoundsHeight, TestSize.Level1)
     rsNode->SetBoundsHeight(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::BOUNDS;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3409,7 +3409,7 @@ HWTEST_F(RSNodeTest, SetFramePositionX, TestSize.Level1)
     rsNode->SetFramePositionX(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::FRAME;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3430,7 +3430,7 @@ HWTEST_F(RSNodeTest, SetFramePositionY, TestSize.Level1)
     rsNode->SetFramePositionY(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::FRAME;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3451,7 +3451,7 @@ HWTEST_F(RSNodeTest, SetPivotX, TestSize.Level1)
     rsNode->SetPivotX(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::PIVOT;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3472,7 +3472,7 @@ HWTEST_F(RSNodeTest, SetPivotY, TestSize.Level1)
     rsNode->SetPivotY(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::PIVOT;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3493,7 +3493,7 @@ HWTEST_F(RSNodeTest, SetTranslateX, TestSize.Level1)
     rsNode->SetTranslateX(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::TRANSLATE;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3514,7 +3514,7 @@ HWTEST_F(RSNodeTest, SetTranslateY, TestSize.Level1)
     rsNode->SetTranslateY(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::TRANSLATE;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3535,7 +3535,7 @@ HWTEST_F(RSNodeTest, SetScaleX, TestSize.Level1)
     rsNode->SetScaleX(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::SCALE;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3556,7 +3556,7 @@ HWTEST_F(RSNodeTest, SetScaleY, TestSize.Level1)
     rsNode->SetScaleY(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::SCALE;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3577,7 +3577,7 @@ HWTEST_F(RSNodeTest, SetSkewX, TestSize.Level1)
     rsNode->SetSkewX(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::SKEW;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3598,7 +3598,7 @@ HWTEST_F(RSNodeTest, SetSkewY, TestSize.Level1)
     rsNode->SetSkewY(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::SKEW;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3619,7 +3619,7 @@ HWTEST_F(RSNodeTest, SetPerspX, TestSize.Level1)
     rsNode->SetPerspX(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::PERSP;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -3640,7 +3640,7 @@ HWTEST_F(RSNodeTest, SetPerspY, TestSize.Level1)
     rsNode->SetPerspY(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::PERSP;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -4169,7 +4169,7 @@ HWTEST_F(RSNodeTest, SetBackgroundUIFilter, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetProperty, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    auto rsPropertyBase = std::make_shared<RSProperty<float>>();
     rsNode->properties_.emplace(rsPropertyBase->GetId(), rsPropertyBase);
     auto tempRSPropertyBase = rsNode->GetProperty(rsPropertyBase->GetId());
     EXPECT_NE(tempRSPropertyBase, nullptr);
@@ -4184,7 +4184,7 @@ HWTEST_F(RSNodeTest, GetProperty, TestSize.Level1)
 HWTEST_F(RSNodeTest, RegisterProperty, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    auto rsPropertyBase = std::make_shared<RSProperty<float>>();
     rsNode->RegisterProperty(rsPropertyBase);
     EXPECT_FALSE(rsNode->properties_.empty());
 }
@@ -4198,7 +4198,7 @@ HWTEST_F(RSNodeTest, RegisterProperty, TestSize.Level1)
 HWTEST_F(RSNodeTest, UnRegisterProperty, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    auto rsPropertyBase = std::make_shared<RSProperty<float>>();
     PropertyId propertyId = rsPropertyBase->GetId();
     rsNode->properties_.emplace(propertyId, rsPropertyBase);
     EXPECT_FALSE(rsNode->properties_.empty());
@@ -4215,7 +4215,7 @@ HWTEST_F(RSNodeTest, UnRegisterProperty, TestSize.Level1)
 HWTEST_F(RSNodeTest, ResetPropertyMap, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    auto rsPropertyBase = std::make_shared<RSProperty<float>>();
     PropertyId propertyId = rsPropertyBase->GetId();
     rsNode->properties_.emplace(propertyId, rsPropertyBase);
     EXPECT_FALSE(rsNode->properties_.empty());
@@ -5874,7 +5874,7 @@ HWTEST_F(RSNodeTest, SetProperty, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, 1.f);
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::ALPHA;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;
@@ -8521,7 +8521,7 @@ HWTEST_F(RSNodeTest, Dump002Test, TestSize.Level1)
     rsNode->AddModifier(modifier1);
 
     rsNode->SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, 1.f);
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<bool>>();
     std::shared_ptr<RSModifier> modifier2 = std::make_shared<RSBackgroundShaderModifier>(property);
     rsNode->AddModifier(modifier2);
 

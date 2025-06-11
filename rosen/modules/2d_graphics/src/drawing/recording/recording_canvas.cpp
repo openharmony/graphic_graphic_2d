@@ -267,6 +267,10 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
     FilterMode filterMode)
 {
+    if (image == nullptr) {
+        LOGE("RecordingCanvas::DrawImageLattice failed, image is nullptr");
+        return;
+    }
     if (!addDrawOpImmediate_) {
         AddDrawOpDeferred<DrawImageLatticeOpItem>(image, lattice, dst, filterMode);
         return;

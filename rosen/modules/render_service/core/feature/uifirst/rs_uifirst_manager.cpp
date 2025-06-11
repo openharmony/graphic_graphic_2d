@@ -1842,8 +1842,14 @@ UiFirstModeType RSUifirstManager::GetUiFirstMode()
 
 void RSUifirstManager::ReadUIFirstCcmParam()
 {
+#ifdef ROSEN_EMULATOR
+    // close uifirst on emulator
+    isUiFirstOn_ = false;
+    isCardUiFirstOn_ = false;
+#else
     isUiFirstOn_ = UIFirstParam::IsUIFirstEnable();
     isCardUiFirstOn_ = UIFirstParam::IsCardUIFirstEnable();
+#endif
     SetUiFirstType(UIFirstParam::GetUIFirstType());
     RS_LOGI("ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
         " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);

@@ -1189,6 +1189,13 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
     }
 }
 
+int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    ROSEN_LOGD("RSInterfaces::GetpidGpuMemoryInMB called!");
+    return ret;
+}
+
 bool RSInterfaces::GetHighContrastTextState()
 {
     return renderServiceClient_->GetHighContrastTextState();

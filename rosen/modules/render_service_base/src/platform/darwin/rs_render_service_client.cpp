@@ -820,5 +820,10 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return false;
 }
+
+int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    return {};
+}
 } // namespace Rosen
 } // namespace OHOS

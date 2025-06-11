@@ -51,7 +51,7 @@ void RSPropertyModifierTest::TearDown() {}
  */
 HWTEST_F(RSPropertyModifierTest, GetModifierType, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorModifier> colorModifier =
         std::make_shared<RSEnvForegroundColorModifier>(property);
@@ -67,7 +67,7 @@ HWTEST_F(RSPropertyModifierTest, GetModifierType, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, CreateRenderModifier, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorModifier> colorModifier =
         std::make_shared<RSEnvForegroundColorModifier>(property);
@@ -83,7 +83,7 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier001, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
         std::make_shared<RSHDRBrightnessModifier>(property);
@@ -99,7 +99,7 @@ HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier001, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier002, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
         std::make_shared<RSHDRBrightnessModifier>(property);
@@ -115,7 +115,7 @@ HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier002, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, GetModifierType02, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorStrategyModifier> colorStrategyModifier =
         std::make_shared<RSEnvForegroundColorStrategyModifier>(property);
@@ -131,7 +131,7 @@ HWTEST_F(RSPropertyModifierTest, GetModifierType02, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, CreateRenderModifier02, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorStrategyModifier> colorStrategyModifier =
         std::make_shared<RSEnvForegroundColorStrategyModifier>(property);
@@ -147,7 +147,7 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier02, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, GetModifierType03, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSCustomClipToFrameModifier> clipModifier =
         std::make_shared<RSCustomClipToFrameModifier>(property);
@@ -163,7 +163,7 @@ HWTEST_F(RSPropertyModifierTest, GetModifierType03, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, CreateRenderModifier03, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSCustomClipToFrameModifier> clipModifier =
         std::make_shared<RSCustomClipToFrameModifier>(property);
@@ -179,7 +179,7 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier03, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
         std::make_shared<RSHDRBrightnessFactorModifier>(property);
@@ -195,7 +195,7 @@ HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier002, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
         std::make_shared<RSHDRBrightnessFactorModifier>(property);
@@ -442,7 +442,7 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterRadiusModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterRadiusModifier> modifier =
         std::make_shared<RSBehindWindowFilterRadiusModifier>(property);
@@ -460,7 +460,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterRadiusModifierTest, TestSiz
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterSaturationModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterSaturationModifier> modifier =
         std::make_shared<RSBehindWindowFilterSaturationModifier>(property);
@@ -478,7 +478,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterSaturationModifierTest, Tes
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterBrightnessModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterBrightnessModifier> modifier =
         std::make_shared<RSBehindWindowFilterBrightnessModifier>(property);
@@ -496,7 +496,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterBrightnessModifierTest, Tes
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterMaskColorModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterMaskColorModifier> modifier =
         std::make_shared<RSBehindWindowFilterMaskColorModifier>(property);
@@ -514,7 +514,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterMaskColorModifierTest, Test
  */
 HWTEST_F(RSPropertyModifierTest, RSComplexShaderParamModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSComplexShaderParamModifier> modifier =
         std::make_shared<RSComplexShaderParamModifier>(property);
@@ -532,7 +532,7 @@ HWTEST_F(RSPropertyModifierTest, RSComplexShaderParamModifierTest, TestSize.Leve
  */
 HWTEST_F(RSPropertyModifierTest, RSBackgroundUIFilterModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBackgroundUIFilterModifier> modifier =
         std::make_shared<RSBackgroundUIFilterModifier>(property);
@@ -549,7 +549,7 @@ HWTEST_F(RSPropertyModifierTest, RSBackgroundUIFilterModifierTest, TestSize.Leve
  */
 HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSForegroundUIFilterModifier> modifier =
         std::make_shared<RSForegroundUIFilterModifier>(property);
@@ -566,7 +566,7 @@ HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Leve
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier001, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
         std::make_shared<RSHDRUIBrightnessModifier>(property);
@@ -583,7 +583,7 @@ HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier001, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier002, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
         std::make_shared<RSHDRUIBrightnessModifier>(property);

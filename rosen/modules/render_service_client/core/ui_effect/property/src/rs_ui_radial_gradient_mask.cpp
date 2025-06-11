@@ -102,19 +102,19 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIRadialGradientMaskPara::CreateRSRend
 {
     auto frProperty = std::make_shared<RSRenderRadialGradientMaskPara>(id_);
     auto xProperty = GetAnimatRenderProperty<float>(
-        RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSX, RSPropertyType::FLOAT);
+        RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSX);
     frProperty->Setter(RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSX, xProperty);
     auto yProperty = GetAnimatRenderProperty<float>(
-        RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSY, RSPropertyType::FLOAT);
+        RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSY);
     frProperty->Setter(RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSY, yProperty);
     auto cProperty = GetAnimatRenderProperty<Vector2f>(
-        RSUIFilterType::RADIAL_GRADIENT_MASK_CENTER, RSPropertyType::VECTOR2F);
+        RSUIFilterType::RADIAL_GRADIENT_MASK_CENTER);
     frProperty->Setter(RSUIFilterType::RADIAL_GRADIENT_MASK_CENTER, cProperty);
     auto colorsProperty = GetAnimatRenderProperty<std::vector<float>>(
-        RSUIFilterType::RADIAL_GRADIENT_MASK_COLORS, RSPropertyType::SHADER_PARAM);
+        RSUIFilterType::RADIAL_GRADIENT_MASK_COLORS);
     frProperty->Setter(RSUIFilterType::RADIAL_GRADIENT_MASK_COLORS, colorsProperty);
     auto positionsProperty = GetAnimatRenderProperty<std::vector<float>>(
-        RSUIFilterType::RADIAL_GRADIENT_MASK_POSITIONS, RSPropertyType::SHADER_PARAM);
+        RSUIFilterType::RADIAL_GRADIENT_MASK_POSITIONS);
     frProperty->Setter(RSUIFilterType::RADIAL_GRADIENT_MASK_POSITIONS, positionsProperty);
     return frProperty;
 }

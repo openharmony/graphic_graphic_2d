@@ -404,7 +404,7 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
     }
     if (repCode == SUCCESS) {
         pixelMapInfoVector.clear();
-        if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapInfoVector)) {
+        if (!RSMarshallingHelper::Unmarshalling(reply, pixelMapInfoVector)) {
             ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelMapByProcessId: Unmarshalling failed");
         }
     } else {
@@ -1818,8 +1818,8 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderService
         ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
         return pixelMapIdPairVector;
     }
-    if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapIdPairVector)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode UnmarshallingVec failed");
+    if (!RSMarshallingHelper::Unmarshalling(reply, pixelMapIdPairVector)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode Unmarshalling failed");
     }
     return pixelMapIdPairVector;
 }
@@ -5350,6 +5350,33 @@ ErrCode RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled(bool& enabl
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+
+    if (!data.WriteInt32(pid)) {
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    if (!reply.ReadFloat(gpuMemInMB)) {
+        return READ_PARCEL_ERR;
+    }
+
+    return err;
 }
 } // namespace Rosen
 } // namespace OHOS

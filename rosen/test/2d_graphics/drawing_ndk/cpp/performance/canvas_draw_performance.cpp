@@ -197,11 +197,11 @@ void PerformanceDrawRegion::OnTestPerformance(OH_Drawing_Canvas* canvas)
             int even = 2;
             if (j % even) {
                 OH_Drawing_CanvasDrawRect(canvas, rect);
-                OH_Drawing_RectDestroy(rect);
             } else {
                 OH_Drawing_CanvasDrawRoundRect(canvas, roundRect);
-                OH_Drawing_RoundRectDestroy(roundRect);
             }
+            OH_Drawing_RectDestroy(rect);
+            OH_Drawing_RoundRectDestroy(roundRect);
         }
     }
     OH_Drawing_CanvasDetachPen(canvas);

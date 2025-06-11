@@ -52,8 +52,8 @@ void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
     } else {
         out += ", ModifierType: INVALID";
     }
-    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_, type);
-    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_, type);
+    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_);
+    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_);
 }
 
 void RSRenderSpringAnimation::SetSpringParameters(

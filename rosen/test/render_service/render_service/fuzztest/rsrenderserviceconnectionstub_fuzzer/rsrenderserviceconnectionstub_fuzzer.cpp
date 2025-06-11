@@ -1330,7 +1330,7 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
 
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderPropertyBase>();
+    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
     uint32_t currentId = 0;
     NodeId targetId = ((NodeId)newPid << 32) | (currentId);
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);

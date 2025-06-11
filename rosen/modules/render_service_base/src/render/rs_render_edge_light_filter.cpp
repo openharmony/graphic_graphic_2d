@@ -44,18 +44,15 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderP
 {
     switch (type) {
         case RSUIFilterType::EDGE_LIGHT_ALPHA : {
-            return std::make_shared<RSRenderAnimatableProperty<float>>(
-                0.f, 0, RSPropertyType::FLOAT);
+            return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
         }
         case RSUIFilterType::EDGE_LIGHT_BLOOM : {
-            return std::make_shared<RSRenderProperty<bool>>(
-                true, 0, RSPropertyType::BOOL);
+            return std::make_shared<RSRenderProperty<bool>>(true, 0);
         }
-        case RSUIFilterType::EDGE_LIGHT_COLOR : {
-            return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-                Vector4f(), 0, RSPropertyType::VECTOR4F);
+        case RSUIFilterType::EDGE_LIGHT_COLOR: {
+            return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(), 0);
         }
-        case RSUIFilterType::RIPPLE_MASK : {
+        case RSUIFilterType::RIPPLE_MASK: {
             return std::make_shared<RSRenderRippleMaskPara>(0);
         }
         case RSUIFilterType::PIXEL_MAP_MASK : {
@@ -65,7 +62,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderP
             return std::make_shared<RSRenderRadialGradientMaskPara>(0);
         }
         default: {
-            ROSEN_LOGD("RSRenderEdgeLightFilterPara::CreateRenderPropert nullptr");
+            ROSEN_LOGD("RSRenderEdgeLightFilterPara::CreateRenderProperty nullptr");
             return nullptr;
         }
     }
@@ -105,7 +102,7 @@ bool RSRenderEdgeLightFilterPara::WriteToParcel(Parcel& parcel)
         return true;
     }
 
-    auto maskProperty = GetRenderPropert(maskType_);
+    auto maskProperty = GetRenderProperty(maskType_);
     if (maskProperty == nullptr) {
         ROSEN_LOGE("RSRenderEdgeLightFilterPara::WriteToParcel empty mask, maskType: %{public}d",
             static_cast<int>(maskType_));
@@ -187,7 +184,7 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderEdgeLightFilterPara::
 {
     std::vector<std::shared_ptr<RSRenderPropertyBase>> out;
     if (maskType_ != RSUIFilterType::NONE) {
-        auto mask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        auto mask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderProperty(maskType_));
         if (mask == nullptr) {
             ROSEN_LOGE("RSRenderEdgeLightFilterPara::GetLeafRenderProperties mask not found, maskType: %{public}d",
                 static_cast<int>(maskType_));
@@ -196,7 +193,7 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderEdgeLightFilterPara::
         out = mask->GetLeafRenderProperties();
     }
     for (const auto& filterType : FILTER_TYPE_WITHOUT_MASK) {
-        auto value = GetRenderPropert(filterType);
+        auto value = GetRenderProperty(filterType);
         if (value == nullptr) {
             continue;
         }
@@ -207,8 +204,8 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderEdgeLightFilterPara::
 
 bool RSRenderEdgeLightFilterPara::ParseFilterValues()
 {
-    auto edgeLightAlpha =
-        std::static_pointer_cast<RSRenderAnimatableProperty<float>>(GetRenderPropert(RSUIFilterType::EDGE_LIGHT_ALPHA));
+    auto edgeLightAlpha = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        GetRenderProperty(RSUIFilterType::EDGE_LIGHT_ALPHA));
     if (!edgeLightAlpha) {
         ROSEN_LOGE("RSRenderEdgeLightFilterPara::ParseFilterValues alpha is null.");
         return false;
@@ -217,7 +214,7 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
 
     // bloom
     auto edgeLightBloom = std::static_pointer_cast<RSRenderProperty<bool>>(
-        GetRenderPropert(RSUIFilterType::EDGE_LIGHT_BLOOM));
+        GetRenderProperty(RSUIFilterType::EDGE_LIGHT_BLOOM));
     if (edgeLightBloom == nullptr) {
         return false;
     }
@@ -225,13 +222,13 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
 
     // color
     auto edgeLightColor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
-        GetRenderPropert(RSUIFilterType::EDGE_LIGHT_COLOR));
+        GetRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR));
     if (edgeLightColor != nullptr) {
         color_ = edgeLightColor->Get();
     }
     // mask
     if (maskType_ != RSUIFilterType::NONE) {
-        auto edgeLightMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        auto edgeLightMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderProperty(maskType_));
         if (edgeLightMask == nullptr) {
             ROSEN_LOGE("RSRenderEdgeLightFilterPara::ParseFilterValues mask is null, maskType: %{public}d.",
                 static_cast<int>(maskType_));

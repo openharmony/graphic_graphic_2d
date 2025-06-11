@@ -56,7 +56,7 @@ namespace Rosen {
         return true;
     }
 
-    std::shared_ptr<RSRenderPropertyBase> RSRenderFilterParaBase::GetRenderPropert(RSUIFilterType type) const
+    std::shared_ptr<RSRenderPropertyBase> RSRenderFilterParaBase::GetRenderProperty(RSUIFilterType type) const
     {
         auto it = properties_.find(type);
         if (it != properties_.end()) {

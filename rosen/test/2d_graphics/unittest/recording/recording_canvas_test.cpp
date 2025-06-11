@@ -809,6 +809,21 @@ HWTEST_F(RecordingCanvasTest, DrawImageRect002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageLatticeTest001
+ * @tc.desc: Test the DrawImageLattice function.
+ * @tc.type: FUNC
+ * @tc.require: ICDWVQ
+ */
+HWTEST_F(RecordingCanvasTest, DrawImageLatticeTest001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    Rect dst(0.0f, 0.0f, CANAS_WIDTH, CANAS_HEIGHT);
+    Lattice lattice;
+    recordingCanvas->DrawImageLattice(nullptr, lattice, dst, FilterMode::NEAREST);
+}
+
+/**
  * @tc.name: DrawPicture001
  * @tc.desc: Test the playback of the DrawPicture function.
  * @tc.type: FUNC
