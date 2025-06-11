@@ -412,6 +412,8 @@ private:
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

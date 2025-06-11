@@ -5351,5 +5351,32 @@ ErrCode RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled(bool& enabl
     }
     return ERR_OK;
 }
+
+int32_t RSRenderServiceConnectionProxy::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+
+    if (!data.WriteInt32(pid)) {
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    if (!reply.ReadFloat(gpuMemInMB)) {
+        return READ_PARCEL_ERR;
+    }
+
+    return err;
+}
 } // namespace Rosen
 } // namespace OHOS

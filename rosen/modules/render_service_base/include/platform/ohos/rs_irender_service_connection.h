@@ -424,6 +424,8 @@ public:
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
 
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
+
+    virtual int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
