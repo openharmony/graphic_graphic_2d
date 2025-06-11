@@ -24,15 +24,15 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class OH_Drawing_FontMgrTest : public testing::Test {
+class NdkFontMgrTest : public testing::Test {
 };
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest001
+ * @tc.name: NdktMgrTest001
  * @tc.desc: test for creating and destroying font manager.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest001, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest001, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
@@ -41,11 +41,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest001, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest002
+ * @tc.name: NdktMgrTest002
  * @tc.desc: test for getting family name.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest002, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest002, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
@@ -61,11 +61,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest002, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest003
+ * @tc.name: NdktMgrTest003
  * @tc.desc: test for creating and destroying font style set by font mannager.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest003, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest003, TestSize.Level1)
 {
     OH_Drawing_FontMgr* mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
@@ -80,11 +80,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest003, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest004
+ * @tc.name: NdktMgrTest004
  * @tc.desc: test for matching font family by family name.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest004, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest004, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
@@ -99,11 +99,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest004, TestSize.Level1)
 
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest005
+ * @tc.name: NdktMgrTest005
  * @tc.desc: test for matching font typeface by family name and font style.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest005, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest005, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
@@ -122,11 +122,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest005, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest006
+ * @tc.name: NdktMgrTest006
  * @tc.desc: test for matching font typeface by family name, font style and specific character.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest006, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest006, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
@@ -147,11 +147,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest006, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest007
+ * @tc.name: NdktMgrTest007
  * @tc.desc: test for getting family name.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest007, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest007, TestSize.Level1)
 {
     int count = OH_Drawing_FontMgrGetFamilyCount(nullptr);
     EXPECT_EQ(count, 0);
@@ -164,11 +164,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest007, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest008
+ * @tc.name: NdktMgrTest008
  * @tc.desc: test for matching family style.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest008, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest008, TestSize.Level1)
 {
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(nullptr, 0);
     EXPECT_EQ(fontStyleSet, nullptr);
@@ -196,11 +196,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest008, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest009
+ * @tc.name: NdktMgrTest009
  * @tc.desc: test for matching family style character.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest009, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest009, TestSize.Level1)
 {
     const char* matchFamilyName = "HarmonyOS-Sans";
     OH_Drawing_FontStyleStruct normalStyle;
@@ -216,11 +216,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest009, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest010
+ * @tc.name: NdktMgrTest010
  * @tc.desc: test for create a typeface for the given index.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest010, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest010, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
@@ -238,11 +238,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest010, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest011
+ * @tc.name: NdktMgrTest011
  * @tc.desc: test for get font style struct.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest011, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
@@ -275,11 +275,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest012
+ * @tc.name: NdktMgrTest012
  * @tc.desc: test for get typeface by match style.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest012, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest012, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
@@ -298,11 +298,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest012, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest013
+ * @tc.name: NdktMgrTest013
  * @tc.desc: test for get font style set.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest013, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest013, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
@@ -316,11 +316,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest013, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_FontMgrTest014
+ * @tc.name: NdktMgrTest014
  * @tc.desc: test for get font family name with error data.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest014, TestSize.Level1)
+HWTEST_F(NdkFontMgrTest, NdktMgrTest014, TestSize.Level1)
 {
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     ASSERT_NE(mgr, nullptr);

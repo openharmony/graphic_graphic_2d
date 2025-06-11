@@ -30,7 +30,7 @@ constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 const double DEFAULT_FONT_SIZE = 40;
 const double DEFAULT_LAYOUT_WIDTH = 1000;
 } // namespace
-class OhDrawingTypographyStyleTest : public testing::Test {
+class NdkTypographyStyleTest : public testing::Test {
 public:
     void TearDown() override;
     void PrepareWorkForTypographyStyleTest();
@@ -47,7 +47,7 @@ protected:
     OH_Drawing_TypographyStyle* typoStyle2_{nullptr};
 };
 
-void OhDrawingTypographyStyleTest::PrepareWorkForTypographyStyleTest()
+void NdkTypographyStyleTest::PrepareWorkForTypographyStyleTest()
 {
     txtStyle_ = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle_, nullptr);
@@ -55,7 +55,7 @@ void OhDrawingTypographyStyleTest::PrepareWorkForTypographyStyleTest()
     ASSERT_NE(fontCollection_, nullptr);
     OH_Drawing_SetTextStyleFontSize(txtStyle_, DEFAULT_FONT_SIZE);
 }
-void OhDrawingTypographyStyleTest::PrepareWorkForAutoSpaceTest(std::string& text, double layoutWidth)
+void NdkTypographyStyleTest::PrepareWorkForAutoSpaceTest(std::string& text, double layoutWidth)
 {
     PrepareWorkForTypographyStyleTest();
     // paragraph1 with autospace
@@ -83,7 +83,7 @@ void OhDrawingTypographyStyleTest::PrepareWorkForAutoSpaceTest(std::string& text
     OH_Drawing_TypographyLayout(typography2_, DEFAULT_LAYOUT_WIDTH);
 }
 
-void OhDrawingTypographyStyleTest::TearDown()
+void NdkTypographyStyleTest::TearDown()
 {
     if (fontCollection_ != nullptr) {
         OH_Drawing_DestroyFontCollection(fontCollection_);
@@ -120,11 +120,11 @@ void OhDrawingTypographyStyleTest::TearDown()
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest001
+ * @tc.name: SetTypographyTextAutoSpaceTest001
  * @tc.desc: test for set auto space when paragraph with single run
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest001, TestSize.Level1)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "SingRun©2002-2001";
@@ -146,11 +146,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest002
+ * @tc.name: SetTypographyTextAutoSpaceTest002
  * @tc.desc: test for set auto space when paragraph with single run and the layout width is at the boundary value.
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest002, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest002, TestSize.Level1)
 {
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
@@ -183,11 +183,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest003
+ * @tc.name: SetTypographyTextAutoSpaceTest003
  * @tc.desc: test for set auto space when paragraph with many lines
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest003, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest003, TestSize.Level1)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲\n版权所有©2002-2001华为技术有限公司保留一切权利\n卸载USB设备";
@@ -215,11 +215,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest004
+ * @tc.name: SetTypographyTextAutoSpaceTest004
  * @tc.desc: test for set auto space when paragraph is many lines and the layout width is at the boundary value.
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest004, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest004, TestSize.Level1)
 {
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
@@ -257,11 +257,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest005
+ * @tc.name: SetTypographyTextAutoSpaceTest005
  * @tc.desc: test for width from OH_Drawing_TextLineGetImageBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest005, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest005, TestSize.Level1)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -292,11 +292,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest006
+ * @tc.name: SetTypographyTextAutoSpaceTest006
  * @tc.desc: test for width from OH_Drawing_TextLineGetOffsetForStringIndex when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest006, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest006, TestSize.Level1)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -327,11 +327,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest007
+ * @tc.name: SetTypographyTextAutoSpaceTest007
  * @tc.desc: test for width from OH_Drawing_GetRunTypographicBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest007, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest007, TestSize.Level1)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -382,11 +382,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest008
+ * @tc.name: SetTypographyTextAutoSpaceTest008
  * @tc.desc: test for width from OH_Drawing_GetRunImageBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest008, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest008, TestSize.Level1)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";

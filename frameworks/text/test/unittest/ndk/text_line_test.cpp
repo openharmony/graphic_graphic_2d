@@ -40,7 +40,7 @@ constexpr int32_t KFLOAT_PRECISION = 1000000;
 constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 }
 
-class NativeDrawingLineTest : public testing::Test {
+class NdkTextLineTest : public testing::Test {
 public:
     void SetUp() override
     {
@@ -98,7 +98,7 @@ protected:
     OH_Drawing_Canvas* canvas_ = nullptr;
 };
 
-void NativeDrawingLineTest::PrepareCreateTextLine(const std::string& text)
+void NdkTextLineTest::PrepareCreateTextLine(const std::string& text)
 {
     double maxWidth = 500.0;
     uint32_t height = 40;
@@ -137,7 +137,7 @@ void NativeDrawingLineTest::PrepareCreateTextLine(const std::string& text)
     OH_Drawing_TypographyPaint(typography_, canvas_, position[0], position[1]);
 }
 
-bool NativeDrawingLineTest::DrawingRectEquals(OH_Drawing_Rect* rect1, OH_Drawing_Rect* rect2)
+bool NdkTextLineTest::DrawingRectEquals(OH_Drawing_Rect* rect1, OH_Drawing_Rect* rect2)
 {
     return
     std::round(OH_Drawing_RectGetLeft(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION == OH_Drawing_RectGetLeft(rect2) &&
@@ -148,11 +148,11 @@ bool NativeDrawingLineTest::DrawingRectEquals(OH_Drawing_Rect* rect1, OH_Drawing
 }
 
 /*
- * @tc.name: NativeDrawingLineTest001
+ * @tc.name: NdkTextLineTest001
  * @tc.desc: test for the textLine GetTextLines.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest001, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest001, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -162,11 +162,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest001, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest002
+ * @tc.name: NdkTextLineTest002
  * @tc.desc: test for the textLine GetTextLines.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest002, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest002, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -179,11 +179,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest002, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest003
+ * @tc.name: NdkTextLineTest003
  * @tc.desc: test for the textLine GetTextLines.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest003, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest003, TestSize.Level1)
 {
     PrepareCreateTextLine("");
     OH_Drawing_Array* textLines = textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -193,11 +193,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest003, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest004
+ * @tc.name: NdkTextLineTest004
  * @tc.desc: test for the textLine GetTextLines.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest004, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest004, TestSize.Level1)
 {
     PrepareCreateTextLine("\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -207,11 +207,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest004, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest005
+ * @tc.name: NdkTextLineTest005
  * @tc.desc: test for the textLine GetTextLines.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest005, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest005, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(nullptr);
@@ -238,11 +238,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest005, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest006
+ * @tc.name: NdkTextLineTest006
  * @tc.desc: test for the textLine GetGlyphCount.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest006, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest006, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -265,11 +265,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest006, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest007
+ * @tc.name: NdkTextLineTest007
  * @tc.desc: test for the textLine GetGlyphCount.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest007, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest007, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -295,11 +295,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest007, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest008
+ * @tc.name: NdkTextLineTest008
  * @tc.desc: test for the textLine GetGlyphCount.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest008, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest008, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -319,11 +319,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest008, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest009
+ * @tc.name: NdkTextLineTest009
  * @tc.desc: test for the textLine GetTextRange.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest009, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest009, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -351,11 +351,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest009, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest010
+ * @tc.name: NdkTextLineTest010
  * @tc.desc: test for the textLine GetTextRange.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest010, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest010, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -381,11 +381,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest010, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest011
+ * @tc.name: NdkTextLineTest011
  * @tc.desc: test for the textLine GetTextRange.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest011, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest011, TestSize.Level1)
 {
     PrepareCreateTextLine("\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -406,11 +406,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest011, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest012
+ * @tc.name: NdkTextLineTest012
  * @tc.desc: test for the textLine GetTextRange.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest012, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest012, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -433,11 +433,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest012, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest013
+ * @tc.name: NdkTextLineTest013
  * @tc.desc: test for the textLine GetTypographicBounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest013, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest013, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -461,11 +461,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest013, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest014
+ * @tc.name: NdkTextLineTest014
  * @tc.desc: test for the textLine GetTypographicBounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest014, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest014, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -501,11 +501,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest014, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest015
+ * @tc.name: NdkTextLineTest015
  * @tc.desc: test for the textLine GetTypographicBounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest015, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest015, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -529,11 +529,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest015, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest016
+ * @tc.name: NdkTextLineTest016
  * @tc.desc: test for the textLine GetTypographicBounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest016, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest016, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -565,11 +565,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest016, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest017
+ * @tc.name: NdkTextLineTest017
  * @tc.desc: test for the textLine GetImageBounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest017, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest017, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -600,11 +600,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest017, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest018
+ * @tc.name: NdkTextLineTest018
  * @tc.desc: test for the textLine GetImageBounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest018, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest018, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -632,11 +632,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest018, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest019
+ * @tc.name: NdkTextLineTest019
  * @tc.desc: test for the textLine GetImageBounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest019, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest019, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -661,11 +661,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest019, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest020
+ * @tc.name: NdkTextLineTest020
  * @tc.desc: test for the textLine GetTrailingSpaceWidth.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest020, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest020, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -684,11 +684,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest020, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest021
+ * @tc.name: NdkTextLineTest021
  * @tc.desc: test for the textLine GetTrailingSpaceWidth.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest021, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest021, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -713,11 +713,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest021, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest022
+ * @tc.name: NdkTextLineTest022
  * @tc.desc: test for the textLine GetTrailingSpaceWidth.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest022, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest022, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -738,11 +738,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest022, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest023
+ * @tc.name: NdkTextLineTest023
  * @tc.desc: test for the textLine GetStringIndexForPosition.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest023, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest023, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -771,11 +771,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest023, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest024
+ * @tc.name: NdkTextLineTest024
  * @tc.desc: test for the textLine GetStringIndexForPosition.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest024, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest024, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -803,11 +803,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest024, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest025
+ * @tc.name: NdkTextLineTest025
  * @tc.desc: test for the textLine GetStringIndexForPosition.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest025, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest025, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -830,11 +830,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest025, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest026
+ * @tc.name: NdkTextLineTest026
  * @tc.desc: test for the textLine GetStringIndexForPosition.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest026, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest026, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -859,11 +859,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest026, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest027
+ * @tc.name: NdkTextLineTest027
  * @tc.desc: test for the textLine GetOffsetForStringIndex.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest027, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest027, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -894,11 +894,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest027, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest028
+ * @tc.name: NdkTextLineTest028
  * @tc.desc: test for the textLine GetOffsetForStringIndex.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest028, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest028, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -937,11 +937,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest028, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest029
+ * @tc.name: NdkTextLineTest029
  * @tc.desc: test for the textLine GetOffsetForStringIndex.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest029, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest029, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -964,11 +964,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest029, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest030
+ * @tc.name: NdkTextLineTest030
  * @tc.desc: test for the textLine GetAlignmentOffset.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest030, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest030, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -993,11 +993,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest030, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest031
+ * @tc.name: NdkTextLineTest031
  * @tc.desc: test for the textLine GetAlignmentOffset.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest031, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest031, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -1029,11 +1029,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest031, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest032
+ * @tc.name: NdkTextLineTest032
  * @tc.desc: test for the textLine GetAlignmentOffset.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest032, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest032, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1060,11 +1060,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest032, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest033
+ * @tc.name: NdkTextLineTest033
  * @tc.desc: test for the textLine EnumerateCaretOffsets.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest033, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest033, TestSize.Level1)
 {
     PrepareCreateTextLine("H测😀مرحب\n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1094,11 +1094,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest033, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest034
+ * @tc.name: NdkTextLineTest034
  * @tc.desc: test for the textLine EnumerateCaretOffsets.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest034, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest034, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -1123,11 +1123,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest034, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest035
+ * @tc.name: NdkTextLineTest035
  * @tc.desc: test for the textLine EnumerateCaretOffsets.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest035, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest035, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1149,11 +1149,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest035, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest036
+ * @tc.name: NdkTextLineTest036
  * @tc.desc: test for the textLine EnumerateCaretOffsets.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest036, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest036, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1171,11 +1171,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest036, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest037
+ * @tc.name: NdkTextLineTest037
  * @tc.desc: test for the textLine CreateTruncatedLine.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest037, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest037, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1209,11 +1209,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest037, TestSize.Level1)
     OH_Drawing_DestroyTextLines(textLines);
 }
 /*
- * @tc.name: NativeDrawingLineTest038
+ * @tc.name: NdkTextLineTest038
  * @tc.desc: test for the textLine CreateTruncatedLine.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest038, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest038, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -1253,11 +1253,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest038, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest039
+ * @tc.name: NdkTextLineTest039
  * @tc.desc: test for the textLine CreateTruncatedLine.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest039, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest039, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1280,11 +1280,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest039, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeDrawingLineTest040
+ * @tc.name: NdkTextLineTest040
  * @tc.desc: test for the textLine GetGlyphRuns.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest040, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest040, TestSize.Level1)
 {
     PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1305,11 +1305,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest040, TestSize.Level1)
     OH_Drawing_DestroyTextLines(textLines);
 }
 /*
- * @tc.name: NativeDrawingLineTest041
+ * @tc.name: NdkTextLineTest041
  * @tc.desc: test for the textLine GetGlyphRuns.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest041, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest041, TestSize.Level1)
 {
     PrepareCreateTextLine(
         "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
@@ -1342,11 +1342,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest041, TestSize.Level1)
     OH_Drawing_DestroyTextLines(textLines);
 }
 /*
- * @tc.name: NativeDrawingLineTest042
+ * @tc.name: NdkTextLineTest042
  * @tc.desc: test for the textLine GetGlyphRuns.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest042, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest042, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
@@ -1366,11 +1366,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest042, TestSize.Level1)
     OH_Drawing_DestroyTextLines(textLines);
 }
 /*
- * @tc.name: NativeDrawingLineTest043
+ * @tc.name: NdkTextLineTest043
  * @tc.desc: test for the textLine GetGlyphRuns.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest043, TestSize.Level1)
+HWTEST_F(NdkTextLineTest, NdkTextLineTest043, TestSize.Level1)
 {
     PrepareCreateTextLine("\n\n");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);

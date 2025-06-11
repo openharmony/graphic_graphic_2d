@@ -22,7 +22,7 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::Drawing;
 namespace OHOS::Rosen::SrvText {
-class NativeDrawingTextGlobalTest : public testing::Test {};
+class NdkTextGlobalTest : public testing::Test {};
 
 static uint32_t GetTextHighContrast()
 {
@@ -31,11 +31,11 @@ static uint32_t GetTextHighContrast()
 }
 
 /*
-* @tc.name: OH_Drawing_HighContrastTest01
+* @tc.name: NdkTextHighContrastTest01
 * @tc.desc: test for text high contrast mode
 * @tc.type: FUNC
 */
-HWTEST_F(NativeDrawingTextGlobalTest, OH_Drawing_HighContrastTest01, TestSize.Level1)
+HWTEST_F(NdkTextGlobalTest, NdkTextHighContrastTest01, TestSize.Level1)
 {
     OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast::TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST);
     EXPECT_EQ(GetTextHighContrast(), OH_Drawing_TextHighContrast::TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST);
@@ -48,11 +48,11 @@ HWTEST_F(NativeDrawingTextGlobalTest, OH_Drawing_HighContrastTest01, TestSize.Le
 }
 
 /*
-* @tc.name: OH_Drawing_HighContrastTest02
+* @tc.name: NdkTextHighContrastTest02
 * @tc.desc: test for text high contrast mode（Invalid）
 * @tc.type: FUNC
 */
-HWTEST_F(NativeDrawingTextGlobalTest, OH_Drawing_HighContrastTest02, TestSize.Level1)
+HWTEST_F(NdkTextGlobalTest, NdkTextHighContrastTest02, TestSize.Level1)
 {
     uint32_t preValue = GetTextHighContrast();
     OH_Drawing_SetTextHighContrast(static_cast<OH_Drawing_TextHighContrast>(TEXT_HIGH_CONTRAST_BUTT));

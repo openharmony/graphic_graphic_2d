@@ -26,7 +26,7 @@ const double DEFAULT_FONT_SIZE = 50;
 const char* DEFAULT_TEXT = "text";
 } // namespace
 
-class OhDrawingTypographyAlignmentTest : public testing::Test {
+class NdkTypographyAlignmentTest : public testing::Test {
 public:
     void SetUp() override;
     void TearDown() override;
@@ -39,14 +39,14 @@ protected:
     int fLayoutWidth{50};
 };
 
-void OhDrawingTypographyAlignmentTest::SetUp()
+void NdkTypographyAlignmentTest::SetUp()
 {
     fTypoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(fTypoStyle, nullptr);
     OH_Drawing_SetTypographyTextFontSize(fTypoStyle, DEFAULT_FONT_SIZE);
 }
 
-void OhDrawingTypographyAlignmentTest::TearDown()
+void NdkTypographyAlignmentTest::TearDown()
 {
     if (fHandler != nullptr) {
         OH_Drawing_DestroyTypographyHandler(fHandler);
@@ -66,7 +66,7 @@ void OhDrawingTypographyAlignmentTest::TearDown()
     }
 }
 
-void OhDrawingTypographyAlignmentTest::PrepareWorkForAlignmentTest()
+void NdkTypographyAlignmentTest::PrepareWorkForAlignmentTest()
 {
     fHandler = OH_Drawing_CreateTypographyHandler(fTypoStyle, OH_Drawing_CreateFontCollection());
     ASSERT_NE(fHandler, nullptr);
@@ -81,11 +81,11 @@ void OhDrawingTypographyAlignmentTest::PrepareWorkForAlignmentTest()
 }
 
 /*
- * @tc.name: OhDrawingTypographyAlignmentTest001
+ * @tc.name: TypographyAlignmentTest001
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyAlignmentTest, TypographyAlignmentTest001, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_START);
     OH_Drawing_SetTypographyTextDirection(fTypoStyle, TEXT_DIRECTION_LTR);
@@ -99,11 +99,11 @@ HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest001, 
 }
 
 /*
- * @tc.name: OhDrawingTypographyAlignmentTest002
+ * @tc.name: TypographyAlignmentTest002
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest002, TestSize.Level1)
+HWTEST_F(NdkTypographyAlignmentTest, TypographyAlignmentTest002, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_END);
     OH_Drawing_SetTypographyTextDirection(fTypoStyle, TEXT_DIRECTION_LTR);
@@ -117,11 +117,11 @@ HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest002, 
 }
 
 /*
- * @tc.name: OhDrawingTypographyAlignmentTest003
+ * @tc.name: TypographyAlignmentTest003
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest003, TestSize.Level1)
+HWTEST_F(NdkTypographyAlignmentTest, TypographyAlignmentTest003, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_CENTER);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_CENTER);
@@ -132,11 +132,11 @@ HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest003, 
 }
 
 /*
- * @tc.name: OhDrawingTypographyAlignmentTest004
+ * @tc.name: TypographyAlignmentTest004
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest004, TestSize.Level1)
+HWTEST_F(NdkTypographyAlignmentTest, TypographyAlignmentTest004, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_JUSTIFY);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_JUSTIFY);
@@ -147,11 +147,11 @@ HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest004, 
 }
 
 /*
- * @tc.name: OhDrawingTypographyAlignmentTest005
+ * @tc.name: TypographyAlignmentTest005
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest005, TestSize.Level1)
+HWTEST_F(NdkTypographyAlignmentTest, TypographyAlignmentTest005, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_LEFT);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_LEFT);
@@ -162,11 +162,11 @@ HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest005, 
 }
 
 /*
- * @tc.name: OhDrawingTypographyAlignmentTest006
+ * @tc.name: TypographyAlignmentTest006
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest006, TestSize.Level1)
+HWTEST_F(NdkTypographyAlignmentTest, TypographyAlignmentTest006, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_RIGHT);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_RIGHT);
@@ -177,11 +177,11 @@ HWTEST_F(OhDrawingTypographyAlignmentTest, OhDrawingTypographyAlignmentTest006, 
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTrailingSpaceOptimizedTest001
+ * @tc.name: TypographyTrailingSpaceOptimizedTest001
  * @tc.desc: test for setting the different value of trailingSpaceOptimized and improve code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OhDrawingTypographyAlignmentTest, OH_Drawing_TypographyTrailingSpaceOptimizedTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyAlignmentTest, TypographyTrailingSpaceOptimizedTest001, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_RIGHT);
     OH_Drawing_SetTypographyTextTrailingSpaceOptimized(nullptr, true);

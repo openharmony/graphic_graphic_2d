@@ -22,7 +22,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-class OH_Drawing_FontCollectionTest : public testing::Test {
+class NdkFontCollectionTest : public testing::Test {
 };
 
 /*
@@ -30,7 +30,7 @@ class OH_Drawing_FontCollectionTest : public testing::Test {
  * @tc.desc: test for fontcollection
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSize.Level1)
+HWTEST_F(NdkFontCollectionTest, NdkFontCollectionTest001, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     OH_Drawing_FontCollection* fontCollection2 = OH_Drawing_CreateSharedFontCollection();

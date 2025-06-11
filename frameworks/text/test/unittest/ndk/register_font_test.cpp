@@ -25,7 +25,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-class NativeDrawingRegisterFontTest : public testing::Test {
+class NdkRegisterFontTest : public testing::Test {
 protected:
     const char* fontFamily_ = "Roboto";
     const char* existFontPath_ = "/system/fonts/Roboto-Regular.ttf";
@@ -33,11 +33,11 @@ protected:
 };
 
 /*
- * @tc.name: NativeDrawingRegisterFontTest001
+ * @tc.name: NdkRegisterFontTest001
  * @tc.desc: test for register font
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest001, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest001, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     uint32_t errorCode = OH_Drawing_RegisterFont(fontCollection, fontFamily_, notExistFontPath_);
@@ -48,11 +48,11 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest001, TestSi
 }
 
 /*
- * @tc.name: NativeDrawingRegisterFontTest002
+ * @tc.name: NdkRegisterFontTest002
  * @tc.desc: test for register font buffer
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest002, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest002, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     std::ifstream fileStream(existFontPath_);
@@ -73,11 +73,11 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest002, TestSi
 }
 
 /*
- * @tc.name: NativeDrawingRegisterFontTest003
+ * @tc.name: NdkRegisterFontTest003
  * @tc.desc: test for nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest003, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest003, TestSize.Level1)
 {
     // ERROR_NULL_FONT_COLLECTION is 8
     const uint32_t nullFontCollection = 8;
@@ -96,11 +96,11 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest003, TestSi
 }
 
 /*
- * @tc.name: NativeDrawingRegisterFontTest004
+ * @tc.name: NdkRegisterFontTest004
  * @tc.desc: test for ohosthemefont
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest004, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest004, TestSize.Level1)
 {
     const uint32_t fileCorruption = 9;
 
@@ -112,11 +112,11 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest004, TestSi
 }
 
 /*
- * @tc.name: NativeDrawingRegisterFontTest005
+ * @tc.name: NdkRegisterFontTest005
  * @tc.desc: test for same ttf with different family name
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest005, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest005, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     uint32_t result = OH_Drawing_RegisterFont(fontCollection, "test1", existFontPath_);
@@ -128,11 +128,11 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest005, TestSi
 }
 
 /*
- * @tc.name: NativeDrawingRegisterFontTest006
+ * @tc.name: NdkRegisterFontTest006
  * @tc.desc: test for unregister font
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest006, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest006, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     uint32_t result = OH_Drawing_RegisterFont(fontCollection, "test1", existFontPath_);
@@ -147,11 +147,11 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest006, TestSi
 }
 
 /*
- * @tc.name: NativeDrawingRegisterFontTest007
+ * @tc.name: NdkRegisterFontTest007
  * @tc.desc: test for unregister font
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest007, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest007, TestSize.Level1)
 {
     // ERROR_NULL_FONT_COLLECTION is 8
     const uint32_t nullFontCollection = 8;
