@@ -1258,7 +1258,7 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene)
 {
     RS_TRACE_NAME_FMT("OnProcessAnimateScene systemAnimatedScene:%d", systemAnimatedScene);
-    RS_LOGI("OnProcessAnimateScene SystemAnimatedScene:[%{public}d]", systemAnimatedScene);
+    RS_LOGD("OnProcessAnimateScene SystemAnimatedScene:[%{public}d]", systemAnimatedScene);
     switch (systemAnimatedScene) {
         // recent task scene for phone
         case SystemAnimatedScenes::ENTER_RECENTS:
@@ -1905,7 +1905,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     if (rootId == INVALID_NODEID) {
         /* uifirst will not draw with no firstlevel node, and there's no need to check and wait for uifirst onDraw */
-        RS_LOGW("uifirst node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
+        RS_LOGD("uifirst node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
         return true;
     }
 
