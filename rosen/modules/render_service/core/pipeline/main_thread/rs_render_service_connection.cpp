@@ -97,6 +97,7 @@ namespace {
 constexpr int SLEEP_TIME_US = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
 const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
+constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
 }
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -3296,6 +3297,20 @@ ErrCode RSRenderServiceConnection::SetBehindWindowFilterEnabled(bool enabled)
 ErrCode RSRenderServiceConnection::GetBehindWindowFilterEnabled(bool& enabled)
 {
     enabled = RSSystemProperties::GetBehindWindowFilterEnabled();
+    return ERR_OK;
+}
+
+int32_t RSRenderServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    MemorySnapshotInfo memorySnapshotInfo;
+
+    bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, memorySnapshotInfo);
+    if (!ret) {
+        RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB fail to find pid!");
+        return ERR_INVALID_VALUE;
+    }
+    gpuMemInMB = memorySnapshotInfo.gpuMemory / MEM_BYTE_TO_MB;
+    RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB called succ");
     return ERR_OK;
 }
 } // namespace Rosen

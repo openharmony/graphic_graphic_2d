@@ -50,6 +50,7 @@ struct RSLayerInfo {
     bool arsrTag = true;
     bool copybitTag = false;
     uint32_t ancoFlags = 0;
+    GraphicIRect ancoCropRect{};
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -58,7 +59,7 @@ struct RSLayerInfo {
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
             (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
             (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag) &&
-            (ancoFlags == layerInfo.ancoFlags);
+            (ancoCropRect == layerInfo.ancoCropRect) && (ancoFlags == layerInfo.ancoFlags);
     }
 #endif
 };
@@ -301,11 +302,6 @@ public:
     const Rect& GetAncoSrcCrop() const { return ancoSrcCrop_; }
     void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
     uint32_t GetAncoFlags() const { return ancoFlags_; }
-    bool IsAncoSfv() const
-    {
-        return (ancoFlags_ & static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) ==
-                static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
-    }
 
     void SetSurfaceCacheContentStatic(bool contentStatic, bool lastFrameSynced);
     bool GetSurfaceCacheContentStatic() const;

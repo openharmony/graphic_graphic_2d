@@ -2347,5 +2347,18 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
     }
     return true;
 }
+
+int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return ERR_INVALID_DATA;
+    }
+    auto ret = renderService->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::GetPidGpuMemoryInMB fail, ret[%{public}d]", ret);
+    }
+    return ret;
+}
 } // namespace Rosen
 } // namespace OHOS

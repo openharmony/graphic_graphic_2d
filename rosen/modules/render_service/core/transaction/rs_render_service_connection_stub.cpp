@@ -201,6 +201,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -3577,6 +3578,28 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::GET_BEHIND_WINDOW_FILTER_ENABLED write enabled failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB): {
+            int32_t pid{0};
+            float gpuMemInMB{0.0};
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RenderServiceConnectionStub::GET_PID_GPU_MEMORY_IN_MB : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ret = GetPidGpuMemoryInMB(pid, gpuMemInMB);
+            if (ret != 0) {
+                RS_LOGE("RenderServiceConnectionStub::GET_PID_GPU_MEMORY_IN_MB : read ret err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!reply.WriteFloat(gpuMemInMB)) {
+                RS_LOGE("RenderServiceConnectionStub::GET_PID_GPU_MEMORY_IN_MB write gpuMemInMB err!");
+                ret = ERR_INVALID_REPLY;
+            }
+            RS_LOGD("RenderServiceConnectionStub::GET_PID_GPU_MEMORY_IN_MB, ret: %{public}d, gpuMemInMB: %{public}f",
+                ret, gpuMemInMB);
             break;
         }
         default: {

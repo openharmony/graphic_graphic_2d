@@ -1184,6 +1184,8 @@ public:
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
+
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

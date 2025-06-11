@@ -30,6 +30,7 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -700,13 +701,14 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    RSAncoManager::UpdateCropRectForAnco(surfaceNodeParams->GetAncoFlags(),
+                                         surfaceNodeParams->GetAncoSrcCrop(), params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
-    SetSrcRectForAnco(*surfaceNodeParams, params);
     RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderUtil::CreateBufferDrawParam(DrawableV2::RSSurfaceRenderNodeDrawable):"
         " Parameters creation completed");
     return params;
@@ -896,14 +898,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         RS_LOGE("buffer or surface is nullptr");
         return params;
     }
-
+    RSAncoManager::UpdateCropRectForAnco(layer->GetAncoFlags(), layer->GetCropRect(), params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, surface, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
-    SetSrcRectForAnco(layer, params);
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
     return params;
@@ -1406,32 +1407,6 @@ void RSUniRenderUtil::GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInf
         RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), invertedScaleMatrix);
         Occlusion::Region mappedRegion{mappedRect};
         sampledDrawnRegion.OrSelf(mappedRegion);
-    }
-}
-
-void RSUniRenderUtil::SetSrcRectForAnco(const LayerInfoPtr& layer, BufferDrawParam& params)
-{
-    if (layer != nullptr && layer->IsAncoSfv()) {
-        const auto& srcCrop = layer->GetCropRect();
-        if (srcCrop.w > 0 && srcCrop.h > 0) {
-            params.srcRect = Drawing::Rect(srcCrop.x, srcCrop.y, srcCrop.w + srcCrop.x, srcCrop.h + srcCrop.y);
-        }
-    }
-}
-
-void RSUniRenderUtil::SetSrcRectForAnco(const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
-{
-    if (surfaceParams.IsAncoSfv()) {
-        const Rect& cropRect = surfaceParams.GetAncoSrcCrop();
-        Drawing::Rect srcRect{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
-        float left = std::max(params.srcRect.left_, srcRect.left_);
-        float top = std::max(params.srcRect.top_, srcRect.top_);
-        float right = std::min(params.srcRect.right_, srcRect.right_);
-        float bottom = std::min(params.srcRect.bottom_, srcRect.bottom_);
-        Drawing::Rect intersectRect(left, top, right, bottom);
-        if (intersectRect.IsValid()) {
-            params.srcRect = intersectRect;
-        }
     }
 }
 } // namespace Rosen

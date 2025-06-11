@@ -45,7 +45,6 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
-#include "params/rs_surface_render_params.h"
 #endif
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
@@ -684,10 +683,6 @@ public:
     uint32_t GetAncoFlags() const;
     // Set the buffer srcRect of the anco node. Only used on anco nodes.
     void SetAncoSrcCrop(const Rect& srcCrop);
-#ifndef ROSEN_CROSS_PLATFORM
-    // When updating the hwcLayer information of anco node, SrcCrop takes effect.
-    void UpdateLayerSrcRectForAnco(RSLayerInfo& layer, const RSSurfaceRenderParams& surfaceParams);
-#endif
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
