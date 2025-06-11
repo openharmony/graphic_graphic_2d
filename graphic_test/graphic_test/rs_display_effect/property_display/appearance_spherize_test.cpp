@@ -72,4 +72,139 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_2)
     RegisterNode(testNodeSpherizeBlur);
 }
 
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_3)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(FIVE_HUNDRED_);
+    imageModifier->SetHeight(FIVE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(ZERO_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ONE_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_4)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(FIVE_HUNDRED_);
+    imageModifier->SetHeight(FIVE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(TEN_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ZERO_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_5)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, ZERO_, ZERO_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(FIVE_HUNDRED_);
+    imageModifier->SetHeight(FIVE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(TEN_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ONE_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_6)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(ZERO_);
+    imageModifier->SetHeight(ZERO_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(TEN_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ONE_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_7)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(FIVE_HUNDRED_);
+    imageModifier->SetHeight(FIVE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(ZERO_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ZERO_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_8)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(ONE_HUNDRED_);
+    imageModifier->SetHeight(ONE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(TEN_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ONE_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_9)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ ONE_HUNDRED_, ONE_HUNDRED_, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(FIVE_HUNDRED_);
+    imageModifier->SetHeight(FIVE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(TEN_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ONE_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_10)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(FIVE_HUNDRED_);
+    imageModifier->SetHeight(FIVE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(ONE_HUNDRED_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ONE_HUNDRED_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_11)
+{
+    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(ZERO_);
+    imageModifier->SetHeight(FIVE_HUNDRED_);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNodeSpherizeBlur->AddModifier(imageModifier);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(TEN_);
+    testNodeSpherizeBlur->SetSpherizeDegree(ONE_);
+    GetRootNode()->AddChild(testNodeSpherizeBlur);
+    RegisterNode(testNodeSpherizeBlur);
+}
+
 } // namespace OHOS::Rosen
