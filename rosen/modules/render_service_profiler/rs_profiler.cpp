@@ -2162,7 +2162,14 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     Respond("Save SubTree Size: " + std::to_string(testDataSubTree.size()));
 
     // save file need setenforce 0
-    const std::string filePath = "/data/rssbtree_test_" + std::to_string(nodeId);
+    std::string rootPath = "/data";
+    char realRootPath[PATH_MAX] = {0};
+    if (!realpath(rootPath.c_str(), realRootPath)) {
+        Respond("Error: data path is invalid");
+        return;
+    }
+    std::string filePath = realRootPath;
+    filePath = filePath + "/rssbtree_test_" + std::to_string(nodeId);
     std::ofstream file(filePath);
     if (file.is_open()) {
         file << testDataSubTree;
