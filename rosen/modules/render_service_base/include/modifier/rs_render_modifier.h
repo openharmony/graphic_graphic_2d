@@ -65,8 +65,7 @@ public:
         }
     }
 
-    size_t GetSize()
-    {
+    size_t GetSize() {
         auto property = GetProperty();
         if (property != nullptr) {
             return property->GetSize();
@@ -103,10 +102,7 @@ public:
     {
         return 0;
     }
-    virtual void SetSingleFrameModifier(bool value)
-    {
-        (void)value;
-    }
+    virtual void SetSingleFrameModifier(bool value) { (void)value; }
     virtual bool GetSingleFrameModifier() const
     {
         return false;
@@ -116,8 +112,7 @@ public:
 class RSB_EXPORT RSGeometryTransRenderModifier : public RSRenderModifier {
 public:
     RSGeometryTransRenderModifier(const std::shared_ptr<RSRenderProperty<Drawing::Matrix>>& property)
-        : property_(property ? property : std::make_shared<RSRenderProperty<Drawing::Matrix>>())
-    {}
+        : property_(property ? property : std::make_shared<RSRenderProperty<Drawing::Matrix>>()) {}
     ~RSGeometryTransRenderModifier() override = default;
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
@@ -161,6 +156,7 @@ public:
     {
         return property_->GetId();
     }
+
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
@@ -212,7 +208,7 @@ protected:
 class RSAnimatableRenderModifier : public RSRenderModifier {
 public:
     RSAnimatableRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
-        : property_(property ? property : std::make_shared<RSRenderAnimatableProperty<float>>())
+        : property_(property ? property : std::make_shared<RSRenderPropertyBase>())
     {}
 
     ~RSAnimatableRenderModifier() override = default;
@@ -489,14 +485,8 @@ public:
         void Apply(RSModifierContext& context) const override;                                                   \
         void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;                   \
         bool Marshalling(Parcel& parcel) override;                                                               \
-        RSModifierType GetType() override                                                                        \
-        {                                                                                                        \
-            return (RSModifierType::MODIFIER_TYPE);                                                              \
-        }                                                                                                        \
-        virtual std::string GetModifierTypeString() override                                                     \
-        {                                                                                                        \
-            return #MODIFIER_NAME;                                                                               \
-        }                                                                                                        \
+        RSModifierType GetType() override { return (RSModifierType::MODIFIER_TYPE); }                            \
+        virtual std::string GetModifierTypeString() override { return #MODIFIER_NAME; }                          \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \

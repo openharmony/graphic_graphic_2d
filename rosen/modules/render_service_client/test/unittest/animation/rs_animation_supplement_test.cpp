@@ -1071,7 +1071,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    RSProperty<float> property;
+    RSPropertyBase property;
     [[maybe_unused]] auto tmp = property.GetThreshold();
     property.SetValueFromRender(nullptr);
 
@@ -1119,7 +1119,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     property->RequestCancelAnimation();
     auto propertyUnit_ { RSPropertyUnit::UNKNOWN };
     property->SetPropertyUnit(propertyUnit_);
-    auto base = std::make_shared<RSRenderProperty<bool>>();
+    auto base = std::make_shared<RSRenderPropertyBase>();
     base->SetModifierType(RSModifierType::BOUNDS);
     auto type = base->GetModifierType();
     EXPECT_TRUE(type == RSModifierType::BOUNDS);

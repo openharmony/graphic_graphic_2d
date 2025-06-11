@@ -127,7 +127,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIDispDistortFilterPara::CreateRSRende
         return nullptr;
     }
     auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        factor->Get(), factor->GetId());
+        factor->Get(), factor->GetId(), RSPropertyType::VECTOR2F);
     frProperty->Setter(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR, factProperty);
 
     auto mask = std::static_pointer_cast<RSUIMaskPara>(GetRSProperty(maskType_));

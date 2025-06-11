@@ -66,7 +66,7 @@ HWTEST_F(RSRenderFilterBaseTest, IsValid001, TestSize.Level1)
 HWTEST_F(RSRenderFilterBaseTest, Setter001, TestSize.Level1)
 {
     auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    auto rsRenderPropertyBase = std::make_shared<RSRenderProperty<bool>>();
+    auto rsRenderPropertyBase = std::make_shared<RSRenderPropertyBase>();
     rsRenderFilterParaBase->Setter(RSUIFilterType::BLUR, rsRenderPropertyBase);
     EXPECT_NE(rsRenderFilterParaBase->properties_.size(), 0);
 }
@@ -132,7 +132,7 @@ HWTEST_F(RSRenderFilterBaseTest, ReadFromParcel001, TestSize.Level1)
 HWTEST_F(RSRenderFilterBaseTest, GetRenderPropert001, TestSize.Level1)
 {
     auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    auto renderPropert = rsRenderFilterParaBase->GetRenderProperty(RSUIFilterType::BLUR);
+    auto renderPropert = rsRenderFilterParaBase->GetRenderPropert(RSUIFilterType::BLUR);
     EXPECT_EQ(renderPropert, nullptr);
 }
 

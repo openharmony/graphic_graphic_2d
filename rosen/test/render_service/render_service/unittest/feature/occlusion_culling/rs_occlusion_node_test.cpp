@@ -313,7 +313,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_003, TestSize.Level1)
         std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
     std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
     Vector4f property(100.f, 100.f, 200.f, 300.f);
-    auto boundsProperty = std::make_shared<RSRenderProperty<bool>>();
+    auto boundsProperty = std::make_shared<RSRenderPropertyBase>(propertyId);
     boundsProperty->modifierType_ = RSModifierType::BOUNDS;
     auto boundsModifier = std::make_shared<RSBoundsRenderModifier>(boundsProperty);
     renderNode->modifiers_.emplace(boundsModifier->GetPropertyId(), boundsModifier);
@@ -336,7 +336,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_004, TestSize.Level1)
         std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
     rootNode->parentOcNode_ = parentOcNode;
     std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
-    auto boundsProperty = std::make_shared<RSRenderProperty<bool>>();
+    auto boundsProperty = std::make_shared<RSRenderPropertyBase>(propertyId);
     boundsProperty->modifierType_ = RSModifierType::BOUNDS;
     auto boundsModifier = std::make_shared<RSBoundsRenderModifier>(boundsProperty);
     renderNode->modifiers_.emplace(boundsModifier->GetPropertyId(), boundsModifier);

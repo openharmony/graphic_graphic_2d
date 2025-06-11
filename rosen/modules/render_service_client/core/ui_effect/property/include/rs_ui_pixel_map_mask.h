@@ -45,13 +45,13 @@ public:
 
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetAnimatableRenderProperty(
-        const RSUIFilterType type)
+        const RSUIFilterType type, const RSPropertyType proType)
     {
         auto proX = std::static_pointer_cast<RSAnimatableProperty<T>>(GetRSProperty(type));
         if (proX == nullptr) {
             return nullptr;
         }
-        return std::make_shared<RSRenderAnimatableProperty<T>>(proX->Get(), proX->GetId());
+        return std::make_shared<RSRenderAnimatableProperty<T>>(proX->Get(), proX->GetId(), proType);
     }
 
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter() override;

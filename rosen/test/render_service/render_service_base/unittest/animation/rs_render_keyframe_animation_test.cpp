@@ -40,7 +40,7 @@ void RSRenderKeyframeAnimationTest::TearDown() {}
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, DumpAnimationTypeTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     std::string out = "out";
     rsRenderKeyframeAnimation.DumpAnimationInfo(out);
@@ -54,9 +54,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, DumpAnimationTypeTest, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframeTest001, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
-    auto value = std::make_shared<RSRenderProperty<bool>>();
+    auto value = std::make_shared<RSRenderPropertyBase>();
     auto interpolator = std::shared_ptr<RSInterpolator>();
     rsRenderKeyframeAnimation.AddKeyframe(1.0f, value, interpolator);
     EXPECT_NE(value, nullptr);
@@ -69,7 +69,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframeTest001, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframesTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     auto keyframes = std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
     std::shared_ptr<RSInterpolator>>>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
@@ -88,9 +88,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframesTest, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframeTest002, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
-    auto value = std::make_shared<RSRenderProperty<bool>>();
+    auto value = std::make_shared<RSRenderPropertyBase>();
     auto interpolator = std::shared_ptr<RSInterpolator>();
     int start = 1;
     int end = 0;
@@ -119,7 +119,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframeTest002, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, SetDurationKeyframeTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     rsRenderKeyframeAnimation.SetDurationKeyframe(false);
     EXPECT_EQ(rsRenderKeyframeAnimation.isDurationKeyframe_, false);
@@ -132,7 +132,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, SetDurationKeyframeTest, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, MarshallingTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     Parcel parcel;
     bool res = rsRenderKeyframeAnimation.Marshalling(parcel);
@@ -146,7 +146,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, MarshallingTest, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, UnmarshallingTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     Parcel parcel;
     RSRenderKeyframeAnimation* renderKeyframeAnimation = rsRenderKeyframeAnimation.Unmarshalling(parcel);
@@ -161,7 +161,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, UnmarshallingTest, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, ParseParamTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     Parcel parcel;
     bool res = rsRenderKeyframeAnimation.ParseParam(parcel);
@@ -175,7 +175,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseParamTest, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesParamTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     Parcel parcel;
     int keyframeSize = 2;
@@ -194,7 +194,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesParamTest, Level1)
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimateTest, Level1)
 {
-    auto originValue = std::make_shared<RSRenderProperty<bool>>();
+    auto originValue = std::make_shared<RSRenderPropertyBase>();
     EXPECT_NE(originValue, nullptr);
 
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);

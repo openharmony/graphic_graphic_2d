@@ -37,7 +37,7 @@ public:
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetRenderAnimatableProperty(const RSUIFilterType type)
     {
-        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(GetRenderProperty(type));
+        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(GetRenderPropert(type));
     }
 
     void GetDescription(std::string& out) const override;

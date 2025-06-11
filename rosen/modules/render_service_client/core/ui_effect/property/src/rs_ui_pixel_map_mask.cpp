@@ -117,7 +117,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIPixelMapMaskPara::CreateRSRenderFilt
     frProperty->Setter(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP, pixelMapRenderProperty);
     // src
     auto srcRenderProperty = GetAnimatableRenderProperty<Vector4f>(
-        RSUIFilterType::PIXEL_MAP_MASK_SRC);
+        RSUIFilterType::PIXEL_MAP_MASK_SRC, RSPropertyType::VECTOR4F);
     if (srcRenderProperty == nullptr) {
         ROSEN_LOGW("RSUIPixelMapMaskPara::CreateRSRenderFilter src property not found");
         return nullptr;
@@ -125,7 +125,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIPixelMapMaskPara::CreateRSRenderFilt
     frProperty->Setter(RSUIFilterType::PIXEL_MAP_MASK_SRC, srcRenderProperty);
     // dst
     auto dstRenderProperty = GetAnimatableRenderProperty<Vector4f>(
-        RSUIFilterType::PIXEL_MAP_MASK_DST);
+        RSUIFilterType::PIXEL_MAP_MASK_DST, RSPropertyType::VECTOR4F);
     if (dstRenderProperty == nullptr) {
         ROSEN_LOGW("RSUIPixelMapMaskPara::CreateRSRenderFilter dst property not found");
         return nullptr;
@@ -133,7 +133,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIPixelMapMaskPara::CreateRSRenderFilt
     frProperty->Setter(RSUIFilterType::PIXEL_MAP_MASK_DST, dstRenderProperty);
     // fill color
     auto fillColorRenderProperty = GetAnimatableRenderProperty<Vector4f>(
-        RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR);
+        RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR, RSPropertyType::VECTOR4F);
     if (fillColorRenderProperty == nullptr) {
         ROSEN_LOGW("RSUIPixelMapMaskPara::CreateRSRenderFilter fill color property not found");
         return nullptr;

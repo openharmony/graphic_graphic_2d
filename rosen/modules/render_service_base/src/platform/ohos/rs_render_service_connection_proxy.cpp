@@ -404,7 +404,7 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
     }
     if (repCode == SUCCESS) {
         pixelMapInfoVector.clear();
-        if (!RSMarshallingHelper::Unmarshalling(reply, pixelMapInfoVector)) {
+        if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapInfoVector)) {
             ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelMapByProcessId: Unmarshalling failed");
         }
     } else {
@@ -1818,8 +1818,8 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderService
         ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
         return pixelMapIdPairVector;
     }
-    if (!RSMarshallingHelper::Unmarshalling(reply, pixelMapIdPairVector)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode Unmarshalling failed");
+    if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapIdPairVector)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode UnmarshallingVec failed");
     }
     return pixelMapIdPairVector;
 }

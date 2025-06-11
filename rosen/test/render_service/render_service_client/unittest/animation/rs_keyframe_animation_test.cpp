@@ -47,7 +47,7 @@ void RSKeyframeAnimationTest::TearDown() {}
  */
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
 {
-    auto value = std::make_shared<RSProperty<float>>();
+    auto value = std::make_shared<RSPropertyBase>();
     RSKeyframeAnimation rsKeyframeAnimation(value);
     RSAnimationTimingCurve timingCurve;
     rsKeyframeAnimation.AddKeyFrame(1.f, value, timingCurve);
@@ -61,7 +61,7 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
  */
 HWTEST_F(RSKeyframeAnimationTest, StartRenderAnimationTest, Level1)
 {
-    auto value = std::make_shared<RSProperty<float>>();
+    auto value = std::make_shared<RSPropertyBase>();
     auto animation = std::make_shared<RSRenderKeyframeAnimation>();
     RSKeyframeAnimation rsKeyframeAnimation(value);
     RSAnimationTimingCurve timingCurve;
@@ -77,7 +77,7 @@ HWTEST_F(RSKeyframeAnimationTest, StartRenderAnimationTest, Level1)
  */
 HWTEST_F(RSKeyframeAnimationTest, StartUIAnimationTest, Level1)
 {
-    auto value = std::make_shared<RSProperty<float>>();
+    auto value = std::make_shared<RSPropertyBase>();
     auto animation = std::make_shared<RSRenderKeyframeAnimation>();
     RSKeyframeAnimation rsKeyframeAnimation(value);
     RSAnimationTimingCurve timingCurve;

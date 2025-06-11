@@ -29,12 +29,12 @@ public:
     }
     virtual ~RSRenderRippleMaskPara() = default;
 
-    static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
+    static std::shared_ptr<RSRenderPropertyBase> CreateRenderPropert(RSUIFilterType type);
 
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetAnimatRenderProperty(const RSUIFilterType type)
     {
-        auto property = GetRenderProperty(type);
+        auto property = GetRenderPropert(type);
         if (property == nullptr) {
             return nullptr;
         }

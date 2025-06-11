@@ -86,7 +86,7 @@ void RSCustomInterpolator::Convert(int duration)
         return;
     }
     constexpr uint64_t frameInterval = 16666667;
-    auto numAnim = static_cast<size_t>(std::ceil(static_cast<double>(duration * MS_TO_NS) / frameInterval));
+    int numAnim = static_cast<int>(std::ceil(static_cast<double>(duration * MS_TO_NS) / frameInterval));
     numAnim = std::clamp(numAnim, MIN_SAMPLE_POINTS, MAX_SAMPLE_POINTS);
     float lastAnimFrame = numAnim - 1;
     if (lastAnimFrame <= 0.0f) {

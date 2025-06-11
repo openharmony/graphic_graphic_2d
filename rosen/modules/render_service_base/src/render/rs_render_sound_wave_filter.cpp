@@ -42,7 +42,7 @@ namespace Rosen {
         }
         for (const auto& [key, value] : properties_) {
             if (!RSMarshallingHelper::Marshalling(parcel, key) ||
-                !RSMarshallingHelper::Marshalling(parcel, value)) {
+                !RSRenderPropertyBase::Marshalling(parcel, value)) {
                 return false;
             }
             ROSEN_LOGD("RSRenderSoundWaveFilterPara::WriteToParcel type %{public}d", static_cast<int>(key));
@@ -80,7 +80,7 @@ namespace Rosen {
                 return false;
             }
             std::shared_ptr<RSRenderPropertyBase> value = CreateRenderProperty(key);
-            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+            if (!RSRenderPropertyBase::Unmarshalling(parcel, value)) {
                 ROSEN_LOGE("RSRenderSoundWaveFilterPara::ReadFromParcel value %{public}d", static_cast<int>(key));
                 return false;
             }
@@ -92,35 +92,45 @@ namespace Rosen {
     std::shared_ptr<RSRenderPropertyBase> RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType type)
     {
         switch (type) {
-            case RSUIFilterType::SOUND_WAVE_COLOR_A: {
-                return std::make_shared<RSRenderProperty<Vector4f>>(Vector4f(), 0);
+            case RSUIFilterType::SOUND_WAVE_COLOR_A : {
+                return std::make_shared<RSRenderProperty<Vector4f>>(
+                    Vector4f(), 0, RSPropertyType::VECTOR4F);
             }
-            case RSUIFilterType::SOUND_WAVE_COLOR_B: {
-                return std::make_shared<RSRenderProperty<Vector4f>>(Vector4f(), 0);
+            case RSUIFilterType::SOUND_WAVE_COLOR_B : {
+                return std::make_shared<RSRenderProperty<Vector4f>>(
+                    Vector4f(), 0, RSPropertyType::VECTOR4F);
             }
-            case RSUIFilterType::SOUND_WAVE_COLOR_C: {
-                return std::make_shared<RSRenderProperty<Vector4f>>(Vector4f(), 0);
+            case RSUIFilterType::SOUND_WAVE_COLOR_C : {
+                return std::make_shared<RSRenderProperty<Vector4f>>(
+                    Vector4f(), 0, RSPropertyType::VECTOR4F);
             }
-            case RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS: {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
+            case RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    0.f, 0, RSPropertyType::FLOAT);
             }
-            case RSUIFilterType::SOUND_INTENSITY: {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
+            case RSUIFilterType::SOUND_INTENSITY : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    0.f, 0, RSPropertyType::FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_ALPHA_A: {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(1.f, 0);
+            case RSUIFilterType::SHOCK_WAVE_ALPHA_A : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    1.f, 0, RSPropertyType::FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_ALPHA_B: {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(1.f, 0);
+            case RSUIFilterType::SHOCK_WAVE_ALPHA_B : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    1.f, 0, RSPropertyType::FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_PROGRESS_A: {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
+            case RSUIFilterType::SHOCK_WAVE_PROGRESS_A : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    0.f, 0, RSPropertyType::FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_PROGRESS_B: {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
+            case RSUIFilterType::SHOCK_WAVE_PROGRESS_B : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    0.f, 0, RSPropertyType::FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA: {
-                return std::make_shared<RSRenderAnimatableProperty<float>>(1.f, 0);
+            case RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    1.f, 0, RSPropertyType::FLOAT);
             }
             default: {
                 ROSEN_LOGD("RSRenderSoundWaveFilterPara::CreateRenderProperty mask nullptr");
@@ -142,25 +152,25 @@ namespace Rosen {
     bool RSRenderSoundWaveFilterPara::ParseFilterValues()
     {
         auto waveColorA =
-            std::static_pointer_cast<RSRenderProperty<Vector4f>>(GetRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_A));
+            std::static_pointer_cast<RSRenderProperty<Vector4f>>(GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_A));
         auto waveColorB =
-            std::static_pointer_cast<RSRenderProperty<Vector4f>>(GetRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_B));
+            std::static_pointer_cast<RSRenderProperty<Vector4f>>(GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_B));
         auto waveColorC =
-            std::static_pointer_cast<RSRenderProperty<Vector4f>>(GetRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_C));
+            std::static_pointer_cast<RSRenderProperty<Vector4f>>(GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_C));
         auto waveColorProgress = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-            GetRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS));
+            GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS));
         auto soundIntensity = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-            GetRenderProperty(RSUIFilterType::SOUND_INTENSITY));
+            GetRenderPropert(RSUIFilterType::SOUND_INTENSITY));
         auto shockWaveAlphaA = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-            GetRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_A));
+            GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_A));
         auto shockWaveAlphaB = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-            GetRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_B));
+            GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_B));
         auto shockWaveProgressA = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-            GetRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_A));
+            GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_A));
         auto shockWaveProgressB = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-            GetRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_B));
+            GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_B));
         auto shockWaveTotalAlpha = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-            GetRenderProperty(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA));
+            GetRenderPropert(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA));
         bool soundWavePropertyIsValid = waveColorA && waveColorB && waveColorC && waveColorProgress && soundIntensity &&
                                         shockWaveAlphaA && shockWaveAlphaB && shockWaveProgressA &&
                                         shockWaveProgressB && shockWaveTotalAlpha;

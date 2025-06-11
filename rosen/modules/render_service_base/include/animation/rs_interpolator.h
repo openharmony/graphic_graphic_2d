@@ -29,8 +29,8 @@
 
 namespace OHOS {
 namespace Rosen {
-static constexpr size_t MAX_SAMPLE_POINTS = 300;
-static constexpr size_t MIN_SAMPLE_POINTS = 2;
+static constexpr int MAX_SAMPLE_POINTS = 300;
+static constexpr int MIN_SAMPLE_POINTS = 2;
 
 enum InterpolatorType : uint16_t {
     LINEAR = 1,

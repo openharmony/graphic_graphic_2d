@@ -657,7 +657,7 @@ HWTEST_F(RSRenderModifierTest, RSForegroundUIFilterRenderModifier001, TestSize.L
 HWTEST_F(RSRenderModifierTest, RSBackgroundUIFilterRenderModifier001, TestSize.Level1)
 {
     auto prop1 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
-    auto modifier = std::make_shared<RSBackgroundUIFilterRenderModifier>(prop1);
+    auto modifier = std::make_shared<RSForegroundUIFilterRenderModifier>(prop1);
     EXPECT_EQ(modifier->GetProperty(), prop1);
 
     auto prop2 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();

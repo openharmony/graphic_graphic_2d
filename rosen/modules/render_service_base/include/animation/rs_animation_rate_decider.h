@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class RSPropertyUnit : uint8_t;
+enum class RSPropertyUnit : int16_t;
 class RSRenderPropertyBase;
 using FrameRateGetFunc = std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>;
 using PropertyValue = std::shared_ptr<RSRenderPropertyBase>;

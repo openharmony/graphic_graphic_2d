@@ -239,6 +239,7 @@ HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_DumpAnimationI
     animation.DumpAnimationInfo(out1);
     EXPECT_EQ(out1, "Type:RSRenderPropertyAnimation, ModifierType: INVALID");
     auto prop = std::make_shared<RSRenderProperty<float>>();
+    prop->type_ = RSPropertyType::FLOAT;
     animation.property_ = prop;
     std::string out2;
     animation.DumpAnimationInfo(out2);

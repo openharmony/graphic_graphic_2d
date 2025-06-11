@@ -39,19 +39,19 @@ void RSRenderRippleMaskTest::TearDown() {}
  */
 HWTEST_F(RSRenderRippleMaskTest, CreateRenderPropert001, TestSize.Level1)
 {
-    auto renderPropert = RSRenderRippleMaskPara::CreateRenderProperty(RSUIFilterType::RIPPLE_MASK_RADIUS);
+    auto renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::RIPPLE_MASK_RADIUS);
     EXPECT_NE(renderPropert, nullptr);
 
-    renderPropert = RSRenderRippleMaskPara::CreateRenderProperty(RSUIFilterType::RIPPLE_MASK_WIDTH);
+    renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::RIPPLE_MASK_WIDTH);
     EXPECT_NE(renderPropert, nullptr);
 
-    renderPropert = RSRenderRippleMaskPara::CreateRenderProperty(RSUIFilterType::RIPPLE_MASK_CENTER);
+    renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::RIPPLE_MASK_CENTER);
     EXPECT_NE(renderPropert, nullptr);
 
-    renderPropert = RSRenderRippleMaskPara::CreateRenderProperty(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
+    renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
     EXPECT_NE(renderPropert, nullptr);
 
-    renderPropert = RSRenderRippleMaskPara::CreateRenderProperty(RSUIFilterType::BLUR);
+    renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::BLUR);
     EXPECT_EQ(renderPropert, nullptr);
 }
 

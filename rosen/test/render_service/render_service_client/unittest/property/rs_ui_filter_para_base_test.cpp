@@ -145,7 +145,7 @@ HWTEST_F(RSUIFilterParaBaseTest, Clear001, TestSize.Level1)
     auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
     auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
     rsUIFilterParaBase->properties_[RSUIFilterType::NONE] = property;
     EXPECT_NE(rsUIFilterParaBase->properties_.size(), 0);
     rsUIFilterParaBase->Clear();

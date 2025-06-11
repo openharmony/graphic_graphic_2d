@@ -47,8 +47,8 @@ void RSCurveAnimationTest::TearDown() {}
  */
 HWTEST_F(RSCurveAnimationTest, StartRenderAnimationTest, Level1)
 {
-    auto property = std::make_shared<RSProperty<float>>();
-    auto byValue = std::make_shared<RSProperty<float>>();
+    auto property = std::make_shared<RSPropertyBase>();
+    auto byValue = std::make_shared<RSPropertyBase>();
     RSCurveAnimation rsCurveAnimation(property, byValue);
     auto animation = std::make_shared<RSRenderCurveAnimation>();
     rsCurveAnimation.StartInner(nullptr);

@@ -38,7 +38,7 @@ namespace Rosen {
         }
         for (const auto& [key, value] : properties_) {
             if (!RSMarshallingHelper::Marshalling(parcel, key) ||
-                !RSMarshallingHelper::Marshalling(parcel, value)) {
+                !RSRenderPropertyBase::Marshalling(parcel, value)) {
                 ROSEN_LOGE("RSRenderBlurFilterPara::WriteToParcel %{public}d error",
                     static_cast<int>(key));
                 return false;
@@ -69,9 +69,9 @@ namespace Rosen {
         for (uint32_t i = 0; i < size; ++i) {
             RSUIFilterType key;
             std::shared_ptr<RSRenderPropertyBase> value = std::make_shared<RSRenderAnimatableProperty<float>>(
-                0.f, 0);
+                0.f, 0, RSPropertyType::FLOAT);
             if (!RSMarshallingHelper::Unmarshalling(parcel, key) ||
-                !RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                !RSRenderPropertyBase::Unmarshalling(parcel, value)) {
                 ROSEN_LOGE("RSRenderBlurFilterPara::ReadFromParcel %{public}d error",
                     static_cast<int>(key));
                 return false;

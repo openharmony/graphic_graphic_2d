@@ -85,7 +85,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ExecuteSynchronousTask, TestSize.Le
     std::shared_ptr<RSSyncTask> task;
     proxy->ExecuteSynchronousTask(task);
     NodeId targetId;
-    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
+    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderPropertyBase>();
     task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
     proxy->ExecuteSynchronousTask(task);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);

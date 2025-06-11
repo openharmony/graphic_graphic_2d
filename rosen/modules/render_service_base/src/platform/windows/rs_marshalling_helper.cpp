@@ -451,31 +451,38 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
     return {};
 }
 
-#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \
-    template<typename T>                                                                           \
-    bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val) \
-    {                                                                                              \
-        bool flag = parcel.WriteUint64(val->GetId()) && Marshalling(parcel, val->Get());           \
-        if (!flag) {                                                                               \
-            ROSEN_LOGE("RSMarshallingHelper::Marshalling failed");                                 \
-        }                                                                                          \
-        return flag;                                                                               \
-    }                                                                                              \
-    template<typename T>                                                                           \
-    bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)     \
-    {                                                                                              \
-        PropertyId id = 0;                                                                         \
-        if (!parcel.ReadUint64(id)) {                                                              \
-            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadUint64 failed");                    \
-            return false;                                                                          \
-        }                                                                                          \
-        T value;                                                                                   \
-        if (!Unmarshalling(parcel, value)) {                                                       \
-            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Unmarshalling failed");                 \
-            return false;                                                                          \
-        }                                                                                          \
-        val.reset(new TEMPLATE<T>(value, id));                                                     \
-        return val != nullptr;                                                                     \
+#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                                       \
+    template<typename T>                                                                                              \
+    bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val)                    \
+    {                                                                                                                 \
+        bool flag = parcel.WriteInt16(static_cast<int16_t>(val->GetPropertyType())) &&                                \
+               parcel.WriteUint64(val->GetId()) &&Marshalling(parcel, val->Get());                                    \
+        if (!flag) {                                                                                                  \
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling failed");                                                    \
+        }                                                                                                             \
+        return flag;                                                                                                  \
+    }                                                                                                                 \
+    template<typename T>                                                                                              \
+    bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)                        \
+    {                                                                                                                 \
+        PropertyId id = 0;                                                                                            \
+        int16_t typeId = 0;                                                                                           \
+        if (!parcel.ReadInt16(typeId)) {                                                                              \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadInt16 failed");                                        \
+            return false;                                                                                             \
+        }                                                                                                             \
+        RSPropertyType type = static_cast<RSPropertyType>(typeId);                                                    \
+        if (!parcel.ReadUint64(id)) {                                                                                 \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadUint64 failed");                                       \
+            return false;                                                                                             \
+        }                                                                                                             \
+        T value;                                                                                                      \
+        if (!Unmarshalling(parcel, value)) {                                                                          \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Unmarshalling failed");                                    \
+            return false;                                                                                             \
+        }                                                                                                             \
+        val.reset(new TEMPLATE<T>(value, id, type));                                                                  \
+        return val != nullptr;                                                                                        \
     }
 
 MARSHALLING_AND_UNMARSHALLING(RSRenderProperty)
@@ -486,35 +493,37 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     template bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<TYPE>>& val); \
     template bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<TYPE>>& val);
 
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RSWaterRipplePara)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RSFlyOutPara)                                 \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                    \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSDynamicBrightnessPara)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSWaterRipplePara)            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSFlyOutPara)                 \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMagnifierParams>)           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMagnifierParams>)  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>)  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
@@ -528,6 +537,7 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 
 #define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, float)                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                 \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                          \

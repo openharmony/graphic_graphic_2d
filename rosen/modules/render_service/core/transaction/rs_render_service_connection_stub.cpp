@@ -1328,9 +1328,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             permissions.selfCapture = ExtractPid(id) == callingPid;
             std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
             pixelMapIdPairVector = TakeSurfaceCaptureSoloNode(id, captureConfig, permissions);
-            if (!RSMarshallingHelper::Marshalling(reply, pixelMapIdPairVector)) {
+            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapIdPairVector)) {
                 ret = ERR_INVALID_REPLY;
-                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_SOLO Marshalling failed");
+                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_SOLO MarshallingVec failed");
                 break;
             }
             break;
@@ -1956,7 +1956,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (!RSMarshallingHelper::Marshalling(reply, pixelMapInfoVector)) {
+            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapInfoVector)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }

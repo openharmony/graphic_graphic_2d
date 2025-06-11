@@ -60,7 +60,7 @@ public:
      * @param property A shared pointer to an RSPropertyBase object.
      */
     explicit RSModifier(const std::shared_ptr<RSPropertyBase>& property)
-        : property_(property ? property : std::make_shared<RSProperty<bool>>())
+        : property_(property ? property : std::make_shared<RSPropertyBase>())
     {}
 
     /**
@@ -90,7 +90,7 @@ public:
 
 protected:
     RSModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
-        : property_(property ? property : std::make_shared<RSProperty<bool>>())
+        : property_(property ? property : std::make_shared<RSPropertyBase>())
     {
         property_->type_ = type;
     }
