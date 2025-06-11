@@ -33,6 +33,7 @@
 #include "params/rs_surface_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -95,7 +96,6 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
-    layer->SetAncoFlags(layerInfo.ancoFlags);
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     CreateSolidColorLayer(layer, params);
@@ -161,7 +161,6 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
-    layer->SetAncoFlags(layerInfo.ancoFlags);
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
     CreateSolidColorLayer(layer, params);
     layers_.emplace_back(layer);
@@ -299,6 +298,8 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetDirtyRegions(dirtyRegions);
 
     layer->SetBlendType(layerInfo.blendType);
+    layer->SetAncoFlags(layerInfo.ancoFlags);
+    RSAncoManager::UpdateLayerSrcRectForAnco(layerInfo.ancoFlags, layerInfo.ancoCropRect, layerInfo.srcRect);
     layer->SetCropRect(layerInfo.srcRect);
     layer->SetGravity(layerInfo.gravity);
     layer->SetTransform(layerInfo.transformType);
