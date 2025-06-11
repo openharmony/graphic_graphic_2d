@@ -388,6 +388,7 @@ public:
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

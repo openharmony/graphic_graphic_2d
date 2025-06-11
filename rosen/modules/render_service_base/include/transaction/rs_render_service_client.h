@@ -477,6 +477,8 @@ public:
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
+
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);
