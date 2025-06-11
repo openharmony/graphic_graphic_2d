@@ -54,6 +54,10 @@ scalar PathIter::ConicWeight() const
 
 PathVerb PathIter::Next(Point* points)
 {
+    if (points == nullptr) {
+        LOGE("PathIter::Next, points is nullptr");
+        return PathVerb::DONE;
+    }
     return impl_->Next(points);
 }
 
