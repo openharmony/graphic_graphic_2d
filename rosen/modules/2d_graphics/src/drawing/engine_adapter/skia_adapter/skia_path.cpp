@@ -299,6 +299,9 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
     if (skPathImpl1 != nullptr && skPathImpl2 != nullptr) {
         SkPath interp;
         isSuccess = path_.interpolate(skPathImpl1->GetPath(), weight, &interp);
+        if (!isSuccess) {
+            return isSuccess;
+        }
         skPathImpl2->SetPath(interp);
         isChanged_ = true;
     }
