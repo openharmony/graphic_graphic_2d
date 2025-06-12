@@ -484,7 +484,7 @@ bool VSyncGenerator::CheckTimingCorrect(int64_t now, int64_t referenceTime, int6
     bool isTimingCorrect = false;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
-        if ((t - nextVSyncTime < ERROR_THRESHOLD) && (listeners_[i].phase_ == 0)) {
+        if ((t - nextVSyncTime < ERROR_THRESHOLD) && (listeners_[i].isRS_ || listeners_[i].phase_ == 0)) {
             isTimingCorrect = true;
         }
     }
@@ -707,15 +707,15 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
     return VSYNC_ERROR_OK;
 }
 
-bool VSyncGenerator::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime)
+bool VSyncGenerator::NeedPreexecuteAndUpdateTs(
+    int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime)
 {
     std::lock_guard<std::mutex> locker(mutex_);
     int64_t now = SystemTime();
-    int64_t offset = (now - lastVsyncTime) % period_;
+    offset = (now - lastVsyncTime) % period_;
     if (period_ - offset > PERIOD_CHECK_THRESHOLD) {
         timestamp = now;
         period = period_;
-        referenceTime_ = referenceTime_ + offset - wakeupDelay_;
         RS_TRACE_NAME_FMT("NeedPreexecuteAndUpdateTs, new referenceTime:%ld, timestamp:%ld, period:%ld,",
             referenceTime_, timestamp, period);
         return true;
@@ -723,7 +723,8 @@ bool VSyncGenerator::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& peri
     return false;
 }
 
-VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
+VsyncError VSyncGenerator::AddListener(int64_t phase,
+    const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, bool isRS, bool isUrgent)
 {
     ScopedBytrace func("AddListener");
     std::lock_guard<std::mutex> locker(mutex_);
@@ -740,7 +741,8 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
-    listener.lastTime_ = SystemTime() - period_ + phase_;
+    listener.lastTime_ = isUrgent ? SystemTime() : SystemTime() - period_ + phase_;
+    listener.isRS_ = isRS;
 
     listeners_.push_back(listener);
 

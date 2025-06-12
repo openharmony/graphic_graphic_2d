@@ -118,5 +118,20 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level1)
     controller->vsyncGenerator_ = nullptr;
     EXPECT_EQ(controller->ChangeGeneratorRate(60, appChangeData), 0);
 }
+
+/*
+ * @tc.name: ChangeAdaptiveStatus
+ * @tc.desc: Test ChangeAdaptiveStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeAdaptiveStatus, TestSize.Level1)
+{
+    ASSERT_NE(controller, nullptr);
+    controller->ChangeAdaptiveStatus(true);
+    controller->rsController_ = nullptr;
+    controller->ChangeAdaptiveStatus(true);
+    controller->rsController_ = rsController;
+}
 } // namespace Rosen
 } // namespace OHOS
