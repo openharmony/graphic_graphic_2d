@@ -299,6 +299,26 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Func
 }
 
 /*
+ * @tc.name: TakeSurfaceCaptureForUiCanvasNode003
+ * @tc.desc: Test TakeSurfaceCaptureForUI with canvas node valid rect
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode003, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+
+    Drawing::Rect specifiedRect(1.f, 1.f, 5.f, 5.f);
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.f, 1.f, false, specifiedRect);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_EQ(callback->captureSuccess_, true);
+#endif
+}
+
+/*
  * @tc.name: TakeSurfaceCaptureForUiCanvasDrawingNode
  * @tc.desc: Test TakeSurfaceCaptureForUI with canvasdrawing node
  * @tc.type: FUNC

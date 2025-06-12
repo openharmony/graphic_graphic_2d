@@ -289,12 +289,9 @@ public:
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
     
     /**
-     * @brief Get component snapshot.
+     * @brief Get a list of pixelmap information, each node of the component node tree will have a pixelmap.
      * @param node can be rootNode、surfaceNode、canvasNode、CanvasDrawingNode.
-     * @param callback When the snapshot is compelete, the callback will be triggered.
-     * @param captureConfig Indicates the configrutation items required for snapshot.
-     * @param specifiedAreaRect Indicates the range that user wants to clip the snapshot.
-     * @return return true if snaphot success, else return false.
+     * @return return a vector of pair, the first element is the NodeId, the second element is the pixelmap.
      */
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
         TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node);
