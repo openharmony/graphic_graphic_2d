@@ -39,12 +39,12 @@ public:
     void OnAttach(RSNode& node);
     void OnDetach();
     void AttachProperty(const std::shared_ptr<RSPropertyBase>& property);
-    void AttachProperty(ModifierNG::RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
-    void DetachProperty(ModifierNG::RSPropertyType type);
+    void AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
+    void DetachProperty(RSPropertyType type);
 
     void SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager = nullptr);
 
-    virtual ModifierNG::RSModifierType GetType() const = 0;
+    virtual RSModifierType GetType() const = 0;
 
     std::shared_ptr<RSPropertyBase> GetProperty(RSPropertyType type)
     {
@@ -77,7 +77,7 @@ protected:
     virtual ~RSModifier() = default;
 
     // only accept properties on white list ?
-    std::map<ModifierNG::RSPropertyType, std::shared_ptr<RSPropertyBase>> properties_;
+    std::map<RSPropertyType, std::shared_ptr<RSPropertyBase>> properties_;
     ModifierId id_;
     std::weak_ptr<RSNode> node_;
 
@@ -147,8 +147,8 @@ protected:
 
 private:
     static ModifierId GenerateModifierId();
-    void SetPropertyThresholdType(ModifierNG::RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
-    static std::array<Constructor, ModifierNG::MODIFIER_TYPE_COUNT> ConstructorLUT_;
+    void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
+    static std::array<Constructor, MODIFIER_TYPE_COUNT> ConstructorLUT_;
     bool isDirty_ { false };
 
     friend class OHOS::Rosen::RSModifierExtractor;
