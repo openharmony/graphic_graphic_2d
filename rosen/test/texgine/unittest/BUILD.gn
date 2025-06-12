@@ -32,6 +32,11 @@ config("texgine_test_config") {
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing/src",
   ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 group("common_deps") {
