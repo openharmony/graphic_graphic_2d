@@ -136,6 +136,11 @@ public:
     RSRenderFilterParaBase(RSUIFilterType type) : type_(type) {}
     virtual ~RSRenderFilterParaBase() = default;
 
+    virtual std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const
+    {
+        return nullptr;
+    }
+
     RSUIFilterType GetType() const;
 
     virtual bool IsValid() const;

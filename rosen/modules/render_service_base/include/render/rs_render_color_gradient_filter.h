@@ -34,6 +34,8 @@ public:
 
     virtual ~RSRenderColorGradientFilterPara() = default;
 
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
+
     void GetDescription(std::string& out) const override;
 
     virtual bool WriteToParcel(Parcel& parcel) override;
@@ -55,6 +57,8 @@ public:
     const std::shared_ptr<RSShaderMask>& GetMask() const;
 
 private:
+    void CalculateHash();
+
     std::vector<float> colors_;
     std::vector<float> positions_;
     std::vector<float> strengths_;

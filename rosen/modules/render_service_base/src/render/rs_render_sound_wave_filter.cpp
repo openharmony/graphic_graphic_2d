@@ -23,6 +23,25 @@
 
 namespace OHOS {
 namespace Rosen {
+
+    std::shared_ptr<RSRenderFilterParaBase> RSRenderSoundWaveFilterPara::DeepCopy() const
+    {
+        auto copyFilter = std::make_shared<RSRenderSoundWaveFilterPara>(id_);
+        copyFilter->type_ = type_;
+        copyFilter->colorA_ = colorA_;
+        copyFilter->colorB_ = colorB_;
+        copyFilter->colorC_ = colorC_;
+        copyFilter->colorProgress_ = colorProgress_;
+        copyFilter->soundIntensity_ = soundIntensity_;
+        copyFilter->shockWaveAlphaA_ = shockWaveAlphaA_;
+        copyFilter->shockWaveAlphaB_ = shockWaveAlphaB_;
+        copyFilter->shockWaveProgressA_ = shockWaveProgressA_;
+        copyFilter->shockWaveProgressB_ = shockWaveProgressB_;
+        copyFilter->shockWaveTotalAlpha_ = shockWaveTotalAlpha_;
+        copyFilter->CalculateHash();
+        return copyFilter;
+    }
+
     void RSRenderSoundWaveFilterPara::GetDescription(std::string& out) const
     {
         out += "RSRenderSoundWaveFilterPara";
@@ -181,8 +200,6 @@ namespace Rosen {
         shockWaveProgressA_ = shockWaveProgressA->Get();
         shockWaveProgressB_ = shockWaveProgressB->Get();
         shockWaveTotalAlpha_ = shockWaveTotalAlpha->Get();
-
-        CalculateHash();
         return true;
     }
 

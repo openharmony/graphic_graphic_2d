@@ -26,6 +26,26 @@
 
 namespace OHOS {
 namespace Rosen {
+
+void RSRenderBezierWarpFilterPara::CalculateHash()
+{
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&destinationPatch_, sizeof(destinationPatch_), hash_);
+}
+
+std::shared_ptr<RSRenderFilterParaBase> RSRenderBezierWarpFilterPara::DeepCopy() const
+{
+    auto copyFilter = std::make_shared<RSRenderBezierWarpFilterPara>(id_);
+    copyFilter->type_ = type_;
+    copyFilter->destinationPatch_ = destinationPatch_;
+    copyFilter->CalculateHash();
+    return copyFilter;
+}
+
 void RSRenderBezierWarpFilterPara::GetDescription(std::string& out) const
 {
     out += "RSRenderBezierWarpFilterPara";
@@ -159,12 +179,6 @@ bool RSRenderBezierWarpFilterPara::ParseFilterValues()
         tmpBezierCtrlPoint = ctrlPointProperty->Get();
         destinationPatch_[i].Set(tmpBezierCtrlPoint.x_, tmpBezierCtrlPoint.y_);
     }
-#ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
-#else
-    const auto hashFunc = SkOpts::hash;
-#endif
-    hash_ = hashFunc(&destinationPatch_, sizeof(destinationPatch_), hash_);
     return true;
 }
 

@@ -37,6 +37,42 @@ constexpr RSUIFilterType DISPERSION_FILTER_TYPE[] = {
     RSUIFilterType::DISPERSION_BLUE_OFFSET,
 };
 
+void RSRenderDispersionFilterPara::CalculateHash()
+{
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+    hash_ = hashFunc(&opacity_, sizeof(opacity_), hash_);
+    hash_ = hashFunc(&redOffsetX_, sizeof(redOffsetX_), hash_);
+    hash_ = hashFunc(&redOffsetY_, sizeof(redOffsetY_), hash_);
+    hash_ = hashFunc(&greenOffsetX_, sizeof(greenOffsetX_), hash_);
+    hash_ = hashFunc(&greenOffsetY_, sizeof(greenOffsetY_), hash_);
+    hash_ = hashFunc(&blueOffsetX_, sizeof(blueOffsetX_), hash_);
+    hash_ = hashFunc(&blueOffsetY_, sizeof(blueOffsetY_), hash_);
+}
+
+std::shared_ptr<RSRenderFilterParaBase> RSRenderDispersionFilterPara::DeepCopy() const
+{
+    auto copyFilter = std::make_shared<RSRenderDispersionFilterPara>(id_);
+    copyFilter->type_ = type_;
+    copyFilter->opacity_ = opacity_;
+    copyFilter->redOffsetX_ = redOffsetX_;
+    copyFilter->redOffsetY_ = redOffsetY_;
+    copyFilter->greenOffsetX_ = greenOffsetX_;
+    copyFilter->greenOffsetY_ = greenOffsetY_;
+    copyFilter->blueOffsetX_ = blueOffsetX_;
+    copyFilter->blueOffsetY_ = blueOffsetY_;
+    copyFilter->mask_ = mask_;
+    copyFilter->CalculateHash();
+    return copyFilter;
+}
+
 void RSRenderDispersionFilterPara::GetDescription(std::string& out) const
 {
     out += "RSRenderDispersionFilterPara::[maskType_:" + std::to_string(static_cast<int>(maskType_)) + "]";
@@ -202,23 +238,7 @@ bool RSRenderDispersionFilterPara::ParseFilterValues()
     auto blueOffset = dispersionBlueOffset->Get();
     blueOffsetX_ = blueOffset[0];
     blueOffsetY_ = blueOffset[1];
-#ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
-#else
-    const auto hashFunc = SkOpts::hash;
-#endif
-    mask_ = mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
-    if (mask_) {
-        auto maskHash = mask_->Hash();
-        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
-    }
-    hash_ = hashFunc(&opacity_, sizeof(opacity_), hash_);
-    hash_ = hashFunc(&redOffsetX_, sizeof(redOffsetX_), hash_);
-    hash_ = hashFunc(&redOffsetY_, sizeof(redOffsetY_), hash_);
-    hash_ = hashFunc(&greenOffsetX_, sizeof(greenOffsetX_), hash_);
-    hash_ = hashFunc(&greenOffsetY_, sizeof(greenOffsetY_), hash_);
-    hash_ = hashFunc(&blueOffsetX_, sizeof(blueOffsetX_), hash_);
-    hash_ = hashFunc(&blueOffsetY_, sizeof(blueOffsetY_), hash_);
+    mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
     return true;
 }
 
