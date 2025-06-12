@@ -792,7 +792,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestGetCaptureDisplayNode, TestSize.L
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestCaptureRassignMemory, TestSize.Level2)
 {
     Drawing::Rect rect = {0, 0, 1260, 2720};
-    NodeId nodeId = 103;
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.useDma = true;
 
