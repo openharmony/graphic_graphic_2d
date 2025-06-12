@@ -311,10 +311,6 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandDisplayAccumulatedParams(
     params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
         (displayDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
 
-    // update accumulated UIFirst force update
-    params.SetAccumulatedUifirstForceUpdate(params.GetAccumulatedUifirstForceUpdate() ||
-        RSUifirstManager::Instance().HasForceUpdateNode());
-
     // update accumulated hdr status changed
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 }
@@ -330,11 +326,9 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(
         RS_TRACE_NAME("CheckVirtualExpandDisplaySkip has special layer can not skip");
         return false;
     }
-    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d, isAccumulatedUifirstForceUpdate: %d, "
-        "isAccumulatedHdrStatusChanged: %d", params.GetAccumulatedDirty(), params.GetAccumulatedUifirstForceUpdate(),
-        params.GetAccumulatedHdrStatusChanged());
-    return !params.GetAccumulatedDirty() && !params.GetAccumulatedUifirstForceUpdate() &&
-        !params.GetAccumulatedHdrStatusChanged();
+    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d, isAccumulatedHdrStatusChanged: %d",
+        params.GetAccumulatedDirty(), params.GetAccumulatedHdrStatusChanged());
+    return !params.GetAccumulatedDirty() && !params.GetAccumulatedHdrStatusChanged();
 }
 } // namespace Rosen
 } // namespace OHOS
