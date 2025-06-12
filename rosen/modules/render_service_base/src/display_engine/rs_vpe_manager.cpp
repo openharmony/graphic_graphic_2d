@@ -71,7 +71,7 @@ std::shared_ptr<VpeVideo> RSVpeManager::GetVpeVideo(uint32_t type, const RSSurfa
 }
 
 bool RSVpeManager::VpeVideoSetParameter(std::shared_ptr<VpeVideo> vpeVideo,
-    uint32_t type, const RSSurfaceRenderNodeConfig& config);
+    uint32_t type, const RSSurfaceRenderNodeConfig& config)
 {
     Media::Format param{};
     if (type == VIDEO_TYPE_DETAIL_ENHANCER) {
