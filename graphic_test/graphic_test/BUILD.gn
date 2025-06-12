@@ -20,7 +20,9 @@ drawing_engine_sources = []
 hardware_manager_sources = []
 open_capability_sources = []
 rs_display_effect_sources = [
+  "rs_display_effect/animation/anim_callback_animation_test.cpp",
   "rs_display_effect/animation/anim_curve_animation_test.cpp",
+  "rs_display_effect/animation/anim_curve_animation_test2.cpp",
   "rs_display_effect/animation/anim_custom_modifier_test.cpp",
   "rs_display_effect/animation/animation_protocol_test.cpp",
   "rs_display_effect/animation/point_custom_modifier_test.cpp",
