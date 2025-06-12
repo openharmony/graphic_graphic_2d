@@ -3130,9 +3130,6 @@ ErrCode RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, boo
                 return;
             }
         });
-        // It can be displayed immediately after layer-top changed.
-        connection->mainThread_->SetDirtyFlag();
-        connection->mainThread_->RequestNextVSync();
     };
     mainThread_->PostTask(task);
     return ERR_OK;

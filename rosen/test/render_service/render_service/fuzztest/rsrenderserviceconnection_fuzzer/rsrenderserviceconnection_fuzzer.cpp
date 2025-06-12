@@ -1353,7 +1353,7 @@ bool DoSetForceRefresh()
     }
     std::string nodeIdStr = GetData<std::string>();
     bool isForceRefresh = GetData<bool>();
-    rsConn_->DoSetForceRefresh(nodeIdStr, isForceRefresh);
+    rsConn_->SetForceRefresh(nodeIdStr, isForceRefresh);
     return true;
 }
 

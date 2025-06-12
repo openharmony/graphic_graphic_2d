@@ -1668,7 +1668,7 @@ private:
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     bool isLayerTop_ = false;
-    bool isForceRefresh_ = false;
+    bool isForceRefresh_ = false; // the self-drawing node set hwc need forcerefresh
     // Specifying hardware enable is only a 'hint' to RS that
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
