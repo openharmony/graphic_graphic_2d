@@ -27,7 +27,7 @@ namespace Rosen {
 class RSB_EXPORT RSRenderDispersionFilterPara : public RSRenderFilterParaBase {
 public:
     RSRenderDispersionFilterPara(PropertyId id, RSUIFilterType maskType = RSUIFilterType::NONE) :
-        RSRenderFilterParaBase(RSUIFilterType::DISPERSION), maskType_(maskType) 
+        RSRenderFilterParaBase(RSUIFilterType::DISPERSION), maskType_(maskType)
     {
         id_ = id;
     }

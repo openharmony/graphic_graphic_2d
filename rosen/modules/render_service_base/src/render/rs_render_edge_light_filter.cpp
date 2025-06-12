@@ -106,7 +106,7 @@ bool RSRenderEdgeLightFilterPara::WriteToParcel(Parcel& parcel)
 }
 
 bool RSRenderEdgeLightFilterPara::ReadFromParcel(Parcel& parcel)
-{   
+{
     ROSEN_LOGD("RSRenderEdgeLightFilterPara::ReadFromParcel %{public}d %{public}d %{public}d",
         static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
     if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||

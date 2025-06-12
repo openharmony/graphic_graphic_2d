@@ -349,6 +349,29 @@ bool RSDrawingFilter::ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas,
     return true;
 }
 
+bool RSDrawingFilter::IsHpsBlurApplied(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
+    const DrawImageRectAttributes& attr, const Drawing::Brush& brush, float radius)
+{
+    if (!(RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL)) {
+        return false;
+    }
+    auto hpsParam = Drawing::HpsBlurParameter(attr.src, attr.dst, radius, saturationForHPS_, brightnessForHPS_);
+    RSColor maskColorForHPS = RSColor();
+    if (ROSEN_EQ(attr.brushAlpha, 1.0f)) {
+        auto maskColorShaderFilter = GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
+        if (maskColorShaderFilter != nullptr) {
+            auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
+            maskColorForHPS = maskColorFilter->GetMaskColor();
+        }
+    }
+    bool isHpsBlurApplied = HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam,
+        brush.GetColor().GetAlphaF() * attr.brushAlpha, brush.GetFilter().GetColorFilter(), maskColorForHPS);
+    if (isHpsBlurApplied) {
+        canSkipMaskColor_ = maskColorForHPS != RSColor();
+    }
+    return isHpsBlurApplied;
+}
+
 void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
     const DrawImageRectAttributes& attr)
@@ -368,7 +391,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     if (ApplyImageEffectWithLightBlur(canvas, outImage, attr, brush)) {
         return;
     }
-    std::shared_ptr<RSShaderFilter> kawaseShaderFilter = GetShaderFilterWithType(RSShaderFilter::KAWASE);
+    auto kawaseShaderFilter = GetShaderFilterWithType(RSShaderFilter::KAWASE);
     if (kawaseShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
@@ -376,21 +399,9 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
             ApplyColorFilter(canvas, outImage, attr.src, attr.dst, attr.brushAlpha);
             return;
         }
-        auto hpsParam = Drawing::HpsBlurParameter(attr.src, attr.dst, radius, saturationForHPS_, brightnessForHPS_);
-        RSColor maskColorForHPS = RSColor();
         canSkipMaskColor_ = false;
-        if (ROSEN_EQ(attr.brushAlpha, 1.0f)) {
-            std::shared_ptr<RSShaderFilter> maskColorShaderFilter = GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
-            if (maskColorShaderFilter != nullptr) {
-                auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
-                maskColorForHPS = maskColorFilter->GetMaskColor();
-            }
-        }
-        if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
-            HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam,
-            brush.GetColor().GetAlphaF() * attr.brushAlpha, brush.GetFilter().GetColorFilter(), maskColorForHPS)) {
-                canSkipMaskColor_ = maskColorForHPS != RSColor();
-                RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
+        if (IsHpsBlurApplied(canvas, outImage, attr, brush, radius)) {
+            RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
         } else {
             auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
             tmpFilter->GenerateGEVisualEffect(effectContainer);
@@ -479,7 +490,6 @@ void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)
 void RSDrawingFilter::PostProcess(Drawing::Canvas& canvas)
 {
     std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
-        filter->PostProcess(canvas);
         if ((!canSkipMaskColor_) || (!(filter->GetShaderFilterType() == RSShaderFilter::MASK_COLOR))) {
             filter->PostProcess(canvas);
         }

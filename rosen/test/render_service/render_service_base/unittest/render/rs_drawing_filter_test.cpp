@@ -358,6 +358,98 @@ HWTEST_F(RSDrawingFilterTest, ApplyColorFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsHpsBlurApplied001
+ * @tc.desc: test results of IsHpsBlurApplied if system disable HPS
+ * @tc.type: FUNC
+ * @tc.require:issuesIC9UNV
+ */
+HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSShaderFilter>();
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Brush brush;
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    RSSystemProperties::SetForceHpsBlurDisabled(true);
+    bool ret1 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 0.0f);
+    EXPECT_FALSE(ret1);
+
+    attr.brushAlpha = 0.5f;
+    bool ret2 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 0.5f);
+    EXPECT_FALSE(ret2);
+
+    attr.brushAlpha = 1.0f;
+    bool ret3 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 0.5f);
+    EXPECT_FALSE(ret3);
+
+    drawingFilter.type_ = RSFilter::MATERIAL;
+    bool ret4 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
+    EXPECT_FALSE(ret4);
+
+    attr.brushAlpha = 0.5f;
+    bool ret5 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
+    EXPECT_FALSE(ret5);
+
+    auto rsShaderFilter = std::make_shared<RSShaderFilter>();
+    rsShaderFilter->type_ = RSShaderFilter::ShaderFilterType::MASK_COLOR;
+    drawingFilter.shaderFilters_.push_back(rsShaderFilter);
+    bool ret6 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
+    EXPECT_FALSE(ret6);
+}
+
+/**
+ * @tc.name: IsHpsBlurApplied002
+ * @tc.desc: test results of IsHpsBlurApplied, if system enable HPS
+ * @tc.type: FUNC
+ * @tc.require:issuesIC9UNV
+ */
+HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied002, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSShaderFilter>();
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Brush brush;
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    RSSystemProperties::SetForceHpsBlurDisabled(false);
+    bool ret1 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 0.0f);
+    EXPECT_FALSE(ret1);
+
+    attr.brushAlpha = 0.5f;
+    bool ret2 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 0.5f);
+    EXPECT_FALSE(ret2);
+
+    attr.brushAlpha = 1.0f;
+    bool ret3 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 0.5f);
+    EXPECT_FALSE(ret3);
+
+    drawingFilter.type_ = RSFilter::MATERIAL;
+    bool ret4 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
+    EXPECT_FALSE(ret4);
+
+    attr.brushAlpha = 0.5f;
+    bool ret5 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
+    EXPECT_FALSE(ret5);
+
+    auto rsShaderFilter = std::make_shared<RSShaderFilter>();
+    rsShaderFilter->type_ = RSShaderFilter::ShaderFilterType::MASK_COLOR;
+    drawingFilter.shaderFilters_.push_back(rsShaderFilter);
+    bool ret6 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
+    EXPECT_FALSE(ret6);
+}
+
+/**
  * @tc.name: DrawImageRect001
  * @tc.desc: test results of DrawImageRect
  * @tc.type: FUNC

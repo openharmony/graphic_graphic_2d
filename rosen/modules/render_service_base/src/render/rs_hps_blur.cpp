@@ -73,6 +73,28 @@ std::shared_ptr<Drawing::RuntimeEffect> HpsBlurFilter::GetMixEffect() const
     return g_mixEffect;
 }
 
+float HpsBlurFilter::ApplyMaskColorFilter(Drawing::Canvas& offscreenCanvas, float alpha,
+    const RSColor& maskColor) const
+{
+    if (maskColor == RgbPalette::Transparent()) {
+        return alpha;
+    }
+    float newAlpha = alpha;
+    float maskColorAlpha = static_cast<float>(maskColor.GetAlpha()) / MAX_ALPHA;
+    newAlpha += maskColorAlpha - alpha * maskColorAlpha;
+    Drawing::Brush maskBrush;
+    maskBrush.SetColor(maskColor.AsArgbInt());
+    if (ROSEN_EQ(newAlpha, 0.f)) {
+        maskBrush.SetAlphaF(0.f);
+    } else {
+        maskBrush.SetAlphaF(maskColorAlpha / newAlpha);
+    }
+    ROSEN_LOGD("HpsBlurFilter::ApplyHpsBlur newMaskColor %{public}#x, alpha = %{public}f",
+        maskColor.AsArgbInt(), alpha);
+    offscreenCanvas.DrawBackground(maskBrush);
+    return newAlpha;
+}
+
 bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::HpsBlurParameter& param, float alpha, std::shared_ptr<Drawing::ColorFilter> colorFilter,
     const RSColor& maskColor) const
@@ -103,21 +125,7 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         return false;
     }
 
-    float newAlpha = alpha;
-    if (maskColor != RSColor()) {
-        float maskColorAlpha = static_cast<float>(maskColor.GetAlpha()) / MAX_ALPHA;
-        newAlpha += maskColorAlpha - alpha * maskColorAlpha;
-        Drawing::Brush maskBrush;
-        maskBrush.SetColor(maskColor.AsArgbInt());
-        if (ROSEN_EQ(newAlpha, 0.f)) {
-            maskBrush.SetAlphaF(0.f);
-        } else {
-            maskBrush.SetAlphaF(maskColorAlpha / newAlpha);
-        }
-        ROSEN_LOGD("HpsBlurFilter::ApplyHpsBlur newMaskColor %{public}#x, alpha = %{public}f",
-            maskColor.AsArgbInt(), alpha);
-        offscreenCanvas->DrawBackground(maskBrush);
-    }
+    alpha = ApplyMaskColorFilter(*offscreenCanvas, alpha, maskColor);
 
     auto imageCache = offscreenSurface->GetImageSnapshot();
     if (imageCache == nullptr) {
@@ -136,7 +144,7 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         filter.SetColorFilter(colorFilter);
         brush.SetFilter(filter);
     }
-    brush.SetAlphaF(newAlpha);
+    brush.SetAlphaF(alpha);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();

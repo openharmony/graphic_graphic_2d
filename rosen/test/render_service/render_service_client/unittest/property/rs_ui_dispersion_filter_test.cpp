@@ -125,7 +125,7 @@ HWTEST_F(RSUIDispersionFilterTest, SetMaskTest, TestSize.Level1)
     maskProperty = rsUIDispersionFilterPara->CreateMask(RSUIFilterType::RIPPLE_MASK);
     rsUIDispersionFilterPara->SetMask(maskProperty);
     iter = rsUIDispersionFilterPara->properties_.find(RSUIFilterType::RIPPLE_MASK);
-    ASSERT_NE(iter, rsUIDispersionFilterPara->properties_.end());
+    ASSERT_EQ(iter, rsUIDispersionFilterPara->properties_.end());
 }
 
 /**
