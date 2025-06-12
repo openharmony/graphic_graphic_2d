@@ -540,7 +540,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         if (callback != nullptr) {
-            static const int32_t pid = static_cast<uint32_t>(getpid());
+            static const int32_t pid = static_cast<int32_t>(getpid());
             RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
                 PRIu64 " pid: %{public}d", timeStamp_, pid);
             RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
