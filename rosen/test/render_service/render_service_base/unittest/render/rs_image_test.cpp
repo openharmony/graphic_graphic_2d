@@ -1190,4 +1190,24 @@ HWTEST_F(RSImageTest, PixelSamplingDumpTest, TestSize.Level1)
         " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
         " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00]");
 }
+
+/**
+ * @tc.name: SetImageRotateDegreeTest
+ * @tc.desc: Verify function SetImageRotateDegree
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, SetImageRotateDegreeTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    EXPECT_EQ(rsImage->rotateDegree_, 0);
+
+    rsImage->SetImageRotateDegree(90);
+    EXPECT_EQ(rsImage->rotateDegree_, 90);
+
+    rsImage->SetImageRotateDegree(-90);
+    EXPECT_EQ(rsImage->rotateDegree_, -90);
+
+    rsImage->SetImageRotateDegree(180);
+    EXPECT_EQ(rsImage->rotateDegree_, 180);
+}
 } // namespace OHOS::Rosen
