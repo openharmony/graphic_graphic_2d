@@ -108,4 +108,14 @@ void RsCommonHook::SetIsWhiteListForEnableHwcNodeBelowSelfInApp(bool isWhiteList
     isWhiteListForEnableHwcNodeBelowSelfInApp_ = isWhiteListForEnableHwcNodeBelowSelfInApp;
 }
 
+void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
+{
+    tvPlayerBundleName_ = bundleName;
+}
+
+std::string RsCommonHook::GetTvPlayerBundleName() const
+{
+    return tvPlayerBundleName_;
+}
+
 } // namespace OHOS::Rosen

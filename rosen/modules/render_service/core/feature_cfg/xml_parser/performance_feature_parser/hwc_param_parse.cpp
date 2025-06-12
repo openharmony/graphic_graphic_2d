@@ -15,6 +15,8 @@
 
 #include "hwc_param_parse.h"
 
+#include "common/rs_common_hook.h"
+
 #undef LOG_TAG
 #define LOG_TAG "HWCParamParse"
 
@@ -71,6 +73,11 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("parse MultiParam fail");
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
+        if (name == "TvPlayerBundleName") {
+            RsCommonHook::Instance().SetTvPlayerBundleName(val);
+            RS_LOGI("parse TvPlayerBundleName ok");
         }
     }
 

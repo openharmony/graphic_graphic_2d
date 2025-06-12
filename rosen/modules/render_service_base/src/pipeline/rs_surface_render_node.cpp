@@ -3752,5 +3752,14 @@ bool RSSurfaceRenderNode::GetFrameGravityNewVersionEnabled() const
 {
     return isFrameGravityNewVersionEnabled_;
 }
+
+bool RSSurfaceRenderNode::isForcedClipHole() const
+{
+    const std::string tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
+    if (tvPlayerBundleName.empty()) {
+        return false;
+    }
+    return (tvPlayerBundleName == bundleName_);
+}
 } // namespace Rosen
 } // namespace OHOS

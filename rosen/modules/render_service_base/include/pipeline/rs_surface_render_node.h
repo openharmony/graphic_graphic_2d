@@ -399,7 +399,8 @@ public:
         }
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
-        if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isHardwareEnableHint_) && IsOnTheTree()) {
+        // isForcedClipHole: for tv product, force clip hole in tvplayer
+        if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isForcedClipHole()) && IsOnTheTree()) {
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
@@ -1635,6 +1636,9 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
+
+    bool isForcedClipHole() const;
+
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
     void SendSurfaceNodeTreeStatus(bool onTree);
     void SendSurfaceNodeBoundChange();
