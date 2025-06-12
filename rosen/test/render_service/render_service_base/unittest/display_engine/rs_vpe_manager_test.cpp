@@ -34,8 +34,8 @@ namespace OHOS {
 namespace Media {
 namespace VideoProcessingEngine {
 
-bool IsProductSupportRest = false;
-VPEAlgoErrCode SetParameterResult = VPE_ALGO_ERR_OK;
+bool g_isProductSupportRest = false;
+VPEAlgoErrCode g_setParameterResult = VPE_ALGO_ERR_OK;
 
 class MockVpeVideo : public VpeVideo {
 public:
@@ -63,11 +63,11 @@ bool VpeVideo::IsSupported(uint32_t type, [[maybe_unused]] const Format& paramet
 }
 bool VpeVideo::IsSupported()
 {
-    return IsProductSupportRest;
+    return g_isProductSupportRest;
 }
 VPEAlgoErrCode VpeVideo::SetParameter([[maybe_unused]] const Format& parameter)
 {
-    return SetParameterResult;
+    return g_setParameterResult;
 }
 }
 }
@@ -195,7 +195,7 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
     IsSupportReset = false;
-    IsProductSupportRest = true;
+    g_isProductSupportRest = true;
     sptr<Surface> result = manager.CheckAndGetSurface(RSSurface, config);
     EXPECT_EQ(result, RSSurface);
 }
@@ -205,7 +205,7 @@ HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterSucceed, TestSize.Level1)
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
     config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
-    SetParameterResult = VPE_ALGO_ERR_OK;
+    g_setParameterResult = VPE_ALGO_ERR_OK;
     std::shared_ptr<VpeVideo> validVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
     bool result = manager.SetVpeVideoParameter(validVideo, VIDEO_TYPE_DETAIL_ENHANCER, config);
@@ -216,7 +216,7 @@ HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterfails, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
-    SetParameterResult = VPE_ALGO_ERR_INVALID_PARAM;
+    g_setParameterResult = VPE_ALGO_ERR_INVALID_PARAM;
     std::shared_ptr<VpeVideo> vpeVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
     bool result = manager.SetVpeVideoParameter(vpeVideo, VIDEO_TYPE_DETAIL_ENHANCER, config);
@@ -227,7 +227,7 @@ HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterSucceed01, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
-    SetParameterResult = VPE_ALGO_ERR_OK;
+    g_setParameterResult = VPE_ALGO_ERR_OK;
     std::shared_ptr<VpeVideo> vpeVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
     bool result = manager.SetVpeVideoParameter(vpeVideo, 0, config);
@@ -238,7 +238,7 @@ HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterfails001, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
-    SetParameterResult = VPE_ALGO_ERR_INVALID_PARAM;
+    g_setParameterResult = VPE_ALGO_ERR_INVALID_PARAM;
     std::shared_ptr<VpeVideo> vpeVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
     bool result = manager.SetVpeVideoParameter(vpeVideo, 0, config);
@@ -267,7 +267,7 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface003, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
     IsSupportReset = true;
-    IsProductSupportRest = false;
+    g_isProductSupportRest = false;
 
     OHOS::sptr<OHOS::Surface> result = manager.CheckAndGetSurface(RSSurface, config);
     EXPECT_EQ(result, newSurface);
@@ -282,7 +282,7 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface005, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
     IsSupportReset = true;
-    IsProductSupportRest = true;
+    g_isProductSupportRest = true;
 
     OHOS::sptr<OHOS::Surface> result = manager.CheckAndGetSurface(RSSurface, config);
     EXPECT_NE(result, newSurface);
