@@ -48,6 +48,8 @@ public:
     virtual bool ReadFromParcel(Parcel& parcel) override;
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
+
+    std::shared_ptr<RSRenderMaskPara> LimitedDeepCopy() const override;
 };
 } // namespace Rosen
 } // namespace OHOS

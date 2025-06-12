@@ -50,6 +50,10 @@ public:
 
     const std::shared_ptr<Drawing::Image> GetImage() const;
 
+    uint32_t CalcHash();
+
+    std::shared_ptr<RSRenderMaskPara> LimitedDeepCopy() const override;
+
 private:
     std::shared_ptr<Drawing::Image> cacheImage_ = nullptr;
 };
