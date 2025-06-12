@@ -32,13 +32,40 @@ public:
         : nodeId_(nodeId), captureConfig_(captureConfig), rsCapturePixelMap_(rsCapturePixelMap) {}
     ~RSUiCaptureTaskParallel() = default;
 
+    /**
+     * @brief Get component snapshot.
+     * @param id Indicates the NodeId of the RSNode.
+     * @param callback When the snapshot is compelete, the callback will be triggered.
+     * @param captureConfig Indicates the configuration of snapshot like scale, translation, rotation.
+     * @param specifiedAreaRect Indicates the range that user wants to clip the snapshot.
+     * @param rsCapturePixelMap Indicates the pixelmap that user wants to use.
+     */
     static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect,
         std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap);
 
+    /**
+     * @brief Create resources for capture.
+     * @param specifiedAreaRect Indicates the range that user wants to clip the snapshot.
+     * @return Returns true if the resources are created successfully, otherwise returns false.
+     */
     bool CreateResources(const Drawing::Rect& specifiedAreaRect);
+
+    /**
+     * @brief Execute capture task.
+     * @param callback When the snapshot is compelete, the callback will be triggered.
+     * @param specifiedAreaRect Indicates the range that user wants to clip the snapshot.
+     * @return Returns true if the capture is run successfully, otherwise returns false.
+     */
     bool Run(sptr<RSISurfaceCaptureCallback> callback, const Drawing::Rect& specifiedAreaRect);
 
+    /**
+     * @brief Trigger callback to send pixelmap back to user.
+     * @param callback When the snapshot is compelete, the callback will be triggered.
+     * @param id Indicates the NodeId of the RSNode.
+     * @param captureConfig Indicates the configuration of snapshot like scale, translation, rotation.
+     * @param pixelmap Indicates the pixelmap that user wants to use.
+     */
     static void ProcessUiCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, NodeId id,
         const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap);
 #ifdef RS_ENABLE_UNI_RENDER

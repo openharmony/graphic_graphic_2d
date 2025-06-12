@@ -270,7 +270,7 @@ void InitNativeTokenInfo()
 
 void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 {
-    cout << "rs local capture solo demo Init Rosen Backend!" << endl;
+    cout << "rs local capture range demo Init Rosen Backend!" << endl;
 
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
@@ -336,10 +336,10 @@ int main()
 {
     InitNativeTokenInfo();
 
-    cout << "rs local capture solo demo" << endl;
+    cout << "rs local capture range demo" << endl;
     DisplayId displayId = DisplayManager::GetInstance().GetDefaultDisplayId();
     RSSurfaceNodeConfig surfaceNodeConfig;
-    surfaceNodeConfig.SurfaceNodeName = "capture_solo_demo";
+    surfaceNodeConfig.SurfaceNodeName = "capture_range_demo";
     RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     cout << "RSSurfaceNode:: Create" << endl;
     auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
@@ -357,65 +357,46 @@ int main()
     auto rsUiDirector = RSUIDirector::Create();
     rsUiDirector->Init();
     RSTransaction::FlushImplicitTransaction();
-    cout << "rs local capture solo demo init" << endl;
+    cout << "rs local capture range demo init" << endl;
     rsUiDirector->SetRSSurfaceNode(surfaceNode);
 
     Init(rsUiDirector, 1260, 2720);
     RSTransaction::FlushImplicitTransaction();
     sleep(4);
 
-    cout << "rs local capture solo demo createPixelmap" << endl;
+    cout << "rs local capture range demo createPixelmap" << endl;
     std::shared_ptr<MySurfaceCaptureCallback> mySurfaceCaptureCallback =
         std::make_shared<MySurfaceCaptureCallback>();
     cout << "rootNode id is " << rootNode->GetId() << endl;
 
-    // add and remove from tree
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
+    // 1. red, yellow
+    RSInterfaces::GetInstance().TakeUICaptureInRange(
+        rootNode, canvasNode, true, mySurfaceCaptureCallback, 1, 1, false);
+    cout << "1. red, yellow, start: root -> end: canvas1" << endl;
     sleep(2);
 
-    cout << "vector size is " << pixelMapIdPairVector.size() << endl;
-    for (auto pixPair : pixelMapIdPairVector) {
-        cout << "nodeId: " << pixPair.first << endl;
-        auto pixMap = pixPair.second;
-        if (pixMap) {
-            cout << "nodeBoundsWidth is " << pixMap->GetWidth() << endl;
-        }
-    }
-
-    cout << "removing from tree... " << endl;
-    surfaceNode1->RemoveChild(myLittleRootNode);
-    RSTransaction::FlushImplicitTransaction();
+    // 2. red, yellow, blue
+    RSInterfaces::GetInstance().TakeUICaptureInRange(
+        rootNode, canvasNode2, true, mySurfaceCaptureCallback, 1, 1, false);
+    cout << "2. red, yellow, blue, start: root -> canvas1 -> end: canvas2" << endl;
     sleep(2);
-    pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
-    sleep(2);
-    cout << "vector size is " << pixelMapIdPairVector.size() << endl;
-    for (auto pixPair : pixelMapIdPairVector) {
-        cout << "nodeId: " << pixPair.first << endl;
-        auto pixMap = pixPair.second;
-        if (pixMap) {
-            cout << "nodeBoundsWidth is " << pixMap->GetWidth() << endl;
-        }
-    }
 
-    cout << "adding to tree... " << endl;
-    surfaceNode1->AddChild(myLittleRootNode, -1);
-    RSTransaction::FlushImplicitTransaction();
+    // 3. yellow...
+    RSInterfaces::GetInstance().TakeUICaptureInRange(
+        canvasNode, rootNode, true, mySurfaceCaptureCallback, 1, 1, false);
+    cout << "3. yellow..., start: canvas1 -> end: root" << endl;
     sleep(2);
-    pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
+
+    // 4. blue
+    RSInterfaces::GetInstance().TakeUICaptureInRange(
+        canvasNode2, canvasNode2, true, mySurfaceCaptureCallback, 1, 1, false);
+    cout << "4.blue, start: canvas2 -> end: canvas2" << endl;
     sleep(2);
-    cout << "vector size is " << pixelMapIdPairVector.size() << endl;
-    for (auto pixPair : pixelMapIdPairVector) {
-        cout << "nodeId: " << pixPair.first << endl;
-        auto pixMap = pixPair.second;
-        if (pixMap) {
-            cout << "nodeBoundsWidth is " << pixMap->GetWidth() << endl;
-        }
-    }
 
-    rootNode->RemoveFromTree();
-    surfaceNode->SetVisible(false);
-    rsUiDirector->SendMessages();
-
+    // 5. red...
+    RSInterfaces::GetInstance().TakeUICaptureInRange(
+        rootNode, nullptr, true, mySurfaceCaptureCallback, 1, 1, false);
+    cout << "5. red, yellow, blue, yellow, green, start: root -> end: nullptr" << endl;
+    sleep(2);
     return 0;
 }
