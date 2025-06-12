@@ -448,11 +448,13 @@ HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
     uint64_t timestamp = 0;
     auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
     ASSERT_EQ(supportedModes.size(), 0);
+    auto hgm = HgmCore::Instance().hgmFrameRateMgr_;
     HgmCore::Instance().hgmFrameRateMgr_->isAdaptive_ = true;
     HgmCore::Instance().hgmFrameRateMgr_->isGameNodeOnTree_ = true;
     hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
     HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
     hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
+    HgmCore::Instance().hgmFrameRateMgr_ = hgm;
     HgmCore::Instance().vBlankIdleCorrectSwitch_.store(true);
     hardwareThread.hgmHardwareUtils_.vblankIdleCorrector_.isVBlankIdle_ = true;
     hardwareThread.OnScreenVBlankIdleCallback(screenId_, timestamp);
