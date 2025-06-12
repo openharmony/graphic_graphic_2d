@@ -116,10 +116,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec());
 
     RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-    // overlay display expand dirty region
-    RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, dirtyRegion);
-#endif
+
     Occlusion::Region globalDirtyRegion;
     for (const auto& rect : dirtyManager->GetAdvancedDirtyRegion()) {
         Occlusion::Region region = Occlusion::Region(Occlusion::Rect(rect));
@@ -160,6 +157,10 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     // [Attention]: filter dirty process must be the last step.
     RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
         damageRegion, drawnRegion, displayDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    // overlay display expand dirty region
+    RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, drawnRegion, damageRegion);
+#endif
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
     rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
