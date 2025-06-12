@@ -75,7 +75,11 @@ HWTEST_F(SkiaTextureInfoTest, ConvertToGrBackendVKTexture001, TestSize.Level1)
 HWTEST_F(SkiaTextureInfoTest, ConvertToTextureInfo001, TestSize.Level1)
 {
     GrMockTextureInfo mockInfo;
+#ifdef USE_M133_SKIA
+    GrBackendTexture texture(1280, 720, skgpu::Mipmapped::kNo, mockInfo);
+#else
     GrBackendTexture texture(1280, 720, GrMipmapped::kNo, mockInfo);
+#endif
     TextureInfo textureInfo = SkiaTextureInfo::ConvertToTextureInfo(texture);
 
     EXPECT_EQ(textureInfo.GetWidth(), 1280);

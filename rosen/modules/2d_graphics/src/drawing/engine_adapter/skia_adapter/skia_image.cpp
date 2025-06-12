@@ -564,11 +564,6 @@ std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat encodedImageFor
     }
 #ifdef USE_M133_SKIA
     auto grContext = as_IB(skiaImage_.get())->directContext();
-    if (!grContext) {
-        LOGD("SkiaImage::EncodeToData failed, grContext is null!");
-        return nullptr;
-    }
-
     sk_sp<SkData> skData = nullptr;
     if (encodedImageFormat == EncodedImageFormat::PNG) {
         SkPngEncoder::Options options;

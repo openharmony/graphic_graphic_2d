@@ -17,6 +17,9 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_gpu_context.h"
 #include "text/font.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/mock/GrMockTypes.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;

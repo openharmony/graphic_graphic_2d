@@ -17,6 +17,9 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_font.h"
 #include "text/font.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkFontTypes.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
