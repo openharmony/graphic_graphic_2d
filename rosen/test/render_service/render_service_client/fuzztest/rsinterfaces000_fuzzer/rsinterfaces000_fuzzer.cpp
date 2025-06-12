@@ -71,7 +71,8 @@ const uint8_t DO_REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK = 45;
 const uint8_t DO_NOTIFY_PAGE_NAME = 46;
 const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 47;
 const uint8_t DO_SET_COLOR_FOLLOW = 48;
-const uint8_t TARGET_SIZE = 49;
+const uint8_t DO_SET_FORCE_REFRESH = 49;
+const uint8_t TARGET_SIZE = 50;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;

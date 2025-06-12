@@ -1954,8 +1954,8 @@ bool DoSetForceRefresh(const uint8_t* data, size_t size)
     g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     std::string nodeIdStr = "nodeIdStr";
-    bool isForceDisable = GetData<bool>();
-    client->DoSetForceRefresh(nodeIdStr, isForceDisable);
+    bool isForceRefresh = GetData<bool>();
+    client->DoSetForceRefresh(nodeIdStr, isForceRefresh);
     return true;
 }
 

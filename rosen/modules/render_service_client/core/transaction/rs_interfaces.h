@@ -1133,9 +1133,9 @@ public:
     /**
      * @brief Set selfdrawing component of stylus engine force use DSS.
      * @param nodeIdStr surfaceNode name.
-     * @param isTop is function switch.
+     * @param isForceRefresh is function switch.
      */
-    void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+    void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
 
     /**
      * @brief Configures the stylus engine's self-drawing component to skip gamut conversion during redering.
