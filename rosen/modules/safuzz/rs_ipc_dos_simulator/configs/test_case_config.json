@@ -2299,5 +2299,19 @@
     "inputParams": "WriteInt32;WriteUint64;WriteTransactionDataCallbackSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "AVCODEC_VIDEO_START_TEST_001",
+    "interfaceName": "AVCODEC_VIDEO_START",
+    "inputParams": "WriteUint64;WriteString;WriteUint32;WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "AVCODEC_VIDEO_STOP_TEST_001",
+    "interfaceName": "AVCODEC_VIDEO_STOP",
+    "inputParams": "WriteUint64;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]
