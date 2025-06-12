@@ -2156,7 +2156,12 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     }
 
     std::stringstream stream;
-    MarshalSubTree(*context_, stream, *node, RSFILE_VERSION_LATEST);
+
+    // Save RSFILE_VERSION
+    uint32_t fileVersion = RSFILE_VERSION_LATEST;
+    stream.write(reinterpret_cast<const char*>(&fileVersion), sizeof(fileVersion));
+
+    MarshalSubTree(*context_, stream, *node, fileVersion);
     std::string testDataSubTree = stream.str();
 
     Respond("Save SubTree Size: " + std::to_string(testDataSubTree.size()));
@@ -2211,7 +2216,12 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
     std::stringstream stream;
     stream << file.rdbuf();
     file.close();
-    std::string errorReason = UnmarshalSubTree(*context_, stream, *node, RSFILE_VERSION_LATEST);
+
+    // Load RSFILE_VERSION
+    uint32_t fileVersion = 0u;
+    stream.read(reinterpret_cast<char*>(&fileVersion), sizeof(fileVersion));
+
+    std::string errorReason = UnmarshalSubTree(*context_, stream, *node, fileVersion);
     if (errorReason.size()) {
         RS_LOGE("RSProfiler::TestLoadSubTree failed: %{public}s", errorReason.c_str());
         Respond("RSProfiler::TestLoadSubTree failed: " + errorReason);
