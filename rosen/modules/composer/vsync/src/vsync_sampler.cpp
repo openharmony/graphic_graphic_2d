@@ -83,9 +83,9 @@ void VSyncSampler::SetAdaptive(bool isAdaptive)
 
 void VSyncSampler::SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     RS_TRACE_NAME_FMT("SetVsyncEnabledScreenId:%lu", vsyncEnabledScreenId);
     VLOGI("SetVsyncEnabledScreenId:" VPUBU64, vsyncEnabledScreenId);
+    std::lock_guard<std::mutex> lock(mutex_);
     vsyncEnabledScreenId_ = vsyncEnabledScreenId;
 }
 
