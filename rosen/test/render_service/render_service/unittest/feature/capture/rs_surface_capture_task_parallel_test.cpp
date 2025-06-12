@@ -799,12 +799,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestCaptureRassignMemory, TestSize.Le
     auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,
             UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
     ASSERT_EQ(pixelMap != nullptr, true);
-    EXPECT_EQ(pixelMap->allocatorType_ == AllocatorType::DMA_ALLOC, true);
+    EXPECT_EQ(pixelMap->allocatorType_ == Media::AllocatorType::DMA_ALLOC, true);
 
     auto img = std::make_shared<Drawing::Image>();
     CopyDataToPixelMap(img, pixelMap, captureConfig,
         UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL, nullptr);
-    EXPECT_EQ(pixelMap->allocatorType_ != AllocatorType::DMA_ALLOC, true);
+    EXPECT_EQ(pixelMap->allocatorType_ != Media::AllocatorType::DMA_ALLOC, true);
 }
 
 }
