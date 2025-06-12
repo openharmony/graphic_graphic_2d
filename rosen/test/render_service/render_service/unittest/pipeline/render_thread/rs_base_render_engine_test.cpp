@@ -486,4 +486,21 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest, TestSize.Level1)
     ASSERT_EQ(renderEngine->vkImageManager_->cacheQueue_.size(), 0);
 #endif
 }
+
+/**
+ * @tc.name: CheckAndVerifyDamageRegion001
+ * @tc.desc: Test CheckAndVerifyDamageRegion
+ * @tc.type: FUNC
+ * @tc.require:issueICEK44
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, CheckAndVerifyDamageRegion001, TestSize.Level1)
+{
+    auto renderFrame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    ASSERT_NE(renderFrame, nullptr);
+    std::vector<RectI> rects = {};
+    RectI rectI{0, 0, 1, 1};
+    ASSERT_EQ(rects, renderFrame->CheckAndVerifyDamageRegion(rects, rectI));
+    rects.push_back(rectI);
+    ASSERT_EQ(rects, renderFrame->CheckAndVerifyDamageRegion(rects, rectI));
+}
 }

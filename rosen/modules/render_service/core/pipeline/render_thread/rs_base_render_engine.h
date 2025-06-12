@@ -106,10 +106,19 @@ public:
 
     void SetDamageRegion(const std::vector<RectI> &rects)
     {
-        if (surfaceFrame_ != nullptr) {
-            surfaceFrame_->SetDamageRegion(rects);
+        if (surfaceFrame_ == nullptr) {
+            return;
+        }
+        const auto surface = surfaceFrame_->GetSurface();
+        if (surface != nullptr) {
+            surfaceFrame_->SetDamageRegion(
+                CheckAndVerifyDamageRegion(rects, RectI(0, 0, surface->Width(), surface->Height())));
         }
     }
+protected:
+    std::vector<RectI> CheckAndVerifyDamageRegion(const std::vector<RectI>& rects,
+        const RectI& surfaceRect) const;
+
 private:
     std::shared_ptr<RSSurfaceOhos> targetSurface_;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;

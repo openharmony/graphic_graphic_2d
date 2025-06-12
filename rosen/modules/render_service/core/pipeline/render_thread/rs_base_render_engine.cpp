@@ -56,6 +56,16 @@ namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
 
+std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
+    const std::vector<RectI>& rects, const RectI& surfaceRect) const
+{
+    std::vector<RectI> dstRects;
+    for (const auto& rect : rects) {
+        dstRects.emplace_back(rect.IntersectRect(surfaceRect));
+    }
+    return dstRects;
+}
+
 RSBaseRenderEngine::RSBaseRenderEngine()
 {
 }
