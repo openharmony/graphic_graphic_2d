@@ -336,10 +336,10 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNu
 
 std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
     RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-    const uint32_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
+    const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
 #if defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL)
-    if (!RSSystemProperties::IsUseVulkan() && canvas.GetGPUContext() == nullptr) {
+    if (canvas.GetGPUContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }

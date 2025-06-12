@@ -91,7 +91,7 @@ public:
     void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
+        const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
     std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
         const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;

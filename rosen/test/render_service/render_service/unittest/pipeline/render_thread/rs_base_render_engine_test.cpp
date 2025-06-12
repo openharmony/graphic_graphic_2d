@@ -21,6 +21,8 @@
 #include "recording/recording_canvas.h"
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
+#else
+#include "feature/gpuComposition/rs_egl_image_manager.h"
 #endif
 
 using namespace testing;
@@ -221,7 +223,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     EGLDisplay display = EGL_NO_DISPLAY;
     renderEngine->imageManager_ = std::make_shared<RSEglImageManager>(display);
-    auto img = renderEngine->imageManager_->CreateImageFromBuffer(*canvas, node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
+    auto img = renderEngine->imageManager_->CreateImageFromBuffer(*canvas,
+        node->GetRSSurfaceHandler()->GetBuffer(), nullptr, 0, nullptr);
     ASSERT_EQ(nullptr, img);
 }
 
@@ -359,6 +362,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer002, TestSize.Level1)
         return;
     }
     auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::set<uint32_t> unmappedCache;
+    renderEngine->ClearCacheSet(unmappedCache);
     renderEngine->Init();
     EXPECT_NE(renderEngine->imageManager_, nullptr);
 
@@ -366,7 +371,6 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer002, TestSize.Level1)
     drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
     auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
     EXPECT_NE(recordingCanvas, nullptr);
-    std::set<uint32_t> unmappedCache;
     BufferDrawParam params;
     VideoInfo videoInfo;
     params.buffer = CreateBuffer();
@@ -506,5 +510,38 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CheckAndVerifyDamageRegion001, TestSize.Lev
     ASSERT_EQ(rects, renderFrame->CheckAndVerifyDamageRegion(rects, rectI));
     rects.push_back(rectI);
     ASSERT_EQ(rects, renderFrame->CheckAndVerifyDamageRegion(rects, rectI));
+}
+/**
+ * @tc.name: DumpVkImageInfoTest
+ * @tc.desc: Test DumpVkImageInfo
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, DumpVkImageInfoTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    string dumpString = "dumpString";
+#ifdef RS_ENABLE_VK
+    renderEngine->DumpVkImageInfo(dumpString);
+    auto renderContext = std::make_shared<RenderContext>();
+    renderEngine->Init();
+    renderEngine->DumpVkImageInfo(dumpString);
+#endif
+    EXPECT_NE(renderEngine, nullptr);
+}
+
+/**
+ * @tc.name: ShrinkCachesIfNeededTest002
+ * @tc.desc: Test ShrinkCachesIfNeeded
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest002, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->ShrinkCachesIfNeeded();
+    renderEngine->Init();
+    renderEngine->ShrinkCachesIfNeeded();
+    EXPECT_NE(renderEngine, nullptr);
 }
 }

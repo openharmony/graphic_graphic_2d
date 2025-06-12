@@ -90,7 +90,6 @@ void RSBaseRenderEngine::Init()
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
         skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        imageManager_ = std::make_shared<RSImageManager>();
         renderContext_->SetUpGpuContext(skContext_);
     } else {
         renderContext_->SetUpGpuContext();
@@ -102,11 +101,6 @@ void RSBaseRenderEngine::Init()
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
     imageManager_ = RSImageManager::Create(renderContext_);
 #endif // RS_ENABLE_EGLIMAGE
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
-    }
-#endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
 #endif
@@ -589,13 +583,9 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorSpaceNameTo
 
 void RSBaseRenderEngine::DumpVkImageInfo(std::string &dumpString)
 {
-#ifdef RS_ENABLE_VK
-    if (imageManager_) {
+    if (imageManager_ != nullptr) {
         imageManager_->DumpVkImageInfo(dumpString);
     }
-#else
-    (void) dumpString;
-#endif
 }
 
 std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
@@ -626,6 +616,11 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         videoInfo.drawingColorSpace_ = GetCanvasColorSpace(canvas);
     }
 #endif
+#if defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL)
+    if (imageManager_ == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: imageManager is nullptr!");
+        return nullptr;
+    }
     image = imageManager_->CreateImageFromBuffer(canvas,
         params.buffer, params.acquireFence, params.threadIndex,
         videoInfo.drawingColorSpace_);
@@ -633,6 +628,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: vk image is nullptr!");
         return nullptr;
     }
+#endif
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSBaseRenderEngine::CreateImageFromBuffer: Image creation successful, size: %{public}d x %{public}d",
         image->GetWidth(), image->GetHeight());
@@ -887,9 +883,11 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (imageManager_ != nullptr) {
         imageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
     }
+#endif // RS_ENABLE_EGLIMAGE
 }
 
 void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)

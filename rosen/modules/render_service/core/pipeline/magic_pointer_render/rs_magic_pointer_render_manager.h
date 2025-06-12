@@ -57,14 +57,6 @@ private:
     void RunColorPickerTask();
     std::shared_ptr<Drawing::Image> GetIntersectImageByLayer(BufferDrawParam& param);
     bool GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext);
-#if defined (RS_ENABLE_VK)
-    std::shared_ptr<Drawing::Image> GetIntersectImageFromVK(Drawing::RectI& imgCutRect,
-        const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param);
-#endif
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-    std::shared_ptr<Drawing::Image> GetIntersectImageFromGL(Drawing::RectI& imgCutRect,
-        const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param);
-#endif
     std::shared_ptr<Drawing::Image> GetImageTexture(std::shared_ptr<Drawing::Image>& image);
     void GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect, int displayNodeIndex);
     void RunColorPickerTaskBackground(BufferDrawParam& param);
@@ -73,7 +65,7 @@ private:
 private:
     RectI rect_;
     LayerInfoPtr target_;
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
+#if (defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)) || defined (RS_ENABLE_VK)
     std::shared_ptr<RSImageManager> imageManager_ = nullptr;
 #endif
     int16_t luminance_ = 0;

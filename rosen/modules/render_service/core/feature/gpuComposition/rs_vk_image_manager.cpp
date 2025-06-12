@@ -242,9 +242,8 @@ void RSVkImageManager::DumpVkImageInfo(std::string &dumpString)
 
 std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
     RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-    const uint32_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
+    const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
-#ifdef RS_ENABLE_VK
     auto image = std::make_shared<Drawing::Image>();
     auto imageCache = MapVkImageFromSurfaceBuffer(buffer,
         acquireFence, threadIndex, canvas.GetSurface());
@@ -272,8 +271,8 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
 #endif
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Texture origin: %{public}d", static_cast<int>(surfaceOrigin));
     auto contextDrawingVk = canvas.GetGPUContext();
-    if (contextDrawingVk == nullptr || image == nullptr || imageCache == nullptr) {
-        RS_LOGE("contextDrawingVk or image or imageCache is nullptr.");
+    if (contextDrawingVk == nullptr || image == nullptr) {
+        RS_LOGE("contextDrawingVk or image is nullptr.");
         return nullptr;
     }
     auto& backendTexture = imageCache->GetBackendTexture();
@@ -284,10 +283,6 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
         return nullptr;
     }
     return image;
-#else
-    RS_LOGE("RSBaseRenderEngine::CreateVkImageFromBuffer: Vulkan is not enabled!");
-    return nullptr;
-#endif // RS_ENABLE_VK
 }
 
 std::shared_ptr<Drawing::Image> RSVkImageManager::GetIntersectImage(Drawing::RectI& imgCutRect,
