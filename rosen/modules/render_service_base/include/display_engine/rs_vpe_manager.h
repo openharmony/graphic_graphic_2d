@@ -34,7 +34,7 @@ private:
         const RSSurfaceRenderNodeConfig& config);
     std::shared_ptr<OHOS::Media::VideoProcessingEngine::VpeVideo> GetVpeVideo(uint32_t type,
         const RSSurfaceRenderNodeConfig& config);
-    bool VpeVideoSetParameter(std::shared_ptr<OHOS::Media::VideoProcessingEngine::VpeVideo> vpeVideo,
+    bool SetVpeVideoParameter(std::shared_ptr<OHOS::Media::VideoProcessingEngine::VpeVideo> vpeVideo,
         uint32_t type, const RSSurfaceRenderNodeConfig& config);
     mutable std::mutex vpeVideoLock_{};
     // Guarded by vpeVideoLock_ begin

@@ -70,7 +70,7 @@ std::shared_ptr<VpeVideo> RSVpeManager::GetVpeVideo(uint32_t type, const RSSurfa
     return VpeVideo::Create(type);
 }
 
-bool RSVpeManager::VpeVideoSetParameter(std::shared_ptr<VpeVideo> vpeVideo,
+bool RSVpeManager::SetVpeVideoParameter(std::shared_ptr<VpeVideo> vpeVideo,
     uint32_t type, const RSSurfaceRenderNodeConfig& config)
 {
     Media::Format param{};
@@ -106,7 +106,7 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
         return RSSurface;
     }
 
-    if (!VpeVideoSetParameter(vpeVideo, type, config)) {
+    if (!SetVpeVideoParameter(vpeVideo, type, config)) {
         return RSSurface;
     }
 

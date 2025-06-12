@@ -200,7 +200,7 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface001, TestSize.Level1)
     EXPECT_EQ(result, RSSurface);
 }
 
-HWTEST_F(RSVpeManagerTest, VpeVideoSetParameterSucceed, TestSize.Level1)
+HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterSucceed, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
@@ -208,40 +208,40 @@ HWTEST_F(RSVpeManagerTest, VpeVideoSetParameterSucceed, TestSize.Level1)
     SetParameterResult = VPE_ALGO_ERR_OK;
     std::shared_ptr<VpeVideo> validVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
-    bool result = manager.VpeVideoSetParameter(validVideo, VIDEO_TYPE_DETAIL_ENHANCER, config);
+    bool result = manager.SetVpeVideoParameter(validVideo, VIDEO_TYPE_DETAIL_ENHANCER, config);
     EXPECT_TEUE(result);
 }
 
-HWTEST_F(RSVpeManagerTest, VpeVideoSetParameterfails, TestSize.Level1)
+HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterfails, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
     SetParameterResult = VPE_ALGO_ERR_INVALID_PARAM;
     std::shared_ptr<VpeVideo> vpeVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
-    bool result = manager.VpeVideoSetParameter(vpeVideo, VIDEO_TYPE_DETAIL_ENHANCER, config);
+    bool result = manager.SetVpeVideoParameter(vpeVideo, VIDEO_TYPE_DETAIL_ENHANCER, config);
     EXPECT_FALSE(result);
 }
 
-HWTEST_F(RSVpeManagerTest, VpeVideoSetParameterSucceed01, TestSize.Level1)
+HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterSucceed01, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
     SetParameterResult = VPE_ALGO_ERR_OK;
     std::shared_ptr<VpeVideo> vpeVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
-    bool result = manager.VpeVideoSetParameter(vpeVideo, 0, config);
+    bool result = manager.SetVpeVideoParameter(vpeVideo, 0, config);
     EXPECT_FALSE(result);
 }
 
-HWTEST_F(RSVpeManagerTest, VpeVideoSetParameterfails001, TestSize.Level1)
+HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterfails001, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
     SetParameterResult = VPE_ALGO_ERR_INVALID_PARAM;
     std::shared_ptr<VpeVideo> vpeVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
-    bool result = manager.VpeVideoSetParameter(vpeVideo, 0, config);
+    bool result = manager.SetVpeVideoParameter(vpeVideo, 0, config);
     EXPECT_FALSE(result);
 }
 
