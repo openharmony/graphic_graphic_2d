@@ -19,7 +19,6 @@
 
 #include "color_filter_napi/js_color_filter.h"
 #include "image_filter_napi/js_image_filter.h"
-#include "js_color_space.h"
 #include "js_drawing_utils.h"
 #include "mask_filter_napi/js_mask_filter.h"
 #include "matrix_napi/js_matrix.h"
@@ -28,7 +27,10 @@
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 
+#ifdef ROSEN_OHOS
+#include "js_color_space.h"
 #include "utils/colorspace_convertor.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -732,6 +734,7 @@ napi_value JsPen::GetColor(napi_env env, napi_callback_info info)
 
 napi_value JsPen::SetColor4f(napi_env env, napi_callback_info info)
 {
+#ifdef ROSEN_OHOS
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
     if (!jsPen) {
         return nullptr;
@@ -761,6 +764,9 @@ napi_value JsPen::SetColor4f(napi_env env, napi_callback_info info)
     }
     pen->SetColor(drawingColor4f, drawingColorSpace);
     return nullptr;
+#else
+    return nullptr;
+#endif
 }
 
 napi_value JsPen::GetColor4f(napi_env env, napi_callback_info info)
