@@ -75,7 +75,7 @@ HWTEST_F(RSProxyNodeTest, LifeCycle002, TestSize.Level1)
     RSProxyNode::SharedPtr child2 = RSProxyNode::Create(child1->GetId());
     ASSERT_FALSE(child2 != nullptr);
 
-    node->GetType();
+    ASSERT_TRUE(node->GetType() == RSUINodeType::PROXY_NODE);
     node->GetName();
 }
 
