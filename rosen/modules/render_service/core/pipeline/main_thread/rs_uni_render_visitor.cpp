@@ -3048,7 +3048,7 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
     dirtyManager.GetFilterCollector().CollectFilterDirtyRegionInfo(
         RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(
             node, Occlusion::Region(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion())),
-            curSurfaceNode_), false);
+            curSurfaceNode_ != nullptr), false);
 
     if (curSurfaceNode_) {
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
