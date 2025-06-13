@@ -465,8 +465,8 @@ HWTEST_F(RSModifierTest, CameraDistanceModifier001, TestSize.Level1)
     auto modifier = std::make_shared<RSRotationYModifier>(prop);
 
     auto node = RSCanvasNode::Create();
-    node->AddModifier(modifier);
     ASSERT_TRUE(node != nullptr);
+    node->AddModifier(modifier);
     ASSERT_EQ(node->GetStagingProperties().GetCameraDistance(), value);
 }
 
