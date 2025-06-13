@@ -163,7 +163,7 @@ void NdkRunTest::TearDown()
  * @tc.desc: Test for get run by index.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest001, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest001, TestSize.Level0)
 {
     text_ = "Hello 你好 World";
     PrepareCreateTextLine();
@@ -201,7 +201,7 @@ HWTEST_F(NdkRunTest, RunTest001, TestSize.Level1)
  * @tc.desc: Test for get run glyph count.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest002, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest002, TestSize.Level0)
 {
     text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
@@ -233,7 +233,7 @@ HWTEST_F(NdkRunTest, RunTest002, TestSize.Level1)
  * @tc.desc: Test for get glyph index in paragraph.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest003, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest003, TestSize.Level0)
 {
     text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
@@ -271,7 +271,7 @@ HWTEST_F(NdkRunTest, RunTest003, TestSize.Level1)
  * @tc.desc: Test for get run string range.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest004, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest004, TestSize.Level0)
 {
     text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
@@ -307,7 +307,7 @@ HWTEST_F(NdkRunTest, RunTest004, TestSize.Level1)
  * @tc.desc: Test for get run typographic bounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest005, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest005, TestSize.Level0)
 {
     text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
@@ -348,7 +348,7 @@ HWTEST_F(NdkRunTest, RunTest005, TestSize.Level1)
  * @tc.desc: Test for get run image bounds.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest006, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest006, TestSize.Level0)
 {
     text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
@@ -388,7 +388,7 @@ HWTEST_F(NdkRunTest, RunTest006, TestSize.Level1)
  * @tc.desc: Test for get run glyphs.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest007, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest007, TestSize.Level0)
 {
     text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
@@ -432,7 +432,7 @@ HWTEST_F(NdkRunTest, RunTest007, TestSize.Level1)
  * @tc.desc: Test for get run positions.
  * @tc.type: FUNC
  */
- HWTEST_F(NdkRunTest, RunTest008, TestSize.Level1)
+ HWTEST_F(NdkRunTest, RunTest008, TestSize.Level0)
  {
     text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
@@ -476,7 +476,7 @@ HWTEST_F(NdkRunTest, RunTest007, TestSize.Level1)
  * @tc.desc: Test for special value input parameters testing.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest009, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest009, TestSize.Level0)
 {
     text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -= ,."
         "< >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
@@ -527,7 +527,7 @@ HWTEST_F(NdkRunTest, RunTest009, TestSize.Level1)
  * @tc.desc: Test for the run of nullptr pointer testing.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, RunTest010, TestSize.Level1)
+HWTEST_F(NdkRunTest, RunTest010, TestSize.Level0)
 {
     OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(nullptr, 0);
     EXPECT_TRUE(run == nullptr);
@@ -559,7 +559,7 @@ HWTEST_F(NdkRunTest, RunTest010, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of nullptr testing.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest001, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest001, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(nullptr);
     EXPECT_TRUE(font == nullptr);
@@ -581,7 +581,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest001, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the English text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest002, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest002, TestSize.Level0)
 {
     text_ = "Hello你好";
     PrepareCreateTextLineForGlyphDrawing();
@@ -630,7 +630,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest002, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the emoji text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest003, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest003, TestSize.Level0)
 {
     text_ = "⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭";
     PrepareCreateTextLineForGlyphDrawing();
@@ -681,7 +681,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest003, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the RTL text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest004, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest004, TestSize.Level0)
 {
     text_ = "مرحبا";
     PrepareCreateTextLineForGlyphDrawing();
@@ -728,7 +728,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest004, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the Arabic and Latin ligature text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest005, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest005, TestSize.Level0)
 {
     text_ = "\u0644\u0627Hello你好连字测试\u0066\u0069";
     PrepareCreateTextLineForGlyphDrawing();
@@ -783,7 +783,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest005, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the Sanskrit combination text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest006, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest006, TestSize.Level0)
 {
     text_ = "क्Hello你好天成文测试का";
     PrepareCreateTextLineForGlyphDrawing();
@@ -847,7 +847,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest006, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the Sanskrit combination text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest007, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest007, TestSize.Level0)
 {
     text_ = "གྷHello你好藏文测试སྒྲ";
     PrepareCreateTextLineForGlyphDrawing();
@@ -900,7 +900,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest007, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the Thai text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRunTest, GlyDrawingTest008, TestSize.Level1)
+HWTEST_F(NdkRunTest, GlyDrawingTest008, TestSize.Level0)
 {
     text_ = "\u0E01\u0E33\u0E41\u0E01Hello你好泰文测试";
     PrepareCreateTextLineForGlyphDrawing();

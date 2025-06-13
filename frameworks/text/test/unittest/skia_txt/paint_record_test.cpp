@@ -45,7 +45,7 @@ void PaintRecordTest::TearDownTestCase()
  * @tc.desc: test for SetColor
  * @tc.type: FUNC
  */
-HWTEST_F(PaintRecordTest, PaintRecordTest001, TestSize.Level1)
+HWTEST_F(PaintRecordTest, PaintRecordTest001, TestSize.Level0)
 {
     EXPECT_EQ(paintRecord_ != nullptr, true);
     RSBrush brush;
@@ -61,7 +61,7 @@ HWTEST_F(PaintRecordTest, PaintRecordTest001, TestSize.Level1)
  * @tc.desc: test for SetColor
  * @tc.type: FUNC
  */
-HWTEST_F(PaintRecordTest, PaintRecordTest002, TestSize.Level1)
+HWTEST_F(PaintRecordTest, PaintRecordTest002, TestSize.Level0)
 {
     EXPECT_EQ(paintRecord_ != nullptr, true);
     RSBrush rsBrush;
@@ -79,7 +79,7 @@ HWTEST_F(PaintRecordTest, PaintRecordTest002, TestSize.Level1)
  * @tc.desc: test for Equal
  * @tc.type: FUNC
  */
-HWTEST_F(PaintRecordTest, PaintRecordTest003, TestSize.Level1)
+HWTEST_F(PaintRecordTest, PaintRecordTest003, TestSize.Level0)
 {
     EXPECT_EQ(paintRecord_ != nullptr, true);
     RSBrush brush;
@@ -93,7 +93,7 @@ HWTEST_F(PaintRecordTest, PaintRecordTest003, TestSize.Level1)
  * @tc.desc: test for Unequal
  * @tc.type: FUNC
  */
-HWTEST_F(PaintRecordTest, PaintRecordTest004, TestSize.Level1)
+HWTEST_F(PaintRecordTest, PaintRecordTest004, TestSize.Level0)
 {
     EXPECT_EQ(paintRecord_ != nullptr, true);
     RSBrush brush;

@@ -44,7 +44,7 @@ std::vector<std::string> GetFontSet(const char* fname)
  * @tc.desc: test get fontSet file parser
  * @tc.type:FUNC
  */
-HWTEST_F(FontParserTest, FontParserTest1, TestSize.Level1)
+HWTEST_F(FontParserTest, FontParserTest1, TestSize.Level0)
 {
     auto fontSet1 = GetFontSet(nullptr);
     EXPECT_EQ(fontSet1.size(), 0);
@@ -65,7 +65,7 @@ HWTEST_F(FontParserTest, FontParserTest1, TestSize.Level1)
  * @tc.desc: test font file parser
  * @tc.type:FUNC
  */
-HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level1)
+HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level0)
 {
     FontParser fontParser;
     auto visibilityFonts = fontParser.GetVisibilityFonts();
@@ -84,7 +84,7 @@ HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level1)
  * @tc.desc: test font file parser
  * @tc.type:FUNC
  */
-HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level1)
+HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level0)
 {
     FontParser fontParser;
     std::unique_ptr<FontParser::FontDescriptor> font =
@@ -98,7 +98,7 @@ HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level1)
  * @tc.desc: test font file parser
  * @tc.type:FUNC
  */
-HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level1)
+HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level0)
 {
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFile(), 0);
@@ -113,7 +113,7 @@ HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level1)
  * @tc.desc: test font file parser
  * @tc.type:FUNC
  */
-HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level1)
+HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level0)
 {
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFontFileMap(), 0);
@@ -133,7 +133,7 @@ HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level1)
  * @tc.desc: opentype parser test
  * @tc.type:FUNC
  */
-HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
+HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level0)
 {
     char test[] = {'a', 'b', 'c', 'd', 0};
     struct OpenTypeBasicType::Tag tag;
@@ -157,7 +157,7 @@ HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
  * @tc.desc: test for check full name
  * @tc.type: FUNC
  */
-HWTEST_F(FontParserTest, CheckFullNameParamInvalidTest1, TestSize.Level1)
+HWTEST_F(FontParserTest, CheckFullNameParamInvalidTest1, TestSize.Level0)
 {
     FontParser::FontDescriptor fd;
     fd.requestedFullname = "testName";

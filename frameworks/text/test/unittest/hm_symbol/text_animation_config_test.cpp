@@ -44,7 +44,7 @@ bool OHTextAnimationConfigTest::SetSymbolAnimation(
  * @tc.desc: test for DrawTextEffect witch canvas is nullptr and no parametor
  * @tc.type: FUNC
  */
-HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect001, TestSize.Level1)
+HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect001, TestSize.Level0)
 {
     // init data
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
@@ -88,7 +88,7 @@ HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect001, TestSize.Level1)
  * @tc.desc: Test for DrawTextEffect by animation config
  * @tc.type: FUNC
  */
-HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect002, TestSize.Level1)
+HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect002, TestSize.Level0)
 {
     // init data
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
@@ -132,7 +132,7 @@ HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect002, TestSize.Level1)
  * @tc.desc: Test whether the color was set successfully
  * @tc.type: FUNC
  */
-HWTEST_F(OHTextAnimationConfigTest, SetColor, TestSize.Level1)
+HWTEST_F(OHTextAnimationConfigTest, SetColor, TestSize.Level0)
 {
     // init data
     SPText::TextAnimationConfig textEffect;

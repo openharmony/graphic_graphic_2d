@@ -124,7 +124,7 @@ void NdkTypographyStyleTest::TearDown()
  * @tc.desc: test for set auto space when paragraph with single run
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest001, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "SingRun©2002-2001";
@@ -150,7 +150,7 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest001, TestSize.Lev
  * @tc.desc: test for set auto space when paragraph with single run and the layout width is at the boundary value.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest002, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest002, TestSize.Level0)
 {
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
@@ -187,7 +187,7 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest002, TestSize.Lev
  * @tc.desc: test for set auto space when paragraph with many lines
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest003, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest003, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲\n版权所有©2002-2001华为技术有限公司保留一切权利\n卸载USB设备";
@@ -219,7 +219,7 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest003, TestSize.Lev
  * @tc.desc: test for set auto space when paragraph is many lines and the layout width is at the boundary value.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest004, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest004, TestSize.Level0)
 {
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
@@ -261,7 +261,7 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest004, TestSize.Lev
  * @tc.desc: test for width from OH_Drawing_TextLineGetImageBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest005, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest005, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -296,7 +296,7 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest005, TestSize.Lev
  * @tc.desc: test for width from OH_Drawing_TextLineGetOffsetForStringIndex when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest006, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest006, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -331,7 +331,7 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest006, TestSize.Lev
  * @tc.desc: test for width from OH_Drawing_GetRunTypographicBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest007, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest007, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -386,7 +386,7 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest007, TestSize.Lev
  * @tc.desc: test for width from OH_Drawing_GetRunImageBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest008, TestSize.Level1)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest008, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";

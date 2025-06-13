@@ -94,7 +94,7 @@ void RunTest::PrepareCreateRunForGlyphDrawing()
  * @tc.desc: test for GetFont
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest001, TestSize.Level1)
+HWTEST_F(RunTest, RunTest001, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -106,7 +106,7 @@ HWTEST_F(RunTest, RunTest001, TestSize.Level1)
  * @tc.desc: test for GetGlyphCount
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest002, TestSize.Level1)
+HWTEST_F(RunTest, RunTest002, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -118,7 +118,7 @@ HWTEST_F(RunTest, RunTest002, TestSize.Level1)
  * @tc.desc: test for GetGlyphs
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest003, TestSize.Level1)
+HWTEST_F(RunTest, RunTest003, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -131,7 +131,7 @@ HWTEST_F(RunTest, RunTest003, TestSize.Level1)
  * @tc.desc: test for GetPositions
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest004, TestSize.Level1)
+HWTEST_F(RunTest, RunTest004, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -144,7 +144,7 @@ HWTEST_F(RunTest, RunTest004, TestSize.Level1)
  * @tc.desc: test for GetOffsets
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest005, TestSize.Level1)
+HWTEST_F(RunTest, RunTest005, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_[0], nullptr);
@@ -157,7 +157,7 @@ HWTEST_F(RunTest, RunTest005, TestSize.Level1)
  * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest006, TestSize.Level1)
+HWTEST_F(RunTest, RunTest006, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -171,7 +171,7 @@ HWTEST_F(RunTest, RunTest006, TestSize.Level1)
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest007, TestSize.Level1)
+HWTEST_F(RunTest, RunTest007, TestSize.Level0)
 {
     EXPECT_EQ(runs_[0]->GetGlyphs(0, 12).size(), 7);
     EXPECT_EQ(runs_[0]->GetPositions(0, 10).size(), 7);
@@ -191,7 +191,7 @@ HWTEST_F(RunTest, RunTest007, TestSize.Level1)
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest008, TestSize.Level1)
+HWTEST_F(RunTest, RunTest008, TestSize.Level0)
 {
     EXPECT_EQ(runs_[0]->GetGlyphs(-1, 12), std::vector<uint16_t>());
     EXPECT_EQ(runs_[0]->GetGlyphs(0, -1), std::vector<uint16_t>());
@@ -224,7 +224,7 @@ HWTEST_F(RunTest, RunTest008, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the English text.
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunGlyphDrawingTest001, TestSize.Level1)
+HWTEST_F(RunTest, RunGlyphDrawingTest001, TestSize.Level0)
 {
     text_ = u"Hello你好";
     PrepareCreateRunForGlyphDrawing();
@@ -241,7 +241,7 @@ HWTEST_F(RunTest, RunGlyphDrawingTest001, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the RTL text.
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunGlyphDrawingTest002, TestSize.Level1)
+HWTEST_F(RunTest, RunGlyphDrawingTest002, TestSize.Level0)
 {
     text_ = u"مرحبا";
     PrepareCreateRunForGlyphDrawing();
@@ -258,7 +258,7 @@ HWTEST_F(RunTest, RunGlyphDrawingTest002, TestSize.Level1)
  * @tc.desc: test for nullptr, only for the branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunGlyphDrawingTest003, TestSize.Level1)
+HWTEST_F(RunTest, RunGlyphDrawingTest003, TestSize.Level0)
 {
     std::vector<PaintRecord> testVec;
     std::unique_ptr<SPText::Run> runNull = std::make_unique<SPText::RunImpl>(nullptr, testVec);

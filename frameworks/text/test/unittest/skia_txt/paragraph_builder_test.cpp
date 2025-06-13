@@ -55,7 +55,7 @@ void ParagraphBuilderTest::TearDown()
  * @tc.desc: test for PushStyle
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest001, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest001, TestSize.Level0)
 {
     TextStyle style;
     paragraphBuilder_->PushStyle(style);
@@ -80,7 +80,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest001, TestSize.Level1)
  * @tc.desc: test for Pop
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest002, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest002, TestSize.Level0)
 {
     TextStyle style;
     // 10 is just for test
@@ -97,7 +97,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest002, TestSize.Level1)
  * @tc.desc: test for AddText
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest004, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest004, TestSize.Level0)
 {
     std::u16string text = u"text";
     paragraphBuilder_->AddText(text);
@@ -110,7 +110,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest004, TestSize.Level1)
  * @tc.desc: test for AddPlaceholder
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest005, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest005, TestSize.Level0)
 {
     PlaceholderRun placeholderRunDefault;
     // 50 just for test
@@ -132,7 +132,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest005, TestSize.Level1)
  * @tc.desc: test for locale
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest007, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest007, TestSize.Level0)
 {
     std::string localeEN = "en-US";
     TextStyle textStyle;
@@ -149,7 +149,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest007, TestSize.Level1)
  * @tc.desc: test for italic font style
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest008, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest008, TestSize.Level0)
 {
     TextStyle textStyle;
     textStyle.fontStyle = FontStyle::ITALIC;
@@ -163,7 +163,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest008, TestSize.Level1)
  * @tc.desc: test for oblique font style
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest009, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest009, TestSize.Level0)
 {
     TextStyle textStyle;
     textStyle.fontStyle = FontStyle::OBLIQUE;
@@ -177,7 +177,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest009, TestSize.Level1)
  * @tc.desc: test for default font style
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest010, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest010, TestSize.Level0)
 {
     TextStyle textStyle;
     // 999 is not a valid value, so the default value should be used
@@ -192,7 +192,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest010, TestSize.Level1)
  * @tc.desc: test for MakeTextShadow
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest011, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest011, TestSize.Level0)
 {
     TextStyle textStyle;
     textStyle.textShadows.emplace_back();
@@ -211,7 +211,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest011, TestSize.Level1)
  * @tc.desc: test for isPlaceholder is true
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest012, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest012, TestSize.Level0)
 {
     TextStyle textStyle;
     textStyle.isPlaceholder = true;
@@ -225,7 +225,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest012, TestSize.Level1)
  * @tc.desc: test for BuildLineFetcher
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest013, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest013, TestSize.Level0)
 {
     TextStyle textStyle;
     textStyle.textShadows.emplace_back();
@@ -240,7 +240,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest013, TestSize.Level1)
  * @tc.desc: test for BuildLineFetcher
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level0)
 {
     EXPECT_EQ(paragraphBuilder_->BuildLineFetcher(), nullptr);
 }
@@ -250,7 +250,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level1)
  * @tc.desc: test for TextStyleToSkStyle ParagraphSpacing
  * @tc.type: FUNC
  */
- HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest015, TestSize.Level1)
+ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest015, TestSize.Level0)
  {
      skia::textlayout::ParagraphStyle skStyle;
      ParagraphStyle txt;
@@ -274,7 +274,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level1)
  * @tc.desc: test for TextStyleToSkStyle AutoSpace
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest016, TestSize.Level1)
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest016, TestSize.Level0)
 {
      skia::textlayout::ParagraphStyle skStyle;
      ParagraphStyle txt;

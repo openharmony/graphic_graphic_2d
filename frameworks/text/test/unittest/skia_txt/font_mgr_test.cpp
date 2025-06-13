@@ -52,7 +52,7 @@ void FontMgrTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, LoadDynamicFont002, TestSize.Level1)
+HWTEST_F(FontMgrTest, LoadDynamicFont002, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDynamicFontMgr();
     std::vector<uint8_t> emptyFontData;
@@ -67,7 +67,7 @@ HWTEST_F(FontMgrTest, LoadDynamicFont002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, MatchFamilyStyleCharacter001, TestSize.Level1)
+HWTEST_F(FontMgrTest, MatchFamilyStyleCharacter001, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     FontStyle fontStyle;
@@ -84,7 +84,7 @@ HWTEST_F(FontMgrTest, MatchFamilyStyleCharacter001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, MatchFamily002, TestSize.Level1)
+HWTEST_F(FontMgrTest, MatchFamily002, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     const char* familyName = "serif";
@@ -98,7 +98,7 @@ HWTEST_F(FontMgrTest, MatchFamily002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, CountFamilies001, TestSize.Level1)
+HWTEST_F(FontMgrTest, CountFamilies001, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     int familyCount = FontMgr->CountFamilies();
@@ -111,7 +111,7 @@ HWTEST_F(FontMgrTest, CountFamilies001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, GetFamilyName001, TestSize.Level1)
+HWTEST_F(FontMgrTest, GetFamilyName001, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     std::string familyName;
@@ -126,7 +126,7 @@ HWTEST_F(FontMgrTest, GetFamilyName001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, CreateStyleSet001, TestSize.Level1)
+HWTEST_F(FontMgrTest, CreateStyleSet001, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     ASSERT_NE(FontMgr, nullptr);
@@ -140,7 +140,7 @@ HWTEST_F(FontMgrTest, CreateStyleSet001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, MatchFallbackc001, TestSize.Level1)
+HWTEST_F(FontMgrTest, MatchFallbackc001, TestSize.Level0)
 {
     const char* ja = "Noto Sans CJK JP";
     const char* hmSymbol = "HM Symbol";
@@ -196,7 +196,7 @@ const char* CONFIG_FIRST_FONT_PATH = "/data/fonts/Igiari-2.otf";
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, GetFontFullName001, TestSize.Level1)
+HWTEST_F(FontMgrTest, GetFontFullName001, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -218,7 +218,7 @@ HWTEST_F(FontMgrTest, GetFontFullName001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, GetFontFullName002, TestSize.Level1)
+HWTEST_F(FontMgrTest, GetFontFullName002, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -240,7 +240,7 @@ HWTEST_F(FontMgrTest, GetFontFullName002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, GetFontFullName003, TestSize.Level1)
+HWTEST_F(FontMgrTest, GetFontFullName003, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -262,7 +262,7 @@ HWTEST_F(FontMgrTest, GetFontFullName003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, GetFontFullName004, TestSize.Level1)
+HWTEST_F(FontMgrTest, GetFontFullName004, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -281,7 +281,7 @@ HWTEST_F(FontMgrTest, GetFontFullName004, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, GetFontFullName005, TestSize.Level1)
+HWTEST_F(FontMgrTest, GetFontFullName005, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -300,7 +300,7 @@ HWTEST_F(FontMgrTest, GetFontFullName005, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, GetFontFullName006, TestSize.Level1)
+HWTEST_F(FontMgrTest, GetFontFullName006, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -320,7 +320,7 @@ HWTEST_F(FontMgrTest, GetFontFullName006, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, ParseInstallFontConfig001, TestSize.Level1)
+HWTEST_F(FontMgrTest, ParseInstallFontConfig001, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -340,7 +340,7 @@ HWTEST_F(FontMgrTest, ParseInstallFontConfig001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, ParseInstallFontConfig002, TestSize.Level1)
+HWTEST_F(FontMgrTest, ParseInstallFontConfig002, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     EXPECT_NE(fontMgr, nullptr);
@@ -355,7 +355,7 @@ HWTEST_F(FontMgrTest, ParseInstallFontConfig002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91F9L
  */
-HWTEST_F(FontMgrTest, ParseInstallFontConfig003, TestSize.Level1)
+HWTEST_F(FontMgrTest, ParseInstallFontConfig003, TestSize.Level0)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     EXPECT_NE(fontMgr, nullptr);

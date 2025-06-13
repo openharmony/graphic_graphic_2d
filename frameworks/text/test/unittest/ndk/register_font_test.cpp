@@ -37,7 +37,7 @@ protected:
  * @tc.desc: test for register font
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest001, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest001, TestSize.Level0)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     uint32_t errorCode = OH_Drawing_RegisterFont(fontCollection, fontFamily_, notExistFontPath_);
@@ -52,7 +52,7 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest001, TestSize.Level1)
  * @tc.desc: test for register font buffer
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest002, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest002, TestSize.Level0)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     std::ifstream fileStream(existFontPath_);
@@ -77,7 +77,7 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest002, TestSize.Level1)
  * @tc.desc: test for nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest003, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest003, TestSize.Level0)
 {
     // ERROR_NULL_FONT_COLLECTION is 8
     const uint32_t nullFontCollection = 8;
@@ -100,7 +100,7 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest003, TestSize.Level1)
  * @tc.desc: test for ohosthemefont
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest004, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest004, TestSize.Level0)
 {
     const uint32_t fileCorruption = 9;
 
@@ -116,7 +116,7 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest004, TestSize.Level1)
  * @tc.desc: test for same ttf with different family name
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest005, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest005, TestSize.Level0)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     uint32_t result = OH_Drawing_RegisterFont(fontCollection, "test1", existFontPath_);
@@ -132,7 +132,7 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest005, TestSize.Level1)
  * @tc.desc: test for unregister font
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest006, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest006, TestSize.Level0)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     uint32_t result = OH_Drawing_RegisterFont(fontCollection, "test1", existFontPath_);
@@ -151,7 +151,7 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest006, TestSize.Level1)
  * @tc.desc: test for unregister font
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest007, TestSize.Level1)
+HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest007, TestSize.Level0)
 {
     // ERROR_NULL_FONT_COLLECTION is 8
     const uint32_t nullFontCollection = 8;

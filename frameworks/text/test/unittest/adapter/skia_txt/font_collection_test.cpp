@@ -76,7 +76,7 @@ std::vector<uint8_t> OH_Drawing_FontCollectionTest::GetFileData(const std::strin
  * @tc.desc: test for constuctor of FontCollection
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSize.Level0)
 {
     fontCollection_->DisableFallback();
     fontCollection_->DisableSystemFont();
@@ -92,7 +92,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
  * @tc.desc: test for register same typeface
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     // 10000 just for test
@@ -128,7 +128,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSi
  * @tc.desc: test for ClearCaches
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level0)
 {
     fontCollection_->ClearCaches();
     EXPECT_EQ(fontMgr_->CountFamilies(), 0);
@@ -139,7 +139,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSi
  * @tc.desc: test for LoadSymbolFont
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSize.Level0)
 {
     std::ifstream fileStream(symbolFile_);
     fileStream.seekg(0, std::ios::end);
@@ -173,7 +173,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSi
  * @tc.desc: test for LoadThemeFont with 2 fonts
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
@@ -212,7 +212,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSi
  * @tc.desc: test for LoadThemeFont with 3 fonts
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
@@ -254,7 +254,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSi
  * @tc.desc: test for LoadThemeFont with 3 fonts but 1 is null
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
@@ -295,7 +295,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSi
  * @tc.desc: test for LoadFont with 1 font and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     // 10000 just for test
@@ -319,7 +319,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSi
  * @tc.desc: test for LoadFont use 2 font with same family and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
@@ -348,7 +348,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSi
  * @tc.desc: test for LoadFont use 2 font with different family and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
@@ -384,7 +384,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSi
  * @tc.desc: test for LoadFont use font with empty family name and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest011, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest011, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     // 10000 just for test
@@ -407,7 +407,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest011, TestSi
  * @tc.desc: test for unload theme font but failed
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSize.Level0)
 {
     std::vector<uint8_t> sansData = GetFileData(sansFile_);
     std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
@@ -448,7 +448,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSi
  * @tc.desc: test for unload system font and empty but failed
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSize.Level1)
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSize.Level0)
 {
     EXPECT_EQ(fontCollection_->LoadFont("", nullptr, 0), nullptr);
     EXPECT_FALSE(fontCollection_->UnloadFont(""));

@@ -87,7 +87,7 @@ void NdkTypographyPaintAttributeTest::TearDown()
  * @tc.desc: test the nullptr input value for updating the paint attribute
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateNullPtrTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateNullPtrTest001, TestSize.Level0)
 {
     uint32_t color = OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF);
     EXPECT_EQ(color, 0xFF00FFFF);
@@ -102,7 +102,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateNullPtrTest001, TestSi
  * @tc.desc: test for updating the font color
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateFontColorTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateFontColorTest001, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateFontColor(fTypography, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
 
@@ -118,7 +118,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateFontColorTest001, Test
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_LINE_THROUGH
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest001, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_LINE_THROUGH);
 
@@ -134,7 +134,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest001, Tes
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_UNDERLINE
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest002, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest002, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_UNDERLINE);
 
@@ -150,7 +150,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest002, Tes
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_OVERLINE
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest003, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest003, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_OVERLINE);
 
@@ -166,7 +166,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest003, Tes
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_NONE
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest004, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest004, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_NONE);
 
@@ -183,7 +183,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationTest004, Tes
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationThicknessScaleTest001,
-    TestSize.Level1)
+    TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecorationThicknessScale(fTypography, 2.0);
 
@@ -199,7 +199,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationThicknessSca
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DOTTED
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest001, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_DOTTED);
 
@@ -215,7 +215,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest001
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DOTTED
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest002, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest002, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_SOLID);
 
@@ -231,7 +231,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest002
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_WAVY
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest003, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest003, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_WAVY);
 
@@ -247,7 +247,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest003
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DASHED
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest004, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest004, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_DASHED);
 
@@ -263,7 +263,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest004
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DOUBLE
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest005, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest005, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_DOUBLE);
 
@@ -279,7 +279,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationStyleTest005
  * @tc.desc: test for updating the font color and decoration in mutiple text.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, DrawingTypographyUpdateColorAndDecoration001, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, DrawingTypographyUpdateColorAndDecoration001, TestSize.Level0)
 {
     OH_Drawing_SetTextStyleColor(fTxtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0x00));
     OH_Drawing_SetTextStyleDecoration(fTxtStyle, TEXT_DECORATION_NONE);
@@ -308,7 +308,7 @@ HWTEST_F(NdkTypographyPaintAttributeTest, DrawingTypographyUpdateColorAndDecorat
  * @tc.desc: test for updating the decoration color
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationColorTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyPaintAttributeTest, TypographyUpdateDecorationColorTest001, TestSize.Level0)
 {
     OH_Drawing_TypographyUpdateDecorationColor(nullptr, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
     OH_Drawing_TypographyUpdateDecorationColor(fTypography, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));

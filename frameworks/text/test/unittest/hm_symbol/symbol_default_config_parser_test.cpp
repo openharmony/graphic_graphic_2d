@@ -52,7 +52,7 @@ void SymbolDefaultConfigParserTest::TearDown()
  * @tc.type: FUNC
  * @tc.require: I91EQ7
  */
-HWTEST_F(SymbolDefaultConfigParserTest, GetSymbolLayersGroups001, TestSize.Level1)
+HWTEST_F(SymbolDefaultConfigParserTest, GetSymbolLayersGroups001, TestSize.Level0)
 {
     SymbolDefaultConfigParser::GetInstance()->ParseConfigOfHmSymbol("/system/fonts/hm_symbol_config_next.json");
     auto groups = SymbolDefaultConfigParser::GetInstance()->GetSymbolLayersGroups(3); // 3 is an existing GlyphID
@@ -65,7 +65,7 @@ HWTEST_F(SymbolDefaultConfigParserTest, GetSymbolLayersGroups001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: I91EQ7
  */
-HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters001, TestSize.Level1)
+HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters001, TestSize.Level0)
 {
     auto parameters =
         SymbolDefaultConfigParser::GetInstance()->GetGroupParameters(RSDrawing::DrawingAnimationType::SCALE_TYPE, 1, 1);
@@ -96,7 +96,7 @@ HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91EQ7
  */
-HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters002, TestSize.Level1)
+HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters002, TestSize.Level0)
 {
     uint16_t groups = 1; // the 1 is layers of effect
     auto parameters1 = SymbolDefaultConfigParser::GetInstance()->GetGroupParameters(
@@ -118,7 +118,7 @@ HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91EQ7
  */
-HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters003, TestSize.Level1)
+HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters003, TestSize.Level0)
 {
     uint16_t groups = 300; // the 300 is Out of layers Scope
     auto parameters = SymbolDefaultConfigParser::GetInstance()->GetGroupParameters(
@@ -132,7 +132,7 @@ HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I91EQ7
  */
-HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters004, TestSize.Level1)
+HWTEST_F(SymbolDefaultConfigParserTest, GetGroupParameters004, TestSize.Level0)
 {
     uint16_t groups = 3; // the 1 is layers of effect
     auto parameters1 = SymbolDefaultConfigParser::GetInstance()->GetGroupParameters(

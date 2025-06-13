@@ -31,7 +31,7 @@ class NdkTypographyStrutStyleTest : public testing::Test {
  * @tc.desc: test for getting and setting strut style
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest001, TestSize.Level1)
+HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest001, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_StrutStyle* strutstyle = new OH_Drawing_StrutStyle();
@@ -66,7 +66,7 @@ HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest001, TestSize.Leve
  * @tc.desc: test for strutstyle equals
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest002, TestSize.Level1)
+HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest002, TestSize.Level0)
 {
     OH_Drawing_StrutStyle* from = new OH_Drawing_StrutStyle();
     OH_Drawing_StrutStyle* to = new OH_Drawing_StrutStyle();
@@ -85,7 +85,7 @@ HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest002, TestSize.Leve
  * @tc.desc: test for setting strut style and getting strut style
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest003, TestSize.Level1)
+HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest003, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);
@@ -145,7 +145,7 @@ HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest003, TestSize.Leve
  * @tc.desc: test for strutstyle not equal
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest004, TestSize.Level1)
+HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest004, TestSize.Level0)
 {
     OH_Drawing_StrutStyle* from = new OH_Drawing_StrutStyle();
     // 4 For families size
@@ -187,7 +187,7 @@ HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest004, TestSize.Leve
  * @tc.desc: test for getting strut style where familySize equals 0
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest005, TestSize.Level1)
+HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest005, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_StrutStyle* strutstyle1 = new OH_Drawing_StrutStyle();
@@ -214,7 +214,7 @@ HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest005, TestSize.Leve
  * @tc.desc: test for strut style should not take effect when not enabled
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest006, TestSize.Level1)
+HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest006, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateSharedFontCollection();
