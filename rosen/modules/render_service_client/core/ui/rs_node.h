@@ -49,6 +49,7 @@
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/visual_effect.h"
 #include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
@@ -1271,6 +1272,7 @@ public:
      */
     void SetBgBrightnessNegCoeff(const Vector4f& coeff);
     void SetBgBrightnessFract(const float& fract);
+    void SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara);
 
 
     /**

@@ -239,6 +239,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_bezier_warp_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
+    "src/render/rs_border_light_shader.cpp",
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_gradient_shader_filter.cpp",
     "src/render/rs_color_picker.cpp",

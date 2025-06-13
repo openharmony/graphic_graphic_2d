@@ -31,6 +31,7 @@
 namespace OHOS::Rosen {
 class RSProperties;
 class RSFilter;
+class RSShader;
 namespace Drawing {
 class RuntimeEffect;
 }
@@ -90,8 +91,6 @@ public:
     RSBackgroundColorDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-
-private:
 };
 
 class RSBackgroundShaderDrawable : public RSPropertyDrawable {
@@ -102,8 +101,11 @@ public:
     RSBackgroundShaderDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 private:
+    std::shared_ptr<RSShader> stagingBgShader_;
+    std::shared_ptr<RSShader> bgShader_;
 };
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {

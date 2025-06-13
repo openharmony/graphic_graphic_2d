@@ -19,6 +19,7 @@
 #include "mask/include/radial_gradient_mask_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 
 #define UIEFFECT_NAPI_CHECK_RET(x, res) \
@@ -94,6 +95,7 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsObject, double* point, size_t
 bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba);
 bool ParseJsLTRBRect(napi_env env, napi_value jsValue, Vector4f& ltrb);
 bool ParseJsPoint(napi_env env, napi_value jsObject, Vector2f& point);
+bool ParseJsVector3f(napi_env env, napi_value jsObject, Vector3f& values);
 } // namespace UIEffect
 
 class UIEffectNapiUtils {

@@ -38,7 +38,7 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
-
+#include "render/rs_border_light_shader.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
@@ -266,6 +266,35 @@ RSDrawable::Ptr RSBackgroundShaderDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 };
 
+void RSBackgroundShaderDrawable::OnSync()
+{
+    bgShader_ = stagingBgShader_;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSBackgroundShaderDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSBackgroundShaderDrawable>(shared_from_this());
+    return [ptr, this](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        Drawing::Brush brush;
+        if (this->stagingBgShader_->GetShaderType() == RSShader::ShaderType::BORDER_LIGHT) {
+            auto borderLightShader = std::static_pointer_cast<RSBorderLightShader>(this->stagingBgShader_);
+            if (borderLightShader) {
+                auto matrix = canvas->GetTotalMatrix();
+                borderLightShader->SetMatrix(matrix);
+            }
+        }
+        auto shaderEffect = this->stagingBgShader_->GetDrawingShader();
+        // do not draw if shaderEffect is nullptr and keep RSShader behavior consistent
+        if (shaderEffect == nullptr && this->stagingBgShader_->GetShaderType() != RSShader::ShaderType::DRAWING) {
+            return;
+        }
+        brush.SetShaderEffect(shaderEffect);
+        canvas->AttachBrush(brush);
+        canvas->DrawRect(*rect);
+        canvas->DetachBrush();
+    };
+}
+
 bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
@@ -273,20 +302,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     if (!bgShader) {
         return false;
     }
-
-    // regenerate stagingDrawCmdList_
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    Drawing::Brush brush;
-    auto shaderEffect = bgShader->GetDrawingShader();
-    // do not draw if shaderEffect is nullptr and keep RSShader behavior consistent
-    if (shaderEffect == nullptr && bgShader->GetShaderType() != RSShader::ShaderType::DRAWING) {
-        return true;
-    }
-    brush.SetShaderEffect(shaderEffect);
-    canvas.AttachBrush(brush);
-    canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
-    canvas.DetachBrush();
+    stagingBgShader_ = bgShader;
     return true;
 }
 

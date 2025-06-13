@@ -25,6 +25,7 @@ namespace Rosen {
 namespace UIEffect {
 
 constexpr const char* POINT_STRING[2] = { "x", "y" };
+constexpr const char* POINT3D_STRING[3] = { "x", "y", "z" };
 constexpr const char* COLOR_STRING[4] = {"red", "green", "blue", "alpha"};
 constexpr const char* RECT_STRING[4] = {"left", "top", "right", "bottom"};
 
@@ -104,6 +105,20 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsObject, double* point, size_t
         if (napi_get_value_double(env, tmpValue, curEdge) != napi_ok) {
             return false;
         }
+    }
+    return true;
+}
+
+bool ParseJsVector3f(napi_env env, napi_value jsObject, Vector3f& values)
+{
+    for (size_t idx = 0; idx < NUM_3; idx++) {
+        napi_value tempValue = nullptr;
+        double value = 0.0f;
+        napi_get_named_property(env, jsObject, POINT3D_STRING[idx], &tempValue);
+        if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok) {
+            return false;
+        }
+        values[idx] = value;
     }
     return true;
 }
