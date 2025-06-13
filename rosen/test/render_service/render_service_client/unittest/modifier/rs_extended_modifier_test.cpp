@@ -131,8 +131,11 @@ HWTEST_F(RSExtendedModifierTest, CreateRenderModifierTest, TestSize.Level1)
     RSDrawingContext ctx;
     PropertyId id = 1;
     RSModifierType type = RSModifierType::EXTENDED;
-    std::shared_ptr<RSRenderModifier> ptr = RSExtendedModifierHelper::CreateRenderModifier(ctx, id, type);
+    int16_t index = 1;
+    auto ptr = std::static_pointer_cast<RSDrawCmdListRenderModifier>(
+        RSExtendedModifierHelper::CreateRenderModifier(ctx, id, type, index));
     EXPECT_TRUE(ptr != nullptr);
+    EXPECT_TRUE(ptr->GetIndex() == 1);
 }
 
 /**
@@ -236,5 +239,18 @@ HWTEST_F(RSExtendedModifierTest, SetNoNeedUICapturedTest, TestSize.Level1)
     ExtendedModifierTest extendedModifier;
     extendedModifier.SetNoNeedUICaptured(true);
     ASSERT_TRUE(extendedModifier.noNeedUICaptured_);
+}
+
+/**
+ * @tc.name: GetIndexTest
+ * @tc.desc: GetIndex Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBDGY3
+ */
+HWTEST_F(RSExtendedModifierTest, GetIndexTest, TestSize.Level1)
+{
+    ExtendedModifierTest extendedModifier;
+    extendedModifier.SetIndex(2);
+    ASSERT_TRUE(extendedModifier.GetIndex() == 2);
 }
 } // namespace OHOS::Rosen

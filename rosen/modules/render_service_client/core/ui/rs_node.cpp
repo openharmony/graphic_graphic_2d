@@ -64,6 +64,8 @@
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
+#include "ui_effect/property/include/rs_ui_content_light_filter.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
 #include "ui_effect/property/include/rs_ui_dispersion_filter.h"
@@ -2010,6 +2012,9 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
     std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto& filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
+        if (filterPara == nullptr) {
+            continue;
+        }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
             auto blurRadius = filterBlurPara->GetRadius();
@@ -2039,6 +2044,12 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto hdrBrightnessRatioPara = std::static_pointer_cast<HDRBrightnessRatioPara>(filterPara);
             auto brightnessRatio = hdrBrightnessRatioPara->GetBrightnessRatio();
             SetHDRUIBrightness(brightnessRatio);
+        }
+        if (filterPara->GetParaType() == FilterPara::CONTENT_LIGHT) {
+            auto contentLightProperty = std::make_shared<RSUIContentLightFilterPara>();
+            auto contentLightPara = std::static_pointer_cast<ContentLightPara>(filterPara);
+            contentLightProperty->SetContentLight(contentLightPara);
+            uiFilter->Insert(contentLightProperty);
         }
     }
     if (!uiFilter->GetAllTypes().empty()) {
@@ -2175,6 +2186,36 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
         SetBackgroundBlurRadiusY(blurRadiusY);
         SetBgBlurDisableSystemAdaptation(disableSystemAdaptation);
     }
+}
+
+void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgroundFilter)
+{
+    if (!backgroundFilter) {
+        ROSEN_LOGW("RSNode::SetBackgroundNGFilter background RSUIFilter is nullptr");
+        auto iter = propertyModifiers_.find(RSModifierType::BACKGROUND_NG_FILTER);
+        if (iter != propertyModifiers_.end()) {
+            RemoveModifier(iter->second);
+            propertyModifiers_.erase(iter);
+        }
+        return;
+    }
+    SetProperty<RSBackgroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
+        RSModifierType::BACKGROUND_NG_FILTER, backgroundFilter);
+}
+
+void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter)
+{
+    if (!foregroundFilter) {
+        ROSEN_LOGW("RSNode::SetForegroundNGFilter background RSUIFilter is nullptr");
+        auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_NG_FILTER);
+        if (iter != propertyModifiers_.end()) {
+            RemoveModifier(iter->second);
+            propertyModifiers_.erase(iter);
+        }
+        return;
+    }
+    SetProperty<RSForegroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
+        RSModifierType::FOREGROUND_NG_FILTER, foregroundFilter);
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
@@ -2912,7 +2953,7 @@ void RSNode::RegisterProperty(std::shared_ptr<RSPropertyBase> property)
     }
 }
 
-void RSNode::UnRegisterProperty(const PropertyId& propertyId)
+void RSNode::UnregisterProperty(const PropertyId& propertyId)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -2920,13 +2961,6 @@ void RSNode::UnRegisterProperty(const PropertyId& propertyId)
     if (iter != properties_.end()) {
         properties_.erase(iter);
     }
-}
-
-void RSNode::ResetPropertyMap()
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    properties_.clear();
 }
 
 void RSNode::UpdateModifierMotionPathOption()

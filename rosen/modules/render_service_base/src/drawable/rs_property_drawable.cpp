@@ -184,6 +184,9 @@ void RSFilterDrawable::OnSync()
 {
     if (needSync_) {
         filter_ = std::move(stagingFilter_);
+        if (filter_) {
+            filter_->OnSync();
+        }
         needSync_ = false;
     }
     renderNodeId_ = stagingNodeId_;

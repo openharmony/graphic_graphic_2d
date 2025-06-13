@@ -65,7 +65,7 @@ public:
         }
         return nullptr;
     }
-
+    void OnSync() override;
     uint32_t Hash() const override;
     uint32_t ShaderHash() const;
     uint32_t ImageHash() const;
@@ -119,6 +119,7 @@ private:
     std::string GetFilterTypeString() const;
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters_;
+    std::shared_ptr<RSNGRenderFilterBase> renderFilter_ = nullptr;
     uint32_t imageFilterHash_ = 0;
     bool canSkipFrame_ = false;
     bool canSkipMaskColor_ = false;

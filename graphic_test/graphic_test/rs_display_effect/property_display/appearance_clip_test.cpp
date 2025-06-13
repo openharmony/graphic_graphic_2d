@@ -186,4 +186,323 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, SetClipBounds_RSPath_Test_1)
         RegisterNode(testNode2);
     }
 }
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_001)
+{
+    Drawing::Path path;
+    path.AddRect(0, 0, 200, 450, Drawing::PathDirection::CCW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(0, 0, 0, 0);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(true);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_002)
+{
+    Drawing::Path path;
+    path.AddRect(0, 0, 200, 450, Drawing::PathDirection::CCW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(0, 0, 0, 0);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(false);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_003)
+{
+    Drawing::Path path;
+    path.AddRect(-50, 50, 200, 200, Drawing::PathDirection::CW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(0, 0, 0, 0);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(true);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_004)
+{
+    Drawing::Path path;
+    path.AddRect(50, -50, 200, 200, Drawing::PathDirection::CW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(1, 1, 1, 1);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(true);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_005)
+{
+    Drawing::Path path;
+    path.AddRect(-50, -50, 200, 200, Drawing::PathDirection::CW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(1, 1, 1, 1);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(true);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_006)
+{
+    Drawing::Path path;
+    path.AddRect(50, 50, 200, -200, Drawing::PathDirection::CW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(2, 2, 2, 2);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(true);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_007)
+{
+    Drawing::Path path;
+    path.AddRect(50, 50, -200, -200, Drawing::PathDirection::CW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(2, 2, 2, 2);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(true);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_008)
+{
+    Drawing::Path path;
+    path.AddCircle(100, 100, 60, Drawing::PathDirection::CW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(0, 0, 0, 0);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(false);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_009)
+{
+    Drawing::Path path;
+    path.AddCircle(100, 100, 0, Drawing::PathDirection::CCW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(1, 1, 1, 1);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(false);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_010)
+{
+    Drawing::Path path;
+    path.AddCircle(100, 100, 0, Drawing::PathDirection::CCW_DIRECTION);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(1, 1, 1, 1);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(false);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_011)
+{
+    Drawing::Path path;
+    std::vector<Drawing::Point> star = { {0, 0} };
+    path.AddPoly(star, 1, true);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(1, 1, 1, 1);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(false);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_012)
+{
+    Drawing::Path path;
+    std::vector<Drawing::Point> star = { { 0, 0 }, { 10, 10 } };
+    path.AddPoly(star, 2, true);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(0, 0, 1, 1);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(false);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToBounds_Test_013)
+{
+    Drawing::Path path;
+    std::vector<Drawing::Point> star = { { 0, 0 }, { 10, 10 }, { 20, 20 }, { 50, 30 }, { 100, 50 }, { 200, 200 } };
+    path.AddPoly(star, 6, true);
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff00ff00);
+    testNode1->SetBorderStyle(0, 0, 1, 1);
+    testNode1->SetBorderWidth(5, 5, 5, 5);
+    testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+    testNode1->SetClipToBounds(false);
+    testNode1->SetClipBounds(RSPath::CreateRSPath(path));
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_001)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(0, 0, 0, 0);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ 0, 0, 100, 100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_002)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(0, 0, 0, 0);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(false);
+    testNode->SetCustomClipToFrame({ 0, 0, 100, 100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_003)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(0, 0, 1, 1);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ -50, 0, 100, 100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_004)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(2, 2, 0, 0);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ 0, -50, 100, 100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_005)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(0, 1, 1, 0);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ 50, 50, 100, 100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_006)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(0, 2, 2, 0);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ 50, 50, -100, 100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_007)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(0, 0, 0, 0);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ 50, 50, 100, -100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_008)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(2, 2, 2, 2);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ 50, 50, -100, -100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipToFrame_Test_009)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { 0, 0, 500, 500 });
+    testNode->SetBorderStyle(1, 1, 1, 1);
+    testNode->SetBorderWidth(5, 5, 5, 5);
+    testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+    testNode->SetClipToFrame(true);
+    testNode->SetCustomClipToFrame({ -50, -50, -100, -100 });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
 } // namespace OHOS::Rosen

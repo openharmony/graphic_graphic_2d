@@ -488,13 +488,8 @@ void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, co
     SkColor color2 = spotColor.CastToColorQuad();
     SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
     if (skPathImpl != nullptr) {
-#ifndef USE_M133_SKIA
         SkShadowUtils::DrawShadowStyle(
             skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags, isLimitElevation);
-#else
-        SkShadowUtils::DrawShadow(
-            skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags);
-#endif
     }
 }
 

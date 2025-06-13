@@ -21,7 +21,9 @@
 #include "draw/pen.h"
 #include "draw/color.h"
 #include "ndk_color_space.h"
+#ifdef OHOS_PLATFORM
 #include "utils/colorspace_convertor.h"
+#endif
 
 using namespace OHOS;
 using namespace Rosen;
@@ -374,15 +376,18 @@ bool OH_Drawing_PenGetFillPath(OH_Drawing_Pen* cPen, const OH_Drawing_Path* src,
         cMatrix ? *CastToMatrix(cMatrix) : Matrix());
 }
 
+#ifdef OHOS_PLATFORM
 static NativeColorSpaceManager* OHNativeColorSpaceManagerToNativeColorSpaceManager(
     OH_NativeColorSpaceManager* nativeColorSpaceManager)
 {
     return reinterpret_cast<NativeColorSpaceManager*>(nativeColorSpaceManager);
 }
+#endif
 
 OH_Drawing_ErrorCode OH_Drawing_PenSetColor4f(OH_Drawing_Pen* cPen, float a, float r, float g, float b,
     OH_NativeColorSpaceManager* colorSpaceManager)
 {
+#ifdef OHOS_PLATFORM
     Pen* pen = CastToPen(cPen);
     if (pen == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
@@ -399,6 +404,9 @@ OH_Drawing_ErrorCode OH_Drawing_PenSetColor4f(OH_Drawing_Pen* cPen, float a, flo
 
     pen->SetColor(Color4f{r, g, b, a}, drawingColorSpace);
     return OH_DRAWING_SUCCESS;
+#else
+    return OH_DRAWING_SUCCESS;
+#endif
 }
 
 OH_Drawing_ErrorCode OH_Drawing_PenGetAlphaFloat(OH_Drawing_Pen* pen, float* a)

@@ -173,6 +173,8 @@ enum class RSModifierType : int16_t {
     HDR_UI_BRIGHTNESS = 137,
     FOREGROUND_UI_FILTER = 138,
     HDR_BRIGHTNESS_FACTOR = 139,
+    FOREGROUND_NG_FILTER = 140,
+    BACKGROUND_NG_FILTER = 141,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -347,6 +349,8 @@ public:
             case RSModifierType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
             case RSModifierType::FOREGROUND_UI_FILTER: return "ForegroundUIFilter";
             case RSModifierType::HDR_BRIGHTNESS_FACTOR: return "HDRBrightnessFactor";
+            case RSModifierType::BACKGROUND_NG_FILTER: return "BackgroundNgFilter";
+            case RSModifierType::FOREGROUND_NG_FILTER: return "ForegroundNgFilter";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

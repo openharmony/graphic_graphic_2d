@@ -25,6 +25,24 @@
 namespace OHOS {
 namespace Rosen {
 
+void RSRenderPropertyBase::Attach(std::weak_ptr<RSRenderNode> node)
+{
+    node_ = node;
+    OnChange();
+    OnAttach();
+    if (auto node = node_.lock()) {
+        node->AddProperty(shared_from_this());
+    }
+}
+
+void RSRenderPropertyBase::Detach(std::weak_ptr<RSRenderNode> node)
+{
+    OnDetach();
+    if (auto node = node_.lock()) {
+        node->RemoveProperty(shared_from_this());
+    }
+}
+
 void RSRenderPropertyBase::OnChange() const
 {
     if (auto node = node_.lock()) {
@@ -509,6 +527,14 @@ void RSRenderProperty<std::shared_ptr<RSShader>>::Dump(std::string& out) const
 }
 
 template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& out) const
+{
+    if (auto property = Get()) {
+        property->Dump(out);
+    }
+}
+
+template<>
 void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
 {
     if (!Get()) {
@@ -675,6 +701,36 @@ bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     }
     ROSEN_LOGE("RSRenderAnimatableProperty<RRect>::IsNearEqual: the value of the comparison is a null pointer!");
     return true;
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach()
+{
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Attach(node);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnDetach()
+{
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Detach(node);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType()
+{
+    stagingValue_->SetModifierType(modifierType_);
 }
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>

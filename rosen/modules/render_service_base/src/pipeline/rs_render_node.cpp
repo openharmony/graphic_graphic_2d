@@ -1761,6 +1761,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         }
     }
     // 3. update dirtyRegion if needed
+    if (properties.GetBackgroundFilter()) {
+        UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+    }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     // Only when satisfy following conditions, absDirtyRegion should update:
@@ -2661,6 +2664,16 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderNode::GetProperty(PropertyId id)
     return it->second;
 }
 
+void RSRenderNode::AddProperty(std::shared_ptr<RSRenderPropertyBase> property)
+{
+    properties_.emplace(property->GetId(), property);
+}
+
+void RSRenderNode::RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property)
+{
+    properties_.erase(property->GetId());
+}
+
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
 {
     if (!modifier) {
@@ -2760,11 +2773,8 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         }
         ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
+        it->second->GetProperty()->Detach(shared_from_this());
         modifiers_.erase(it);
-        auto propertyIt = properties_.find(id);
-        if (propertyIt != properties_.end()) {
-            properties_.erase(propertyIt);
-        }
         return;
     }
     for (auto& [type, modifiers] : drawCmdModifiers_) {

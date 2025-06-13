@@ -50,6 +50,7 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
+class RSNGRenderFilterBase;
 namespace DrawableV2 {
 class RSBackgroundImageDrawable;
 class RSBackgroundFilterDrawable;
@@ -281,6 +282,12 @@ public:
     std::shared_ptr<RSRenderFilter> GetBackgroundUIFilter() const;
     void SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
     std::shared_ptr<RSRenderFilter> GetForegroundUIFilter() const;
+
+    void SetBackgroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetBackgroundNGFilter() const;
+
+    void SetForegroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetForegroundNGFilter() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -652,6 +659,7 @@ private:
     void GenerateBezierWarpFilter();
     void GenerateRenderFilterDispersion();
     void GenerateForegroundRenderFilter();
+    void GenerateContentLightFilter();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
@@ -734,6 +742,8 @@ private:
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
     std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSRenderFilter> backgroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;

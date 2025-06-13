@@ -46,6 +46,7 @@
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_always_snapshot_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
+#include "render/rs_render_content_light_filter.h"
 #include "render/rs_render_dispersion_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 #include "render/rs_render_edge_light_filter.h"
@@ -296,6 +297,10 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
                                                                 prop->SetForegroundUIFilter({}); }},
     { RSModifierType::HDR_BRIGHTNESS_FACTOR,                [](RSProperties* prop) {
                                                                 prop->SetHDRBrightnessFactor(1.0f); }},
+    { RSModifierType::FOREGROUND_NG_FILTER,                 [](RSProperties* prop) {
+                                                                prop->SetForegroundNGFilter({}); }},
+    { RSModifierType::BACKGROUND_NG_FILTER,                 [](RSProperties* prop) {
+                                                                prop->SetBackgroundNGFilter({}); }},
 };
 
 } // namespace
@@ -567,6 +572,9 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     }
     auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
     lastRect_ = rect;
+    if (foregroundRenderFilter_) {
+        GenerateContentLightFilter();
+    }
     return dirtyFlag;
 }
 
@@ -2588,6 +2596,34 @@ std::shared_ptr<RSRenderFilter> RSProperties::GetForegroundUIFilter() const
     return foregroundRenderFilter_;
 }
 
+void RSProperties::SetBackgroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filterProp)
+{
+    bgNGRenderFilter_ = filterProp;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetBackgroundNGFilter() const
+{
+    return bgNGRenderFilter_;
+}
+
+void RSProperties::SetForegroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filterProp)
+{
+    fgNGRenderFilter_ = filterProp;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetForegroundNGFilter() const
+{
+    return fgNGRenderFilter_;
+}
+
 void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
 {
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
@@ -3607,12 +3643,13 @@ void RSProperties::GenerateSoundWaveFilter()
     if (!soundWaveFilter->ParseFilterValues()) {
         return;
     }
+    auto soundWaveFilterCopy = soundWaveFilter->DeepCopy();
     if (!backgroundFilter_) {
-        backgroundFilter_ = std::make_shared<RSDrawingFilter>(soundWaveFilter);
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(soundWaveFilterCopy);
         backgroundFilter_->SetFilterType(RSFilter::SOUND_WAVE);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(soundWaveFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(soundWaveFilterCopy);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
@@ -3764,11 +3801,45 @@ void RSProperties::GenerateForegroundRenderFilter()
                 GenerateBezierWarpFilter();
                 break;
             }
+            case RSUIFilterType::CONTENT_LIGHT : {
+                GenerateContentLightFilter();
+                break;
+            }
             default:
                 ROSEN_LOGE("RSProperties::GenerateReGenerateForegroundRenderFilternderFilter NULL.");
                 break;
         }
         ROSEN_LOGD("RSProperties::GenerateForegroundRenderFilter type %{public}d finished.", static_cast<int>(type));
+    }
+}
+
+void RSProperties::GenerateContentLightFilter()
+{
+    if (foregroundRenderFilter_ == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter get foregroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto contentLight = foregroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::CONTENT_LIGHT);
+    if (contentLight == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter ContentLightFilter not found.");
+        return;
+    }
+    auto derivedLight = std::static_pointer_cast<RSRenderContentLightFilterPara>(contentLight);
+    Vector3f rotationAngel(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+    derivedLight->SetRotationAngle(rotationAngel);
+    if (!contentLight->ParseFilterValues()) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter ParseFilterValues faile.");
+        return;
+    }
+
+    if (!foregroundFilter_) {
+        foregroundFilter_ = std::make_shared<RSDrawingFilter>(contentLight);
+        foregroundFilter_->SetFilterType(RSFilter::CONTENT_LIGHT);
+    } else {
+        auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
+        foregroundDrawingFilter = foregroundDrawingFilter->Compose(contentLight);
+        foregroundDrawingFilter->SetFilterType(RSFilter::CONTENT_LIGHT);
+        foregroundFilter_ = foregroundDrawingFilter;
     }
 }
 

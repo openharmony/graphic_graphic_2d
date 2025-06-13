@@ -94,6 +94,8 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     if (isSubTreeIgnored_) {
         return;
     }
+    // The node is considered opaque if its background color is fully opaque,
+    // and it does not use brightness or color blend modes.
     isBgOpaque_ = static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha()) == UINT8_MAX &&
         !renderProperties.IsBgBrightnessValid() && !renderProperties.IsFgBrightnessValid() &&
         renderProperties.IsColorBlendModeNone();

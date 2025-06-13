@@ -21,7 +21,9 @@
 #include "draw/brush.h"
 #include "draw/color.h"
 #include "ndk_color_space.h"
+#ifdef OHOS_PLATFORM
 #include "utils/colorspace_convertor.h"
+#endif
 
 using namespace OHOS;
 using namespace Rosen;
@@ -201,15 +203,18 @@ void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush* cBrush, OH_Drawing_BlendMode
     brush->SetBlendMode(static_cast<BlendMode>(cBlendMode));
 }
 
+#ifdef OHOS_PLATFORM
 static NativeColorSpaceManager* OHNativeColorSpaceManagerToNativeColorSpaceManager(
     OH_NativeColorSpaceManager* nativeColorSpaceManager)
 {
     return reinterpret_cast<NativeColorSpaceManager*>(nativeColorSpaceManager);
 }
+#endif
 
 OH_Drawing_ErrorCode OH_Drawing_BrushSetColor4f(OH_Drawing_Brush* cBrush, float a, float r, float g, float b,
     OH_NativeColorSpaceManager* colorSpaceManager)
 {
+#ifdef OHOS_PLATFORM
     Brush* brush = CastToBrush(cBrush);
     if (brush == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
@@ -226,6 +231,9 @@ OH_Drawing_ErrorCode OH_Drawing_BrushSetColor4f(OH_Drawing_Brush* cBrush, float 
 
     brush->SetColor(Color4f{r, g, b, a}, drawingColorSpace);
     return OH_DRAWING_SUCCESS;
+#else
+    return OH_DRAWING_SUCCESS;
+#endif
 }
 
 OH_Drawing_ErrorCode OH_Drawing_BrushGetAlphaFloat(const OH_Drawing_Brush* brush, float* a)

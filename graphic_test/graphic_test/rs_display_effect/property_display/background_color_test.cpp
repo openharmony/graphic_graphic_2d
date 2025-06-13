@@ -150,8 +150,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Paramet
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             for (int k = 0; k < 2; k++) {
-                RSDynamicBrightnessPara params = RSDynamicBrightnessPara(rateList[i], rateList[(i + 3) % 4],
-                    0.0, 0.0, saturationList[j], RGB[k], RGB[(k + 1) % 2]);
+                RSDynamicBrightnessPara params = RSDynamicBrightnessPara(
+                    rateList[i], rateList[(i + 3) % 4], 0.0, 0.0, saturationList[j], RGB[k], RGB[(k + 1) % 2]);
                 params.fraction_ = 0.0;
                 int x = i * 310;
                 int y = (k + j * 2) * 310;
@@ -260,4 +260,93 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Grey_Coef_Test)
     }
 }
 
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test001)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xff000000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test002)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, 0, 500, 500 });
+    testNode1->SetBackgroundColor(0xf0f00000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test003)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, -100, 500, 500 });
+    testNode1->SetBackgroundColor(0xf00f0000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test004)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, -500, 500 });
+    testNode1->SetBackgroundColor(0xf00f0000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test005)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, -500 });
+    testNode1->SetBackgroundColor(0xf000f000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test006)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, -500, -500 });
+    testNode1->SetBackgroundColor(0xf0000f00);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test007)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, -100, 500, 500 });
+    testNode1->SetBackgroundColor(0xf00000f0);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test008)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, -100, -500, 500 });
+    testNode1->SetBackgroundColor(0xf000000f);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test009)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, -100, -500, -500 });
+    testNode1->SetBackgroundColor(0x000ff000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test010)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 100, 100, 500, 500 });
+    testNode1->SetBackgroundColor(0x000000ff);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
 } // namespace OHOS::Rosen

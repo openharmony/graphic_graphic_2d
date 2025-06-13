@@ -50,6 +50,7 @@ public:
         EDGE_LIGHT,
         BEZIER_WARP,
         DISPERSION,
+        CONTENT_LIGHT,
     };
 
     ShaderFilterType GetShaderFilterType() const

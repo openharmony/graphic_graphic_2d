@@ -549,7 +549,7 @@ bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathM
 std::shared_ptr<Data> SkiaPath::Serialize() const
 {
     if (path_.isEmpty()) {
-        LOGE("SkiaPath::Serialize, path is empty!");
+        LOGD("SkiaPath::Serialize, path is empty!");
     }
 #ifdef USE_M133_SKIA
     SkBinaryWriteBuffer writer({});

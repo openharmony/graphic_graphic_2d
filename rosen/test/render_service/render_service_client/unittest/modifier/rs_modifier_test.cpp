@@ -454,6 +454,23 @@ HWTEST_F(RSModifierTest, RotationYModifier002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CameraDistanceModifier001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, CameraDistanceModifier001, TestSize.Level1)
+{
+    auto value = 0.f;
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
+    auto modifier = std::make_shared<RSRotationYModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    ASSERT_TRUE(node != nullptr);
+    node->AddModifier(modifier);
+    ASSERT_EQ(node->GetStagingProperties().GetCameraDistance(), value);
+}
+
+/**
  * @tc.name: ScaleModifier001
  * @tc.desc:
  * @tc.type:FUNC

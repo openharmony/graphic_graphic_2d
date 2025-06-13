@@ -36,11 +36,6 @@ void RSUIFilterParaBase::Dump(std::string& out) const
 {
 }
 
-void RSUIFilterParaBase::OnAttach(RSNode& node)
-{
-    target_ = node.weak_from_this();
-}
-
 std::map<RSUIFilterType, std::shared_ptr<RSPropertyBase>> RSUIFilterParaBase::GetFilterProperties() const
 {
     return properties_;

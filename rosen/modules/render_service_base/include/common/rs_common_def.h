@@ -228,6 +228,18 @@ enum class TpFeatureConfigType : uint8_t {
 };
 #endif
 
+// types for RenderNodeDrawable
+enum class RSRenderNodeDrawableType : uint32_t {
+    UNKNOW = 0,
+    RS_NODE_DRAWABLE,
+    DISPLAY_NODE_DRAWABLE,
+    SURFACE_NODE_DRAWABLE,
+    CANVAS_NODE_DRAWABLE,
+    EFFECT_NODE_DRAWABLE,
+    ROOT_NODE_DRAWABLE,
+    CANVAS_DRAWING_NODE_DRAWABLE,
+};
+
 struct FocusAppInfo {
     int32_t pid = -1;
     int32_t uid = -1;
