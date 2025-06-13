@@ -197,6 +197,9 @@ void RSRenderNodeGC::ReleaseDrawableBucket()
     RS_TRACE_NAME_FMT("ReleaseDrawableMemory %zu, remain drawable buckets %u", toDele.size(), remainBucketSize);
     for (auto ptr : toDele) {
         if (ptr) {
+            if (RSRenderNodeAllocator::Instance().AddDrawableToAllocator(ptr)) {
+                continue;
+            }
             delete ptr;
             ptr = nullptr;
         }

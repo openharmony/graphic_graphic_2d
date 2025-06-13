@@ -260,6 +260,11 @@ public:
         return nullptr;
     }
 
+    virtual RSRenderNodeDrawableType GetDrawableType() const
+    {
+        return RSRenderNodeDrawableType::UNKNOW;
+    }
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
