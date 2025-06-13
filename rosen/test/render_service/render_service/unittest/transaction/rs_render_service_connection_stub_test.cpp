@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,9 @@
 #include "screen_manager/rs_screen.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 using namespace testing;
 using namespace testing::ext;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,39 +23,47 @@
 
 #include "rs_image_manager.h"
 
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "GLES/gl.h"
 #include "GLES/glext.h"
 #include "GLES3/gl32.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
-class EglImageResource : public ImageResource {
+class EglImageResource {
 public:
-    static std::shared_ptr<ImageResource> Create(
-        EGLDisplay eglDisplay,
-        EGLContext eglContext,
+    static std::unique_ptr<EglImageResource> Create(EGLDisplay eglDisplay, EGLContext eglContext,
         const sptr<OHOS::SurfaceBuffer>& buffer);
-    EglImageResource(EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientBuffer)
-    {
-        eglDisplay_ = eglDisplay;
-        eglImage_ = eglImage;
-        eglClientBuffer_ = eglClientBuffer;
-    }
-    ~EglImageResource() noexcept override;
 
-    GLuint GetTextureId() const override
+    EglImageResource(EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientBuffer)
+        : eglDisplay_(eglDisplay), eglImage_(eglImage), eglClientBuffer_(eglClientBuffer) {}
+    ~EglImageResource() noexcept;
+
+    GLuint GetTextureId() const
     {
         return textureId_;
     }
 
-    void SetTextureId(GLuint textureId) override
+    pid_t GetThreadIndex() const
     {
-        textureId_ = textureId;
+        return threadIndex_;
+    }
+
+    void SetThreadIndex(const pid_t threadIndex)
+    {
+        threadIndex_ = threadIndex;
     }
 private:
     // generate a texture and bind eglImage to it.
-    bool BindToTexture() override;
+    bool BindToTexture();
 
-    friend class RSImageManager;
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    EGLClientBuffer eglClientBuffer_ = nullptr;
+    GLuint textureId_ = 0;
+    pid_t threadIndex_ = 0;
 };
 
 class RSEglImageManager : public RSImageManager {
@@ -63,23 +71,28 @@ public:
     explicit RSEglImageManager(EGLDisplay display) : eglDisplay_(display) {};
     ~RSEglImageManager() noexcept override = default;
 
-    GLuint MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex) override;
     void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
-    std::shared_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence) override;
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
+        RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
+    std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
+        const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;
 
-    void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum) override;
+    GLuint MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex);
+    void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false) override; // only used for divided_render
 
 private:
     void WaitAcquireFence(const sptr<SyncFence>& acquireFence);
-    GLuint CreateImageCacheFromBuffer(
+    GLuint CreateEglImageCacheFromBuffer(
         const sptr<OHOS::SurfaceBuffer>& buffer, const pid_t threadIndex);
 
     static constexpr size_t MAX_CACHE_SIZE = 16;
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
-    friend class RSImageManager;
+    std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
+    std::unordered_map<int32_t, std::unique_ptr<EglImageResource>> imageCacheSeqs_; // guarded by opMutex_
 };
 } // namespace Rosen
 } // namespace OHOS

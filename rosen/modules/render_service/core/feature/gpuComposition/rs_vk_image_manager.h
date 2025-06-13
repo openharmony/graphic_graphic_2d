@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,11 @@
 
 #include "rs_image_manager.h"
 
+#include "common/rs_common_def.h"
+#include "draw/surface.h"
+#include "native_window.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "vulkan/vulkan_core.h"
@@ -30,40 +35,52 @@
 namespace OHOS {
 namespace Rosen {
 
-class VkImageResource : public ImageResource {
+class VkImageResource {
 public:
+    static std::shared_ptr<VkImageResource> Create(sptr<OHOS::SurfaceBuffer> buffer);
+
     VkImageResource(NativeWindowBuffer* nativeWindowBuffer, Drawing::BackendTexture backendTexture,
         NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper)
-    {
-        mNativeWindowBuffer = nativeWindowBuffer;
-        mBackendTexture_ = backendTexture;
-        mVulkanCleanupHelper = vulkanCleanupHelper;
-    }
-    ~VkImageResource() override;
+        : mNativeWindowBuffer(nativeWindowBuffer), mBackendTexture_(backendTexture),
+          mVulkanCleanupHelper(vulkanCleanupHelper) {}
+    ~VkImageResource();
 
-    const Drawing::BackendTexture& GetBackendTexture() const override
+    const Drawing::BackendTexture& GetBackendTexture() const
     {
         return mBackendTexture_;
     }
 
-    NativeBufferUtils::VulkanCleanupHelper* RefCleanupHelper() override
+    NativeBufferUtils::VulkanCleanupHelper* RefCleanupHelper()
     {
         return mVulkanCleanupHelper->Ref();
     }
 
-    static std::shared_ptr<ImageResource> Create(sptr<OHOS::SurfaceBuffer> buffer);
-    void SetBufferDeleteFromCacheFlag(const bool& flag) override
+    pid_t GetThreadIndex() const
+    {
+        return threadIndex_;
+    }
+
+    void SetThreadIndex(const pid_t threadIndex = UNI_RENDER_THREAD_INDEX)
+    {
+        threadIndex_ = threadIndex;
+    }
+
+    void SetBufferDeleteFromCacheFlag(const bool& flag)
     {
         isBufferDeleteFromCache = flag;
     }
 
-    bool GetBufferDeleteFromCacheFlag() const override
+    bool GetBufferDeleteFromCacheFlag() const
     {
         return isBufferDeleteFromCache;
     }
 
 private:
-    friend class ImageResource;
+    NativeWindowBuffer* mNativeWindowBuffer;
+    Drawing::BackendTexture mBackendTexture_;
+    NativeBufferUtils::VulkanCleanupHelper* mVulkanCleanupHelper;
+    pid_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
+    bool isBufferDeleteFromCache = false;
 };
 
 class RSVkImageManager : public RSImageManager {
@@ -72,19 +89,25 @@ public:
     ~RSVkImageManager() noexcept override = default;
 
     void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
-    std::shared_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence) override;
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
+        RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
+    std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
+        const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;
 
-    std::shared_ptr<ImageResource> MapVkImageFromSurfaceBuffer(
+    std::shared_ptr<VkImageResource> MapVkImageFromSurfaceBuffer(
         const sptr<OHOS::SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr) override;
+        pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr);
     void DumpVkImageInfo(std::string &dumpString) override;
 private:
-    std::shared_ptr<ImageResource> NewImageCacheFromBuffer(
+    std::shared_ptr<VkImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer> buffer,
+        const sptr<SyncFence>& acquireFence) ;
+    std::shared_ptr<VkImageResource> NewImageCacheFromBuffer(
         const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition);
     bool WaitVKSemaphore(Drawing::Surface *drawingSurface, const sptr<SyncFence>& acquireFence);
 
-    friend class RSImageManager;
+    std::unordered_map<int32_t, std::shared_ptr<VkImageResource>> imageCacheSeqs_; // guarded by opMutex_
 };
 
 } // namespace Rosen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -658,13 +658,8 @@ void RSMainThread::Init()
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#if defined (RS_ENABLE_VK)
-    RS_LOGI("RSMagicPointerRenderManager init");
-    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetVkImageManager());
-#endif
-
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetEglImageManager());
+#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
+    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetImageManager());
 #endif
 #endif
 
