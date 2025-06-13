@@ -1138,6 +1138,8 @@ void RSRenderNode::DumpModifiers(std::string& out) const
     out += ", OtherModifiers:[";
     std::string propertyDesc = "";
     for (auto& [type, modifier] : modifiers_) {
+        auto pid = ExtractPid(modifier->GetPropertyId());
+        propertyDesc = propertyDesc + "pid:" + std::to_string(pid) + "->";
         propertyDesc += modifier->GetModifierTypeString();
         modifier->Dump(propertyDesc);
         propertyDesc += splitStr;
