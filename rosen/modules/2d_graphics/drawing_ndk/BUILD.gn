@@ -25,7 +25,10 @@ if (ohos_indep_compiler_enable) {
 }
 
 config("export_config") {
-  include_dirs = [ "$drawing_ndk_include_dir" ]
+  include_dirs = [
+    "$drawing_ndk_include_dir",
+    "$drawing_utils_root",
+  ]
 }
 
 if (enable_text_gine) {
