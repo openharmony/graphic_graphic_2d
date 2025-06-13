@@ -118,6 +118,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
     }
     return vsyncCount;
 }
+
 bool HgmVSyncGeneratorController::CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate)
 {
     return refreshRate <= OLED_60_HZ;
