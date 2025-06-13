@@ -123,6 +123,8 @@ void RSHardwareThread::Start()
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
                 uniRenderEngine_->Init(true);
+                // posttask for multithread safely release surface and image
+                ContextRegisterPostTask();
                 hardwareTid_ = gettid();
             }).wait();
     }
@@ -1151,6 +1153,24 @@ bool RSHardwareThread::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
     return true;
 }
 #endif
+
+void RSHardwareThread::ContextRegisterPostTask()
+{
+#if defined(RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
+    if (RSSystemProperties::IsUseVulkan()) {
+        RsVulkanContext::GetSingleton().SetIsProtected(true);
+        auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+        if (context) {
+            context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+        }
+        RsVulkanContext::GetSingleton().SetIsProtected(false);
+        context = RsVulkanContext::GetSingleton().GetDrawingContext();
+        if (context) {
+            context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+        }
+    }
+#endif
+}
 }
 
 namespace OHOS {

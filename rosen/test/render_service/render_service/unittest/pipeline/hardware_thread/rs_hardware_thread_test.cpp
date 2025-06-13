@@ -640,4 +640,18 @@ HWTEST_F(RSHardwareThreadTest, ChangeLayersForActiveRectOutside001, TestSize.Lev
     hardwareThread.ChangeLayersForActiveRectOutside(layers, screenId_);
     EXPECT_EQ(layers.size(), 0);
 }
+
+/*
+ * @tc.name: ContextRegisterPostTask001
+ * @tc.desc: Test RSHardwareThreadTest.ContextRegisterPostTask
+ * @tc.type: FUNC
+ * @tc.require: issueIC5RYI
+ */
+HWTEST_F(RSHardwareThreadTest, ContextRegisterPostTask001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    hardwareThread.ContextRegisterPostTask();
+}
 } // namespace OHOS::Rosen

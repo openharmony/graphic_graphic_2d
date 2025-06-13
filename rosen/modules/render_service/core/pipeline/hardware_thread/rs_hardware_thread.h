@@ -98,6 +98,7 @@ private:
     void CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param, uint32_t currentRate,
         int64_t currTime);
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
+    void ContextRegisterPostTask();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
