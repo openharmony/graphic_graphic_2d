@@ -1533,6 +1533,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     node.GetOpincCache().OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_, isSelfDirty);
     if (node.GetOpincCache().IsReseted()) {
         node.OpincSetNodeSupportFlag(true);
+        node.GetOpincCache().SetIsReseted(false);
     }
     node.UpdateOpincParam();
     RectI prepareClipRect = prepareClipRect_;
@@ -2853,7 +2854,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
-        nodeParent->OpincUpdateNodeSupportFlag(node.OpincGetNodeSupportFlag());
+        nodeParent->OpincUpdateNodeSupportFlag(node.OpincGetNodeSupportFlag(), node.GetOpincCache().OpincGetRootFlag());
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {

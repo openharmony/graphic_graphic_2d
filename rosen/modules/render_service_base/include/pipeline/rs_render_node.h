@@ -646,7 +646,7 @@ public:
     std::string QuickGetNodeDebugInfo();
 
     // mark support node
-    void OpincUpdateNodeSupportFlag(bool supportFlag);
+    void OpincUpdateNodeSupportFlag(bool supportFlag, bool rootFlag);
     virtual bool OpincGetNodeSupportFlag()
     {
         return isOpincNodeSupportFlag_;

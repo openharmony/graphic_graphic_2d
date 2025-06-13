@@ -3706,12 +3706,12 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 }
 
 // mark support node
-void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag)
+void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag, bool rootFlag)
 {
     // supportFlag is obtained from isOpincNodeSupportFlag_ of the child node.
-    // IsMarkedRenderGroup make sure current node is the bottom of the node marked by arkui.
+    // make sure current node is the bottom of the node marked by arkui.
     isOpincNodeSupportFlag_ = isOpincNodeSupportFlag_ && supportFlag &&
-        (!opincCache_.IsMarkedRenderGroup(nodeGroupType_ > RSRenderNode::NodeGroupType::NONE));
+        nodeGroupType_ == RSRenderNode::NodeGroupType::NONE && !rootFlag;
 }
 
 std::string RSRenderNode::QuickGetNodeDebugInfo()

@@ -64,6 +64,11 @@ public:
         return isReseted_;
     }
 
+    void SetIsReseted(bool isReseted)
+    {
+        isReseted_ = isReseted;
+    }
+
 private:
     // opinc state
     NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
@@ -78,7 +83,7 @@ private:
     int unchangeCountUpper_ = 3; // 3 time is the default to cache
     bool cacheChangeFlag_ = false;
     int waitCount_ = 0;
-    bool isReseted_ = true;
+    bool isReseted_ = false;
     // opinc state func
     void NodeCacheStateChange(NodeChangeType type);
     void SetCacheStateByRetrytime();
