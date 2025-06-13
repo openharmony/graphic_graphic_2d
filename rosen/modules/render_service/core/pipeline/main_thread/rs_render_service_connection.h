@@ -412,6 +412,10 @@ private:
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
+    ErrCode AvcodecVideoStart(uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) override;
+
+    ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) override;
+
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 
     pid_t remotePid_;
