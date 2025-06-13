@@ -39,21 +39,12 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
         EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with non-positive pixmap width or height.");
         return;
     }
-    colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
-    colorVal_.resize(colorValLen_);
-
-    uint32_t realColorCnt = 0;
-    for (int i = 0; i < pixmap->GetHeight(); i++) {
-        for (int j = 0; j < pixmap->GetWidth(); j++) {
-            uint32_t pixelColor;
-            pixmap->GetARGB32Color(j, i, pixelColor);
-            if (GetARGB32ColorA(pixelColor) != 0) {
-                colorVal_.data()[realColorCnt] = pixelColor;
-                realColorCnt++;
-            }
-        }
+    format_ = pixmap->GetPixelFormat();
+    if (format_ == Media::PixelFormat::RGBA_1010102) {
+        InitColorValBy1010102Color(pixmap, 0, 0, pixmap->GetWidth(), pixmap->GetHeight());
+    } else {
+        InitColorValBy8888Color(pixmap, 0, 0, pixmap->GetWidth(), pixmap->GetHeight());
     }
-    colorValLen_ = realColorCnt;
     grayMsd_ = CalcGrayMsd();
     contrastToWhite_ = CalcContrastToWhite();
     GetNFeatureColors(specifiedFeatureColorNum_);
@@ -74,6 +65,50 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
     uint32_t top = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[1]); // 1 is index of top
     uint32_t right = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[2]); // 2 is index of right
     uint32_t bottom = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[3]); // 3 is index of bottom
+    format_ = pixmap->GetPixelFormat();
+    if (format_ == Media::PixelFormat::RGBA_1010102) {
+        InitColorValBy1010102Color(pixmap, left, top, right, bottom);
+    } else {
+        InitColorValBy8888Color(pixmap, left, top, right, bottom);
+    }
+    grayMsd_ = CalcGrayMsd();
+    contrastToWhite_ = CalcContrastToWhite();
+    GetNFeatureColors(specifiedFeatureColorNum_);
+}
+
+void ColorExtract::InitColorValBy1010102Color(std::shared_ptr<Media::PixelMap> pixmap, uint32_t left, uint32_t top,
+    uint32_t right, uint32_t bottom)
+{
+    if (pixmap == nullptr) {
+        EFFECT_LOG_E("[ColorExtract]failed to InitColorValBy1010102Color with null pixmap.");
+        return;
+    }
+    colorValLen_ = (right - left) * (bottom -top);
+    if (colorValLen_ <= 0) {
+        return;
+    }
+    colorVal_.resize(colorValLen_);
+    uint32_t realColorCnt = 0;
+    for (uint32_t i = top; i < bottom; i++) {
+        for (uint32_t j = left; j < right; j++) {
+            uint32_t pixelColor;
+            pixmap->GetRGBA1010102Color(j, i, pixelColor);
+            if (GetRGBA1010102ColorA(pixelColor) != 0) {
+                colorVal_.data()[realColorCnt] = pixelColor;
+                realColorCnt++;
+            }
+        }
+    }
+    colorValLen_ = realColorCnt;
+}
+
+void ColorExtract::InitColorValBy8888Color(std::shared_ptr<Media::PixelMap> pixmap, uint32_t left, uint32_t top,
+    uint32_t right, uint32_t bottom)
+{
+    if (pixmap == nullptr) {
+        EFFECT_LOG_E("[ColorExtract]failed to InitColorValBy8888Color with null pixmap.");
+        return;
+    }
     colorValLen_ = (right - left) * (bottom -top);
     if (colorValLen_ <= 0) {
         return;
@@ -91,9 +126,6 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
         }
     }
     colorValLen_ = realColorCnt;
-    grayMsd_ = CalcGrayMsd();
-    contrastToWhite_ = CalcContrastToWhite();
-    GetNFeatureColors(specifiedFeatureColorNum_);
 }
 
 // Return red component of a quantized color
@@ -114,7 +146,7 @@ uint32_t ColorExtract::QuantizedBlue(uint32_t color)
     return color & static_cast<uint32_t>(QUANTIZE_WORD_MASK);
 }
 
-uint32_t ColorExtract::ModifyWordWidth(uint8_t color, int inWidth, int outWidth)
+uint32_t ColorExtract::ModifyWordWidth(uint32_t color, int inWidth, int outWidth)
 {
     uint32_t newValue;
     if (outWidth > inWidth) {
@@ -124,6 +156,7 @@ uint32_t ColorExtract::ModifyWordWidth(uint8_t color, int inWidth, int outWidth)
     }
     return newValue & ((1 << outWidth) - 1);
 }
+
 uint8_t ColorExtract::GetARGB32ColorA(unsigned int color)
 {
     return (color >> ARGB_A_SHIFT) & ARGB_MASK;
@@ -133,15 +166,36 @@ uint8_t ColorExtract::GetARGB32ColorR(unsigned int color)
 {
     return (color >> ARGB_R_SHIFT) & ARGB_MASK;
 }
+
 uint8_t ColorExtract::GetARGB32ColorG(unsigned int color)
 {
     return (color >> ARGB_G_SHIFT) & ARGB_MASK;
 }
+
 uint8_t ColorExtract::GetARGB32ColorB(unsigned int color)
 {
     return (color >> ARGB_B_SHIFT) & ARGB_MASK;
 }
 
+uint32_t ColorExtract::GetRGBA1010102ColorA(unsigned int color)
+{
+    return (color >> RGBA1010102_A_SHIFT) & RGBA1010102_ALPHA_MASK;
+}
+
+uint32_t ColorExtract::GetRGBA1010102ColorR(unsigned int color)
+{
+    return (color >> RGBA1010102_R_SHIFT) & RGBA1010102_RGB_MASK;
+}
+
+uint32_t ColorExtract::GetRGBA1010102ColorG(unsigned int color)
+{
+    return (color >> RGBA1010102_G_SHIFT) & RGBA1010102_RGB_MASK;
+}
+
+uint32_t ColorExtract::GetRGBA1010102ColorB(unsigned int color)
+{
+    return (color >> RGBA1010102_B_SHIFT) & RGBA1010102_RGB_MASK;
+}
 
 uint32_t ColorExtract::QuantizeFromRGB888(uint32_t color)
 {
@@ -151,6 +205,13 @@ uint32_t ColorExtract::QuantizeFromRGB888(uint32_t color)
     return (r << (QUANTIZE_WORD_WIDTH + QUANTIZE_WORD_WIDTH)) | (g << QUANTIZE_WORD_WIDTH) | b;
 }
 
+uint32_t ColorExtract::QuantizeFromRGB101010(uint32_t color)
+{
+    uint32_t r = ModifyWordWidth(GetRGBA1010102ColorR(color), 10, QUANTIZE_WORD_WIDTH);
+    uint32_t g = ModifyWordWidth(GetRGBA1010102ColorG(color), 10, QUANTIZE_WORD_WIDTH);
+    uint32_t b = ModifyWordWidth(GetRGBA1010102ColorB(color), 10, QUANTIZE_WORD_WIDTH);
+    return (r << (QUANTIZE_WORD_WIDTH + QUANTIZE_WORD_WIDTH)) | (g << QUANTIZE_WORD_WIDTH) | b;
+}
 
 uint32_t ColorExtract::ApproximateToRGB888(uint32_t r, uint32_t g, uint32_t b)
 {
@@ -164,7 +225,6 @@ uint32_t ColorExtract::ApproximateToRGB888(uint32_t color)
 {
     return ApproximateToRGB888(QuantizedRed(color), QuantizedGreen(color), QuantizedBlue(color));
 }
-
 
 std::vector<std::pair<uint32_t, uint32_t>> ColorExtract::QuantizePixels(int colorNum)
 {
@@ -213,11 +273,20 @@ void ColorExtract::SetFeatureColorNum(int N)
     return;
 }
 
-uint8_t ColorExtract::Rgb2Gray(uint32_t color)
+uint8_t ColorExtract::Rgb2Gray(uint32_t color, Media::PixelFormat format)
 {
-    uint32_t r = GetARGB32ColorR(color);
-    uint32_t g = GetARGB32ColorG(color);
-    uint32_t b = GetARGB32ColorB(color);
+    uint32_t r;
+    uint32_t g;
+    uint32_t b;
+    if (format == Media::PixelFormat::RGBA_1010102) {
+        r = GetRGBA1010102ColorR(color);
+        g = GetRGBA1010102ColorG(color);
+        b = GetRGBA1010102ColorB(color);
+    } else {
+        r = GetARGB32ColorR(color);
+        g = GetARGB32ColorG(color);
+        b = GetARGB32ColorB(color);
+    }
     return static_cast<uint8_t>(r * RED_GRAY_RATIO + g * GREEN_GRAY_RATIO + b * BLUE_GRAY_RATIO);
 }
 
@@ -240,9 +309,12 @@ uint32_t ColorExtract::CalcGrayMsd() const
     return static_cast<uint32_t>(grayVar);
 }
 
-float ColorExtract::NormalizeRgb(uint32_t val)
+float ColorExtract::NormalizeRgb(uint32_t val, const uint32_t& colorMax)
 {
-    float res = static_cast<float>(val) / 255;
+    if (colorMax == 0) {
+        return 0.0f;
+    }
+    float res = static_cast<float>(val) / colorMax;
     if (res <= 0.03928) { // 0.03928 is used to normalize rgb;
         res /= 12.92; // 12.92 is used to normalize rgb;
     } else {
@@ -251,15 +323,30 @@ float ColorExtract::NormalizeRgb(uint32_t val)
     return res;
 }
 
-float ColorExtract::CalcRelativeLum(uint32_t color)
+float ColorExtract::CalcRelativeLum(uint32_t color, Media::PixelFormat format)
 {
-    uint32_t r = GetARGB32ColorR(color);
-    uint32_t g = GetARGB32ColorG(color);
-    uint32_t b = GetARGB32ColorB(color);
-    float R = NormalizeRgb(r);
-    float G = NormalizeRgb(g);
-    float B = NormalizeRgb(b);
-    return R * RED_LUMINACE_RATIO + G * GREEN_LUMINACE_RATIO + B * BLUE_LUMINACE_RATIO;
+    uint32_t r;
+    uint32_t g;
+    uint32_t b;
+    float rInFloat;
+    float gInFloat;
+    float bInFloat;
+    if (format == Media::PixelFormat::RGBA_1010102) {
+        r = GetRGBA1010102ColorR(color);
+        g = GetRGBA1010102ColorG(color);
+        b = GetRGBA1010102ColorB(color);
+        rInFloat = NormalizeRgb(r, RGB101010_COLOR_MAX);
+        gInFloat = NormalizeRgb(g, RGB101010_COLOR_MAX);
+        bInFloat = NormalizeRgb(b, RGB101010_COLOR_MAX);
+    } else {
+        r = GetARGB32ColorR(color);
+        g = GetARGB32ColorG(color);
+        b = GetARGB32ColorB(color);
+        rInFloat = NormalizeRgb(r, RGB888_COLOR_MAX);
+        gInFloat = NormalizeRgb(g, RGB888_COLOR_MAX);
+        bInFloat = NormalizeRgb(b, RGB888_COLOR_MAX);
+    }
+    return rInFloat * RED_LUMINACE_RATIO + gInFloat * GREEN_LUMINACE_RATIO + bInFloat * BLUE_LUMINACE_RATIO;
 }
 
 float ColorExtract::CalcContrastToWhite() const
@@ -271,7 +358,7 @@ float ColorExtract::CalcContrastToWhite() const
     float lightDegree = 0;
     float luminanceSum = 0;
     for (uint32_t i = 0; i < colorValLen_; i++) {
-        luminanceSum += CalcRelativeLum(colorVal[i]);
+        luminanceSum += CalcRelativeLum(colorVal[i], format_);
     }
     float luminanceAve = luminanceSum / colorValLen_;
      // 0.05 is used to ensure denominator is not 0;
@@ -288,9 +375,16 @@ void ColorExtract::GetNFeatureColors(int colorNum)
     uint32_t histLen = (1 << (QUANTIZE_WORD_WIDTH * 3));
     hist_.resize(histLen);
     uint32_t *hist = hist_.data();
-    for (uint32_t i = 0; i < colorValLen_; i++) {
-        uint32_t quantizedColor = QuantizeFromRGB888(colorVal[i]);
-        hist[quantizedColor]++;
+    if (format_ == Media::PixelFormat::RGBA_1010102) {
+        for (uint32_t i = 0; i < colorValLen_; i++) {
+            uint32_t quantizedColor = QuantizeFromRGB101010(colorVal[i]);
+            hist[quantizedColor]++;
+        }
+    } else {
+        for (uint32_t i = 0; i < colorValLen_; i++) {
+            uint32_t quantizedColor = QuantizeFromRGB888(colorVal[i]);
+            hist[quantizedColor]++;
+        }
     }
 
     for (uint32_t color = 0; color < histLen; color++) {
