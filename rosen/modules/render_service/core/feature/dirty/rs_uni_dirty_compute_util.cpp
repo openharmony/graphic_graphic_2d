@@ -265,7 +265,7 @@ void RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(DrawableV2::RSDisplayRen
 }
 
 FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(
-    RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty)
+    RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty, bool isSurface)
 {
     bool effectNodeExpandDirty =
         filterNode.IsInstanceOf<RSEffectRenderNode>() && !filterNode.FirstFrameHasEffectChildren();
@@ -279,7 +279,7 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
     }
     FilterDirtyRegionInfo filterInfo = {
         .id_ = filterNode.GetId(),
-        .intersectRegion_ = filterRegion,
+        .intersectRegion_ = isSurface ? filterRegion : dirtyRegion,
         .filterDirty_ = dirtyRegion,
         .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
         .belowDirty_ = preDirty.value_or(Occlusion::Region())
