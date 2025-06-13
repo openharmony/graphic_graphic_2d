@@ -3607,12 +3607,13 @@ void RSProperties::GenerateSoundWaveFilter()
     if (!soundWaveFilter->ParseFilterValues()) {
         return;
     }
+    auto soundWaveFilterCopy = soundWaveFilter->DeepCopy();
     if (!backgroundFilter_) {
-        backgroundFilter_ = std::make_shared<RSDrawingFilter>(soundWaveFilter);
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(soundWaveFilterCopy);
         backgroundFilter_->SetFilterType(RSFilter::SOUND_WAVE);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(soundWaveFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(soundWaveFilterCopy);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
