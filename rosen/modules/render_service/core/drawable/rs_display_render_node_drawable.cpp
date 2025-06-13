@@ -867,7 +867,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 ScaleCanvasIfNeeded(screenInfo);
                 auto rect = curCanvas_->GetDeviceClipBounds();
                 PrepareOffscreenRender(*this, !screenInfo.isSamplingOn, !screenInfo.isSamplingOn);
-                if (params->GetHDRPresent() || isScRGBEnable) {
+                if (!params->GetNeedOffscreen() && !screenInfo.isSamplingOn &&
+                    (params->GetHDRPresent() || isScRGBEnable)) {
                     curCanvas_->ClipRect(rect);
                 }
             }
