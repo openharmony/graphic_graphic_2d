@@ -98,7 +98,7 @@ private:
     uint32_t bufferCacheCountMax_ = 0;
     mutable std::mutex mutex_;
     sptr<SurfaceBuffer> currBuffer_ = nullptr;
-    bool alreadyClearBuffer_ = false;
+    bool bufferCleared_ = false;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     void CloseLayer();

@@ -31,7 +31,7 @@ class StringConvertTest : public testing::Test {};
  * @tc.desc: test Str8ToStr16ByIcu
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, Str8ToStr16ByIcuTest, TestSize.Level1)
+HWTEST_F(StringConvertTest, Str8ToStr16ByIcuTest, TestSize.Level0)
 {
     // Test valid UTF-8 string
     EXPECT_EQ(Str8ToStr16ByIcu("Hello"), u"Hello");
@@ -69,7 +69,7 @@ HWTEST_F(StringConvertTest, Str8ToStr16ByIcuTest, TestSize.Level1)
  * @tc.desc: test Str32ToStr16ByIcuTest
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, Str32ToStr16ByIcuTest, TestSize.Level1)
+HWTEST_F(StringConvertTest, Str32ToStr16ByIcuTest, TestSize.Level0)
 {
     // Test valid UTF-32 string
     std::vector<int32_t> valid = { 0x0048, 0x0045, 0x004C, 0x004C, 0x004F }; // UTF-32 representation of "HELLO"
@@ -135,7 +135,7 @@ HWTEST_F(StringConvertTest, Str32ToStr16ByIcuTest, TestSize.Level1)
  * @tc.desc: test BoundaryCases
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, BoundaryCases, TestSize.Level1)
+HWTEST_F(StringConvertTest, BoundaryCases, TestSize.Level0)
 {
     // Test maximum valid Unicode code point
     std::vector<int32_t> maxValid { 0x10FFFF };
@@ -161,7 +161,7 @@ HWTEST_F(StringConvertTest, BoundaryCases, TestSize.Level1)
  * @tc.desc: use huge input to test stress
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, StressTest, TestSize.Level1)
+HWTEST_F(StringConvertTest, StressTest, TestSize.Level0)
 {
     // Test long string
     std::string longStr(4096, 'A');
@@ -184,7 +184,7 @@ HWTEST_F(StringConvertTest, StressTest, TestSize.Level1)
  * @tc.desc: Test handling of a single high surrogate
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, SingleHighSurrogate, TestSize.Level1)
+HWTEST_F(StringConvertTest, SingleHighSurrogate, TestSize.Level0)
 {
     std::u16string input = u"\xD800"; // Single high surrogate
     std::u16string expected = u"\xFFFD";
@@ -197,7 +197,7 @@ HWTEST_F(StringConvertTest, SingleHighSurrogate, TestSize.Level1)
  * @tc.desc: Test handling of a single low surrogate
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, SingleLowSurrogate, TestSize.Level1)
+HWTEST_F(StringConvertTest, SingleLowSurrogate, TestSize.Level0)
 {
     std::u16string input = u"\xDC00"; // Single low surrogate
     std::u16string expected = u"\xFFFD";
@@ -210,7 +210,7 @@ HWTEST_F(StringConvertTest, SingleLowSurrogate, TestSize.Level1)
  * @tc.desc: Test handling of a valid surrogate pair
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, ValidSurrogatePair, TestSize.Level1)
+HWTEST_F(StringConvertTest, ValidSurrogatePair, TestSize.Level0)
 {
     std::u16string input = u"\xD800\xDC00"; // Valid surrogate pair
     std::u16string expected = u"\xD800\xDC00";
@@ -223,7 +223,7 @@ HWTEST_F(StringConvertTest, ValidSurrogatePair, TestSize.Level1)
  * @tc.desc: Test handling of a high surrogate followed by a non-surrogate character
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, HighFollowedByNonSurrogate, TestSize.Level1)
+HWTEST_F(StringConvertTest, HighFollowedByNonSurrogate, TestSize.Level0)
 {
     std::u16string input = u"\xD800\u0041"; // High surrogate followed by non-surrogate character
     std::u16string expected = u"\xFFFD\u0041";
@@ -236,7 +236,7 @@ HWTEST_F(StringConvertTest, HighFollowedByNonSurrogate, TestSize.Level1)
  * @tc.desc: Test handling of inverted surrogates (low surrogate before high surrogate)
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, InvertedSurrogates, TestSize.Level1)
+HWTEST_F(StringConvertTest, InvertedSurrogates, TestSize.Level0)
 {
     std::u16string input = u"\xDC00\xD800"; // Low surrogate before high surrogate
     std::u16string expected = u"\xFFFD\xFFFD";
@@ -249,7 +249,7 @@ HWTEST_F(StringConvertTest, InvertedSurrogates, TestSize.Level1)
  * @tc.desc: Test handling of multiple invalid surrogates
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, MultipleInvalidSurrogates, TestSize.Level1)
+HWTEST_F(StringConvertTest, MultipleInvalidSurrogates, TestSize.Level0)
 {
     std::u16string input = u"\xD800\xD801\xDC01"; // Two high surrogates, one low surrogate
     std::u16string expected = u"\xFFFD\xD801\xDC01";
@@ -262,7 +262,7 @@ HWTEST_F(StringConvertTest, MultipleInvalidSurrogates, TestSize.Level1)
  * @tc.desc: Test handling of mixed valid and invalid surrogate pairs
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, MixedValidAndInvalid, TestSize.Level1)
+HWTEST_F(StringConvertTest, MixedValidAndInvalid, TestSize.Level0)
 {
     // Valid surrogate pair, invalid high surrogate, invalid low surrogate, normal character
     std::u16string input = u"\xD800\xDC00\xD801\x0041\xDC01";
@@ -276,7 +276,7 @@ HWTEST_F(StringConvertTest, MixedValidAndInvalid, TestSize.Level1)
  * @tc.desc: Test handling of an empty string
  * @tc.type: FUNC
  */
-HWTEST_F(StringConvertTest, EmptyString, TestSize.Level1)
+HWTEST_F(StringConvertTest, EmptyString, TestSize.Level0)
 {
     std::u16string input = u""; // Empty string
     std::u16string expected = u"";

@@ -32,7 +32,7 @@ class OHHmSymbolRunTest : public testing::Test {};
  * @tc.desc: test DrawSymbol with one Glyph
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, DrawSymbol001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, DrawSymbol001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -70,7 +70,7 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol001, TestSize.Level1)
  * @tc.desc: test DrawSymbol with Glyphs
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, DrawSymbol002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, DrawSymbol002, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -95,7 +95,7 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol002, TestSize.Level1)
  * @tc.desc: test DrawSymbol with animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -134,7 +134,7 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level1)
  * @tc.desc: test SetSymbolRenderColor with multi colors
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level0)
 {
     // step 1: Simulation input
     RSSColor color1 = {1.0f, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
@@ -172,7 +172,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
  * @tc.desc: test SetSymbolRenderColor with one color
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level0)
 {
     std::vector<RSSColor> colors = {};
     RSSColor color = {1.0f, 0, 255, 0}; // the 1.0 is alpha, 0, 255, 0 is RGB
@@ -199,7 +199,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
  * @tc.desc: test SymbolAnimation with glyphId
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level0)
 {
     uint16_t glyphId = 3; // 3 is an existing GlyphID
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
@@ -222,7 +222,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level1)
  * @tc.desc: test GetAnimationGroups with glyphId
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups001, TestSize.Level0)
 {
     uint16_t glyphId = 3; // 3 is an existing GlyphID
     RSEffectStrategy effectStrategy = RSEffectStrategy::BOUNCE;
@@ -244,7 +244,7 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups001, TestSize.Level1)
  * @tc.desc: test GetAnimationGroups with pulse animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level0)
 {
     uint16_t glyphId = 3; // 3 is an existing GlyphID
     RSEffectStrategy effectStrategy = RSEffectStrategy::PULSE;
@@ -266,7 +266,7 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level1)
  * @tc.desc: test GetSymbolLayers with glyphId
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level0)
 {
     // step 1: init data
     uint16_t glyphId = 3; // 3 is an existing GlyphID
@@ -294,7 +294,7 @@ HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level1)
  * @tc.desc: test SetRenderColor with colorList
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetRenderColor001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetRenderColor001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -335,7 +335,7 @@ HWTEST_F(OHHmSymbolRunTest, SetRenderColor001, TestSize.Level1)
  * @tc.desc: test SetRenderMode with SINGLE
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetRenderMode001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetRenderMode001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -362,7 +362,7 @@ HWTEST_F(OHHmSymbolRunTest, SetRenderMode001, TestSize.Level1)
  * @tc.desc: test SetRenderMode with MULTIPLE_COLOR
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetRenderMode002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetRenderMode002, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -389,7 +389,7 @@ HWTEST_F(OHHmSymbolRunTest, SetRenderMode002, TestSize.Level1)
  * @tc.desc: test SetRenderMode with MULTIPLE_OPACITY
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetRenderMode003, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetRenderMode003, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -416,7 +416,7 @@ HWTEST_F(OHHmSymbolRunTest, SetRenderMode003, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with DrawingEffectStrategy::NONE
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -444,7 +444,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect001, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with DrawingEffectStrategy::SCALE
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect002, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -472,7 +472,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect002, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with DrawingEffectStrategy::VARIABLE_COLOR
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect003, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect003, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -500,7 +500,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect003, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with DrawingEffectStrategy::APPEAR
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect004, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect004, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -528,7 +528,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect004, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::DISAPPEAR
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect005, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect005, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -556,7 +556,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect005, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::BOUNCE
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect006, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect006, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -584,7 +584,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect006, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::PULSE
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect007, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect007, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -612,7 +612,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect007, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::REPLACE_APPEAR
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect008, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect008, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -640,7 +640,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect008, TestSize.Level1)
  * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::QUICK_REPLACE_APPEAR
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect009, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect009, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -668,7 +668,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect009, TestSize.Level1)
  * @tc.desc: test SetAnimationMode with wholeSymbol
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetAnimationMode001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetAnimationMode001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -700,7 +700,7 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimationMode001, TestSize.Level1)
  * @tc.desc: test SetAnimationMode with byLayer
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetAnimationMode002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetAnimationMode002, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -732,7 +732,7 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimationMode002, TestSize.Level1)
  * @tc.desc: test SetAnimationMode with invalid value
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetAnimationMode003, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetAnimationMode003, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -765,7 +765,7 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimationMode003, TestSize.Level1)
  * @tc.desc: test SetAnimationStart with animationStart
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetAnimationStart001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetAnimationStart001, TestSize.Level0)
 {
     const char* str = "A";
     Drawing::Font font;
@@ -784,7 +784,7 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimationStart001, TestSize.Level1)
  * @tc.desc: test SetCommonSubType with commonSubType::DOWN
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetCommonSubType001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetCommonSubType001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -816,7 +816,7 @@ HWTEST_F(OHHmSymbolRunTest, SetCommonSubType001, TestSize.Level1)
  * @tc.desc: test SetCommonSubType with commonSubType::UP
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetCommonSubType002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetCommonSubType002, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
@@ -848,7 +848,7 @@ HWTEST_F(OHHmSymbolRunTest, SetCommonSubType002, TestSize.Level1)
  * @tc.desc: test SetTextBlob with null textBlob
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob001, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "A";
@@ -868,7 +868,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob001, TestSize.Level1)
  * @tc.desc: test SetTextBlob with same content(before:"A",after:"A",Corresponding truth table: 111)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob002, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "A";
@@ -892,7 +892,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob002, TestSize.Level1)
  * @tc.desc: test SetTextBlob with different content(before:"A",after:"B",Corresponding truth table: 110)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob003, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob003, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "A";
@@ -915,7 +915,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob003, TestSize.Level1)
  * @tc.desc: test SetTextBlob with different content(before:"A",after:"AB",Corresponding truth table: 101)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob004, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob004, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "A";
@@ -939,7 +939,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob004, TestSize.Level1)
  * @tc.desc: test SetTextBlob with different content(before:"A",after:"BA",Corresponding truth table: 100)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob005, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob005, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "A";
@@ -963,7 +963,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob005, TestSize.Level1)
  * @tc.desc: test SetTextBlob with different content(before:"AB",after:"A",Corresponding truth table: 011)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob006, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob006, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "AB";
@@ -987,7 +987,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob006, TestSize.Level1)
  * @tc.desc: test SetTextBlob with different content(before:"AB",after:"B",Corresponding truth table: 010)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob007, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob007, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "AB";
@@ -1011,7 +1011,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob007, TestSize.Level1)
  * @tc.desc: test SetTextBlob with different content(before:"AB",after:"AC",Corresponding truth table: 001)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob008, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob008, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "AB";
@@ -1035,7 +1035,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob008, TestSize.Level1)
  * @tc.desc: test SetTextBlob with different content(before:"AB",after:"BA",Corresponding truth table: 000)
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetTextBlob009, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob009, TestSize.Level0)
 {
     Drawing::Font font;
     const char* str1 = "AB";
@@ -1059,7 +1059,7 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob009, TestSize.Level1)
  * @tc.desc: test SetAnimation with animationFunc
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetAnimation001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetAnimation001, TestSize.Level0)
 {
     const char* str = "A";
     Drawing::Font font;
@@ -1085,7 +1085,7 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimation001, TestSize.Level1)
  * @tc.desc: test UpdateSymbolLayersGroups
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, UpdateSymbolLayersGroups001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, UpdateSymbolLayersGroups001, TestSize.Level0)
 {
     HMSymbolTxt symbolTxt;
     symbolTxt.SetSymbolType(SymbolType::SYSTEM);
@@ -1113,7 +1113,7 @@ HWTEST_F(OHHmSymbolRunTest, UpdateSymbolLayersGroups001, TestSize.Level1)
  * @tc.desc: test GetSymbolUid and GetSymbolUid
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SymbolUid001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SymbolUid001, TestSize.Level0)
 {
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     EXPECT_EQ(hmSymbolRun.GetSymbolUid(), 0);
@@ -1126,7 +1126,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolUid001, TestSize.Level1)
  * @tc.desc: test GetSymbolTxt and SetSymbolTxt
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SymbolTxt001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SymbolTxt001, TestSize.Level0)
 {
     HMSymbolRun hmSymbolRun = HMSymbolRun();
 
@@ -1148,7 +1148,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolTxt001, TestSize.Level1)
  * @tc.desc: test SymbolAnimation with disable effectStrategy
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level0)
 {
     // init data
     HMSymbolRun hmSymbolRun = HMSymbolRun();
@@ -1186,7 +1186,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level1)
  * @tc.desc: test SetGradients
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetGradients001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetGradients001, TestSize.Level0)
 {
     uint16_t glyphId = 3; // 3 is an existing GlyphID
     HMSymbolRun hmSymbolRun = HMSymbolRun();
@@ -1214,7 +1214,7 @@ HWTEST_F(OHHmSymbolRunTest, SetGradients001, TestSize.Level1)
  * @tc.desc: test SetGradientColor
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetGradientColor001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetGradientColor001, TestSize.Level0)
 {
     // test gradients is empty
     RSSymbolRenderingStrategy renderMode = RSSymbolRenderingStrategy::SINGLE;
@@ -1255,7 +1255,7 @@ HWTEST_F(OHHmSymbolRunTest, SetGradientColor001, TestSize.Level1)
  * @tc.desc: test SetDrawPath
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level0)
 {
     // test renderMode is SINGLE
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
@@ -1284,6 +1284,78 @@ HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level1)
     hmSymbolRun.gradients_ = gradients;
     hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
     EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+}
+
+/*
+ * @tc.name: SetSymbolShadow001
+ * @tc.desc: test SetSymbolShadow
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetSymbolShadow001, TestSize.Level1)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    // {10.0F, 10.0f} is offsetXY, 10.0f is radius
+    SymbolShadow shadow = {Drawing::Color::COLOR_BLACK, {10.0F, 10.0f}, 10.0f};
+    std::optional<SymbolShadow> symbolShadow = shadow;
+    hmSymbolRun.SetSymbolShadow(symbolShadow);
+    hmSymbolRun.SetSymbolShadow(symbolShadow);
+    EXPECT_TRUE(hmSymbolRun.symbolTxt_.GetSymbolShadow().has_value());
+}
+
+/*
+ * @tc.name: OnDrawSymbol001
+ * @tc.desc: test OnDrawSymbol
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, OnDrawSymbol001, TestSize.Level1)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 40.0f); // 100.0f x, 100.0f, 40.0f radius
+    RSHMSymbolData symbol;
+    symbol.path_ = path;
+    symbol.symbolInfo_.layers = {{0}}; // this one layers;
+    symbol.symbolInfo_.renderGroups = {{{{{0}}}}}; // the {0} is layerIndexes of one group
+
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    // {10.0F, 10.0f} is offsetXY, 10.0f is radius
+    SymbolShadow shadow = {Drawing::Color::COLOR_BLACK, {10.0F, 10.0f}, 10.0f};
+    std::optional<SymbolShadow> symbolShadow = shadow;
+    hmSymbolRun.SetSymbolShadow(symbolShadow);
+    hmSymbolRun.OnDrawSymbol(rsCanvas.get(), symbol, offset);
+    EXPECT_TRUE(hmSymbolRun.symbolTxt_.GetSymbolShadow().has_value());
+}
+
+/*
+ * @tc.name: DrawSymbolShadow001
+ * @tc.desc: test DrawSymbolShadow
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow001, TestSize.Level1)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
+    RSPath path1;
+    path1.AddCircle(100.0f, 100.0f, 40.0f); // 100.0f x, 100.0f y, 40.0f radius
+    RSPath path2;
+    path2.AddCircle(100.0f, 50.0f, 40.0f); // 100.0f x, 50.0f y, 40.0f radius
+    std::vector<RSPath> paths = {path1, path2};
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    // {10.0F, 10.0f} is offsetXY, 10.0f is radius
+    SymbolShadow shadow = {Drawing::Color::COLOR_BLACK, {10.0F, 10.0f}, 10.0f};
+    std::optional<SymbolShadow> symbolShadow = shadow;
+    hmSymbolRun.SetSymbolShadow(symbolShadow);
+    hmSymbolRun.DrawSymbolShadow(rsCanvas.get(), paths);
+    EXPECT_TRUE(hmSymbolRun.symbolTxt_.GetSymbolShadow().has_value());
+
+    auto color1 = std::make_shared<SymbolGradient>();
+    color1->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    auto color2 = std::make_shared<SymbolGradient>();
+    color2->SetColors({0XFF0000FF}); // 0XFF0000FF is ARGB
+    hmSymbolRun.gradients_ = {color1, color2};
+    hmSymbolRun.DrawSymbolShadow(rsCanvas.get(), paths);
+    EXPECT_TRUE(hmSymbolRun.symbolTxt_.GetSymbolShadow().has_value());
 }
 } // namespace SPText
 } // namespace Rosen

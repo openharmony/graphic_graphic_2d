@@ -72,7 +72,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::EXTENDED, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderProperty<std::shared_ptr<Drawing::DrawCmdList>>> prop;
             int16_t type;
-            if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type)) {
+            int16_t index;
+            bool flag = !RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type) ||
+                        !parcel.ReadInt16(index);
+            if (flag) {
                 ROSEN_LOGE("RSModifierType::EXTENDE Unmarshalling or ReadInt16 failed");
                 return nullptr;
             }
@@ -82,6 +85,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             }
             RSDrawCmdListRenderModifier* modifier = new RSDrawCmdListRenderModifier(prop);
             modifier->SetType(static_cast<RSModifierType>(type));
+            modifier->SetIndex(index);
             return modifier;
         },
     },
@@ -281,7 +285,8 @@ void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyB
 bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
 {
     bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::EXTENDED)) &&
-        RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType()));
+        RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType()))
+        && parcel.WriteInt16(static_cast<int16_t>(GetIndex()));
     if (!flag) {
         ROSEN_LOGE("RSDrawCmdListRenderModifier::Marshalling failed");
     }

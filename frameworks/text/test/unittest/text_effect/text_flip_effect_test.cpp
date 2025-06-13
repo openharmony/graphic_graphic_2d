@@ -64,7 +64,7 @@ protected:
  * @tc.desc: Test for UpdateEffectConfig action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest001, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest001, TestSize.Level0)
 {
     std::unordered_map<TextEffectAttribute, std::string> config1 = {
         {TextEffectAttribute::FLIP_DIRECTION, "up"},
@@ -98,7 +98,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest001, TestSize.Level1)
  * @tc.desc: Test for AppendTypography action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest002, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest002, TestSize.Level0)
 {
     TypographyConfig config = CreateConfig();
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
@@ -119,7 +119,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest002, TestSize.Level1)
  * @tc.desc: Test for UpdateTypography action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest003, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest003, TestSize.Level0)
 {
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
     effect_->AppendTypography({CreateConfig()});
@@ -148,7 +148,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest003, TestSize.Level1)
  * @tc.desc: Test for RemoveTypography action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest004, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest004, TestSize.Level0)
 {
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(2);
@@ -174,7 +174,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest004, TestSize.Level1)
  * @tc.desc: Test for StartEffect and StopEffect action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest005, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest005, TestSize.Level0)
 {
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
     effect_->StartEffect(mockCanvas_.get(), 100.0, 200.0);

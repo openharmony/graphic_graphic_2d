@@ -697,4 +697,29 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest, TestSize.Lev
     node->isTextureExportNode_ = true;
     node->ContentStyleSlotUpdate();
 }
+
+/**
+ * @tc.name: GetDrawCmdListsTest
+ * @tc.desc: Test GetDrawCmdLists
+ * @tc.type: FUNC
+ * @tc.require: ICETEZ
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawCmdListsTest, TestSize.Level1)
+{
+    NodeId nodeId = 8;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    auto type = RSModifierType::CONTENT_STYLE;
+    std::list<Drawing::DrawCmdListPtr> cmdLists;
+    auto cmd = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    Drawing::Brush brush;
+    cmd->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    cmdLists.push_back(cmd);
+    node->drawCmdLists_.emplace(type, cmdLists);
+
+    auto lists = node->GetDrawCmdLists();
+    EXPECT_FALSE(lists.empty());
+    node->ClearResource();
+    auto lists2 = node->GetDrawCmdLists();
+    EXPECT_TRUE(lists2.empty());
+}
 } // namespace OHOS::Rosen

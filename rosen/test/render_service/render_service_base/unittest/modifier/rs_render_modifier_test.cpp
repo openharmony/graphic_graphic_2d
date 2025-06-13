@@ -128,6 +128,8 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
 
     auto prop = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
     auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(prop);
+    modifier->SetIndex(1);
+    ASSERT_TRUE(modifier->GetIndex() == 1);
 
     MessageParcel parcel;
     ASSERT_TRUE(modifier->Marshalling(parcel));

@@ -177,7 +177,9 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::SHADOW_ELEVATION,                     [](RSProperties* prop) { prop->SetShadowElevation(0.f); }},
     { RSModifierType::SHADOW_RADIUS,                        [](RSProperties* prop) { prop->SetShadowRadius(0.f); }},
     { RSModifierType::SHADOW_PATH,                          [](RSProperties* prop) { prop->SetShadowPath({}); }},
-    { RSModifierType::SHADOW_MASK,                          [](RSProperties* prop) { prop->SetShadowMask(false); }},
+    { RSModifierType::SHADOW_MASK,                          [](RSProperties* prop) {
+                                                                prop->SetShadowMask(
+                                                                    SHADOW_MASK_STRATEGY::MASK_NONE); }},
     { RSModifierType::SHADOW_COLOR_STRATEGY,                [](RSProperties* prop) {
                                                                 prop->SetShadowColorStrategy(
                                                                     SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE); }},
@@ -350,7 +352,7 @@ void RSProperties::SetBounds(Vector4f bounds)
     hasBounds_ = true;
     geoDirty_ = true;
     SetDirty();
-    if (GetShadowMask()) {
+    if (IsShadowMaskValid()) {
         filterNeedUpdate_ = true;
     }
 }
@@ -728,7 +730,7 @@ void RSProperties::SetCornerRadius(const Vector4f& cornerRadius)
 {
     cornerRadius_ = cornerRadius;
     SetDirty();
-    if (GetShadowMask()) {
+    if (IsShadowMaskValid()) {
         filterNeedUpdate_ = true;
     }
     contentDirty_ = true;
@@ -2121,7 +2123,7 @@ void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
     }
     shadow_->SetPath(shadowPath);
     SetDirty();
-    if (GetShadowMask()) {
+    if (IsShadowMaskValid()) {
         filterNeedUpdate_ = true;
     }
     // [planning] if shadow stores as texture and out of node
@@ -2129,7 +2131,7 @@ void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
     contentDirty_ = true;
 }
 
-void RSProperties::SetShadowMask(bool shadowMask)
+void RSProperties::SetShadowMask(int shadowMask)
 {
     if (!shadow_.has_value()) {
         shadow_ = std::make_optional<RSShadow>();
@@ -2149,7 +2151,7 @@ void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
     }
     shadow_->SetIsFilled(shadowIsFilled);
     SetDirty();
-    if (GetShadowMask()) {
+    if (IsShadowMaskValid()) {
         filterNeedUpdate_ = true;
     }
     // [planning] if shadow stores as texture and out of node
@@ -2207,9 +2209,18 @@ std::shared_ptr<RSPath> RSProperties::GetShadowPath() const
     return shadow_ ? shadow_->GetPath() : nullptr;
 }
 
-bool RSProperties::GetShadowMask() const
+int RSProperties::GetShadowMask() const
 {
-    return shadow_ ? shadow_->GetMask() : false;
+    return shadow_ ? shadow_->GetMask() : SHADOW_MASK_STRATEGY::MASK_NONE;
+}
+
+bool RSProperties::IsShadowMaskValid() const
+{
+    if (!shadow_.has_value()) {
+        return false;
+    }
+    return (shadow_->GetMask() > SHADOW_MASK_STRATEGY::MASK_NONE) && (
+        shadow_->GetMask() <= SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
 }
 
 bool RSProperties::GetShadowIsFilled() const
@@ -2674,6 +2685,9 @@ void RSProperties::CreateColorfulShadowFilter()
     Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(GetShadowPath(), GetClipBounds(), GetRRect());
     auto colorfulShadowFilter = std::make_shared<RSColorfulShadowFilter>(
         blurRadius, GetShadowOffsetX(), GetShadowOffsetY(), path, GetShadowIsFilled());
+    if (GetShadowMask() == SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR) {
+        colorfulShadowFilter->SetShadowColorMask(GetShadowColor());
+    }
     if (IS_UNI_RENDER) {
         foregroundFilterCache_ = colorfulShadowFilter;
     } else {
@@ -3593,12 +3607,13 @@ void RSProperties::GenerateSoundWaveFilter()
     if (!soundWaveFilter->ParseFilterValues()) {
         return;
     }
+    auto soundWaveFilterCopy = soundWaveFilter->DeepCopy();
     if (!backgroundFilter_) {
-        backgroundFilter_ = std::make_shared<RSDrawingFilter>(soundWaveFilter);
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(soundWaveFilterCopy);
         backgroundFilter_->SetFilterType(RSFilter::SOUND_WAVE);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(soundWaveFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(soundWaveFilterCopy);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
@@ -3620,12 +3635,13 @@ void RSProperties::GenerateRenderFilterColorGradient()
     if (!colorGradientFilter->ParseFilterValues()) {
         return;
     }
+    auto colorGradientFilterCopy = colorGradientFilter->DeepCopy();
     if (!backgroundFilter_) {
-        backgroundFilter_ = std::make_shared<RSDrawingFilter>(colorGradientFilter);
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(colorGradientFilterCopy);
         backgroundFilter_->SetFilterType(RSFilter::COLOR_GRADIENT);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(colorGradientFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(colorGradientFilterCopy);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
@@ -3645,12 +3661,13 @@ void RSProperties::GenerateDisplacementDistortFilter()
     if (!displacementDistortFilter->ParseFilterValues()) {
         return;
     }
+    auto displacementDistortFilterCopy = displacementDistortFilter->DeepCopy();
     if (!backgroundFilter_) {
-        backgroundFilter_ = std::make_shared<RSDrawingFilter>(displacementDistortFilter);
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(displacementDistortFilterCopy);
         backgroundFilter_->SetFilterType(RSFilter::DISPLACEMENT_DISTORT);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(displacementDistortFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(displacementDistortFilterCopy);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
@@ -3670,12 +3687,13 @@ void RSProperties::GenerateRenderFilterEdgeLight()
     if (!elFilter->ParseFilterValues()) {
         return;
     }
+    auto elFilterCopy = elFilter->DeepCopy();
     if (!backgroundFilter_) {
-        backgroundFilter_ = std::make_shared<RSDrawingFilter>(elFilter);
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(elFilterCopy);
         backgroundFilter_->SetFilterType(RSFilter::EDGE_LIGHT);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(elFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(elFilterCopy);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
@@ -3695,12 +3713,13 @@ void RSProperties::GenerateRenderFilterDispersion()
     if (!dispersionFilter->ParseFilterValues()) {
         return;
     }
+    auto dispersionFilterCopy = dispersionFilter->DeepCopy();
     if (!backgroundFilter_) {
-        backgroundFilter_ = std::make_shared<RSDrawingFilter>(dispersionFilter);
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(dispersionFilterCopy);
         backgroundFilter_->SetFilterType(RSFilter::DISPERSION);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(dispersionFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(dispersionFilterCopy);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
@@ -3768,12 +3787,13 @@ void RSProperties::GenerateBezierWarpFilter()
     if (!bezierWarpFilter->ParseFilterValues()) {
         return;
     }
+    auto bezierWarpFilterCopy = bezierWarpFilter->DeepCopy();
     if (!foregroundFilter_) {
-        foregroundFilter_ = std::make_shared<RSDrawingFilter>(bezierWarpFilter);
+        foregroundFilter_ = std::make_shared<RSDrawingFilter>(bezierWarpFilterCopy);
         foregroundFilter_->SetFilterType(RSFilter::BEZIER_WARP);
     } else {
         auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
-        foregroundDrawingFilter = foregroundDrawingFilter->Compose(bezierWarpFilter);
+        foregroundDrawingFilter = foregroundDrawingFilter->Compose(bezierWarpFilterCopy);
         foregroundDrawingFilter->SetFilterType(RSFilter::BEZIER_WARP);
         foregroundFilter_ = foregroundDrawingFilter;
     }
@@ -5050,7 +5070,7 @@ void RSProperties::UpdateForegroundFilter()
         CreateFlyOutShaderFilter();
     } else if (IsAttractionValid()) {
         CreateAttractionEffectFilter();
-    } else if (GetShadowMask()) {
+    } else if (IsShadowMaskValid()) {
         CreateColorfulShadowFilter();
     } else if (IsDistortionKValid()) {
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);

@@ -36,6 +36,11 @@ void AnimationCustomModifier::SetTimeInterval(float timeInterval)
     timeInterval_ = timeInterval;
 }
 
+void AnimationCustomModifier::SetPointColor(Drawing::Color color)
+{
+    pointColor_ = color;
+}
+
 void AnimationCustomModifier::Draw(RSDrawingContext& context) const
 {
     if (!position_) {
@@ -49,9 +54,8 @@ void AnimationCustomModifier::Draw(RSDrawingContext& context) const
     }
     auto position = position_->Get();
     positionVec_.push_back(position);
-    auto brushColor = OHOS::Rosen::Drawing::Color(0xff000000);
     Drawing::Brush brush;
-    brush.SetColor(brushColor);
+    brush.SetColor(pointColor_);
     brush.SetAntiAlias(true);
     context.canvas->AttachBrush(brush);
     auto lastPoint = OHOS::Rosen::Drawing::Point(0, positionVec_[0]);

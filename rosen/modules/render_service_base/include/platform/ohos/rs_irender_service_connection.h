@@ -421,6 +421,11 @@ public:
 
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 
+    virtual ErrCode AvcodecVideoStart(
+        uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) = 0;
+
+    virtual ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) = 0;
+
     virtual bool GetHighContrastTextState() = 0;
 
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;

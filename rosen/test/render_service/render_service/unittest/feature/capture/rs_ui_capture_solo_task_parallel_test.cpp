@@ -202,6 +202,38 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, RSUiCaptureSoloNode, Function | SmallT
 }
 
 /*
+* @tc.name: RSUiCaptureSoloNodeCanvasNode
+* @tc.desc: Test CaptureSoloNode with canvas node
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSUiCaptureSoloTaskParallelTest, RSUiCaptureSoloNodeCanvasNode, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSoloNodeUiCapture = true;
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector =
+        RSUiCaptureSoloTaskParallel::CaptureSoloNode(canvasNode_->GetId(), captureConfig);
+    EXPECT_EQ(pixelMapIdPairVector.size(), 0);
+}
+
+/*
+* @tc.name: CaptureSoloNodePixelMapCanvasNode
+* @tc.desc: Test CaptureSoloNodePixelMap with canvas node
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSUiCaptureSoloTaskParallelTest, CaptureSoloNodePixelMapCanvasNode, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSoloNodeUiCapture = true;
+    std::unique_ptr<Media::PixelMap> resPix =
+        RSUiCaptureSoloTaskParallel::CaptureSoloNodePixelMap(canvasNode_->GetId(), captureConfig);
+    EXPECT_EQ(resPix, nullptr);
+}
+
+/*
 * @tc.name: CreateResources001
 * @tc.desc: Test RSUiCaptureSoloTaskParallel::CreateResources
 * @tc.type: FUNC

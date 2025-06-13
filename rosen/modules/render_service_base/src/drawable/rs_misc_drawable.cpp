@@ -170,6 +170,12 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return false;
     }
+    std::vector<std::shared_ptr<RSRenderModifier>> modifiersVec(itr->second.begin(), itr->second.end());
+    std::stable_sort(
+        modifiersVec.begin(), modifiersVec.end(), [](const auto& modifierA, const auto& modifierB) -> bool {
+            return std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifierA)->GetIndex() <
+                   std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifierB)->GetIndex();
+        });
 
     stagingGravity_ = node.GetRenderProperties().GetFrameGravity();
     stagingIsCanvasNode_ = node.IsInstanceOf<RSCanvasRenderNode>() && !node.IsInstanceOf<RSCanvasDrawingRenderNode>();
@@ -187,7 +193,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
             stagingDrawCmdListVec_.emplace_back(cmd);
         }
     } else {
-        for (const auto& modifier : itr->second) {
+        for (const auto& modifier : modifiersVec) {
             auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
                 modifier->GetProperty());
             if (const auto& drawCmdList = property->GetRef()) {

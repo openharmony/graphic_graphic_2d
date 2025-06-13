@@ -2195,6 +2195,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             RS_LOGE("UpdateSurfaceDirtyAndGlobalDirty surfaceNode is nullptr");
             return;
         }
+        accumulatedDirtyRegion.OrSelf(curDisplayNode_->GetDisappearedSurfaceRegionBelowCurrent(surfaceNode->GetId()));
         auto dirtyManager = surfaceNode->GetDirtyManager();
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         // 0. update hwc node dirty region and create layer
@@ -2625,7 +2626,7 @@ void RSUniRenderVisitor::CollectFilterInCrossDisplayWindow(
         auto filterRect = geoPtr->MapRect(filterNode->GetAbsDrawRect().ConvertTo<float>(),
             surfaceNode->GetCrossNodeSkipDisplayConversionMatrix(curDisplayNode_->GetId())).IntersectRect(screenRect_);
         curDisplayDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(
-            RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*filterNode, std::nullopt), true);
+            RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*filterNode, std::nullopt, true), true);
     }
 }
 
@@ -3047,7 +3048,8 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
     // case - 2. Collect filter node with its current below dirty, process later.
     dirtyManager.GetFilterCollector().CollectFilterDirtyRegionInfo(
         RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(
-            node, Occlusion::Region(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()))), false);
+            node, Occlusion::Region(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion())),
+            curSurfaceNode_ != nullptr), false);
 
     if (curSurfaceNode_) {
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);

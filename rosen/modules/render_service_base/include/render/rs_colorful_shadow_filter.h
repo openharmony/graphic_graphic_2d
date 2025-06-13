@@ -35,12 +35,19 @@ public:
     void DrawImageRect(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image, const Drawing::Rect &src,
         const Drawing::Rect &dst) const override;
 
+    std::shared_ptr<Drawing::Image> DrawImageRectWithColor(Drawing::Canvas &canvas,
+        const std::shared_ptr<Drawing::Image> &image) const;
+
+    void SetShadowColorMask(Color color);
+
 private:
     float blurRadius_{};
     float offsetX_{};
     float offsetY_{};
     Drawing::Path path_;
     bool isFilled_;
+    bool isColorMask_ = false;
+    Color color_;
 };
 }  // namespace Rosen
 }  // namespace OHOS

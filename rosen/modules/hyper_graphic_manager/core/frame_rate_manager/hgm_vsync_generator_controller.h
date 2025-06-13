@@ -41,6 +41,7 @@ public:
     int64_t GetCurrentOffset() const { return currentOffset_; }
     int32_t GetPulseNum() const { return pulseNum_; }
     static bool CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate);
+    void ChangeAdaptiveStatus(bool isAdaptive);
 private:
     sptr<VSyncController> rsController_;
     sptr<VSyncController> appController_;

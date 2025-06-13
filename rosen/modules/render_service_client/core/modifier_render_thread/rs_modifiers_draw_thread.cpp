@@ -38,6 +38,7 @@ std::recursive_mutex RSModifiersDrawThread::transactionDataMutex_;
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr uint32_t HYBRID_MAX_PIXELMAP_WIDTH = 8192;  // max width value from PhysicalDeviceProperties
 constexpr uint32_t HYBRID_MAX_PIXELMAP_HEIGHT = 8192;  // max height value from PhysicalDeviceProperties
+constexpr uint32_t HYBRID_MAX_ENABLE_OP_CNT = 12; // max value for enable hybrid op
 RSModifiersDrawThread::RSModifiersDrawThread()
 {
     ::atexit(&RSModifiersDrawThread::Destroy);
@@ -239,9 +240,34 @@ bool RSModifiersDrawThread::TargetCommand(
     return targetCmd;
 }
 
+bool RSModifiersDrawThread::LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData)
+{
+    int enableHybridOpCnt = 0;
+    for (const auto& [nodeId, followType, command] : transactionData->GetPayload()) {
+        auto drawCmdList = command == nullptr ? nullptr : command->GetDrawCmdList();
+        if (drawCmdList == nullptr) {
+            continue;
+        }
+        auto hybridRenderType = drawCmdList->GetHybridRenderType();
+        // CanvasDrawingNode does not use FFRT, so exclude it
+        bool enableType = hybridRenderType >= Drawing::DrawCmdList::HybridRenderType::TEXT &&
+            hybridRenderType <= Drawing::DrawCmdList::HybridRenderType::HMSYMBOL;
+        if (!enableType ||
+            !TargetCommand(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty()) ||
+            !drawCmdList->IsHybridRenderEnabled(HYBRID_MAX_PIXELMAP_WIDTH, HYBRID_MAX_PIXELMAP_HEIGHT)) {
+            continue;
+        }
+        enableHybridOpCnt++;
+    }
+    return enableHybridOpCnt <= HYBRID_MAX_ENABLE_OP_CNT;
+}
+
 std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
     std::unique_ptr<RSTransactionData>& transactionData)
 {
+    if (!LimitEnableHybridOpCnt(transactionData)) {
+        return transactionData;
+    }
     static std::unique_ptr<ffrt::queue> queue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "ModifiersDraw",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM));
     std::vector<ffrt::task_handle> handles;

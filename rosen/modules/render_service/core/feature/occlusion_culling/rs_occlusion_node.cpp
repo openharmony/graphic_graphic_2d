@@ -95,7 +95,8 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
         return;
     }
     isBgOpaque_ = static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha()) == UINT8_MAX &&
-        !renderProperties.IsBgBrightnessValid();
+        !renderProperties.IsBgBrightnessValid() && !renderProperties.IsFgBrightnessValid() &&
+        renderProperties.IsColorBlendModeNone();
     rootOcclusionNode_ = parentShared->rootOcclusionNode_;
     localScale_ = renderProperties.GetScale();
     localAlpha_ = renderProperties.GetAlpha();

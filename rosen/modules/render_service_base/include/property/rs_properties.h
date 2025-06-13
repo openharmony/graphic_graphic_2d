@@ -415,7 +415,7 @@ public:
     void SetShadowElevation(float radius);
     void SetShadowRadius(float radius);
     void SetShadowPath(std::shared_ptr<RSPath> shadowPath);
-    void SetShadowMask(bool shadowMask);
+    void SetShadowMask(int shadowMask);
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowColorStrategy(int shadowColorStrategy);
     const Color& GetShadowColor() const;
@@ -428,7 +428,8 @@ public:
     const std::optional<float>& GetDynamicLightUpDegree() const;
     const std::optional<float>& GetDynamicDimDegree() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
-    bool GetShadowMask() const;
+    int GetShadowMask() const;
+    bool IsShadowMaskValid() const;
     bool GetShadowIsFilled() const;
     int GetShadowColorStrategy() const;
     const std::optional<RSShadow>& GetShadow() const;

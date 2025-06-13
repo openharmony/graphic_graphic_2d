@@ -88,6 +88,10 @@ public:
 
     const SymbolBitmapType& GetSymbolBitmap() const;
 
+    void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
+
+    const std::optional<SymbolShadow>& GetSymbolShadow() const;
+
     std::string familyName_;
 
 private:
@@ -101,6 +105,7 @@ private:
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
     SymbolType symbolType_{SymbolType::SYSTEM};
     SymbolBitmapType relayoutChangeBitmap_;
+    std::optional<SymbolShadow> symbolShadow_;
 };
 }
 }

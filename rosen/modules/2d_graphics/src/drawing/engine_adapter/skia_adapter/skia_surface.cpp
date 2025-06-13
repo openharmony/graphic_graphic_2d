@@ -635,7 +635,7 @@ void SkiaSurface::Wait(const std::vector<GrGLsync>& syncs)
     } else {
         std::vector<GrBackendSemaphore> semaphores;
         semaphores.reserve(count);
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
         for (auto& sync : syncs) {
             GrBackendSemaphore backendSemaphore;
             backendSemaphore.initGL(sync);
@@ -680,9 +680,7 @@ void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
         SkIRect skIRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
         skIRects.push_back(skIRect);
     }
-#ifndef TODO_M133_SKIA
     skSurface_->setDrawingArea(skIRects);
-#endif
 }
 
 void SkiaSurface::ClearDrawingArea()

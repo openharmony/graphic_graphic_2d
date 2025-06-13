@@ -38,6 +38,7 @@ enum class RelayoutSymbolStyleAttribute {
     COLOR_LIST = 4,
     RENDER_MODE = 5,
     GRADIENT_COLOR = 6,
+    SYMBOL_SHADOW = 7,
 
     SYMBOL_ATTRIBUTE_BUTT,
 };
@@ -115,6 +116,10 @@ public:
     SymbolColor GetSymbolColor() const;
 
     void SetSymbolColor(const SymbolColor& symbolColor);
+
+    void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
+
+    const std::optional<SymbolShadow>& GetSymbolShadow() const;
 private:
     SymbolColor symbolColor_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
@@ -131,6 +136,7 @@ private:
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
     SymbolType symbolType_{SymbolType::SYSTEM};
     SymbolBitmapType relayoutChangeBitmap_;
+    std::optional<SymbolShadow> symbolShadow_;
 };
 }
 }

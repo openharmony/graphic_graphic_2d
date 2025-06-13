@@ -16,6 +16,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "draw/surface.h"
 #include "platform/common/rs_log.h"
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
@@ -50,6 +51,42 @@ bool RSColorfulShadowFilter::IsValid() const
     return blurRadius_ > epsilon;
 }
 
+void RSColorfulShadowFilter::SetShadowColorMask(Color color)
+{
+    isColorMask_ = true;
+    color_ = color;
+}
+
+std::shared_ptr<Drawing::Image> RSColorfulShadowFilter::DrawImageRectWithColor(Drawing::Canvas &canvas,
+    const std::shared_ptr<Drawing::Image> &image) const
+{
+    bool isInvalid = !image || image->GetWidth() == 0 || image->GetHeight() == 0;
+    if (isInvalid) {
+        ROSEN_LOGE("RSColorfulShadowFilter::DrawImageRect error");
+        return nullptr;
+    }
+
+    RS_OPTIONAL_TRACE_NAME("ApplyaShadowColorFilter");
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(canvas.GetGPUContext().get(),
+        false, image->GetImageInfo());
+    if (!surface) {
+        ROSEN_LOGE("Null surface");
+        return nullptr;
+    }
+
+    Drawing::Brush brush;
+    Drawing::Filter filter;
+    filter.SetColorFilter(Drawing::ColorFilter::CreateBlendModeColorFilter(color_.AsArgbInt(),
+        Drawing::BlendMode::SRC_IN));
+    brush.SetFilter(filter);
+    auto canvas1 = surface->GetCanvas();
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    canvas1->AttachBrush(brush);
+    canvas1->DrawImage(*image, 0.f, 0.f, samplingOptions);
+    canvas1->DetachBrush();
+    return surface->GetImageSnapshot();
+}
+
 void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::shared_ptr<Drawing::Image> &image,
     const Drawing::Rect &src, const Drawing::Rect &dst) const
 {
@@ -65,7 +102,12 @@ void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::s
         }
         // draw blur image
         canvas.Translate(offsetX_, offsetY_);
-        RSForegroundEffectFilter::DrawImageRect(canvas, image, src, dst);
+        std::shared_ptr<Drawing::Image> imageTemp = image;
+        if (isColorMask_) {
+            imageTemp = DrawImageRectWithColor(canvas, image);
+            imageTemp = imageTemp == nullptr ? image : imageTemp;
+        }
+        RSForegroundEffectFilter::DrawImageRect(canvas, imageTemp, src, dst);
     }
 
     // draw clear image

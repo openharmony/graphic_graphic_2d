@@ -505,6 +505,9 @@ namespace {
         [](const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& symbolRun, skt::InternalState& state) {
             symbolRun->SetSymbolColor(symbolStyle.GetSymbolColor());
         },
+        [](const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& symbolRun, skt::InternalState& state) {
+            symbolRun->SetSymbolShadow(symbolStyle.GetSymbolShadow());
+        },
     };
 }
 

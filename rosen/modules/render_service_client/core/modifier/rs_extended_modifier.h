@@ -77,7 +77,7 @@ public:
      * @return A shared pointer to the created RSRenderModifier object.
      */
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
-        RSDrawingContext& ctx, PropertyId id, RSModifierType type);
+        RSDrawingContext& ctx, PropertyId id, RSModifierType type, int16_t index);
     
     /**
      * @brief Completes the drawing process for the given drawing context.
@@ -138,7 +138,17 @@ public:
         noNeedUICaptured_ = noNeedUICaptured;
     }
 
+    void SetIndex(int16_t index)
+    {
+        index_ = index;
+    }
+
+    int16_t GetIndex()
+    {
+        return index_;
+    }
 protected:
+    int16_t index_ = 0;
     explicit RSExtendedModifier(const RSModifierType type, const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, type)
     {
@@ -159,7 +169,7 @@ protected:
         std::weak_ptr<RSCanvasNode> canvasnode = RSBaseNode::ReinterpretCast<RSCanvasNode>(node);
         RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(canvasnode);
         Draw(ctx);
-        return RSExtendedModifierHelper::CreateRenderModifier(ctx, property_->GetId(), GetModifierType());
+        return RSExtendedModifierHelper::CreateRenderModifier(ctx, property_->GetId(), GetModifierType(), index_);
     }
 
     void UpdateToRender() override

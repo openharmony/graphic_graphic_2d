@@ -579,6 +579,7 @@ void RSUIDirector::RecvMessages()
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance)
 {
     if (cmds == nullptr || cmds->IsEmpty()) {
+        ROSEN_LOGD("RSUIDirector::RecvMessages cmd empty");
         return;
     }
     ROSEN_LOGD("ProcessMessages begin");

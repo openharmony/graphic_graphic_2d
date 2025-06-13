@@ -248,5 +248,15 @@ void HMSymbolTxt::SetSymbolColor(const SymbolColor& symbolColor)
 {
     symbolColor_ = symbolColor;
 }
+
+void HMSymbolTxt::SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow)
+{
+    symbolShadow_ = symbolShadow;
+}
+
+const std::optional<SymbolShadow>& HMSymbolTxt::GetSymbolShadow() const
+{
+    return symbolShadow_;
+}
 } // namespace Rosen
 } // namespace OHOS

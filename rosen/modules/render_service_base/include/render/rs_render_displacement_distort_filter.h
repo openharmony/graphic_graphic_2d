@@ -32,6 +32,8 @@ public:
 
     virtual ~RSRenderDispDistortFilterPara() = default;
 
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
+
     void GetDescription(std::string& out) const override;
 
     virtual bool WriteToParcel(Parcel& parcel) override;
@@ -51,6 +53,8 @@ public:
     const std::shared_ptr<RSShaderMask>& GetMask() const;
 
 private:
+    void CalculateHash();
+
     static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_FACTOR[] = "DISTORT_FACTOR";
     static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_MASK[] = "DISTORT_MASK";
     std::shared_ptr<RSShaderMask> mask_ = nullptr;

@@ -29,10 +29,12 @@ public:
     void SetPosition(float position);
     // Set the horizontal pixel unit of an animation graph
     void SetTimeInterval(float timeInterval);
+    void SetPointColor(Drawing::Color color);
 private:
     std::shared_ptr<OHOS::Rosen::RSAnimatableProperty<float>> position_;
     float timeInterval_ = 1.0f;
     mutable std::vector<float> positionVec_ = {};
+    Drawing::Color pointColor_ = Drawing::Color::COLOR_BLACK;
 };
 } // namespace Rosen
 } // namespace OHOS

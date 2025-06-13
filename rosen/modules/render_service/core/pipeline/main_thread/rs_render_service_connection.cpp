@@ -1056,22 +1056,22 @@ ErrCode RSRenderServiceConnection::GetRefreshInfo(pid_t pid, std::string& enable
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
     }
     enable = dumpString;
@@ -3279,6 +3279,19 @@ ErrCode RSRenderServiceConnection::NotifyPageName(const std::string &packageName
 bool RSRenderServiceConnection::GetHighContrastTextState()
 {
     return RSBaseRenderEngine::IsHighContrastEnabled();
+}
+
+ErrCode RSRenderServiceConnection::AvcodecVideoStart(
+    uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime)
+{
+    RSJankStats::GetInstance().AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnection::AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps)
+{
+    RSJankStats::GetInstance().AvcodecVideoStop(uniqueId, surfaceName, fps);
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::SetBehindWindowFilterEnabled(bool enabled)

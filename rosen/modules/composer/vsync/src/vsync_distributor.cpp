@@ -678,10 +678,12 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
     return true;
 }
 
-void VSyncDistributor::EnableVSync()
+void VSyncDistributor::EnableVSync(bool isUrgent)
 {
     if (controller_ != nullptr && vsyncEnabled_ == false) {
         controller_->SetCallback(this);
+        controller_->SetUrgent(isUrgent);
+        controller_->SetRS(isRs_);
         controller_->SetEnable(true, vsyncEnabled_);
         // Start of DVSync
         RecordEnableVsync();
@@ -1138,7 +1140,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         if (isUrgent) {
             NeedPreexecute = VSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
         }
-        EnableVSync();
+        EnableVSync(isUrgent);
         // Start of DVSync
         DVSyncRecordRNV(connection, fromWhom, lastVSyncTS);
         // adaptive sync game mode, urgent scenario don't need to preexecute

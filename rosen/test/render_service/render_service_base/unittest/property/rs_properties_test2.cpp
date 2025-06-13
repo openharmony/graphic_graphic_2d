@@ -1420,6 +1420,46 @@ HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
     properties.GenerateBezierWarpFilter();
     EXPECT_NE(properties.foregroundFilter_, nullptr);
 }
+
+/**
+ * @tc.name: UpdateForegroundFilterTest001
+ * @tc.desc: test UpdateForegroundFilter with shadow mask
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, UpdateForegroundFilterTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    bool isUniRender = RSProperties::IS_UNI_RENDER;
+    if (isUniRender) {
+        EXPECT_TRUE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_TRUE(properties.foregroundFilter_ == nullptr);
+    }
+    properties.SetShadowMask(0); // mask none
+    properties.UpdateForegroundFilter();
+    if (isUniRender) {
+        EXPECT_TRUE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_TRUE(properties.foregroundFilter_ == nullptr);
+    }
+
+    properties.SetShadowMask(10); // 10 is invalid
+    properties.UpdateForegroundFilter();
+    if (isUniRender) {
+        EXPECT_TRUE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_TRUE(properties.foregroundFilter_ == nullptr);
+    }
+
+    properties.SetShadowMask(2); // mask color blur
+    properties.UpdateForegroundFilter();
+    if (isUniRender) {
+        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
+    }
+}
+
 /**
  * @tc.name: SetAlwaysSnapshot
  * @tc.desc: SetAlwaysSnapshot

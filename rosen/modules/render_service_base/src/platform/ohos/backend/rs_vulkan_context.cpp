@@ -346,7 +346,7 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
         ROSEN_LOGE("CreateSkiaBackendContext getProc is null");
         return false;
     }
-#ifndef TODO_M133_SKIA
+#ifndef USE_M133_SKIA
     VkPhysicalDeviceFeatures features;
     vkGetPhysicalDeviceFeatures(physicalDevice_, &features);
 
@@ -367,7 +367,7 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
     context->fDevice = device_;
     context->fQueue = queue_;
     context->fGraphicsQueueIndex = graphicsQueueFamilyIndex_;
-#ifndef TODO_M133_SKIA
+#ifndef USE_M133_SKIA
     context->fMinAPIVersion = VK_API_VERSION_1_2;
 
     uint32_t extensionFlags = kKHR_surface_GrVkExtensionFlag;
@@ -384,7 +384,7 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
 
     context->fVkExtensions = &skVkExtensions_;
     context->fDeviceFeatures2 = &physicalDeviceFeatures2_;
-#ifndef TODO_M133_SKIA
+#ifndef USE_M133_SKIA
     context->fFeatures = fFeatures;
 #endif
     context->fGetProc = std::move(getProc);

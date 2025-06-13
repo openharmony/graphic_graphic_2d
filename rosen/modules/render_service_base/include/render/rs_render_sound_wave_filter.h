@@ -30,6 +30,8 @@ public:
 
     virtual ~RSRenderSoundWaveFilterPara() = default;
 
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
+
     void GetDescription(std::string& out) const override;
 
     virtual bool WriteToParcel(Parcel& parcel) override;

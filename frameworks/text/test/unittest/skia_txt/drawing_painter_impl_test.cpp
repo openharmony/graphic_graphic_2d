@@ -109,7 +109,7 @@ bool RSCanvasParagraphPainterTest::AnimationFunc(const std::shared_ptr<SymbolAni
  * @tc.desc: test for drawTextBlob
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest001, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest001, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -128,7 +128,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest001, TestSize
  * @tc.desc: test for drawTextShadow
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest002, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest002, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -145,7 +145,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest002, TestSize
  * @tc.desc: test for drawRect
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest003, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest003, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -161,7 +161,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest003, TestSize
  * @tc.desc: test for drawRRect
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest004, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest004, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -175,7 +175,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest004, TestSize
  * @tc.desc: test for drawFilledRect
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest005, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest005, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -189,7 +189,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest005, TestSize
  * @tc.desc: test for drawPath
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest006, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest006, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -203,7 +203,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest006, TestSize
  * @tc.desc: test for drawLine
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest007, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest007, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -216,7 +216,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest007, TestSize
  * @tc.desc: test for SymbolAnimation
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest008, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest008, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -229,7 +229,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest008, TestSize
  * @tc.desc: test for DrawSymbolSkiaTxt
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest009, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest009, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -248,7 +248,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest009, TestSize
  * @tc.desc: test for clipRect
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest010, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest010, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -261,7 +261,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest010, TestSize
  * @tc.desc: test for translate
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest011, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest011, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -273,7 +273,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest011, TestSize
  * @tc.desc: test for save
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest012, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest012, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -285,7 +285,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest012, TestSize
  * @tc.desc: test for restore
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest013, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest013, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -297,7 +297,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest013, TestSize
  * @tc.desc: test for SetAnimation
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest014, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest014, TestSize.Level0)
 {
     ASSERT_NE(canvasParagraphPainter_, nullptr);
     ASSERT_NE(recordingCanvas_, nullptr);
@@ -312,7 +312,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest014, TestSize
  * @tc.desc: test for drawTextBlob
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest016, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest016, TestSize.Level0)
 {
     std::string str("TextBlob");
     Font font;
@@ -329,7 +329,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest016, TestSize
  * @tc.desc: test for drawTextBlob
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest017, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest017, TestSize.Level0)
 {
     std::string str("TextBlob");
     Font font;
@@ -346,7 +346,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest017, TestSize
  * @tc.desc: test for drawTextBlob
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest018, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest018, TestSize.Level0)
 {
     std::string str("TextBlob");
     Font font;
@@ -363,7 +363,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest018, TestSize
  * @tc.desc: test for drawTextBlob
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest019, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest019, TestSize.Level0)
 {
     std::string str(u8"\U0001F60A");
     Font font;
@@ -380,7 +380,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest019, TestSize
  * @tc.desc: test for DrawSymbolSkiaTxt
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest020, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest020, TestSize.Level0)
 {
     Point offset;
     std::string str("DrawSymbolSkiaTxt");
@@ -395,7 +395,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest020, TestSize
  * @tc.desc: test for DrawSymbolSkiaTxt
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest021, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest021, TestSize.Level0)
 {
     Point offset;
     std::string str("DrawSymbolSkiaTxt");
@@ -410,7 +410,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest021, TestSize
  * @tc.desc: test for DrawSymbolSkiaTxt
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest022, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest022, TestSize.Level0)
 {
     Point offset;
     std::string str("DrawSymbolSkiaTxt");
@@ -425,7 +425,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest022, TestSize
  * @tc.desc: test for drawRect
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest023, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest023, TestSize.Level0)
 {
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPen_.size()) - 1;
     ASSERT_GE(paintID, 0);
@@ -440,7 +440,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest023, TestSize
  * @tc.desc: test for drawRect
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest024, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest024, TestSize.Level0)
 {
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutBrush_.size()) - 1;
     ASSERT_GE(paintID, 0);
@@ -455,7 +455,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest024, TestSize
  * @tc.desc: test for drawRect
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest025, TestSize.Level1)
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest025, TestSize.Level0)
 {
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPenBrush_.size()) - 1;
     ASSERT_GE(paintID, 0);

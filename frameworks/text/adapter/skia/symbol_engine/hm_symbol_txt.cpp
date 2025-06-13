@@ -194,6 +194,16 @@ SymbolColor HMSymbolTxt::GetSymbolColor() const
 {
     return symbolColor_;
 }
+
+void HMSymbolTxt::SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow)
+{
+    symbolShadow_ = symbolShadow;
+}
+
+const std::optional<SymbolShadow>& HMSymbolTxt::GetSymbolShadow() const
+{
+    return symbolShadow_;
+}
 } // SPText
 } // Rosen
 } // OHOS

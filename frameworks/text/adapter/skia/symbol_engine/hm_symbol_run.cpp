@@ -269,6 +269,35 @@ void HMSymbolRun::SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
     currentAnimationHasPlayed_ = false;
 }
 
+uint64_t HMSymbolRun::GetSymbolUid() const
+{
+    return symbolTxt_.GetSymbolUid();
+}
+
+void HMSymbolRun::SetSymbolUid(uint64_t symbolUid)
+{
+    symbolTxt_.SetSymbolUid(symbolUid);
+    symbolId_ = symbolUid;
+}
+
+void HMSymbolRun::SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
+{
+    symbolTxt_ = hmsymbolTxt;
+}
+
+const HMSymbolTxt& HMSymbolRun::GetSymbolTxt()
+{
+    return symbolTxt_;
+}
+
+void HMSymbolRun::SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow)
+{
+    if (symbolTxt_.GetSymbolShadow().has_value() != symbolShadow.has_value()) {
+        currentAnimationHasPlayed_ = false;
+    }
+    symbolTxt_.SetSymbolShadow(symbolShadow);
+}
+
 void HMSymbolRun::SetAnimation(
     const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
     animationFunc)
@@ -355,7 +384,39 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
         multPaths.push_back(multPath);
     }
 
+    if (symbolTxt_.GetSymbolShadow().has_value()) {
+        DrawSymbolShadow(canvas, multPaths);
+    }
+
     DrawPaths(canvas, multPaths, path);
+}
+
+void HMSymbolRun::DrawSymbolShadow(RSCanvas* canvas, const std::vector<RSPath>& multPaths)
+{
+    auto shadow = symbolTxt_.GetSymbolShadow().value();
+    Drawing::Filter filter;
+    filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL,
+        shadow.blurRadius, false));
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    brush.SetFilter(filter);
+
+    RSColor color;
+    for (size_t i = 0; i < multPaths.size(); i++) {
+        RSPath multPath = multPaths[i];
+        multPath.Offset(shadow.offset.GetX(), shadow.offset.GetY());
+        color = shadow.color;
+        bool isNeedSet = i < gradients_.size() && gradients_[i] && !gradients_[i]->GetColors().empty();
+        if (isNeedSet) {
+            auto colorQuad = gradients_[i]->GetColors()[0];
+            RSColor color1(colorQuad);
+            color.SetAlphaF(shadow.color.GetAlphaF() * color1.GetAlphaF());
+        }
+        brush.SetColor(color);
+        canvas->AttachBrush(brush);
+        canvas->DrawPath(multPath);
+        canvas->DetachBrush();
+    }
 }
 
 bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset)
@@ -388,6 +449,7 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<
     symbolNode.SetCurrentAnimationHasPlayed(currentAnimationHasPlayed_);
     symbolNode.SetRenderMode(symbolTxt_.GetRenderMode());
     symbolNode.SetGradients(gradients_);
+    symbolNode.SetSymbolShadow(symbolTxt_.GetSymbolShadow());
     symbolNode.SetSlope(animationSetting.slope);
     if (effectMode == RSEffectStrategy::DISABLE) {
         symbolNode.SetCommonSubType(animationSetting.commonSubType);

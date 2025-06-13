@@ -28,6 +28,8 @@ public:
 
     virtual ~RSRenderBezierWarpFilterPara() = default;
 
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
+
     void GetDescription(std::string& out) const override;
 
     virtual bool WriteToParcel(Parcel& parcel) override;
@@ -43,6 +45,8 @@ public:
     const std::array<Drawing::Point, BEZIER_WARP_POINT_NUM>& GetBezierWarpPoints() const;
 
 private:
+    void CalculateHash();
+
     std::array<Drawing::Point, BEZIER_WARP_POINT_NUM> destinationPatch_;
 };
 } // namespace Rosen

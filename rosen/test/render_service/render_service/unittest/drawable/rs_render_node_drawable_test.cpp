@@ -419,7 +419,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutChild, TestSize.Level1)
     NodeId id = 1;
     RSUniRenderThread::GetCaptureParam().endNodeId_ = id;
     drawable->OnDraw(canvas);
-    ASSERT_FALSE(RSUniRenderThread::IsInCaptureProcess());
+    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
 
     CaptureParam param;
     param.isSnapshot_ = true;

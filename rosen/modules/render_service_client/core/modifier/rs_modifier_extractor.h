@@ -392,9 +392,9 @@ public:
     /**
      * @brief Gets the shadow mask.
      *
-     * @return true if shadow mask is enabled; false otherwise.
+     * @return  The strategy for shadow Mask.
      */
-    bool GetShadowMask() const;
+    int GetShadowMask() const;
 
     /**
      * @brief Gets the shadow fill status.

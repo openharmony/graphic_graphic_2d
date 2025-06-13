@@ -377,7 +377,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run003, TestSize.Level2)
 
 /*
  * @tc.name: Run004
- * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run while surfaceNodeDrawable_ and displayNodeDrawable_ is nullptr
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run004, TEST CreateResources
  * @tc.type: FUNC
  * @tc.require: issueIAIT5Z
 */
@@ -727,11 +727,10 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestGetCaptureSurfaceNode, TestSize.L
     renderNode->renderProperties_.SetBoundsHeight(1024.0f);
     nodeMap.RegisterRenderNode(renderNode);
 
-    auto parent1 = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    auto parent1 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
     parent1->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     parent1->hasSubNodeShouldPaint_ = true;
     renderNode->parent_ = parent1;
-
     auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
 
@@ -740,6 +739,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestGetCaptureSurfaceNode, TestSize.L
         auto backNode = task.GetCaptureSurfaceNode(renderNode);
         EXPECT_EQ(backNode->GetId(), parentNodeId);
     }
+
     // Test parent no LeashWindow
     {
         parent1->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
@@ -759,8 +759,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestGetCaptureSurfaceNode, TestSize.L
 }
 
 /*
- * @tc.name: TestGetCaptureSurfaceNode
- * @tc.desc: Test TestGetCaptureSurfaceNode
+ * @tc.name: TestGetCaptureDisplayNode
+ * @tc.desc: Test TestGetCaptureDisplayNode
  * @tc.type: FUNC
  * @tc.require:
 */
@@ -782,5 +782,29 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestGetCaptureDisplayNode, TestSize.L
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
     EXPECT_EQ(task.CreateResourcesForClientPixelMap(renderNode), false);
 }
+
+/*
+ * @tc.name: TestCaptureRassignMemory
+ * @tc.desc: Test TestCaptureRassignMemory
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestCaptureRassignMemory, TestSize.Level2)
+{
+    Drawing::Rect rect = {0, 0, 1260, 2720};
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.useDma = true;
+
+    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,
+            UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
+    ASSERT_EQ(pixelMap != nullptr, true);
+    EXPECT_EQ(pixelMap->allocatorType_ == Media::AllocatorType::DMA_ALLOC, true);
+
+    auto img = std::make_shared<Drawing::Image>();
+    CopyDataToPixelMap(img, pixelMap, captureConfig,
+        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL, nullptr);
+    EXPECT_EQ(pixelMap->allocatorType_ != Media::AllocatorType::DMA_ALLOC, true);
+}
+
 }
 }

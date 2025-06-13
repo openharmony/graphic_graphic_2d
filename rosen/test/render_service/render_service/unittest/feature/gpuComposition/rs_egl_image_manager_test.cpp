@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,19 +103,8 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
     ASSERT_NE(node, nullptr);
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
-        // create image with null fence
-        auto invalidFenceCache = eglImageManager_->CreateImageCacheFromBuffer(buffer, nullptr);
-        ASSERT_NE(invalidFenceCache, nullptr);
-        invalidFenceCache.reset();
-        // create image with valid fence
-        sptr<SyncFence> acquireFence;
-        auto validCache = eglImageManager_->CreateImageCacheFromBuffer(buffer, acquireFence);
-        ASSERT_NE(validCache, nullptr);
-        validCache.reset();
-        eglImageManager_->ShrinkCachesIfNeeded(true);
-
         // create cache from buffer directly
-        auto ret = eglImageManager_->CreateImageCacheFromBuffer(buffer, 0);
+        auto ret = eglImageManager_->CreateEglImageCacheFromBuffer(buffer, 0);
         ASSERT_NE(ret, 0);
         eglImageManager_->ShrinkCachesIfNeeded(false);
     }
@@ -153,6 +142,8 @@ HWTEST_F(RSEglImageManagerTest, MapImageFromSurfaceBuffer001, TestSize.Level1)
         sptr<SyncFence> acquireFence;
         auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, 0);
         ASSERT_NE(ret, 0);
+        ret = eglImageManager_->MapEglImageFromSurfaceBuffer(nullptr, acquireFence, 0);
+        ASSERT_EQ(ret, 0);
     }
 }
 
@@ -234,7 +225,7 @@ HWTEST_F(RSEglImageManagerTest, ImageCacheSeqBindToTexture001, TestSize.Level1)
         renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_NE(imageCache, nullptr);
     ASSERT_EQ(imageCache->BindToTexture(), true);
-    std::static_pointer_cast<EglImageResource>(imageCache)->eglImage_ = EGL_NO_IMAGE_KHR;
+    imageCache->eglImage_ = EGL_NO_IMAGE_KHR;
     ASSERT_EQ(imageCache->BindToTexture(), false);
 }
 
@@ -247,38 +238,67 @@ HWTEST_F(RSEglImageManagerTest, ImageCacheSeqBindToTexture001, TestSize.Level1)
 HWTEST_F(RSEglImageManagerTest, CreateTest, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager;
+    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
 #ifdef RS_ENABLE_VK
-    imageManager = RSImageManager::Create();
+    imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
 #endif // RS_ENABLE_VK
 #ifdef RS_ENABLE_GL
-    imageManager = RSImageManager::Create();
+    imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
+    std::shared_ptr<RenderContext> renderContextNull = nullptr;
+    auto imageManagerNull = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+    EXPECT_EQ(imageManagerNull, nullptr);
 #endif // RS_ENABLE_GL
 }
 
 /**
- * @tc.name: CreateImageResourceTest
- * @tc.desc: CreateImageResourceTest
+ * @tc.name: CreateImageFromBufferTest
+ * @tc.desc: CreateImageFromBuffer
  * @tc.type: FUNC
  * @tc.require: issueI6QHNP
  */
-HWTEST_F(RSEglImageManagerTest, CreateImageResourceTest, TestSize.Level1)
+HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
 {
-    std::shared_ptr<ImageResource> imageResource;
-#ifdef RS_ENABLE_VK
-    NativeWindowBuffer* nativeWindowBuffer = nullptr;
-    Drawing::BackendTexture backendTexture = Drawing::BackendTexture();
-    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper = nullptr;
-    imageResource = ImageResource::VkCreate(nativeWindowBuffer, backendTexture, vulkanCleanupHelper);
-    ASSERT_NE(imageResource, nullptr);
-#endif // RS_ENABLE_VK
-#ifdef RS_ENABLE_GL
-    EGLDisplay eglDisplay = EGL_NO_DISPLAY;
-    EGLImageKHR eglImage = EGL_NO_IMAGE_KHR;
-    EGLClientBuffer eglClientBuffer = nullptr;
-    imageResource = ImageResource::EglCreate(eglDisplay, eglImage, eglClientBuffer);
-    ASSERT_NE(imageResource, nullptr);
-#endif // RS_ENABLE_GL
+    int canvasHeight = 10;
+    int canvasWidth = 10;
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    uint32_t threadIndex = 0;
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+    renderContext->InitializeEglContext();
+    renderContext->SetUpGpuContext();
+    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+    auto res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
+    EXPECT_EQ(res, nullptr);
+
+    buffer = SurfaceBuffer::Create();
+    res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: GetIntersectImageTest
+ * @tc.desc: GetIntersectImage
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest, TestSize.Level1)
+{
+    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+    renderContext->InitializeEglContext();
+    renderContext->SetUpGpuContext();
+    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+    Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
+    std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
+    sptr<OHOS::SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    pid_t threadIndex = 0;
+    buffer = SurfaceBuffer::Create();
+    auto res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+    EXPECT_EQ(res, nullptr);
 }
 } // namespace OHOS::Rosen

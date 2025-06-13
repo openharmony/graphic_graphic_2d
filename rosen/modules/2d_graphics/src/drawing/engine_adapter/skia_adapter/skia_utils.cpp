@@ -27,7 +27,7 @@ namespace Drawing {
 
 void SkiaUtils::SetVmaCacheStatus(bool flag)
 {
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     SkSetVmaCacheFlag(flag);
 #endif
 }

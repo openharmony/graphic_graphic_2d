@@ -40,6 +40,12 @@ enum SHADOW_COLOR_STRATEGY : int {
     COLOR_STRATEGY_MAIN = 2,           // use main color of the shadow area
 };
 
+enum SHADOW_MASK_STRATEGY : int {
+    MASK_NONE = 0,           // not use the mask strategy
+    MASK_BLUR = 1,           // use original image to blur
+    MASK_COLOR_BLUR = 2,     // use BlenMode SRC_IN set color on image, then to blur
+};
+
 class RSShadow {
 public:
     RSShadow();
@@ -51,7 +57,7 @@ public:
     void SetElevation(float elevation);
     void SetRadius(float radius);
     void SetPath(const std::shared_ptr<RSPath>& path);
-    void SetMask(bool imageMask);
+    void SetMask(int imageMask);
     void SetIsFilled(bool isFilled);
     void SetColorStrategy(int colorStrategy);
 
@@ -62,7 +68,7 @@ public:
     float GetElevation() const;
     float GetRadius() const;
     const std::shared_ptr<RSPath>& GetPath() const;
-    bool GetMask() const;
+    int GetMask() const;
     bool GetIsFilled() const;
     int GetColorStrategy() const;
 
@@ -75,7 +81,7 @@ private:
     float radius_ = DEFAULT_SHADOW_RADIUS;
     float elevation_ = 0.f;
     std::shared_ptr<RSPath> path_ = nullptr;
-    bool imageMask_ = false;
+    int imageMask_ = SHADOW_MASK_STRATEGY::MASK_NONE;
     bool isFilled_ = false;
     int colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 };

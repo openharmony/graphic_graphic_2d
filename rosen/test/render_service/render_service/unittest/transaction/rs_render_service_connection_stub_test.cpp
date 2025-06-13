@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,9 @@
 #include "screen_manager/rs_screen.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 using namespace testing;
 using namespace testing::ext;
 
@@ -180,16 +183,16 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     NodeId id = surfaceNode_->GetId();
-    // Test0 abnormal
+    // Test0 Abnormal condition, isClientPixelMap = true, but no clientPixelMap
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.isClientPixelMap = true;
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
     g_WriteSurfaceCaptureConfigMock(captureConfig, data);
-    // Write Blur Parm
+    // Write BlurParm
     data.WriteBool(false);
     data.WriteFloat(0);
-    // write AreaRect;
+    // write Area Rect;
     data.WriteFloat(0);
     data.WriteFloat(0);
     data.WriteFloat(0);
@@ -203,14 +206,14 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
 
     MessageParcel data2;
     RSSurfaceCaptureConfig captureConfig2;
-    captureConfig.isClientPixelMap = true;
+    captureConfig2.isClientPixelMap = true;
     data2.WriteUint64(id);
     data2.WriteRemoteObject(callback->AsObject());
-    g_WriteSurfaceCaptureConfigMock(captureConfig, data2);
-    // Write Blur Parm
+    g_WriteSurfaceCaptureConfigMock(captureConfig2, data2);
+    // Write BlurParm
     data2.WriteBool(false);
     data2.WriteFloat(0);
-    // write AreaRect;
+    // write Area Rect;
     data2.WriteFloat(0);
     data2.WriteFloat(0);
     data2.WriteFloat(0);
@@ -220,7 +223,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
         UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
     data2.WriteParcelable(pixelMap.get());
 
-    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
 
     ASSERT_EQ(res, ERR_INVALID_DATA);
     constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 1000000;

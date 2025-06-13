@@ -184,25 +184,22 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     symbolNode.symbolData = symbolData;
     symbolNode.nodeBoundary = nodeBounds;
 
-    std::shared_ptr<SymbolGradient> color;
-    bool isValid = !gradients_.empty() && gradients_[0] != nullptr;
-    if (isValid) {
-        gradients_[0]->Make(symbolData.path_.GetBounds());
-        color = gradients_[0];
-    }
-
     std::vector<RSPath> paths;
     RSHMSymbol::PathOutlineDecompose(symbolData.path_, paths);
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
+    UpdateGradient(groups, pathLayers, symbolData.path_);
     TEXT_LOGD("Render group size %{public}zu", groups.size());
-    for (const auto& group : groups) {
+    for (size_t i = 0; i < groups.size(); i++) {
         RSPath multPath;
-        MergeDrawingPath(multPath, group, pathLayers);
+        MergeDrawingPath(multPath, groups[i], pathLayers);
         TextEngine::NodeLayerInfo pathInfo;
         pathInfo.path = multPath;
-        pathInfo.color = color;
+        bool isvalid = i < gradients_.size() && gradients_[i] != nullptr;
+        if (isvalid) {
+            pathInfo.color = gradients_[i];
+        }
         symbolNode.pathsInfo.push_back(pathInfo);
     }
 
@@ -385,6 +382,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->commonSubType = commonSubType_;
     symbolAnimationConfig->currentAnimationHasPlayed = currentAnimationHasPlayed_;
     symbolAnimationConfig->slope = slope_;
+    symbolAnimationConfig->symbolShadow = symbolShadow_;
     return animationFunc_(symbolAnimationConfig);
 }
 }

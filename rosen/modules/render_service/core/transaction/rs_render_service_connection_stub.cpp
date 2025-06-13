@@ -196,6 +196,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
@@ -3613,6 +3615,40 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             RS_LOGD("RenderServiceConnectionStub::GET_PID_GPU_MEMORY_IN_MB, ret: %{public}d, gpuMemInMB: %{public}f",
                 ret, gpuMemInMB);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START): {
+            uint64_t uniqueId{0};
+            std::string surfaceName;
+            uint32_t fps{0};
+            uint64_t reportTime{0};
+            if (!data.ReadUint64(uniqueId) || !data.ReadString(surfaceName)
+                || !data.ReadUint32(fps) || !data.ReadUint64(reportTime)) {
+                RS_LOGE("RenderServiceConnectionStub::AVCODEC_VIDEO_START : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSRenderServiceConnectionStub::AVCODEC_VIDEO_START Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP): {
+            uint64_t uniqueId{0};
+            std::string surfaceName;
+            uint32_t fps{0};
+            if (!data.ReadUint64(uniqueId) || !data.ReadString(surfaceName) || !data.ReadUint32(fps)) {
+                RS_LOGE("RSRenderServiceConnectionStub::AVCODEC_VIDEO_STOP : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = AvcodecVideoStop(uniqueId, surfaceName, fps);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSRenderServiceConnectionStub::AVCODEC_VIDEO_STOP Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         default: {

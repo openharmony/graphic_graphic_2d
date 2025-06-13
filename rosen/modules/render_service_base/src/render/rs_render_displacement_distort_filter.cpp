@@ -25,6 +25,29 @@
 
 namespace OHOS {
 namespace Rosen {
+
+    void RSRenderDispDistortFilterPara::CalculateHash()
+    {
+#ifdef USE_M133_SKIA
+        const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
+#endif
+        hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+
+    std::shared_ptr<RSRenderFilterParaBase> RSRenderDispDistortFilterPara::DeepCopy() const
+    {
+        auto copyFilter = std::make_shared<RSRenderDispDistortFilterPara>(id_);
+        copyFilter->type_ = type_;
+        copyFilter->factor_ = factor_;
+        copyFilter->mask_ = mask_;
+        copyFilter->CalculateHash();
+        return copyFilter;
+    }
+
     void RSRenderDispDistortFilterPara::GetDescription(std::string& out) const
     {
         out += "RSRenderDispDistortFilterPara";
@@ -160,14 +183,6 @@ namespace Rosen {
         }
         factor_ = displacementDistortFactor->Get();
         mask_ = std::make_shared<RSShaderMask>(maskProperty);
-#ifdef USE_M133_SKIA
-        const auto hashFunc = SkChecksum::Hash32;
-#else
-        const auto hashFunc = SkOpts::hash;
-#endif
-        hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
-        auto maskHash = mask_->Hash();
-        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
         return true;
     }
 

@@ -24,7 +24,6 @@
 #include "system/rs_system_parameters.h"
 #include "draw/surface.h"
 #include "draw/color.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "common/rs_common_def.h"
 #include "system/rs_system_parameters.h"
@@ -37,8 +36,25 @@ public:
         : nodeId_(nodeId), captureConfig_(captureConfig) {}
     ~RSUiCaptureSoloTaskParallel() = default;
 
+    /**
+     * @brief Get a list of pixelmap information, each node of the component node tree will have a pixelmap.
+     * @param id Indicates the NodeId of the RSNode.
+     * @param captureConfig Indicates the configuration of snapshot like scale, translation, rotation.
+     * @return Returns a vector of pair, the first element is the NodeId, the second element is the pixelmap.
+     */
     static std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> CaptureSoloNode(
         NodeId id, const RSSurfaceCaptureConfig& captureConfig);
+
+    /**
+     * @brief Get a pixelmap, which is the snapshot of the node, only contains the node itself.\n
+     *
+     * Child nodes of the param node will not be included in the snapshot.
+     * Used for scenarios requiring a snapshot of a specific node, such as capturing a specific component.
+     *
+     * @param id Indicates the NodeId of the RSNode.
+     * @param captureConfig Indicates the configuration of snapshot like scale, translation, rotation.
+     * @return Returns a pixelmap.
+     */
     static std::unique_ptr<Media::PixelMap> CaptureSoloNodePixelMap(
         NodeId id, const RSSurfaceCaptureConfig& captureConfig);
     bool CreateResources();

@@ -172,6 +172,7 @@ const Drawing::DrawingPiecewiseParameter DISAPPEAR_SECOND_PHASE_PARAS = {
 const TextEngine::SymbolAnimationConfig VARIABLE_COLOR_CONFIG = {
     {}, // symbolNodes is {};
     {}, {}, Drawing::Color::COLOR_BLACK,
+    std::nullopt,
     0, // numNodes is 0;
     Drawing::DrawingEffectStrategy::VARIABLE_COLOR, // effectStrategy is VARIABLE_COLOR;
     9999, 0, // symbolSpanId is 9999, which is a random value; animationMode is 0, which means iterative mode;
@@ -182,6 +183,7 @@ const TextEngine::SymbolAnimationConfig VARIABLE_COLOR_CONFIG = {
 const TextEngine::SymbolAnimationConfig PULSE_CONFIG = {
     {}, // symbolNodes is {};
     {}, {}, Drawing::Color::COLOR_BLACK,
+    std::nullopt,
     0, // numNodes is 0;
     Drawing::DrawingEffectStrategy::PULSE, // effectStrategy is PULSE;
     8888, 0, // symbolSpanId is 8888, which is a random value; animationMode is 0, which means hierarchical mode;

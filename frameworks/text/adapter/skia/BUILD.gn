@@ -186,7 +186,7 @@ ohos_static_library("font_asset") {
   subsystem_name = "graphic"
 
   public_configs = [ ":skia_libtxt_config" ]
-  defines = []
+  defines = [ "TEXT_SYSTEM_OHOS" ]
   if (is_arkui_x) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",

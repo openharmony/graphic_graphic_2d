@@ -187,7 +187,7 @@ private:
         uint32_t refreshRate;
     };
     void ThreadMain();
-    void EnableVSync();
+    void EnableVSync(bool isUrgent = false);
     void DisableVSync();
     void OnVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);

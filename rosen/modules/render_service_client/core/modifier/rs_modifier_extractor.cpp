@@ -308,9 +308,9 @@ std::shared_ptr<RSPath> RSModifierExtractor::GetShadowPath() const
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSPath>, SHADOW_PATH, nullptr, =);
 }
 
-bool RSModifierExtractor::GetShadowMask() const
+int RSModifierExtractor::GetShadowMask() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(bool, SHADOW_MASK, false, =);
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(int, SHADOW_MASK, SHADOW_MASK_STRATEGY::MASK_NONE, =);
 }
 
 bool RSModifierExtractor::GetShadowIsFilled() const

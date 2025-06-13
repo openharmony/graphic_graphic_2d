@@ -1138,6 +1138,8 @@ void RSRenderNode::DumpModifiers(std::string& out) const
     out += ", OtherModifiers:[";
     std::string propertyDesc = "";
     for (auto& [type, modifier] : modifiers_) {
+        auto pid = ExtractPid(modifier->GetPropertyId());
+        propertyDesc = propertyDesc + "pid:" + std::to_string(pid) + "->";
         propertyDesc += modifier->GetModifierTypeString();
         modifier->Dump(propertyDesc);
         propertyDesc += splitStr;
@@ -1759,6 +1761,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         }
     }
     // 3. update dirtyRegion if needed
+    if (properties.GetBackgroundFilter()) {
+        UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+    }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     // Only when satisfy following conditions, absDirtyRegion should update:
