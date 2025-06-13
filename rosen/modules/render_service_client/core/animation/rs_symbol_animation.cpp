@@ -240,7 +240,7 @@ bool RSSymbolAnimation::SetDisappearConfig(
     disappearConfig->numNodes = numNodes;
     // 0 is the byLayer effect and 1 is the wholeSymbol effect
     disappearConfig->animationMode = animationLevelNum > 0 ? 0 : 1;
-    return true;
+    return numNodes > 0;
 }
 
 bool RSSymbolAnimation::SetReplaceAnimation(
@@ -559,7 +559,7 @@ void RSSymbolAnimation::SetSymbolShadow(
 void RSSymbolAnimation::SetSymbolShadow(const SymbolShadow& symbolShadow, std::shared_ptr<RSNode>& rsNode)
 {
     rsNode->SetShadowColor(symbolShadow.color.CastToColorQuad());
-    rsNode->SetShadowOffset(symbolShadow.offset.GetX(), symbolShadow.offset.GetX());
+    rsNode->SetShadowOffset(symbolShadow.offset.GetX(), symbolShadow.offset.GetY());
     rsNode->SetShadowRadius(symbolShadow.blurRadius);
     int shadowMaskColor = SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR;
     rsNode->SetProperty<RSShadowMaskModifier, RSProperty<int>>(RSModifierType::SHADOW_MASK, shadowMaskColor);
@@ -796,7 +796,7 @@ bool RSSymbolAnimation::SetDisableAnimation(
 bool RSSymbolAnimation::SetDisableAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
-    const std::shared_ptr<RSNode>& rsNoddeRoot)
+    const std::shared_ptr<RSNode>& rsNodeRoot)
 {
     if (parameters.empty()) {
         ROSEN_LOGE("HmSymbol Failed to get disable parameters");
@@ -806,7 +806,7 @@ bool RSSymbolAnimation::SetDisableAnimation(
 
     // Create a child node the same as the rsNode_
     std::shared_ptr<RSNode> rsNode = nullptr;
-    CreateSameNode(symbolAnimationConfig->symbolSpanId, rsNode, rsNoddeRoot);
+    CreateSameNode(symbolAnimationConfig->symbolSpanId, rsNode, rsNodeRoot);
     if (rsNode == nullptr) {
         ROSEN_LOGE("HmSymbol Failed to create rsNode");
         return false;
@@ -832,7 +832,7 @@ bool RSSymbolAnimation::SetDisableAnimation(
         ROSEN_LOGE("Invalid parameter of clip layer in HmSymbol");
         return false;
     }
-    return SetClipAnimation(rsNoddeRoot, symbolAnimationConfig, parameters[symbolNode.animationIndex], n, offsets);
+    return SetClipAnimation(rsNodeRoot, symbolAnimationConfig, parameters[symbolNode.animationIndex], n, offsets);
 }
 
 // set disable parameter with slope of symbol

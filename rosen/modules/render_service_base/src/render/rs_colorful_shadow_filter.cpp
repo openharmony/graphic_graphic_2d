@@ -54,6 +54,7 @@ bool RSColorfulShadowFilter::IsValid() const
 void RSColorfulShadowFilter::SetShadowColorMask(Color color)
 {
     isColorMask_ = true;
+    isFilled_ = true;
     color_ = color;
 }
 
@@ -80,6 +81,9 @@ std::shared_ptr<Drawing::Image> RSColorfulShadowFilter::DrawImageRectWithColor(D
         Drawing::BlendMode::SRC_IN));
     brush.SetFilter(filter);
     auto canvas1 = surface->GetCanvas();
+    if (canvas1 == nullptr) {
+        return nullptr;
+    }
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     canvas1->AttachBrush(brush);
     canvas1->DrawImage(*image, 0.f, 0.f, samplingOptions);
