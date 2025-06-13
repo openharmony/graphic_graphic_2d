@@ -18,8 +18,10 @@
 
 DECLARE_ANIM_PROPERTY_TAG(Blur, RadiusX, float);
 DECLARE_ANIM_PROPERTY_TAG(Blur, RadiusY, float);
+
 DECLARE_ANIM_PROPERTY_TAG(DispDistort, Factor, Vector2f);
 DECLARE_NOANIM_PROPERTY_TAG(DispDistort, Mask, MASK_PTR);
+
 DECLARE_NOANIM_PROPERTY_TAG(SoundWave, ColorA, Vector4f);
 DECLARE_NOANIM_PROPERTY_TAG(SoundWave, ColorB, Vector4f);
 DECLARE_NOANIM_PROPERTY_TAG(SoundWave, ColorC, Vector4f);
@@ -30,18 +32,20 @@ DECLARE_ANIM_PROPERTY_TAG(SoundWave, AlphaA, float);
 DECLARE_ANIM_PROPERTY_TAG(SoundWave, AlphaB, float);
 DECLARE_ANIM_PROPERTY_TAG(SoundWave, ProgressA, float);
 DECLARE_ANIM_PROPERTY_TAG(SoundWave, ProgressB, float);
+
 DECLARE_ANIM_PROPERTY_TAG(EdgeLight, Color, Vector4f);
 DECLARE_ANIM_PROPERTY_TAG(EdgeLight, Alpha, float);
+
 DECLARE_ANIM_PROPERTY_TAG(ColorGradient, Color, Vector4f);
 DECLARE_ANIM_PROPERTY_TAG(ColorGradient, Position, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(ColorGradient, Strength, float);
 DECLARE_NOANIM_PROPERTY_TAG(ColorGradient, Mask, MASK_PTR);
-// DECLARE_NOANIM_PROPERTY_TAG(EdgeLight, Mask, std::shared_ptr<RSMaskBase>);
+
 DECLARE_ANIM_PROPERTY_TAG(Dispersion, Opacity, float);
 DECLARE_ANIM_PROPERTY_TAG(Dispersion, RedOffset, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(Dispersion, GreenOffset, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(Dispersion, BlueOffset, Vector2f);
-// DECLARE_NOANIM_PROPERTY_TAG(Dispersion, Mask, std::shared_ptr<RSNGMaskBase>);
+
 DECLARE_ANIM_PROPERTY_TAG(BezierWarp, ControlPoint0, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(BezierWarp, ControlPoint1, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(BezierWarp, ControlPoint2, Vector2f);
@@ -54,16 +58,12 @@ DECLARE_ANIM_PROPERTY_TAG(BezierWarp, ControlPoint8, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(BezierWarp, ControlPoint9, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(BezierWarp, ControlPoint10, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(BezierWarp, ControlPoint11, Vector2f);
+
 DECLARE_ANIM_PROPERTY_TAG(RippleMask, Radius, float);
 DECLARE_ANIM_PROPERTY_TAG(RippleMask, Width, float);
 DECLARE_ANIM_PROPERTY_TAG(RippleMask, Center, Vector2f);
 DECLARE_ANIM_PROPERTY_TAG(RippleMask, WidthCenterOffset, float);
-// DECLARE_NOANIM_PROPERTY_TAG(PixelMapMask, PixelMap, std::shared_ptr<Media::PixelMap>);
+
 DECLARE_ANIM_PROPERTY_TAG(PixelMapMask, Src, Vector4f);
 DECLARE_ANIM_PROPERTY_TAG(PixelMapMask, Dst, Vector4f);
 DECLARE_ANIM_PROPERTY_TAG(PixelMapMask, FillColor, Vector4f);
-// DECLARE_ANIM_PROPERTY_TAG(RadialGradientMask, Center, Vector2f);
-// DECLARE_ANIM_PROPERTY_TAG(RadialGradientMask, RadiusX, float);
-// DECLARE_ANIM_PROPERTY_TAG(RadialGradientMask, RadiusY, float);
-// DECLARE_ANIM_PROPERTY_TAG(RadialGradientMask, Width, float);
-// DECLARE_NOANIM_PROPERTY_TAG(RadialGradientMask, Values, std::vector<Vector2f>);

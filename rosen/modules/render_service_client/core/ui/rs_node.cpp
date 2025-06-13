@@ -2003,18 +2003,10 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
         return;
     }
     // To do: generate composed filter here. Now we just set foreground blur in v1.0.
-    std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
+    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto& filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara == nullptr) {
-            continue;
-        }
-        if (auto curFilter = RSNGFilterBase::Create(filterPara)) {
-            if (headFilter) {
-                headFilter->Append(curFilter);
-            } else {
-                headFilter = curFilter;
-            }
             continue;
         }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
@@ -2036,14 +2028,51 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto distortionK = distortPara->GetDistortionK();
             SetDistortionK(distortionK);
         }
+        if (filterPara->GetParaType() == FilterPara::BEZIER_WARP) {
+            auto bezierWarpProperty = std::make_shared<RSUIBezierWarpFilterPara>();
+            auto bezierWarpPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
+            bezierWarpProperty->SetBezierWarp(bezierWarpPara);
+            uiFilter->Insert(bezierWarpProperty);
+        }
         if (filterPara->GetParaType() == FilterPara::HDR_BRIGHTNESS_RATIO) {
             auto hdrBrightnessRatioPara = std::static_pointer_cast<HDRBrightnessRatioPara>(filterPara);
             auto brightnessRatio = hdrBrightnessRatioPara->GetBrightnessRatio();
             SetHDRUIBrightness(brightnessRatio);
         }
     }
-    if (headFilter) {
-        SetForegroundNGFilter(headFilter);
+    if (!uiFilter->GetAllTypes().empty()) {
+        SetForegroundUIFilter(uiFilter);
+    }
+}
+
+void RSNode::SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter)
+{
+    if (foregroundFilter == nullptr) {
+        ROSEN_LOGE("RSNode::SetForegroundUIFilter foregroundFilter is nullptr");
+        return;
+    }
+
+    bool shouldAdd = true;
+    std::shared_ptr<RSUIFilter> oldProperty = nullptr;
+    auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_UI_FILTER);
+    if (iter != propertyModifiers_.end() && iter->second != nullptr) {
+        auto oldRsPro = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
+            iter->second->GetProperty());
+        if (oldRsPro) {
+            oldProperty = oldRsPro->Get();
+        }
+        if (oldProperty && foregroundFilter->IsStructureSame(oldProperty)) {
+            shouldAdd = false;
+            oldProperty->SetValue(foregroundFilter);
+            return;
+        }
+    }
+
+    if (shouldAdd) {
+        auto rsProperty = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(foregroundFilter);
+        auto propertyModifier = std::make_shared<RSForegroundUIFilterModifier>(rsProperty);
+        propertyModifiers_.emplace(RSModifierType::FOREGROUND_UI_FILTER, propertyModifier);
+        AddModifier(propertyModifier);
     }
 }
 
@@ -2159,7 +2188,7 @@ void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgr
         return;
     }
     SetProperty<RSBackgroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
-        RSModifierType::BACKGROUND_NG_FILTER, backgroundFilter); 
+        RSModifierType::BACKGROUND_NG_FILTER, backgroundFilter);
 }
 
 void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter)
@@ -2174,7 +2203,7 @@ void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregr
         return;
     }
     SetProperty<RSForegroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
-        RSModifierType::FOREGROUND_NG_FILTER, foregroundFilter); 
+        RSModifierType::FOREGROUND_NG_FILTER, foregroundFilter);
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)

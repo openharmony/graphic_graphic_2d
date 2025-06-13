@@ -630,11 +630,11 @@ void RSForegroundUIFilterRenderModifier::Update(const std::shared_ptr<RSRenderPr
 
 bool RSForegroundUIFilterRenderModifier::Marshalling(Parcel& parcel)
 {
-    auto prop =
-        std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property_);
-    auto renderFilter = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(prop->Get(), prop->GetId());
+    auto prop = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property_);
+    std::shared_ptr<RSRenderPropertyBase> renderFilter =
+        std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(prop->Get(), prop->GetId());
     bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::FOREGROUND_UI_FILTER)) &&
-        RSMarshallingHelper::Marshalling(parcel, renderFilter);
+                RSMarshallingHelper::Marshalling(parcel, renderFilter);
     if (!flag) {
         ROSEN_LOGE("RSForegroundUIFilterRenderModifier::Marshalling failed");
     }

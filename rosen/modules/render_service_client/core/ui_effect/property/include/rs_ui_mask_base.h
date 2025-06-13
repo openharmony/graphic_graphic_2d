@@ -23,8 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSNGMaskBase: public RSNGEffectBase<RSNGMaskBase, RSNGRenderMaskBase> {
-
+class RSNGMaskBase : public RSNGEffectBase<RSNGMaskBase, RSNGRenderMaskBase> {
 };
 
 template<RSUIFilterType Type, typename... PropertyTags>
@@ -43,7 +42,6 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
 );
 
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
-    // ADD_PROPERTY_TAG(PixelMapMask, PixelMap),
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
     ADD_PROPERTY_TAG(PixelMapMask, FillColor)
@@ -53,5 +51,3 @@ DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
 } // namespace OHOS
 
 #endif // ROSEN_ENGINE_CORE_RENDER_UI_MASK_BASE_H
-
-

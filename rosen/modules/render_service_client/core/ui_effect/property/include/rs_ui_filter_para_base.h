@@ -22,11 +22,10 @@
 namespace OHOS {
 namespace Rosen {
 
-// =======================================================
 class RSC_EXPORT RSUIFilterParaBase : public RSPropertyBase, public std::enable_shared_from_this<RSUIFilterParaBase> {
 public:
     RSUIFilterParaBase(RSUIFilterType type) : type_(type) {}
-    ~RSUIFilterParaBase() override = default;
+    virtual ~RSUIFilterParaBase() = default;
 
     RSUIFilterType GetType() const;
 
@@ -42,7 +41,6 @@ public:
 
     virtual void SetProperty(const std::shared_ptr<RSUIFilterParaBase>& other) = 0;
 
-    // temporary fix
     RSPropertyType GetPropertyType() const override { return RSPropertyType::UI_FILTER; }
     void SetIsCustom(bool isCustom) override {}
     bool GetIsCustom() const override { return false; }

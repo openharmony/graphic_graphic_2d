@@ -126,6 +126,7 @@ protected:
 
     void DetachFromNode()
     {
+        OnDetachFromNode();
         MarkNodeDirty();
         property_->Detach();
     }
@@ -145,6 +146,8 @@ protected:
     virtual void UpdateToRender() {}
 
     virtual void OnAttachToNode(const std::weak_ptr<RSNode>& target) {}
+
+    virtual void OnDetachFromNode() {}
 
     void SetDirty(const bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager = nullptr);
 

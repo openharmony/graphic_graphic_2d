@@ -62,8 +62,6 @@ std::shared_ptr<RSNGFilterBase> ConvertDisplacementDistortFilterPara(std::shared
     auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
     auto dispDistortFilterPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
     dispDistortFilter->Setter<DispDistortFactorTag>(dispDistortFilterPara->GetFactor());
-    // auto maskPara = dispDistortFilterPara->GetMask();
-    // dispDistortFilter->Setter<DispDistortMaskTag>(RSNGMaskBase::Create(maskPara));
     return dispDistortFilter;
 }
 
@@ -77,8 +75,6 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     auto edgeLightFilterPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
     edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor().value_or(Vector4f()));
     edgeLightFilter->Setter<EdgeLightAlphaTag>(edgeLightFilterPara->GetAlpha());
-    // auto maskPara = edgeLightFilterPara->GetMask();
-    // dispDistortFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(maskPara));
     return edgeLightFilter;
 }
 }

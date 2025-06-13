@@ -14,9 +14,9 @@
  */
 #ifndef RENDER_SERVICE_BASE_RENDER_TEMPLATE_H
 #define RENDER_SERVICE_BASE_RENDER_TEMPLATE_H
+#include <tuple>
 #include <type_traits>
 
-#include "platform/common/rs_log.h"
 #include "render/rs_render_property_tag.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -42,8 +42,8 @@ public:
     virtual void SetModifierType(RSModifierType inType) = 0;
 
 protected:
-    [[nodiscard]] virtual bool OnMarshalling(Parcel& parcel) const 
-    { 
+    [[nodiscard]] virtual bool OnMarshalling(Parcel& parcel) const
+    {
         auto count = GetEffectCount();
         if (count > EFFECT_COUNT_LIMIT) {
             return false;
@@ -60,20 +60,20 @@ protected:
     
     virtual void DumpProperty(std::string& out) const {}
 
-    virtual void OnAttach(const std::shared_ptr<RSRenderNode>& node) 
+    virtual void OnAttach(const std::shared_ptr<RSRenderNode>& node)
     {
         if (nextEffect_) {
             nextEffect_->Attach(node);
         }
     }
-    virtual void OnDetach(const std::shared_ptr<RSRenderNode>& node) 
+    virtual void OnDetach(const std::shared_ptr<RSRenderNode>& node)
     {
         if (nextEffect_) {
             nextEffect_->Detach(node);
         }
     }
 
-    virtual void OnSetModifierType(RSModifierType inType) 
+    virtual void OnSetModifierType(RSModifierType inType)
     {
         if (nextEffect_) {
             nextEffect_->SetModifierType(inType);
@@ -85,7 +85,7 @@ protected:
         return nextEffect_;
     }
 
-    inline void SetNextEffect(const std::shared_ptr<Derived>& nextEffect) 
+    inline void SetNextEffect(const std::shared_ptr<Derived>& nextEffect)
     {
         nextEffect_ = nextEffect;
     }
@@ -97,9 +97,6 @@ protected:
         while (current && count < EFFECT_COUNT_LIMIT) {
             count++;
             current = current->nextEffect_;
-        }
-        if (count >= EFFECT_COUNT_LIMIT) {
-            ROSEN_LOGW("RSNGRenderMaskBase: GetEffectCount exceeded the limit count");
         }
         return count;
     }
@@ -123,8 +120,8 @@ template <typename T>
 inline constexpr bool is_render_property_tag_v = is_render_property_tag<T>::value;
 
 template <typename Base, RSUIFilterType Type, typename... PropertyTags>
-class RSNGRenderEffectTemplate: public Base {
-    static_assert(std::is_base_of_v<RSNGRenderEffectBase<Base>, Base>, 
+class RSNGRenderEffectTemplate : public Base {
+    static_assert(std::is_base_of_v<RSNGRenderEffectBase<Base>, Base>,
         "RSNGRenderEffectTemplate: Base must be a subclass of RSNGRenderEffectBase<Base>");
     static_assert(Type != RSUIFilterType::INVALID,
         "RSNGRenderEffectTemplate: Type cannot be INVALID");
@@ -181,9 +178,12 @@ public:
         if (!RSMarshallingHelper::Marshalling(parcel, static_cast<RSUIFilterTypeUnderlying>(Type))) {
             return false;
         }
-        
-        if (!std::apply([&parcel](const auto&... propTag) {
-                return (RSMarshallingHelper::Marshalling(parcel, propTag.value_) && ...); }, properties_)) {
+
+        if (!std::apply(
+            [&parcel](const auto&... propTag) {
+                return (RSMarshallingHelper::Marshalling(parcel, propTag.value_) && ...);
+            },
+            properties_)) {
             return false;
         }
 
@@ -193,8 +193,11 @@ public:
     [[nodiscard]] bool OnUnmarshalling(Parcel& parcel) override
     {
         // Type has been covered in Unmarshalling
-        if (!std::apply([&parcel](auto&... propTag) {
-                return (RSMarshallingHelper::Unmarshalling(parcel, propTag.value_) && ...); }, properties_)) {
+        if (!std::apply(
+            [&parcel](auto&... propTag) {
+                return (RSMarshallingHelper::Unmarshalling(parcel, propTag.value_) && ...);
+            },
+            properties_)) {
             return false;
         }
         return true;
@@ -247,8 +250,7 @@ protected:
     friend class RSNGEffectTemplate;
 };
 
-} 
-}
-
+} // namespace OHOS
+} // namespace Rosen
 
 #endif // RENDER_SERVICE_BASE_RENDER_TEMPLATE_H

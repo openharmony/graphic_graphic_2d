@@ -1049,6 +1049,9 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+private:
+    void OnAttachToNode(const std::weak_ptr<RSNode>& target) override;
+    void OnDetachFromNode() override;
 };
 
 class RSC_EXPORT RSForegroundUIFilterModifier : public RSForegroundModifier {
@@ -1058,6 +1061,9 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+private:
+    void OnAttachToNode(const std::weak_ptr<RSNode>& target) override;
+    void OnDetachFromNode() override;
 };
 
 class RSC_EXPORT RSForegroundNGFilterModifier : public RSForegroundModifier {

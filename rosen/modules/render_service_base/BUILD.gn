@@ -286,7 +286,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_linear_gradient_blur_filter.cpp",
     "src/render/rs_render_magnifier_filter.cpp",
     "src/render/rs_render_maskcolor_filter.cpp",
-    "src/render/rs_render_mask_base.cpp",
     "src/render/rs_render_mesa_blur_filter.cpp",
     "src/render/rs_render_pixel_map_mask.cpp",
     "src/render/rs_render_radial_gradient_mask.cpp",

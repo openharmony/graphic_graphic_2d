@@ -40,7 +40,6 @@
 #include "render/rs_particles_drawable.h"
 #include "render/rs_path.h"
 #include "render/rs_render_filter.h"
-#include "render/rs_render_filter_base.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
 #include "render/rs_attraction_effect_filter.h"
@@ -51,6 +50,7 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
+class RSNGRenderFilterBase;
 namespace DrawableV2 {
 class RSBackgroundImageDrawable;
 class RSBackgroundFilterDrawable;
@@ -740,7 +740,7 @@ private:
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
-std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
+    std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;

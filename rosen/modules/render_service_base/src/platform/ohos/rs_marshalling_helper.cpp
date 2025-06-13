@@ -1686,11 +1686,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNG
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val)
 {
-    // TODO fix
-    // bool success = RSNGRenderMaskBase::Unmarshalling(parcel, val);
-    // if (!success) {
-    //     ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSNGRenderMaskBase failed");
-    // }
     return false;
 }
 

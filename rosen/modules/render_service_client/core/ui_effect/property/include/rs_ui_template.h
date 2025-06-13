@@ -15,6 +15,7 @@
 
 #ifndef ROSEN_ENGINE_CORE_RENDER_UI_TEMPLATE_H
 #define ROSEN_ENGINE_CORE_RENDER_UI_TEMPLATE_H
+#include <tuple>
 #include <type_traits>
 
 #include "modifier/rs_property.h"
@@ -26,13 +27,13 @@ namespace OHOS {
 namespace Rosen {
 
 template <typename Derived, typename RenderEffect>
-class RSNGEffectBase: public std::enable_shared_from_this<Derived> {
+class RSNGEffectBase : public std::enable_shared_from_this<Derived> {
 public:
     using RenderEffectBase = RenderEffect;
 
     virtual ~RSNGEffectBase() = default;
     virtual RSUIFilterType GetType() const = 0;
-    virtual std::shared_ptr<RenderEffectBase> GetRenderEffect() = 0; 
+    virtual std::shared_ptr<RenderEffectBase> GetRenderEffect() = 0;
     virtual bool SetValue(const std::shared_ptr<Derived>& other, std::shared_ptr<RSNode> node) = 0;
     virtual void Attach(const std::shared_ptr<RSNode>& node) = 0;
     virtual void Detach() = 0;
@@ -73,7 +74,7 @@ public:
     }
 
 protected:
-    [[nodiscard]] virtual bool OnSetValue(const std::shared_ptr<Derived>& other, std::shared_ptr<RSNode> node) 
+    [[nodiscard]] virtual bool OnSetValue(const std::shared_ptr<Derived>& other, std::shared_ptr<RSNode> node)
     {
         auto otherNextEffect = other->GetNextEffect();
         if (!nextEffect_ || !nextEffect_->SetValue(otherNextEffect, node)) {
@@ -131,16 +132,17 @@ template <typename T>
 inline constexpr bool is_property_tag_v = is_property_tag<T>::value;
 
 template <typename Base, RSUIFilterType Type, typename... PropertyTags>
-class RSNGEffectTemplate: public Base {
+class RSNGEffectTemplate : public Base {
     static_assert(std::is_base_of_v<RSNGEffectBase<Base, typename Base::RenderEffectBase>, Base>,
         "RSNGEffectTemplate: Base must be a subclass of RSNGEffectBase<Base>");
     static_assert(Type != RSUIFilterType::INVALID,
         "RSNGEffectTemplate: Type cannot be INVALID");
-    static_assert((is_property_tag_v<PropertyTags> && ...), 
+    static_assert((is_property_tag_v<PropertyTags> && ...),
         "RSNGEffectTemplate: All properties must be PropertyTags");
 
 public:
-    using RenderEffectTemplate = RSNGRenderEffectTemplate<typename Base::RenderEffectBase, Type, typename PropertyTags::RenderPropertyTagType...>;
+    using RenderEffectTemplate = RSNGRenderEffectTemplate<typename Base::RenderEffectBase,
+        Type, typename PropertyTags::RenderPropertyTagType...>;
 
     RSNGEffectTemplate() = default;
     virtual ~RSNGEffectTemplate() override = default;
@@ -174,7 +176,9 @@ public:
         auto otherDown = std::static_pointer_cast<RSNGEffectTemplate>(other);
         auto& otherProps = otherDown->GetProperties();
         std::apply([&otherProps](const auto&... args) {
-            (args.value_->Set(std::get<std::decay_t<decltype(args)>>(otherProps).value_->Get()), ...);}, properties_);
+                (args.value_->Set(std::get<std::decay_t<decltype(args)>>(otherProps).value_->Get()), ...);
+            },
+            properties_);
         
         return Base::OnSetValue(other, node);
     }

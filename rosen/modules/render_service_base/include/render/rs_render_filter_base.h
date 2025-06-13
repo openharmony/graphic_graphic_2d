@@ -23,8 +23,6 @@
 namespace OHOS {
 namespace Rosen {
 
-
-
 namespace Drawing {
 class GEVisualEffectContainer;
 class GEVisualEffect;

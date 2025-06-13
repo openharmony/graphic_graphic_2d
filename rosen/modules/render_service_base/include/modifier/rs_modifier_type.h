@@ -347,6 +347,7 @@ public:
             case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSModifierType::BACKGROUND_UI_FILTER: return "BackgroundUIFilter";
             case RSModifierType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
+            case RSModifierType::FOREGROUND_UI_FILTER: return "ForegroundUIFilter";
             case RSModifierType::HDR_BRIGHTNESS_FACTOR: return "HDRBrightnessFactor";
             case RSModifierType::BACKGROUND_NG_FILTER: return "BackgroundNgFilter";
             case RSModifierType::FOREGROUND_NG_FILTER: return "ForegroundNgFilter";

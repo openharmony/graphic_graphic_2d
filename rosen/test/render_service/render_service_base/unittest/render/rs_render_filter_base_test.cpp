@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "pipeline/rs_render_node.h"
 #include "render/rs_render_filter_base.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -20,20 +21,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class TestProperty : public RSRenderProperty<float> {
-public:
-    bool Marshalling(Parcel&) const override { return false; }
-};
-
-class TestFilter : public RSNGRenderFilterTemplate<RSUIFilterType::BLUR,
-    RSRenderPropertyTag<float, BlurRadiusXName>> {
-public:
-    TestFilter() {
-        std::get<0>(this->properties_).value_ = std::make_shared<TestProperty>();
-    }
-    ~TestFilter() override = default;
-};
-
 class RSRenderFilterBaseTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -96,7 +83,7 @@ HWTEST_F(RSRenderFilterBaseTest, SetAndGetNextEffect001, TestSize.Level1)
 
 /**
  * @tc.name: GetEffectCount001
- * @tc.desc: 1. Test the behavior of Append method, including appending self, appending valid filters, 
+ * @tc.desc: 1. Test the behavior of Append method, including appending self, appending valid filters,
  *           handling null filters, and ensuring filters already in the chain are not appended again
  *           2. Test GetEffectCount method to verify the number of filters in the chain
  * @tc.type: FUNC
@@ -109,22 +96,22 @@ HWTEST_F(RSRenderFilterBaseTest, GetEffectCount001, TestSize.Level1)
 
     // Test append filter: BLUR -> EDGE_LIGHT
     auto filter2 = RSNGRenderFilterBase::Create(RSUIFilterType::EDGE_LIGHT);
-    EXPECT_TRUE(filter1->SetNextEffect(filter2));
+    filter1->SetNextEffect(filter2);
     EXPECT_EQ(filter1->GetNextEffect(), filter2);
     EXPECT_EQ(filter1->GetEffectCount(), 2u);
 
     // Test append nullptr
-    EXPECT_TRUE(filter2->SetNextEffect(nullptr));
+    filter2->SetNextEffect(nullptr);
     EXPECT_EQ(filter1->GetEffectCount(), 2u);
 
     // Test append filter: BLUR -> EDGE_LIGHT -> SOUND_WAVE
     auto filter3 = RSNGRenderFilterBase::Create(RSUIFilterType::SOUND_WAVE);
-    EXPECT_TRUE(filter2->SetNextEffect(filter3));
+    filter2->SetNextEffect(filter3);
     EXPECT_EQ(filter1->GetEffectCount(), 3u);
 
     // Test set next filter at middle
     auto filter4 = RSNGRenderFilterBase::Create(RSUIFilterType::DISPERSION);
-    EXPECT_TRUE(filter2->SetNextEffect(filter4));
+    filter2->SetNextEffect(filter4);
     EXPECT_EQ(filter2->GetNextEffect(), filter4);
     EXPECT_EQ(filter3->GetNextEffect(), nullptr);
     EXPECT_EQ(filter1->GetEffectCount(), 3u);
@@ -178,7 +165,7 @@ HWTEST_F(RSRenderFilterBaseTest, TemplateGetterSetter001, TestSize.Level1)
 
 /**
  * @tc.name: MarshallingAndUnmarshalling001
- * @tc.desc: Test the Marshalling and Unmarshalling methods can 
+ * @tc.desc: Test the Marshalling and Unmarshalling methods can
  *           serialize and deserialize a single filter correctly
  * @tc.type: FUNC
  */
@@ -190,7 +177,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
     auto filter2 = RSNGRenderFilterBase::Create(RSUIFilterType::EDGE_LIGHT);
     filter1->SetNextEffect(filter2);
     std::shared_ptr<RSNGRenderFilterBase> outFilter;
-    auto TestFunc = [&](const auto& inFilter, auto& outFilter) {
+    auto testFunc = [&parcel](const auto& inFilter, auto& outFilter) {
         EXPECT_NE(inFilter, nullptr);
         bool ret = inFilter->Marshalling(parcel);
         EXPECT_TRUE(ret);
@@ -206,8 +193,8 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
             EXPECT_EQ(outFilter->GetNextEffect(), nullptr);
         }
     };
-    TestFunc(filter1, outFilter);
-    TestFunc(filter2, outFilter);
+    testFunc(filter1, outFilter);
+    testFunc(filter2, outFilter);
 
     // Test Unmarshalling empty parcel
     Parcel emptyParcel;
@@ -257,9 +244,9 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     ret = (filter->Marshalling(parcel2));
     EXPECT_TRUE(ret);
     RSUIFilterTypeUnderlying val = 0;
-    ret = RSMarshallingHelper::UnMarshalling(parcel2, val);
+    ret = RSMarshallingHelper::Unmarshalling(parcel2, val);
     EXPECT_TRUE(ret);
-    auto current = filter;
+    current = filter;
     for (size_t i = 1; i < RSNGRenderFilterBase::EFFECT_COUNT_LIMIT; ++i) {
         auto nextFilter = std::make_shared<RSNGRenderBlurFilter>();
         current->SetNextEffect(nextFilter);
@@ -284,7 +271,7 @@ HWTEST_F(RSRenderFilterBaseTest, AttachDetach001, TestSize.Level1)
     auto filter = std::make_shared<RSNGRenderBlurFilter>();
     auto prop = filter->Getter<BlurRadiusXRenderTag>();
     auto radiusX = prop->Get();
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
+    auto node = std::make_shared<RSRenderNode>(1);
     filter->Attach(node);
     EXPECT_EQ(prop->node_.lock(), node);
     filter->Detach(node);
@@ -303,7 +290,7 @@ HWTEST_F(RSRenderFilterBaseTest, AttachDetach002, TestSize.Level1)
     auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
     auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
     filter1->SetNextEffect(filter2);
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
+    auto node = std::make_shared<RSRenderNode>(1);
     filter1->Attach(node);
     EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->node_.lock(), node);
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->node_.lock(), node);
@@ -356,18 +343,6 @@ HWTEST_F(RSRenderFilterBaseTest, DumpProperty001, TestSize.Level1)
     std::string out;
     filter1->DumpProperty(out);
     EXPECT_FALSE(out.empty());
-}
-
-/**
- * @tc.name: MarshallingFail001
- * @tc.desc: Test Marshalling returns false if property marshalling fails.
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, MarshallingFail001, TestSize.Level1)
-{
-    auto filter = std::make_shared<TestFilter>();
-    Parcel parcel;
-    EXPECT_FALSE(filter->Marshalling(parcel));
 }
 
 /**

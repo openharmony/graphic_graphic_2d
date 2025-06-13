@@ -49,7 +49,6 @@ class RSNGRenderMaskBase; // forward declaration, impl in rs_render_mask_base.h
 #undef MASK_PTR
 #undef DECLARE_ANIM_PROPERTY_TAG
 #undef DECLARE_NOANIM_PROPERTY_TAG
-// ===========================================================================
 
 enum class RSNGEffectType : int16_t {
     INVALID = -1,

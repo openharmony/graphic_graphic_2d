@@ -201,7 +201,8 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(const std::shared_ptr
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach(const std::shared_ptr<RSNode>& node) {
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach(const std::shared_ptr<RSNode>& node)
+{
     if (stagingValue_) {
         stagingValue_->Detach();
     }
@@ -215,7 +216,6 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNG
     }
 
     // failed to update all properties in filter, fall back to replace filter
-    // RSProperty<std::shared_ptr<RSNGFilterBase>>::RSProperty::Set(value);
     if (stagingValue_) {
         stagingValue_->Detach();
     }
@@ -230,12 +230,7 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNG
     }
 
     MarkNodeDirty();
-    UpdateExtendModifierForGeometry(node);
-    if (isCustom_) {
-        MarkModifierDirty();
-    } else {
-        UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
-    }
+    UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
 }
 
 template<>

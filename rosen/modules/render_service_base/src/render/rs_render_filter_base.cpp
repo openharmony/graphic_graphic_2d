@@ -113,7 +113,6 @@ void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing
 void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
     const std::string& desc, const Vector4f& value)
 {
-    // TODO
     geFilter->SetParam(desc, value.x_);
 }
 

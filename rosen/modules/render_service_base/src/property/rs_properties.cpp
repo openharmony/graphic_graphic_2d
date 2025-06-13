@@ -3818,13 +3818,13 @@ void RSProperties::GenerateBezierWarpFilter()
     if (!bezierWarpFilter->ParseFilterValues()) {
         return;
     }
-    foregroundFilter_.reset();
+    auto bezierWarpFilterCopy = bezierWarpFilter->DeepCopy();
     if (!foregroundFilter_) {
-        foregroundFilter_ = std::make_shared<RSDrawingFilter>(bezierWarpFilter);
+        foregroundFilter_ = std::make_shared<RSDrawingFilter>(bezierWarpFilterCopy);
         foregroundFilter_->SetFilterType(RSFilter::BEZIER_WARP);
     } else {
         auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
-        foregroundDrawingFilter = foregroundDrawingFilter->Compose(bezierWarpFilter);
+        foregroundDrawingFilter = foregroundDrawingFilter->Compose(bezierWarpFilterCopy);
         foregroundDrawingFilter->SetFilterType(RSFilter::BEZIER_WARP);
         foregroundFilter_ = foregroundDrawingFilter;
     }

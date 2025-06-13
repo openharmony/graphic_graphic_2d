@@ -179,6 +179,7 @@ protected:
     {
         modifier_ = modifier;
     }
+
     void Attach(const std::shared_ptr<RSNode>& node)
     {
         target_ = node;
@@ -187,7 +188,9 @@ protected:
         }
         OnAttach(node);
     }
+
     virtual void OnAttach(const std::shared_ptr<RSNode>& node) {}
+
     void Detach()
     {
         if (auto node = target_.lock()) {
@@ -196,6 +199,7 @@ protected:
         }
         target_.reset();
     }
+
     virtual void OnDetach(const std::shared_ptr<RSNode>& node) {}
 
     void MarkModifierDirty();
@@ -260,7 +264,7 @@ private:
     friend class RSPathAnimation;
     friend class RSModifier;
     friend class RSBackgroundUIFilterModifier;
-    friend class RSForegroundNGFilterModifier;
+    friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitTransitionParam;
@@ -368,6 +372,7 @@ protected:
     }
 
     void OnAttach(const std::shared_ptr<RSNode>& node) override {}
+
     void OnDetach(const std::shared_ptr<RSNode>& node) override {}
 
     bool IsValid(const T& value)

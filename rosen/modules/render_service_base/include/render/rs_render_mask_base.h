@@ -16,9 +16,9 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_MASK_BASE_H
 #define RENDER_SERVICE_BASE_RENDER_MASK_BASE_H
 
-#include "transaction/rs_marshalling_helper.h"
 #include "render/rs_render_property_tag.h"
 #include "render/rs_render_effect_template.h"
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -51,7 +51,6 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
 );
 
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
-    // ADD_PROPERTY_TAG(PixelMapMask, PixelMap),
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
     ADD_PROPERTY_TAG(PixelMapMask, FillColor)
@@ -62,6 +61,5 @@ DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
 
 } // namespace Rosen
 } // namespace OHOS
-
 
 #endif // RENDER_SERVICE_BASE_RENDER_MASK_BASE_H

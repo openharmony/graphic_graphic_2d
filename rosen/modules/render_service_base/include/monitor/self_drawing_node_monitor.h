@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSC_EXPORT SelfDrawingNodeMonitor {
+class RSB_EXPORT SelfDrawingNodeMonitor {
 public:
     static SelfDrawingNodeMonitor &GetInstance();
 

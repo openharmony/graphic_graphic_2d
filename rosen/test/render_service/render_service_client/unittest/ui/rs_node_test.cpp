@@ -31,14 +31,14 @@
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property_modifier.h"
+#include "modifier/rs_extended_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
+#include "ui/rs_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
-#include "ui/rs_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
 
@@ -4160,7 +4160,7 @@ HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
     Filter* filterObj = new(std::nothrow) Filter();
     filterObj->AddPara(nullptr);
 
-    std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
+    auto para = std::make_shared<FilterBlurPara>();
     para->SetRadius(floatData[1]);
     filterObj->AddPara(para);
     rsNode->SetUIBackgroundFilter(filterObj);
@@ -4169,7 +4169,7 @@ HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
 
     auto para2 = std::make_shared<DisplacementDistortPara>();
     filterObj->AddPara(para2);
-    std::shared_ptr<FilterBlurPara> para3 = std::make_shared<EdgeLightPara>();
+    auto para3 = std::make_shared<EdgeLightPara>();
     filterObj->AddPara(para3);
     rsNode->SetUIBackgroundFilter(filterObj);
     EXPECT_FALSE(rsNode->propertyModifiers_.empty());
@@ -4235,24 +4235,7 @@ HWTEST_F(RSNodeTest, UnregisterProperty, TestSize.Level1)
     PropertyId propertyId = rsPropertyBase->GetId();
     rsNode->properties_.emplace(propertyId, rsPropertyBase);
     EXPECT_FALSE(rsNode->properties_.empty());
-    rsNode->UnRegisterProperty(propertyId);
-    EXPECT_TRUE(rsNode->properties_.empty());
-}
-
-/**
- * @tc.name: ResetPropertyMap
- * @tc.desc: test results of ResetPropertyMap
- * @tc.type: FUNC
- * @tc.require: 
- */
-HWTEST_F(RSNodeTest, ResetPropertyMap, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto rsPropertyBase = std::make_shared<RSProperty<float>>();
-    PropertyId propertyId = rsPropertyBase->GetId();
-    rsNode->properties_.emplace(propertyId, rsPropertyBase);
-    EXPECT_FALSE(rsNode->properties_.empty());
-    rsNode->ResetPropertyMap();
+    rsNode->UnregisterProperty(propertyId);
     EXPECT_TRUE(rsNode->properties_.empty());
 }
 
@@ -4395,7 +4378,7 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
 
     auto para2 = std::make_shared<DisplacementDistortPara>();
     filterObj->AddPara(para2);
-    std::shared_ptr<FilterBlurPara> para3 = std::make_shared<EdgeLightPara>();
+    auto para3 = std::make_shared<EdgeLightPara>();
     filterObj->AddPara(para3);
     rsNode->SetUIForegroundFilter(filterObj);
     EXPECT_FALSE(rsNode->propertyModifiers_.empty());
@@ -4428,22 +4411,17 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetForegroundNGFilter
+ * @tc.name: SetForegroundUIFilter
  * @tc.desc: test results of SetForegroundUIFilter
  * @tc.type: FUNC
  */
-HWTEST_F(RSNodeTest, SetForegroundNGFilter, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetForegroundUIFilter, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    rsNode->SetForegroundUIFilter(nullptr);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
+    auto rsUIFilter = std::make_shared<RSUIFilter>();
 
-    auto filter = std::make_shared<RSNGBlurFilter>();
-    rsNode->SetForegroundUIFilter(filter);
+    rsNode->SetForegroundUIFilter(rsUIFilter);
     EXPECT_FALSE(rsNode->propertyModifiers_.empty());
-    
-    rsNode->SetForegroundUIFilter(nullptr);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
 
 /**
@@ -4493,6 +4471,25 @@ HWTEST_F(RSNodeTest, CreateBlurFilter001, TestSize.Level1)
     rsNode->SetBackgroundFilter(backgroundFilter);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[0]);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
+}
+
+/**
+ * @tc.name: SetForegroundNGFilter001
+ * @tc.desc: test results of SetForegroundUIFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetForegroundNGFilter001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetForegroundNGFilter(nullptr);
+    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
+
+    auto filter = std::make_shared<RSNGBlurFilter>();
+    rsNode->SetForegroundNGFilter(filter);
+    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+    
+    rsNode->SetForegroundNGFilter(nullptr);
+    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
 
 /**
