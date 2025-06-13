@@ -265,6 +265,10 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
     const sptr<SyncFence>& acquireFence, pid_t threadIndex)
 {
     WaitAcquireFence(acquireFence);
+    if (buffer == nullptr) {
+        RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: buffer is null.");
+        return 0;
+    }
     auto bufferId = buffer->GetSeqNum();
     RS_OPTIONAL_TRACE_NAME_FMT("MapEglImage seqNum: %d", bufferId);
     RS_LOGD("RSEglImageManager::MapEglImageFromSurfaceBuffer: %{public}d", bufferId);
@@ -343,6 +347,10 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
+    if (buffer == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer buffer is null!");
+        return nullptr;
+    }
     auto eglTextureId = MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
     if (eglTextureId == 0) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer MapEglImageFromSurfaceBuffer return invalid texture ID");
@@ -387,6 +395,10 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::GetIntersectImage(Drawing::Re
     const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence, pid_t threadIndex)
 {
+    if (buffer == nullptr || context == nullptr) {
+        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL buffer or context is null");
+        return nullptr;
+    }
     auto eglTextureId = MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
     if (eglTextureId == 0) {
         RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL invalid texture ID");
@@ -417,7 +429,11 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::GetIntersectImage(Drawing::Re
     }
 
     std::shared_ptr<Drawing::Image> cutDownImage = std::make_shared<Drawing::Image>();
-    cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
+    bool res = cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
+    if (!res) {
+        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK cutDownImage BuildSubset failed.");
+        return nullptr;
+    }
     Drawing::ImageInfo info = Drawing::ImageInfo(imgCutRect.GetWidth(), imgCutRect.GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
 

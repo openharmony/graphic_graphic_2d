@@ -244,6 +244,9 @@ HWTEST_F(RSEglImageManagerTest, CreateTest, TestSize.Level1)
 #ifdef RS_ENABLE_GL
     imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
+    std::shared_ptr<RenderContext> renderContextNull = nullptr;
+    auto imageManagerNull = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+    EXPECT_EQ(imageManagerNull, nullptr); 
 #endif // RS_ENABLE_GL
 }
 

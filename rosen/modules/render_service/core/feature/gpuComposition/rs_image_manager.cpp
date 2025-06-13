@@ -33,7 +33,9 @@ std::shared_ptr<RSImageManager> RSImageManager::Create(std::shared_ptr<RenderCon
         imageManager = std::make_shared<RSVkImageManager>();
 #endif
     } else {
-        imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        if (renderContext != nullptr) {
+            imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        }
     }
     return imageManager;
 }

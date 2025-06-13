@@ -157,6 +157,10 @@ std::shared_ptr<VkImageResource> RSVkImageManager::CreateImageCacheFromBuffer(co
     const sptr<SyncFence>& acquireFence)
 {
     WaitAcquireFence(acquireFence);
+    if (buffer == nullptr) {
+        ROSEN_LOGE("RSVkImageManager::CreateImageCacheFromBuffer buffer is nullptr");
+        return nullptr;
+    }
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = VkImageResource::Create(buffer);
     if (imageCache == nullptr) {
@@ -171,6 +175,10 @@ std::shared_ptr<VkImageResource> RSVkImageManager::CreateImageCacheFromBuffer(co
 std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
     const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition)
 {
+    if (buffer == nullptr) {
+        ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer buffer is nullptr");
+        return {};
+    }
     auto bufferId = buffer->GetSeqNum();
     auto deleteFlag = buffer->GetBufferDeleteFromCacheFlag();
     auto imageCache = VkImageResource::Create(buffer);
@@ -245,6 +253,10 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
     const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
     auto image = std::make_shared<Drawing::Image>();
+    if (buffer == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: buffer is nullptr");
+        return nullptr;
+    }
     auto imageCache = MapVkImageFromSurfaceBuffer(buffer,
         acquireFence, threadIndex, canvas.GetSurface());
     if (imageCache == nullptr) {
@@ -289,6 +301,10 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::GetIntersectImage(Drawing::Rec
     const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence, pid_t threadIndex)
 {
+    if (context == nullptr || buffer == nullptr) {
+        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK context or buffer is nullptr!");
+        return nullptr;
+    }
     auto imageCache = CreateImageCacheFromBuffer(buffer, acquireFence);
     if (imageCache == nullptr) {
         ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK imageCache == nullptr!");
@@ -306,7 +322,11 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::GetIntersectImage(Drawing::Rec
     }
 
     std::shared_ptr<Drawing::Image> cutDownImage = std::make_shared<Drawing::Image>();
-    cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
+    bool res = cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
+    if (!res) {
+        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK cutDownImage BuildSubset failed.");
+        return nullptr;
+    }
     return cutDownImage;
 }
 } // namespace Rosen
