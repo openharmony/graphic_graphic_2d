@@ -70,6 +70,9 @@ rs_func_feature_sources = [
   "rs_func_feature/screen_capture/display_node_capture_test.cpp",
 ]
 rs_perform_feature_sources = []
+rs_perform_ohr_sources = [
+  "rs_perform_ohr/playback_recover_test.cpp",
+]
 
 group("test") {
   testonly = true
@@ -87,6 +90,38 @@ ohos_unittest("RSGraphicTest") {
   sources += rs_framework_sources
   sources += rs_func_feature_sources
   sources += rs_perform_feature_sources
+
+  deps = [
+    "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
+  ]
+
+  defines = []
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+
+  defines += gpu_defines
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+## Build RSPerformanceTest
+ohos_unittest("RSPerformanceTest") {
+  module_out_path = module_output_path
+  sources = []
+  sources += rs_perform_ohr_sources
 
   deps = [
     "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
