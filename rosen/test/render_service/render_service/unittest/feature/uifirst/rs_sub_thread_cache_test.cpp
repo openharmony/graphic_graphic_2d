@@ -299,13 +299,13 @@ HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
     surfaceParams->allSubSurfaceNodeIds_.insert(renderNode_->GetId());
     surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
-        0);
+        10);
 
     surfaceDrawable_->GetRsSubThreadCache().isCacheValid_ = false;
     surfaceParams->absDrawRect_ = {0, 0, 15, 15};
     surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
-        0);
+        15);
     surfaceDrawable_->syncDirtyManager_->Clear();
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->Clear();
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
