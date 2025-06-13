@@ -179,6 +179,16 @@ public:
         }
     }
 
+    int16_t GetIndex()
+    {
+        return index_;
+    }
+
+    void SetIndex(int16_t index)
+    {
+        index_ = index;
+    }
+
     std::shared_ptr<Drawing::DrawCmdList> GetPropertyDrawCmdList() const override
     {
         return property_->Get();
@@ -202,11 +212,11 @@ public:
     {
         return isSingleFrameModifier_;
     }
-
 protected:
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
     bool isSingleFrameModifier_ = false;
+    int16_t index_ = 0;
 };
 
 class RSAnimatableRenderModifier : public RSRenderModifier {
