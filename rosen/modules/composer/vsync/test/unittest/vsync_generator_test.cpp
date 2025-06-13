@@ -1191,6 +1191,23 @@ HWTEST_F(VSyncGeneratorTest, RemoveDVSyncListenerTest001, Function | MediumTest|
     VsyncError error = VSyncGeneratorTest::vsyncGenerator_->RemoveDVSyncListener(cb);
     ASSERT_EQ(error, VSYNC_ERROR_INVALID_ARGUMENTS);
 }
+
+/*
+* Function: IsUiDvsyncOnTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test IsUiDvsyncOnTest001
+ */
+HWTEST_F(VSyncGeneratorTest, IsUiDvsyncOnTest001, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    auto rsVSyncDistributor = vsyncGeneratorImpl->rsVSyncDistributor_;
+    vsyncGeneratorImpl->rsVSyncDistributor_ = nullptr;
+    bool ret = vsyncGeneratorImpl->IsUiDvsyncOn();
+    vsyncGeneratorImpl->rsVSyncDistributor_ = rsVSyncDistributor;
+    ASSERT_EQ(ret, false);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

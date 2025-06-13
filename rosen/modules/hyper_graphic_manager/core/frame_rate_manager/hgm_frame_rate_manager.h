@@ -234,7 +234,7 @@ private:
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
-    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
+    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange);
     void UpdateSoftVSync(bool followRs);
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
@@ -292,6 +292,7 @@ private:
         curGameNodeName_ = nodeName;
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
+    void CheckNeedUpdateAppOffset(uint32_t refreshRate);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;

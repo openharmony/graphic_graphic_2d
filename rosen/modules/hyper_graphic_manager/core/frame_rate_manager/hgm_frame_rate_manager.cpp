@@ -205,11 +205,6 @@ void HgmFrameRateManager::InitTouchManager()
             multiAppStrategy_.HandleTouchInfo(touchInfo);
             UpdateSoftVSync(false);
         };
-        touchManager_.RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
-            SetSchedulerPreferredFps(OLED_60_HZ);
-            SetIsNeedUpdateAppOffset(true);
-            touchManager_.ChangeState(TouchState::IDLE_STATE);
-        });
         touchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
             SetSchedulerPreferredFps(OLED_120_HZ);
             touchManager_.ChangeState(TouchState::DOWN_STATE);
@@ -223,6 +218,7 @@ void HgmFrameRateManager::InitTouchManager()
         });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
+            SetSchedulerPreferredFps(OLED_60_HZ);
             startCheck_.store(false);
             updateTouchToMultiAppStrategy(newState);
             voterTouchEffective_.store(false);
@@ -564,7 +560,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
     return frameRateChanged;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange)
 {
     std::lock_guard<std::mutex> lock(pendingMutex_);
     auto& hgmCore = HgmCore::Instance();
@@ -593,7 +589,10 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     }
 
     // Start of DVSync
-    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
+    int64_t delayTime = 0;
+    if (frameRateChange) {
+        delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
+    }
     if (delayTime != 0) {
         int64_t controllerRate = controllerRate_;
         std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
@@ -1286,22 +1285,8 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     if (rsFrameRateLinker_ != nullptr) {
         frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
     }
-    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
-    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    auto& hgmCore = HgmCore::Instance();
-    bool needForceUpdate = currRefreshRate_.load() != hgmCore.GetPendingScreenRefreshRate();
-    if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), false);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_, refreshRate, true);
-        }
-    } else {
-        std::lock_guard<std::mutex> lock(pendingMutex_);
-        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_, refreshRate, true);
-        }
-    }
+
+    CheckRefreshRateChange(false, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(resultVoteInfo);
 }
 
@@ -1883,12 +1868,36 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
     appPageUrlStrategy_.NotifyPageName(pid, packageName, pageName, isEnter);
 }
 
+void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate)
+{
+    if (controller_ == nullptr || refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_ ||
+        !controller_->CheckNeedUpdateAppOffsetRefreshRate(controllerRate_)) {
+        return;
+    }
+    if (touchManager_.GetState() == TouchState::IDLE_STATE) {
+        isNeedUpdateAppOffset_ = true;
+        return;
+    }
+    if (auto iter = voteRecord_.find("VOTER_THERMAL");
+        iter != voteRecord_.end() && !iter->second.first.empty() &&
+        iter->second.first.back().max > 0 && iter->second.first.back().max <= OLED_60_HZ) {
+        isNeedUpdateAppOffset_ = true;
+        return;
+    }
+}
+
 void HgmFrameRateManager::CheckRefreshRateChange(
     bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate)
 {
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    if (HgmCore::Instance().GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
+    bool appOffsetChange = false;
+    if (controller_ != nullptr) {
+        CheckNeedUpdateAppOffset(refreshRate);
+        appOffsetChange = isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0;
+    }
+    if (HgmCore::Instance().GetLtpoEnabled() &&
+        (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn()))) {
+        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs, frameRateChanged);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
@@ -1899,6 +1908,10 @@ void HgmFrameRateManager::CheckRefreshRateChange(
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
     }
+    if (HgmCore::Instance().GetLtpoEnabled() && appOffsetChange && isNeedUpdateAppOffset_) {
+        HgmCore::Instance().SetHgmTaskFlag(true);
+    }
+    isNeedUpdateAppOffset_ = false;
 }
 
 void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)

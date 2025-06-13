@@ -86,6 +86,7 @@ public:
     virtual void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) = 0;
     virtual VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
+    virtual bool IsUiDvsyncOn() = 0;
     // End of DVSync
     virtual void PrintGeneratorStatus() = 0;
 };
@@ -137,6 +138,7 @@ public:
     void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) override;
     VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
+    bool IsUiDvsyncOn() override;
     // End of DVSync
     void PrintGeneratorStatus() override;
 private:
