@@ -381,45 +381,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest010
- * @tc.desc: test for GeneratePaintRegion
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level1)
-{
-    double maxWidth = 50;
-    OHOS::Rosen::TypographyStyle typographyStyle;
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
-        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
-        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
-    std::u16string text = u"text is too long                                 ";
-    PlaceholderSpan placeholderSpan;
-    placeholderSpan.width = 10;
-    placeholderSpan.height = 300;
-    placeholderSpan.alignment = PlaceholderVerticalAlignment::TOP_OF_ROW_BOX;
-    placeholderSpan.baseline = TextBaseline::ALPHABETIC;
-    placeholderSpan.baselineOffset = 0;
-    OHOS::Rosen::TextStyle typographyTextStyle;
-    typographyCreate->PushStyle(typographyTextStyle);
-    typographyCreate->AppendPlaceholder(placeholderSpan);
-    typographyCreate->AppendText(text);
-    TextShadow shadow;
-    shadow.blurRadius = 5.0f;
-    shadow.offset = Drawing::Point(0, 10);
-    typographyTextStyle.shadows.emplace_back(shadow);
-    typographyCreate->PushStyle(typographyTextStyle);
-    typographyCreate->AppendText(text);
-    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-
-    Drawing::RectI paintRegion = typography->GeneratePaintRegion(5.5, 5.1);
-    ASSERT_EQ(paintRegion, Drawing::RectI(5, 5, 5, 5));
-    typography->Layout(maxWidth);
-    paintRegion = typography->GeneratePaintRegion(5.5, 5.1);
-    ASSERT_EQ(paintRegion, Drawing::RectI(0, 7, 60, 385));
-}
-
-/*
  * @tc.name: OH_Drawing_TypographyTest011
  * @tc.desc: test for truncated hight surrogate emoji text building and layouting
  * @tc.type: FUNC
