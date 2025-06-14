@@ -1502,6 +1502,8 @@ public:
     void SetUseEffectType(UseEffectType useEffectType);
     void SetAlwaysSnapshot(bool enable);
 
+    void SetEnableHDREffect(bool enableHdrEffect);
+
     void SetUseShadowBatching(bool useShadowBatching);
 
     void SetColorBlendMode(RSColorBlendMode colorBlendMode);
@@ -1956,6 +1958,8 @@ private:
     bool isSkipCheckInMultiInstance_ = false;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::weak_ptr<RSUIContext> rsUIContext_;
+
+    bool enableHdrEffect_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

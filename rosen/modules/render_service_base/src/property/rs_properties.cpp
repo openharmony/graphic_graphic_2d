@@ -3919,6 +3919,20 @@ bool RSProperties::GetNeedDrawBehindWindow() const
     return needDrawBehindWindow_;
 }
 
+void RSProperties::SetEnableHDREffect(bool enableHDREffect)
+{
+    if (enableHDREffect_ != enableHDREffect) {
+        enableHDREffect_ = enableHDREffect;
+        filterNeedUpdate_ = true;
+        SetDirty();
+    }
+}
+
+bool RSProperties::GetEnableHDREffect() const
+{
+    return enableHDREffect_;
+}
+
 void RSProperties::SetUseShadowBatching(bool useShadowBatching)
 {
     if (useShadowBatching) {
@@ -5065,12 +5079,13 @@ void RSProperties::UpdateFilter()
         UpdateForegroundFilter();
     }
 
-    needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                  IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
-                  IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+    needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || enableHDREffect_ ||
+                  IsLightUpEffectValid() || IsDynamicLightUpValid() || greyCoef_.has_value() ||
+                  linearGradientBlurPara_ != nullptr || IsDynamicDimValid() ||
+                  GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
-                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
-                  mask_ || colorFilter_ != nullptr || localMagnificationCap_;
+                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ || mask_ ||
+                  colorFilter_ != nullptr || localMagnificationCap_;
 
     needHwcFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || linearGradientBlurPara_ != nullptr ||

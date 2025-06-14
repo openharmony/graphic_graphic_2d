@@ -8579,4 +8579,19 @@ HWTEST_F(RSNodeTest, Dump002Test, TestSize.Level1)
         " Alpha:[1.0] BackgroundShader: ContentStyle:drawCmdList[]]");
     EXPECT_TRUE(pos != std::string::npos);
 }
+
+/**
+ * @tc.name: SetEnableHDREffect
+ * @tc.desc: test results of SetEnableHDREffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetEnableHDREffect, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    rsNode->SetEnableHDREffect(true);
+    rsNode->SetEnableHDREffect(true); // different branch if call again
+    EXPECT_EQ(rsNode->enableHdrEffect_, true);
+}
 } // namespace OHOS::Rosen

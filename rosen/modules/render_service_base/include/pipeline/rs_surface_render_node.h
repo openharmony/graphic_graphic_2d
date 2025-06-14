@@ -695,6 +695,8 @@ public:
     void IncreaseWideColorGamutNum();
     void ReduceWideColorGamutNum();
 
+    bool IsHdrEffectColorGamut() const;
+
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
@@ -1763,6 +1765,7 @@ private:
     int hdrPhotoNum_ = 0;
     // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
     int hdrUIComponentNum_ = 0;
+    int hdrEffectNum_ = 0;
     int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;

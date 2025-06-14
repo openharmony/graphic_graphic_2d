@@ -1956,16 +1956,17 @@ void RSNode::SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundF
         }
         if (oldProperty && backgroundFilter->IsStructureSame(oldProperty)) {
             shouldAdd = false;
-            oldProperty->SetValue(backgroundFilter);
-            return;
         }
     }
+    SetEnableHDREffect(backgroundFilter->GetHdrEffectEnable());
 
     if (shouldAdd) {
         auto rsProperty = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(backgroundFilter);
         auto propertyModifier = std::make_shared<RSBackgroundUIFilterModifier>(rsProperty);
         propertyModifiers_.emplace(RSModifierType::BACKGROUND_UI_FILTER, propertyModifier);
         AddModifier(propertyModifier);
+    } else {
+        oldProperty->SetValue(backgroundFilter);
     }
 }
 
@@ -2507,6 +2508,17 @@ void RSNode::SetAlwaysSnapshot(bool enable)
 {
     SetProperty<RSAlwaysSnapshotModifier, RSProperty<bool>>(
         RSModifierType::ALWAYS_SNAPSHOT, static_cast<bool>(enable));
+}
+
+void RSNode::SetEnableHDREffect(bool enableHdrEffect)
+{
+    if (enableHdrEffect_ == enableHdrEffect) {
+        return;
+    }
+    ROSEN_LOGD("RSNode::SetEnableHDREffect enableHdrEffect=%{public}d", static_cast<int>(enableHdrEffect));
+    enableHdrEffect_ = enableHdrEffect;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetEnableHDREffect>(GetId(), enableHdrEffect);
+    AddCommand(command, IsRenderServiceNode());
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)

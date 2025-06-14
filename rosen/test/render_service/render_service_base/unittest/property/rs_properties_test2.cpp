@@ -1477,6 +1477,7 @@ HWTEST_F(PropertiesTest, SetAlwaysSnapshotTest, TestSize.Level1)
     ASSERT_NE(properties.backgroundFilter_, nullptr);
     EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
 }
+
 /**
  * @tc.name: GenerateAlwaysSnapshotFilterTest
  * @tc.desc: test GenerateAlwaysSnapshotFilter
@@ -1488,6 +1489,21 @@ HWTEST_F(PropertiesTest,  GenerateAlwaysSnapshotFilterTest, TestSize.Level1)
     properties.GenerateAlwaysSnapshotFilter();
     ASSERT_NE(properties.backgroundFilter_, nullptr);
     EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
+}
+
+/**
+ * @tc.name: SetEnableHDREffect Test
+ * @tc.desc: test SetEnableHDREffect Get, Set and UpdateFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetEnableHDREffectTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetEnableHDREffect(true);
+    properties.SetEnableHDREffect(true); // different branch if call again
+    EXPECT_EQ(properties.GetEnableHDREffect(), true);
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.needFilter_);
 }
 } // namespace Rosen
 } // namespace OHOS

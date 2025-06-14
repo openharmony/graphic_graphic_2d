@@ -593,6 +593,9 @@ public:
     void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
     bool GetNeedDrawBehindWindow() const;
 
+    void SetEnableHDREffect(bool useHDREffect);
+    bool GetEnableHDREffect() const;
+
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
     bool IsColorBlendModeValid() const;
@@ -694,6 +697,7 @@ private:
     bool needFilter_ = false;
     bool needHwcFilter_ = false;
     bool useEffect_ = false;
+    bool enableHDREffect_ = false;
     bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     bool alphaNeedApply_ = false;

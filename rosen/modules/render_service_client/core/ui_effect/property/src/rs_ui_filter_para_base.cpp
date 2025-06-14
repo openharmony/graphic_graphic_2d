@@ -54,7 +54,7 @@ std::shared_ptr<RSRenderPropertyBase> RSUIFilterParaBase::GetRSRenderProperty(RS
     return property->GetRenderProperty();
 }
 
-void  RSUIFilterParaBase::Clear()
+void RSUIFilterParaBase::Clear()
 {
     properties_.clear();
 }
@@ -62,6 +62,26 @@ void  RSUIFilterParaBase::Clear()
 std::vector<std::shared_ptr<RSPropertyBase>>  RSUIFilterParaBase::GetLeafProperties()
 {
     return {};
+}
+
+bool RSUIFilterParaBase::CheckEnableHdrEffect()
+{
+    return enableHdrEffect_ || stagingEnableHdrEffect_;
+}
+
+bool RSUIFilterParaBase::GetEnableHdrEffect() const
+{
+    return enableHdrEffect_;
+}
+
+bool RSUIFilterParaBase::GetStagingEnableHdrEffect() const
+{
+    return stagingEnableHdrEffect_;
+}
+
+void RSUIFilterParaBase::SetStagingEnableHdrEffect(bool enableHdrEffect)
+{
+    stagingEnableHdrEffect_ = enableHdrEffect;
 }
 
 } // namespace Rosen

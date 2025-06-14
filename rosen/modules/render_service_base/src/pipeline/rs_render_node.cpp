@@ -402,6 +402,17 @@ void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentT
     }
 }
 
+void RSRenderNode::SetEnableHdrEffect(bool enableHdrEffect)
+{
+    if (enableHdrEffect_ == enableHdrEffect) {
+        return;
+    }
+    if (IsOnTheTree()) {
+        SetHdrNum(enableHdrEffect, GetInstanceRootNodeId(), HDRComponentType::EFFECT);
+    }
+    enableHdrEffect_ = enableHdrEffect;
+}
+
 void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
 {
@@ -432,6 +443,14 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
                 SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
             }
         }
+    }
+
+    if (enableHdrEffect_) {
+        NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
+        ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDREffect Node[id:%{public}" PRIu64 " name:%{public}s]"
+            " parent's id:%{public}" PRIu64 " ", GetId(), GetNodeName().c_str(),
+            parentNodeId);
+        SetHdrNum(flag, parentNodeId, HDRComponentType::EFFECT);
     }
 
     isNewOnTree_ = flag && !isOnTheTree_;

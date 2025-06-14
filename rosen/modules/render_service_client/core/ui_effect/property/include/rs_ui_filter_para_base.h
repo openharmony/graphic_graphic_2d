@@ -85,7 +85,18 @@ public:
 
     virtual std::vector<std::shared_ptr<RSPropertyBase>> GetLeafProperties();
 
+    virtual bool CheckEnableHdrEffect();
+
+    bool GetEnableHdrEffect() const;
+
+    bool GetStagingEnableHdrEffect() const;
+
+    void SetStagingEnableHdrEffect(bool enableHdrEffect);
+
 protected:
+    bool enableHdrEffect_ = false;
+    bool stagingEnableHdrEffect_ = false;
+
     std::weak_ptr<RSNode> node_;
     RSUIFilterType type_;
     RSUIFilterType maskType_ = RSUIFilterType::NONE;

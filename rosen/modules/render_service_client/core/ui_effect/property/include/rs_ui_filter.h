@@ -50,6 +50,8 @@ public:
         return propertyTypes_;
     }
 
+    bool GetHdrEffectEnable() const;
+
     std::shared_ptr<RSUIFilterParaBase> GetUIFilterPara(RSUIFilterType type) const;
     std::vector<RSUIFilterType>& GetUIFilterTypes();
 

@@ -865,6 +865,8 @@ public:
     }
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
+    void SetEnableHdrEffect(bool enableHdrEffect);
+
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {
         isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
@@ -1214,6 +1216,8 @@ private:
     bool isRepaintBoundary_ = false;
     void UpdateBlurEffectCounter(int deltaCount);
     int GetBlurEffectDrawbleCount();
+
+    bool enableHdrEffect_ = false;
 
     void SetParent(WeakPtr parent);
     void ResetParent();
