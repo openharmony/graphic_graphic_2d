@@ -297,7 +297,7 @@ ADD_COMMAND(RSUpdatePropertyRRect,
         RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
-        RSNodeCommandHelper::UpdatePropertyDrawCmdList,
+        RSNodeCommandHelper::UpdateModifierDrawCmdList,
         NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
@@ -389,7 +389,7 @@ ADD_COMMAND(RSModifierNGAttachProperty,
     ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_ATTACH_PROPERTY, RSNodeCommandHelper::ModifierNGAttachProperty, NodeId,
         ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, std::shared_ptr<RSRenderPropertyBase>))
 ADD_COMMAND(RSUpdatePropertyDrawCmdListNG,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST_NG, RSNodeCommandHelper::UpdatePropertyNGDrawCmdList,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST_NG, RSNodeCommandHelper::UpdateModifierNGDrawCmdList,
         NodeId, ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, Drawing::DrawCmdListPtr))
 ADD_COMMAND(RSModifierNGDetachProperty,
     ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_DETACH_PROPERTY, RSNodeCommandHelper::ModifierNGDetachProperty, NodeId,
