@@ -77,7 +77,10 @@ rs_perform_ohr_sources = [
 
 group("test") {
   testonly = true
-  deps = [ ":RSGraphicTest" ]
+  deps = [
+    ":RSGraphicTest",
+    ":RSPerformanceTest",
+  ]
 }
 
 ## Build RSGraphicTest
