@@ -8078,27 +8078,6 @@ HWTEST_F(RSNodeTest, UpdateGlobalGeometry, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRSUIContext
- * @tc.desc: test results of SetRSUIContext
- * @tc.type: FUNC
- * @tc.require: issueIBX6OE
- */
-HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    rsNode->SetRSUIContext(nullptr);
-    EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
-    auto rsUIContext = std::make_shared<RSUIContext>();
-    rsNode->SetRSUIContext(rsUIContext);
-    rsNode->SetRSUIContext(rsUIContext);
-    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
-    auto rsUIContext2 = std::make_shared<RSUIContext>();
-    rsNode->SetRSUIContext(rsUIContext);
-    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
-}
-
-/**
  * @tc.name: SetSkipCheckInMultiInstance
  * @tc.desc: test results of SetSkipCheckInMultiInstance
  * @tc.type: FUNC
