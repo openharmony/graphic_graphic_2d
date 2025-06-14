@@ -262,7 +262,7 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest001, TestSize.Level1)
                 color.r, color.g, color.b, color.a);
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(1.f, 0.788235f, 0.050980f, 1.f));
-    EXPECT_NE(true, ret);
+    EXPECT_EQ(true, ret);
 }
 
 /**
@@ -316,7 +316,7 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest002, TestSize.Level1)
                 color.r, color.g, color.b, color.a);
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(1.f, 1.f, 1.f, 1.f));
-    EXPECT_NE(true, ret);
+    EXPECT_EQ(true, ret);
 }
 
 /**
@@ -394,9 +394,9 @@ HWTEST_F(ColorPickerUnittest, GetLargestProportionColor, TestSize.Level1)
     errorCode = pColorPicker->GetLargestProportionColor(color);
     HiLog::Info(LABEL_TEST, "get largest proportion color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
                 color.r, color.g, color.b, color.a);
-    ASSERT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
+    ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
-    EXPECT_NE(true, ret);
+    EXPECT_EQ(true, ret);
 }
 
 /**
@@ -435,9 +435,9 @@ HWTEST_F(ColorPickerUnittest, GetHighestSaturationColor, TestSize.Level1)
     errorCode = pColorPicker->GetHighestSaturationColor(color);
     HiLog::Info(LABEL_TEST, "get highest saturation color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
                 color.r, color.g, color.b, color.a);
-    ASSERT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
+    ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
-    EXPECT_NE(true, ret);
+    EXPECT_EQ(true, ret);
 }
 
 /**
@@ -476,9 +476,9 @@ HWTEST_F(ColorPickerUnittest, GetAverageColor, TestSize.Level1)
     errorCode = pColorPicker->GetAverageColor(color);
     HiLog::Info(LABEL_TEST, "get average color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
                 color.r, color.g, color.b, color.a);
-    ASSERT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
+    ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
-    EXPECT_NE(true, ret);
+    EXPECT_EQ(true, ret);
 }
 
 /**
@@ -549,10 +549,10 @@ HWTEST_F(ColorPickerUnittest, CalcGrayVariance001, TestSize.Level1)
 
     ColorManager::Color color;
     errorCode = pColorPicker->GetAverageColor(color);
-    EXPECT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
+    EXPECT_EQ(errorCode, SUCCESS);
 
     uint32_t ret = pColorPicker->CalcGrayVariance();
-    EXPECT_EQ(ret, ERR_EFFECT_INVALID_VALUE);
+    EXPECT_EQ(ret, SUCCESS);
 }
 
 /**
@@ -627,7 +627,7 @@ HWTEST_F(ColorPickerUnittest, DiscriminatePitureLightDegreee001, TestSize.Level1
     pColorPicker->contrastToWhite_ = 9;
     PictureLightColorDegree degree = EXTREMELY_LIGHT_COLOR_PICTURE;
     pColorPicker->DiscriminatePitureLightDegree(degree);
-    EXPECT_EQ(degree, EXTREMELY_LIGHT_COLOR_PICTURE);
+    EXPECT_EQ(degree, DARK_COLOR_PICTURE);
 }
 
 /**
