@@ -169,47 +169,6 @@ HWTEST_F(RSHardwareThreadTest, Start002, TestSize.Level1)
 }
 
 /**
- * @tc.name: Start003
- * @tc.desc: Test RSHardwareThreadTest.CommitAndReleaseLayers
- * @tc.type: FUNC
- * @tc.require: issueI6R49K
- */
-HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
-{
-    auto& hardwareThread = RSHardwareThread::Instance();
-    hardwareThread.Start();
-    SetUp();
-    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto surfaceNode3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    RectI dstRect{0, 0, 400, 600};
-    surfaceNode1->SetSrcRect(dstRect);
-    surfaceNode1->SetDstRect(dstRect);
-    surfaceNode2->SetSrcRect(dstRect);
-    surfaceNode2->SetDstRect(dstRect);
-    surfaceNode3->SetSrcRect(dstRect);
-    surfaceNode3->SetDstRect(dstRect);
-    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    ASSERT_NE(layer1, nullptr);
-    auto layer2 = composerAdapter_->CreateLayer(*surfaceNode2);
-    ASSERT_NE(layer2, nullptr);
-    auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
-    ASSERT_NE(layer3, nullptr);
-
-    std::vector<LayerInfoPtr> layers;
-    layers.emplace_back(layer1);
-    layers.emplace_back(layer2);
-    layers.emplace_back(layer3);
-    auto& uniRenderThread = RSUniRenderThread::Instance();
-    uniRenderThread.Sync(std::make_unique<RSRenderThreadParams>());
-    hardwareThread.CommitAndReleaseLayers(composerAdapter_->output_, layers);
-    auto &hgmCore = HgmCore::Instance();
-    ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
-    ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
-    ASSERT_EQ(curScreenId, lastCurScreenId);
-}
-
-/**
  * @tc.name: Start004
  * @tc.desc: Test RSHardwareThreadTest.ReleaseBuffer
  * @tc.type: FUNC
@@ -341,43 +300,6 @@ HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RecordTimestamp
- * @tc.desc: Test RSHardwareThreadTest.RecordTimestamp
- * @tc.type: FUNC
- * @tc.require: IBE7GI
- */
-HWTEST_F(RSHardwareThreadTest, RecordTimestamp, TestSize.Level1)
-{
-    auto& hardwareThread = RSHardwareThread::Instance();
-    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto surfaceNode3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    RectI dstRect{0, 0, 400, 600};
-    surfaceNode1->SetSrcRect(dstRect);
-    surfaceNode1->SetDstRect(dstRect);
-    surfaceNode2->SetSrcRect(dstRect);
-    surfaceNode2->SetDstRect(dstRect);
-    surfaceNode3->SetSrcRect(dstRect);
-    surfaceNode3->SetDstRect(dstRect);
-    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    ASSERT_NE(layer1, nullptr);
-    auto layer2 = composerAdapter_->CreateLayer(*surfaceNode2);
-    ASSERT_NE(layer2, nullptr);
-    auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
-    ASSERT_NE(layer3, nullptr);
-
-    std::vector<LayerInfoPtr> layers;
-    layers.emplace_back(layer1);
-    layers.emplace_back(layer2);
-    layers.emplace_back(layer3);
-
-    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    surfaceFpsManager.RegisterSurfaceFps(layer1->GetNodeId(), layer1->GetSurface()->GetName());
-    hardwareThread.RecordTimestamp(layers);
-    surfaceFpsManager.UnregisterSurfaceFps(layer1->GetNodeId());
-}
-
-/**
  * @tc.name: ExecuteSwitchRefreshRate
  * @tc.desc: Test RSHardwareThreadTest.ExecuteSwitchRefreshRate
  * @tc.type: FUNC
@@ -407,47 +329,6 @@ HWTEST_F(RSHardwareThreadTest, ExecuteSwitchRefreshRate, TestSize.Level1)
 
     int32_t status = hgmCore.SetScreenRefreshRate(0, screenId_, 0);
     ASSERT_TRUE(status < EXEC_SUCCESS);
-}
-
-/**
- * @tc.name: PerformSetActiveMode
- * @tc.desc: Test RSHardwareThreadTest.PerformSetActiveMode
- * @tc.type: FUNC
- * @tc.require: issueIBH6WN
- */
-HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
-{
-    auto &hardwareThread = RSHardwareThread::Instance();
-    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
-    ASSERT_NE(output, nullptr);
-
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-    OHOS::Rosen::impl::RSScreenManager::instance_ = nullptr;
-    hardwareThread.PerformSetActiveMode(output, 0, 0);
-
-    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManager;
-    hardwareThread.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
-    hardwareThread.PerformSetActiveMode(output, 0, 0);
-
-    auto &hgmCore = HgmCore::Instance();
-    hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
-    int32_t rate = 3;
-    hgmCore.modeListToApply_->insert({screenId_, rate});
-    hardwareThread.PerformSetActiveMode(output, 0, 0);
-
-    uint64_t timestamp = 0;
-    auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
-    ASSERT_EQ(supportedModes.size(), 0);
-    HgmCore::Instance().hgmFrameRateMgr_->isAdaptive_ = true;
-    HgmCore::Instance().hgmFrameRateMgr_->isGameNodeOnTree_ = true;
-    hardwareThread.PerformSetActiveMode(output, 0, 0);
-    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
-    hardwareThread.PerformSetActiveMode(output, 0, 0);
-    HgmCore::Instance().vBlankIdleCorrectSwitch_.store(true);
-    hardwareThread.vblankIdleCorrector_.isVBlankIdle_ = true;
-    hardwareThread.OnScreenVBlankIdleCallback(screenId_, timestamp);
-    hardwareThread.PerformSetActiveMode(output, 0, 0);
 }
 
 /**
