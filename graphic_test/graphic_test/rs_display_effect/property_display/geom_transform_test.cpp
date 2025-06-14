@@ -127,4 +127,130 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_4)
         RegisterNode(testNode);
     }
 }
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_5)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> rorationData = { 45.0f, 45.0f, 45.0f };
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(rorationData[i], 0, 0.0);
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        testNode->SetPersp(0.0, 0.0, perspData[i], 1.0);
+        testNode->SetTranslate(0.5, 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_6)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> rorationData = { 45.0f, 45.0f, 45.0f };
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    std::array<float, dataCounts> translateData = { -5.0f, 2.0f, 5.0f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(rorationData[i], 0, 0.0);
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        testNode->SetPersp(0.0, 0.0, perspData[i], 1.0);
+        testNode->SetTranslate(translateData[i], 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_7)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> pivotData = { 0.0f, 0.5f, 1.0f};
+    std::array<float, dataCounts> rorationData = { 45.0f, 45.0f, 45.0f };
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    std::array<float, dataCounts> translateData = { -5.0f, 2.0f, 5.0f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(pivotData[i], 0.5));
+        testNode->SetRotation(rorationData[i], 0, 0.0);
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        testNode->SetPersp(0.0, 0.0, perspData[i], 1.0);
+        testNode->SetTranslate(translateData[i], 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_8)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> rorationData = { 45.0f, 45.0f, 45.0f };
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(rorationData[i], rorationData[i], 0.0);
+        testNode->SetScale({ 0.5, scaleData[i] });
+        testNode->SetSkew(0.5, skewData[i], 0.0);
+        testNode->SetPersp(0.0, perspData[i], 0.0, 1.0);
+        testNode->SetTranslate(0.5, 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_9)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> rorationData = { 45.0f, 45.0f, 45.0f };
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    std::array<float, dataCounts> translateData = { -5.0f, 2.0f, 5.0f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(rorationData[i], rorationData[i], rorationData[i]);
+        testNode->SetScale({ scaleData[i], scaleData[i] });
+        testNode->SetSkew(skewData[i], skewData[i], skewData[i]);
+        testNode->SetPersp(perspData[i], perspData[i], perspData[i], 1.0);
+        testNode->SetTranslate(translateData[i], translateData[i], translateData[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_10)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> pivotData = { 0.0f, 0.5f, 1.0f};
+    std::array<float, dataCounts> rorationData = { 45.0f, 45.0f, 45.0f };
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    std::array<float, dataCounts> translateData = { -5.0f, 2.0f, 5.0f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(pivotData[i], pivotData[i]));
+        testNode->SetRotation(rorationData[i], rorationData[i], rorationData[i]);
+        testNode->SetScale({ scaleData[i], scaleData[i] });
+        testNode->SetSkew(skewData[i], skewData[i], skewData[i]);
+        testNode->SetPersp(perspData[i], perspData[i], perspData[i], 1.0);
+        testNode->SetTranslate(translateData[i], translateData[i], translateData[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

@@ -59,6 +59,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_cornerradius_test.cpp",
   "rs_display_effect/property_display/geom_persp_test.cpp",
   "rs_display_effect/property_display/geom_pivotandrotation_test.cpp",
+  "rs_display_effect/property_display/geom_rotation_test.cpp",
   "rs_display_effect/property_display/geom_scale_test.cpp",
   "rs_display_effect/property_display/geom_skew_test.cpp",
   "rs_display_effect/property_display/geom_transform_test.cpp",
