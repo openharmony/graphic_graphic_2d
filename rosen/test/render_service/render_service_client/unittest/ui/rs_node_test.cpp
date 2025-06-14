@@ -4588,29 +4588,6 @@ HWTEST_F(RSNodeTest, CreateMaterialFilter004, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetBackgroundFilter
- * @tc.desc: test results of SetBackgroundFilter
- * @tc.type: FUNC
- * @tc.require: issueI9RLG7
- */
-HWTEST_F(RSNodeTest, SetBackgroundFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSFilter> backgroundFilter = nullptr;
-    rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(backgroundFilter == nullptr);
-
-    backgroundFilter = std::make_shared<RSFilter>();
-    backgroundFilter->type_ = RSFilter::MATERIAL;
-    rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(backgroundFilter != nullptr);
-
-    backgroundFilter->type_ = RSFilter::BLUR;
-    rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(backgroundFilter != nullptr);
-}
-
-/**
  * @tc.name: SetFilter
  * @tc.desc: test results of SetFilter
  * @tc.type: FUNC

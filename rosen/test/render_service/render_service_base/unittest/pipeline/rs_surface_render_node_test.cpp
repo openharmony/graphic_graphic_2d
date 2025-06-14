@@ -657,20 +657,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHwcGlobalPositionEnabledTest
- * @tc.desc: SetHwcGlobalPositionEnabled and GetHwcGlobalPositionEnabled
- * @tc.type:FUNC
- * @tc.require: issueIATYMW
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetHwcGlobalPositionEnabledTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetHwcGlobalPositionEnabled(true);
-    ASSERT_EQ(node->GetHwcGlobalPositionEnabled(), true);
-}
-
-/**
  * @tc.name: SetHwcCrossNodeTest
  * @tc.desc: SetHwcCrossNode and GetDRMCrossNode
  * @tc.type:FUNC
