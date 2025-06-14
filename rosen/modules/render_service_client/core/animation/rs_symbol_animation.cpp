@@ -564,7 +564,7 @@ void RSSymbolAnimation::SetSymbolShadow(
 void RSSymbolAnimation::SetSymbolShadow(const SymbolShadow& symbolShadow, std::shared_ptr<RSNode>& rsNode)
 {
     rsNode->SetShadowColor(symbolShadow.color.CastToColorQuad());
-    rsNode->SetShadowOffset(symbolShadow.offset.GetX(), symbolShadow.offset.GetX());
+    rsNode->SetShadowOffset(symbolShadow.offset.GetX(), symbolShadow.offset.GetY());
     rsNode->SetShadowRadius(symbolShadow.blurRadius);
     rsNode->SetShadowMask(false, SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
 }
