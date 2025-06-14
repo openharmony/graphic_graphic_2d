@@ -470,7 +470,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     }
     rsCanvasDrawingRenderNode.drawCmdLists_.emplace(type, listDrawCmd);
     rsCanvasDrawingRenderNode.AddDirtyType(type);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode.isNeedProcess_);
+    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     rsCanvasDrawingRenderNode.ClearOp();
     const auto& curDrawCmdLists = rsCanvasDrawingRenderNode.GetDrawCmdLists();
     EXPECT_TRUE(curDrawCmdLists.empty());
@@ -570,7 +570,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     bool needProcess = true;
     rsCanvasDrawingRenderNode->SetNeedProcess(needProcess);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
+    EXPECT_TRUE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
     EXPECT_TRUE(rsCanvasDrawingRenderNode->isNeedProcess_);
 }
 

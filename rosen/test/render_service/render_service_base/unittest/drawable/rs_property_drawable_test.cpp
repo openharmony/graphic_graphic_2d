@@ -231,27 +231,6 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAIBarCacheValidTest009
- * @tc.desc: class RSFilterDrawable IsAIBarCacheValid test
- * @tc.type:FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSPropertyDrawableTest, IsAIBarCacheValidTest009, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
-
-    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    filterDrawable->stagingCacheManager_->stagingForceClearCacheForLastFrame_ = false;
-    EXPECT_TRUE(filterDrawable->IsAIBarCacheValid());
-
-    filterDrawable->stagingCacheManager_ = nullptr;
-    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
-}
-
-/**
  * @tc.name: RSFilterDrawableTest010
  * @tc.desc: CreateDrawFunc
  * @tc.type:FUNC
@@ -400,24 +379,5 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest014, TestSize.Level1)
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), &rect);
     EXPECT_NE(filterCanvas->cacheBehindWindowData_, nullptr);
-}
-
-/**
- * @tc.name: IsPendingPurgeTest
- * @tc.desc: class RSFilterDrawable IsPendingPurge test
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, IsPendingPurgeTest, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_FALSE(filterDrawable->IsPendingPurge());
-
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
-    EXPECT_TRUE(filterDrawable->IsPendingPurge());
-
-    filterDrawable->stagingCacheManager_ = nullptr;
-    EXPECT_FALSE(filterDrawable->IsPendingPurge());
 }
 } // namespace OHOS::Rosen

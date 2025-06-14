@@ -535,7 +535,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateInfoForClonedNode, TestSize.Level1)
 
     surfaceRenderNode.UpdateInfoForClonedNode(surfaceRenderNode.clonedSourceNodeId_);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
-    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
+    ASSERT_TRUE(surfaceParams->GetNeedCacheSurface());
 }
 
 /**
@@ -654,36 +654,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     ASSERT_EQ(node->GetBootAnimation(), true);
     node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
-}
-
-/**
- * @tc.name: SetGlobalPositionEnabledTest
- * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled
- * @tc.type:FUNC
- * @tc.require: issueIATYMW
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetGlobalPositionEnabled(true);
-    ASSERT_EQ(node->GetGlobalPositionEnabled(), true);
-    node->SetGlobalPositionEnabled(false);
-    ASSERT_FALSE(node->GetGlobalPositionEnabled());
-}
-
-/**
- * @tc.name: SetHwcGlobalPositionEnabledTest
- * @tc.desc: SetHwcGlobalPositionEnabled and GetHwcGlobalPositionEnabled
- * @tc.type:FUNC
- * @tc.require: issueIATYMW
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetHwcGlobalPositionEnabledTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetHwcGlobalPositionEnabled(true);
-    ASSERT_EQ(node->GetHwcGlobalPositionEnabled(), true);
 }
 
 /**

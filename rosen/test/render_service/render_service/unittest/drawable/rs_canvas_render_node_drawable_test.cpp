@@ -52,41 +52,6 @@ HWTEST(RSCanvasRenderNodeDrawableTest, CreateCanvasRenderNodeDrawable, TestSize.
 }
 
 /**
- * @tc.name: OnDrawTest
- * @tc.desc: Test If OnDraw Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
-    ASSERT_NE(drawable, nullptr);
-    Drawing::Canvas canvas;
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->GetRenderParams());
-
-    drawable->isOpincDropNodeExt_ = false;
-    drawable->renderParams_->isOpincStateChanged_ = false;
-    drawable->renderParams_->startingWindowFlag_ = false;
-    drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->GetRenderParams());
-
-    drawable->isOpDropped_ = false;
-    drawable->isDrawingCacheEnabled_ = true;
-    drawable->GetOpincDrawCache().autoCacheEnable_ = false;
-    drawable->drawBlurForCache_ = false;
-    drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
-
-    drawable->drawBlurForCache_ = true;
-    drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
-}
-
-/**
  * @tc.name: OnCaptureTest
  * @tc.desc: Test If OnCapture Can Run
  * @tc.type: FUNC

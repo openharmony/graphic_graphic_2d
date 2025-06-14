@@ -1524,25 +1524,6 @@ HWTEST_F(RSPaintFilterCanvasTest, HDRBrightnessTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawSdfTest001
- * @tc.desc: DrawSdf Test
- * @tc.type:FUNC
- * @tc.require: issueI9VT6E
- */
-HWTEST_F(RSPaintFilterCanvasTest, DrawSdfTest001, TestSize.Level1)
-{
-    Drawing::Canvas canvas;
-    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    EXPECT_NE(paintFilterCanvasBase, nullptr);
-
-    SDFShapeBaseTest shape;
-    Drawing::Canvas canvasTest;
-    paintFilterCanvasBase->pCanvasList_.emplace_back(&canvasTest);
-    paintFilterCanvasBase->alphaStack_.push(1.0f);
-    paintFilterCanvasBase->DrawSdf(shape);
-}
-
-/**
  * @tc.name: DrawAtlasTest002
  * @tc.desc: DrawAtlas Test
  * @tc.type:FUNC

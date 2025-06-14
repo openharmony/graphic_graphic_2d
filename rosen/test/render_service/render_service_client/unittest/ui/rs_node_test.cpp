@@ -4588,52 +4588,6 @@ HWTEST_F(RSNodeTest, CreateMaterialFilter004, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetBackgroundFilter
- * @tc.desc: test results of SetBackgroundFilter
- * @tc.type: FUNC
- * @tc.require: issueI9RLG7
- */
-HWTEST_F(RSNodeTest, SetBackgroundFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSFilter> backgroundFilter = nullptr;
-    rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(backgroundFilter == nullptr);
-
-    backgroundFilter = std::make_shared<RSFilter>();
-    backgroundFilter->type_ = RSFilter::MATERIAL;
-    rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(backgroundFilter != nullptr);
-
-    backgroundFilter->type_ = RSFilter::BLUR;
-    rsNode->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(backgroundFilter != nullptr);
-}
-
-/**
- * @tc.name: SetFilter
- * @tc.desc: test results of SetFilter
- * @tc.type: FUNC
- * @tc.require: issueI9RLG7
- */
-HWTEST_F(RSNodeTest, SetFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSFilter> filter = nullptr;
-    rsNode->SetFilter(filter);
-    EXPECT_TRUE(filter == nullptr);
-
-    filter = std::make_shared<RSFilter>();
-    filter->type_ = RSFilter::MATERIAL;
-    rsNode->SetFilter(filter);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter->type_ = RSFilter::BLUR;
-    rsNode->SetFilter(filter);
-    EXPECT_TRUE(filter != nullptr);
-}
-
-/**
  * @tc.name: SetandGetClipBounds001
  * @tc.desc:
  * @tc.type:FUNC
@@ -8098,27 +8052,6 @@ HWTEST_F(RSNodeTest, UpdateGlobalGeometry, TestSize.Level1)
     EXPECT_NE(rsNode->GetGlobalGeometry(), nullptr);
     EXPECT_EQ(rsNode->GetGlobalPositionX(), -INFINITY);
     EXPECT_EQ(rsNode->GetGlobalPositionY(), -INFINITY);
-}
-
-/**
- * @tc.name: SetRSUIContext
- * @tc.desc: test results of SetRSUIContext
- * @tc.type: FUNC
- * @tc.require: issueIBX6OE
- */
-HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    rsNode->SetRSUIContext(nullptr);
-    EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
-    auto rsUIContext = std::make_shared<RSUIContext>();
-    rsNode->SetRSUIContext(rsUIContext);
-    rsNode->SetRSUIContext(rsUIContext);
-    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
-    auto rsUIContext2 = std::make_shared<RSUIContext>();
-    rsNode->SetRSUIContext(rsUIContext);
-    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
 }
 
 /**

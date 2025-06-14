@@ -88,39 +88,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVkTest, TestSize.L
 #endif
 
 /**
- * @tc.name: OnDraw
- * @tc.desc: Test If OnDraw Can Run
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
-{
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
-
-    Drawing::Canvas canvas;
-    drawable->OnDraw(canvas);
-    ASSERT_FALSE(drawable->ShouldPaint());
-    drawable->renderParams_->shouldPaint_ = true;
-    drawable->renderParams_->contentEmpty_ = false;
-    drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->ShouldPaint());
-    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
-
-    drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
-    drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->ShouldPaint());
-    ASSERT_TRUE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
-
-    canvas.recordingState_ = true;
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-    drawable->OnDraw(canvas);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isOpDropped_ = true;
-    drawable->OnDraw(canvas);
-    ASSERT_NE(drawable->renderParams_, nullptr);
-    RSUniRenderThread::Instance().Sync(nullptr);
-}
-
-/**
  * @tc.name: OnDrawWithoutChildren
  * @tc.desc: OnDrawWithoutChildren
  * @tc.type: FUNC

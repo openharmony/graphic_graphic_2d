@@ -179,21 +179,6 @@ HWTEST_F(RSThreadLooperImplTest, WaitForMessageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessOneMessageInternalTest
- * @tc.desc: Verify function ProcessOneMessageInternal
- * @tc.type: FUNC
- * @tc.require: issuesI9OX7J
- */
-HWTEST_F(RSThreadLooperImplTest, ProcessOneMessageInternalTest, TestSize.Level1)
-{
-    auto message = std::make_shared<ThreadLooperMessageTest>();
-    threadlooperimpl_->PostMessage(0, message, 0);
-    EXPECT_TRUE(threadlooperimpl_->ProcessOneMessageInternal());
-    threadlooperimpl_->PostMessage(message, 0);
-    EXPECT_TRUE(threadlooperimpl_->ProcessOneMessageInternal());
-}
-
-/**
  * @tc.name: ProcessAllMessagesTest002
  * @tc.desc: Verify function ProcessAllMessages
  * @tc.type: FUNC

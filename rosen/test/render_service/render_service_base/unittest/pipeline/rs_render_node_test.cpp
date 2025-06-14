@@ -2732,7 +2732,10 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(rsDirtyManager, nullptr);
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    EXPECT_NE(filterDrawable, nullptr);
+    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
     filterDrawable->MarkFilterForceUseCache(true);
     filterDrawable->MarkFilterForceClearCache();
     filterDrawable->stagingCacheManager_->pendingPurge_ = true;
@@ -2754,7 +2757,10 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
     RSRenderNode node(id, context);
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(rsDirtyManager, nullptr);
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    EXPECT_NE(filterDrawable, nullptr);
+    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
     filterDrawable->MarkFilterForceUseCache(true);
     filterDrawable->MarkFilterForceClearCache();
     filterDrawable->MarkFilterRegionInteractWithDirty();

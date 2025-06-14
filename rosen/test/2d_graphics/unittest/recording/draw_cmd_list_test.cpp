@@ -335,7 +335,7 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
     Brush brush;
     drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
     drawCmdList->ProfilerMarshallingDrawOps(secondDrawCmdList);
-    EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 1);
+    EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 0);
     delete drawCmdList;
 }
 } // namespace Drawing

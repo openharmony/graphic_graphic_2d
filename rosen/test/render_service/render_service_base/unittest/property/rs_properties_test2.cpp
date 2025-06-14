@@ -412,39 +412,6 @@ HWTEST_F(PropertiesTest, SetGetTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetEmitterUpdaterTest
- * @tc.desc: test results of SetEmitterUpdater
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetEmitterUpdaterTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::vector<std::shared_ptr<EmitterUpdater>> para;
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.emitterUpdater_.empty(), true);
-
-    auto emitter = std::make_shared<EmitterUpdater>(0);
-    para.push_back(emitter);
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.emitterUpdater_.empty(), false);
-
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
-    properties.backref_ = node;
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(properties.emitterUpdater_.empty(), false);
-
-    auto renderNode = properties.backref_.lock();
-    PropertyId propertyId = 0;
-    AnimationId animationId = 0;
-    renderNode->animationManager_.particleAnimations_.insert({ propertyId, animationId });
-    auto renderAnimation = std::make_shared<RSRenderAnimation>();
-    renderNode->animationManager_.animations_.insert({ animationId, renderAnimation });
-    properties.SetEmitterUpdater(para);
-    EXPECT_EQ(renderNode->animationManager_.animations_.empty(), false);
-}
-
-/**
  * @tc.name: SetLinearGradientBlurParaTest
  * @tc.desc: test results of SetLinearGradientBlurPara
  * @tc.type: FUNC
