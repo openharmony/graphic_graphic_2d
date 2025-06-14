@@ -155,6 +155,7 @@ template("render_service_client_source_set") {
       "core/ui_effect/property/src/rs_ui_bezier_warp_filter.cpp",
       "core/ui_effect/property/src/rs_ui_blur_filter.cpp",
       "core/ui_effect/property/src/rs_ui_color_gradient_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_content_light_filter.cpp",
       "core/ui_effect/property/src/rs_ui_displacement_distort_filter.cpp",
       "core/ui_effect/property/src/rs_ui_dispersion_filter.cpp",
       "core/ui_effect/property/src/rs_ui_edge_light_filter.cpp",

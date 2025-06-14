@@ -46,6 +46,7 @@
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_always_snapshot_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
+#include "render/rs_render_content_light_filter.h"
 #include "render/rs_render_dispersion_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 #include "render/rs_render_edge_light_filter.h"
@@ -571,6 +572,9 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     }
     auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
     lastRect_ = rect;
+    if (foregroundRenderFilter_) {
+        GenerateContentLightFilter();
+    }
     return dirtyFlag;
 }
 
@@ -3797,11 +3801,45 @@ void RSProperties::GenerateForegroundRenderFilter()
                 GenerateBezierWarpFilter();
                 break;
             }
+            case RSUIFilterType::CONTENT_LIGHT : {
+                GenerateContentLightFilter();
+                break;
+            }
             default:
                 ROSEN_LOGE("RSProperties::GenerateReGenerateForegroundRenderFilternderFilter NULL.");
                 break;
         }
         ROSEN_LOGD("RSProperties::GenerateForegroundRenderFilter type %{public}d finished.", static_cast<int>(type));
+    }
+}
+
+void RSProperties::GenerateContentLightFilter()
+{
+    if (foregroundRenderFilter_ == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter get foregroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto contentLight = foregroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::CONTENT_LIGHT);
+    if (contentLight == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter ContentLightFilter not found.");
+        return;
+    }
+    auto derivedLight = std::static_pointer_cast<RSRenderContentLightFilterPara>(contentLight);
+    Vector3f rotationAngel(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+    derivedLight->SetRotationAngle(rotationAngel);
+    if (!contentLight->ParseFilterValues()) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter ParseFilterValues faile.");
+        return;
+    }
+
+    if (!foregroundFilter_) {
+        foregroundFilter_ = std::make_shared<RSDrawingFilter>(contentLight);
+        foregroundFilter_->SetFilterType(RSFilter::CONTENT_LIGHT);
+    } else {
+        auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
+        foregroundDrawingFilter = foregroundDrawingFilter->Compose(contentLight);
+        foregroundDrawingFilter->SetFilterType(RSFilter::CONTENT_LIGHT);
+        foregroundFilter_ = foregroundDrawingFilter;
     }
 }
 

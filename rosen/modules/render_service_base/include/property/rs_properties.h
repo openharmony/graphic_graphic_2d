@@ -662,6 +662,7 @@ private:
     void GenerateBezierWarpFilter();
     void GenerateRenderFilterDispersion();
     void GenerateForegroundRenderFilter();
+    void GenerateContentLightFilter();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
