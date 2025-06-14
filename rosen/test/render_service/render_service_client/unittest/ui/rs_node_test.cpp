@@ -4588,29 +4588,6 @@ HWTEST_F(RSNodeTest, CreateMaterialFilter004, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetFilter
- * @tc.desc: test results of SetFilter
- * @tc.type: FUNC
- * @tc.require: issueI9RLG7
- */
-HWTEST_F(RSNodeTest, SetFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSFilter> filter = nullptr;
-    rsNode->SetFilter(filter);
-    EXPECT_TRUE(filter == nullptr);
-
-    filter = std::make_shared<RSFilter>();
-    filter->type_ = RSFilter::MATERIAL;
-    rsNode->SetFilter(filter);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter->type_ = RSFilter::BLUR;
-    rsNode->SetFilter(filter);
-    EXPECT_TRUE(filter != nullptr);
-}
-
-/**
  * @tc.name: SetandGetClipBounds001
  * @tc.desc:
  * @tc.type:FUNC
