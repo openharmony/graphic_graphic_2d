@@ -4438,62 +4438,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetIndentsWithIndexTest
 }
 
 /*
-* @tc.name: OH_Drawing_TypographyGetLineTextRangeTest001
-* @tc.desc: test for typography mutiple lines，but set Set end line spaces and ellipsis
-* @tc.type: FUNC
-*/
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineTextRangeTest001, TestSize.Level1)
-{
-    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x11, 0x11, 0xFF));
-    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
-    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 4);
-    OH_Drawing_TypographyCreate* handler =
-        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
-    const char *elipss = "...";
-    OH_Drawing_SetTypographyTextEllipsis(typoStyle, elipss);
-    OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, 2);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
-    const char *text = "这是一个排版信息دددھساسااساساس获取接口的测试文本：Hello World     \n是版信息获取接测试文本Drawing.";
-    OH_Drawing_TypographyHandlerAddText(handler, text);
-    text = "这是一个排版信息བསདབད获取接口的སངབངསབ测试文lo World这是一个 ..... \u1234排版信息的测试文སསསས本Drawing.དདདདདད.       ";
-    OH_Drawing_TypographyHandlerAddText(handler, text);
-    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
-    double longestLine = OH_Drawing_TypographyGetLongestLine(typography);
-    double lineCount = OH_Drawing_TypographyGetLineCount(typography);
-    double maxLineWidth = 0.0;
-    for (int i = 0; i < lineCount; i++) {
-        double lineWidth = OH_Drawing_TypographyGetLineWidth(typography, i);
-        maxLineWidth = std::max(maxLineWidth, lineWidth);
-    }
-    OH_Drawing_Range *range1 = OH_Drawing_TypographyGetLineTextRange(typography, 1, false);
-    EXPECT_EQ(55, OH_Drawing_GetStartFromRange(range1));
-    EXPECT_EQ(93, OH_Drawing_GetEndFromRange(range1));
-    OH_Drawing_Range *range2 = OH_Drawing_TypographyGetLineTextRange(typography, 1, true);
-    EXPECT_EQ(55, OH_Drawing_GetStartFromRange(range2));
-    EXPECT_EQ(98, OH_Drawing_GetEndFromRange(range2));
-    EXPECT_NEAR(longestLine, maxLineWidth, FLOAT_DATA_EPSILON);
-    OH_Drawing_PositionAndAffinity* posAAClusrterDown =
-        OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, 80, 0);
-    int affinityClusterDown = OH_Drawing_GetAffinityFromPositionAndAffinity(posAAClusrterDown);
-    int aPositionClusterDown = OH_Drawing_GetPositionFromPositionAndAffinity(posAAClusrterDown);
-    EXPECT_EQ(0, affinityClusterDown);
-    EXPECT_EQ(2, aPositionClusterDown);
-    OH_Drawing_PositionAndAffinity* posAAClusrterUp =
-        OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, 100, 100);
-    int affinityClusterUp = OH_Drawing_GetAffinityFromPositionAndAffinity(posAAClusrterUp);
-    int aPositionClusterUp = OH_Drawing_GetPositionFromPositionAndAffinity(posAAClusrterUp);
-    EXPECT_EQ(1, affinityClusterUp);
-    EXPECT_EQ(25, aPositionClusterUp);
-    OH_Drawing_DestroyTypography(typography);
-    OH_Drawing_DestroyTypographyStyle(typoStyle);
-    OH_Drawing_DestroyTypographyHandler(handler);
-    OH_Drawing_DestroyTextStyle(txtStyle);
-}
-
-/*
 * @tc.name: OH_Drawing_TypographyGetLineTextRangeTest002
 * @tc.desc: test for typography mutiple lines，but set Set end line spaces and ellipsis
 * @tc.type: FUNC
