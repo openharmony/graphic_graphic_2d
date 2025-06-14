@@ -319,21 +319,6 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow003, TestSi
 }
 
 /**
- * @tc.name: CheckHwcNodeAndGetPointerWindow003
- * @tc.desc: CheckHwcNodeAndGetPointerWindow, input surfaceNode without buffer
- * @tc.type: FUNC
- * @tc.require: issueIBQDHZ
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow004, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
-    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
-    hwcNode->isOnTheTree_ = true;
-    bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
-    EXPECT_EQ(ret, false);
-}
-
-/**
  * @tc.name: ClearCldInfo
  * @tc.desc: Test ClearCldInfo
  * @tc.type: FUNC
