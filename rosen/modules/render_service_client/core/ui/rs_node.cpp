@@ -2657,6 +2657,9 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
 
 void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgroundFilter)
 {
+#if defined(MODIFIER_NG)
+    // Need modifierNG
+#else
     if (!backgroundFilter) {
         ROSEN_LOGW("RSNode::SetBackgroundNGFilter background RSUIFilter is nullptr");
         auto iter = propertyModifiers_.find(RSModifierType::BACKGROUND_NG_FILTER);
@@ -2668,10 +2671,14 @@ void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgr
     }
     SetProperty<RSBackgroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
         RSModifierType::BACKGROUND_NG_FILTER, backgroundFilter);
+#endif
 }
 
 void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter)
 {
+#if defined(MODIFIER_NG)
+    // Need modifierNG
+#else
     if (!foregroundFilter) {
         ROSEN_LOGW("RSNode::SetForegroundNGFilter background RSUIFilter is nullptr");
         auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_NG_FILTER);
@@ -2683,6 +2690,7 @@ void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregr
     }
     SetProperty<RSForegroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
         RSModifierType::FOREGROUND_NG_FILTER, foregroundFilter);
+#endif
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
