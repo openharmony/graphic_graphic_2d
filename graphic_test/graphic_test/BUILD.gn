@@ -67,8 +67,7 @@ rs_display_effect_sources = [
 ]
 rs_effect_feature_sources = [ 
   "rs_effect_feature/effect_background_blur_test.cpp",
-  "rs_effect_feature/effect_content_effectnode_test.cpp",
-  "rs_effect_feature/effect_appearance_spherize_test.cpp",
+  "rs_effect_feature/effect_background_blender_test.cpp",
 ]
 rs_framework_sources = []
 rs_func_feature_sources = [
