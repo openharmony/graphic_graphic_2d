@@ -22,6 +22,10 @@ drawing_core_src_dir = "$rosen_root/modules/2d_graphics/src/drawing"
 src_dir = "$rosen_root/modules/2d_graphics/src"
 platform_dir = "$rosen_root/modules/platform"
 
+if (ohos_indep_compiler_enable) {
+  drawing_indep_build_path = [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+}
+
 config("2d_graphics_config") {
   include_dirs = [
     "$drawing_core_include_dir",
@@ -303,6 +307,9 @@ template("graphics2d_source_set") {
       public_external_deps += [ "vulkan-headers:vulkan_headers" ]
     }
     if (platform == "ohos" || platform == "ohos_ng") {
+      if (ohos_indep_compiler_enable) {
+        include_dirs += drawing_indep_build_path
+      }
       external_deps += [
         "bounds_checking_function:libsec_static",
         "hilog:libhilog",
