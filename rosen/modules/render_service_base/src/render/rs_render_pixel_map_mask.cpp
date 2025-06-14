@@ -169,10 +169,10 @@ const std::shared_ptr<Drawing::Image> RSRenderPixelMapMaskPara::GetImage() const
 
 uint32_t RSRenderPixelMapMaskPara::CalcHash()
 {
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     auto image = GetImage();
     auto srcProp = GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_SRC);
