@@ -66,6 +66,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipRRect_Test_1)
             textModifier->SetText("TestText");
             textModifier->SetFontSize(fontSize);
             testFaNode->AddModifier(textModifier);
+
             testFaNode->SetClipToBounds(true);
             auto testNode = RSCanvasNode::Create();
             testNode->SetBounds({ 0.0, fontSize, nodeSize, nodeSize });

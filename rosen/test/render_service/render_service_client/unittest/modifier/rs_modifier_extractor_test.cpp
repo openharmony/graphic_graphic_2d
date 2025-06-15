@@ -50,7 +50,6 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
 
     RSColor valTest1 { 0, 0, 0, 0 };
 
-    ASSERT_EQ(extractor.GetSurfaceBgColor(), valTest1);
     ASSERT_EQ(extractor.GetBloom(), 0.f);
 
     // Node is not nullptr

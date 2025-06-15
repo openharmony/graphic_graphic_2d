@@ -30,6 +30,7 @@ public:
     virtual ~RSRenderPropertyAnimation() = default;
 
     void DumpAnimationInfo(std::string& out) const override;
+    void DumpProperty(std::string& out) const;
 
     PropertyId GetPropertyId() const override;
 

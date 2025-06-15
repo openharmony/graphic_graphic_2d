@@ -25,11 +25,12 @@
 
 #include "drawable/rs_drawable.h"
 #include "modifier/rs_modifier_type.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
-enum class RSModifierType : int16_t;
+enum class RSModifierType : uint16_t;
 namespace Drawing {
 class DrawCmdList;
 }
@@ -62,7 +63,10 @@ private:
 // RSCustomModifierDrawable, for drawing custom modifiers
 class RSCustomModifierDrawable : public RSDrawable {
 public:
-    RSCustomModifierDrawable(RSModifierType type) : type_(type) {}
+    RSCustomModifierDrawable(RSModifierType modifierType) : modifierType_(modifierType)
+    {
+        modifierTypeNG_ = ModifierTypeConvertor::ToModifierNGType(modifierType);
+    }
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& content, RSModifierType type);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
@@ -70,7 +74,8 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    RSModifierType type_;
+    RSModifierType modifierType_ = RSModifierType::INVALID;
+    ModifierNG::RSModifierType modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
     bool needClearOp_ = false;
     bool needSync_ = false;
     Gravity gravity_ = Gravity::DEFAULT;

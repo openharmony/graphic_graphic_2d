@@ -40,6 +40,8 @@ public:
 
     void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
         RSModifierType type, bool isSingleFrameComposer = false);
+    void UpdateRecordingNG(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
+        ModifierNG::RSModifierType type, bool isSingleFrameComposer = false);
     void ClearRecording();
 
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override;
@@ -85,6 +87,7 @@ protected:
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
+    void ApplyDrawCmdModifier(RSModifierContext& context, ModifierNG::RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas, bool needApplyMatrix);
 
     void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);

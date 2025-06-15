@@ -123,7 +123,7 @@ void ImageCustomModifier::SetPixelMapPath(std::string pathName)
     }
 }
 
-void ImageCustomModifier::Draw(RSDrawingContext& context) const
+void ImageCustomModifier::Draw(DrawingContext& context) const
 {
     if (!width_ || !height_ || !pathName_) {
         std::cout << "Has nullptr, Draw none\n";

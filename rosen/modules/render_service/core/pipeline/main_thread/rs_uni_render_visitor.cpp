@@ -3250,6 +3250,7 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
             return;
         }
         parent->AddDirtyType(RSModifierType::CHILDREN);
+        parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
         parent->ApplyModifiers();
         // avoid changing the paired status or unpairedShareTransitions_
         auto param = sptr->GetSharedTransitionParam();

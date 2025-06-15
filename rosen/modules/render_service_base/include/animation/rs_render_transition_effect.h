@@ -16,15 +16,16 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_TRANSITION_RS_RENDER_TRANSITION_EFFECT_H
 #define RENDER_SERVICE_CLIENT_CORE_TRANSITION_RS_RENDER_TRANSITION_EFFECT_H
 
+#include <cinttypes>
+#include <memory>
 #include <parcel.h>
 #include <refbase.h>
-#include <memory>
-#include <cinttypes>
 
 #include "animation/rs_animation_common.h"
 #include "animation/rs_value_estimator.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_render_property.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +34,7 @@ public:
     RSRenderTransitionEffect() = default;
     virtual ~RSRenderTransitionEffect() = default;
     const std::shared_ptr<RSRenderModifier>& GetModifier();
+    const std::shared_ptr<ModifierNG::RSRenderModifier>& GetModifierNG();
     virtual void UpdateFraction(float fraction) const = 0;
 
     bool Marshalling(Parcel& parcel) const override
@@ -42,7 +44,9 @@ public:
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
 private:
     std::shared_ptr<RSRenderModifier> modifier_;
+    std::shared_ptr<ModifierNG::RSRenderModifier> modifierNG_;
     virtual const std::shared_ptr<RSRenderModifier> CreateModifier() = 0;
+    virtual const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() = 0;
 };
 
 class RSB_EXPORT RSTransitionFade : public RSRenderTransitionEffect {
@@ -57,6 +61,7 @@ private:
     float alpha_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<float>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
+    const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
 class RSB_EXPORT RSTransitionScale : public RSRenderTransitionEffect {
@@ -75,6 +80,7 @@ private:
     float scaleZ_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
+    const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
 class RSB_EXPORT RSTransitionTranslate : public RSRenderTransitionEffect {
@@ -93,6 +99,7 @@ private:
     float translateZ_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
+    const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
 class RSB_EXPORT RSTransitionRotate : public RSRenderTransitionEffect {
@@ -111,6 +118,7 @@ private:
     float radian_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Quaternion>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
+    const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
 class RSTransitionCustom : public RSRenderTransitionEffect {
@@ -133,6 +141,11 @@ public:
 
 private:
     const std::shared_ptr<RSRenderModifier> CreateModifier() override
+    {
+        return nullptr;
+    }
+
+    const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override
     {
         return nullptr;
     }

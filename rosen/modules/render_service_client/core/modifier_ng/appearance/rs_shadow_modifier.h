@@ -37,7 +37,7 @@ public:
     void SetShadowElevation(float elevation);
     void SetShadowRadius(float radius);
     void SetShadowPath(const std::shared_ptr<RSPath>& shadowPath);
-    void SetShadowMask(bool shadowMask);
+    void SetShadowMask(int shadowMask);
     void SetShadowColorStrategy(int shadowColorStrategy);
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetUseShadowBatching(bool useShadowBatching);
@@ -49,7 +49,7 @@ public:
     float GetShadowElevation() const;
     float GetShadowRadius() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
-    bool GetShadowMask() const;
+    int GetShadowMask() const;
     int GetShadowColorStrategy() const;
     bool GetShadowIsFilled() const;
     bool GetUseShadowBatching() const;

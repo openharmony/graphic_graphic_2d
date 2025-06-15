@@ -370,6 +370,9 @@ private:
     RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeDrawCmdModifier(
         const RSRenderNode& node, JsonWriter& out, int type, RSRenderModifier& modifier);
+    RSB_EXPORT static void DumpNodeDrawCmdModifiersNG(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeDrawCmdModifierNG(
+        const RSRenderNode& node, JsonWriter& out, std::shared_ptr<ModifierNG::RSRenderModifier> modifier);
     RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& out);
     RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& out);
     RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& out);

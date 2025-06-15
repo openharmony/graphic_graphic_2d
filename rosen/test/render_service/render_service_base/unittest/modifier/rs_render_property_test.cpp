@@ -460,7 +460,7 @@ HWTEST_F(RSRenderPropertyTest, tofloattest, TestSize.Level1)
 
 /**
  * @tc.name: RSRenderPropertyOnUnmarshalling001
- * @tc.desc: onUnmarshalling should return true when Unmarshalling succeed
+ * @tc.desc: OnUnmarshalling should return true when Unmarshalling succeed
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
@@ -473,7 +473,7 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyOnUnmarshalling001, TestSize.Leve
     parcel.WriteInt32(expectId);
     parcel.WriteInt32(expectValue);
 
-    bool result = RSRenderProperty<int>::onUnmarshalling(parcel, val);
+    bool result = RSRenderProperty<int>::OnUnmarshalling(parcel, val);
     EXPECT_TRUE(result);
     EXPECT_NE(val, nullptr);
     auto prop = std::static_pointer_cast<RSRenderProperty<int>>(val);
@@ -483,7 +483,7 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyOnUnmarshalling001, TestSize.Leve
 
 /**
  * @tc.name: RSRenderPropertyOnUnmarshalling002
- * @tc.desc: onUnmarshalling should return false when Unmarshalling fail on id
+ * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on id
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
@@ -492,14 +492,14 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyOnUnmarshalling002, TestSize.Leve
     Parcel parcel;
     std::shared_ptr<RSRenderPropertyBase> val;
 
-    bool result = RSRenderProperty<int>::onUnmarshalling(parcel, val);
+    bool result = RSRenderProperty<int>::OnUnmarshalling(parcel, val);
     EXPECT_FALSE(result);
     EXPECT_EQ(val, nullptr);
 }
 
 /**
  * @tc.name: RSRenderPropertyOnUnmarshalling003
- * @tc.desc: onUnmarshalling should return false when Unmarshalling fail on value
+ * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on value
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
@@ -510,14 +510,14 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyOnUnmarshalling003, TestSize.Leve
     int32_t expectId = 42;
     parcel.WriteInt32(expectId);
 
-    bool result = RSRenderProperty<int>::onUnmarshalling(parcel, val);
+    bool result = RSRenderProperty<int>::OnUnmarshalling(parcel, val);
     EXPECT_FALSE(result);
     EXPECT_EQ(val, nullptr);
 }
 
 /**
  * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling001
- * @tc.desc: onUnmarshalling should return false when Unmarshalling succeed
+ * @tc.desc: OnUnmarshalling should return false when Unmarshalling succeed
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
@@ -532,7 +532,7 @@ HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling001, Tes
     parcel.WriteFloat(expectValue);
     parcel.WriteUint8(expectedUnit);
 
-    bool result = RSRenderAnimatableProperty<float>::onUnmarshalling(parcel, val);
+    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
     EXPECT_TRUE(result);
     EXPECT_NE(val, nullptr);
     auto prop = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(val);
@@ -543,7 +543,7 @@ HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling001, Tes
 
 /**
  * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling002
- * @tc.desc: onUnmarshalling should return false when Unmarshalling fail on id
+ * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on id
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
@@ -552,14 +552,14 @@ HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling002, Tes
     Parcel parcel;
     std::shared_ptr<RSRenderPropertyBase> val;
 
-    bool result = RSRenderAnimatableProperty<float>::onUnmarshalling(parcel, val);
+    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
     EXPECT_FALSE(result);
     EXPECT_EQ(val, nullptr);
 }
 
 /**
  * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling003
- * @tc.desc: onUnmarshalling should return false when Unmarshalling fail on value
+ * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on value
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
@@ -570,14 +570,14 @@ HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling003, Tes
     int32_t expectId = 42;
     parcel.WriteInt32(expectId);
 
-    bool result = RSRenderAnimatableProperty<float>::onUnmarshalling(parcel, val);
+    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
     EXPECT_FALSE(result);
     EXPECT_EQ(val, nullptr);
 }
 
 /**
  * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling004
- * @tc.desc: onUnmarshalling should return false when Unmarshalling fail on PropertyUnit
+ * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on PropertyUnit
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
@@ -590,7 +590,7 @@ HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling004, Tes
     parcel.WriteInt32(expectId);
     parcel.WriteFloat(expectValue);
 
-    bool result = RSRenderAnimatableProperty<float>::onUnmarshalling(parcel, val);
+    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
     EXPECT_FALSE(result);
     EXPECT_EQ(val, nullptr);
 }

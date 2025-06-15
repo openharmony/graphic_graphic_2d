@@ -87,7 +87,7 @@ const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
 constexpr float ATTRACTION_VALID_EPSILON = 0.001f; // used to judge if attraction valid
-constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
+constexpr uint8_t BORDER_TYPE_NONE = static_cast<uint8_t>(BorderStyle::NONE);
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
@@ -132,7 +132,6 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::BG_IMAGE_HEIGHT,                      [](RSProperties* prop) { prop->SetBgImageHeight(0.f); }},
     { RSModifierType::BG_IMAGE_POSITION_X,                  [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); }},
     { RSModifierType::BG_IMAGE_POSITION_Y,                  [](RSProperties* prop) { prop->SetBgImagePositionY(0.f); }},
-    { RSModifierType::SURFACE_BG_COLOR,                     nullptr},
     { RSModifierType::BORDER_COLOR,                         [](RSProperties* prop) {
                                                                 prop->SetBorderColor(RSColor()); }},
     { RSModifierType::BORDER_WIDTH,                         [](RSProperties* prop) { prop->SetBorderWidth(0.f); }},
@@ -1178,6 +1177,27 @@ void RSProperties::SetBgImageInnerRect(const Vector4f& rect)
 Vector4f RSProperties::GetBgImageInnerRect() const
 {
     return decoration_ ? decoration_->bgImageInnerRect_ : Vector4f();
+}
+
+void RSProperties::SetBgImageDstRect(const Vector4f& rect)
+{
+    if (!decoration_) {
+        decoration_ = std::make_optional<Decoration>();
+    }
+    decoration_->bgImageRect_ = RectF(rect);
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const Vector4f RSProperties::GetBgImageDstRect()
+{
+    RectF rect = decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
+    return Vector4f(rect.left_, rect.top_, rect.width_, rect.height_);
+}
+
+const RectF& RSProperties::GetBgImageRect() const
+{
+    return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
 }
 
 void RSProperties::SetBgImageWidth(float width)
@@ -2375,11 +2395,6 @@ RectF RSProperties::GetBoundsRect() const
 RectF RSProperties::GetFrameRect() const
 {
     return {0, 0, GetFrameWidth(), GetFrameHeight()};
-}
-
-const RectF& RSProperties::GetBgImageRect() const
-{
-    return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
 }
 
 void RSProperties::SetVisible(bool visible)
@@ -5226,12 +5241,12 @@ void RSProperties::CalculateFrameOffset()
     frameOffsetX_ = frameGeo_.GetX() - boundsGeo_->GetX();
     frameOffsetY_ = frameGeo_.GetY() - boundsGeo_->GetY();
     if (isinf(frameOffsetX_)) {
-        frameOffsetX_ = 0.;
+        frameOffsetX_ = 0.f;
     }
     if (isinf(frameOffsetY_)) {
-        frameOffsetY_ = 0.;
+        frameOffsetY_ = 0.f;
     }
-    if (frameOffsetX_ != 0. || frameOffsetY_ != 0.) {
+    if (frameOffsetX_ != 0.f || frameOffsetY_ != 0.f) {
         isDrawn_ = true;
     }
 }
@@ -5309,6 +5324,17 @@ void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
     }
 #endif
     haveEffectRegion_ = haveEffectRegion;
+}
+
+void RSProperties::ResetBorder(bool isOutline)
+{
+    if (isOutline) {
+        outline_ = nullptr;
+    } else {
+        border_ = nullptr;
+    }
+    SetDirty();
+    contentDirty_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

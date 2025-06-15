@@ -20,9 +20,11 @@
 #include <map>
 #include <mutex>
 #include <thread>
+
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_modifier.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +36,12 @@ public:
     bool SingleFrameModifierAddToList(RSModifierType type, std::list<std::shared_ptr<RSRenderModifier>>& modifierList);
     bool SingleFrameIsNeedSkip(bool needSkip, const std::shared_ptr<RSRenderModifier>& modifier);
     void SingleFrameAddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+
+    bool SingleFrameModifierAddToListNG(
+        ModifierNG::RSModifierType type, std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
+    bool SingleFrameIsNeedSkipNG(bool needSkip, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier);
+    void SingleFrameAddModifierNG(const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier);
+
     static void SetSingleFrameFlag(const std::thread::id ipcThreadId);
     static bool IsShouldSingleFrameComposer();
     static void AddOrRemoveAppPidToMap(bool isNodeSingleFrameComposer, pid_t pid);
@@ -45,14 +53,20 @@ private:
     void SingleFrameModifierAdd(std::list<std::shared_ptr<RSRenderModifier>>& singleFrameModifierList,
         std::list<std::shared_ptr<RSRenderModifier>>& modifierList);
 
+    bool FindSingleFrameModifierNG(const std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
+    void EraseSingleFrameModifierNG(std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
+    void SingleFrameModifierAddNG(std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& singleFrameModifierList,
+        std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
+
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> singleFrameDrawCmdModifiers_;
+    std::map<ModifierNG::RSModifierType, std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>>
+        singleFrameDrawCmdModifiersNG_;
     mutable std::mutex singleFrameDrawMutex_;
     static std::map<std::thread::id, uint64_t> ipcThreadIdMap_;
     static std::mutex ipcThreadIdMapMutex_;
     static std::map<pid_t, uint64_t> appPidMap_;
     static std::mutex appPidMapMutex_;
 };
-}
-}
-
+} // namespace Rosen
+} // namespace OHOS
 #endif

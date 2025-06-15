@@ -103,7 +103,7 @@ HWTEST_F(RSCanvasNodeCommandTest, AddCmdToSingleFrameComposer001, TestSize.Level
     RSCanvasNodeCommandHelper::Create(context, id, true);
     auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
     std::shared_ptr<Drawing::DrawCmdList> drawCmds;
-    RSModifierType type = RSModifierType::INVALID;
+    uint16_t type = 0;
     bool res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
     EXPECT_TRUE(res == false);
 

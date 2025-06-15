@@ -78,7 +78,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::FOREGROUND_FILTER,        RSForegroundFilterRenderModifier::ResetProperties },
 };
 
-std::array<RSRenderModifier::Constructor, ModifierNG::MODIFIER_TYPE_COUNT>
+std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT>
     RSRenderModifier::ConstructorLUT_ = {
         nullptr,                                                                        // INVALID
         [] { return new RSBoundsRenderModifier(); },                                    // BOUNDS
@@ -237,7 +237,7 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
         return nullptr;
     }
-    auto constructor = ConstructorLUT_[static_cast<uint8_t>(type)];
+    auto constructor = ConstructorLUT_[static_cast<uint16_t>(type)];
     if (constructor == nullptr) {
         return nullptr;
     }
