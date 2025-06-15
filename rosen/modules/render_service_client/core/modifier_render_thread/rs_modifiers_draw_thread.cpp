@@ -168,7 +168,6 @@ void RSModifiersDrawThread::Start()
 #endif
     RSModifiersDrawThread::isStarted_ = true;
     PostTask([] {
-        RsFrameReport::GetInstance().ModifierReportSchedEvent(FrameSchedEvent::RS_MODIFIER_INFO, {});
         SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
         // Init shader cache
         std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
