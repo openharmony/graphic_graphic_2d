@@ -1018,6 +1018,7 @@ void RSNode::SetBounds(float positionX, float positionY, float width, float heig
 
 void RSNode::SetBoundsWidth(float width)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1050,6 +1051,7 @@ void RSNode::SetBoundsWidth(float width)
 
 void RSNode::SetBoundsHeight(float height)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1101,6 +1103,7 @@ void RSNode::SetFrame(float positionX, float positionY, float width, float heigh
 
 void RSNode::SetFramePositionX(float positionX)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1134,6 +1137,7 @@ void RSNode::SetFramePositionX(float positionX)
 
 void RSNode::SetFramePositionY(float positionY)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1232,6 +1236,7 @@ void RSNode::SetPivot(float pivotX, float pivotY)
 
 void RSNode::SetPivotX(float pivotX)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1263,6 +1268,7 @@ void RSNode::SetPivotX(float pivotX)
 
 void RSNode::SetPivotY(float pivotY)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1391,6 +1397,7 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 
 void RSNode::SetTranslateX(float translate)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1423,6 +1430,7 @@ void RSNode::SetTranslateX(float translate)
 
 void RSNode::SetTranslateY(float translate)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1485,6 +1493,7 @@ void RSNode::SetScale(const Vector2f& scale)
 
 void RSNode::SetScaleX(float scaleX)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1517,6 +1526,7 @@ void RSNode::SetScaleX(float scaleX)
 
 void RSNode::SetScaleY(float scaleY)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1584,6 +1594,7 @@ void RSNode::SetSkew(const Vector3f& skew)
 
 void RSNode::SetSkewX(float skewX)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector3f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1616,6 +1627,7 @@ void RSNode::SetSkewX(float skewX)
 
 void RSNode::SetSkewY(float skewY)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector3f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1647,6 +1659,7 @@ void RSNode::SetSkewY(float skewY)
 
 void RSNode::SetSkewZ(float skewZ)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector3f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1745,6 +1758,7 @@ void RSNode::SetPersp(const Vector4f& persp)
 
 void RSNode::SetPerspX(float perspX)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1778,6 +1792,7 @@ void RSNode::SetPerspX(float perspX)
 
 void RSNode::SetPerspY(float perspY)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1810,6 +1825,7 @@ void RSNode::SetPerspY(float perspY)
 
 void RSNode::SetPerspZ(float perspZ)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1841,6 +1857,7 @@ void RSNode::SetPerspZ(float perspZ)
 
 void RSNode::SetPerspW(float perspW)
 {
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
