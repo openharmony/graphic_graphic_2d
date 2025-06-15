@@ -39,7 +39,7 @@ public:
 
     static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
 
-    virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
+    std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
     
@@ -59,8 +59,8 @@ public:
 private:
     Vector3f lightPosition_;
     Vector4f lightColor_;
-    float lightIntensity_;
-    Vector3f rotationAngle_;
+    float lightIntensity_ = 0.0f;
+    Vector3f rotationAngle_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS
