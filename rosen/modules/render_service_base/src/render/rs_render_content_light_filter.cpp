@@ -101,7 +101,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderContentLightFilterPara::CreateRend
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.f, 0.f, 0.f, 0.f), 0);
         }
         case RSUIFilterType::LIGHT_INTENSITY : {
-            return std::make_shared<RSRenderAnimatableProperty<float>>(0, 0);
+            return std::make_shared<RSRenderAnimatableProperty<float>>(0.f, 0);
         }
         default: {
             ROSEN_LOGD("RSRenderContentLightFilterPara::CreateRenderProperty is nullptr");
@@ -127,27 +127,27 @@ bool RSRenderContentLightFilterPara::ParseFilterValues()
             GetRenderProperty(RSUIFilterType::LIGHT_POSITION));
     if (lightPositionProperty == nullptr) {
         ROSEN_LOGE("RSRenderContentLightFilterPara::ParseFilterValues lightPositionProperty nullptr");
-    return false;
+        return false;
     }
     lightPosition_ = lightPositionProperty->Get();
-    hash_ = SkOpts::hash(&lightPosition_, sizeof(lightPosition_), hash_);
 
     std::shared_ptr<RSRenderAnimatableProperty<Vector4f>> lightColorProperty =
         std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(GetRenderProperty(RSUIFilterType::LIGHT_COLOR));
     if (lightColorProperty == nullptr) {
         ROSEN_LOGE("RSRenderContentLightFilterPara::ParseFilterValues lightColorProperty nullptr");
-    return false;
+        return false;
     }
     lightColor_ = lightColorProperty->Get();
-    hash_ = SkOpts::hash(&lightColor_, sizeof(lightColor_), hash_);
 
     std::shared_ptr<RSRenderAnimatableProperty<float>> lightIntensityProperty =
         std::static_pointer_cast<RSRenderAnimatableProperty<float>>(GetRenderProperty(RSUIFilterType::LIGHT_INTENSITY));
     if (lightIntensityProperty == nullptr) {
         ROSEN_LOGE("RSRenderContentLightFilterPara::ParseFilterValues lightIntensityProperty nullptr");
-    return false;
+        return false;
     }
     lightIntensity_ = lightIntensityProperty->Get();
+    hash_ = SkOpts::hash(&lightPosition_, sizeof(lightPosition_), hash_);
+    hash_ = SkOpts::hash(&lightColor_, sizeof(lightColor_), hash_);
     hash_ = SkOpts::hash(&lightIntensity_, sizeof(lightIntensity_), hash_);
     return true;
 }
