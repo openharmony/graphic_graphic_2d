@@ -264,13 +264,13 @@ bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, std::shared_ptr
     Vector3f lightPosition = {0.0f, 0.0f, 0.0f};
     Vector4f lightColor = {0.0f, 0.0f, 0.0f, 0.0f};
 
-    if(!ParseJsVector3f(env, param[0], lightPosition)) {
+    if (!ParseJsVector3f(env, param[0], lightPosition)) {
         UIEFFECT_LOG_E("FilterNapi GetBorderLight parse lightPosition fail");
         return false;
     }
     para->SetLightPosition(lightPosition);
 
-    if(!ParseJsRGBAColor(env, param[1], lightColor)) {
+    if (!ParseJsRGBAColor(env, param[1], lightColor)) {
         UIEFFECT_LOG_E("FilterNapi GetBorderLight parse lightColor fail");
         return false;
     }
