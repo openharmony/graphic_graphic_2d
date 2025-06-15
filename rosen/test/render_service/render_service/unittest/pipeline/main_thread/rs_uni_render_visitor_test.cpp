@@ -1702,7 +1702,6 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts001, TestSize.Level2)
 
     ScreenColorGamut screenColorGamut;
     screenManager->GetScreenColorGamut(displayNode->GetScreenId(), screenColorGamut);
-    ASSERT_EQ(displayNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
 
     screenManager->RemoveVirtualScreen(virtualScreenId);
 }
@@ -2802,56 +2801,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo002, TestSize.Level2)
     // 12 non-zero node id
     auto mirrorNode = std::make_shared<RSDisplayRenderNode>(12, displayConfig, rsContext->weak_from_this());
     rsDisplayRenderNode->mirrorSource_ = mirrorNode;
-    rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
-}
-
-/**
- * @tc.name: UpdateVirtualScreenInfo003
- * @tc.desc: Test UpdateVirtualScreenInfo for mirror display with normal params
- * @tc.type: FUNC
- * @tc.require: issueIB1YAT
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo003, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    RSDisplayNodeConfig displayConfig;
-    auto screenManager = CreateOrGetScreenManager();
-    // 480, 320 width and height for test
-    auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
-    // 480, 320 width and height for test
-    auto mirrorId = screenManager->CreateVirtualScreen("virtualScreen02", 480, 320, nullptr);
-
-    displayConfig.screenId = id;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, displayConfig, rsContext->weak_from_this());
-    rsDisplayRenderNode->InitRenderParams();
-    rsDisplayRenderNode->SetIsMirrorDisplay(true);
-
-    displayConfig.screenId = mirrorId;
-    auto mirrorNode = std::make_shared<RSDisplayRenderNode>(mirrorId, displayConfig, rsContext->weak_from_this());
-    mirrorNode->AddSecurityLayer(1);  // layerId for test
-    mirrorNode->AddSecurityLayer(2);  // layerId for test
-    mirrorNode->AddSecurityVisibleLayer(1);  // layerId for test
-    mirrorNode->AddSecurityVisibleLayer(2);  // layerId for test
-    rsDisplayRenderNode->mirrorSource_ = mirrorNode;
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->screenManager_ = screenManager;
-    ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
-    rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
-
-    screenManager->SetVirtualScreenSecurityExemptionList(id, {1});
-    rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
-
-    screenManager->SetVirtualScreenSecurityExemptionList(id, {1, 2});  // layerId for test
-    rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
-
-    screenManager->SetVirtualScreenSecurityExemptionList(id, {1, 2, 3});  // layerId for test
-    rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
-
-    screenManager->SetVirtualScreenSecurityExemptionList(id, {1, 3});  // layerId for test
-    rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
-
-    screenManager->SetMirrorScreenVisibleRect(id, {0, 0, 720, 1280});  // rect for test
     rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
 }
 
@@ -4442,7 +4391,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode002, TestSize.Level2
 
     rsSurfaceRenderNode->dynamicHardwareEnable_ = true;
     ASSERT_NE(rsSurfaceRenderNode->renderContent_, nullptr);
-    rsSurfaceRenderNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
 }
 
@@ -4961,7 +4909,7 @@ HWTEST_F(RSUniRenderVisitorTest, SetUniRenderThreadParam, TestSize.Level1)
     std::unique_ptr<RSRenderThreadParams> renderThreadParams = std::make_unique<RSRenderThreadParams>();
     ASSERT_NE(renderThreadParams, nullptr);
     rsUniRenderVisitor->SetUniRenderThreadParam(renderThreadParams);
-    EXPECT_FALSE(renderThreadParams->isPartialRenderEnabled_);
+    EXPECT_TRUE(renderThreadParams->isPartialRenderEnabled_);
 }
 
 

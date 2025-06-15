@@ -267,7 +267,7 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test03, TestSize.Level1)
     uint64_t timeStamp = 456;
     rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = callback;
     bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**

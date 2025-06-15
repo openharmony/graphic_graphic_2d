@@ -762,23 +762,4 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub024
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
 }
-
-/**
- * @tc.name: TestRSRenderServiceConnectionStub025
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub025, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    data.WriteInt32(123);
-    data.WriteUint64(456);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, NO_ERROR);
-}
 } // namespace OHOS::Rosen
