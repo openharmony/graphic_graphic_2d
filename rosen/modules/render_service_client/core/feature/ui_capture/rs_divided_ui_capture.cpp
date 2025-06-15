@@ -187,8 +187,6 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         }
         canvas_->SetMatrix(relativeMatrix);
     }
-    RSAutoCanvasRestore acr(canvas_, RSPaintFilterCanvas::SaveType::kAll);
-    node.ApplyAlphaAndBoundsGeometry(*canvas_);
     node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();

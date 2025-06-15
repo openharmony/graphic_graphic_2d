@@ -1018,7 +1018,6 @@ void RSNode::SetBounds(float positionX, float positionY, float width, float heig
 
 void RSNode::SetBoundsWidth(float width)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1028,7 +1027,7 @@ void RSNode::SetBoundsWidth(float width)
             SetBounds(0.f, 0.f, width, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
@@ -1036,7 +1035,7 @@ void RSNode::SetBoundsWidth(float width)
             SetBounds(0.f, 0.f, width, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1051,7 +1050,6 @@ void RSNode::SetBoundsWidth(float width)
 
 void RSNode::SetBoundsHeight(float height)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1061,7 +1059,7 @@ void RSNode::SetBoundsHeight(float height)
             SetBounds(0.f, 0.f, 0.f, height);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
@@ -1069,7 +1067,7 @@ void RSNode::SetBoundsHeight(float height)
             SetBounds(0.f, 0.f, 0.f, height);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1103,7 +1101,6 @@ void RSNode::SetFrame(float positionX, float positionY, float width, float heigh
 
 void RSNode::SetFramePositionX(float positionX)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1113,7 +1110,7 @@ void RSNode::SetFramePositionX(float positionX)
             SetFrame(positionX, 0.f, 0.f, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::FRAME));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::FRAME);
@@ -1121,7 +1118,7 @@ void RSNode::SetFramePositionX(float positionX)
             SetFrame(positionX, 0.f, 0.f, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1137,7 +1134,6 @@ void RSNode::SetFramePositionX(float positionX)
 
 void RSNode::SetFramePositionY(float positionY)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1147,7 +1143,7 @@ void RSNode::SetFramePositionY(float positionY)
             SetFrame(0.f, positionY, 0.f, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::FRAME));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::FRAME);
@@ -1155,7 +1151,7 @@ void RSNode::SetFramePositionY(float positionY)
             SetFrame(0.f, positionY, 0.f, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1236,7 +1232,6 @@ void RSNode::SetPivot(float pivotX, float pivotY)
 
 void RSNode::SetPivotX(float pivotX)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1246,7 +1241,7 @@ void RSNode::SetPivotX(float pivotX)
             SetPivot(pivotX, 0.5f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PIVOT));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
@@ -1254,7 +1249,7 @@ void RSNode::SetPivotX(float pivotX)
             SetPivot(pivotX, 0.5f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1268,7 +1263,6 @@ void RSNode::SetPivotX(float pivotX)
 
 void RSNode::SetPivotY(float pivotY)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1278,7 +1272,7 @@ void RSNode::SetPivotY(float pivotY)
             SetPivot(0.5f, pivotY);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PIVOT));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
@@ -1286,7 +1280,7 @@ void RSNode::SetPivotY(float pivotY)
             SetPivot(0.5f, pivotY);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1397,7 +1391,6 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 
 void RSNode::SetTranslateX(float translate)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1407,7 +1400,7 @@ void RSNode::SetTranslateX(float translate)
             SetTranslate({ translate, 0.f });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::TRANSLATE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
@@ -1415,7 +1408,7 @@ void RSNode::SetTranslateX(float translate)
             SetTranslate({ translate, 0.f });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1430,7 +1423,6 @@ void RSNode::SetTranslateX(float translate)
 
 void RSNode::SetTranslateY(float translate)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1440,7 +1432,7 @@ void RSNode::SetTranslateY(float translate)
             SetTranslate({ 0.f, translate });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::TRANSLATE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
@@ -1448,7 +1440,7 @@ void RSNode::SetTranslateY(float translate)
             SetTranslate({ 0.f, translate });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1493,7 +1485,6 @@ void RSNode::SetScale(const Vector2f& scale)
 
 void RSNode::SetScaleX(float scaleX)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1503,7 +1494,7 @@ void RSNode::SetScaleX(float scaleX)
             SetScale(scaleX, 1.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SCALE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SCALE);
@@ -1511,7 +1502,7 @@ void RSNode::SetScaleX(float scaleX)
             SetScale(scaleX, 1.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1526,7 +1517,6 @@ void RSNode::SetScaleX(float scaleX)
 
 void RSNode::SetScaleY(float scaleY)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector2f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1536,7 +1526,7 @@ void RSNode::SetScaleY(float scaleY)
             SetScale(1.f, scaleY);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SCALE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SCALE);
@@ -1544,7 +1534,7 @@ void RSNode::SetScaleY(float scaleY)
             SetScale(1.f, scaleY);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1594,7 +1584,6 @@ void RSNode::SetSkew(const Vector3f& skew)
 
 void RSNode::SetSkewX(float skewX)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector3f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1604,7 +1593,7 @@ void RSNode::SetSkewX(float skewX)
             SetSkew(skewX, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SKEW);
@@ -1612,7 +1601,7 @@ void RSNode::SetSkewX(float skewX)
             SetSkew(skewX, 0.f);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1627,7 +1616,6 @@ void RSNode::SetSkewX(float skewX)
 
 void RSNode::SetSkewY(float skewY)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector3f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1637,7 +1625,7 @@ void RSNode::SetSkewY(float skewY)
             SetSkew(0.f, skewY);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SKEW);
@@ -1645,7 +1633,7 @@ void RSNode::SetSkewY(float skewY)
             SetSkew(0.f, skewY);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1700,8 +1688,6 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
 
 void RSNode::SetSkewZ(float skewZ)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector3f>> property;
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1711,7 +1697,7 @@ void RSNode::SetSkewZ(float skewZ)
             SetSkew(0.f, 0.f, skewZ);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SKEW);
@@ -1719,7 +1705,7 @@ void RSNode::SetSkewZ(float skewZ)
             SetSkew(0.f, 0.f, skewZ);
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1759,7 +1745,6 @@ void RSNode::SetPersp(const Vector4f& persp)
 
 void RSNode::SetPerspX(float perspX)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1769,7 +1754,7 @@ void RSNode::SetPerspX(float perspX)
             SetPersp({ perspX, 0.f, 0.0f, 1.0f });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1778,7 +1763,7 @@ void RSNode::SetPerspX(float perspX)
             return;
         }
 
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1793,7 +1778,6 @@ void RSNode::SetPerspX(float perspX)
 
 void RSNode::SetPerspY(float perspY)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1803,7 +1787,7 @@ void RSNode::SetPerspY(float perspY)
             SetPersp({ 0.f, perspY, 0.f, 1.f });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1812,7 +1796,7 @@ void RSNode::SetPerspY(float perspY)
             return;
         }
 
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1826,7 +1810,6 @@ void RSNode::SetPerspY(float perspY)
 
 void RSNode::SetPerspZ(float perspZ)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1836,7 +1819,7 @@ void RSNode::SetPerspZ(float perspZ)
             SetPersp({ 0.f, 0.f, perspZ, 1.f });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1844,7 +1827,7 @@ void RSNode::SetPerspZ(float perspZ)
             SetPersp({ 0.f, 0.f, perspZ, 1.f });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1858,7 +1841,6 @@ void RSNode::SetPerspZ(float perspZ)
 
 void RSNode::SetPerspW(float perspW)
 {
-    std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -1868,7 +1850,7 @@ void RSNode::SetPerspW(float perspW)
             SetPersp({ 0.f, 0.f, 0.f, perspW });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1876,7 +1858,7 @@ void RSNode::SetPerspW(float perspW)
             SetPersp({ 0.f, 0.f, 0.f, perspW });
             return;
         }
-        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
