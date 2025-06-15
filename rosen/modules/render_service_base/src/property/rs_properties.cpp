@@ -5095,7 +5095,7 @@ void RSProperties::UpdateBackgroundShader()
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
         if (bgShader->GetShaderType() == RSShader::ShaderType::BORDER_LIGHT) {
             Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
-            auto RSBLShader = static_pointer_cast<RSBorderLightShader>(bgShader);
+            auto RSBLShader = std::static_pointer_cast<RSBorderLightShader>(bgShader);
             RSBLShader->SetRotationAngle(rotationAngle);
         }
     }
