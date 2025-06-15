@@ -74,6 +74,7 @@ rs_func_feature_sources = [
 ]
 rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",
+  "rs_perform_feature/dirty_region/merge_dirty_history_test.cpp",
 ]
 rs_perform_ohr_sources = [
   "rs_perform_ohr/playback_recover_test.cpp",
