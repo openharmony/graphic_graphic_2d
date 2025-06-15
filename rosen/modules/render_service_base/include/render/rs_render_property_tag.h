@@ -183,6 +183,12 @@ enum class RSUIFilterType : int16_t {
     RADIAL_GRADIENT_MASK_RADIUSY, // float
     RADIAL_GRADIENT_MASK_COLORS, // vector<float>
     RADIAL_GRADIENT_MASK_POSITIONS, // vector<float>
+
+    //content light filter value type
+    CONTENT_LIGHT,
+    LIGHT_POSITION,
+    LIGHT_COLOR,
+    LIGHT_INTENSITY,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

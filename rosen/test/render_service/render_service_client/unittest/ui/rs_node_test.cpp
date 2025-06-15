@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
+#include "ui_effect/property/include/rs_ui_content_light_filter.h"
 #include "ui_effect/property/include/rs_ui_dispersion_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
@@ -4408,6 +4409,23 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter002, TestSize.Level1)
         delete filterObj;
         filterObj = nullptr;
     }
+}
+
+/**
+ * @tc.name: SetUIForegroundFilter003
+ * @tc.desc: test results of SetUIForegroundFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUIForegroundFilter003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    std::shared_ptr<ContentLightPara> para = std::make_shared<ContentLightPara>();
+    float lightIntensity = 0.5f;
+    para->SetLightIntensity(lightIntensity);
+    filterObj->AddPara(para);
+    rsNode->SetUIForegroundFilter(filterObj.get());
+    EXPECT_NE(rsNode->GetStagingProperties().GetLightIntensity(), lightIntensity);
 }
 
 /**

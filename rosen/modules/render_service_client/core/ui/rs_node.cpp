@@ -64,6 +64,7 @@
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
+#include "ui_effect/property/include/rs_ui_content_light_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
@@ -2024,9 +2025,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto flyOutPara = std::static_pointer_cast<FlyOutPara>(filterPara);
             auto flyMode = flyOutPara->GetFlyMode();
             auto degree = flyOutPara->GetDegree();
-            RSFlyOutPara rs_fly_out_param = {
-                flyMode,
-            };
+            RSFlyOutPara rs_fly_out_param = { flyMode };
             SetFlyOutParams(rs_fly_out_param, degree);
         }
         if (filterPara->GetParaType() == FilterPara::DISTORT) {
@@ -2044,6 +2043,12 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto hdrBrightnessRatioPara = std::static_pointer_cast<HDRBrightnessRatioPara>(filterPara);
             auto brightnessRatio = hdrBrightnessRatioPara->GetBrightnessRatio();
             SetHDRUIBrightness(brightnessRatio);
+        }
+        if (filterPara->GetParaType() == FilterPara::CONTENT_LIGHT) {
+            auto contentLightProperty = std::make_shared<RSUIContentLightFilterPara>();
+            auto contentLightPara = std::static_pointer_cast<ContentLightPara>(filterPara);
+            contentLightProperty->SetContentLight(contentLightPara);
+            uiFilter->Insert(contentLightProperty);
         }
     }
     if (!uiFilter->GetAllTypes().empty()) {
