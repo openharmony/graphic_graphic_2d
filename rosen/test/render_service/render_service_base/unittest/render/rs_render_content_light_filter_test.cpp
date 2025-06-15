@@ -222,14 +222,14 @@ HWTEST_F(RSRenderContentLightFilterTest, GetLightIntensityTest001, TestSize.Leve
 }
 
 /**
- * @tc.name: GetRotationAngelTest001
- * @tc.desc: Verify function GetRotationAngle
+ * @tc.name: GetRotationAngleTest001
+ * @tc.desc: Verify function GetRotationAngleTest
  * @tc.type:FUNC
  */
-HWTEST_F(RSRenderContentLightFilterTest, GetRotationAngelTest001, TestSize.Level1)
+HWTEST_F(RSRenderContentLightFilterTest, GetRotationAngleTest001, TestSize.Level1)
 {
     auto filterPara = std::make_shared<RSRenderContentLightFilterPara>(0);
-    auto rotationAngle = filterPara->GetRotationAngel();
+    auto rotationAngle = filterPara->GetRotationAngle();
     EXPECT_EQ(rotationAngle, Vector3f(0.0f, 0.0f, 0.0f));
 }
 
