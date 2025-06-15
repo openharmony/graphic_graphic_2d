@@ -2829,6 +2829,29 @@ HWTEST_F(RSRenderNodeTest, UpdateAbsDirtyRegion001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateDrawRectAndDirtyRegion001
+ * @tc.desc: test UpdateDrawRectAndDirtyRegion with both foreground filter and background filter.
+ * @tc.type: FUNC
+ * @tc.require: issueICEQZR
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawRectAndDirtyRegion001, TestSize.Level1)
+{
+    RSDirtyRegionManager rsDirtyManager;
+    // forground filter
+    RSRenderNode foregroundNode(id, context);
+    auto& fgProperties = foregroundNode.GetMutableRenderProperties();
+    fgProperties.filter_ = std::make_shared<RSFilter>();
+    foregroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
+    ASSERT_FALSE(foregroundNode.IsBackgroundInAppOrNodeSelfDirty());
+    // background filter
+    RSRenderNode backgroundNode(id, context);
+    auto& bgProperties = backgroundNode.GetMutableRenderProperties();
+    bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
+    backgroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
+    ASSERT_FALSE(backgroundNode.IsBackgroundInAppOrNodeSelfDirty());
+}
+
+/**
  * @tc.name: MarkForceClearFilterCacheWithInvisible
  * @tc.desc: test
  * @tc.type: FUNC

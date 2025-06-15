@@ -787,7 +787,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathApproximate(OH_Drawing_Path* path, float acc
  * @param interpolatedPath Indicates the pointer to an <b>OH_Drawing_Path</b> object to store the result.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if eiter path, other, success or interpolatedPath is
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if either path, other, success or interpolatedPath is
  *                 nullptr, or weight is outside the range [0, 1].
  * @since 20
  * @version 1.0
@@ -807,7 +807,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathInterpolate(OH_Drawing_Path* path, OH_Drawin
  *               The value is true if the paths are compatible, and false otherwise.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if eiter path, other or result is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if either path, other or result is nullptr.
  * @since 20
  * @version 1.0
  */

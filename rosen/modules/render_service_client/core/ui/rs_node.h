@@ -79,6 +79,7 @@ class RSModifier;
 class RSObjAbsGeometry;
 class RSUIContext;
 class RSUIFilter;
+class RSNGFilterBase;
 enum class CancelAnimationStatus;
 
 /**
@@ -1151,6 +1152,20 @@ public:
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
 
     /**
+     * @brief Sets the background filter.
+     *
+     * @param backgroundFilter Indicates the background filter to be applied.
+     */
+    void SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgroundFilter);
+
+    /**
+     * @brief Sets the foreground filter.
+     *
+     * @param foregroundFilter Indicates the foreground filter to be applied.
+     */
+    void SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter);
+
+    /**
      * @brief Sets the filter.
      *
      * @param filter Indicates the filter to be applied.
@@ -1488,6 +1503,8 @@ public:
     void SetUseEffect(bool useEffect);
     void SetUseEffectType(UseEffectType useEffectType);
     void SetAlwaysSnapshot(bool enable);
+
+    void SetEnableHDREffect(bool enableHdrEffect);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -1898,8 +1915,7 @@ private:
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     const std::shared_ptr<RSPropertyBase> GetProperty(const PropertyId& propertyId);
     void RegisterProperty(std::shared_ptr<RSPropertyBase> property);
-    void UnRegisterProperty(const PropertyId& propertyId);
-    void ResetPropertyMap();
+    void UnregisterProperty(const PropertyId& propertyId);
 
 
     /**
@@ -1944,6 +1960,8 @@ private:
     bool isSkipCheckInMultiInstance_ = false;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::weak_ptr<RSUIContext> rsUIContext_;
+
+    bool enableHdrEffect_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

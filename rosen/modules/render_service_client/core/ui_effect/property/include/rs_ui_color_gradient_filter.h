@@ -19,6 +19,8 @@
 #include <memory>
 #include <vector>
 
+#include "ui_effect/property/include/rs_ui_filter_base.h"
+
 #include "modifier/rs_property.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
@@ -26,6 +28,30 @@
 
 namespace OHOS {
 namespace Rosen {
+
+class RSB_EXPORT RSNGColorGradientFilter : public RSNGFilterTemplate<RSUIFilterType::COLOR_GRADIENT> {
+public:
+    RSNGColorGradientFilter() = default;
+    ~RSNGColorGradientFilter() = default;
+    using Base = RSNGFilterTemplate<RSUIFilterType::COLOR_GRADIENT>;
+
+    std::shared_ptr<RSNGRenderFilterBase> GetRenderEffect() override;
+
+    bool SetValue(const std::shared_ptr<RSNGFilterBase>& other, std::shared_ptr<RSNode> node) override;
+
+    void Attach(const std::shared_ptr<RSNode>& node) override;
+
+    void Detach() override;
+
+private:
+    bool SetColors(std::vector<ColorGradientColorTag> colors);
+    bool SetPositions(std::vector<ColorGradientPositionTag> positions);
+    bool SetStrengths(std::vector<ColorGradientStrengthTag> strengths);
+
+    std::vector<ColorGradientColorTag> colors_;
+    std::vector<ColorGradientPositionTag> positions_;
+    std::vector<ColorGradientStrengthTag> strengths_;
+};
 
 class RSUIColorGradientFilterPara : public RSUIFilterParaBase {
 public:

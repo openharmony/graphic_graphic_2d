@@ -402,6 +402,17 @@ void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentT
     }
 }
 
+void RSRenderNode::SetEnableHdrEffect(bool enableHdrEffect)
+{
+    if (enableHdrEffect_ == enableHdrEffect) {
+        return;
+    }
+    if (IsOnTheTree()) {
+        SetHdrNum(enableHdrEffect, GetInstanceRootNodeId(), HDRComponentType::EFFECT);
+    }
+    enableHdrEffect_ = enableHdrEffect;
+}
+
 void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
 {
@@ -432,6 +443,14 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
                 SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
             }
         }
+    }
+
+    if (enableHdrEffect_) {
+        NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
+        ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDREffect Node[id:%{public}" PRIu64 " name:%{public}s]"
+            " parent's id:%{public}" PRIu64 " ", GetId(), GetNodeName().c_str(),
+            parentNodeId);
+        SetHdrNum(flag, parentNodeId, HDRComponentType::EFFECT);
     }
 
     isNewOnTree_ = flag && !isOnTheTree_;
@@ -1272,7 +1291,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     // stop visit invisible or clean without filter subtree
     // Exception: If cross-display node is fully invisible under current visited display, its subtree can't be skipped,
     // since it may be visible on other displays, and it is only prepared once.
-    if (!shouldPaint_ || (isOccluded && !IsFirstLevelCrossNode())) {
+    if (!shouldPaint_) {
         // when subTreeOccluded, need to applyModifiers to node's children
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint [%d], isOccluded [%d], "
             "CrossDisplay: %d", GetId(), shouldPaint_, isOccluded, IsFirstLevelCrossNode());
@@ -1761,6 +1780,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         }
     }
     // 3. update dirtyRegion if needed
+    if (properties.GetBackgroundFilter()) {
+        UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+    }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     // Only when satisfy following conditions, absDirtyRegion should update:
@@ -2661,6 +2683,16 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderNode::GetProperty(PropertyId id)
     return it->second;
 }
 
+void RSRenderNode::AddProperty(std::shared_ptr<RSRenderPropertyBase> property)
+{
+    properties_.emplace(property->GetId(), property);
+}
+
+void RSRenderNode::RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property)
+{
+    properties_.erase(property->GetId());
+}
+
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
 {
     if (!modifier) {
@@ -2760,11 +2792,8 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         }
         ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
+        it->second->GetProperty()->Detach(shared_from_this());
         modifiers_.erase(it);
-        auto propertyIt = properties_.find(id);
-        if (propertyIt != properties_.end()) {
-            properties_.erase(propertyIt);
-        }
         return;
     }
     for (auto& [type, modifiers] : drawCmdModifiers_) {

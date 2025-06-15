@@ -218,6 +218,13 @@ bool RSDrawingFilter::CanSkipFrame(float radius)
     return radius > HEAVY_BLUR_THRESHOLD;
 }
 
+void RSDrawingFilter::OnSync()
+{
+    if (renderFilter_) {
+        renderFilter_->OnSync();
+    }
+}
+
 uint32_t RSDrawingFilter::Hash() const
 {
 #ifdef USE_M133_SKIA
@@ -488,6 +495,7 @@ void RSDrawingFilter::DrawImageRectInternal(Drawing::Canvas& canvas, const std::
         }
         filter->GenerateGEVisualEffect(visualEffectContainer);
     }
+    RSUIFilterHelper::UpdateToGEContainer(renderFilter_, visualEffectContainer);
     auto brush = GetBrush(attr.brushAlpha);
     if (attr.discardCanvas && kawaseHpsFilter && ROSEN_EQ(brush.GetColor().GetAlphaF(), 1.0f)) {
         canvas.Discard();

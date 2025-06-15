@@ -23,6 +23,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t NODE_ALLOCATOR_LIMIT = 512;
+constexpr uint32_t DRAWABLE_ALLOCATOR_LIMIT = 512;
 }
 
 RSRenderNodeAllocator& RSRenderNodeAllocator::Instance()
@@ -50,6 +51,29 @@ bool RSRenderNodeAllocator::AddNodeToAllocator(RSRenderNode* ptr)
     return true;
 }
 
+bool RSRenderNodeAllocator::AddDrawableToAllocator(RSRenderNodeAllocator::DrawablePtr ptr)
+{
+    if (ptr == nullptr || ptr->GetNodeType() != RSRenderNodeType::CANVAS_NODE) {
+        return false;
+    }
+
+    if (ptr->GetDrawableType() != RSRenderNodeDrawableType::CANVAS_NODE_DRAWABLE) {
+        RS_LOGI("AddDrawableToAllocator, not canvas node drawable.");
+        return false;
+    }
+    drawableAllocatorSpinlock_.lock();
+    if (drawableAllocator_.size() >= DRAWABLE_ALLOCATOR_LIMIT) {
+        drawableAllocatorSpinlock_.unlock();
+        RS_OPTIONAL_TRACE_NAME("AddDrawableToAllocator drawableAllocator is full.");
+        return false;
+    }
+    ptr->~RSRenderNodeDrawableAdapter();
+    drawableAllocator_.push(ptr);
+    RS_LOGD("AddDrawableToAllocator, pool size:%{public}zu", drawableAllocator_.size());
+    drawableAllocatorSpinlock_.unlock();
+    return true;
+}
+
 std::shared_ptr<RSCanvasRenderNode> RSRenderNodeAllocator::CreateRSCanvasRenderNode(NodeId id,
     const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
 {
@@ -67,6 +91,23 @@ std::shared_ptr<RSCanvasRenderNode> RSRenderNodeAllocator::CreateRSCanvasRenderN
         nodeAllocator_.size(), id);
     return std::shared_ptr<RSCanvasRenderNode>(new (front)RSCanvasRenderNode(id,
         context, isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+}
+
+RSRenderNodeAllocator::DrawablePtr RSRenderNodeAllocator::CreateRSRenderNodeDrawable(
+    std::shared_ptr<const RSRenderNode> node,
+    std::function<RSRenderNodeAllocator::DrawablePtr(std::shared_ptr<const RSRenderNode> node,
+        RSRenderNodeAllocator::DrawablePtr front)> generator)
+{
+    drawableAllocatorSpinlock_.lock();
+    if (drawableAllocator_.empty()) {
+        drawableAllocatorSpinlock_.unlock();
+        return generator(node, nullptr);
+    }
+    auto front = drawableAllocator_.front();
+    drawableAllocator_.pop();
+    RS_LOGD("CreateRSRenderNodeDrawable in pool, pool size:%{public}zu", nodeAllocator_.size());
+    drawableAllocatorSpinlock_.unlock();
+    return generator(node, front);
 }
 
 } // namespace Rosen

@@ -51,6 +51,8 @@ class Typeface;
 }
 class RSFilter;
 class RSRenderFilter;
+class RSNGRenderFilterBase;
+class RSNGRenderMaskBase;
 class RSImage;
 class RSImageBase;
 class RSMask;
@@ -225,8 +227,6 @@ public:
     // skia types
     DECLARE_FUNCTION_OVERLOAD(Drawing::Matrix)
     DECLARE_FUNCTION_OVERLOAD(Drawing::Bitmap)
-    static bool SkipData(Parcel& parcel);
-    static bool SkipImage(Parcel& parcel);
     // RS types
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
@@ -238,6 +238,8 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderFilter>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
@@ -258,7 +260,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
-    static bool SkipPixelMap(Parcel& parcel);
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
@@ -431,6 +432,10 @@ public:
     static bool MarshallingTransactionVer(Parcel& parcel);
     static bool UnmarshallingTransactionVer(Parcel& parcel);
     static bool TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag);
+
+    static bool SkipData(Parcel& parcel);
+    static bool SkipImage(Parcel& parcel);
+    static bool SkipPixelMap(Parcel& parcel);
 
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);

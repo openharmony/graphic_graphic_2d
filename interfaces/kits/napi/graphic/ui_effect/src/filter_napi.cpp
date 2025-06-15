@@ -169,6 +169,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("bezierWarp", SetBezierWarp),
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
+        DECLARE_NAPI_FUNCTION("contentLight", SetContentLight)
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -354,6 +355,69 @@ napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetBezierWarp napi_unwrap fail"));
     filterObj->AddPara(para);
+    return thisVar;
+}
+
+static bool GetContentLight(napi_env env, napi_value* param, std::shared_ptr<ContentLightPara>& para)
+{
+    Vector3f lightPosition = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector4f lightColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+
+    if (!ParseJsVector3f(env, param[NUM_0], lightPosition)) {
+        FILTER_LOG_E("FilterNapi GetContentLight parse lightPosition fail");
+        return false;
+    }
+    para->SetLightPosition(lightPosition);
+
+    if (!ParseJsRGBAColor(env, param[NUM_1], lightColor)) {
+        FILTER_LOG_E("FilterNapi GetContentColor parse lightColor fail");
+        return false;
+    }
+    para->SetLightColor(lightColor);
+    return true;
+}
+
+napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetContentLight failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi contentLight failed, is not system app");
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_3] = {0};
+    size_t argCount = NUM_3;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetContentLight parsing input fail"));
+
+    std::shared_ptr<ContentLightPara> para = std::make_shared<ContentLightPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetContentLight para is nullptr"));
+
+    if (argCount != NUM_3) {
+        FILTER_LOG_E("Args number less than 3");
+        return thisVar;
+    }
+
+    UIEFFECT_NAPI_CHECK_RET_D(GetContentLight(env, argValue, para), nullptr,
+        FILTER_LOG_E("FilterNapi GetContentLight fail"));
+
+    float lightIntensity = 0.f;
+    lightIntensity = GetSpecialValue(env, argValue[NUM_2]);
+    para->SetLightIntensity(lightIntensity);
+    
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetContentLight napi_unwrap fail"));
+    filterObj->AddPara(para);
+
     return thisVar;
 }
 

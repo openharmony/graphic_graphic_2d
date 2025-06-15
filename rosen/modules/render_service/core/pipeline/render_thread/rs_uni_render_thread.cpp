@@ -738,6 +738,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {
         std::string typeGpuLimit = "setgpulimit";
+        std::string avcodecVideo = "avcodecVideo";
         if (!uniRenderEngine_) {
             return;
         }
@@ -774,6 +775,8 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             dumpString.append("flushcache " + std::to_string(ret) + "\n");
         } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
+        } else if (type.substr(0, avcodecVideo.length()) == avcodecVideo) {
+            RSJankStats::GetInstance().AvcodecVideoDump(dumpString, type, avcodecVideo);
         } else {
             uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
             Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");

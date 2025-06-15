@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "include/core/SkCanvas.h"
 #include "include/core/SkM44.h"
 
 #include "skia_image.h"
@@ -25,6 +26,7 @@
 
 #include "effect/runtime_effect.h"
 #include "image/image.h"
+#include "utils/log.h"
 #include "utils/matrix.h"
 
 namespace OHOS {
@@ -63,8 +65,26 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
         return nullptr;
     }
 #ifdef RS_ENABLE_GPU
-#ifdef TODO_M133_SKIA
-    return std::make_shared<Image>();
+#ifdef USE_M133_SKIA
+    auto drawSurface = SkSurfaces::RenderTarget(grContext->GetImpl<SkiaGPUContext>()->GetGrContext().get(),
+        skgpu::Budgeted::kNo,
+        SkiaImageInfo::ConvertToSkImageInfo(resultInfo),
+        0,
+        kBottomLeft_GrSurfaceOrigin,
+        nullptr);
+    if (!drawSurface) {
+        LOGE("SkiaRuntimeShaderBuilder::MakeImage create surface failed");
+        return nullptr;
+    }
+
+    SkPaint paint;
+    paint.setShader(skRuntimeShaderBuilder_->makeShader(
+        localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr));
+    drawSurface->getCanvas()->drawIRect(SkiaImageInfo::ConvertToSkImageInfo(resultInfo).bounds(), paint);
+    sk_sp<SkImage> skImage = drawSurface->makeImageSnapshot();
+    auto image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 #else
     sk_sp<SkImage> skImage = skRuntimeShaderBuilder_->makeImage(
         grContext->GetImpl<SkiaGPUContext>()->GetGrContext().get(),

@@ -29,6 +29,7 @@ ohos_unittest("RSAibarShaderFilterTest") {
     "rs_color_gradient_shader_filter_test.cpp",
     "rs_filter_cache_manager_test.cpp",
     "rs_render_color_gradient_filter_test.cpp",
+    "rs_render_content_light_filter_test.cpp",
   ]
 
   cflags = [

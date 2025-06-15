@@ -179,6 +179,16 @@ public:
         }
     }
 
+    int16_t GetIndex()
+    {
+        return index_;
+    }
+
+    void SetIndex(int16_t index)
+    {
+        index_ = index;
+    }
+
     std::shared_ptr<Drawing::DrawCmdList> GetPropertyDrawCmdList() const override
     {
         return property_->Get();
@@ -202,11 +212,11 @@ public:
     {
         return isSingleFrameModifier_;
     }
-
 protected:
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
     bool isSingleFrameModifier_ = false;
+    int16_t index_ = 0;
 };
 
 class RSAnimatableRenderModifier : public RSRenderModifier {
@@ -473,6 +483,40 @@ public:
     RSModifierType GetType() override
     {
         return RSModifierType::FOREGROUND_UI_FILTER;
+    }
+};
+
+class RSB_EXPORT RSForegroundNGFilterRenderModifier : public RSForegroundRenderModifier {
+public:
+    RSForegroundNGFilterRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSForegroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::FOREGROUND_NG_FILTER);
+    }
+    ~RSForegroundNGFilterRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::FOREGROUND_NG_FILTER;
+    }
+};
+
+class RSB_EXPORT RSBackgroundNGFilterRenderModifier : public RSBackgroundRenderModifier {
+public:
+    RSBackgroundNGFilterRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSBackgroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::BACKGROUND_NG_FILTER);
+    }
+    ~RSBackgroundNGFilterRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::BACKGROUND_NG_FILTER;
     }
 };
 

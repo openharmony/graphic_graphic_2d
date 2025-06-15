@@ -93,6 +93,22 @@ bool ParseJsVector2f(napi_env env, napi_value jsObject, Vector2f& values)
     return true;
 }
 
+bool ParseJsVector3f(napi_env env, napi_value jsObject, Vector3f& values)
+{
+    for (size_t idx = 0; idx < NUM_3; idx ++) {
+        napi_value tempValue = nullptr;
+        if (napi_get_named_property(env, jsObject, POINT3D_STRING[idx], &tempValue) != napi_ok) {
+            return false;
+        }
+        double value = 0.0;
+        if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok) {
+            return false;
+        }
+        values[idx] = static_cast<float>(value);
+    }
+    return true;
+}
+
 bool ConvertFromJsPoint(napi_env env, napi_value jsObject, double* point, size_t size)
 {
     if (!point || size < NUM_2) {

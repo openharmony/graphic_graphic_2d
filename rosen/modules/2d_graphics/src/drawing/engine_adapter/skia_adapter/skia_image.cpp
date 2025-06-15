@@ -245,7 +245,7 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     }
 #ifdef USE_M133_SKIA
     skiaImage_ = SkImages::TextureFromCompressedTextureData(grContext_.get(), skData, width, height,
-        static_cast<SkTextureCompressionType>(type), skgpu::Mipmapped::kNo, GrProtected::kNo);
+        static_cast<SkTextureCompressionType>(type), skgpu::Mipmapped::kNo, GrProtected::kNo, skColorSpace);
 #else
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
         skData, width, height, static_cast<SkImage::CompressionType>(type),

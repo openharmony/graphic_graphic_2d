@@ -430,6 +430,8 @@ public:
     void CleanDirtyRegionUpdated();
     
     std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
+    void AddProperty(std::shared_ptr<RSRenderPropertyBase> property);
+    void RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
@@ -863,6 +865,8 @@ public:
     }
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
+    void SetEnableHdrEffect(bool enableHdrEffect);
+
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {
         isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
@@ -1212,6 +1216,8 @@ private:
     bool isRepaintBoundary_ = false;
     void UpdateBlurEffectCounter(int deltaCount);
     int GetBlurEffectDrawbleCount();
+
+    bool enableHdrEffect_ = false;
 
     void SetParent(WeakPtr parent);
     void ResetParent();

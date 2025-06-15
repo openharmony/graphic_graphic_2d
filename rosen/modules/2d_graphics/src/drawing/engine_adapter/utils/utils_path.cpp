@@ -103,7 +103,7 @@ Point UtilsPath::CalculateQuadraticBezier(float t, const Point* points)
     return Point(x, y);
 }
 
-Point UtilsPath::CalculationCubicBezier(float t, const Point* points)
+Point UtilsPath::CalculateCubicBezier(float t, const Point* points)
 {
     // 0, 1, 2, 3 are the control points of a cubic bezier curve.
     float x = ComputeCubic(t, points[0].GetX(), points[1].GetX(), points[2].GetX(), points[3].GetX());

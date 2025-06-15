@@ -56,7 +56,7 @@ void PointCustomModifier::Draw(RSDrawingContext& context) const
     canvas->AttachPen(pen);
 
     positionVec_.push_back(position_->Get());
-    for (int i = 0; i < positionVec_.size(); i++) {
+    for (uint32_t i = 0; i < positionVec_.size(); i++) {
         auto point = OHOS::Rosen::Drawing::Point(i * POINT_INTERVAL, positionVec_[i]);
         canvas->DrawPoint(point);
     }

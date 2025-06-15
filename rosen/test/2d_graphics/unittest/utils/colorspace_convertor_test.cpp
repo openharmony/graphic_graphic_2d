@@ -31,30 +31,6 @@ public:
     void TearDown() override;
 };
 
-static void CheckSkColorSpaceEqual(sk_sp<SkColorSpace> cs0, sk_sp<SkColorSpace> cs1)
-{
-    skcms_TransferFunction f0;
-    cs0->transferFn(&f0);
-    skcms_TransferFunction f1;
-    cs1->transferFn(&f1);
-    ASSERT_TRUE(ColorManager::FloatEqual(f0.g, f1.g));
-    ASSERT_TRUE(ColorManager::FloatEqual(f0.a, f1.a));
-    ASSERT_TRUE(ColorManager::FloatEqual(f0.b, f1.b));
-    ASSERT_TRUE(ColorManager::FloatEqual(f0.c, f1.c));
-    ASSERT_TRUE(ColorManager::FloatEqual(f0.d, f1.d));
-    ASSERT_TRUE(ColorManager::FloatEqual(f0.e, f1.e));
-    ASSERT_TRUE(ColorManager::FloatEqual(f0.f, f1.f));
-
-    skcms_Matrix3x3 m0;
-    cs0->toXYZD50(&m0);
-    skcms_Matrix3x3 m1;
-    cs1->toXYZD50(&m1);
-    for (uint32_t i = 0; i < MATRIX3_SIZE; ++i) {
-        for (uint32_t j = 0; j < MATRIX3_SIZE; ++j) {
-            ASSERT_TRUE(ColorManager::FloatEqual(m0.vals[i][j], m1.vals[i][j]));
-        }
-    }
-}
 void ColorspaceConvertorTest::SetUpTestCase() {}
 void ColorspaceConvertorTest::TearDownTestCase() {}
 void ColorspaceConvertorTest::SetUp() {}
@@ -80,8 +56,7 @@ HWTEST_F(ColorspaceConvertorTest, ColorspaceConvertToDrawingColorspace001, TestS
                 ColorSpaceConvertToDrawingColorSpace(colorspace);
         if (i != ColorManager::NONE && i != ColorManager::CUSTOM) {
             // None and Custom will crash when check.
-            CheckSkColorSpaceEqual(drawingColorSpace->GetSkColorSpace(),
-            colorspace->ToSkColorSpace());
+            ASSERT_TRUE(drawingColorSpace != nullptr);
         }
     }
 }

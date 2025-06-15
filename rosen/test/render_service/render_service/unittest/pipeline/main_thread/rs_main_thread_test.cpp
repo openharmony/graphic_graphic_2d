@@ -1643,28 +1643,11 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
 
 /**
  * @tc.name: CheckIfHardwareForcedDisabled
- * @tc.desc: CheckIfHardwareForcedDisabled002 test rootNode = nullptr
+ * @tc.desc: CheckIfHardwareForcedDisabled002 test child = nullptr and type != DISPLAY_NODE
  * @tc.type: FUNC
  * @tc.require: issueIAS924
  */
 HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    ASSERT_NE(mainThread->context_, nullptr);
-    auto rootNode = mainThread->context_->globalRootRenderNode_;
-    mainThread->context_->globalRootRenderNode_ = nullptr;
-    mainThread->CheckIfHardwareForcedDisabled();
-    mainThread->context_->globalRootRenderNode_ = rootNode;
-}
-
-/**
- * @tc.name: CheckIfHardwareForcedDisabled
- * @tc.desc: CheckIfHardwareForcedDisabled003 test child = nullptr and type != DISPLAY_NODE
- * @tc.type: FUNC
- * @tc.require: issueIAS924
- */
-HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);

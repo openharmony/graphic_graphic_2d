@@ -126,10 +126,22 @@ uint32_t ColorPicker::GetMainColor(ColorManager::Color &color)
         EFFECT_LOG_E("ColorPicker::GetMainColor pixelMap is nullptr");
         return ERR_EFFECT_INVALID_VALUE;
     }
-
-    bool bSucc = pixelMap->GetARGB32Color(x, y, colorVal);
+    bool bSucc = false;
+    if (format_ == Media::PixelFormat::RGBA_1010102) {
+        bSucc = pixelMap->GetRGBA1010102Color(x, y, colorVal);
+        float r = static_cast<float>(GetRGBA1010102ColorR(colorVal)) / RGB101010_COLOR_MAX;
+        float g = static_cast<float>(GetRGBA1010102ColorG(colorVal)) / RGB101010_COLOR_MAX;
+        float b = static_cast<float>(GetRGBA1010102ColorB(colorVal)) / RGB101010_COLOR_MAX;
+        float a = static_cast<float>(GetRGBA1010102ColorA(colorVal)) / RGB101010_ALPHA_MAX;
+        color = ColorManager::Color(r, g, b, a);
+    } else {
+        bSucc = pixelMap->GetARGB32Color(x, y, colorVal);
+        color = ColorManager::Color(colorVal);
+    }
     EFFECT_LOG_I("[newpix].argb.ret=%{public}d, %{public}x", bSucc, colorVal);
-    color = ColorManager::Color(colorVal);
+    if (!bSucc) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
     return SUCCESS;
 }
 

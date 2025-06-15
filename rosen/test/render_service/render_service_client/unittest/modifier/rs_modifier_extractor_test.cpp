@@ -221,6 +221,20 @@ HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetShadowMask001
+ * @tc.desc: test results of GetShadowMask
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowMask001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    bool res = extractor.GetShadowMask();
+    EXPECT_FALSE(res);
+}
+
+/**
  * @tc.name: GetShadowIsFilled001
  * @tc.desc: test results of GetShadowIsFilled
  * @tc.type: FUNC

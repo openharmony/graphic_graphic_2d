@@ -39,9 +39,7 @@ uint32_t TextGlobalConfig::SetTextUndefinedGlyphDisplay(uint32_t textUndefinedGl
     if (textUndefinedGlyphDisplay >= UNDEFINED_GLYPH_BUTT) {
         return TEXT_ERR_PARA_INVALID;
     }
-#ifndef TODO_M133_SKIA
     skia::textlayout::TextGlobalConfig::SetUndefinedGlyphDisplay(textUndefinedGlyphDisplay);
-#endif
     return TEXT_SUCCESS;
 }
 } // namespace OHOS::Rosen::SrvText

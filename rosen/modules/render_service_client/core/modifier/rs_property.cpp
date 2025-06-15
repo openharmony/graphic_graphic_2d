@@ -17,6 +17,7 @@
 
 #include "sandbox_utils.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
 
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier.h"
@@ -189,6 +190,54 @@ bool operator!=(const std::shared_ptr<const RSPropertyBase>& a, const std::share
     }
 
     return !a->IsEqual(b);
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(const std::shared_ptr<RSNode>& node)
+{
+    if (stagingValue_) {
+        stagingValue_->Attach(node);
+    }
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach(const std::shared_ptr<RSNode>& node)
+{
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value)
+{
+    if (stagingValue_ && stagingValue_->SetValue(value, target_.lock())) {
+        return;
+    }
+
+    // failed to update all properties in filter, fall back to replace filter
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+
+    stagingValue_ = value;
+    auto node = target_.lock();
+    if (node == nullptr) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Attach(node);
+    }
+
+    MarkNodeDirty();
+    UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
+}
+
+template<>
+RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty()
+{
+    return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>(
+        stagingValue_->GetRenderEffect(), id_);
 }
 
 #define UPDATE_TO_RENDER(Command, value, type)                                                                       \
@@ -374,6 +423,13 @@ void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
 {
     auto rsRenderFilter = value->GetRSRenderFilter();
     UPDATE_TO_RENDER(RSUpdatePropertyUIFilter, rsRenderFilter, type);
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value->GetRenderEffect(), type);
 }
 
 template<>

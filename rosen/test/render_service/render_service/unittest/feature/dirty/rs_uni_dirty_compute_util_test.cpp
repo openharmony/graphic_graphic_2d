@@ -134,11 +134,9 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandDisplayAccumulatedParams0
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     params->SetMainAndLeashSurfaceDirty(true);
-    params->SetAccumulatedUifirstForceUpdate(true);
     params->SetHDRStatusChanged(true);
     RSUniDirtyComputeUtil::UpdateVirtualExpandDisplayAccumulatedParams(*params, *displayDrawable);
     ASSERT_TRUE(params->GetAccumulatedDirty());
-    ASSERT_TRUE(params->GetAccumulatedUifirstForceUpdate());
     ASSERT_TRUE(params->GetAccumulatedHdrStatusChanged());
 }
 
@@ -157,7 +155,6 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip001, TestSize.L
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     params->SetAccumulatedDirty(false);
-    params->SetAccumulatedUifirstForceUpdate(false);
     params->SetAccumulatedHdrStatusChanged(false);
     bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
     ASSERT_TRUE(result);

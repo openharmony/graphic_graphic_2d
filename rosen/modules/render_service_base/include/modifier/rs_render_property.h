@@ -33,6 +33,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSNGRenderFilterBase;
 class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
@@ -103,6 +104,8 @@ enum class RSPropertyType : uint8_t {
     DYNAMIC_BRIGHTNESS_PARA,
     RS_RENDER_FILTER,
     VECTOR_FLOAT,
+    RS_NG_RENDER_FILTER_BASE,
+    RS_NG_RENDER_MASK_BASE,
 };
 
 enum class RSPropertyUnit : uint8_t {
@@ -128,11 +131,9 @@ public:
         return id_;
     }
 
-    void Attach(std::weak_ptr<RSRenderNode> node)
-    {
-        node_ = node;
-        OnChange();
-    }
+    void Attach(std::weak_ptr<RSRenderNode> node);
+
+    void Detach(std::weak_ptr<RSRenderNode> node);
 
     RSModifierType GetModifierType() const
     {
@@ -142,6 +143,7 @@ public:
     {
         modifierType_ = type;
         UpdatePropertyUnit(type);
+        OnSetModifierType();
     }
 
     virtual void Dump(std::string& out) const = 0;
@@ -152,6 +154,10 @@ protected:
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
     void OnChange() const;
+
+    virtual void OnAttach() {}
+    virtual void OnDetach() {}
+    virtual void OnSetModifierType() {}
 
     void UpdatePropertyUnit(RSModifierType type);
 
@@ -268,6 +274,8 @@ public:
     RSRenderProperty(const T& value, const PropertyId& id) : RSRenderPropertyBase(id), stagingValue_(value) {}
     ~RSRenderProperty() override = default;
 
+    using ValueType = T;
+
     virtual void Set(const T& value, PropertyUpdateType type = UPDATE_TYPE_OVERWRITE)
     {
         if (value == stagingValue_) {
@@ -297,22 +305,6 @@ public:
 
     void Dump(std::string& out) const override {}
 
-    void SetUpdateUIPropertyFunc(
-        const std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>& updateUIPropertyFunc)
-    {
-        updateUIPropertyFunc_ = updateUIPropertyFunc;
-    }
-
-protected:
-    T stagingValue_{};
-    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
-    std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
-
-    RSPropertyType GetPropertyType() const override
-    {
-        return type_;
-    }
-
     bool Marshalling(Parcel& parcel) override
     {
         // Planning: use static_assert to limit the types that can be used with RSRenderProperty.
@@ -326,6 +318,27 @@ protected:
                       RSMarshallingHelper::Marshalling(parcel, stagingValue_);
         return result;
     }
+
+    void SetUpdateUIPropertyFunc(
+        const std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>& updateUIPropertyFunc)
+    {
+        updateUIPropertyFunc_ = updateUIPropertyFunc;
+    }
+
+protected:
+    T stagingValue_{};
+    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
+    std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
+
+    void OnAttach() override {}
+    void OnDetach() override {}
+    void OnSetModifierType() override {}
+
+    RSPropertyType GetPropertyType() const override
+    {
+        return type_;
+    }
+
     static bool onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
     inline static RSPropertyUnmarshallingFuncRegister unmarshallingFuncRegister_ { false, type_, onUnmarshalling };
 
@@ -349,6 +362,8 @@ public:
     {}
     virtual ~RSRenderAnimatableProperty() = default;
 
+    using ValueType = T;
+
     void Set(const T& value, PropertyUpdateType type = UPDATE_TYPE_OVERWRITE) override
     {
         if (type == UPDATE_TYPE_OVERWRITE && value == RSRenderProperty<T>::stagingValue_) {
@@ -360,6 +375,21 @@ public:
         if (RSRenderProperty<T>::updateUIPropertyFunc_) {
             RSRenderProperty<T>::updateUIPropertyFunc_(RSRenderProperty<T>::shared_from_this());
         }
+    }
+
+    bool Marshalling(Parcel& parcel) override
+    {
+        // Planning: use static_assert to limit the types that can be used with RSRenderAnimatableProperty.
+        if constexpr (RSRenderProperty<T>::type_ == RSPropertyType::INVALID) {
+            return false;
+        }
+
+        auto result = RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::type_) &&
+                      RSMarshallingHelper::Marshalling(parcel, true) && // for animatable properties
+                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::GetId()) &&
+                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::stagingValue_) &&
+                      RSMarshallingHelper::Marshalling(parcel, unit_);
+        return result;
     }
 
 protected:
@@ -417,20 +447,6 @@ protected:
         return std::make_shared<RSSpringValueEstimator<T>>();
     }
 
-    bool Marshalling(Parcel& parcel) override
-    {
-        // Planning: use static_assert to limit the types that can be used with RSRenderAnimatableProperty.
-        if constexpr (RSRenderProperty<T>::type_ == RSPropertyType::INVALID) {
-            return false;
-        }
-
-        auto result = RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::type_) &&
-                      RSMarshallingHelper::Marshalling(parcel, true) && // for animatable properties
-                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::GetId()) &&
-                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::stagingValue_) &&
-                      RSMarshallingHelper::Marshalling(parcel, unit_);
-        return result;
-    }
     static bool onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
 private:
@@ -537,6 +553,8 @@ template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& out) const;
 
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -569,6 +587,12 @@ RSB_EXPORT bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
 template<>
 RSB_EXPORT size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
 
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach();
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnDetach();
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType();
 
 #if defined(_WIN32)
 #define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderProperty<T>
