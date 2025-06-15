@@ -1645,6 +1645,38 @@ void RSNode::SetSkewY(float skewY)
     SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
+void RSNode::SetSkewZ(float skewZ)
+{
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+#if defined(MODIFIER_NG)
+        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SKEW)) {
+            SetSkew(0.f, 0.f, skewZ);
+            return;
+        }
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
+            modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
+#else
+        auto iter = propertyModifiers_.find(RSModifierType::SKEW);
+        if (iter == propertyModifiers_.end()) {
+            SetSkew(0.f, 0.f, skewZ);
+            return;
+        }
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+#endif
+    }
+
+    if (property == nullptr) {
+        return;
+    }
+    auto skew = property->Get();
+    skew.z_ = skewZ;
+    property->Set(skew);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+}
+
 void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
 {
     if (rsUIContext == nullptr) {
@@ -1684,38 +1716,6 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         }
     }
     SetUIContextToken();
-}
-
-void RSNode::SetSkewZ(float skewZ)
-{
-    {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-#if defined(MODIFIER_NG)
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
-        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SKEW)) {
-            SetSkew(0.f, 0.f, skewZ);
-            return;
-        }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
-            modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
-#else
-        auto iter = propertyModifiers_.find(RSModifierType::SKEW);
-        if (iter == propertyModifiers_.end()) {
-            SetSkew(0.f, 0.f, skewZ);
-            return;
-        }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
-#endif
-    }
-
-    if (property == nullptr) {
-        return;
-    }
-    auto skew = property->Get();
-    skew.z_ = skewZ;
-    property->Set(skew);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPersp(float persp)
