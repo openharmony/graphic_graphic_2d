@@ -72,8 +72,8 @@ public:
 private:
     Vector3f lightPosition_;
     Vector4f lightColor_;
-    float lightIntensity_ = 0.0;
-    float lightWidth_ = 0.0;
+    float lightIntensity_ = 0.0f;
+    float lightWidth_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS
