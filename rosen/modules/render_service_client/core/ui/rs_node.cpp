@@ -2025,7 +2025,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto flyOutPara = std::static_pointer_cast<FlyOutPara>(filterPara);
             auto flyMode = flyOutPara->GetFlyMode();
             auto degree = flyOutPara->GetDegree();
-            RSFlyOutPara rs_fly_out_param = { flyMode, };
+            RSFlyOutPara rs_fly_out_param = { flyMode };
             SetFlyOutParams(rs_fly_out_param, degree);
         }
         if (filterPara->GetParaType() == FilterPara::DISTORT) {
