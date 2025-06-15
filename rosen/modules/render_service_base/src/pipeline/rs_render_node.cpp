@@ -98,8 +98,11 @@ void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 
 bool RSRenderNode::IsPureContainer() const
 {
-    return (!GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_ && drawCmdModifiers_.empty() &&
-            !HasDrawCmdModifiers());
+#if defined(MODIFIER_NG)
+    return (!GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_ && !HasDrawCmdModifiers());
+#else
+    return (!GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_ && drawCmdModifiers_.empty());
+#endif
 }
 
 bool RSRenderNode::IsPureBackgroundColor() const
@@ -150,13 +153,12 @@ bool RSRenderNode::IsContentNode() const
 {
 #if defined(MODIFIER_NG)
     return !GetRenderProperties().isDrawn_ &&
-           ((HasContentStyleModifierOnly() && !GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE).empty()) ||
-               !HasDrawCmdModifiers());
+        ((HasContentStyleModifierOnly() && !GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE).empty()) ||
+        !HasDrawCmdModifiers());
 #else
     return ((drawCmdModifiers_.size() == 1 &&
-                (drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE) != drawCmdModifiers_.end())) ||
-               drawCmdModifiers_.empty()) &&
-           !GetRenderProperties().isDrawn_;
+        (drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE) != drawCmdModifiers_.end())) ||
+        drawCmdModifiers_.empty()) && !GetRenderProperties().isDrawn_;
 #endif
 }
 
@@ -1315,7 +1317,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     // stop visit invisible or clean without filter subtree
     // Exception: If cross-display node is fully invisible under current visited display, its subtree can't be skipped,
     // since it may be visible on other displays, and it is only prepared once.
-    if (!shouldPaint_ || (isOccluded && !IsFirstLevelCrossNode())) {
+    if (!shouldPaint_) {
         // when subTreeOccluded, need to applyModifiers to node's children
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint [%d], isOccluded [%d], "
             "CrossDisplay: %d", GetId(), shouldPaint_, isOccluded, IsFirstLevelCrossNode());
@@ -3110,9 +3112,11 @@ void RSRenderNode::UpdateDrawableVecV2()
 {
 #ifdef RS_ENABLE_GPU
     // Step 1: Collect dirty slots
+#if defined(MODIFIER_NG)
+    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableVec_);
+#else
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
-    auto dirtySlotsNG = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableVec_);
-    dirtySlots.insert(dirtySlotsNG.begin(), dirtySlotsNG.end());
+#endif
     if (dirtySlots.empty()) {
         RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
@@ -5300,9 +5304,11 @@ void RSRenderNode::UpdateDrawableBehindWindow()
     AddDirtyType(ModifierNG::RSModifierType::BACKGROUND_FILTER);
     SetContentDirty();
 #ifdef RS_ENABLE_GPU
+#if defined(MODIFIER_NG)
+    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableVec_);
+#else
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
-    auto dirtySlotsNG = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableVec_);
-    dirtySlots.insert(dirtySlotsNG.begin(), dirtySlotsNG.end());
+#endif
     if (dirtySlots.empty()) {
         RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow dirtySlots is empty");
         return;

@@ -1516,6 +1516,11 @@ public:
     void MarkContentChanged(bool isChanged) {}
     // driven render was shelved, functions will be deleted soon [end]
 
+#if defined(MODIFIER_NG)
+    void AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+
+    void RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+#else
     /**
      * @brief Adds a modifier to the current node.
      *
@@ -1531,9 +1536,8 @@ public:
      * @param modifier A shared pointer to the RSModifier to be removed.
      */
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
+#endif
 
-    void AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
-    void RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
     const std::shared_ptr<ModifierNG::RSModifier> GetModifierByType(const ModifierNG::RSModifierType& type);
 
     /**

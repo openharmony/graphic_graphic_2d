@@ -3609,42 +3609,6 @@ void RSNode::ClearAllModifiers()
     properties_.clear();
 }
 
-void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
-{
-    {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
-            return;
-        }
-        if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
-            modifier->SetMotionPathOption(motionPathOption_);
-        }
-        modifier->AttachToNode(shared_from_this());
-        modifiers_.emplace(modifier->GetPropertyId(), modifier);
-        modifiersTypeMap_.emplace((int16_t)modifier->GetModifierType(), modifier);
-    }
-    if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
-        return;
-    }
-    if (modifier->GetModifierType() > RSModifierType::FRAME &&
-        modifier->GetModifierType() != RSModifierType::BACKGROUND_COLOR &&
-        modifier->GetModifierType() != RSModifierType::ALPHA &&
-        modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-    }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
-    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-    if (NeedForcedSendToRemote()) {
-        std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
-        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
-    }
-    ROSEN_LOGD("RSNode::add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
-            GetId(), modifier->GetModifierTypeString().c_str());
-}
-
 void RSNode::DoFlushModifier()
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -3676,44 +3640,6 @@ void RSNode::DoFlushModifier()
         }
     }
 #endif
-}
-
-void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
-{
-    {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        if (!modifier) {
-            return;
-        }
-        auto iter = modifiers_.find(modifier->GetPropertyId());
-        if (iter == modifiers_.end()) {
-            return;
-        }
-        auto deleteType = modifier->GetModifierType();
-        bool isExist = false;
-        modifiers_.erase(iter);
-        for (auto [id, value] : modifiers_) {
-            if (value && value->GetModifierType() == deleteType) {
-                modifiersTypeMap_.emplace((int16_t)deleteType, value);
-                isExist = true;
-                break;
-            }
-        }
-        if (!isExist) {
-            modifiersTypeMap_.erase((int16_t)deleteType);
-        }
-        modifier->DetachFromNode();
-    }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
-    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-    if (NeedForcedSendToRemote()) {
-        std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
-        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
-    }
-    ROSEN_LOGD("RSNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s", GetId(),
-        modifier->GetModifierTypeString().c_str());
 }
 
 const std::shared_ptr<RSModifier> RSNode::GetModifier(const PropertyId& propertyId)
@@ -4933,6 +4859,7 @@ void RSNode::SetDrawNodeChangeCallback(DrawNodeChangeCallback callback)
     drawNodeChangeCallback_ = callback;
 }
 
+#if defined(MODIFIER_NG)
 void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 {
     if (modifier == nullptr || modifiersNG_.count(modifier->GetId())) {
@@ -4979,6 +4906,81 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
         AddCommand(cmdForRemote, true, GetFollowType(), GetId());
     }
 }
+#else
+void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
+{
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
+            return;
+        }
+        if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
+            modifier->SetMotionPathOption(motionPathOption_);
+        }
+        modifier->AttachToNode(shared_from_this());
+        modifiers_.emplace(modifier->GetPropertyId(), modifier);
+        modifiersTypeMap_.emplace((int16_t)modifier->GetModifierType(), modifier);
+    }
+    if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
+        return;
+    }
+    if (modifier->GetModifierType() > RSModifierType::FRAME &&
+        modifier->GetModifierType() != RSModifierType::BACKGROUND_COLOR &&
+        modifier->GetModifierType() != RSModifierType::ALPHA &&
+        modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
+        SetDrawNode();
+        SetDrawNodeType(DrawNodeType::DrawPropertyType);
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+    if (NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> cmdForRemote =
+            std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
+        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+    }
+    ROSEN_LOGD("RSNode::add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+            GetId(), modifier->GetModifierTypeString().c_str());
+}
+
+void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
+{
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        if (!modifier) {
+            return;
+        }
+        auto iter = modifiers_.find(modifier->GetPropertyId());
+        if (iter == modifiers_.end()) {
+            return;
+        }
+        auto deleteType = modifier->GetModifierType();
+        bool isExist = false;
+        modifiers_.erase(iter);
+        for (auto [id, value] : modifiers_) {
+            if (value && value->GetModifierType() == deleteType) {
+                modifiersTypeMap_.emplace((int16_t)deleteType, value);
+                isExist = true;
+                break;
+            }
+        }
+        if (!isExist) {
+            modifiersTypeMap_.erase((int16_t)deleteType);
+        }
+        modifier->DetachFromNode();
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+    if (NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> cmdForRemote =
+            std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
+        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+    }
+    ROSEN_LOGD("RSNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s", GetId(),
+        modifier->GetModifierTypeString().c_str());
+}
+#endif
 
 void RSNode::AttachProperty(std::shared_ptr<RSPropertyBase> property)
 {

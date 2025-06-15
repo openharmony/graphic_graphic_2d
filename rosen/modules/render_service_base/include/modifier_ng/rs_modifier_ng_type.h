@@ -226,6 +226,7 @@ public:
             case RSPropertyType::BACKGROUND_BLUR_RADIUS_Y: return "BackgroundBlurRadiusY";
             case RSPropertyType::BG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "BgBlurDisableSystemAdaptation";
             case RSPropertyType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
+            case RSPropertyType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSPropertyType::FOREGROUND_BLUR_RADIUS: return "ForegroundBlurRadius";
             case RSPropertyType::FOREGROUND_BLUR_SATURATION: return "ForegroundBlurSaturation";
             case RSPropertyType::FOREGROUND_BLUR_BRIGHTNESS: return "ForegroundBlurBrightness";
