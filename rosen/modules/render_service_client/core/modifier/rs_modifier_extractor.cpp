@@ -518,7 +518,7 @@ std::string RSModifierExtractor::Dump() const
     std::string dumpInfo;
     char buffer[UINT8_MAX] = { 0 };
     if (auto rsUIContextPtr = rsUIContext_.lock()) {
-        if (sprintf_s(buffer, UINT8_MAX, "modifierExtractor rsUIContext token is %lu",
+        if (sprintf_s(buffer, UINT8_MAX, "modifierExtractor rsUIContext token is %llu",
                       rsUIContextPtr ? rsUIContextPtr->GetToken() : 0) != -1) {
             dumpInfo.append(buffer);
         }
