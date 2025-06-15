@@ -51,16 +51,16 @@ public:
 
     const Vector3f& GetRotationAngle() const;
 
-    void SetRotationAngle(const Vector3f& rotationAngel)
+    void SetRotationAngle(const Vector3f& rotationAngle)
     {
-        rotationAngel_ = rotationAngel;
+        rotationAngle_ = rotationAngle;
     }
 
 private:
     Vector3f lightPosition_;
     Vector4f lightColor_;
     float lightIntensity_;
-    Vector3f rotationAngel_;
+    Vector3f rotationAngle_;
 };
 } // namespace Rosen
 } // namespace OHOS
