@@ -28,7 +28,7 @@ struct RSBorderLightParams {
     Vector4f lightColor_;
     float lightIntensity_;
     float lightWidth_;
-    Drawing::Matrix matrix_;
+    Vector3f rotationAngle_;
 };
 
 class RSB_EXPORT RSBorderLightShader : public RSShader {
@@ -42,7 +42,7 @@ public:
     void MakeDrawingShader(const RectF& rect, float progress) override;
     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
     void SetRSBorderLightParams(const RSBorderLightParams& borderLightParam);
-    void SetMatrix(const Drawing::Matrix& matrix);
+    void SetRotationAngle(const Vector3f& rotationAngle_);
     bool Marshalling(Parcel& parcel) override;
     bool Unmarshalling(Parcel& parcel, bool& needReset) override;
 

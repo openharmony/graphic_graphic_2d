@@ -56,17 +56,17 @@ void RSBorderLightShader::SetRSBorderLightParams(const RSBorderLightParams& bord
             borderLightParam_.lightColor_,
             borderLightParam_.lightIntensity_,
             borderLightParam_.lightWidth_,
-            borderLightParam_.matrix_
+            borderLightParam_.rotationAngle_
         };
         geShader_->SetBorderLightParams(borderLightParams);
     }
 }
 
-void RSBorderLightShader::SetMatrix(const Drawing::Matrix& matrix)
+void RSBorderLightShader::SetRotationAngle(const Vector3f& rotationAngle)
 {
-    borderLightParam_.matrix_ = matrix;
+    borderLightParam_.rotationAngle_ = rotationAngle;
     if (geShader_) {
-        geShader_->SetMatrix(matrix);
+        geShader_->SetRotationAngle(rotationAngle);
     }
 }
 
@@ -97,7 +97,7 @@ bool RSBorderLightShader::Unmarshalling(Parcel& parcel, bool& needReset)
         borderLightParam_.lightColor_,
         borderLightParam_.lightIntensity_,
         borderLightParam_.lightWidth_,
-        borderLightParam_.matrix_
+        borderLightParam_.rotationAngle_
     };
     geShader_ = GEBorderLightShader::CreateBorderLightShader(borderLightParams);
     if (!geShader_) {

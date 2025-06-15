@@ -2126,13 +2126,13 @@ void RSNode::SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffect
         return;
     }
     auto borderLightEffectPara = std::static_pointer_cast<BorderLightEffectPara>(visualEffectPara);
-    Drawing::Matrix matirx;
+    Vector3f rotationAngle;
     RSBorderLightParams borderLightParam = {
         borderLightEffectPara->GetLightPosition(),
         borderLightEffectPara->GetLightColor(),
         borderLightEffectPara->GetLightIntensity(),
         borderLightEffectPara->GetLightWidth(),
-        matirx
+        rotationAngle
     };
     auto borderLightShader = std::make_shared<RSBorderLightShader>();
     borderLightShader->SetRSBorderLightParams(borderLightParam);
