@@ -1864,10 +1864,6 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode == nullptr) {
-        RS_LOGE("CheckIfHardwareForcedDisabled rootNode is nullptr");
-        return;
-    }
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
     MultiDisplayChange(isMultiDisplay);
 
