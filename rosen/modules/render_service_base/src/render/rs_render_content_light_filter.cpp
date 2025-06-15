@@ -142,7 +142,7 @@ bool RSRenderContentLightFilterPara::ParseFilterValues()
     hash_ = SkOpts::hash(&lightColor_, sizeof(lightColor_), hash_);
 
     std::shared_ptr<RSRenderAnimatableProperty<float>> lightIntensityProperty =
-        std::static_pointer_cast<RSRenderAnimatableProperty<float>>(GetRenderProperty(RSUIFilterType::LIGHT_POSITION));
+        std::static_pointer_cast<RSRenderAnimatableProperty<float>>(GetRenderProperty(RSUIFilterType::LIGHT_INTENSITY));
     if (lightIntensityProperty == nullptr) {
         ROSEN_LOGE("RSRenderContentLightFilterPara::ParseFilterValues lightIntensityProperty nullptr");
     return false;

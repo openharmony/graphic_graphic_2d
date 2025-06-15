@@ -187,9 +187,9 @@ enum class RSUIFilterType : int16_t {
 
     //content light filter value type
     CONTENT_LIGHT,
-    CONTENT_LIGHT_POSITION,
-    CONTENT_LIGHT_COLOR,
-    CONTENT_LIGHT_INTENSITY,
+    LIGHT_POSITION,
+    LIGHT_COLOR,
+    LIGHT_INTENSITY,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

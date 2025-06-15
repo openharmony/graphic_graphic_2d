@@ -16,6 +16,7 @@
 #define RENDER_CONTENT_LIGHT_FILTER_RENDER_PROPERTY_H
 
 #include "render/rs_render_filter_base.h"
+#include "render/rs_render_property_tag.h"
 namespace OHOS {
 namespace Rosen {
 
