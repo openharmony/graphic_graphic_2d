@@ -113,6 +113,9 @@ struct TypographyStyle {
     bool enableAutoSpace{false};
     TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 
+    TypographyStyle() = default;
+    TypographyStyle(const TypographyStyle& other);
+    TypographyStyle& operator=(const TypographyStyle&);
     bool operator==(const TypographyStyle &rhs) const
     {
         return

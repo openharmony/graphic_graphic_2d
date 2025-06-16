@@ -114,6 +114,84 @@ bool RectStyle::operator !=(const RectStyle& rhs) const
     return !(*this == rhs);
 }
 
+TextStyle::TextStyle(const TextStyle& other)
+    : color(other.color),
+      decoration(other.decoration),
+      decorationColor(other.decorationColor),
+      decorationStyle(other.decorationStyle),
+      decorationThicknessScale(other.decorationThicknessScale),
+      fontWeight(other.fontWeight),
+      fontWidth(other.fontWidth),
+      fontStyle(other.fontStyle),
+      baseline(other.baseline),
+      fontFamilies(other.fontFamilies),
+      fontSize(other.fontSize),
+      letterSpacing(other.letterSpacing),
+      wordSpacing(other.wordSpacing),
+      heightScale(other.heightScale),
+      halfLeading(other.halfLeading),
+      heightOnly(other.heightOnly),
+      ellipsis(other.ellipsis),
+      ellipsisModal(other.ellipsisModal),
+      locale(other.locale),
+      foregroundBrush(other.foregroundBrush),
+      foregroundPen(other.foregroundPen),
+      backgroundBrush(other.backgroundBrush),
+      backgroundPen(other.backgroundPen),
+      shadows(other.shadows),
+      fontFeatures(other.fontFeatures),
+      fontVariations(other.fontVariations),
+      backgroundRect(other.backgroundRect),
+      styleId(other.styleId),
+      textStyleUid(other.textStyleUid), 
+      isSymbolGlyph(other.isSymbolGlyph),
+      symbol(other.symbol),
+      baseLineShift(other.baseLineShift),
+      isPlaceholder(other.isPlaceholder),
+      relayoutChangeBitmap(other.relayoutChangeBitmap),
+      badgeType(other.badgeType) {}
+
+TextStyle& TextStyle::operator=(const TextStyle& other) {
+    if (this != &other) {
+        color = other.color;
+        decoration = other.decoration;
+        decorationColor = other.decorationColor;
+        decorationStyle = other.decorationStyle;
+        decorationThicknessScale = other.decorationThicknessScale;
+        fontWeight = other.fontWeight;
+        fontWidth = other.fontWidth;
+        fontStyle = other.fontStyle;
+        baseline = other.baseline;
+        fontFamilies = other.fontFamilies;
+        fontSize = other.fontSize;
+        letterSpacing = other.letterSpacing;
+        wordSpacing = other.wordSpacing;
+        heightScale = other.heightScale;
+        halfLeading = other.halfLeading;
+        heightOnly = other.heightOnly;
+        ellipsis = other.ellipsis;
+        ellipsisModal = other.ellipsisModal;
+        locale = other.locale;
+        foregroundBrush = other.foregroundBrush;
+        foregroundPen = other.foregroundPen;
+        backgroundBrush = other.backgroundBrush;
+        backgroundPen = other.backgroundPen;
+        shadows = other.shadows;
+        fontFeatures = other.fontFeatures;
+        fontVariations = other.fontVariations;
+        backgroundRect = other.backgroundRect;
+        styleId = other.styleId;
+        textStyleUid = other.textStyleUid;
+        isSymbolGlyph = other.isSymbolGlyph;
+        symbol = other.symbol;
+        baseLineShift = other.baseLineShift;
+        isPlaceholder = other.isPlaceholder;
+        relayoutChangeBitmap = other.relayoutChangeBitmap;
+        badgeType = other.badgeType;
+    }
+    return *this;
+}
+
 bool TextStyle::operator ==(const TextStyle& rhs) const
 {
     return color == rhs.color &&

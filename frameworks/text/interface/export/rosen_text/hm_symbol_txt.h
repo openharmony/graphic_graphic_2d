@@ -59,6 +59,8 @@ struct SymbolColor {
 class RS_EXPORT HMSymbolTxt {
 public:
     HMSymbolTxt() {}
+    HMSymbolTxt(const HMSymbolTxt& other) = default;
+    HMSymbolTxt& operator=(const HMSymbolTxt& other) = default;
     ~HMSymbolTxt() {}
 
     void SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList);

@@ -3647,3 +3647,57 @@ void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bo
     }
     ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
 }
+
+OH_Drawing_TextStyle* OH_Drawing_CopyTextStyle(OH_Drawing_TextStyle* style)
+{
+    if (style == nullptr) {
+        return nullptr;
+    }
+
+    TextStyle* srcStyle = reinterpret_cast<TextStyle*>(style);
+    if (srcStyle == nullptr) {
+        return nullptr;
+    }
+    TextStyle* newStyle = new (std::nothrow) TextStyle(*srcStyle);
+    if (newStyle == nullptr) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<OH_Drawing_TextStyle*>(newStyle);
+}
+
+OH_Drawing_TypographyStyle *OH_Drawing_CopyTypographyStyle(OH_Drawing_TypographyStyle *style)
+{
+    if (style == nullptr) {
+        return nullptr;
+    }
+
+    TypographyStyle* srcStyle = reinterpret_cast<TypographyStyle*>(style);
+    if (srcStyle == nullptr) {
+        return nullptr;
+    }
+    TypographyStyle* newStyle = new (std::nothrow) TypographyStyle(*srcStyle);
+    if (newStyle == nullptr) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<OH_Drawing_TypographyStyle*>(newStyle);
+}
+
+OH_Drawing_TextShadow *OH_Drawing_CopyTextShadow(OH_Drawing_TextShadow *shadow)
+{
+    if (shadow == nullptr) {
+        return nullptr;
+    }
+
+    TextShadow* srcShadow = reinterpret_cast<TextShadow*>(shadow);
+    if (srcShadow == nullptr) {
+        return nullptr;
+    }
+    TextShadow* newSrcShadow = new (std::nothrow) TextShadow(*srcShadow);
+    if (newSrcShadow == nullptr) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<OH_Drawing_TextShadow*>(newSrcShadow);
+}

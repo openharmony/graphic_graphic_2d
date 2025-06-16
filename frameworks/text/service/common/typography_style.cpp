@@ -17,19 +17,113 @@
 
 namespace OHOS {
 namespace Rosen {
+TypographyStyle::TypographyStyle(const TypographyStyle& other)
+    : fontWeight(other.fontWeight),
+      fontWidth(other.fontWidth),
+      fontStyle(other.fontStyle),
+      fontFamily(other.fontFamily),
+      fontSize(other.fontSize),
+      heightScale(other.heightScale),
+      halfLeading(other.halfLeading),
+      heightOnly(other.heightOnly),
+      useLineStyle(other.useLineStyle),
+      lineStyleFontWeight(other.lineStyleFontWeight),
+      lineStyleFontWidth(other.lineStyleFontWidth),
+      lineStyleFontStyle(other.lineStyleFontStyle),
+      lineStyleFontFamilies(other.lineStyleFontFamilies),
+      lineStyleFontSize(other.lineStyleFontSize),
+      lineStyleHeightScale(other.lineStyleHeightScale),
+      lineStyleHeightOnlyInit(other.lineStyleHeightOnlyInit),
+      lineStyleHeightOnly(other.lineStyleHeightOnly),
+      lineStyleHalfLeading(other.lineStyleHalfLeading),
+      lineStyleSpacingScale(other.lineStyleSpacingScale),
+      lineStyleOnly(other.lineStyleOnly),
+      textAlign(other.textAlign),
+      textDirection(other.textDirection),
+      maxLines(other.maxLines),
+      ellipsis(other.ellipsis),
+      locale(other.locale),
+      breakStrategy(other.breakStrategy),
+      wordBreakType(other.wordBreakType),
+      ellipsisModal(other.ellipsisModal),
+      textSplitRatio(other.textSplitRatio),
+      paragraphSpacing(other.paragraphSpacing),
+      isEndAddParagraphSpacing(other.isEndAddParagraphSpacing),
+      isTrailingSpaceOptimized(other.isTrailingSpaceOptimized),
+      enableAutoSpace(other.enableAutoSpace),
+      verticalAlignment(other.verticalAlignment),
+      insideTextStyle(other.insideTextStyle),
+      customTextStyle(other.customTextStyle),
+      textHeightBehavior(other.textHeightBehavior),
+      hintingIsOn(other.hintingIsOn),
+      tab(other.tab),
+      relayoutChangeBitmap(other.relayoutChangeBitmap),
+      defaultTextStyleUid(other.defaultTextStyleUid){}
+
+TypographyStyle& TypographyStyle::operator=(const TypographyStyle& other)
+{
+    if (this == &other) {
+        return *this;
+    }
+
+    fontWeight = other.fontWeight;
+    fontWidth = other.fontWidth;
+    fontStyle = other.fontStyle;
+    fontFamily = other.fontFamily;
+    fontSize = other.fontSize;
+    heightScale = other.heightScale;
+    halfLeading = other.halfLeading;
+    heightOnly = other.heightOnly;
+    useLineStyle = other.useLineStyle;
+    lineStyleFontWeight = other.lineStyleFontWeight;
+    lineStyleFontWidth = other.lineStyleFontWidth;
+    lineStyleFontStyle = other.lineStyleFontStyle;
+    lineStyleFontFamilies = other.lineStyleFontFamilies;
+    lineStyleFontSize = other.lineStyleFontSize;
+    lineStyleHeightScale = other.lineStyleHeightScale;
+    lineStyleHeightOnlyInit = other.lineStyleHeightOnlyInit;
+    lineStyleHeightOnly = other.lineStyleHeightOnly;
+    lineStyleHalfLeading = other.lineStyleHalfLeading;
+    lineStyleSpacingScale = other.lineStyleSpacingScale;
+    lineStyleOnly = other.lineStyleOnly;
+    textAlign = other.textAlign;
+    textDirection = other.textDirection;
+    maxLines = other.maxLines;
+    ellipsis = other.ellipsis;
+    locale = other.locale;
+    breakStrategy = other.breakStrategy;
+    wordBreakType = other.wordBreakType;
+    ellipsisModal = other.ellipsisModal;
+    textSplitRatio = other.textSplitRatio;
+    paragraphSpacing = other.paragraphSpacing;
+    isEndAddParagraphSpacing = other.isEndAddParagraphSpacing;
+    isTrailingSpaceOptimized = other.isTrailingSpaceOptimized;
+    enableAutoSpace = other.enableAutoSpace;
+    verticalAlignment = other.verticalAlignment;
+    insideTextStyle = other.insideTextStyle;
+    customTextStyle = other.customTextStyle;
+    textHeightBehavior = other.textHeightBehavior;
+    hintingIsOn = other.hintingIsOn;
+    tab = other.tab;
+    relayoutChangeBitmap = other.relayoutChangeBitmap;
+    defaultTextStyleUid = other.defaultTextStyleUid;
+
+    return *this;
+}
+
 TextStyle TypographyStyle::GetTextStyle() const
 {
-    TextStyle style = {
-        .fontWeight = fontWeight,
-        .fontStyle = fontStyle,
-        .fontFamilies = { fontFamily },
-        .fontSize = fontSize,
-        .heightScale = heightScale,
-        .halfLeading = halfLeading,
-        .heightOnly = heightOnly,
-        .locale = locale,
-        .textStyleUid = defaultTextStyleUid,
-    };
+    TextStyle style;
+    style.fontWeight = fontWeight;
+    style.fontStyle = fontStyle;
+    style.fontFamilies = { fontFamily };
+    style.fontSize = fontSize;
+    style.heightScale = heightScale;
+    style.halfLeading = halfLeading;
+    style.heightOnly = heightOnly;
+    style.locale = locale;
+    style.textStyleUid = defaultTextStyleUid;
+
     if (fontSize >= 0) {
         style.fontSize = fontSize;
     }
