@@ -2323,6 +2323,32 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: SetForceRefresh_001
+ * @tc.desc: Test SetForceRefresh with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetForceRefresh_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetForceRefresh(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetForceRefresh_002
+ * @tc.desc: Test SetForceRefresh with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetForceRefresh_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetForceRefresh(nodeIdStr, true);
+}
+
+/*
  * @tc.name: SetScreenSecurityMask_001
  * @tc.desc: Test SetScreenSecurityMask with normal params, securityMask is nullptr.
  * @tc.type: FUNC

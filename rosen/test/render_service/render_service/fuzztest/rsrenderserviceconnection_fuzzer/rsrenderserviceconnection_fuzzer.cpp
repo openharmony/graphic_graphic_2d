@@ -1346,6 +1346,17 @@ bool DOSetLayerTop()
     return true;
 }
 
+bool DoSetForceRefresh()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string nodeIdStr = GetData<std::string>();
+    bool isForceRefresh = GetData<bool>();
+    rsConn_->SetForceRefresh(nodeIdStr, isForceRefresh);
+    return true;
+}
+
 bool DOSetFreeMultiWindowStatus()
 {
     if (rsConn_ == nullptr) {
@@ -1549,6 +1560,7 @@ void DoFuzzerTest2()
     DOSetCurtainScreenUsingStatus();
     DOSetVirtualScreenStatus();
     DOSetLayerTop();
+    DoSetForceRefresh();
     DOSetFreeMultiWindowStatus();
 }
 

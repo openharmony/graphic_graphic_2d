@@ -413,6 +413,9 @@ public:
     void SetLayerTop(bool isTop);
     bool IsLayerTop() const;
 
+    void SetForceRefresh(bool isForceRefresh);
+    bool IsForceRefresh() const;
+
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
     
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
@@ -845,6 +848,7 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
+    bool isForceRefresh_ = false;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;

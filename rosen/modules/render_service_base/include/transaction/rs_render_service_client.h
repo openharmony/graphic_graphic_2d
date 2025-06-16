@@ -436,6 +436,8 @@ public:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
+
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

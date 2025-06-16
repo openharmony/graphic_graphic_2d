@@ -1574,6 +1574,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 RS_LOGD("SubThread is processing %{public}s, skip acquire buffer", surfaceNode->GetName().c_str());
                 return;
             }
+            if (surfaceNode->IsForceRefresh()) {
+                isForceRefresh_ = true;
+            }
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetAvailableBufferCount() > 0) {
                 if (rsVSyncDistributor_ != nullptr) {

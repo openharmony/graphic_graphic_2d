@@ -1384,6 +1384,20 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 #endif
 }
 
+void RSSurfaceRenderNode::SetForceRefresh(bool isForceRefresh)
+{
+#ifdef RS_ENABLE_GPU
+    isForceRefresh_ = isForceRefresh;
+    SetContentDirty();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetForceRefresh(isForceRefresh);
+    AddToPendingSyncList();
+#endif
+}
+
 bool RSSurfaceRenderNode::IsHardwareEnabledTopSurface() const
 {
     return GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE && RSSystemProperties::GetHardCursorEnabled();

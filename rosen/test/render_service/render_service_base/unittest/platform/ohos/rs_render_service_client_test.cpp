@@ -1165,6 +1165,20 @@ HWTEST_F(RSClientTest, SetLayerTop001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetForceRefresh001 Test
+ * @tc.desc: SetForceRefresh001, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSClientTest, SetForceRefresh001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    const std::string nodeIdStr = "123456";
+    rsClient->SetForceRefresh(nodeIdStr, true);
+    rsClient->SetForceRefresh(nodeIdStr, false);
+}
+
+/**
  * @tc.name: SetWindowContainer Test
  * @tc.desc: SetWindowContainer, input true
  * @tc.type:FUNC

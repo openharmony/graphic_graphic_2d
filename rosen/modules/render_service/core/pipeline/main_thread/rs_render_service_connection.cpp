@@ -3138,6 +3138,30 @@ ErrCode RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, boo
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnection::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    if (mainThread_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeIdStr, isForceRefresh]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        context.GetNodeMap().TraverseSurfaceNodes(
+            [&nodeIdStr, &isForceRefresh](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+            if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
+                (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
+                surfaceNode->SetForceRefresh(isForceRefresh);
+                return;
+            }
+        });
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+
 void RSRenderServiceConnection::RegisterTransactionDataCallback(int32_t pid,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {

@@ -259,6 +259,32 @@ HWTEST_F(RSInterfacesSystemTest, SetLayerTop002, Function | MediumTest | Level2)
     RSInterfaces::GetInstance().SetLayerTop(nodeIdStr, true);
     EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
 }
+
+/**
+ * @tc.name: SetForceRefresh001
+ * @tc.desc: Test SetForceRefresh interface.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesSystemTest, SetForceRefresh001, Function | MediumTest | Level2)
+{
+    std::string nodeIdStr = "123456";
+    RSInterfaces::GetInstance().SetForceRefresh(nodeIdStr, false);
+    EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: SetForceRefresh002
+ * @tc.desc: Test SetForceRefresh interface.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesSystemTest, SetForceRefresh002, Function | MediumTest | Level2)
+{
+    std::string nodeIdStr = "123456";
+    RSInterfaces::GetInstance().SetForceRefresh(nodeIdStr, true);
+    EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

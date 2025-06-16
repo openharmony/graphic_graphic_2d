@@ -1126,6 +1126,14 @@ public:
      */
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    // Make this node(nodeIdStr) should do DSS composition and set the surface force refresh.
+    /**
+     * @brief Set selfdrawing component of stylus engine force refresh.
+     * @param nodeIdStr surfaceNode name.
+     * @param isForceRefresh is function switch.
+     */
+    void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
+
     /**
      * @brief Configures the stylus engine's self-drawing component to skip gamut conversion during redering.
      * @param nodeIdStr The node name identifying which stylus engine's

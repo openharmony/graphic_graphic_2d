@@ -2168,6 +2168,13 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "SET_FORCE_REFRESH_TEST_001",
+    "interfaceName": "SET_FORCE_REFRESH",
+    "inputParams": "WriteString;WriteBool",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "SET_HIDE_PRIVACY_CONTENT_TEST_001",
     "interfaceName": "SET_HIDE_PRIVACY_CONTENT",
     "inputParams": "WriteUint64;WriteBool",

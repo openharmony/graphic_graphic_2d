@@ -473,6 +473,20 @@ bool RSSurfaceRenderParams::IsLayerTop() const
     return isLayerTop_;
 }
 
+void RSSurfaceRenderParams::SetForceRefresh(bool isForceRefresh)
+{
+    if (isForceRefresh_ == isForceRefresh) {
+        return;
+    }
+    isForceRefresh_ = isForceRefresh;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsForceRefresh() const
+{
+    return isForceRefresh_;
+}
+
 void RSSurfaceRenderParams::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
     watermarkHandles_[name] = isEnabled;
@@ -599,6 +613,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->ancoFlags_ = ancoFlags_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
+    targetSurfaceParams->isForceRefresh_ = isForceRefresh_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;

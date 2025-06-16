@@ -409,6 +409,8 @@ private:
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
+    ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
+
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

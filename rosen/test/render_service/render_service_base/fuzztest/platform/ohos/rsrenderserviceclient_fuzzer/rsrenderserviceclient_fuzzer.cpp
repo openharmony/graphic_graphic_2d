@@ -1942,6 +1942,23 @@ bool DoSetLayerTop(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetForceRefresh(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::string nodeIdStr = "nodeIdStr";
+    bool isForceRefresh = GetData<bool>();
+    client->SetForceRefresh(nodeIdStr, isForceRefresh);
+    return true;
+}
+
 bool DoExecuteSynchronousTask002(const uint8_t *data, size_t size)
 {
     if (data == nullptr) {
@@ -2637,6 +2654,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoRegisterSurfaceBufferCallback(data, size);
     OHOS::Rosen::DoTriggerSurfaceBufferCallback(data, size);
     OHOS::Rosen::DoSetLayerTop(data, size);
+    OHOS::Rosen::DoSetForceRefresh(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask002(data, size);
     OHOS::Rosen::DoGetUniRenderEnabled(data, size);
     OHOS::Rosen::DoCreateNode002(data, size);

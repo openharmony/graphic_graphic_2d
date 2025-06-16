@@ -778,6 +778,10 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
+void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+}
+
 bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
 {
     return false;

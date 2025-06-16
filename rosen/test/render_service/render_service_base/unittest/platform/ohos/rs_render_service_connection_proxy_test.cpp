@@ -1320,6 +1320,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetForceRefresh Test
+ * @tc.desc: SetForceRefresh Test
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetForceRefresh, TestSize.Level1)
+{
+    const std::string nodeIdStr = "123456";
+    proxy->SetForceRefresh(nodeIdStr, true);
+    proxy->SetForceRefresh(nodeIdStr, false);
+    ASSERT_TRUE(proxy);
+}
+
+/**
  * @tc.name: SetFreeMultiWindowStatus Test
  * @tc.desc: SetFreeMultiWindowStatus Test
  * @tc.type:FUNC

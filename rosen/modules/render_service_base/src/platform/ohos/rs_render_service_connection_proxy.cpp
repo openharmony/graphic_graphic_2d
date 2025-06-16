@@ -5205,6 +5205,27 @@ ErrCode RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnectionProxy::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetForceRefresh: write token err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (data.WriteString(nodeIdStr) && data.WriteBool(isForceRefresh)) {
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH);
+        int32_t err = SendRequest(code, data, reply, option);
+        if (err != NO_ERROR) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::SetForceRefresh: Send Request err.");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    return ERR_OK;
+}
+
 void RSRenderServiceConnectionProxy::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
     MessageParcel data;

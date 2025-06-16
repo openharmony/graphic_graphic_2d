@@ -2165,6 +2165,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     }
 }
 
+void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetForceRefresh(nodeIdStr, isForceRefresh);
+    }
+}
+
 class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
     explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
