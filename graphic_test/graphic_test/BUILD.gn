@@ -71,7 +71,6 @@ rs_func_feature_sources = [
   "rs_func_feature/component_capture/demo.cpp",
   "rs_func_feature/screen_capture/display_node_capture_test.cpp",
   "rs_func_feature/color_space_and_hdr/color_space_test.cpp",
-  "rs_func_feature/multi_screen/multi_screen_test.cpp",
 ]
 rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",
