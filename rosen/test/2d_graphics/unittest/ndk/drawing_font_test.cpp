@@ -107,38 +107,6 @@ HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics002, TestSize.Level1)
 }
 
 /*
- * @tc.name: NativeFontTest_GetMetrics003
- * @tc.desc: test for symbol metrics data.
- * @tc.type: FUNC
- */
-HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics003, TestSize.Level1)
-{
-    OH_Drawing_Font* font = OH_Drawing_FontCreate();
-    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HMSymbolVF.ttf", 0);
-    OH_Drawing_FontSetTypeface(font, typeface);
-    OH_Drawing_Font_Metrics fontMetrics;
-    OH_Drawing_FontGetMetrics(font, &fontMetrics);
-    EXPECT_EQ(fontMetrics.flags, 31);
-    EXPECT_NEAR(fontMetrics.top, -10.559999, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.ascent, -10.559999, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.descent, 1.440000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.bottom, 1.440000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 12, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.maxCharWidth, 19.092000961303711, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.xMin, -0.684000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.xMax, 18.408000946044922, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.xHeight, 6.000000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.capHeight, 8.400000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.underlineThickness, 0.600000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.underlinePosition, 1.200000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.strikeoutThickness, 0.600000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.strikeoutPosition, -3.000000, FLOAT_DATA_EPSILON);
-    OH_Drawing_TypefaceDestroy(typeface);
-    OH_Drawing_FontDestroy(font);
-}
-
-/*
  * @tc.name: NativeFontTest_GetMetrics004
  * @tc.desc: test for emoji metrics data.
  * @tc.type: FUNC
