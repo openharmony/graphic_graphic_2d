@@ -52,6 +52,7 @@ declare_args() {
   enable_full_screen_recongnize = false
   graphic_2d_feature_enable_opengl_to_vulkan = false
   graphic_2d_feature_tv_metadata_enable = false
+  graphic_2d_modifier_ng_enable = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
