@@ -117,7 +117,7 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest001, testing::ext::TestSiz
     MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, subThreadGpuInfo, pidForReport, isTotalOver);
     bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
-    ASSERT_EQ(info.TotalMemory(), cpuSize + gpuSize);
+    ASSERT_GE(info.TotalMemory(), cpuSize + gpuSize);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 

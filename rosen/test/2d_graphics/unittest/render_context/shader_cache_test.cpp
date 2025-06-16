@@ -338,8 +338,10 @@ HWTEST_F(ShaderCacheTest, storeShader_test_001, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, InitShaderCacheTest, TestSize.Level1)
 {
     auto &cache = ShaderCache::Instance();
+    cache.initialized_ = false;
     cache.filePath_ = "";
     cache.InitShaderCache(nullptr, 0, false);
+    cache.initialized_ = false;
     cache.filePath_ = "test";
     cache.InitShaderCache(nullptr, 0, false);
     EXPECT_NE(cache.cacheData_, nullptr);
@@ -355,6 +357,7 @@ HWTEST_F(ShaderCacheTest, InitShaderCacheTest, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, StoreTest, TestSize.Level1)
 {
     auto &cache = ShaderCache::Instance();
+    cache.initialized_ = false;
     cache.InitShaderCache();
     cache.CleanAllShaders();
     Drawing::Data key;
