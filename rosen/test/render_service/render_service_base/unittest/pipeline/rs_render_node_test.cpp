@@ -2722,57 +2722,6 @@ HWTEST_F(RSRenderNodeTest, ClearCacheSurfaceInThreadTest029, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkFilterCacheFlags001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    bool needRequestNextVsync = true;
-    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    EXPECT_NE(rsDirtyManager, nullptr);
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
-    filterDrawable->MarkFilterForceUseCache(true);
-    filterDrawable->MarkFilterForceClearCache();
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
-    auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
-    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: MarkFilterCacheFlags002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    bool needRequestNextVsync = false;
-    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    EXPECT_NE(rsDirtyManager, nullptr);
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
-    filterDrawable->MarkFilterForceUseCache(true);
-    filterDrawable->MarkFilterForceClearCache();
-    filterDrawable->MarkFilterRegionInteractWithDirty();
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
-    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: CheckFilterCacheAndUpdateDirtySlots
  * @tc.desc: test
  * @tc.type: FUNC

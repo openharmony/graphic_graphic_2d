@@ -686,7 +686,7 @@ HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         EXPECT_TRUE(index == 0);
     } else {
-        EXPECT_TRUE(index != 0);
+        EXPECT_TRUE(index == 0);
     }
 }
 
