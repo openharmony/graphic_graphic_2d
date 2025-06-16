@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#include <filesysterm>
+#include <filesystem>
 
-#include "accessstoken_kit.h"
+#include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
 #include "pixel_map_from_surface.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
-#include "tolen_setproc.h"
+#include "token_setproc.h"
 
 #include "transaction/rs_interfaces.h"
 
 using namespace testing;
 using namespace testing::ext;
 
-namespace ::OHOS::Rosen {
+namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200;
-constexpr uint32_t SLEEP_TIME_IN_US = 10000;
-constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000;
+constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10 ms
+constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
 class CustomizedSurfaceCapture : public SurfaceCaptureCallback {
 public:
     void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelMap) override
@@ -43,7 +43,7 @@ public:
         }
         isCallbackCalled_ = true;
         const ::testing::TestInfo* const testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
-        std::string fileName = "/data/local/graphic_test/multi_capture/";
+        std::string fileName = "/data/local/graphic_test/multi_screen/";
         namespace fs = std::filesystem;
         if (!fs::exists(fileName)) {
             if (!fs::create_directories(fileName)) {
@@ -70,7 +70,7 @@ public:
 
 class CustomizedBufferConsumerListener : public IBufferConsumerListener {
 public:
-    CustomizedBufferConsumerListener(spr<Surface> consumerSurface, sptr<Sueface> pruducerSurface)
+    CustomizedBufferConsumerListener(spr<Surface> consumerSurface, sptr<Surface> pruducerSurface)
         : consumerSurface_(consumerSurface), pruducerSurface_(pruducerSurface)
     {}
     ~CustomizedBufferConsumerListener() {}
@@ -82,9 +82,9 @@ public:
             std::cout << "consumerSurface is nullptr" << std::endl;
             return;
         }
-        sptr<SurfaceBuffer> beffer = nullptr;
+        sptr<SurfaceBuffer> buffer = nullptr;
         int64_t timestamp = 0;
-        Rect dammage = { 0 };
+        Rect damage = { 0 };
         sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         SurfaceError ret = consumerSurface_->AcquireBuffer(buffer, acquireFence, timestamp, damage);
         if (ret != SURFACE_ERROR_OK || buffer == nullptr) {
@@ -100,11 +100,11 @@ public:
         }
         SurfaceError relaseRet = consumerSurface_->ReleaseBuffer(buffer, SyncFence::InvalidFence());
         if (relaseRet != SURFACE_ERROR_OK) {
-            std::cout << "ReleaseBuffer is failed ret is " << ret << std::endl;
+            std::cout << "ReleaseBuffer failed ret is " << ret << std::endl;
         }
 
         const ::testing::TestInfo* const testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
-        std::string fileName = "/data/local/graphic_test/multi_capture/";
+        std::string fileName = "/data/local/graphic_test/multi_screen/";
         namespace fs = std::filesystem;
         if (!fs::exists(fileName)) {
             if (!fs::create_directories(fileName)) {
@@ -138,16 +138,16 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        std::cout << "Before Each" << std::endl;
+        std::cout << "BeforeEach" << std::endl;
         uint64_t tokenId;
-        cosnt char* perms[1];
+        const char* perms[1];
         perms[0] = "ohos.permission.CAPTURE.SCREEN";
         NativeTokenInfoParams infoInstance = {
             .dcapsNum = 0,
             .permsNum = 1,
             .aclsNum = 0,
             .dcaps = NULL,
-            .perms = prems,
+            .perms = perms,
             .acls = NULL,
             .processName = "foundation",
             .aplStr = "system_basic",
@@ -156,7 +156,7 @@ public:
         SetSelfTokenID(tokenId);
         OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
         auto size = GetScreenSize();
-        SetSurfaceBounds({ 0, 0, size.x_ / 2.0f, size.y / a.0f });
+        SetSurfaceBounds({ 0, 0, size.x_ / 2.0f, size.y_ / 2.0f });
         SetSurfaceColor(RSColor(0xffff0000));
     }
     // called after each tests
@@ -202,7 +202,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_001)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_001 scereenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_001 screenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
     displayNode->SetBackgroundColor(SK_ColorBLUE);
@@ -233,7 +233,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_002)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_002", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -243,10 +243,10 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_002)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_002 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->SetBackgroundColor(SK_ColorBLUE);
+    std::cout << "MULTI_SCREEN_TEST_002 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->SetBackgroundColor(SK_ColorBLUE);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
@@ -272,7 +272,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_002)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_002 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_002 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -297,7 +297,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_003)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_003", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -307,10 +307,10 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_003)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_003 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->SetBackgroundColor(SK_ColorBLUE);
+    std::cout << "MULTI_SCREEN_TEST_003 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->SetBackgroundColor(SK_ColorBLUE);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
@@ -336,7 +336,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_003)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_003 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_003 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -361,7 +361,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_004)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_004", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -371,10 +371,10 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_004)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_004 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->SetBackgroundColor(SK_ColorBLUE);
+    std::cout << "MULTI_SCREEN_TEST_004 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->SetBackgroundColor(SK_ColorBLUE);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
@@ -402,7 +402,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_004)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_004 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_004 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 2 * width, 5 * height });
     displayNode2->SetFrame({ 0, 0, 2 * width, 5 * height });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -445,7 +445,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_005)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_005 scereenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_005 screenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
 
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
@@ -497,7 +497,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_006)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_006 scereenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_006 screenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
 
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
@@ -538,7 +538,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_007)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_007 scereenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_007 screenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
     displayNode->SetBackgroundColor(SK_ColorBLUE);
@@ -555,16 +555,16 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_007)
 }
 
 /*
- * @tc.name: MULTI_SCREEN_TEST_007
+ * @tc.name: MULTI_SCREEN_TEST_008
  * @tc.desc: test CreateVirtualScreen without mirrorScreenId 1280*640
  * @tc.type: FUNC
  */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_007)
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_008)
 {
     uint32_t width = 640 * 2;
     uint32_t height = 640;
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_007", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_008", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     if (screenId == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen failed");
         return;
@@ -576,7 +576,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_007)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_007 scereenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_008 screenId: " << screenId << "nodeId: " << displayNode->GetId() << std::endl;
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
     displayNode->SetBackgroundColor(SK_ColorBLUE);
@@ -607,7 +607,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_009", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -617,7 +617,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_009 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_009 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -634,11 +634,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
     surfaceNode1->SetFrame({ 0, 0, 200, 200 });
     surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
 
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode0);
-    displayNode->SetBackgroundColor(SK_ColorBLACK);
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode0);
+    displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -669,7 +669,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_009 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_009 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -694,7 +694,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_010)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_010", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -704,10 +704,10 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_010)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_010 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->SetBackgroundColor(SK_ColorBLUE);
+    std::cout << "MULTI_SCREEN_TEST_010 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->SetBackgroundColor(SK_ColorBLUE);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
@@ -733,7 +733,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_010)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_010 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_010 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -745,7 +745,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_010)
 
 /*
  * @tc.name: MULTI_SCREEN_TEST_011
- * @tc.desc: test CreateVirtualScreen with mirrorScreenId 640*640
+ * @tc.desc: test CreateVirtualScreen with mirrorScreenId 1280*640
  * @tc.type: FUNC
  */
 GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_011)
@@ -758,20 +758,20 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_011)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_011", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
     if (!displayNode1) {
-        LOGE("displayNode is nullptr");
+        LOGE("displayNode1 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_011 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->SetBackgroundColor(SK_ColorBLUE);
+    std::cout << "MULTI_SCREEN_TEST_011 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->SetBackgroundColor(SK_ColorBLUE);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
@@ -797,7 +797,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_011)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_011 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_011 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -822,7 +822,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_012", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -832,7 +832,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_012 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_012 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -849,11 +849,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
     surfaceNode1->SetFrame({ 0, 0, 200, 200 });
     surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
 
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode0);
-    displayNode->SetBackgroundColor(SK_ColorBLACK);
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode0);
+    displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -885,7 +885,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_012 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_012 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -910,7 +910,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_013", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -920,7 +920,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_013 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_013 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -937,11 +937,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
     surfaceNode1->SetFrame({ 0, 0, 200, 200 });
     surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
 
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode0);
-    displayNode->SetBackgroundColor(SK_ColorBLACK);
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode0);
+    displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -975,7 +975,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_013 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_013 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -1000,7 +1000,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_014", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -1010,7 +1010,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_014 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_014 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1027,11 +1027,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
     surfaceNode1->SetFrame({ 0, 0, 200, 200 });
     surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
 
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode0);
-    displayNode->SetBackgroundColor(SK_ColorBLACK);
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode0);
+    displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -1064,7 +1064,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_014 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_014 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -1094,12 +1094,12 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_015)
     }
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId, false, 0, true };
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig1);
+    if (!displayNode) {
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_015 scereenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_015 screenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1155,12 +1155,12 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_016)
     }
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId, false, 0, true };
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig1);
+    if (!displayNode) {
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_016 scereenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_016 screenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1217,12 +1217,12 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_017)
     }
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId, false, 0, true };
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig1);
+    if (!displayNode) {
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_017 scereenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_017 screenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1273,7 +1273,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_018", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
     if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
+        LOGE("CreateVirtualScreen1 failed");
         return;
     }
 
@@ -1283,7 +1283,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_018 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_018 screenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1333,7 +1333,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
         LOGE("displayNode2 is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_018 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_018 screenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
     displayNode2->SetFrame({ 0, 0, 1000, 1000 });
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -1346,95 +1346,4 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
 }
-
-/*
- * @tc.name: MULTI_SCREEN_TEST_019
- * @tc.desc: test SetVirtualMirrorScreenCanvasRotation with mirrorScreenId
- * @tc.type: FUNC
- */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_019)
-{
-    uint32_t width = 640;
-    uint32_t height = 640;
-    auto csurface1 = IConsumerSurface::Create();
-    auto producer1 = csurface1->GetProducer();
-    auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
-    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_019", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
-        return;
-    }
-
-    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
-    std::cout << "MULTI_SCREEN_TEST_019 scereenId1: " << screenId1 << "nodeId1: " << displayNode1->GetId() << std::endl;
-
-    RSSurfaceNodeConfig surfaceNodeConfig;
-    surfaceNodeConfig.isSync = true;
-    surfaceNodeConfig.SurfaceNodeName = "TestsurfaceNode0";
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig);
-    surfaceNode0->SetBounds({ 0, 0, 100, 200 });
-    surfaceNode0->SetFrame({ 0, 0, 100, 200 });
-    surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
-
-    surfaceNodeConfig.SurfaceNodeName = "TestsurfaceNode1";
-    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
-
-    surfaceNode1->SetBounds({ 0, 0, 300, 300 });
-    surfaceNode1->SetFrame({ 0, 0, 400, 400 });
-    surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
-
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode0);
-    displayNode->SetBackgroundColor(SK_ColorBLACK);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-
-    // mirrorScreen
-    auto csurface2 = Surface::CreateSurfaceAsConsumer();
-    csurface2->SetDefaultUsage(
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
-    auto producer2 = csurface2->GetProducer();
-    auto psurface2 = Surface::CreateSurfaceAsProducer(producer2);
-    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface2, psurface2);
-    csurface2->RegisterConsumerListener(listener);
-
-    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_019_2", width, height, psurface2, screenId1, -1, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
-
-    RSInterfaces::GetInstance().SetVirtualMirrorScreenCanvasRotation(screenId2, true);
-
-    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
-    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
-    std::cout << "MULTI_SCREEN_TEST_019 scereenId2: " << screenId2 << "nodeId2: " << displayNode2->GetId() << std::endl;
-    displayNode2->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode2->SetFrame({ 0, 0, 1000, 1000 });
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    
-    // 避免node1已经旋转完成了，才开始渲染node2 写在这里就是为了延迟旋转
-    displayNode1->SetScreenRotation(static_cast<uint32_t>(ScreenRotation::ROTATION_90));
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
-}
-
-
 } // namespace ::OHOS::Rosen
