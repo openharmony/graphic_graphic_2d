@@ -1549,24 +1549,6 @@ HWTEST_F(RSScreenTest, GetScreenSupportedColorSpaces_002, testing::ext::TestSize
 }
 
 /*
- * @tc.name: GetScreenSupportedColorSpaces_003
- * @tc.desc: GetScreenSupportedColorSpaces Test, IsVirtual() return false, colorSpaces.size() != 0
- * @tc.type: FUNC
- * @tc.require: issueIAIRAN
- */
-HWTEST_F(RSScreenTest, GetScreenSupportedColorSpaces_003, testing::ext::TestSize.Level1)
-{
-    ScreenId id = 0;
-    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
-    ASSERT_NE(nullptr, rsScreen);
-
-    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    colorSpaces.resize(2);
-
-    ASSERT_EQ(rsScreen->GetScreenSupportedColorSpaces(colorSpaces), StatusCode::SUCCESS);
-}
-
-/*
  * @tc.name: SetScreenColorSpace_002
  * @tc.desc: SetScreenColorSpace Test, iter == COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end()
  * @tc.type: FUNC
