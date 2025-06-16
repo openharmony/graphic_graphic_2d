@@ -209,6 +209,13 @@ public:
     void DetachToDisplay(uint64_t screenId);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
         bool dynamicHardwareEnable = true);
+
+    /**
+     * @brief Enable Camera Rotation Unchanged
+     *
+     * @param flag If flag is set to true, the camera fix rotation is enabled.
+     * @return void
+     */
     void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;

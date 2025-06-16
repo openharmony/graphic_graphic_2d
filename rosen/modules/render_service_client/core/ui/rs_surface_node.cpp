@@ -692,12 +692,6 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     }
 }
 
-/**
- * @brief Enable Camera Rotation Unchanged
- *
- * @param flag If flag is set to true, the camera fix rotation is enabled.
- * @return void
- */
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(GetId(), flag);

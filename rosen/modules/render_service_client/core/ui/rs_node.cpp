@@ -4546,14 +4546,9 @@ void RSNode::RemoveCrossParentChild(SharedPtr child, SharedPtr newParent)
 
 void RSNode::SetIsCrossNode(bool isCrossNode)
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("transactionProxy is null, SetIsCrossNode failed !");
-        return;
-    }
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSBaseNodeSetIsCrossNode>(GetId(), isCrossNode);
-    transactionProxy->AddCommand(command);
+    AddCommand(command);
 }
 
 void RSNode::AddCrossScreenChild(SharedPtr child, int index, bool autoClearCloneNode)
