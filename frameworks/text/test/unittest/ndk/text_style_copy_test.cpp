@@ -90,16 +90,13 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle001, TestSize.Level0)
     ASSERT_NE(txtStyle_, nullptr);
 
     OH_Drawing_SetTextStyleColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
-    // OH_Drawing_SetTextStyleDecorationColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0xFF));
-    // OH_Drawing_SetTextStyleDecoration(txtStyle_, TEXT_DECORATION_OVERLINE);
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle_, TEXT_DECORATION_STYLE_DOTTED);
-    // OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle_, DOUBLE_TEST_SIZE_NOT_DEFAULT);
     OH_Drawing_SetTextStyleFontWeight(txtStyle_, FONT_WEIGHT_900);
     OH_Drawing_SetTextStyleFontStyle(txtStyle_, FONT_STYLE_ITALIC);
     OH_Drawing_SetTextStyleBaseLine(txtStyle_, TEXT_BASELINE_IDEOGRAPHIC);
     const char* fontFamilies[] = { "Text", "Text2" };
-    int FontFamiliesNumBefore = 2;
-    OH_Drawing_SetTextStyleFontFamilies(txtStyle_, FontFamiliesNumBefore, fontFamilies);
+    int fontFamiliesNumBefore = 2;
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle_, fontFamiliesNumBefore, fontFamilies);
     OH_Drawing_SetTextStyleFontSize(txtStyle_, DOUBLE_TEST_SIZE_NOT_DEFAULT);
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle_, DOUBLE_TEST_SIZE_NOT_DEFAULT);
     OH_Drawing_SetTextStyleWordSpacing(txtStyle_, DOUBLE_TEST_SIZE_NOT_DEFAULT);
@@ -118,7 +115,7 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle001, TestSize.Level0)
     EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(txtStyleCopy_), TEXT_BASELINE_IDEOGRAPHIC);
     size_t fontFamiliesNumAfter;
     char** fontFamiliesList = OH_Drawing_TextStyleGetFontFamilies(txtStyleCopy_, &fontFamiliesNumAfter);
-    EXPECT_EQ(fontFamiliesNumAfter, FontFamiliesNumBefore);
+    EXPECT_EQ(fontFamiliesNumAfter, fontFamiliesNumBefore);
     EXPECT_NE(fontFamiliesList, nullptr);
     EXPECT_NEAR(OH_Drawing_TextStyleGetFontSize(txtStyleCopy_), DOUBLE_TEST_SIZE_NOT_DEFAULT, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(OH_Drawing_TextStyleGetLetterSpacing(txtStyleCopy_), DOUBLE_TEST_SIZE_NOT_DEFAULT, FLOAT_DATA_EPSILON);
@@ -403,7 +400,8 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle004, TestSize.Level0)
     typoStyleCopy_ = OH_Drawing_CopyTypographyStyle(typoStyle_);
     ASSERT_NE(typoStyleCopy_, nullptr);
 
-    // 接口OH_Drawing_TypographyGetTextStyle与OH_Drawing_SetTypographyTextStyle并不是配套接口。set的是insideTextstyle，但是get是兜底的textstyle属性。
+    // 接口OH_Drawing_TypographyGetTextStyle与OH_Drawing_SetTypographyTextStyle并不是配套接口。
+    // set的是insideTextstyle，但是get是兜底的textstyle属性。
     txtStyleCopy_ = OH_Drawing_TypographyGetTextStyle(typoStyleCopy_);
     ASSERT_NE(txtStyleCopy_, nullptr);
     OH_Drawing_TextShadow* shadowsCopy = OH_Drawing_TextStyleGetShadows(txtStyleCopy_);

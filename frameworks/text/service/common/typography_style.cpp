@@ -58,7 +58,7 @@ TypographyStyle::TypographyStyle(const TypographyStyle& other)
       hintingIsOn(other.hintingIsOn),
       tab(other.tab),
       relayoutChangeBitmap(other.relayoutChangeBitmap),
-      defaultTextStyleUid(other.defaultTextStyleUid){}
+      defaultTextStyleUid(other.defaultTextStyleUid) {}
 
 TypographyStyle& TypographyStyle::operator=(const TypographyStyle& other)
 {

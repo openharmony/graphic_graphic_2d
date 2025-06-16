@@ -28,14 +28,14 @@ constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 const double DOUBLE_TEST_SIZE_NOT_DEFAULT = 20.0;
 const float FLOAT_TEST_SIZE_NOT_DEFAULT = 10.0f;
 const int INT_TEST_SIZE_NOT_DEFAULT = 2;
-class OH_Drawing_StyleCopyTest : public testing::Test {};
+class OHDrawingStyleCopyTest : public testing::Test {};
 
 /*
  * @tc.name: copy textstyle
  * @tc.desc: test copyteststyle001: textStyleCopy = textStyle
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_StyleCopyTest, OH_Drawing_CopyTextStyle001, TestSize.Level0)
+HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyTextStyle001, TestSize.Level0)
 {
     OHOS::Rosen::TextStyle textStyle;
     std::u16string myEllipisis = u"......";
@@ -77,7 +77,7 @@ HWTEST_F(OH_Drawing_StyleCopyTest, OH_Drawing_CopyTextStyle001, TestSize.Level0)
  * @tc.desc: test copyteststyle002: textStyleCopy(textStyle)
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_StyleCopyTest, OH_Drawing_CopyTextStyle002, TestSize.Level0)
+HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyTextStyle002, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
@@ -129,7 +129,7 @@ HWTEST_F(OH_Drawing_StyleCopyTest, OH_Drawing_CopyTextStyle002, TestSize.Level0)
  * @tc.desc: test copyParagraphstyle: paragraphStyleCopy = paragraphStyle
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_StyleCopyTest, OH_Drawing_CopyParagraphStyle001, TestSize.Level0)
+HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyParagraphStyle001, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     typographyStyle.fontWidth = FontWidth::EXTRA_CONDENSED;
@@ -181,7 +181,7 @@ HWTEST_F(OH_Drawing_StyleCopyTest, OH_Drawing_CopyParagraphStyle001, TestSize.Le
  * @tc.desc: test copyParagraphstylestyle: paragraphstyleStyleCopy(paragraphstyleStyle)
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_StyleCopyTest, OH_Drawing_CopyParagraphstyleStyle002, TestSize.Level0)
+HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyParagraphstyleStyle002, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     TextStyle myTextStyle;

@@ -143,7 +143,7 @@ TextStyle::TextStyle(const TextStyle& other)
       fontVariations(other.fontVariations),
       backgroundRect(other.backgroundRect),
       styleId(other.styleId),
-      textStyleUid(other.textStyleUid), 
+      textStyleUid(other.textStyleUid),
       isSymbolGlyph(other.isSymbolGlyph),
       symbol(other.symbol),
       baseLineShift(other.baseLineShift),
@@ -151,7 +151,8 @@ TextStyle::TextStyle(const TextStyle& other)
       relayoutChangeBitmap(other.relayoutChangeBitmap),
       badgeType(other.badgeType) {}
 
-TextStyle& TextStyle::operator=(const TextStyle& other) {
+TextStyle& TextStyle::operator=(const TextStyle& other)
+{
     if (this != &other) {
         color = other.color;
         decoration = other.decoration;
