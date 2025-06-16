@@ -46,7 +46,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_RotationX_Test_1)
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_RotationX_Test_2)
 {
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 300, 300, 300, 300 });
-    testNode->SetRotationX(-90.0f);
+    testNode->SetRotationX(0.0f);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 }
@@ -55,7 +55,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_RotationX_Test_2)
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_RotationX_Test_3)
 {
     auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 300, 300, 300, 300 });
-    testNode->SetRotationX(-90.0f);
+    testNode->SetRotationX(90.0f);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 }
