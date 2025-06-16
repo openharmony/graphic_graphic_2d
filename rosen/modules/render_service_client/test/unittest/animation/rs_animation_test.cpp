@@ -866,5 +866,19 @@ HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
     EXPECT_FALSE(rsNode.lock() != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest Finish end";
 }
+
+/**
+ * @tc.name: PropertyAnimationGetModifierTypeTest001
+ * @tc.desc: Verify the GetModifierType of PropertyAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, PropertyAnimationGetModifierTypeTest001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
+    auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSCurveAnimation>(property, endProperty);
+    ASSERT_NE(animation, nullptr);
+    EXPECT_EQ(animation->GetModifierType(), RSModifierType::INVALID);
+}
 } // namespace Rosen
 } // namespace OHOS

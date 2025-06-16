@@ -259,6 +259,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
     animation->OnFinish();
     animation->Reverse();
     animation->OnReverse();
+    EXPECT_EQ(animation->GetModifierType(), RSModifierType::INVALID);
     EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest002 end";
 }
