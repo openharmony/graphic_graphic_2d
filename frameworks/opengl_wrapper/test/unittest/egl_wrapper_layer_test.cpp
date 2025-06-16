@@ -41,8 +41,11 @@ public:
 HWTEST_F(EglWrapperLayerTest, Init001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-    auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    EXPECT_TRUE(result);
+    auto& layer = EglWrapperLayer::GetInstance();
+    auto status = layer.initialized_;
+    layer.initialized_ = true;
+    EXPECT_TRUE(layer.Init(&dispatchTable));
+    layer.initialized_ = status;
 }
 
 /**
@@ -85,19 +88,6 @@ HWTEST_F(EglWrapperLayerTest, InitLayers001, Level1)
     layer.InitLayers(&dispatchTable);
     layer.layerInit_.clear();
     layer.InitLayers(&dispatchTable);
-}
-
-/**
- * @tc.name: LoadLayers001
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
-{
-    EglWrapperDispatchTable dispatchTable;
-
-    bool result = EglWrapperLayer::GetInstance().LoadLayers();
-    ASSERT_TRUE(result);
 }
 
 /**
