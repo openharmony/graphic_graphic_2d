@@ -55,7 +55,7 @@ public:
 
 private:
     static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
-        std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type);
+        std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType);
 };
 
 ADD_COMMAND(RSCanvasNodeCreate,

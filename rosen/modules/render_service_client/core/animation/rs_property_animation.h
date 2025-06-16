@@ -39,6 +39,11 @@ public:
         return property_ ? property_->type_ : RSModifierType::INVALID;
     }
 
+    ModifierNG::RSPropertyType GetPropertyType() const override
+    {
+        return property_ ? property_->GetPropertyTypeNG() : ModifierNG::RSPropertyType::INVALID;
+    }
+
 protected:
     RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property);
 

@@ -36,21 +36,26 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
-    std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type)
+bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(
+    std::shared_ptr<RSCanvasRenderNode> node, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType)
 {
     if (node->GetNodeIsSingleFrameComposer()) {
-        if (RSSingleFrameComposer::IsShouldSingleFrameComposer()) {
-            node->UpdateRecording(drawCmds, type, true);
-        } else {
-            node->UpdateRecording(drawCmds, type);
-        }
+#if defined(MODIFIER_NG)
+        node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType),
+            RSSingleFrameComposer::IsShouldSingleFrameComposer());
+#else
+        node->UpdateRecording(
+            drawCmds, static_cast<RSModifierType>(modifierType), RSSingleFrameComposer::IsShouldSingleFrameComposer());
+#endif
     } else {
         if (RSSingleFrameComposer::IsShouldSingleFrameComposer()) {
             return true;
-        } else {
-            node->UpdateRecording(drawCmds, type);
         }
+#if defined(MODIFIER_NG)
+        node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
+#else
+        node->UpdateRecording(drawCmds, static_cast<RSModifierType>(modifierType));
+#endif
     }
     return false;
 }
@@ -58,20 +63,25 @@ bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(std::shared_ptr<RSCa
 void RSCanvasNodeCommandHelper::UpdateRecording(
     RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType)
 {
-    auto type = static_cast<RSModifierType>(modifierType);
-    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id)) {
-        if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
-            if (AddCmdToSingleFrameComposer(node, drawCmds, type)) {
-                return;
-            }
-        } else {
-            node->UpdateRecording(drawCmds, type);
-        }
-        if (!drawCmds) {
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+    if (node == nullptr) {
+        return;
+    }
+    if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        if (AddCmdToSingleFrameComposer(node, drawCmds, modifierType)) {
             return;
         }
-        drawCmds->UpdateNodeIdToPicture(id);
+    } else {
+#if defined(MODIFIER_NG)
+        node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
+#else
+        node->UpdateRecording(drawCmds, static_cast<RSModifierType>(modifierType));
+#endif
     }
+    if (!drawCmds) {
+        return;
+    }
+    drawCmds->UpdateNodeIdToPicture(id);
 }
 
 void RSCanvasNodeCommandHelper::ClearRecording(RSContext& context, NodeId id)

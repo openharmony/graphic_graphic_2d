@@ -44,9 +44,9 @@ public:
 
     /**
      * @brief   there are two mode for DrawCmdList to add new op
-     * @param   IMMEDIATE   add op to continouns buffer immediately, overload will benefit from this
+     * @param   IMMEDIATE   add op to continuous buffer immediately, overload will benefit from this
      * @param   DEFERRED    add op to vector and then add to contiguous buffer if needed
-     * @detail  playback can get all op from continouns buffer in IMMEDIATE mode or vector int DEFERRED mode
+     * @detail  playback can get all op from continuous buffer in IMMEDIATE mode or vector int DEFERRED mode
      */
     enum class UnmarshalMode {
         IMMEDIATE,

@@ -348,12 +348,12 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
             continue;
         }
         std::shared_ptr<RSPropertyBase> property = nullptr;
-        if (auto prop = node->GetProperty(propertyId)) {
+        if (auto prop = node->GetPropertyById(propertyId)) {
             property = prop;
         } else if (auto modifier = node->GetModifier(propertyId)) {
             property = modifier->GetProperty();
         } else {
-            // do nothing
+            property = nullptr;
         }
         if (property == nullptr) {
             continue;

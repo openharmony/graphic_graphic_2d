@@ -15,6 +15,8 @@
 
 #include "modifier_ng/appearance/rs_shadow_render_modifier.h"
 
+#include "render/rs_shadow.h"
+
 namespace OHOS::Rosen::ModifierNG {
 const RSShadowRenderModifier::LegacyPropertyApplierMap RSShadowRenderModifier::LegacyPropertyApplierMap_ = {
     { RSPropertyType::SHADOW_COLOR, RSRenderModifier::PropertyApplyHelper<Color, &RSProperties::SetShadowColor> },
@@ -26,7 +28,7 @@ const RSShadowRenderModifier::LegacyPropertyApplierMap RSShadowRenderModifier::L
     { RSPropertyType::SHADOW_RADIUS, RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetShadowRadius> },
     { RSPropertyType::SHADOW_PATH,
         RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSPath>, &RSProperties::SetShadowPath> },
-    { RSPropertyType::SHADOW_MASK, RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetShadowMask> },
+    { RSPropertyType::SHADOW_MASK, RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetShadowMask> },
     { RSPropertyType::SHADOW_COLOR_STRATEGY,
         RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetShadowColorStrategy> },
     { RSPropertyType::SHADOW_IS_FILLED, RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetShadowIsFilled> },
@@ -43,7 +45,7 @@ void RSShadowRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetShadowElevation(0.f);
     properties.SetShadowRadius(0.f);
     properties.SetShadowPath(nullptr);
-    properties.SetShadowMask(false);
+    properties.SetShadowMask(SHADOW_MASK_STRATEGY::MASK_NONE);
     properties.SetShadowColorStrategy(static_cast<int>(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE));
     properties.SetShadowIsFilled(false);
     properties.SetUseShadowBatching(false);

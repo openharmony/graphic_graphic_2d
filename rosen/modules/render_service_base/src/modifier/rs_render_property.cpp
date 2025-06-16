@@ -19,6 +19,7 @@
 
 #include "rs_profiler.h"
 
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -45,7 +46,9 @@ void RSRenderPropertyBase::Detach(std::weak_ptr<RSRenderNode> node)
 
 void RSRenderPropertyBase::OnChange() const
 {
-    if (auto node = node_.lock()) {
+    if (auto modifier = modifier_.lock()) {
+        modifier->SetDirty();
+    } else if (auto node = node_.lock()) {
         node->SetDirty();
         node->AddDirtyType(modifierType_);
         if (modifierType_ < RSModifierType::BOUNDS || modifierType_ > RSModifierType::TRANSLATE_Z ||
@@ -74,6 +77,27 @@ void RSRenderPropertyBase::UpdatePropertyUnit(RSModifierType type)
         case RSModifierType::ROTATION_X:
         case RSModifierType::ROTATION_Y:
         case RSModifierType::ROTATION:
+            SetPropertyUnit(RSPropertyUnit::ANGLE_ROTATION);
+            break;
+        default:
+            SetPropertyUnit(RSPropertyUnit::UNKNOWN);
+            break;
+    }
+}
+
+void RSRenderPropertyBase::UpdatePropertyUnitNG(ModifierNG::RSPropertyType propertyType)
+{
+    switch (propertyType) {
+        case ModifierNG::RSPropertyType::FRAME:
+        case ModifierNG::RSPropertyType::TRANSLATE:
+            SetPropertyUnit(RSPropertyUnit::PIXEL_POSITION);
+            break;
+        case ModifierNG::RSPropertyType::SCALE:
+            SetPropertyUnit(RSPropertyUnit::RATIO_SCALE);
+            break;
+        case ModifierNG::RSPropertyType::ROTATION_X:
+        case ModifierNG::RSPropertyType::ROTATION_Y:
+        case ModifierNG::RSPropertyType::ROTATION:
             SetPropertyUnit(RSPropertyUnit::ANGLE_ROTATION);
             break;
         default:
@@ -232,7 +256,7 @@ bool operator!=(
 }
 
 template<typename T>
-bool RSRenderProperty<T>::onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
+bool RSRenderProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     auto ret = new RSRenderProperty<T>();
     if (ret == nullptr) {
@@ -250,7 +274,7 @@ bool RSRenderProperty<T>::onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRend
 }
 
 template<typename T>
-bool RSRenderAnimatableProperty<T>::onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
+bool RSRenderAnimatableProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     auto ret = new RSRenderAnimatableProperty<T>();
     if (ret == nullptr) {
@@ -543,8 +567,7 @@ void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
     }
     std::string info;
     Get()->Dump(info, 0);
-    info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }),
-        info.end());
+    info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }), info.end());
     out += "[\"" + info + "\"]";
 }
 

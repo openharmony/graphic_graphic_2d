@@ -14,6 +14,8 @@
  */
 
 #include "command/rs_node_command.h"
+
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -245,6 +247,84 @@ void RSNodeCommandHelper::UpdateOcclusionCullingStatus(RSContext& context, NodeI
         if (auto occlusionParams = instanceNode->GetOcclusionParams()) {
             occlusionParams->UpdateOcclusionCullingStatus(enable, keyOcclusionNodeId);
         }
+    }
+}
+
+void RSNodeCommandHelper::AddModifierNG(RSContext& context, NodeId nodeId,
+    const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->AddModifier(modifier);
+    }
+}
+
+void RSNodeCommandHelper::RemoveModifierNG(
+    RSContext& context, NodeId nodeId, ModifierNG::RSModifierType type, ModifierId id)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->RemoveModifier(type, id);
+    }
+}
+
+void RSNodeCommandHelper::ModifierNGAttachProperty(RSContext& context, NodeId nodeId, ModifierId modifierId,
+    ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType,
+    std::shared_ptr<RSRenderPropertyBase> prop)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    auto modifier = node->GetModifierNG(modifierType, modifierId);
+    if (!modifier) {
+        return;
+    }
+    modifier->AttachProperty(propertyType, prop);
+}
+
+void RSNodeCommandHelper::UpdateModifierNGDrawCmdList(RSContext& context, NodeId nodeId, ModifierId modifierId,
+    ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType, Drawing::DrawCmdListPtr value)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    auto modifier = node->GetModifierNG(modifierType, modifierId);
+    if (!modifier) {
+        return;
+    }
+    modifier->Setter<Drawing::DrawCmdListPtr>(propertyType, value);
+    if (value) {
+        value->UpdateNodeIdToPicture(nodeId);
+    }
+}
+
+void RSNodeCommandHelper::ModifierNGDetachProperty(RSContext& context, NodeId nodeId, ModifierId modifierId,
+    ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    auto modifier = node->GetModifierNG(modifierType, modifierId);
+    if (!modifier) {
+        return;
+    }
+    modifier->DetachProperty(propertyType);
+}
+
+void RSNodeCommandHelper::RemoveAllModifiersNG(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->RemoveAllModifiersNG();
     }
 }
 } // namespace Rosen

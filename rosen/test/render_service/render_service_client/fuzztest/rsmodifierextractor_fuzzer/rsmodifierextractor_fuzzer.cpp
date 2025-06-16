@@ -83,7 +83,6 @@ bool DoGet001(const uint8_t* data, size_t size)
     modifierExtractor.GetCornerRadius();
     modifierExtractor.GetForegroundColor();
     modifierExtractor.GetBackgroundColor();
-    modifierExtractor.GetSurfaceBgColor();
     modifierExtractor.GetBackgroundShader();
     modifierExtractor.GetBgImage();
     modifierExtractor.GetBgImageWidth();

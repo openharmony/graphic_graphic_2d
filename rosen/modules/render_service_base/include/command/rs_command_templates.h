@@ -102,11 +102,14 @@ public:
 
     uint64_t GetToken() const override
     {
+        if (GetType() != RSCommandType::ANIMATION) {
+            return 0;
+        }
         if constexpr (std::tuple_size<decltype(params_)>::value > 3) {                 // 3:For RSAnimationCallback
             using aniIdType = typename std::tuple_element<1, decltype(params_)>::type; // 1:animationId
             using tokenType = typename std::tuple_element<2, decltype(params_)>::type; // 2:token
             if (std::is_same<AnimationId, aniIdType>::value && std::is_same<uint64_t, tokenType>::value) {
-                return std::get<2>(params_);                                           // 2:return token
+                return static_cast<uint64_t>(std::get<2>(params_));                    // 2:return token
             }
         }
         return 0; // invalidId

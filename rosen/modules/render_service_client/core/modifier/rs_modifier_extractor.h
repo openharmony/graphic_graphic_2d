@@ -207,19 +207,11 @@ public:
     Color GetBackgroundColor() const;
 
     /**
-     * @brief Gets the background color of surface.
-     *
-     * @return The background color of the surface.
-     */
-    Color GetSurfaceBgColor() const;
-
-    /**
      * @brief Gets the background shader of modifier.
      *
      * @return The pointer to background shader.
      */
     std::shared_ptr<RSShader> GetBackgroundShader() const;
-
 
     /**
      * @brief Gets the background image.
@@ -678,6 +670,10 @@ public:
      */
     std::string Dump() const;
 private:
+#if defined(MODIFIER_NG)
+    Vector4f GetBgImageDstRect() const;
+#endif
+
     NodeId id_;
     std::weak_ptr<RSUIContext> rsUIContext_;
 };
