@@ -87,6 +87,7 @@ HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyTextStyle002, TestSize.Level0)
     textStyle.symbol = mySymbol2;
     FontVariations myFontVariations;
     myFontVariations.SetAxisValue("test", FLOAT_TEST_SIZE_NOT_DEFAULT);
+    textStyle.fontVariations = myFontVariations;
     FontFeatures myFontFeatures;
     myFontFeatures.SetFeature("frac", 1);
     myFontFeatures.SetFeature("sups", 1);
