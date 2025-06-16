@@ -60,7 +60,8 @@ bool RSOverlayStyleModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSOverlayStyleModifier> modifier = std::make_shared<ModifierNG::RSOverlayStyleModifier>();
+    std::shared_ptr<ModifierNG::RSOverlayStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSOverlayStyleModifier>();
 
     modifier->GetType();
     ModifierNG::RSDrawingContext context;
@@ -72,7 +73,7 @@ bool RSOverlayStyleModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->GetInnerPropertyType();
 
     return true;
-}   
+}
 } // namespace Rosen
 } // namespace OHOS
 

@@ -63,14 +63,15 @@ bool RSBackgroundColorRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundColorRenderModifier> modifier = std::make_shared<ModifierNG::RSBackgroundColorRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundColorRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundColorRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
     modifier->GetLegacyPropertyApplierMap();
 
     return true;
-}   
+}
 
 bool RSBackgroundImageRenderModifierFuzzTest(const uint8_t* data, size_t size)
 {
@@ -84,7 +85,8 @@ bool RSBackgroundImageRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundImageRenderModifier> modifier = std::make_shared<ModifierNG::RSBackgroundImageRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundImageRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundImageRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -105,7 +107,8 @@ bool RSBackgroundShaderRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundShaderRenderModifier> modifier = std::make_shared<ModifierNG::RSBackgroundShaderRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundShaderRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundShaderRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);

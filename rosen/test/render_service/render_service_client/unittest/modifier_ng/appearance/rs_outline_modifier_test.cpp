@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,6 @@ public:
  */
 HWTEST_F(RSOutlineModifierNGTypeTest, RSOutlineModifierTest, TestSize.Level1)
 {
-
     std::shared_ptr<ModifierNG::RSOutlineModifier> modifier = std::make_shared<ModifierNG::RSOutlineModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::OUTLINE);

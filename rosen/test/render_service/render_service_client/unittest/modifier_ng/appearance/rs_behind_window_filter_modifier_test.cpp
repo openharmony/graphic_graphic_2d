@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -38,7 +37,8 @@ public:
 
 HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterRadiusTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier = std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
     float radius = 6.6f;
     modifier->SetBehindWindowFilterRadius(radius);
     ASSERT_FLOAT_EQ(modifier->GetBehindWindowFilterRadius(), radius);
@@ -46,7 +46,8 @@ HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterRadiusTest
 
 HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterSaturationTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier = std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
     float saturation = 0.88f;
     modifier->SetBehindWindowFilterSaturation(saturation);
     ASSERT_FLOAT_EQ(modifier->GetBehindWindowFilterSaturation(), saturation);
@@ -54,7 +55,8 @@ HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterSaturation
 
 HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterBrightnessTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier = std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
     float saturation = 0.88f;
     modifier->SetBehindWindowFilterSaturation(saturation);
     ASSERT_FLOAT_EQ(modifier->GetBehindWindowFilterSaturation(), saturation);
@@ -62,7 +64,8 @@ HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterBrightness
 
 HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterMaskColorTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier = std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
     Color testColor(100, 150, 200, 255);
     modifier->SetBehindWindowFilterMaskColor(testColor);
     Color result = modifier->GetBehindWindowFilterMaskColor();
@@ -71,7 +74,8 @@ HWTEST_F(RSBehindWindowFilterModifierTest, SetAndGetBehindWindowFilterMaskColorT
 
 HWTEST_F(RSBehindWindowFilterModifierTest, GetTypeTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier = std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
     ASSERT_EQ(modifier->GetType(), RSModifierType::BEHIND_WINDOW_FILTER);
 }
 

@@ -81,7 +81,7 @@ bool RSBoundsClipModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->GetCornerRadius();
 
     return true;
-}   
+}
 
 bool RSBoundsModifierFuzzTest(const uint8_t* data, size_t size)
 {

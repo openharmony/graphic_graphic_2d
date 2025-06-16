@@ -82,7 +82,8 @@ bool RSForegroundColorModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSForegroundColorModifier> modifier = std::make_shared<ModifierNG::RSForegroundColorModifier>();
+    std::shared_ptr<ModifierNG::RSForegroundColorModifier> modifier =
+        std::make_shared<ModifierNG::RSForegroundColorModifier>();
     modifier->GetType();
     Color color(GetData<uint32_t>(), GetData<uint32_t>(), GetData<uint32_t>(), GetData<uint32_t>());
     modifier->SetForegroundColor(color);

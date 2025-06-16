@@ -63,7 +63,8 @@ bool BackgroundColorModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundColorModifier> modifier = std::make_shared<ModifierNG::RSBackgroundColorModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundColorModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundColorModifier>();
 
     Vector4f brightnessRates(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     modifier->SetBgBrightnessRates(brightnessRates);
@@ -88,7 +89,8 @@ bool BackgroundImageModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundImageModifier> modifier = std::make_shared<ModifierNG::RSBackgroundImageModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundImageModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundImageModifier>();
 
     Vector4f innerRect(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     modifier->SetBgImageInnerRect(innerRect);
@@ -129,7 +131,8 @@ bool BackgroundShaderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundShaderModifier> modifier = std::make_shared<ModifierNG::RSBackgroundShaderModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundShaderModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundShaderModifier>();
 
     float progress = GetData<float>();
     modifier->SetBackgroundShaderProgress(progress);

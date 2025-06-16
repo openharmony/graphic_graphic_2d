@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,8 @@ public:
  */
 HWTEST_F(RSBackgroundStyleModifierNGTypeTest, RSBackgroundStyleModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSBackgroundStyleModifier> modifier = std::make_shared<ModifierNG::RSBackgroundStyleModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundStyleModifier>();
     ModifierNG::RSDrawingContext context;
     modifier->Draw(context);
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::BACKGROUND_STYLE);

@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,8 @@ public:
  */
 HWTEST_F(RSOverlayStyleModifierNGTypeTest, RSOverlayStyleModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSOverlayStyleModifier> modifier = std::make_shared<ModifierNG::RSOverlayStyleModifier>();
+    std::shared_ptr<ModifierNG::RSOverlayStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSOverlayStyleModifier>();
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::OVERLAY_STYLE);
     EXPECT_EQ(modifier->GetInnerPropertyType(), ModifierNG::RSPropertyType::OVERLAY_STYLE);
 }

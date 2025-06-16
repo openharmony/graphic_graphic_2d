@@ -78,7 +78,8 @@ bool RSAlphaRenderModifierFuzzTest(const uint8_t* data, size_t size)
 
     // test
     ModifierId id = GetData<ModifierId>();
-    std::shared_ptr<ModifierNG::RSAlphaRenderModifier> modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>(id);
+    std::shared_ptr<ModifierNG::RSAlphaRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSAlphaRenderModifier>(id);
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -98,7 +99,8 @@ bool RSBackgroundFilterRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundFilterRenderModifier> modifier = std::make_shared<ModifierNG::RSBackgroundFilterRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundFilterRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundFilterRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -118,7 +120,8 @@ bool RSBehindWindowFilterRenderModifierFuzzTest(const uint8_t* data, size_t size
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBehindWindowFilterRenderModifier> modifier = std::make_shared<ModifierNG::RSBehindWindowFilterRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBehindWindowFilterRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBehindWindowFilterRenderModifier>();
     modifier->GetType();
     modifier->OnSetDirty();
     return true;
@@ -136,7 +139,8 @@ bool RSBlendRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBlendRenderModifier> modifier = std::make_shared<ModifierNG::RSBlendRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBlendRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBlendRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -156,7 +160,8 @@ bool RSBorderRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBorderRenderModifier> modifier = std::make_shared<ModifierNG::RSBorderRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBorderRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBorderRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -177,7 +182,8 @@ bool RSCompositingFilterRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSCompositingFilterRenderModifier> modifier = std::make_shared<ModifierNG::RSCompositingFilterRenderModifier>();
+    std::shared_ptr<ModifierNG::RSCompositingFilterRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSCompositingFilterRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -198,7 +204,8 @@ bool RSDynamicLightUpRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSDynamicLightUpRenderModifier> modifier = std::make_shared<ModifierNG::RSDynamicLightUpRenderModifier>();
+    std::shared_ptr<ModifierNG::RSDynamicLightUpRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSDynamicLightUpRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -219,7 +226,8 @@ bool RSForegroundFilterRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSForegroundFilterRenderModifier> modifier = std::make_shared<ModifierNG::RSForegroundFilterRenderModifier>();
+    std::shared_ptr<ModifierNG::RSForegroundFilterRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSForegroundFilterRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -240,7 +248,8 @@ bool RSHDRBrightnessRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSHDRBrightnessRenderModifier> modifier = std::make_shared<ModifierNG::RSHDRBrightnessRenderModifier>();
+    std::shared_ptr<ModifierNG::RSHDRBrightnessRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSHDRBrightnessRenderModifier>();
     modifier->GetType();
     modifier->OnSetDirty();
 
@@ -280,7 +289,8 @@ bool RSOutlineRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSOutlineRenderModifier> modifier = std::make_shared<ModifierNG::RSOutlineRenderModifier>();
+    std::shared_ptr<ModifierNG::RSOutlineRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSOutlineRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -301,7 +311,8 @@ bool RSParticleEffectRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSParticleEffectRenderModifier> modifier = std::make_shared<ModifierNG::RSParticleEffectRenderModifier>();
+    std::shared_ptr<ModifierNG::RSParticleEffectRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSParticleEffectRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -322,7 +333,8 @@ bool RSPixelStretchRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSPixelStretchRenderModifier> modifier = std::make_shared<ModifierNG::RSPixelStretchRenderModifier>();
+    std::shared_ptr<ModifierNG::RSPixelStretchRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSPixelStretchRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -342,7 +354,8 @@ bool RSPointLightRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSPointLightRenderModifier> modifier = std::make_shared<ModifierNG::RSPointLightRenderModifier>();
+    std::shared_ptr<ModifierNG::RSPointLightRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSPointLightRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -362,7 +375,8 @@ bool RSShadowRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSShadowRenderModifier> modifier = std::make_shared<ModifierNG::RSShadowRenderModifier>();
+    std::shared_ptr<ModifierNG::RSShadowRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSShadowRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -382,7 +396,8 @@ bool RSUseEffectRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSUseEffectRenderModifier> modifier = std::make_shared<ModifierNG::RSUseEffectRenderModifier>();
+    std::shared_ptr<ModifierNG::RSUseEffectRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSUseEffectRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -403,7 +418,8 @@ bool RSVisibilityRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSVisibilityRenderModifier> modifier = std::make_shared<ModifierNG::RSVisibilityRenderModifier>();
+    std::shared_ptr<ModifierNG::RSVisibilityRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSVisibilityRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);

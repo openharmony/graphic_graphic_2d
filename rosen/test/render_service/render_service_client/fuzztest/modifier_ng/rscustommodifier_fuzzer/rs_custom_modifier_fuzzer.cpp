@@ -66,7 +66,8 @@ bool RSBackgroundStyleModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundStyleModifier> modifier = std::make_shared<ModifierNG::RSBackgroundStyleModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundStyleModifier>();
 
     modifier->GetType();
     ModifierNG::RSDrawingContext context;
@@ -87,7 +88,8 @@ bool RSContentStyleModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSContentStyleModifier> modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    std::shared_ptr<ModifierNG::RSContentStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSContentStyleModifier>();
 
     modifier->GetType();
     ModifierNG::RSDrawingContext context;
@@ -109,7 +111,8 @@ bool RSForegroundStyleModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSForegroundStyleModifier> modifier = std::make_shared<ModifierNG::RSForegroundStyleModifier>();
+    std::shared_ptr<ModifierNG::RSForegroundStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSForegroundStyleModifier>();
 
     modifier->GetType();
     ModifierNG::RSDrawingContext context;
@@ -151,7 +154,8 @@ bool RSTransitionStyleModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSTransitionStyleModifier> modifier = std::make_shared<ModifierNG::RSTransitionStyleModifier>();
+    std::shared_ptr<ModifierNG::RSTransitionStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSTransitionStyleModifier>();
 
     modifier->GetType();
     ModifierNG::RSDrawingContext context;

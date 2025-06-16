@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -30,7 +29,8 @@ using namespace OHOS::Rosen::ModifierNG;
 namespace OHOS::Rosen::ModifierNG {
 class RSBackgroundFilterModifierNGTypeTest : public testing::Test {
 public:
-    std::shared_ptr<ModifierNG::RSBackgroundFilterModifier> modifier = std::make_shared<ModifierNG::RSBackgroundFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundFilterModifier>();
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
     void SetUp() override {}

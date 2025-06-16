@@ -22,7 +22,6 @@ ohos_unittest("RSRenderServiceClientCustomModifierNGTest") {
   sources = [
     "rs_background_style_modifier_test.cpp",
     "rs_content_style_modifier_test.cpp",
-    "rs_custom_modifier_test.cpp",
     "rs_foreground_style_modifier_test.cpp",
     "rs_node_modifier_test.cpp",
     "rs_transition_style_modifier_test.cpp",

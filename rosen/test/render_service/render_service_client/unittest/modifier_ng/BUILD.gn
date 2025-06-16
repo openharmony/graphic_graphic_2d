@@ -37,7 +37,11 @@ ohos_unittest("RSRenderServiceClientModifierNGTest") {
   ]
 
   deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
