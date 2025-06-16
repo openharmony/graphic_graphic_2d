@@ -2186,59 +2186,6 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateLight
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, 100, 100);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
 }
-
-/*
- * @tc.name: NativeDrawingCanvasTest_ColorFilterCToCpp001
- * @tc.desc: test for colorfilter object c to cpp.
- * @tc.type: FUNC
- * @tc.require: ICEWQ3
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCToCpp001, TestSize.Level1)
-{
-    OH_Drawing_ColorFilter* cColorFilter = OH_Drawing_ColorFilterCreateLighting(0xff0000ff, 0xff000001);
-    EXPECT_NE(cColorFilter, nullptr);
-    std::shared_ptr<ColorFilter> colorFilter = Helper::ColorFilterCToCpp(cColorFilter);
-    EXPECT_EQ(colorFilter->GetType(), ColorFilter::FilterType::LIGHTING);
-    OH_Drawing_ColorFilterDestroy(cColorFilter);
-}
-
-/*
- * @tc.name: NativeDrawingCanvasTest_ColorFilterCToCpp002
- * @tc.desc: test for nullptr c to cpp.
- * @tc.type: FUNC
- * @tc.require: ICEWQ3
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCToCpp002, TestSize.Level1)
-{
-    std::shared_ptr<ColorFilter> colorFilter = Helper::ColorFilterCToCpp(nullptr);
-    EXPECT_EQ(colorFilter, nullptr);
-}
-
-/*
- * @tc.name: NativeDrawingCanvasTest_ColorFilterCppToC001
- * @tc.desc: test for colorfilter object cpp to c.
- * @tc.type: FUNC
- * @tc.require: ICEWQ3
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCppToC001, TestSize.Level1)
-{
-    std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLightingColorFilter(0xff0000ff, 0xff000001);
-    EXPECT_NE(colorFilter, nullptr);
-    OH_Drawing_ColorFilter* cColorFilter = Helper::ColorFilterCppToC(&colorFilter);
-    EXPECT_NE(cColorFilter, nullptr);
-}
-
-/*
- * @tc.name: NativeDrawingCanvasTest_ColorFilterCppToC002
- * @tc.desc: test for nullptr cpp to c.
- * @tc.type: FUNC
- * @tc.require: ICEWQ3
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCppToC002, TestSize.Level1)
-{
-    OH_Drawing_ColorFilter* cColorFilter = Helper::ColorFilterCppToC(nullptr);
-    EXPECT_EQ(cColorFilter, nullptr);
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
