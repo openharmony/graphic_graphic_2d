@@ -1376,10 +1376,10 @@ HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag01, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     node->OpincUpdateNodeSupportFlag(false, false);
-    ASSERT_FALSE(node->OpincGetNodeSupportFlag());
+    ASSERT_FALSE(node->GetOpincCache().OpincGetSupportFlag());
 
     node->OpincUpdateNodeSupportFlag(false, true);
-    ASSERT_FALSE(node->OpincGetNodeSupportFlag());
+    ASSERT_FALSE(node->GetOpincCache().OpincGetSupportFlag());
 }
 
 /**
@@ -1392,10 +1392,10 @@ HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag02, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     node->OpincUpdateNodeSupportFlag(true, false);
-    ASSERT_TRUE(node->OpincGetNodeSupportFlag());
+    ASSERT_TRUE(node->GetOpincCache().OpincGetSupportFlag());
 
     node->OpincUpdateNodeSupportFlag(true, true);
-    ASSERT_FALSE(node->OpincGetNodeSupportFlag());
+    ASSERT_FALSE(node->GetOpincCache().OpincGetSupportFlag());
 }
 
 /**

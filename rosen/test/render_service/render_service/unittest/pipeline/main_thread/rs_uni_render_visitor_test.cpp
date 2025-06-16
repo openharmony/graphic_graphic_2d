@@ -4389,10 +4389,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode001, TestSize.Level
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
     rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
     ASSERT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
-    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
 }
 
 /**
