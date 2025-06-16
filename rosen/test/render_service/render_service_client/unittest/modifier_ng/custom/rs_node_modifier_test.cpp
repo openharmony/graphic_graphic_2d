@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -49,6 +48,5 @@ HWTEST_F(RSNodeModifierNGTypeTest, RSNodeModifierTest, TestSize.Level1)
     std::shared_ptr<ModifierNG::RSNodeModifier> modifier = std::make_shared<ModifierNG::RSNodeModifier>();
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::NODE_MODIFIER);
     EXPECT_EQ(modifier->GetInnerPropertyType(), ModifierNG::RSPropertyType::NODE_MODIFIER);
-
 }
 } // namespace OHOS::Rosen

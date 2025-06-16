@@ -61,7 +61,8 @@ bool RSEnvForegroundColorRenderModifierFuzzTest(const uint8_t* data, size_t size
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSEnvForegroundColorRenderModifier> modifier = std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
+    std::shared_ptr<ModifierNG::RSEnvForegroundColorRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->GetType();
     modifier->OnSetDirty();
     RSPaintFilterCanvas* canvas = nullptr;
@@ -82,7 +83,8 @@ bool RSForegroundColorRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSForegroundColorRenderModifier> modifier = std::make_shared<ModifierNG::RSForegroundColorRenderModifier>();
+    std::shared_ptr<ModifierNG::RSForegroundColorRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSForegroundColorRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);

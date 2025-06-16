@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,8 @@ public:
  */
 HWTEST_F(RSDynamicLightUpModifierNGTypeTest, RSDynamicLightUpModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSDynamicLightUpModifier> modifier = std::make_shared<ModifierNG::RSDynamicLightUpModifier>();
+    std::shared_ptr<ModifierNG::RSDynamicLightUpModifier> modifier =
+        std::make_shared<ModifierNG::RSDynamicLightUpModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::DYNAMIC_LIGHT_UP);
 

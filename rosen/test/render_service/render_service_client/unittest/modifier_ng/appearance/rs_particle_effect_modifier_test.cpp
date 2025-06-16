@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,8 @@ public:
  */
 HWTEST_F(RSParticleEffectModifierNGTypeTest, RSParticleEffectModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSParticleEffectModifier> modifier = std::make_shared<ModifierNG::RSParticleEffectModifier>();
+    std::shared_ptr<ModifierNG::RSParticleEffectModifier> modifier =
+        std::make_shared<ModifierNG::RSParticleEffectModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::PARTICLE_EFFECT);
 

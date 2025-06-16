@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,8 @@ public:
  */
 HWTEST_F(RSEnvForegroundColorModifierNGTypeTest, RSEnvForegroundColorModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSEnvForegroundColorModifier> modifier = std::make_shared<ModifierNG::RSEnvForegroundColorModifier>();
+    std::shared_ptr<ModifierNG::RSEnvForegroundColorModifier> modifier =
+        std::make_shared<ModifierNG::RSEnvForegroundColorModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR);
 

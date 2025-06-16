@@ -100,7 +100,8 @@ bool BackgroundFilterModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundFilterModifier> modifier = std::make_shared<ModifierNG::RSBackgroundFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundFilterModifier>();
 
     bool randomBool = GetData<bool>();
     float randomFloat = GetData<float>();
@@ -167,7 +168,8 @@ bool BehindWindowFilterModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier = std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
+    std::shared_ptr<ModifierNG::RSBehindWindowFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSBehindWindowFilterModifier>();
 
     float randomFloat = GetData<float>();
     modifier->SetBehindWindowFilterRadius(randomFloat);
@@ -270,7 +272,8 @@ bool CompositingFilterModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSCompositingFilterModifier> modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    std::shared_ptr<ModifierNG::RSCompositingFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSCompositingFilterModifier>();
 
     Vector4f aiInvert{GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()};
     modifier->SetAiInvert(aiInvert);
@@ -311,7 +314,8 @@ bool CompositingFilterModifierFuzzTest(const uint8_t* data, size_t size)
     float blurRadius = GetData<float>();
     std::vector<std::pair<float, float>> fractionStops = {{GetData<float>(), GetData<float>()}};
     GradientDirection direction = GetData<GradientDirection>();
-    std::shared_ptr<RSLinearGradientBlurPara> params = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
+    std::shared_ptr<RSLinearGradientBlurPara> params =
+        std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
     modifier->SetLinearGradientBlurPara(params);
     modifier->GetLinearGradientBlurPara();
 
@@ -357,7 +361,8 @@ bool DynamicLightUpModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSDynamicLightUpModifier> modifier = std::make_shared<ModifierNG::RSDynamicLightUpModifier>();
+    std::shared_ptr<ModifierNG::RSDynamicLightUpModifier> modifier =
+        std::make_shared<ModifierNG::RSDynamicLightUpModifier>();
 
     float randomFloat = GetData<float>();
     modifier->SetDynamicLightUpRate(randomFloat);
@@ -381,7 +386,8 @@ bool ForegroundFilterModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSForegroundFilterModifier> modifier = std::make_shared<ModifierNG::RSForegroundFilterModifier>();
+    std::shared_ptr<ModifierNG::RSForegroundFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSForegroundFilterModifier>();
 
     float randomFloat = GetData<float>();
     modifier->SetSpherize(randomFloat);
@@ -428,7 +434,8 @@ bool HDRBrightnessModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSHDRBrightnessModifier> modifier = std::make_shared<ModifierNG::RSHDRBrightnessModifier>();
+    std::shared_ptr<ModifierNG::RSHDRBrightnessModifier> modifier =
+        std::make_shared<ModifierNG::RSHDRBrightnessModifier>();
     float randomFloat = GetData<float>();
     modifier->SetHDRBrightness(randomFloat);
     modifier->GetHDRBrightness();
@@ -508,13 +515,15 @@ bool ParticleEffectModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSParticleEffectModifier> modifier = std::make_shared<ModifierNG::RSParticleEffectModifier>();
+    std::shared_ptr<ModifierNG::RSParticleEffectModifier> modifier =
+        std::make_shared<ModifierNG::RSParticleEffectModifier>();
 
     uint32_t emitterIndex = GetData<uint32_t>();
     std::optional<Vector2f> position = std::make_optional<Vector2f>();
     std::optional<Vector2f> emitSize = std::make_optional<Vector2f>();
     std::optional<int> emitRate = std::make_optional<int>(GetData<int>());
-    std::vector<std::shared_ptr<EmitterUpdater>> para = { std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate) };
+    std::vector<std::shared_ptr<EmitterUpdater>> para =
+        { std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate) };
     modifier->SetEmitterUpdater(para);
     modifier->GetEmitterUpdater();
 
@@ -536,7 +545,8 @@ bool PixelStretchModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSPixelStretchModifier> modifier = std::make_shared<ModifierNG::RSPixelStretchModifier>();
+    std::shared_ptr<ModifierNG::RSPixelStretchModifier> modifier =
+        std::make_shared<ModifierNG::RSPixelStretchModifier>();
     Vector4f randomVec4F(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     modifier->SetPixelStretchSize(randomVec4F);
     modifier->GetPixelStretchSize();

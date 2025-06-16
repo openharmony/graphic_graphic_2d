@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,8 +45,8 @@ public:
  */
 HWTEST_F(RSPixelStretchModifierNGTypeTest, RSPixelStretchModifierTest, TestSize.Level1)
 {
-
-    std::shared_ptr<ModifierNG::RSPixelStretchModifier> modifier = std::make_shared<ModifierNG::RSPixelStretchModifier>();
+    std::shared_ptr<ModifierNG::RSPixelStretchModifier> modifier =
+        std::make_shared<ModifierNG::RSPixelStretchModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::PIXEL_STRETCH);
 
@@ -62,6 +61,5 @@ HWTEST_F(RSPixelStretchModifierNGTypeTest, RSPixelStretchModifierTest, TestSize.
     Vector4f pixelStretchPercent(0.1f, 0.2f, 0.3f, 0.4f);
     modifier->SetPixelStretchPercent(pixelStretchPercent);
     EXPECT_EQ(modifier->GetPixelStretchPercent(), pixelStretchPercent);
-
 }
 } // namespace OHOS::Rosen

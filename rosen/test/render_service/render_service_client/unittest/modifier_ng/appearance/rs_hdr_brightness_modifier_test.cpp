@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,8 @@ public:
  */
 HWTEST_F(RSHDRBrightnessModifierNGTypeTest, RSHDRBrightnessModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSHDRBrightnessModifier> modifier = std::make_shared<ModifierNG::RSHDRBrightnessModifier>();
+    std::shared_ptr<ModifierNG::RSHDRBrightnessModifier> modifier =
+        std::make_shared<ModifierNG::RSHDRBrightnessModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::HDR_BRIGHTNESS);
 

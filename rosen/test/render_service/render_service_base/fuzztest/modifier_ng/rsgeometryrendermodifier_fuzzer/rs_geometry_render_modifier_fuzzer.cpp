@@ -65,14 +65,15 @@ bool RSBoundsClipRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBoundsClipRenderModifier> modifier = std::make_shared<ModifierNG::RSBoundsClipRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBoundsClipRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBoundsClipRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
     modifier->GetLegacyPropertyApplierMap();
 
     return true;
-}   
+}
 
 bool RSBoundsRenderModifierFuzzTest(const uint8_t* data, size_t size)
 {
@@ -86,7 +87,8 @@ bool RSBoundsRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSBoundsRenderModifier> modifier = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    std::shared_ptr<ModifierNG::RSBoundsRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSBoundsRenderModifier>();
     modifier->GetType();
     modifier->GetLegacyPropertyApplierMap();
     modifier->OnSetDirty();
@@ -105,7 +107,8 @@ bool RSFrameClipRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSFrameClipRenderModifier> modifier = std::make_shared<ModifierNG::RSFrameClipRenderModifier>();
+    std::shared_ptr<ModifierNG::RSFrameClipRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSFrameClipRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);
@@ -129,7 +132,8 @@ bool RSFrameRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSFrameRenderModifier> modifier = std::make_shared<ModifierNG::RSFrameRenderModifier>();
+    std::shared_ptr<ModifierNG::RSFrameRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSFrameRenderModifier>();
     modifier->GetType();
     modifier->GetLegacyPropertyApplierMap();
     modifier->OnSetDirty();
@@ -149,7 +153,8 @@ bool RSTransformRenderModifierFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<ModifierNG::RSTransformRenderModifier> modifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
+    std::shared_ptr<ModifierNG::RSTransformRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSTransformRenderModifier>();
     modifier->GetType();
     RSProperties properties;
     modifier->ResetProperties(properties);

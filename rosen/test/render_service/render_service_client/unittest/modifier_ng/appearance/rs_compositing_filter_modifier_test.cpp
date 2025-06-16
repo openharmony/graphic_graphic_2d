@@ -17,7 +17,6 @@
 #include <cstring>
 #include <memory>
 #include <securec.h>
-#include <string.h>
 
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
@@ -46,7 +45,8 @@ public:
  */
 HWTEST_F(RSCompositingFilterModifierNGTypeTest, RSCompositingFilterModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSCompositingFilterModifier> modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
+    std::shared_ptr<ModifierNG::RSCompositingFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSCompositingFilterModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::COMPOSITING_FILTER);
 
