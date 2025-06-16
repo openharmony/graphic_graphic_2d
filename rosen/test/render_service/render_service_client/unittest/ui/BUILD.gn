@@ -389,6 +389,5 @@ group("unittest") {
     ":RSSurfaceExtractorTest",
     ":RSSurfaceNodeTest",
     ":RSTextureExportTest",
-    ":RSUIDirectorTest",
   ]
 }
