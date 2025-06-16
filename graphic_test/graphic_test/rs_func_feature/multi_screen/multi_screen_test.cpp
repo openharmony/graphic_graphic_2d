@@ -70,7 +70,7 @@ public:
 
 class CustomizedBufferConsumerListener : public IBufferConsumerListener {
 public:
-    CustomizedBufferConsumerListener(spr<Surface> consumerSurface, sptr<Surface> pruducerSurface)
+    CustomizedBufferConsumerListener(sptr<Surface> consumerSurface, sptr<Surface> pruducerSurface)
         : consumerSurface_(consumerSurface), pruducerSurface_(pruducerSurface)
     {}
     ~CustomizedBufferConsumerListener() {}
@@ -88,12 +88,12 @@ public:
         sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         SurfaceError ret = consumerSurface_->AcquireBuffer(buffer, acquireFence, timestamp, damage);
         if (ret != SURFACE_ERROR_OK || buffer == nullptr) {
-            std::cout << "AcquireBuffr failed, ret is " << ret << std::endl;
+            std::cout << "AcquireBuffer failed, ret is " << ret << std::endl;
             return;
         }
         OHOS::Rect rect = { 0, 0, buffer->GetWidth(), buffer->GetHeight() };
         std::shared_ptr<Media::PixelMap> pixelMap =
-            RSInterface::GetInstance().CreatePixelMapFromSurfaceId(pruducerSurface_->GetUniqueId(), rect);
+            RSInterfaces::GetInstance().CreatePixelMapFromSurfaceId(pruducerSurface_->GetUniqueId(), rect);
         if (pixelMap == nullptr) {
             std::cout << "pixelMap is nullptr" << std::endl;
             return;
@@ -141,7 +141,7 @@ public:
         std::cout << "BeforeEach" << std::endl;
         uint64_t tokenId;
         const char* perms[1];
-        perms[0] = "ohos.permission.CAPTURE.SCREEN";
+        perms[0] = "ohos.permission.CAPTURE_SCREEN";
         NativeTokenInfoParams infoInstance = {
             .dcapsNum = 0,
             .permsNum = 1,
@@ -388,7 +388,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_004)
     csurface2->RegisterConsumerListener(listener);
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_004_2", width, height, psurface2, screenId1, -1, {});
+        "MULTI_SCREEN_TEST_004_2", 2 * width, 5 * height, psurface2, screenId1, -1, {});
     if (screenId2 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen2 failed");
         return;
@@ -605,7 +605,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
     auto producer1 = csurface1->GetProducer();
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_009", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_009", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
     if (screenId1 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen1 failed");
         return;
@@ -653,7 +653,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
     csurface2->RegisterConsumerListener(listener);
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_009_2", width, height, psurface2, screenId1, -1, {});
+        "MULTI_SCREEN_TEST_009_2", width, height, psurface2, screenId1, 0, {});
     if (screenId2 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen2 failed");
         return;
@@ -785,7 +785,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_011)
     csurface2->RegisterConsumerListener(listener);
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_011_2", width, height, psurface2, screenId1, -1, {});
+        "MULTI_SCREEN_TEST_011_2", width, height, psurface2, screenId1, 0, {});
     if (screenId2 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen2 failed");
         return;
@@ -820,7 +820,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
     auto producer1 = csurface1->GetProducer();
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_012", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_012", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
     if (screenId1 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen1 failed");
         return;
@@ -868,7 +868,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
     csurface2->RegisterConsumerListener(listener);
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_012_2", width, height, psurface2, screenId1, -1, {});
+        "MULTI_SCREEN_TEST_012_2", width, height, psurface2, 0, {});
     if (screenId2 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen2 failed");
         return;
@@ -908,7 +908,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
     auto producer1 = csurface1->GetProducer();
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_013", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_013", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
     if (screenId1 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen1 failed");
         return;
@@ -956,7 +956,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
     csurface2->RegisterConsumerListener(listener);
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_013_2", width, height, psurface2, screenId1, -1, {});
+        "MULTI_SCREEN_TEST_013_2", width, height, psurface2, screenId1, 0, {});
     if (screenId2 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen2 failed");
         return;
@@ -998,7 +998,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
     auto producer1 = csurface1->GetProducer();
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_014", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_014", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
     if (screenId1 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen1 failed");
         return;
@@ -1046,7 +1046,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
     csurface2->RegisterConsumerListener(listener);
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_014_2", width, height, psurface2, screenId1, -1, {});
+        "MULTI_SCREEN_TEST_014_2", width, height, psurface2, screenId1, 0, {});
     if (screenId2 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen2 failed");
         return;
@@ -1087,7 +1087,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_015)
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_015", width, height, psurface, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_015", width, height, psurface, INVALID_SCREEN_ID, 0, {});
     if (screenId == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen failed");
         return;
@@ -1099,7 +1099,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_015)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_015 screenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_015 screenId: " << screenId << "nodeId1: " << displayNode->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1148,7 +1148,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_016)
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_016", width, height, psurface, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_016", width, height, psurface, INVALID_SCREEN_ID, 0, {});
     if (screenId == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen failed");
         return;
@@ -1160,7 +1160,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_016)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_016 screenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_016 screenId: " << screenId << "nodeId1: " << displayNode->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1210,7 +1210,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_017)
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_017", width, height, psurface, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_017", width, height, psurface, INVALID_SCREEN_ID, 0, {});
     if (screenId == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen failed");
         return;
@@ -1222,7 +1222,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_017)
         LOGE("displayNode is nullptr");
         return;
     }
-    std::cout << "MULTI_SCREEN_TEST_017 screenId1: " << screenId << "nodeId1: " << displayNode1->GetId() << std::endl;
+    std::cout << "MULTI_SCREEN_TEST_017 screenId: " << screenId << "nodeId1: " << displayNode->GetId() << std::endl;
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1271,7 +1271,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
     auto producer1 = csurface1->GetProducer();
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_018", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
+        "MULTI_SCREEN_TEST_018", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
     if (screenId1 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen1 failed");
         return;
@@ -1300,12 +1300,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
     surfaceNode1->SetFrame({ 0, 0, 400, 400 });
     surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
 
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode0);
-    displayNode->SetBackgroundColor(SK_ColorBLACK);
-
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode0);
+ 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
@@ -1319,7 +1318,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
     csurface2->RegisterConsumerListener(listener);
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_018_2", width, height, psurface2, screenId1, -1, {});
+        "MULTI_SCREEN_TEST_018_2", width, height, psurface2, screenId1, 0, {});
     if (screenId2 == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen2 failed");
         return;
