@@ -828,7 +828,7 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
     hfbcConfig.HandleHfbcConfig(packageList);
     multiAppStrategy_.HandlePkgsEvent(packageList);
-    HgmEventDistributor::Instance().HandlePackageEvent(packageList);
+    HgmEventDistributor::Instance()->HandlePackageEvent(packageList);
     MarkVoteChange("VOTER_SCENE");
     UpdateAppSupportedState();
 }
@@ -1152,7 +1152,7 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
 {
     // control the list of supported frame rates for stylus pen, not control frame rate directly
     HandleStylusSceneEvent(eventInfo.description);
-    HgmEventDistributor::Instance().HandleSceneEvent(pid, eventInfo);
+    HgmEventDistributor::Instance()->HandleSceneEvent(pid, eventInfo);
 }
 
 void HgmFrameRateManager::HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo)
@@ -1482,7 +1482,7 @@ void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::str
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT);
     }
-    HgmEventDistributor::Instance().HandleAppStrategyConfigEvent(pkgName, newConfig);
+    HgmEventDistributor::Instance()->HandleAppStrategyConfigEvent(pkgName, newConfig);
 }
 
 void HgmFrameRateManager::SetChangeGeneratorRateValid(bool valid)

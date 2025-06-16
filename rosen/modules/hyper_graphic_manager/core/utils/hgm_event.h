@@ -23,20 +23,22 @@
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
 namespace OHOS::Rosen {
+class HgmEventDistributor;
 class HgmEvent {
 public:
     HgmEvent();
-    // dont throw exceptions in any virtual function
     virtual ~HgmEvent();
     virtual void HandlePackageEvent(const std::vector<std::string>& packageList) {}
     virtual void HandleSceneEvent(pid_t pid, EventInfo eventInfo) {}
     virtual void HandleAppStrategyConfigEvent(const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig) {}
+private:
+    wptr<HgmEventDistributor> eventDistributor_;
 };
 
-class HgmEventDistributor {
+class HgmEventDistributor : public RefBase {
 public:
-    static HgmEventDistributor& Instance();
+    static sptr<HgmEventDistributor> Instance();
 
     void HandlePackageEvent(const std::vector<std::string>& packageList)
     {
@@ -77,17 +79,22 @@ private:
 
 inline HgmEvent::HgmEvent()
 {
-    HgmEventDistributor::Instance().AddEventInstance(this);
+    auto eventDistributorSPtr = HgmEventDistributor::Instance();
+    eventDistributorSPtr->AddEventInstance(this);
+    eventDistributor_ = eventDistributorSPtr;
 }
 
 inline HgmEvent::~HgmEvent()
 {
-    HgmEventDistributor::Instance().RemoveEventInstance(this);
+    auto eventDistributorSPtr = eventDistributor_.promote();
+    if (eventDistributorSPtr != nullptr) {
+        eventDistributorSPtr->RemoveEventInstance(this);
+    }
 }
 
-inline HgmEventDistributor& HgmEventDistributor::Instance()
+inline sptr<HgmEventDistributor> HgmEventDistributor::Instance()
 {
-    static HgmEventDistributor instance;
+    static sptr<HgmEventDistributor> instance(new HgmEventDistributor());
     return instance;
 }
 
