@@ -175,30 +175,35 @@ group("test") {
     "render_service_base/fuzztest/rsanimationfractionstandard_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationratedeciderstandard_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsspringmodelstandard_fuzzer:fuzztest",
-    "render_service_base/fuzztest/modifier_ng/rsappearancerendermodifier_fuzzer:fuzztest",
-    "render_service_base/fuzztest/modifier_ng/rsbackgroundrendermodifier_fuzzer:fuzztest",
-    "render_service_base/fuzztest/modifier_ng/rsforegroundrendermodifier_fuzzer:fuzztest",
-    "render_service_base/fuzztest/modifier_ng/rsgeometryrendermodifier_fuzzer:fuzztest",
-    "render_service_client/fuzztest/modifier_ng/rsappearancemodifier_fuzzer:fuzztest",
-    "render_service_client/fuzztest/modifier_ng/rsbackgroundmodifier_fuzzer:fuzztest",
-    "render_service_client/fuzztest/modifier_ng/rscustommodifier_fuzzer:fuzztest",
-    "render_service_client/fuzztest/modifier_ng/rsforegroundmodifier_fuzzer:fuzztest",
-    "render_service_client/fuzztest/modifier_ng/rsgeometrymodifier_fuzzer:fuzztest",
-    "render_service_client/fuzztest/modifier_ng/rsoverlaymodifier_fuzzer:fuzztest",
-    "render_service_base/unittest/modifier_ng:unittest",
-    "render_service_base/unittest/modifier_ng/appearance:unittest",
-    "render_service_base/unittest/modifier_ng/background:unittest",
-    "render_service_base/unittest/modifier_ng/foreground:unittest",
-    "render_service_base/unittest/modifier_ng/geometry:unittest",
-    "render_service_client/unittest/modifier_ng:unittest",
-    "render_service_client/unittest/modifier_ng/appearance:unittest",
-    "render_service_client/unittest/modifier_ng/background:unittest",
-    "render_service_client/unittest/modifier_ng/custom:unittest",
-    "render_service_client/unittest/modifier_ng/foreground:unittest",
-    "render_service_client/unittest/modifier_ng/geometry:unittest",
-    "render_service_client/unittest/modifier_ng/overlay:unittest",
-
   ]
+
+
+  if (graphic_2d_modifier_ng_enable) {
+    deps += [
+      "render_service_base/fuzztest/modifier_ng/rsappearancerendermodifier_fuzzer:fuzztest",
+      "render_service_base/fuzztest/modifier_ng/rsbackgroundrendermodifier_fuzzer:fuzztest",
+      "render_service_base/fuzztest/modifier_ng/rsforegroundrendermodifier_fuzzer:fuzztest",
+      "render_service_base/fuzztest/modifier_ng/rsgeometryrendermodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsappearancemodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsbackgroundmodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rscustommodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsforegroundmodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsgeometrymodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsoverlaymodifier_fuzzer:fuzztest",
+      "render_service_base/unittest/modifier_ng:unittest",
+      "render_service_base/unittest/modifier_ng/appearance:unittest",
+      "render_service_base/unittest/modifier_ng/background:unittest",
+      "render_service_base/unittest/modifier_ng/foreground:unittest",
+      "render_service_base/unittest/modifier_ng/geometry:unittest",
+      "render_service_client/unittest/modifier_ng:unittest",
+      "render_service_client/unittest/modifier_ng/appearance:unittest",
+      "render_service_client/unittest/modifier_ng/background:unittest",
+      "render_service_client/unittest/modifier_ng/custom:unittest",
+      "render_service_client/unittest/modifier_ng/foreground:unittest",
+      "render_service_client/unittest/modifier_ng/geometry:unittest",
+      "render_service_client/unittest/modifier_ng/overlay:unittest",
+    ]
+  }
 
   if (graphic_2d_feature_enable_vulkan) {
     deps += [
