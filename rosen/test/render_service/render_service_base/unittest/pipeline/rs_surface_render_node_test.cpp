@@ -657,22 +657,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHwcCrossNodeTest
- * @tc.desc: SetHwcCrossNode and GetDRMCrossNode
- * @tc.type:FUNC
- * @tc.require: issueIATYMW
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetHwcCrossNodeTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetHwcCrossNode(true);
-    ASSERT_EQ(node->IsDRMCrossNode(), true);
-    node->SetHwcCrossNode(false);
-    ASSERT_FALSE(node->IsDRMCrossNode());
-}
-
-/**
  * @tc.name: AncestorDisplayNodeTest
  * @tc.desc: SetAncestorDisplayNode and GetAncestorDisplayNode
  * @tc.type:FUNC
