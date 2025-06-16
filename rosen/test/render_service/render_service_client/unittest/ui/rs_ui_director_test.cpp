@@ -117,6 +117,8 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
     director->SetRSSurfaceNode(surfaceNode);
+    auto ret = director->GetRSSurfaceNode();
+    ASSERT_NE(ret, nullptr);
 }
 
 /**
