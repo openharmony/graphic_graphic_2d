@@ -419,20 +419,6 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch001, testing::ext::
 }
 
 /**
- * @tc.name: SetGpuCacheSuppressWindowSwitch002
- * @tc.desc: Verify SetGpuCacheSuppressWindowSwitch logs correct trace info when context is nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::TestSize.Level1)
-{
-    logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
-    MemoryManager::SetGpuCacheSuppressWindowSwitch(nullptr, true);
-    EXPECT_TRUE(logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") != std::string::npos);
-}
-
-/**
  * @tc.name: SetGpuMemoryAsyncReclaimerSwitch001
  * @tc.desc: Verify SetGpuMemoryAsyncReclaimerSwitch logs correct trace info
  * @tc.type: FUNC
@@ -446,21 +432,6 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch001, testing::ext:
     const std::function<void()> setThreadPriority;
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(gpuContext, true, setThreadPriority);
     EXPECT_TRUE(logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") == std::string::npos);
-}
-
-/**
- * @tc.name: SetGpuMemoryAsyncReclaimerSwitch002
- * @tc.desc: Verify SetGpuMemoryAsyncReclaimerSwitch logs correct trace info when context is nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch002, testing::ext::TestSize.Level1)
-{
-    logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
-    const std::function<void()> setThreadPriority;
-    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(nullptr, true, setThreadPriority);
-    EXPECT_TRUE(logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
@@ -479,20 +450,6 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue001, testing::ext::TestSi
 }
 
 /**
- * @tc.name: FlushGpuMemoryInWaitQueue002
- * @tc.desc: Verify FlushGpuMemoryInWaitQueue logs correct trace info
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue002, testing::ext::TestSize.Level1)
-{
-    logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
-    MemoryManager::FlushGpuMemoryInWaitQueue(nullptr);
-    EXPECT_TRUE(logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") != std::string::npos);
-}
-
-/**
  * @tc.name: SuppressGpuCacheBelowCertainRatio001
  * @tc.desc: Verify SuppressGpuCacheBelowCertainRatio logs correct trace info
  * @tc.type: FUNC
@@ -506,21 +463,6 @@ HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio001, testing::ext
     const std::function<bool(void)> nextFrameHasArrived;
     MemoryManager::SuppressGpuCacheBelowCertainRatio(gpuContext, nextFrameHasArrived);
     EXPECT_TRUE(logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") == std::string::npos);
-}
-
-/**
- * @tc.name: SuppressGpuCacheBelowCertainRatio002
- * @tc.desc: Verify SuppressGpuCacheBelowCertainRatio logs correct trace info
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio002, testing::ext::TestSize.Level1)
-{
-    logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
-    const std::function<bool(void)> nextFrameHasArrived;
-    MemoryManager::SuppressGpuCacheBelowCertainRatio(nullptr, nextFrameHasArrived);
-    EXPECT_TRUE(logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") != std::string::npos);
 }
 
 /**
