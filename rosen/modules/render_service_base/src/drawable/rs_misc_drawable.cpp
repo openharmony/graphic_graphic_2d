@@ -592,7 +592,7 @@ bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
         return false;
     }
-    Vector4f clipRectV4f = modifier->Getter<Vector4f>(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME, Vector4f());
+    const auto& clipRectV4f = modifier->Getter<Vector4f>(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME, Vector4f());
 #else
     auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(node.GetDrawCmdModifiers());
     auto itr = drawCmdModifiers.find(RSModifierType::CUSTOM_CLIP_TO_FRAME);
@@ -601,7 +601,7 @@ bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     }
     const auto& modifier = itr->second.back();
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
-    Vector4f clipRectV4f = renderProperty->Get();
+    const auto& clipRectV4f = renderProperty->Get();
 #endif
     stagingCustomClipRect_ = Drawing::Rect(clipRectV4f.x_, clipRectV4f.y_, clipRectV4f.z_, clipRectV4f.w_);
     needSync_ = true;
