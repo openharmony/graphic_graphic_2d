@@ -35,11 +35,7 @@ ohos_unittest("RSRenderServiceClientGeometryModifierNGTest") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/test/include",
   ]
 
   cflags = [
@@ -48,7 +44,11 @@ ohos_unittest("RSRenderServiceClientGeometryModifierNGTest") {
   ]
 
   deps = [
-    "../../../../../../modules/render_service_client:render_service_client_src",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
   external_deps = [
     "c_utils:utils",
