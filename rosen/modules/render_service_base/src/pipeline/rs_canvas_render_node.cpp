@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include "modifier/rs_modifier_type.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_common_def.h"
@@ -39,7 +40,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
-}
+constexpr ModifierId ANONYMOUS_MODIFIER_NG_ID = 0;
+} // namespace
 
 RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSRenderNode(id, context, isTextureExportNode)
@@ -59,8 +61,8 @@ RSCanvasRenderNode::~RSCanvasRenderNode()
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
-void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
-    RSModifierType type, bool isSingleFrameComposer)
+void RSCanvasRenderNode::UpdateRecording(
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type, bool isSingleFrameComposer)
 {
     if (!drawCmds || drawCmds->IsEmpty()) {
         return;
@@ -71,9 +73,26 @@ void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> d
     AddModifier(renderModifier, isSingleFrameComposer);
 }
 
+void RSCanvasRenderNode::UpdateRecordingNG(
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds, ModifierNG::RSModifierType type, bool isSingleFrameComposer)
+{
+    if (!drawCmds || drawCmds->IsEmpty()) {
+        return;
+    }
+    auto renderProperty =
+        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_NG_ID);
+    auto renderModifier =
+        ModifierNG::RSRenderModifier::MakeRenderModifier<Drawing::DrawCmdListPtr>(type, renderProperty);
+    AddModifier(renderModifier, isSingleFrameComposer);
+}
+
 void RSCanvasRenderNode::ClearRecording()
 {
+#if defined(MODIFIER_NG)
+    RemoveModifierNG(ANONYMOUS_MODIFIER_NG_ID);
+#else
     RemoveModifier(ANONYMOUS_MODIFIER_ID);
+#endif
 }
 
 void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -153,9 +172,13 @@ void RSCanvasRenderNode::ProcessShadowBatching(RSPaintFilterCanvas& canvas)
 
 void RSCanvasRenderNode::DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas)
 {
+#if defined(MODIFIER_NG)
+    ApplyDrawCmdModifier(context, ModifierNG::RSModifierType::TRANSITION_STYLE);
+    ApplyDrawCmdModifier(context, ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR);
+#else
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
-
+#endif
     auto parent = GetParent().lock();
     if (!(parent && parent->GetRenderProperties().GetUseShadowBatching())) {
         RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
@@ -219,6 +242,31 @@ void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& can
 void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
     DrawPropertyDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::RESTORE_ALL, canvas);
+}
+
+void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, ModifierNG::RSModifierType type)
+{
+    const auto& modifiers = GetModifiersNG(type);
+    if (modifiers.empty()) {
+        return;
+    }
+    if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        bool needSkip = false;
+        if (GetNodeIsSingleFrameComposer() && singleFrameComposer_ != nullptr) {
+            auto& modifierList = const_cast<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>&>(modifiers);
+            needSkip = singleFrameComposer_->SingleFrameModifierAddToListNG(type, modifierList);
+        }
+        for (const auto& modifier : modifiers) {
+            if (singleFrameComposer_ != nullptr && singleFrameComposer_->SingleFrameIsNeedSkipNG(needSkip, modifier)) {
+                continue;
+            }
+            modifier->Apply(context.canvas_, context.properties_);
+        }
+    } else {
+        for (const auto& modifier : modifiers) {
+            modifier->Apply(context.canvas_, context.properties_);
+        }
+    }
 }
 
 void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type)

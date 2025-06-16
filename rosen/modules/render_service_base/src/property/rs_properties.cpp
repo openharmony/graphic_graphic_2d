@@ -36,6 +36,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_attraction_effect_filter.h"
+#include "render/rs_border_light_shader.h"
 #include "render/rs_colorful_shadow_filter.h"
 #include "render/rs_distortion_shader_filter.h"
 #include "render/rs_filter.h"
@@ -46,6 +47,7 @@
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_always_snapshot_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
+#include "render/rs_render_content_light_filter.h"
 #include "render/rs_render_dispersion_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 #include "render/rs_render_edge_light_filter.h"
@@ -86,7 +88,7 @@ const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
 constexpr float ATTRACTION_VALID_EPSILON = 0.001f; // used to judge if attraction valid
-constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
+constexpr uint8_t BORDER_TYPE_NONE = static_cast<uint8_t>(BorderStyle::NONE);
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
@@ -131,7 +133,6 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::BG_IMAGE_HEIGHT,                      [](RSProperties* prop) { prop->SetBgImageHeight(0.f); }},
     { RSModifierType::BG_IMAGE_POSITION_X,                  [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); }},
     { RSModifierType::BG_IMAGE_POSITION_Y,                  [](RSProperties* prop) { prop->SetBgImagePositionY(0.f); }},
-    { RSModifierType::SURFACE_BG_COLOR,                     nullptr},
     { RSModifierType::BORDER_COLOR,                         [](RSProperties* prop) {
                                                                 prop->SetBorderColor(RSColor()); }},
     { RSModifierType::BORDER_WIDTH,                         [](RSProperties* prop) { prop->SetBorderWidth(0.f); }},
@@ -571,6 +572,10 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     }
     auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
     lastRect_ = rect;
+    bgShaderNeedUpdate_ = true;
+    if (foregroundRenderFilter_) {
+        GenerateContentLightFilter();
+    }
     return dirtyFlag;
 }
 
@@ -1174,6 +1179,27 @@ void RSProperties::SetBgImageInnerRect(const Vector4f& rect)
 Vector4f RSProperties::GetBgImageInnerRect() const
 {
     return decoration_ ? decoration_->bgImageInnerRect_ : Vector4f();
+}
+
+void RSProperties::SetBgImageDstRect(const Vector4f& rect)
+{
+    if (!decoration_) {
+        decoration_ = std::make_optional<Decoration>();
+    }
+    decoration_->bgImageRect_ = RectF(rect);
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const Vector4f RSProperties::GetBgImageDstRect()
+{
+    RectF rect = decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
+    return Vector4f(rect.left_, rect.top_, rect.width_, rect.height_);
+}
+
+const RectF& RSProperties::GetBgImageRect() const
+{
+    return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
 }
 
 void RSProperties::SetBgImageWidth(float width)
@@ -2371,11 +2397,6 @@ RectF RSProperties::GetBoundsRect() const
 RectF RSProperties::GetFrameRect() const
 {
     return {0, 0, GetFrameWidth(), GetFrameHeight()};
-}
-
-const RectF& RSProperties::GetBgImageRect() const
-{
-    return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
 }
 
 void RSProperties::SetVisible(bool visible)
@@ -3797,11 +3818,45 @@ void RSProperties::GenerateForegroundRenderFilter()
                 GenerateBezierWarpFilter();
                 break;
             }
+            case RSUIFilterType::CONTENT_LIGHT : {
+                GenerateContentLightFilter();
+                break;
+            }
             default:
                 ROSEN_LOGE("RSProperties::GenerateReGenerateForegroundRenderFilternderFilter NULL.");
                 break;
         }
         ROSEN_LOGD("RSProperties::GenerateForegroundRenderFilter type %{public}d finished.", static_cast<int>(type));
+    }
+}
+
+void RSProperties::GenerateContentLightFilter()
+{
+    if (foregroundRenderFilter_ == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter get foregroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto contentLight = foregroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::CONTENT_LIGHT);
+    if (contentLight == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter ContentLightFilter not found.");
+        return;
+    }
+    auto derivedLight = std::static_pointer_cast<RSRenderContentLightFilterPara>(contentLight);
+    Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+    derivedLight->SetRotationAngle(rotationAngle);
+    if (!contentLight->ParseFilterValues()) {
+        ROSEN_LOGE("RSProperties::GenerateContentLightFilter ParseFilterValues faile.");
+        return;
+    }
+
+    if (!foregroundFilter_) {
+        foregroundFilter_ = std::make_shared<RSDrawingFilter>(contentLight);
+        foregroundFilter_->SetFilterType(RSFilter::CONTENT_LIGHT);
+    } else {
+        auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
+        foregroundDrawingFilter = foregroundDrawingFilter->Compose(contentLight);
+        foregroundDrawingFilter->SetFilterType(RSFilter::CONTENT_LIGHT);
+        foregroundFilter_ = foregroundDrawingFilter;
     }
 }
 
@@ -5139,6 +5194,11 @@ void RSProperties::UpdateBackgroundShader()
             bgShader->MakeDrawingShader(GetBoundsRect(), paramValue);
         }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
+        if (bgShader->GetShaderType() == RSShader::ShaderType::BORDER_LIGHT) {
+            Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+            auto RSBLShader = std::static_pointer_cast<RSBorderLightShader>(bgShader);
+            RSBLShader->SetRotationAngle(rotationAngle);
+        }
     }
 }
 
@@ -5188,12 +5248,12 @@ void RSProperties::CalculateFrameOffset()
     frameOffsetX_ = frameGeo_.GetX() - boundsGeo_->GetX();
     frameOffsetY_ = frameGeo_.GetY() - boundsGeo_->GetY();
     if (isinf(frameOffsetX_)) {
-        frameOffsetX_ = 0.;
+        frameOffsetX_ = 0.f;
     }
     if (isinf(frameOffsetY_)) {
-        frameOffsetY_ = 0.;
+        frameOffsetY_ = 0.f;
     }
-    if (frameOffsetX_ != 0. || frameOffsetY_ != 0.) {
+    if (frameOffsetX_ != 0.f || frameOffsetY_ != 0.f) {
         isDrawn_ = true;
     }
 }
@@ -5271,6 +5331,17 @@ void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
     }
 #endif
     haveEffectRegion_ = haveEffectRegion;
+}
+
+void RSProperties::ResetBorder(bool isOutline)
+{
+    if (isOutline) {
+        outline_ = nullptr;
+    } else {
+        border_ = nullptr;
+    }
+    SetDirty();
+    contentDirty_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

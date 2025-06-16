@@ -68,7 +68,9 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace ModifierNG {
+class RSModifier;
+}
 class RSFilter;
 class RSImage;
 class RSMask;
@@ -155,7 +157,14 @@ public:
      *
      * @param rsRenderPropertyBase A shared pointer to the RSRenderPropertyBase object.
      */
-    virtual void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) {};
+    virtual void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) {}
+
+    virtual ModifierNG::RSPropertyType GetPropertyTypeNG() const
+    {
+        return ModifierNG::RSPropertyType::INVALID;
+    }
+
+    virtual void SetPropertyTypeNG(const ModifierNG::RSPropertyType type) {}
 
 protected:
     virtual void SetIsCustom(bool isCustom) = 0;
@@ -202,6 +211,11 @@ protected:
 
     virtual void OnDetach(const std::shared_ptr<RSNode>& node) {}
 
+    void AttachModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+    {
+        modifierNG_ = modifier;
+    }
+
     void MarkModifierDirty();
 
     void MarkNodeDirty();
@@ -221,6 +235,7 @@ protected:
     RSModifierType type_ { RSModifierType::INVALID };
     std::weak_ptr<RSNode> target_;
     std::weak_ptr<RSModifier> modifier_;
+    std::weak_ptr<ModifierNG::RSModifier> modifierNG_;
 
 private:
     virtual std::shared_ptr<RSPropertyBase> Add(const std::shared_ptr<const RSPropertyBase>& value)
@@ -263,6 +278,8 @@ private:
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class RSModifier;
+    friend class ModifierNG::RSModifier;
+    friend class RSNode;
     friend class RSBackgroundUIFilterModifier;
     friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
@@ -351,9 +368,18 @@ public:
         return stagingValue_;
     }
 
+    ModifierNG::RSPropertyType GetPropertyTypeNG() const override
+    {
+        return typeNG_;
+    }
+
+    void SetPropertyTypeNG(const ModifierNG::RSPropertyType type) override
+    {
+        typeNG_ = type;
+    }
+
 protected:
     RSPropertyType GetPropertyType() const override { return type_; }
-    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
 
     void UpdateToRender(const T& value, PropertyUpdateType type) const
     {}
@@ -394,6 +420,9 @@ protected:
     {
         return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
     }
+
+    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
+    ModifierNG::RSPropertyType typeNG_ = ModifierNG::RSPropertyType::INVALID;
 
     T stagingValue_ {};
     bool isCustom_ { false };

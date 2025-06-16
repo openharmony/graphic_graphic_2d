@@ -32,6 +32,19 @@
 #include <optional>
 #include <unordered_map>
 
+#include "recording/recording_canvas.h"
+#include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/border_light_effect_para.h"
+#include "ui_effect/effect/include/visual_effect.h"
+#include "ui_effect/filter/include/filter.h"
+#include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
+#include "ui_effect/filter/include/filter_fly_out_para.h"
+#include "ui_effect/filter/include/filter_hdr_para.h"
+#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
+#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+#include "ui_effect/filter/include/filter_water_ripple_para.h"
+
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
@@ -44,24 +57,13 @@
 #include "modifier/rs_modifier_extractor.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_showing_properties_freezer.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
-#include "ui_effect/effect/include/background_color_effect_para.h"
-#include "ui_effect/effect/include/visual_effect.h"
-#include "ui_effect/filter/include/filter.h"
-#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
-#include "ui_effect/filter/include/filter_blur_para.h"
-#include "ui_effect/filter/include/filter_hdr_para.h"
-#include "ui_effect/filter/include/filter_water_ripple_para.h"
-#include "ui_effect/filter/include/filter_fly_out_para.h"
-#include "ui_effect/filter/include/filter_distort_para.h"
-#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
-
-#include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_sync_transaction_handler.h"
-#include "recording/recording_canvas.h"
+#include "transaction/rs_transaction_handler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -81,6 +83,11 @@ class RSUIFilter;
 class RSNGFilterBase;
 enum class CancelAnimationStatus;
 
+namespace ModifierNG {
+class RSModifier;
+class RSCustomModifier;
+enum class RSModifierType : uint16_t;
+}
 /**
  * @class RSNode
  *
@@ -385,6 +392,9 @@ public:
      */
     const std::shared_ptr<RSMotionPathOption> GetMotionPathOption() const;
 
+    void SetMotionPathOptionToProperty(
+        const ModifierNG::RSModifierType& modifierType, const ModifierNG::RSPropertyType& propertyType);
+
     /**
      * @brief Draws on the node using the specified modifier type and drawing function.
      *
@@ -401,19 +411,8 @@ public:
      * @return A constant reference to the RSModifierExtractor holding the staging properties.
      */
     const RSModifierExtractor& GetStagingProperties() const;
-    const RSShowingPropertiesFreezer& GetShowingProperties() const;
 
-    /**
-     * @brief Sets a property value for a specific modifier.
-     *
-     * If property already exists, it will be updated.
-     * If property does not exist, it will be created.
-     *
-     * @param modifierType The type of the modifier to which the property belongs.
-     * @param value The value to assign to the property.
-     */
-    template<typename ModifierName, typename PropertyName, typename T>
-    void SetProperty(RSModifierType modifierType, T value);
+    const RSShowingPropertiesFreezer& GetShowingProperties() const;
 
     /**
      * @brief Sets the bounds of the node.
@@ -694,7 +693,7 @@ public:
      *
      * @param scaleZ The scaling factor to apply on the Z-axis.
      */
-    void SetScaleZ(const float& scaleZ);
+    void SetScaleZ(float scaleZ);
 
     /**
      * @brief Sets the skew factor for the node.
@@ -1286,6 +1285,7 @@ public:
      */
     void SetBgBrightnessNegCoeff(const Vector4f& coeff);
     void SetBgBrightnessFract(const float& fract);
+    void SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara);
 
 
     /**
@@ -1363,8 +1363,9 @@ public:
      * @brief Sets whether a shadow mask should be applied to this node.
      *
      * @param shadowMask Indicates whether to enable (true) or disable (false) the shadow mask.
+     * @param strategy Indicates the strategy of the shadow mask, default MASK_NONE.
      */
-    void SetShadowMask(bool shadowMask);
+    void SetShadowMask(bool shadowMask, SHADOW_MASK_STRATEGY strategy = SHADOW_MASK_STRATEGY::MASK_NONE);
 
     /**
      * @brief Sets whether the shadow should be filled.
@@ -1469,13 +1470,13 @@ public:
     /**
      * @brief Sets the degree of light up effect.
      *
-     * @param LightUpEffectDegree The degree of the light up effect to apply.
+     * @param lightUpEffectDegree The degree of the light up effect to apply.
      */
-    void SetLightUpEffectDegree(float LightUpEffectDegree);
+    void SetLightUpEffectDegree(float lightUpEffectDegree);
 
     void SetAttractionEffect(float fraction, const Vector2f& destinationPoint);
     void SetAttractionEffectFraction(float fraction);
-    void SetAttractionEffectDstPoint(Vector2f destinationPoint);
+    void SetAttractionEffectDstPoint(const Vector2f& destinationPoint);
 
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
@@ -1517,6 +1518,11 @@ public:
     void MarkContentChanged(bool isChanged) {}
     // driven render was shelved, functions will be deleted soon [end]
 
+#if defined(MODIFIER_NG)
+    void AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+
+    void RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+#else
     /**
      * @brief Adds a modifier to the current node.
      *
@@ -1532,6 +1538,9 @@ public:
      * @param modifier A shared pointer to the RSModifier to be removed.
      */
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
+#endif
+
+    const std::shared_ptr<ModifierNG::RSModifier> GetModifierByType(const ModifierNG::RSModifierType& type);
 
     /**
      * @brief Sets whether the node is a custom text type.
@@ -1698,6 +1707,10 @@ public:
     DrawNodeType GetDrawNodeType() const;
     void SyncDrawNodeType(DrawNodeType nodeType);
 
+    const std::shared_ptr<RSPropertyBase> GetPropertyById(const PropertyId& propertyId);
+    const std::shared_ptr<RSPropertyBase> GetPropertyByType(
+        const ModifierNG::RSModifierType& modifierType, const ModifierNG::RSPropertyType& propertyType);
+
     /**
      * @brief Gets the context for the RSUI.
      *
@@ -1861,6 +1874,8 @@ protected:
      */
     void SetIsOnTheTree(bool flag);
 
+    std::array<std::shared_ptr<ModifierNG::RSModifier>, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNGCreatedBySetter_;
+
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -1874,6 +1889,31 @@ private:
     void SetParent(WeakPtr parent);
     void RemoveChildByNode(SharedPtr child);
     virtual void CreateRenderNodeForTextureExportSwitch() {};
+
+#if defined(MODIFIER_NG)
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetPropertyNG(T value);
+#else
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param modifierType The type of the modifier to which the property belongs.
+     * @param value The value to assign to the property.
+     */
+    template<typename ModifierName, typename PropertyName, typename T>
+    void SetProperty(RSModifierType modifierType, T value);
+#endif
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -1925,6 +1965,11 @@ private:
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
+    void AttachProperty(std::shared_ptr<RSPropertyBase> property);
+    void DettachProperty(PropertyId id);
+    void AttachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
+    void DetachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
+
     /**
      * @brief Clears all modifiers associated with this node.
      *
@@ -1967,6 +2012,8 @@ private:
     std::map<PropertyId, std::shared_ptr<RSPropertyBase>> properties_;
     std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+    std::map<ModifierId, std::shared_ptr<ModifierNG::RSModifier>> modifiersNG_;
+
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
 
@@ -1990,6 +2037,8 @@ private:
     friend class RSPathAnimation;
     friend class RSModifierExtractor;
     friend class RSModifier;
+    friend class ModifierNG::RSModifier;
+    friend class ModifierNG::RSCustomModifier;
     friend class RSBackgroundUIFilterModifier;
     friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;

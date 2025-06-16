@@ -45,6 +45,7 @@
 #include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
 #include "modifier/rs_render_modifier.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_gradient_blur_para.h"
@@ -67,6 +68,7 @@
 #include "buffer_utils.h"
 #endif
 #include "recording/mask_cmd_list.h"
+
 #include "property/rs_properties_def.h"
 
 namespace OHOS {
@@ -259,7 +261,6 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
 }
 } // namespace
 
-
 // Drawing::Data
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val)
 {
@@ -353,7 +354,6 @@ bool RSMarshallingHelper::UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<
     }
     return success;
 }
-
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Bitmap& val)
 {
@@ -697,7 +697,6 @@ bool RSMarshallingHelper::SkipImage(Parcel& parcel)
         return size == 0 ? true : SkipFromParcel(parcel, size);
     }
 }
-
 
 // RSShader
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
@@ -1598,6 +1597,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
     }
     return flag;
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>& val)
 {
     if (parcel.ReadInt32() == -1) {
@@ -1706,6 +1706,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSIm
     }
     return success;
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSImageBase>& val)
 {
     if (parcel.ReadInt32() == -1) {
@@ -1888,6 +1889,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RRectT<float>& val)
            Marshalling(parcel, val.radius_[1]) && Marshalling(parcel, val.radius_[2]) &&
            Marshalling(parcel, val.radius_[3]);
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 {
     return Unmarshalling(parcel, val.rect_) && Unmarshalling(parcel, val.radius_[0]) &&
@@ -2779,9 +2781,21 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRe
 {
     return val != nullptr && val->Marshalling(parcel);
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderModifier>& val)
 {
     val.reset(RSRenderModifier::Unmarshalling(parcel));
+    return val != nullptr;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ModifierNG::RSRenderModifier>& val)
+{
+    return val != nullptr && val->Marshalling(parcel);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ModifierNG::RSRenderModifier>& val)
+{
+    val.reset(ModifierNG::RSRenderModifier::Unmarshalling(parcel));
     return val != nullptr;
 }
 
@@ -2999,6 +3013,7 @@ void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid)
     g_useSharedMem = false;
     g_tid = tid;
 }
+
 void RSMarshallingHelper::EndNoSharedMem()
 {
     std::unique_lock<std::mutex> lock(g_writeMutex);

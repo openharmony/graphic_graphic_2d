@@ -49,6 +49,9 @@ class Image;
 class Bitmap;
 class Typeface;
 }
+namespace ModifierNG {
+class RSRenderModifier;
+}
 class RSFilter;
 class RSRenderFilter;
 class RSNGRenderFilterBase;
@@ -138,6 +141,7 @@ public:
         }
         return true;
     }
+
     static bool Unmarshalling(Parcel& parcel, std::string& val)
     {
         if (!parcel.ReadString(val)) {
@@ -154,6 +158,7 @@ public:
         }
         return parcel.WriteUnpadBuffer(val, count * sizeof(T));
     }
+
     template<typename T>
     static bool UnmarshallingArray(Parcel& parcel, T*& val, int count)
     {
@@ -265,6 +270,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation
@@ -304,6 +310,7 @@ public:
         }
         return true;
     }
+
     template<typename T, typename P>
     static bool Unmarshalling(Parcel& parcel, std::map<T, P>& val)
     {
@@ -381,6 +388,7 @@ public:
         }
         return Marshalling(parcel, val.value());
     }
+
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::optional<T>& val)
     {
@@ -401,6 +409,7 @@ public:
     {
         return Marshalling(parcel, val.first) && Marshalling(parcel, val.second);
     }
+
     template<class T1, class T2>
     static bool Unmarshalling(Parcel& parcel, std::pair<T1, T2>& val)
     {
@@ -412,6 +421,7 @@ public:
     {
         return Marshalling(parcel, first) && Marshalling(parcel, args...);
     }
+
     template<typename T, typename... Args>
     static bool Unmarshalling(Parcel& parcel, T& first, Args&... args)
     {
@@ -452,7 +462,6 @@ private:
     friend class RSProfiler;
 #endif
 };
-
 } // namespace Rosen
 } // namespace OHOS
 

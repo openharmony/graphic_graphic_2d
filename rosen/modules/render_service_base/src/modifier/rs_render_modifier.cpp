@@ -355,7 +355,6 @@ bool RSEnvForegroundColorStrategyRenderModifier::Marshalling(Parcel& parcel)
     return flag;
 }
 
-
 void RSEnvForegroundColorStrategyRenderModifier::Apply(RSModifierContext& context) const
 {
     auto renderProperty = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(property_);

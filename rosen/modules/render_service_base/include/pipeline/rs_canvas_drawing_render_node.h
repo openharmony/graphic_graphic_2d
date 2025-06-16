@@ -27,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
+using ModifierCmdList = std::list<Drawing::DrawCmdListPtr>;
 class RSRecordingCanvas;
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
@@ -67,13 +68,15 @@ public:
     uint32_t GetTid() const;
 
     void AddDirtyType(RSModifierType modifierType) override;
+    void AddDirtyType(ModifierNG::RSModifierType modifierType) override;
     void ClearOp();
     void ResetSurface(int width, int height);
     bool IsNeedProcess() const;
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
-    const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
+    const std::map<RSModifierType, ModifierCmdList>& GetDrawCmdLists() const;
+    const std::map<ModifierNG::RSModifierType, ModifierCmdList>& GetDrawCmdListsNG() const;
     void ClearResource() override;
     void ClearNeverOnTree() override;
     void CheckCanvasDrawingPostPlaybacked();
@@ -82,7 +85,9 @@ private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
+    void ApplyDrawCmdModifierNG(RSModifierContext& context, ModifierNG::RSModifierType type);
     void CheckDrawCmdListSize(RSModifierType type, size_t originCmdListSize);
+    void CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type, size_t originCmdListSize);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
@@ -111,9 +116,9 @@ private:
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     std::mutex taskMutex_;
     std::mutex drawCmdListsMutex_;
-    std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
+    std::map<RSModifierType, ModifierCmdList> drawCmdLists_;
+    std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
     uint32_t cmdCount_ = 0;
-
 
     friend class RSCanvasDrawingNodeCommandHelper;
 };

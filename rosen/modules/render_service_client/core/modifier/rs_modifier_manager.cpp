@@ -16,13 +16,15 @@
 
 #include "modifier/rs_modifier_manager.h"
 
+#include "rs_trace.h"
+
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_property_modifier.h"
+#include "modifier_ng/custom/rs_custom_modifier.h"
 #include "platform/common/rs_log.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,20 +33,37 @@ void RSModifierManager::AddModifier(const std::shared_ptr<RSModifier>& modifier)
     modifiers_.insert(modifier);
 }
 
+void RSModifierManager::AddModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+{
+    modifiersNG_.insert(modifier);
+}
+
 void RSModifierManager::Draw()
 {
-    if (modifiers_.empty()) {
-        return;
+#if defined(MODIFIER_NG)
+    if (!modifiersNG_.empty()) {
+        RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiersNG_.size()) + "]");
+        for (auto& modifier : modifiersNG_) {
+            RS_TRACE_NAME("RSModifier::Draw");
+            auto customModifier = std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier);
+            customModifier->UpdateToRender();
+            customModifier->SetDirty(false);
+            customModifier->ResetRSNodeExtendModifierDirty();
+        }
+        modifiersNG_.clear();
     }
-
-    RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiers_.size()) + "]");
-    for (auto& modifier : modifiers_) {
-        RS_TRACE_NAME("RSModifier::Draw");
-        modifier->UpdateToRender();
-        modifier->SetDirty(false);
-        modifier->ResetRSNodeExtendModifierDirty();
+#else
+    if (!modifiers_.empty()) {
+        RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiers_.size()) + "]");
+        for (auto& modifier : modifiers_) {
+            RS_TRACE_NAME("RSModifier::Draw");
+            modifier->UpdateToRender();
+            modifier->SetDirty(false);
+            modifier->ResetRSNodeExtendModifierDirty();
+        }
+        modifiers_.clear();
     }
-    modifiers_.clear();
+#endif
 }
 
 void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

@@ -51,6 +51,8 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
   ]
 }
 

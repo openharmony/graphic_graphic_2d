@@ -16,11 +16,12 @@
 #ifndef RENDER_SERVICE_BASE_MODIFIER_NG_RS_MODIFIER_NG_TYPE_H
 #define RENDER_SERVICE_BASE_MODIFIER_NG_RS_MODIFIER_NG_TYPE_H
 
-#include <string>
 #include <bitset>
+#include <string>
+#include <unordered_map>
 
 namespace OHOS::Rosen::ModifierNG {
-enum class RSModifierType : uint8_t {
+enum class RSModifierType : uint16_t {
     INVALID = 0,
 
     BOUNDS,
@@ -68,7 +69,7 @@ enum class RSModifierType : uint8_t {
     MAX = CHILDREN + 1,
 };
 
-enum class RSPropertyType : uint8_t {
+enum class RSPropertyType : uint16_t {
 #define X(name) name,
 #include "modifier_ng/rs_property_ng_type.in"
 #undef X
@@ -76,22 +77,23 @@ enum class RSPropertyType : uint8_t {
 
 class ModifierTypeConvertor {
 public:
-    static ModifierNG::RSPropertyType GetPropertyType(ModifierNG::RSModifierType modifierTypeNG)
+    static RSPropertyType GetPropertyType(RSModifierType modifierTypeNG)
     {
         auto it = modifierToPropertyMap_.find(modifierTypeNG);
         if (it != modifierToPropertyMap_.end()) {
             return it->second;
         }
-        return ModifierNG::RSPropertyType::INVALID;
+        return RSPropertyType::INVALID;
     }
 
 private:
-    static inline std::unordered_map<ModifierNG::RSModifierType, ModifierNG::RSPropertyType> modifierToPropertyMap_ = {
-        { ModifierNG::RSModifierType::TRANSITION_STYLE, ModifierNG::RSPropertyType::TRANSITION_STYLE },
-        { ModifierNG::RSModifierType::BACKGROUND_STYLE, ModifierNG::RSPropertyType::BACKGROUND_STYLE },
-        { ModifierNG::RSModifierType::CONTENT_STYLE, ModifierNG::RSPropertyType::CONTENT_STYLE },
-        { ModifierNG::RSModifierType::FOREGROUND_STYLE, ModifierNG::RSPropertyType::FOREGROUND_STYLE },
-        { ModifierNG::RSModifierType::OVERLAY_STYLE, ModifierNG::RSPropertyType::OVERLAY_STYLE },
+    static inline std::unordered_map<RSModifierType, RSPropertyType> modifierToPropertyMap_ = {
+        { RSModifierType::TRANSITION_STYLE, RSPropertyType::TRANSITION_STYLE },
+        { RSModifierType::BACKGROUND_STYLE, RSPropertyType::BACKGROUND_STYLE },
+        { RSModifierType::CONTENT_STYLE, RSPropertyType::CONTENT_STYLE },
+        { RSModifierType::FOREGROUND_STYLE, RSPropertyType::FOREGROUND_STYLE },
+        { RSModifierType::OVERLAY_STYLE, RSPropertyType::OVERLAY_STYLE },
+        { RSModifierType::NODE_MODIFIER, RSPropertyType::NODE_MODIFIER },
     };
 };
 
@@ -133,13 +135,11 @@ public:
             case RSPropertyType::BG_IMAGE_POSITION_X: return "BgImagePositionX";
             case RSPropertyType::BG_IMAGE_POSITION_Y: return "BgImagePositionY";
             case RSPropertyType::BG_IMAGE_RECT: return "BgImageRect";
-            case RSPropertyType::SURFACE_BG_COLOR: return "SurfaceBgColor";
             case RSPropertyType::BORDER_COLOR: return "BorderColor";
             case RSPropertyType::BORDER_WIDTH: return "BorderWidth";
             case RSPropertyType::BORDER_STYLE: return "BorderStyle";
             case RSPropertyType::BORDER_DASH_WIDTH: return "BorderDashWidth";
             case RSPropertyType::BORDER_DASH_GAP: return "BorderDashGap";
-            case RSPropertyType::FILTER: return "Filter";
             case RSPropertyType::BACKGROUND_FILTER: return "BackgroundFilter";
             case RSPropertyType::LINEAR_GRADIENT_BLUR_PARA: return "LinearGradientBlurPara";
             case RSPropertyType::DYNAMIC_LIGHT_UP_RATE: return "DynamicLightUpRate";
@@ -226,6 +226,7 @@ public:
             case RSPropertyType::BACKGROUND_BLUR_RADIUS_Y: return "BackgroundBlurRadiusY";
             case RSPropertyType::BG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "BgBlurDisableSystemAdaptation";
             case RSPropertyType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
+            case RSPropertyType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSPropertyType::FOREGROUND_BLUR_RADIUS: return "ForegroundBlurRadius";
             case RSPropertyType::FOREGROUND_BLUR_SATURATION: return "ForegroundBlurSaturation";
             case RSPropertyType::FOREGROUND_BLUR_BRIGHTNESS: return "ForegroundBlurBrightness";
@@ -245,9 +246,10 @@ public:
             case RSPropertyType::NODE_MODIFIER: return "NodeModifier";
             case RSPropertyType::ENV_FOREGROUND_COLOR: return "EnvForegroundColor";
             case RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY: return "EnvForegroundColorStrategy";
-            case RSPropertyType::GEOMETRYTRANS: return "Geometrytrans";
             case RSPropertyType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
             case RSPropertyType::HDR_BRIGHTNESS: return "HdrBrightness";
+            case RSPropertyType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
+            case RSPropertyType::HDR_BRIGHTNESS_FACTOR: return "HdrBrightnessFactor";
             case RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
             case RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";
@@ -259,7 +261,7 @@ public:
     }
 };
 
-static constexpr uint8_t MODIFIER_TYPE_COUNT = static_cast<uint8_t>(RSModifierType::MAX);
+static constexpr uint16_t MODIFIER_TYPE_COUNT = static_cast<uint16_t>(RSModifierType::MAX);
 using ModifierDirtyTypes = std::bitset<static_cast<int>(MODIFIER_TYPE_COUNT)>;
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_RS_MODIFIER_NG_TYPE_H

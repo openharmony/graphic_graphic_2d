@@ -84,6 +84,7 @@ public:
         HDR_UI_BRIGHTNESS,
         BEZIER_WARP,
         DISPERSION,
+        CONTENT_LIGHT,
     };
     FilterType GetFilterType() const
     {

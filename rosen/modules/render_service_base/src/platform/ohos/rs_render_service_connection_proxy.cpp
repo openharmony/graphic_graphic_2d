@@ -5255,6 +5255,10 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool v
 int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
     sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
+    if (!callback) {
+        ROSEN_LOGE("%{public}s callback is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -5262,10 +5266,6 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
-    }
-    if (!callback) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback callback is nullptr");
-        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteRemoteObject(callback->AsObject())) {

@@ -20,11 +20,22 @@
 #include "pixel_map.h"
 #include "rs_graphic_test.h"
 
+#if defined(MODIFIER_NG)
+#include "modifier_ng/custom/rs_content_style_modifier.h"
+#else
 #include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_modifier.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
+#if defined(MODIFIER_NG)
+using ContentStyleModifier = ModifierNG::RSContentStyleModifier;
+using DrawingContext = ModifierNG::RSDrawingContext;
+#else
+using ContentStyleModifier = RSContentStyleModifier;
+using DrawingContext = RSDrawingContext;
+#endif
 std::shared_ptr<OHOS::Media::PixelMap> DecodePixelMap(
     const std::string& pathName, const OHOS::Media::AllocatorType& allocatorType);
 std::shared_ptr<OHOS::Rosen::RSCanvasNode> SetUpNodeBgImage(
@@ -32,11 +43,11 @@ std::shared_ptr<OHOS::Rosen::RSCanvasNode> SetUpNodeBgImage(
 std::shared_ptr<OHOS::Rosen::RSCanvasNode> SetUpNodeBgImage(
     const uint8_t* data, uint32_t size, const OHOS::Rosen::Vector4f bounds);
 
-class ImageCustomModifier : public OHOS::Rosen::RSContentStyleModifier {
+class ImageCustomModifier : public ContentStyleModifier {
 public:
     ~ImageCustomModifier() = default;
 
-    void Draw(OHOS::Rosen::RSDrawingContext& context) const;
+    void Draw(DrawingContext& context) const;
     void SetWidth(int32_t width);
     void SetHeight(int32_t height);
     void SetPixelMapPath(std::string pathName);

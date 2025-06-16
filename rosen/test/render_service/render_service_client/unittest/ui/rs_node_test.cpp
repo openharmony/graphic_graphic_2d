@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
+#include "ui_effect/property/include/rs_ui_content_light_filter.h"
 #include "ui_effect/property/include/rs_ui_dispersion_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
@@ -453,6 +454,38 @@ HWTEST_F(RSNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetBoundsHeight(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().w_, floatData[0]));
+}
+
+/**
+ * @tc.name: RSNodeTest001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RSNodeTest001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create(false, false, nullptr);
+    ASSERT_NE(rsNode, nullptr);
+
+    rsNode->SetBorderLightShader(nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: RSNodeTest002
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RSNodeTest002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create(false, false, nullptr);
+    ASSERT_NE(rsNode, nullptr);
+
+    auto effectPara = std::make_shared<BorderLightEffectPara>();
+    effectPara->SetLightPosition(Vector3f { 1.1f, 2.2f, 3.3f });
+    effectPara->SetLightColor(Vector4f { 0.1f, 0.2f, 0.3f, 0.4f });
+    effectPara->SetLightIntensity(0.75f);
+    effectPara->SetLightWidth(4.5f);
+
+    rsNode->SetBorderLightShader(effectPara);
+    SUCCEED();
 }
 
 /**
@@ -4408,6 +4441,23 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter002, TestSize.Level1)
         delete filterObj;
         filterObj = nullptr;
     }
+}
+
+/**
+ * @tc.name: SetUIForegroundFilter003
+ * @tc.desc: test results of SetUIForegroundFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUIForegroundFilter003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    std::shared_ptr<ContentLightPara> para = std::make_shared<ContentLightPara>();
+    float lightIntensity = 0.5f;
+    para->SetLightIntensity(lightIntensity);
+    filterObj->AddPara(para);
+    rsNode->SetUIForegroundFilter(filterObj.get());
+    EXPECT_NE(rsNode->GetStagingProperties().GetLightIntensity(), lightIntensity);
 }
 
 /**

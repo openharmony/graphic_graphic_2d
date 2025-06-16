@@ -22,6 +22,7 @@
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_manager_map.h"
+#include "modifier_ng/rs_modifier_ng.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -59,8 +60,18 @@ RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 
 void RSPropertyBase::MarkModifierDirty()
 {
-    auto modifier = modifier_.lock();
-    if (modifier != nullptr) {
+    if (auto modifier = modifierNG_.lock()) {
+        // ModifierNG set dirty
+        auto node = target_.lock();
+        if (node && node->GetRSUIContext()) {
+            modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
+        } else {
+            modifier->SetDirty(true, RSModifierManagerMap::Instance()->GetModifierManager(gettid()));
+        }
+        return;
+    }
+    if (auto modifier = modifier_.lock()) {
+        // legacy modifier set dirty
         auto node = target_.lock();
         if (node && node->GetRSUIContext()) {
             modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
@@ -72,13 +83,23 @@ void RSPropertyBase::MarkModifierDirty()
 
 void RSPropertyBase::MarkNodeDirty()
 {
-    if (auto modifier = modifier_.lock()) {
+    if (auto modifier = modifierNG_.lock()) {
+        modifier->MarkNodeDirty();
+    } else if (auto modifier = modifier_.lock()) {
         modifier->MarkNodeDirty();
     }
 }
 
 void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node)
 {
+    if (auto modifier = modifierNG_.lock()) {
+        if (modifier->GetType() == ModifierNG::RSModifierType::BOUNDS ||
+            modifier->GetType() == ModifierNG::RSModifierType::FRAME) {
+            node->MarkAllExtendModifierDirty();
+            return;
+        }
+    }
+
     if (type_ == RSModifierType::BOUNDS || type_ == RSModifierType::FRAME) {
         node->MarkAllExtendModifierDirty();
     }

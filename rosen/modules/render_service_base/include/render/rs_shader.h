@@ -30,6 +30,7 @@ public:
         DOT_MATRIX,
         FLOW_LIGHT_SWEEP,
         COMPLEX,
+        BORDER_LIGHT,
     };
 
     RSShader() = default;

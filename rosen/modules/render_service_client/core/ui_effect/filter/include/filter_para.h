@@ -50,7 +50,8 @@ public:
         EDGE_LIGHT,
         BEZIER_WARP,
         DISPERSION,
-        HDR_BRIGHTNESS_RATIO
+        HDR_BRIGHTNESS_RATIO,
+        CONTENT_LIGHT,
     };
 
     FilterPara()  = default;
