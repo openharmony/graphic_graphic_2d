@@ -353,7 +353,7 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
         } else if (auto modifier = node->GetModifier(propertyId)) {
             property = modifier->GetProperty();
         } else {
-            property = nullptr;
+            // do nothing
         }
         if (property == nullptr) {
             continue;

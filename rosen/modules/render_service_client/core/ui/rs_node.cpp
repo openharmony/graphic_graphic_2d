@@ -1030,7 +1030,7 @@ void RSNode::SetBoundsWidth(float width)
             SetBounds(0.f, 0.f, width, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
@@ -1038,7 +1038,7 @@ void RSNode::SetBoundsWidth(float width)
             SetBounds(0.f, 0.f, width, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1063,7 +1063,7 @@ void RSNode::SetBoundsHeight(float height)
             SetBounds(0.f, 0.f, 0.f, height);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
@@ -1071,7 +1071,7 @@ void RSNode::SetBoundsHeight(float height)
             SetBounds(0.f, 0.f, 0.f, height);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1115,7 +1115,7 @@ void RSNode::SetFramePositionX(float positionX)
             SetFrame(positionX, 0.f, 0.f, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::FRAME));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::FRAME);
@@ -1123,7 +1123,7 @@ void RSNode::SetFramePositionX(float positionX)
             SetFrame(positionX, 0.f, 0.f, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1149,7 +1149,7 @@ void RSNode::SetFramePositionY(float positionY)
             SetFrame(0.f, positionY, 0.f, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::FRAME));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::FRAME);
@@ -1157,7 +1157,7 @@ void RSNode::SetFramePositionY(float positionY)
             SetFrame(0.f, positionY, 0.f, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1248,7 +1248,7 @@ void RSNode::SetPivotX(float pivotX)
             SetPivot(pivotX, 0.5f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PIVOT));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
@@ -1256,7 +1256,7 @@ void RSNode::SetPivotX(float pivotX)
             SetPivot(pivotX, 0.5f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1280,7 +1280,7 @@ void RSNode::SetPivotY(float pivotY)
             SetPivot(0.5f, pivotY);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PIVOT));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
@@ -1288,7 +1288,7 @@ void RSNode::SetPivotY(float pivotY)
             SetPivot(0.5f, pivotY);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1409,7 +1409,7 @@ void RSNode::SetTranslateX(float translate)
             SetTranslate({ translate, 0.f });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::TRANSLATE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
@@ -1417,7 +1417,7 @@ void RSNode::SetTranslateX(float translate)
             SetTranslate({ translate, 0.f });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1442,7 +1442,7 @@ void RSNode::SetTranslateY(float translate)
             SetTranslate({ 0.f, translate });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::TRANSLATE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
@@ -1450,7 +1450,7 @@ void RSNode::SetTranslateY(float translate)
             SetTranslate({ 0.f, translate });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1505,7 +1505,7 @@ void RSNode::SetScaleX(float scaleX)
             SetScale(scaleX, 1.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SCALE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SCALE);
@@ -1513,7 +1513,7 @@ void RSNode::SetScaleX(float scaleX)
             SetScale(scaleX, 1.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1538,7 +1538,7 @@ void RSNode::SetScaleY(float scaleY)
             SetScale(1.f, scaleY);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SCALE));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SCALE);
@@ -1546,7 +1546,7 @@ void RSNode::SetScaleY(float scaleY)
             SetScale(1.f, scaleY);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1606,7 +1606,7 @@ void RSNode::SetSkewX(float skewX)
             SetSkew(skewX, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SKEW);
@@ -1614,7 +1614,7 @@ void RSNode::SetSkewX(float skewX)
             SetSkew(skewX, 0.f);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1639,7 +1639,7 @@ void RSNode::SetSkewY(float skewY)
             SetSkew(0.f, skewY);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SKEW);
@@ -1647,7 +1647,7 @@ void RSNode::SetSkewY(float skewY)
             SetSkew(0.f, skewY);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1671,7 +1671,7 @@ void RSNode::SetSkewZ(float skewZ)
             SetSkew(0.f, 0.f, skewZ);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::SKEW);
@@ -1679,7 +1679,7 @@ void RSNode::SetSkewZ(float skewZ)
             SetSkew(0.f, 0.f, skewZ);
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1770,7 +1770,7 @@ void RSNode::SetPerspX(float perspX)
             SetPersp({ perspX, 0.f, 0.0f, 1.0f });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1779,7 +1779,7 @@ void RSNode::SetPerspX(float perspX)
             return;
         }
 
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
 
@@ -1804,7 +1804,7 @@ void RSNode::SetPerspY(float perspY)
             SetPersp({ 0.f, perspY, 0.f, 1.f });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1813,7 +1813,7 @@ void RSNode::SetPerspY(float perspY)
             return;
         }
 
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1837,7 +1837,7 @@ void RSNode::SetPerspZ(float perspZ)
             SetPersp({ 0.f, 0.f, perspZ, 1.f });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1845,7 +1845,7 @@ void RSNode::SetPerspZ(float perspZ)
             SetPersp({ 0.f, 0.f, perspZ, 1.f });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
@@ -1869,7 +1869,7 @@ void RSNode::SetPerspW(float perspW)
             SetPersp({ 0.f, 0.f, 0.f, perspW });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
             modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
 #else
         auto iter = propertyModifiers_.find(RSModifierType::PERSP);
@@ -1877,7 +1877,7 @@ void RSNode::SetPerspW(float perspW)
             SetPersp({ 0.f, 0.f, 0.f, perspW });
             return;
         }
-        auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
 #endif
     }
     if (property == nullptr) {
