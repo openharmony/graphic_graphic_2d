@@ -229,14 +229,16 @@ void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& 
     size_t indexVerifier = 0;
     for (auto it = payload_.begin(); it != payload_.end();) {
         auto& command = std::get<2>(*it);
-        if (command && command->GetNodeId() == nodeId) {
-            transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
-            it = payload_.erase(it);
-        } else {
+        if (command) {
+            if (command->GetNodeId() == nodeId) {
+                transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
+                it = payload_.erase(it);
+                continue;
+            }
             command->indexVerifier_ = indexVerifier;
-            ++indexVerifier;
-            ++it;
         }
+        ++indexVerifier;
+        ++it;
     }
 }
 
