@@ -263,6 +263,7 @@ sptr<RSTransactionManager> RSTransactionManager::Create(
     sptr<IBufferConsumerListener> transactionListener)
 {
     if (transactionCallback == nullptr || transactionListener == nullptr) {
+        RS_LOGE("transactionCallback or transactionListener is nullptr");
         return nullptr;
     }
     return new RSTransactionManager(
@@ -308,7 +309,7 @@ GSError RSTransactionManager::QueueTransaction(const RSTransactionConfig& config
         }
         if (!transaction || !transaction->GetBuffer() || !transaction->GetFence()) {
             RS_LOGE("RSTransactionManager::QueueTransaction invaild argument in config, hasBuffer: %{public}d, "
-                "seq: %{public}u",config.hasBuffer, config.transactionInfo.bufferInfo.sequence);
+                "seq: %{public}u", config.hasBuffer, config.transactionInfo.bufferInfo.sequence);
             return GSERROR_INVALID_ARGUMENTS;
         }
         RS_TRACE_NAME_FMT("RSTransactionManager::QueueTransaction sequence: %u, fence:%d, queueId:%" PRId64
@@ -362,13 +363,13 @@ GSError RSTransactionManager::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<Sy
 
 void RSTransactionManager::LogAndTraceAllBufferInPendingTransactionQueueLocked()
 {
-    for (auto& ele : pendingTransactionQueue_) {
+    for (auto& transaction : pendingTransactionQueue_) {
         RS_TRACE_NAME_FMT("acquire buffer id: %d desiredPresentTimestamp: %" PRId64
-            " isAotuTimestamp: %d", ele->GetBufferSeqNum(), ele->GetDesiredPresentTimestamp(),
-            ele->GetAutoTimestamp());
+            " isAotuTimestamp: %d", transaction->GetBufferSeqNum(), transaction->GetDesiredPresentTimestamp(),
+            transaction->GetAutoTimestamp());
         RS_LOGE("acquire buffer id: %{public}d desiredPresentTimestamp: %{public}" PRId64
-            " isAotuTimestamp: %{public}d", ele->GetBufferSeqNum(), ele->GetDesiredPresentTimestamp(),
-            ele->GetAutoTimestamp());
+            " isAotuTimestamp: %{public}d", transaction->GetBufferSeqNum(), transaction->GetDesiredPresentTimestamp(),
+            transaction->GetAutoTimestamp());
     }
 }
 
