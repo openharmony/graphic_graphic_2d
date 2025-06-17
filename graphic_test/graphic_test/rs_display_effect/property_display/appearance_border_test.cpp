@@ -474,8 +474,8 @@ static RSCanvasNode::SharedPtr BorderCreate3(vector<vector<float>> &vecs)
     Vector4<Color> outLineColor = {
         {vecs[COLOR][0], vecs[COLOR][1], vecs[COLOR][2]},
         {vecs[COLOR][1], vecs[COLOR][2], vecs[COLOR][3]},
-        {vecs[COLOR][2], vecs[COLOR][3], vecs[COLOR][4]},
-        {vecs[COLOR][4], vecs[COLOR][3], vecs[COLOR][1]}
+        {vecs[COLOR][2], vecs[COLOR][3], vecs[COLOR][0]},
+        {vecs[COLOR][0], vecs[COLOR][3], vecs[COLOR][1]}
     };
     testNode->SetBorderColor(outLineColor);
     testNode->SetBorderWidth(vecs[WIDTH][0], vecs[WIDTH][1], vecs[WIDTH][2], vecs[WIDTH][3]);
