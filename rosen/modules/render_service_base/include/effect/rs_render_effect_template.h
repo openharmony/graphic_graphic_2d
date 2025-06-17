@@ -42,43 +42,9 @@ public:
     virtual void SetModifierType(RSModifierType inType) = 0;
 
 protected:
-    [[nodiscard]] virtual bool OnMarshalling(Parcel& parcel) const
-    {
-        auto count = GetEffectCount();
-        if (count > EFFECT_COUNT_LIMIT) {
-            return false;
-        }
-
-        if (nextEffect_) {
-            return nextEffect_->Marshalling(parcel);
-        }
-    
-        return RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN);
-    }
-    
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) { return true; }
     
     virtual void DumpProperty(std::string& out) const {}
-
-    virtual void OnAttach(const std::shared_ptr<RSRenderNode>& node)
-    {
-        if (nextEffect_) {
-            nextEffect_->Attach(node);
-        }
-    }
-    virtual void OnDetach(const std::shared_ptr<RSRenderNode>& node)
-    {
-        if (nextEffect_) {
-            nextEffect_->Detach(node);
-        }
-    }
-
-    virtual void OnSetModifierType(RSModifierType inType)
-    {
-        if (nextEffect_) {
-            nextEffect_->SetModifierType(inType);
-        }
-    }
 
     inline const std::shared_ptr<Derived>& GetNextEffect() const
     {
@@ -175,6 +141,11 @@ public:
 
     bool Marshalling(Parcel& parcel) const override
     {
+        auto count = Base::GetEffectCount();
+        if (count > Base::EFFECT_COUNT_LIMIT) {
+            return false;
+        }
+
         if (!RSMarshallingHelper::Marshalling(parcel, static_cast<RSUIFilterTypeUnderlying>(Type))) {
             return false;
         }
@@ -187,7 +158,11 @@ public:
             return false;
         }
 
-        return Base::OnMarshalling(parcel);
+        if (Base::nextEffect_) {
+            return Base::nextEffect_->Marshalling(parcel);
+        }
+    
+        return RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN);
     }
 
     [[nodiscard]] bool OnUnmarshalling(Parcel& parcel) override
@@ -225,20 +200,26 @@ public:
     void Attach(const std::shared_ptr<RSRenderNode>& node) override
     {
         std::apply([&node](const auto&... props) { (props.value_->Attach(node), ...); }, properties_);
-        Base::OnAttach(node);
+        if (Base::nextEffect_) {
+            Base::nextEffect_->Attach(node);
+        }
     }
 
     void Detach(const std::shared_ptr<RSRenderNode>& node) override
     {
         std::apply([&node](const auto&... props) { (props.value_->Detach(node), ...); }, properties_);
-        Base::OnDetach(node);
+        if (Base::nextEffect_) {
+            Base::nextEffect_->Detach(node);
+        }
     }
 
     void SetModifierType(RSModifierType inType) override
     {
         std::apply(
             [&inType](const auto&... props) { (props.value_->SetModifierType(inType), ...); }, properties_);
-        Base::OnSetModifierType(inType);
+        if (Base::nextEffect_) {
+            Base::nextEffect_->SetModifierType(inType);
+        }
     }
 protected:
     std::tuple<PropertyTags...> properties_;
