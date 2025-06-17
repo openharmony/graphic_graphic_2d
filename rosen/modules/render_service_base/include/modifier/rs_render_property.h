@@ -330,20 +330,6 @@ public:
 
     void Dump(std::string& out) const override {}
 
-    bool Marshalling(Parcel& parcel) override
-    {
-        // Planning: use static_assert to limit the types that can be used with RSRenderProperty.
-        if constexpr (RSRenderProperty<T>::type_ == RSPropertyType::INVALID) {
-            return false;
-        }
-
-        auto result = RSMarshallingHelper::Marshalling(parcel, type_) &&
-                      RSMarshallingHelper::Marshalling(parcel, false) && // for non-animatable properties
-                      RSMarshallingHelper::Marshalling(parcel, GetId()) &&
-                      RSMarshallingHelper::Marshalling(parcel, stagingValue_);
-        return result;
-    }
-
     void SetUpdateUIPropertyFunc(
         const std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>& updateUIPropertyFunc)
     {
@@ -362,6 +348,20 @@ protected:
     RSPropertyType GetPropertyType() const override
     {
         return type_;
+    }
+
+    bool Marshalling(Parcel& parcel) override
+    {
+        // Planning: use static_assert to limit the types that can be used with RSRenderProperty.
+        if constexpr (RSRenderProperty<T>::type_ == RSPropertyType::INVALID) {
+            return false;
+        }
+
+        auto result = RSMarshallingHelper::Marshalling(parcel, type_) &&
+                      RSMarshallingHelper::Marshalling(parcel, false) && // for non-animatable properties
+                      RSMarshallingHelper::Marshalling(parcel, GetId()) &&
+                      RSMarshallingHelper::Marshalling(parcel, stagingValue_);
+        return result;
     }
 
     static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
@@ -400,21 +400,6 @@ public:
         if (RSRenderProperty<T>::updateUIPropertyFunc_) {
             RSRenderProperty<T>::updateUIPropertyFunc_(RSRenderProperty<T>::shared_from_this());
         }
-    }
-
-    bool Marshalling(Parcel& parcel) override
-    {
-        // Planning: use static_assert to limit the types that can be used with RSRenderAnimatableProperty.
-        if constexpr (RSRenderProperty<T>::type_ == RSPropertyType::INVALID) {
-            return false;
-        }
-
-        auto result = RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::type_) &&
-                      RSMarshallingHelper::Marshalling(parcel, true) && // for animatable properties
-                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::GetId()) &&
-                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::stagingValue_) &&
-                      RSMarshallingHelper::Marshalling(parcel, unit_);
-        return result;
     }
 
 protected:
@@ -470,6 +455,21 @@ protected:
     std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override
     {
         return std::make_shared<RSSpringValueEstimator<T>>();
+    }
+
+    bool Marshalling(Parcel& parcel) override
+    {
+        // Planning: use static_assert to limit the types that can be used with RSRenderAnimatableProperty.
+        if constexpr (RSRenderProperty<T>::type_ == RSPropertyType::INVALID) {
+            return false;
+        }
+
+        auto result = RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::type_) &&
+                      RSMarshallingHelper::Marshalling(parcel, true) && // for animatable properties
+                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::GetId()) &&
+                      RSMarshallingHelper::Marshalling(parcel, RSRenderProperty<T>::stagingValue_) &&
+                      RSMarshallingHelper::Marshalling(parcel, unit_);
+        return result;
     }
 
     static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
