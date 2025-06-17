@@ -56,5 +56,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* /* data */, size_t /* size */)
 {
+    quick_exit(0);
     return 0;
 }

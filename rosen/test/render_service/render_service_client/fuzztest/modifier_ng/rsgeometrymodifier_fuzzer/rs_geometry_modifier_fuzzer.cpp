@@ -75,8 +75,8 @@ bool RSBoundsClipModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->SetClipRRect(rrect);
     std::shared_ptr<RSPath> clipToBounds = std::make_shared<RSPath>();
     modifier->SetClipBounds(clipToBounds);
-    bool RandomBool = GetData<bool>();
-    modifier->SetClipToBounds(RandomBool);
+    bool randomBool = GetData<bool>();
+    modifier->SetClipToBounds(randomBool);
     modifier->SetCornerRadius(randomVec4F);
     modifier->GetCornerRadius();
 
