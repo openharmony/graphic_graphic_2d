@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+
+#include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_render_filter_base.h"
 #include "transaction/rs_marshalling_helper.h"

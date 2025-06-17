@@ -16,15 +16,17 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include <string.h>
 #include <securec.h>
+#include <string.h>
+
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
+#include "message_parcel.h"
+
 #include "common/rs_vector4.h"
+#include "effect/rs_render_filter_base.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_recording_canvas.h"
-
-#include "message_parcel.h"
 #include "property/rs_properties.h"
 
 using namespace testing;

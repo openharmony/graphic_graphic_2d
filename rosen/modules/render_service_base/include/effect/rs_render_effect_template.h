@@ -42,7 +42,7 @@ public:
     virtual void SetModifierType(RSModifierType inType) = 0;
 
 protected:
-    [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) { return true; }
+    [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
     
     virtual void DumpProperty(std::string& out) const {}
 
