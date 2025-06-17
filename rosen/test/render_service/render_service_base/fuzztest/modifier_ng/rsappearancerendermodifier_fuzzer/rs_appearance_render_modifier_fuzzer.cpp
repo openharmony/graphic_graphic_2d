@@ -85,7 +85,7 @@ bool RSAlphaRenderModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->ResetProperties(properties);
     modifier->GetLegacyPropertyApplierMap();
     return true;
-}   
+}
 
 bool RSBackgroundFilterRenderModifierFuzzTest(const uint8_t* data, size_t size)
 {

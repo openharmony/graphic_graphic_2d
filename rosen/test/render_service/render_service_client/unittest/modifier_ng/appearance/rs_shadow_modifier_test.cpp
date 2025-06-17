@@ -45,7 +45,6 @@ public:
  */
 HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
 {
-
     std::shared_ptr<ModifierNG::RSShadowModifier> modifier = std::make_shared<ModifierNG::RSShadowModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::SHADOW);
