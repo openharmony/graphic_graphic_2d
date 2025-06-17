@@ -312,7 +312,7 @@ GSError RSTransactionManager::QueueTransaction(const RSTransactionConfig& config
                 "seq: %{public}u", config.hasBuffer, config.transactionInfo.bufferInfo.sequence);
             return GSERROR_INVALID_ARGUMENTS;
         }
-        RS_TRACE_NAME_FMT("RSTransactionManager::QueueTransaction sequence: %u, fence:%d, queueId:%" PRId64
+        RS_TRACE_NAME_FMT("RSTransactionManager::QueueTransaction sequence: %u, fence:%d, queueId:%" PRIu64
             ",queueSize:%" PRIu64 ".", transaction->GetBufferSeqNum(), transaction->GetFence()->Get(),
             uniqueId_, pendingTransactionQueue_.size());
     
@@ -364,10 +364,10 @@ GSError RSTransactionManager::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<Sy
 void RSTransactionManager::LogAndTraceAllBufferInPendingTransactionQueueLocked()
 {
     for (auto& transaction : pendingTransactionQueue_) {
-        RS_TRACE_NAME_FMT("acquire buffer id: %d desiredPresentTimestamp: %" PRId64
+        RS_TRACE_NAME_FMT("acquire buffer id: %u desiredPresentTimestamp: %" PRId64
             " isAotuTimestamp: %d", transaction->GetBufferSeqNum(), transaction->GetDesiredPresentTimestamp(),
             transaction->GetAutoTimestamp());
-        RS_LOGE("acquire buffer id: %{public}d desiredPresentTimestamp: %{public}" PRId64
+        RS_LOGE("acquire buffer id: %{public}u desiredPresentTimestamp: %{public}" PRId64
             " isAotuTimestamp: %{public}d", transaction->GetBufferSeqNum(), transaction->GetDesiredPresentTimestamp(),
             transaction->GetAutoTimestamp());
     }
@@ -407,15 +407,14 @@ GSError RSTransactionManager::AcquireBuffer(AcquireBufferReturnValue& returnValu
             frontDesiredPresentTimestamp <= expectPresentTimestamp) {
             sptr<Transaction> frontTransaction = *iterTransaction;
             if (++iterTransaction == pendingTransactionQueue_.end()) {
-                RS_LOGD("Buffer seq(%{public}d) is the last buffer, do acquire.", frontTransaction->GetBufferSeqNum());
+                RS_LOGD("Buffer seq(%{public}u) is the last buffer, do acquire.", frontTransaction->GetBufferSeqNum());
                 break;
             }
             int64_t curDesiredPresentTimestamp = (*iterTransaction)->GetDesiredPresentTimestamp();
             if (((*iterTransaction)->GetAutoTimestamp() && !isUsingAutoTimestamp) ||
                 curDesiredPresentTimestamp > expectPresentTimestamp) {
                 RS_LOGD("Next dirty buffer desiredPresentTimestamp: %{public}" PRId64
-                    " not match expectPresentTimestamp"
-                    ": %{public}" PRId64 ".",
+                    " not match expectPresentTimestamp: %{public}" PRId64 ".",
                     frontDesiredPresentTimestamp, expectPresentTimestamp);
                 break;
             }
@@ -501,7 +500,7 @@ sptr<Transaction> RSTransactionManager::AcquireBufferLocked()
     transaction->SetlastAcquireTime(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
     RS_TRACE_NAME_FMT("AcquireBuffer success, buffer sequence: %u, desirePresentTimestamp: %" PRId64
-        ", isAutoTimestamp: %d, queueId: %" PRId64 ", pendingQueueSize: %" PRIu64 ", name: %s.",
+        ", isAutoTimestamp: %d, queueId: %" PRIu64 ", pendingQueueSize: %" PRIu64 ", name: %s.",
         transaction->GetBufferSeqNum(), transaction->GetDesiredPresentTimestamp(), transaction->GetAutoTimestamp(),
         uniqueId_, pendingTransactionQueue_.size(), name_.c_str());
     return transaction;
@@ -509,7 +508,7 @@ sptr<Transaction> RSTransactionManager::AcquireBufferLocked()
 
 GSError RSTransactionManager::ReleaseBufferLocked(uint32_t bufferSeqNum, const sptr<SyncFence>& releaseFence)
 {
-    RS_TRACE_NAME_FMT("RSTransactionManager::ReleaseBufferLocked sequence:%u, uniqueId:%" PRId64 ".",
+    RS_TRACE_NAME_FMT("RSTransactionManager::ReleaseBufferLocked sequence:%u, uniqueId:%" PRIu64 ".",
         bufferSeqNum, uniqueId_);
     auto mapIter = transactionQueueCache_.find(bufferSeqNum);
     if (mapIter != transactionQueueCache_.end()) {
