@@ -64,8 +64,10 @@ HWTEST_F(RSSLRScaleTest, CheckOrRefreshScreenTest, TestSize.Level1)
     ASSERT_EQ(scaleManager_->isSLRCopy_, false);
 
     scaleManager_->CheckOrRefreshScreen(width2K, height2K, mainWidth, mainHeight);
+    float scaleNum = scaleManager_->scaleNum_;
     scaleManager_->CheckOrRefreshScreen(width1K, height1K, mainWidth, mainHeight);
-    ASSERT_EQ(scaleManager_->isSLRCopy_, false);
+    auto res = std::fabs(scaleNum - scaleManager_->scaleNum_) <= FLT_EPSILON;
+    ASSERT_EQ(res, false);
 }
 
 /**
@@ -77,11 +79,11 @@ HWTEST_F(RSSLRScaleTest, CheckOrRefreshScreenTest, TestSize.Level1)
 HWTEST_F(RSSLRScaleTest, RefreshColorSpaceTest, TestSize.Level1)
 {
     scaleManager_->RefreshColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    ASSERT_EQ(scaleManager_->isSLRCopy_, false);
+    ASSERT_NE(scaleManager_->imageColorSpace_, nullptr);
     scaleManager_->RefreshColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    ASSERT_EQ(scaleManager_->isSLRCopy_, false);
+    ASSERT_NE(scaleManager_->widthEffect_, nullptr);
     scaleManager_->RefreshColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
-    ASSERT_EQ(scaleManager_->isSLRCopy_, false);
+    ASSERT_NE(scaleManager_->heightEffect_, nullptr);
 }
 
 /**
