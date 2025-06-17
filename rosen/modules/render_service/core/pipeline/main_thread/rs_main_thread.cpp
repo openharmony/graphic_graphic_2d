@@ -2665,6 +2665,7 @@ void RSMainThread::Render()
 
 void RSMainThread::OnUniRenderDraw()
 {
+#ifndef SCREENLESS_DEVICE
     if (!isUniRender_) {
         RsFrameReport::GetInstance().RenderEnd();
         return;
@@ -2692,6 +2693,7 @@ void RSMainThread::OnUniRenderDraw()
 
     UpdateDisplayNodeScreenId();
     RsFrameReport::GetInstance().RenderEnd();
+#endif
 #endif
 }
 
