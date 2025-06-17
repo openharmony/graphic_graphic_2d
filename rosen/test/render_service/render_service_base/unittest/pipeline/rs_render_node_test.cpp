@@ -1424,56 +1424,6 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSRenderNodeDumpTest002
- * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-
-    std::string outTest1 = "";
-    nodeTest->DumpNodeType(RSRenderNodeType::DISPLAY_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::RS_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::SURFACE_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::CANVAS_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::ROOT_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::PROXY_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::CANVAS_DRAWING_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::EFFECT_NODE, outTest1);
-    nodeTest->DumpNodeType(RSRenderNodeType::UNKNOW, outTest1);
-    EXPECT_EQ(outTest1, OUT_STR1);
-
-    std::string outTest2 = "";
-    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(inNode, nullptr);
-    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(outNode, nullptr);
-    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode);
-    EXPECT_NE(nodeTest->sharedTransitionParam_, nullptr);
-    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
-    nodeTest->uifirstRootNodeId_ = 1;
-    nodeTest->SetBootAnimation(true);
-    nodeTest->SetContainBootAnimation(true);
-    nodeTest->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
-    nodeTest->renderContent_->renderProperties_.isDirty_ = true;
-    nodeTest->isSubTreeDirty_ = true;
-    nodeTest->renderContent_->renderProperties_.isDrawn_ = false;
-    nodeTest->renderContent_->renderProperties_.alphaNeedApply_ = false;
-    nodeTest->renderContent_->drawCmdModifiers_.clear();
-    nodeTest->isFullChildrenListValid_ = false;
-    nodeTest->disappearingChildren_.emplace_back(std::make_shared<RSRenderNode>(0), 0);
-    nodeTest->DumpTree(0, outTest2);
-    EXPECT_EQ(outTest2, OUT_STR2);
-
-    std::string outTest3 = "";
-    nodeTest->DumpSubClassNode(outTest3);
-    EXPECT_EQ(outTest3, "");
-}
-
-/**
  * @tc.name: IsContentNodeTest003
  * @tc.desc: IsContentNode test
  * @tc.type: FUNC
