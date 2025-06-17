@@ -74,7 +74,7 @@ bool RSBackgroundStyleModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->Draw(context);
 
     return true;
-}   
+}
 
 bool RSContentStyleModifierFuzzTest(const uint8_t* data, size_t size)
 {

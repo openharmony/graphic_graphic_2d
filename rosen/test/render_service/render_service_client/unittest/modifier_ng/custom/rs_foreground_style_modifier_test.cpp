@@ -49,6 +49,5 @@ HWTEST_F(RSForegroundStyleModifierNGTypeTest, RSForegroundStyleModifierTest, Tes
         std::make_shared<ModifierNG::RSForegroundStyleModifier>();
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::FOREGROUND_STYLE);
     EXPECT_EQ(modifier->GetInnerPropertyType(), ModifierNG::RSPropertyType::FOREGROUND_STYLE);
-
 }
 } // namespace OHOS::Rosen

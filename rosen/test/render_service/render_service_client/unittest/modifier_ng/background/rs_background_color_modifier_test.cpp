@@ -45,7 +45,8 @@ public:
  */
 HWTEST_F(RSBackgroundColorModifierNGTypeTest, RSBackgroundColorModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSBackgroundColorModifier> modifier = std::make_shared<ModifierNG::RSBackgroundColorModifier>();
+    std::shared_ptr<ModifierNG::RSBackgroundColorModifier> modifier =
+        std::make_shared<ModifierNG::RSBackgroundColorModifier>();
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::BACKGROUND_COLOR);
 

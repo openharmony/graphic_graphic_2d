@@ -522,8 +522,8 @@ bool ParticleEffectModifierFuzzTest(const uint8_t* data, size_t size)
     std::optional<Vector2f> position = std::make_optional<Vector2f>();
     std::optional<Vector2f> emitSize = std::make_optional<Vector2f>();
     std::optional<int> emitRate = std::make_optional<int>(GetData<int>());
-    std::vector<std::shared_ptr<EmitterUpdater>> para =
-        { std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate) };
+    std::vector<std::shared_ptr<EmitterUpdater>> para = {
+        std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate) };
     modifier->SetEmitterUpdater(para);
     modifier->GetEmitterUpdater();
 
