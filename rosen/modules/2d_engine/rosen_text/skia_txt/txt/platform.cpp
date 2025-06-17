@@ -25,7 +25,7 @@ DefaultFamilyNameMgr::DefaultFamilyNameMgr()
 #ifdef OHOS_STANDARD_SYSTEM
     defaultFamilies_ = { "HarmonyOS-Sans" };
 #else
-    defaultFamilies_ = { "sans-serif" };
+    defaultFamilies_ = { "sans-serif", "PingFang SC" };
 #endif
 }
 
