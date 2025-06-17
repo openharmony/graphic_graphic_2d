@@ -579,7 +579,6 @@ ohos_source_set("render_service_base_src") {
 
   external_deps = [
     "graphic_surface:surface_headers",
-    "graphic_surface:sync_fence",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
   ]
@@ -806,6 +805,7 @@ ohos_shared_library("librender_service_base") {
   external_deps = []
   public_external_deps = [
     "egl:libEGL",
+    "graphic_surface:sync_fence",
     "opengles:libGLES",
   ]
 
@@ -813,7 +813,6 @@ ohos_shared_library("librender_service_base") {
     external_deps += [ "hisysevent:libhisysevent" ]
     public_external_deps += [
       "c_utils:utils",
-      "graphic_surface:sync_fence",
       "image_framework:image_native",
       "skia:skia_canvaskit",
     ]
