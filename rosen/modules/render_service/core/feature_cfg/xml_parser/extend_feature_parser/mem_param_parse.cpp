@@ -57,7 +57,7 @@ int32_t MEMParamParse::ParseMemInternal(xmlNode &node)
             RS_LOGI("RSCacheLimitsResourceSize %{public}d", MEMParam::GetRSCacheLimitsResourceSize());
         } else if (name =="MemSnapshotPrintHilogLimit" && IsNumber(val)) {
             MemorySnapshot::Instance().SetMemSnapshotPrintHilogLimit(stoi(val));
-            RS_LOGI("memSnapshotPrintHilogLimit %{public}d", 
+            RS_LOGI("memSnapshotPrintHilogLimit %{public}d",
                 MemorySnapshot::Instance().GetMemSnapshotPrintHilogLimit());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
