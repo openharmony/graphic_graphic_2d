@@ -581,7 +581,6 @@ ohos_source_set("render_service_base_src") {
     "graphic_surface:surface_headers",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
-    "init:libbegetutil",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {
