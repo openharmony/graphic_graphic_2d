@@ -25,7 +25,7 @@ DefaultFamilyNameMgr::DefaultFamilyNameMgr()
 #ifdef TEXT_SYSTEM_OHOS
     defaultFamilies_ = { "HarmonyOS-Sans" };
 #else
-    defaultFamilies_ = { "sans-serif" , "San Francisco" };
+    defaultFamilies_ = { "sans-serif" , "PingFang SC" };
 #endif
 }
 
