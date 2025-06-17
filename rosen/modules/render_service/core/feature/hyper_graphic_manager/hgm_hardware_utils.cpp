@@ -122,6 +122,7 @@ void HgmHardwareUtils::PerformSetActiveMode(
             if (setRateRetryCount_ < MAX_SETRATE_RETRY_COUNT) {
                 setRateRetryCount_++;
             } else {
+                RS_LOGW("set refresh rate failed more than %{public}d, skip retrying", MAX_SETRATE_RETRY_COUNT);
                 needRetrySetRate_ = false;
             }
         } else {
