@@ -210,9 +210,6 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
-    "src/ipc_callbacks/rs_transaction_callback.cpp",
-    "src/ipc_callbacks/rs_transaction_callback_proxy.cpp",
-    "src/ipc_callbacks/rs_transaction_callback_stub.cpp",
     "src/ipc_callbacks/rs_transaction_data_callback_proxy.cpp",
     "src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
     "src/ipc_callbacks/rs_uiextension_callback_proxy.cpp",
@@ -346,7 +343,6 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_transaction_metric_collector.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
     "src/transaction/rs_uiextension_data.cpp",
-    "src/transaction/transaction.cpp",
 
     #gfx
     "src/gfx/dump/rs_dump_manager.cpp",
@@ -382,6 +378,14 @@ ohos_source_set("render_service_base_src") {
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
   ]
+  if (!build_ohos_sdk) {
+    sources += [
+      "src/ipc_callbacks/rs_transaction_callback.cpp",
+      "src/ipc_callbacks/rs_transaction_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_transaction_callback_stub.cpp",
+      "src/transaction/transaction.cpp",
+    ]
+  }
 
   if (rs_enable_gpu) {
     sources += [
@@ -802,9 +806,7 @@ ohos_shared_library("librender_service_base") {
   ]
 
   # for header file
-  external_deps = [
-    "graphic_surface:sync_fence",
-  ]
+  external_deps = []
   public_external_deps = [
     "egl:libEGL",
     "opengles:libGLES",
@@ -814,6 +816,7 @@ ohos_shared_library("librender_service_base") {
     external_deps += [ "hisysevent:libhisysevent" ]
     public_external_deps += [
       "c_utils:utils",
+      "graphic_surface:sync_fence",
       "image_framework:image_native",
       "skia:skia_canvaskit",
     ]
