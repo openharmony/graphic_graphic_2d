@@ -50,7 +50,11 @@ static std::shared_ptr<Drawing::Image> CreateDrawingImage(int width, int height)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     return image;
@@ -84,7 +88,11 @@ HWTEST_F(RSAttractionEffectFilterTest, DrawImageRect001, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);

@@ -626,11 +626,7 @@ HWTEST_F(ColorManagerTest, SkColorSpaceToColorSpace, Function | SmallTest | Leve
     ColorSpace srgb = ColorSpace(skiaSrgb);
     Color result = color.Convert(srgb);
     ASSERT_EQ(color.ColorEqual(result), true);
-#if defined(NEW_SKIA)
     sk_sp<SkColorSpace> skiaP3 = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-#else
-    sk_sp<SkColorSpace> skiaP3 = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-#endif
     ASSERT_NE(nullptr, skiaP3);
     ColorSpace displayP3 = ColorSpace(skiaP3);
     result = color.Convert(displayP3);

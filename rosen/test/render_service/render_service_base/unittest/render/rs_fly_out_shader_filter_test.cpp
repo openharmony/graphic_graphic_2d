@@ -158,7 +158,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect002, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -195,7 +199,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect201, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -232,7 +240,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2011, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -269,7 +281,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2012, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -306,7 +322,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2013, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -343,7 +363,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect202, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -380,7 +404,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2021, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -417,7 +445,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2022, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -454,7 +486,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2023, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -491,7 +527,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect203, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -528,7 +568,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2031, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -565,7 +609,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2032, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -602,7 +650,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2033, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -639,7 +691,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect204, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -676,7 +732,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2041, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -713,7 +773,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2042, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -750,7 +814,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2043, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -787,7 +855,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect205, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -824,7 +896,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2051, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -861,7 +937,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2052, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -898,7 +978,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2053, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -935,7 +1019,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect206, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -972,7 +1060,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2061, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1009,7 +1101,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2062, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1046,7 +1142,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2063, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1083,7 +1183,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect207, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1120,7 +1224,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2071, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1157,7 +1265,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2072, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1194,7 +1306,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2073, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1232,7 +1348,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect208, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1270,7 +1390,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2081, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1308,7 +1432,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2082, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1346,7 +1474,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2083, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1383,7 +1515,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect209, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1420,7 +1556,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2091, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1457,7 +1597,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2092, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1494,7 +1638,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2093, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1531,7 +1679,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect210, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1568,7 +1720,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2101, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1605,7 +1761,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2102, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1642,7 +1802,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect2103, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1679,7 +1843,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect003, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1710,7 +1878,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect301, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1741,7 +1913,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3011, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1772,7 +1948,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3012, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1803,7 +1983,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3013, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1834,7 +2018,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect302, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1865,7 +2053,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3021, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1896,7 +2088,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3022, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1927,7 +2123,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3023, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1958,7 +2158,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect303, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1989,7 +2193,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3031, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2020,7 +2228,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3032, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2051,7 +2263,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect3033, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2082,7 +2298,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect004, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2113,7 +2333,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect406, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2144,7 +2368,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4061, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2175,7 +2403,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4062, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2206,7 +2438,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4063, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2237,7 +2473,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect407, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2268,7 +2508,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4071, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2299,7 +2543,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4072, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2330,7 +2578,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4073, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2362,7 +2614,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect408, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2394,7 +2650,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4081, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2426,7 +2686,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4082, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2458,7 +2722,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4083, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2489,7 +2757,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect409, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2520,7 +2792,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4091, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2551,7 +2827,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4092, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2582,7 +2862,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4093, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2613,7 +2897,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect410, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2644,7 +2932,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4101, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2675,7 +2967,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4102, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2706,7 +3002,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4103, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -2756,7 +3056,11 @@ HWTEST_F(RSFlyOutShaderFilterTest, GetBrush001, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     brush = effectFilter.GetBrush(image);

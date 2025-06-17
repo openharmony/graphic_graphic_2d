@@ -15,7 +15,7 @@
 #include "test_common.h"
 
 #include <fcntl.h>
-
+#include <unistd.h>
 #include "image/image.h"
 #include "image_packer.h"
 #include "utils/log.h"
