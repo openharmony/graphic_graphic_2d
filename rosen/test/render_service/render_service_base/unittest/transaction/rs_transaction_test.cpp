@@ -62,7 +62,7 @@ void RSTransactionManagerTest::OnDeleteBufferFunc(uint32_t value)
 void RSTransactionManagerTest::WriteTransactionInfoFromMessageParcel(MessageParcel& parcel, TransactionInfo info)
 {
     parcel.WriteUint32(0);
-    parcel.WriteBool(true);
+    parcel.WriteBool(false);
     uint32_t colorGamut = 0;
     uint32_t transform = 0;
     int32_t scalingMode = 0;
