@@ -402,11 +402,11 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":hyper_graphic_manager_test",
-    ":hgm_pointer_manager_test",
-    ":hgm_touch_manager_test",
     ":frame_rate_manager_test",
     ":hgm_frame_voter_test",
-    ":hgm_user_define_test"
+    ":hgm_pointer_manager_test",
+    ":hgm_touch_manager_test",
+    ":hgm_user_define_test",
+    ":hyper_graphic_manager_test"
   ]
 }

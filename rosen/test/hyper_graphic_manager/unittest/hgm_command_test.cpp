@@ -68,6 +68,7 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level1)
     // data not null; visitor not null
     frameRateMgr->HandleScreenFrameRate("");
     frameRateMgr->Init(nullptr, nullptr, nullptr, nullptr);
+    frameRateMgr->HandleAppStrategyConfigEvent(1, "", {}); // pid=1
     EXPECT_NE(&(configVisitorImpl->GetXmlData()), configData.get());
     EXPECT_EQ(configVisitorImpl->xmlModeId_, std::to_string(hgmCore.customFrameRateMode_));
     EXPECT_EQ(configVisitorImpl->screenConfigType_, frameRateMgr->curScreenStrategyId_);
@@ -76,11 +77,11 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level1)
     hgmCore.mPolicyConfigData_ = nullptr;
     hgmCore.mPolicyConfigVisitor_ = nullptr;
     frameRateMgr->screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
-    frameRateMgr->curScreenStrategyId_ = "10"; // donot existed id
+    frameRateMgr->curScreenStrategyId_ = "10"; // id donot existed
     frameRateMgr->HandleScreenExtStrategyChange(false, HGM_CONFIG_TYPE_THERMAL_SUFFIX);
     frameRateMgr->HandleScreenFrameRate("");
     frameRateMgr->Init(nullptr, nullptr, nullptr, nullptr);
-    hgmCore.SetRefreshRateMode(-2);
+    hgmCore.SetRefreshRateMode(-2); // mode donot existed
     hgmCore.InitXmlConfig();
 
     // data not null; visitor null
@@ -92,7 +93,7 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level1)
     // data null; visitor not null
     hgmCore.mPolicyConfigVisitor_ = configVisitor;
     hgmCore.mPolicyConfigData_ = nullptr;
-    hgmCore.SetRefreshRateMode(-2);
+    hgmCore.SetRefreshRateMode(-2); // mode donot existed
     frameRateMgr->screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     frameRateMgr->curScreenStrategyId_ = "11"; // donot existed id
     frameRateMgr->HandleScreenExtStrategyChange(false, HGM_CONFIG_TYPE_THERMAL_SUFFIX);
@@ -115,6 +116,7 @@ HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level1)
     auto dynamicSettingMap = visitor_->GetAceSceneDynamicSettingMap();
     EXPECT_NE(dynamicSettingMap.find("aaa"), dynamicSettingMap.end());
 
+    // pkgName, nodeName
     EXPECT_EQ(visitor_->GetGameNodeName("bbb"), "12");
     EXPECT_EQ(visitor_->GetGameNodeName("aaa"), "");
 
@@ -152,12 +154,12 @@ HWTEST_F(HgmCommandTest, XmlModeId2SettingModeId, Function | SmallTest | Level1)
 {
     const std::vector<std::pair<std::string, int32_t>> partId = {
         // <xmlModeId, settingModeId>
-        {"-1", 0},
-        {"0", 0},
-        {"1", 1},
-        {"2", 2},
-        {"3", 0},
-        {"0", 0},
+        { "-1", 0 },
+        { "0", 0 },
+        { "1", 1 },
+        { "2", 2 },
+        { "3", 0 },
+        { "0", 0 },
     };
     for (const auto& [xmlModeId, settingModeId] : partId) {
         EXPECT_EQ(visitor_->XmlModeId2SettingModeId(xmlModeId), settingModeId);
@@ -199,10 +201,10 @@ HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level1)
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());
     
     visitor_->screenConfigType_ = "LTPO-DEFAULT";
-    visitor_->xmlModeId_ = "5";
+    visitor_->xmlModeId_ = "5"; // id dont existed
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());
 
-    visitor_->xmlModeId_ = "-1";
+    visitor_->xmlModeId_ = "-1"; // auto mode
     EXPECT_FALSE(visitor_->GetScreenSetting().appList.empty());
 }
 
@@ -219,6 +221,7 @@ HWTEST_F(HgmCommandTest, GetAppStrategyConfig, Function | SmallTest | Level1)
     int32_t appType2 = 333;
 
     PolicyConfigData::StrategyConfig settingStrategy;
+    // aaa/bbb means pkgName
     EXPECT_EQ(visitor_->GetAppStrategyConfig("aaa", appType, settingStrategy), EXEC_SUCCESS);
     EXPECT_EQ(visitor_->GetAppStrategyConfig("bbb", appType, settingStrategy), EXEC_SUCCESS);
     EXPECT_EQ(visitor_->GetAppStrategyConfig("bbb", appType1, settingStrategy), EXEC_SUCCESS);

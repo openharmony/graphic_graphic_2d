@@ -126,8 +126,9 @@ void HgmFrameRateManager::InitConfig()
     std::string curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
-        if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
-            curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
+        auto iter = configData->screenStrategyConfigs_.find(curScreenName);
+        if (iter != configData->screenStrategyConfigs_.end()) {
+            curScreenStrategyId_ = iter->second;
         }
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
@@ -1096,7 +1097,7 @@ void HgmFrameRateManager::UpdateScreenExtStrategyConfig(const PolicyConfigData::
 
     for (auto it = screenExtStrategyMap_.begin(); it != screenExtStrategyMap_.end();) {
         if (std::find_if(screenConfigKeys.begin(), screenConfigKeys.end(),
-            [&](const auto &item) {return item.find(it->first) != std::string::npos; }) == screenConfigKeys.end()) {
+            [&](const auto &item) { return item.find(it->first) != std::string::npos; }) == screenConfigKeys.end()) {
             it = screenExtStrategyMap_.erase(it);
         } else {
             ++it;
@@ -1289,7 +1290,7 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
         isAdaptive_.store(isGameSupportAS_);
         return;
     }
-    
+
     if (!HgmCore::Instance().GetAdaptiveSyncEnabled()) {
         return;
     }
