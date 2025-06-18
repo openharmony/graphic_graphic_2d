@@ -49,6 +49,9 @@ ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
     "screen_change_callback_stub_test.cpp",
     "surface_capture_callback_proxy_test.cpp",
     "surface_capture_callback_stub_test.cpp",
+    "rs_transaction_callback_test.cpp",
+    "rs_transaction_callback_proxy_test.cpp",
+    "rs_transaction_callback_stub_test.cpp",
   ]
 
   cflags = [
