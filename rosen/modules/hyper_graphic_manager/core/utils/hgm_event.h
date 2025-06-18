@@ -43,7 +43,7 @@ public:
     void HandlePackageEvent(const std::vector<std::string>& packageList)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        for (auto &event : events_) {
+        for (auto& event : events_) {
             event->HandlePackageEvent(packageList);
         }
     }
@@ -51,7 +51,7 @@ public:
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        for (auto &event : events_) {
+        for (auto& event : events_) {
             event->HandleSceneEvent(pid, eventInfo);
         }
     }
@@ -60,7 +60,7 @@ public:
         const std::vector<std::pair<std::string, std::string>>& newConfig)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        for (auto &event : events_) {
+        for (auto& event : events_) {
             event->HandleAppStrategyConfigEvent(pkgName, newConfig);
         }
     }

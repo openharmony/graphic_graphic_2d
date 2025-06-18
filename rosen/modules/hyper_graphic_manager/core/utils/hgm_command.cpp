@@ -54,7 +54,9 @@ void PolicyConfigVisitorImpl::SetXmlModeId(const std::string& xmlModeId)
 int32_t PolicyConfigVisitorImpl::GetRefreshRateModeName(int32_t refreshRateModeId) const
 {
     auto iter = std::find_if(configData_.refreshRateForSettings_.begin(), configData_.refreshRateForSettings_.end(),
-        [=] (auto nameModeId) { return nameModeId.second == refreshRateModeId; });
+        [=] (auto nameModeId) {
+            return nameModeId.second == refreshRateModeId;
+        });
     if (iter != configData_.refreshRateForSettings_.end()) {
         return iter->first;
     }
@@ -82,9 +84,9 @@ HgmErrCode PolicyConfigVisitorImpl::GetStrategyConfig(
 
 const PolicyConfigData::ScreenSetting& PolicyConfigVisitorImpl::GetScreenSetting() const
 {
-    const auto &screenConfigs = configData_.screenConfigs_;
+    const auto& screenConfigs = configData_.screenConfigs_;
     if (auto screenConfigsIter = screenConfigs.find(screenConfigType_); screenConfigsIter != screenConfigs.end()) {
-        const auto &screenConfig = screenConfigsIter->second;
+        const auto& screenConfig = screenConfigsIter->second;
         if (auto iter = screenConfig.find(xmlModeId_); iter != screenConfig.end()) {
             return iter->second;
         } else {
@@ -105,12 +107,12 @@ std::string PolicyConfigVisitorImpl::GetAppStrategyConfigName(const std::string&
 {
     const auto& screenSetting = GetScreenSetting();
 
-    const auto &appConfigMap = screenSetting.appList;
+    const auto& appConfigMap = screenSetting.appList;
     if (auto iter = appConfigMap.find(pkgName); iter != appConfigMap.end()) {
         return iter->second;
     }
 
-    const auto &appTypes = screenSetting.appTypes;
+    const auto& appTypes = screenSetting.appTypes;
     if (auto iter = appTypes.find(appType); iter != appTypes.end()) {
         return iter->second;
     }
@@ -126,11 +128,17 @@ HgmErrCode PolicyConfigVisitorImpl::GetAppStrategyConfig(
 
 std::string PolicyConfigVisitorImpl::GetGameNodeName(const std::string& pkgName) const
 {
-    const auto &appNodeMap = GetScreenSetting().gameAppNodeList;
+    const auto& appNodeMap = GetScreenSetting().gameAppNodeList;
     if (auto iter = appNodeMap.find(pkgName); iter != appNodeMap.end()) {
         return iter->second;
     }
     return "";
+}
+
+HgmErrCode PolicyConfigVisitorImpl::GetDynamicAppStrategyConfig(const std::string& pkgName,
+    PolicyConfigData::StrategyConfig& strategyRes) const
+{
+    return HGM_ERROR;
 }
 
 std::string PolicyConfigVisitorImpl::SettingModeId2XmlModeId(int32_t settingModeId) const
@@ -144,7 +152,9 @@ std::string PolicyConfigVisitorImpl::SettingModeId2XmlModeId(int32_t settingMode
 int32_t PolicyConfigVisitorImpl::XmlModeId2SettingModeId(const std::string& xmlModeId) const
 {
     auto iter = std::find_if(configData_.refreshRateForSettings_.begin(), configData_.refreshRateForSettings_.end(),
-        [=] (auto nameModeId) { return std::to_string(nameModeId.second) == xmlModeId; });
+        [=] (auto nameModeId) {
+            return std::to_string(nameModeId.second) == xmlModeId;
+        });
     if (iter != configData_.refreshRateForSettings_.end()) {
         return static_cast<int32_t>(iter - configData_.refreshRateForSettings_.begin());
     }

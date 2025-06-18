@@ -129,7 +129,7 @@ void HgmFrameRateMgrTest::TearDownTestCase()
 
 void HgmFrameRateMgrTest::SetUp()
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     hgmCore.hgmFrameRateMgr_ = std::make_unique<HgmFrameRateManager>();
 }
 
@@ -1340,7 +1340,9 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, TOUCH_DOWN, 1);
-
+    mgr.HandleTouchEvent(0, TOUCH_UP, 1);
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    sleep(1);
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
 }
 

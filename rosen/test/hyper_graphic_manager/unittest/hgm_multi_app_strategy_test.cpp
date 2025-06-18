@@ -535,7 +535,7 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
         ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
-    
+
         STEP("1. normal strategy") {
             multiAppStrategy_->isLtpo_ = true;
             multiAppStrategy_->lowAmbientStatus_ = false;
