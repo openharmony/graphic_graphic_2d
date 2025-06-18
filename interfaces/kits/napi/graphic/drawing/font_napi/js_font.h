@@ -51,6 +51,7 @@ public:
     static napi_value IsEmbeddedBitmaps(napi_env env, napi_callback_info info);
     static napi_value IsForceAutoHinting(napi_env env, napi_callback_info info);
     static napi_value MeasureSingleCharacter(napi_env env, napi_callback_info info);
+    static napi_value MeasureSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     static napi_value MeasureText(napi_env env, napi_callback_info info);
     static napi_value SetScaleX(napi_env env, napi_callback_info info);
     static napi_value SetSkewX(napi_env env, napi_callback_info info);
@@ -91,6 +92,7 @@ private:
     napi_value OnIsEmbeddedBitmaps(napi_env env, napi_callback_info info);
     napi_value OnIsForceAutoHinting(napi_env env, napi_callback_info info);
     napi_value OnMeasureSingleCharacter(napi_env env, napi_callback_info info);
+    napi_value OnMeasureSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     napi_value OnMeasureText(napi_env env, napi_callback_info info);
     napi_value OnSetScaleX(napi_env env, napi_callback_info info);
     napi_value OnSetSkewX(napi_env env, napi_callback_info info);

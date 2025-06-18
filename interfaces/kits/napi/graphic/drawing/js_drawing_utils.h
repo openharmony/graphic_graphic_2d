@@ -496,6 +496,9 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
 
 bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_value nativeType);
 
+void MakeFontFeaturesFromJsArray(napi_env env, std::shared_ptr<DrawingFontFeatures> features,
+    uint32_t size, napi_value& array);
+
 inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
 {
     napi_value objValue = nullptr;

@@ -733,6 +733,57 @@ void CanvasFuzzTest015(const uint8_t* data, size_t size)
     }
     OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils);
 }
+
+void CanvasFuzzTest016(const uint8_t* data, size_t size)
+{
+        if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_MAX + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+    uint32_t count2 = GetObject<uint32_t>() % MAX_ARRAY_MAX + 1;
+    char* str2 = new char[count2];
+    for (size_t i = 0; i < count2; i++) {
+        str2[i] = GetObject<char>();
+    }
+    str2[count2 - 1] = '\0';
+    float val = GetObject<float>();
+    
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    OH_Drawing_FontFeaturesAddFeature(features, str2, val);
+
+    OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas, str, font, x, y, features);
+    OH_Drawing_CanvasDrawSingleCharacterWithFeatures(nullptr, str, font, x, y, features);
+    OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas, nullptr, font, x, y, features);
+    OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas, str, nullptr, x, y, features);
+    OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas, str, font, x, y, nullptr);
+
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_FontDestroy(font);
+    OH_Drawing_FontFeaturesDestroy(features);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+    if (str2 != nullptr) {
+        delete [] str2;
+        str2 = nullptr;
+    }
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -756,5 +807,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest013(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest014(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest015(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest016(data, size);
     return 0;
 }

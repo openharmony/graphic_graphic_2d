@@ -178,6 +178,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("drawLine", JsCanvas::DrawLine),
     DECLARE_NAPI_FUNCTION("drawTextBlob", JsCanvas::DrawText),
     DECLARE_NAPI_FUNCTION("drawSingleCharacter", JsCanvas::DrawSingleCharacter),
+    DECLARE_NAPI_FUNCTION("drawSingleCharacterWithFeatures", JsCanvas::DrawSingleCharacterWithFeatures),
     DECLARE_NAPI_FUNCTION("getTotalMatrix", JsCanvas::GetTotalMatrix),
     DECLARE_NAPI_FUNCTION("getLocalClipBounds", JsCanvas::GetLocalClipBounds),
     DECLARE_NAPI_FUNCTION("drawPixelMapMesh", JsCanvas::DrawPixelMapMesh),
@@ -1116,6 +1117,82 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
             "Parameter verification failed. Input parameter0 should be single character.");
     }
     m_canvas->DrawSingleCharacter(unicode, *font, x, y);
+#ifdef ROSEN_OHOS
+    if (mPixelMap_ != nullptr) {
+        mPixelMap_->MarkDirty();
+    }
+#endif
+    return nullptr;
+}
+
+napi_value JsCanvas::DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnDrawSingleCharacterWithFeatures(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FIVE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FIVE);
+
+    size_t len = 0;
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+    if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Input parameter0 should be single character.");
+    }
+    std::vector<char> strBuffer(len + 1);
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], strBuffer.data(), len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid parameter0 type.");
+    }
+    strBuffer[len] = 0;
+
+    const char* currentPtr = strBuffer.data();
+    const char* endPtr = strBuffer.data() + len;
+    int32_t unicode = SkUTF::NextUTF8(&currentPtr, endPtr);
+    size_t byteLen = currentPtr - strBuffer.data();
+    if (byteLen != len) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+
+    double x = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, x);
+
+    double y = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, y);
+
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawSingleCharacterWithFeatures font is nullptr");
+        return nullptr;
+    }
+
+    std::shared_ptr<Font> themeFont = MatchThemeFont(font, unicode);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
+
+    napi_value array = argv[ARGC_FOUR];
+    uint32_t size = 0;
+    if (napi_get_array_length(env, array, &size) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array");
+    }
+
+    std::shared_ptr<DrawingFontFeatures> featuresPtr = std::make_shared<DrawingFontFeatures>();
+    MakeFontFeaturesFromJsArray(env, featuresPtr, size, array);
+    m_canvas->DrawSingleCharacterWithFeatures(strBuffer.data(), *font, x, y, featuresPtr);
 #ifdef ROSEN_OHOS
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();

@@ -475,5 +475,28 @@ std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font)
     }
     return fontMgr;
 }
+
+void MakeFontFeaturesFromJsArray(napi_env env, std::shared_ptr<DrawingFontFeatures> features,
+    uint32_t size, napi_value& array)
+{
+    features->clear();
+
+    for (uint32_t i = 0; i < size; ++i) {
+        napi_value tempNumber = nullptr;
+        napi_get_element(env, array, i, &tempNumber);
+        std::string name;
+        napi_value tempValue = nullptr;
+        napi_get_named_property(env, tempNumber, "name", &tempValue);
+        if (!ConvertFromJsValue(env, tempValue, name)) {
+            continue;
+        }
+        double value = 0.0;
+        napi_get_named_property(env, tempNumber, "value", &tempValue);
+        if (!ConvertFromJsValue(env, tempValue, value)) {
+            continue;
+        }
+        features->push_back({{name, value}});
+    }
+}
 } // namespace Drawing
 } // namespace OHOS::Rosen

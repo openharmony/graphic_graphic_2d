@@ -115,13 +115,13 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasNULLPTR001, Test
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_BitmapDestroy(bitmap);
     OH_Drawing_CanvasAttachPen(canvas_, nullptr);
-    OH_Drawing_CanvasTranslate(canvas_, INT32_MIN, INT32_MIN);
-    OH_Drawing_CanvasTranslate(canvas_, INT32_MAX, INT32_MAX);
+    OH_Drawing_CanvasTranslate(canvas_, (float)INT32_MIN, (float)INT32_MIN);
+    OH_Drawing_CanvasTranslate(canvas_, (float)INT32_MAX, (float)INT32_MAX);
     OH_Drawing_CanvasDrawLine(nullptr, 0, 0, 20, 20);
-    OH_Drawing_CanvasDrawLine(canvas_, 0, 0, INT32_MAX, INT32_MAX);
-    OH_Drawing_CanvasDrawLine(canvas_, 0, 0, INT32_MIN, INT32_MIN);
+    OH_Drawing_CanvasDrawLine(canvas_, 0, 0, (float)INT32_MAX, (float)INT32_MAX);
+    OH_Drawing_CanvasDrawLine(canvas_, 0, 0, (float)INT32_MIN, (float)INT32_MIN);
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    OH_Drawing_PathMoveTo(path, INT32_MAX, INT32_MIN);
+    OH_Drawing_PathMoveTo(path, (float)INT32_MAX, (float)INT32_MIN);
     OH_Drawing_PathMoveTo(nullptr, 9999, -1000);
     OH_Drawing_PathClose(nullptr);
     OH_Drawing_PathClose(path);
@@ -2185,6 +2185,103 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateLight
     OH_Drawing_BrushSetFilter(brush_, filter);
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, 100, 100);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
+}
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawSingleCharacterWithFeatures001
+ * @tc.desc: test for draw single character with Features
+ * @tc.type: FUNC
+ * @tc.require: ICG6L3
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawSingleCharacterWithFeatures001, TestSize.Level1)
+{
+    const char* strOne = "a";
+    const char* strTwo = "你好";
+    const char* strThree = "";
+    float x = 0.f;
+    float y = 0.f;
+    OH_Drawing_FontFeatures* featuresEmpty = OH_Drawing_FontFeaturesCreate();
+    EXPECT_NE(featuresEmpty, nullptr);
+    OH_Drawing_FontFeatures* featuresOne = OH_Drawing_FontFeaturesCreate();
+    EXPECT_NE(featuresOne, nullptr);
+    OH_Drawing_ErrorCode ret = OH_Drawing_FontFeaturesAddFeature(featuresOne, "ccmp", 0);
+    EXPECT_EQ(ret, OH_DRAWING_SUCCESS);
+    OH_Drawing_FontFeatures* featuresTwo = OH_Drawing_FontFeaturesCreate();
+    EXPECT_NE(featuresTwo, nullptr);
+    ret = OH_Drawing_FontFeaturesAddFeature(featuresTwo, "cc", 0);
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_Font *fontWithTypeface = OH_Drawing_FontCreate();
+    EXPECT_NE(fontWithTypeface, nullptr);
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HarmonyOS_Sans.ttf", 0);
+    EXPECT_NE(typeface, nullptr);
+    OH_Drawing_FontSetTypeface(fontWithTypeface, typeface);
+    
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strOne, font, x, y, featuresEmpty),
+        OH_DRAWING_SUCCESS);
+    OH_Drawing_FontSetSubpixel(font, true);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strTwo, font, x, y, featuresEmpty),
+        OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strTwo, font, x, y, featuresOne),
+        OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strTwo, font, x, y, featuresTwo),
+        OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strTwo, fontWithTypeface, x, y,
+        featuresEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(nullptr, strOne, font, x, y, featuresEmpty),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, nullptr, font, x, y, featuresEmpty),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strOne, nullptr, x, y, featuresEmpty),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strOne, font, x, y, nullptr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strThree, font, x, y, featuresEmpty),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_FontDestroy(font);
+    OH_Drawing_FontFeaturesDestroy(featuresOne);
+    OH_Drawing_FontFeaturesDestroy(featuresTwo);
+    OH_Drawing_FontFeaturesDestroy(featuresEmpty);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawSingleCharacterWithFeatures001
+ * @tc.desc: test for draw single character with Features with canvas pixelmap
+ * @tc.type: FUNC
+ * @tc.require: ICG6L3
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawSingleCharacterWithFeatures002, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    EXPECT_NE(options, nullptr);
+    OH_PixelmapInitializationOptions_SetWidth(options, 1);
+    OH_PixelmapInitializationOptions_SetHeight(options, 1);
+    size_t bufferSize = 4;
+    void *buffer = malloc(bufferSize);
+    EXPECT_NE(buffer, nullptr);
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapNative_CreatePixelmap(static_cast<uint8_t *>(buffer), bufferSize, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontFeatures* featuresEmpty = OH_Drawing_FontFeaturesCreate();
+    EXPECT_NE(featuresEmpty, nullptr);
+
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas, "\uE000", font, 0.f, 0.f, featuresEmpty),
+        OH_DRAWING_SUCCESS);
+
+    OH_Drawing_FontFeaturesDestroy(featuresEmpty);
+    OH_Drawing_FontDestroy(font);
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    free(buffer);
+    OH_PixelmapInitializationOptions_Release(options);
 }
 } // namespace Drawing
 } // namespace Rosen

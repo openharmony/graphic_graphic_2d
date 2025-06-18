@@ -43,6 +43,16 @@ static const Font* CastToFont(const OH_Drawing_Font* cFont)
     return reinterpret_cast<const Font*>(cFont);
 }
 
+static Drawing::DrawingFontFeatures* CastToFontFeatures(OH_Drawing_FontFeatures* fontFeatures)
+{
+    return reinterpret_cast<Drawing::DrawingFontFeatures*>(fontFeatures);
+}
+
+static const Drawing::DrawingFontFeatures* CastToFontFeatures(const OH_Drawing_FontFeatures* fontFeatures)
+{
+    return reinterpret_cast<const Drawing::DrawingFontFeatures*>(fontFeatures);
+}
+
 static Typeface* CastToTypeface(OH_Drawing_Typeface* cTypeface)
 {
     return reinterpret_cast<Typeface*>(cTypeface);
@@ -266,6 +276,66 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font
         font = themeFont.get();
     }
     *textWidth = font->MeasureSingleCharacter(unicode);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacterWithFeatures(const OH_Drawing_Font* font, const char* str,
+    const OH_Drawing_FontFeatures* fontFeatures, float* textWidth)
+{
+    const DrawingFontFeatures* features = CastToFontFeatures(fontFeatures);
+    if (font == nullptr || str == nullptr || features == nullptr ||textWidth == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    size_t len = strlen(str);
+    if (len == 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const Font* drawingFont = CastToFont(font);
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::MatchThemeFont(drawingFont, unicode);
+    if (themeFont != nullptr) {
+        drawingFont = themeFont.get();
+    }
+    int32_t utfCharLen = currentStr - str;
+    std::vector<char> strBuffer(utfCharLen + 1);
+    for (int32_t i = 0; i < utfCharLen; ++i) {
+        strBuffer[i] = str[i];
+    }
+    strBuffer[utfCharLen] = 0;
+    std::shared_ptr<Drawing::DrawingFontFeatures> featureCopy = std::make_shared<Drawing::DrawingFontFeatures>();
+    for (const auto& entry : *features) {
+        featureCopy->push_back(entry);
+    }
+    *textWidth = drawingFont->MeasureSingleCharacterWithFeatures(strBuffer.data(), unicode, featureCopy);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_FontFeatures* OH_Drawing_FontFeaturesCreate(void)
+{
+    Drawing::DrawingFontFeatures* features = new Drawing::DrawingFontFeatures();
+    return (OH_Drawing_FontFeatures*)features;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontFeaturesDestroy(OH_Drawing_FontFeatures* fontFeatures)
+{
+    Drawing::DrawingFontFeatures* features = CastToFontFeatures(fontFeatures);
+    if (features == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    delete features;
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontFeaturesAddFeature(OH_Drawing_FontFeatures* fontFeatures,
+    const char* name, float value)
+{
+    Drawing::DrawingFontFeatures* features = CastToFontFeatures(fontFeatures);
+    if (features == nullptr || name == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    features->push_back({{name, value}});
     return OH_DRAWING_SUCCESS;
 }
 

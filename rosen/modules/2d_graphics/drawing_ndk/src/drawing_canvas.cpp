@@ -130,6 +130,11 @@ static const Font* CastToFont(const OH_Drawing_Font* cFont)
     return reinterpret_cast<const Font*>(cFont);
 }
 
+static Drawing::DrawingFontFeatures* CastToFontFeatures(OH_Drawing_FontFeatures* fontFeatures)
+{
+    return reinterpret_cast<Drawing::DrawingFontFeatures*>(fontFeatures);
+}
+
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
 {
     return (OH_Drawing_Canvas*)new Canvas;
@@ -765,6 +770,50 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCa
 #endif
     return OH_DRAWING_SUCCESS;
 }
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing_Canvas* cCanvas, const char* str,
+    const OH_Drawing_Font* cFont, float x, float y, OH_Drawing_FontFeatures* fontFeatures)
+{
+    Drawing::DrawingFontFeatures* features =  CastToFontFeatures(fontFeatures);
+    if (str == nullptr || cFont == nullptr || features == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t len = strlen(str);
+    if (len == 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::MatchThemeFont(font, unicode);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    // copy UTF char to array
+    int32_t utfCharLen = currentStr - str;
+    std::vector<char> strBuffer(utfCharLen + 1);
+    for (int32_t i = 0; i < utfCharLen; ++i) {
+        strBuffer[i] = str[i];
+    }
+    strBuffer[utfCharLen] = 0;
+    std::shared_ptr<Drawing::DrawingFontFeatures> featureCopy = std::make_shared<Drawing::DrawingFontFeatures>();
+    for (const auto& entry : *features) {
+        featureCopy->push_back(entry);
+    }
+    canvas->DrawSingleCharacterWithFeatures(strBuffer.data(), *font, x, y, featureCopy);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
+    return OH_DRAWING_SUCCESS;
+}
+
 
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_TextBlob* cTextBlob, float x, float y)
 {

@@ -79,6 +79,7 @@ public:
     static napi_value DrawShadow(napi_env env, napi_callback_info info);
     static napi_value DrawRegion(napi_env env, napi_callback_info info);
     static napi_value DrawSingleCharacter(napi_env env, napi_callback_info info);
+    static napi_value DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     static napi_value DrawText(napi_env env, napi_callback_info info);
     static napi_value DrawBackground(napi_env env, napi_callback_info info);
     static napi_value DrawRoundRect(napi_env env, napi_callback_info info);
@@ -136,6 +137,7 @@ private:
     napi_value OnDrawShadow(napi_env env, napi_callback_info info);
     napi_value OnDrawRegion(napi_env env, napi_callback_info info);
     napi_value OnDrawSingleCharacter(napi_env env, napi_callback_info info);
+    napi_value OnDrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
     napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
     napi_value OnGetWidth(napi_env env, napi_callback_info info);

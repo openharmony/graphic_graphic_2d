@@ -115,6 +115,48 @@ HWTEST_F(FontTest, FontGetSpacingTest001, TestSize.Level1)
     auto spacing = font.GetSpacing();
     ASSERT_NE((int)spacing, 0);
 }
+
+/**
+ * @tc.name: FontUnicharToGlyphWithFeatures001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:ICG6L3
+ * @tc.author:
+ */
+HWTEST_F(FontTest, FontUnicharToGlyphWithFeatures001, TestSize.Level1)
+{
+    Font font;
+    const char* str = "a";
+    const char* strEmpty = "";
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    uint16_t glyph = font.UnicharToGlyphWithFeatures(str, nullptr);
+    ASSERT_EQ(glyph, 0);
+    glyph = font.UnicharToGlyphWithFeatures(strEmpty, features);
+    ASSERT_EQ(glyph, 0);
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> zhCnTypeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(zhCnTypeface);
+    glyph = font.UnicharToGlyphWithFeatures(strEmpty, features);
+    ASSERT_EQ(glyph, 0);
+}
+
+/**
+ * @tc.name: MeasureSingleCharacterWithFeatures001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:ICG6L3
+ * @tc.author:
+ */
+HWTEST_F(FontTest, MeasureSingleCharacterWithFeatures001, TestSize.Level1)
+{
+    Font font;
+    const char* str = "a";
+    float width = font.MeasureSingleCharacterWithFeatures(str, 0, nullptr);
+    ASSERT_NE(width, 0);
+    const char* strNoFallback = "\uE000";
+    uint32_t unicodeNoFallback = 0xE000;
+    width = font.MeasureSingleCharacterWithFeatures(strNoFallback, unicodeNoFallback, nullptr);
+    ASSERT_EQ(width, 0);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -498,6 +498,26 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* can
     const OH_Drawing_Font* font, float x, float y);
 
 /**
+ * @brief Draws a single character with font features.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param str Indicates the single character encoded in UTF-8.
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param x Indicates the horizontal offset applied to the single character.
+ * @param y Indicates the vertical offset applied to the single character.
+ * @param fontFeatures Indicates the pointer to an <b>OH_Drawing_FontFeatures</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of canvas, str, font
+ *                 or fontFeatures is nullptr, or if strlen(str) is 0.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing_Canvas* canvas, const char* str,
+    const OH_Drawing_Font* font, float x, float y, OH_Drawing_FontFeatures* fontFeatures);
+
+/**
  * @brief Draws a textblob.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
