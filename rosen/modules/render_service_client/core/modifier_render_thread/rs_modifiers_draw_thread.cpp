@@ -28,7 +28,7 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "qos.h"
 #include "render_context/shader_cache.h"
-#include "rs_frame_report.h"
+#include "concurrent_task_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -168,6 +168,10 @@ void RSModifiersDrawThread::Start()
 #endif
     RSModifiersDrawThread::isStarted_ = true;
     PostTask([] {
+        OHOS::ConcurrentTask::IntervalReply reply;
+        reply.tid = gettid();
+        OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().QueryInterval(
+            OHOS::ConcurrentTask::QUERY_MODIFIER_DRAW, reply);
         SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
         // Init shader cache
         std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
