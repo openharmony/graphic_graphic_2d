@@ -1021,8 +1021,8 @@ HWTEST_F(RSTransactionManagerTest, WriteMetaDataToMessageParcel002, TestSize.Lev
     sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
     MessageParcel parcel;
     TransactionInfo info;
-    auto ret = trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_NOT_USED, info.metaData, info.metaDataKey,
-        info.metaDataSet);
+    auto ret = trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_NOT_USED,
+        info.metaData, info.metaDataKey, info.metaDataSet);
     EXPECT_EQ(ret, GSERROR_OK);
 }
 /**
@@ -1037,8 +1037,8 @@ HWTEST_F(RSTransactionManagerTest, WriteMetaDataToMessageParcel003, TestSize.Lev
     sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
     MessageParcel parcel;
     TransactionInfo info;
-    auto ret = trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_META_DATA_SET, info.metaData, info.metaDataKey,
-        info.metaDataSet);
+    auto ret = trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_META_DATA_SET,
+        info.metaData, info.metaDataKey, info.metaDataSet);
     EXPECT_EQ(ret, GSERROR_OK);
 }
 }
