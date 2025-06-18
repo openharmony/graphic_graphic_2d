@@ -145,9 +145,14 @@ bool RSRenderContentLightFilterPara::ParseFilterValues()
         return false;
     }
     lightIntensity_ = lightIntensityProperty->Get();
-    hash_ = SkOpts::hash(&lightPosition_, sizeof(lightPosition_), hash_);
-    hash_ = SkOpts::hash(&lightColor_, sizeof(lightColor_), hash_);
-    hash_ = SkOpts::hash(&lightIntensity_, sizeof(lightIntensity_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&lightPosition_, sizeof(lightPosition_), hash_);
+    hash_ = hashFunc(&lightColor_, sizeof(lightColor_), hash_);
+    hash_ = hashFunc(&lightIntensity_, sizeof(lightIntensity_), hash_);
     return true;
 }
 

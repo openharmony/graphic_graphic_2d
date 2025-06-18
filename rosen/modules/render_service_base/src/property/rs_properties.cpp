@@ -16,6 +16,7 @@
 #include "property/rs_properties.h"
 
 #include <algorithm>
+#include <math.h>
 #include <memory>
 #include <optional>
 #include <securec.h>
