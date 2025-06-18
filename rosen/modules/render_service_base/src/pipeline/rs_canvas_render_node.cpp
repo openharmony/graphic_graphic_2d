@@ -142,6 +142,8 @@ bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
         property.NeedFilter() ||
         property.GetUseEffect() ||
         property.GetColorBlend().has_value() ||
+        ChildHasVisibleFilter() ||
+        ChildHasVisibleEffect() ||
         (IsSelfDrawingNode() && GetOpincCache().OpincGetRootFlag())) {
         return false;
     }
