@@ -3354,18 +3354,6 @@ void RSSurfaceRenderNode::SetUifirstChildrenDirtyRectParam(RectI rect)
 #endif
 }
 
-void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
-{
-#ifdef RS_ENABLE_GPU
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (!stagingSurfaceParams) {
-        RS_LOGE("RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam staingSurfaceParams is null");
-        return;
-    }
-    stagingSurfaceParams->SetLeashWindowVisibleRegionEmptyParam(isLeashWindowVisibleRegionEmpty_);
-#endif
-}
-
 bool RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 {
     bool ret = false;

@@ -1369,6 +1369,59 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDrawRegionForQuickReject001
+ * @tc.desc: test SetDrawRegionForQuickReject
+ * @tc.type: FUNC
+ * @tc.require: issueICDSYF
+ */
+HWTEST_F(RSUniRenderUtilTest, SetDrawRegionForQuickReject001, TestSize.Level1)
+{
+    constexpr int defaultDirtyRegionWidth{1000};
+    constexpr int defaultDirtyRegionHeight{2000};
+    Occlusion::Region mergedDirtyRects{Occlusion::Rect(0, 0, defaultDirtyRegionWidth, defaultDirtyRegionHeight)};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr surfaceAdapter(
+        RSSurfaceRenderNodeDrawable::OnGenerate(renderNode));
+    ASSERT_TRUE(surfaceAdapter != nullptr);
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
+    allSurfaceDrawables.emplace_back(nullptr);
+    allSurfaceDrawables.emplace_back(surfaceAdapter);
+    auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceAdapter);
+    ASSERT_TRUE(surfaceNodeDrawable != nullptr);
+    auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+    ASSERT_TRUE(surfaceDirtyManager != nullptr);
+
+    surfaceNodeDrawable->renderParams_ = nullptr;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), true);
+
+    surfaceNodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), true);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+    ASSERT_TRUE(surfaceParams != nullptr);
+    surfaceParams->isMainWindowType_ = false;
+    surfaceParams->isLeashWindow_ = true;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
+
+    surfaceDirtyManager->dirtyRegionForQuickReject_.clear();
+    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->isLeashWindow_ = false;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
+
+    surfaceDirtyManager->dirtyRegionForQuickReject_.clear();
+    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->isLeashWindow_ = true;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
+}
+
+/**
  * @tc.name: FrameAwareTraceBoostTest
  * @tc.desc: test FrameAwareTraceBoost
  * @tc.type: FUNC

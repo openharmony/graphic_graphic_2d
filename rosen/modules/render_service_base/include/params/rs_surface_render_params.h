@@ -231,20 +231,6 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
 
-    void SetLeashWindowVisibleRegionEmptyParam(bool isLeashWindowVisibleRegionEmpty)
-    {
-        if (isLeashWindowVisibleRegionEmpty_ == isLeashWindowVisibleRegionEmpty) {
-            return;
-        }
-        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
-        needSync_ = true;
-    }
-
-    bool GetLeashWindowVisibleRegionEmptyParam() const
-    {
-        return isLeashWindowVisibleRegionEmpty_;
-    }
-
     bool SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
@@ -809,7 +795,6 @@ private:
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
     bool occlusionVisible_ = false;
-    bool isLeashWindowVisibleRegionEmpty_ = false;
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;

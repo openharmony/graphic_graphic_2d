@@ -178,7 +178,6 @@ private:
     bool NeedPrepareChindrenInReverseOrder(RSRenderNode& node) const;
     bool IsLeashAndHasMainSubNode(RSRenderNode& node) const;
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
-    void UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
     // should be removed due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

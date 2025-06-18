@@ -615,7 +615,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
     targetSurfaceParams->isForceRefresh_ = isForceRefresh_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
-    targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
@@ -679,7 +678,7 @@ bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curS
     }
     if (IsLeashWindow() && (!IsCrossNode() ||
         GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::DISABLED)) {
-        return GetLeashWindowVisibleRegionEmptyParam();
+        return curSurfaceDrawRegion.IsEmpty();
     }
     return false;
 }
