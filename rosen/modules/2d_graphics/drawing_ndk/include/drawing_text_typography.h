@@ -2971,6 +2971,42 @@ void OH_Drawing_SetTypographyTextTrailingSpaceOptimized(OH_Drawing_TypographySty
  */
 void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bool enableAutoSpace);
 
+/**
+ * @brief Copy a typography style object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b>
+ * object.
+ * @return Returns the pointer to the copied <b>OH_Drawing_TypographyStyle</b>
+ * object.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_TypographyStyle *OH_Drawing_CopyTypographyStyle(OH_Drawing_TypographyStyle *style);
+
+/**
+ * @brief Copy a text style object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @return Returns the pointer to the copied <b>OH_Drawing_TextStyle</b> object.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_TextStyle *OH_Drawing_CopyTextStyle(OH_Drawing_TextStyle *style);
+
+/**
+ * @brief Copy a text shadow object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param shadow Indicates the pointer to an <b>OH_Drawing_TextShadow</b>
+ * object.
+ * @return Returns the pointer to the copied <b>OH_Drawing_TextShadow</b>
+ * object.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_TextShadow *OH_Drawing_CopyTextShadow(OH_Drawing_TextShadow *shadow);
 #ifdef __cplusplus
 }
 #endif
