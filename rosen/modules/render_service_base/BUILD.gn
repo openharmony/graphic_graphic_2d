@@ -378,6 +378,14 @@ ohos_source_set("render_service_base_src") {
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
   ]
+  if (!build_ohos_sdk) {
+    sources += [
+      "src/ipc_callbacks/rs_transaction_callback.cpp",
+      "src/ipc_callbacks/rs_transaction_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_transaction_callback_stub.cpp",
+      "src/transaction/transaction.cpp",
+    ]
+  }
 
   if (rs_enable_gpu) {
     sources += [
