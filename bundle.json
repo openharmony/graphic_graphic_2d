@@ -175,6 +175,16 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text:text_napi_impl",
+            "header": {
+              "header_files": [
+                "paragraph_napi/js_paragraph.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/frameworks/bootanimation/utils:libbootanimation_utils",
             "header": {
               "header_files": [
