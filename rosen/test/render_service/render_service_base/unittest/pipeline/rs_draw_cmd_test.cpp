@@ -528,4 +528,22 @@ HWTEST_F(RSDrawCmdTest, CreateSamplingOptions, TestSize.Level1)
     ASSERT_EQ(samplingOptions.GetFilterMode(), Drawing::FilterMode::LINEAR);
     ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
 }
+
+/**
+ * @tc.name: RSExtendImageObjectDumpTest
+ * @tc.desc: test results of RSExtendImageObjectDump
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageObjectDumpTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    std::string desc;
+    extendImageObject.Dump(desc);
+    EXPECT_EQ(desc," rsImage is nullptr");
+
+    extendImageObject.rsImage_ = std::make_shared<RSImage>();
+    desc = "dump ";
+    extendImageObject.Dump(desc);
+    EXPECT_NE(desc, "dump ");
+}
 } // namespace OHOS::Rosen

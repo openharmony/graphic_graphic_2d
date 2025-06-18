@@ -46,6 +46,7 @@ public:
     virtual void SetNodeId(NodeId id) {};
     virtual void SetPaint(Paint paint) {};
     virtual void Purge() {};
+    virtual void Dump(std::string& dump) {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
