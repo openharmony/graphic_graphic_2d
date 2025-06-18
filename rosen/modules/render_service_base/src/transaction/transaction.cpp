@@ -32,7 +32,7 @@ namespace {
 constexpr uint32_t DUMP_BUFFER_WAIT_FENCE_TIMEOUT_MS = 3000;
 }
 
-GSError Transaction::WriteToMessageParcel(MessageParcel& parcel)
+GSError Transaction::WriteToMessageParcel(MessageParcel& parcel, bool hasBuffer)
 {
     if (buffer_ == nullptr || fence_ == nullptr) {
         RS_LOGE("Transaction::WriteToMessageParcel buffer_ == nullptr:%{public}d, fence_ == nullptr:%{public}d",
@@ -55,7 +55,12 @@ GSError Transaction::WriteToMessageParcel(MessageParcel& parcel)
             return GSERROR_BINDER;
         }
     }
-    GSError ret = WriteSurfaceBufferImpl(parcel, buffer_->GetSeqNum(), buffer_);
+    GSError ret;
+    if (hasBuffer) {
+        ret = WriteSurfaceBufferImpl(parcel, buffer_->GetSeqNum(), buffer_);
+    } else {
+        ret = WriteSurfaceBufferImpl(parcel, buffer_->GetSeqNum(), nullptr);
+    }
     if (ret != GSERROR_OK) {
         RS_LOGE("Transaction::WriteToMessageParcel WriteSurfaceBufferImpl failed, ret:%{public}d", ret);
         return ret;
@@ -130,7 +135,7 @@ GSError Transaction::ReadTransactionInfoFromMessageParcel(MessageParcel& parcel,
 GSError Transaction::ReadBufferInfoFromMessageParcel(MessageParcel& parcel, RSBufferInfo& info)
 {
     info.sequence = parcel.ReadUint32();
-    if (!parcel.ReadBool()) {
+    if (parcel.ReadBool()) {
         RS_LOGE("Transaction ReadBufferInfoFromMessageParcel no buffer, sequence:%{public}u", info.sequence);
         return GSERROR_INVALID_ARGUMENTS;
     }

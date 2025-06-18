@@ -62,7 +62,7 @@ void RSTransactionManagerTest::OnDeleteBufferFunc(uint32_t value)
 void RSTransactionManagerTest::WriteTransactionInfoFromMessageParcel(MessageParcel& parcel, TransactionInfo info)
 {
     parcel.WriteUint32(0);
-    parcel.WriteBool(true);
+    parcel.WriteBool(false);
     uint32_t colorGamut = 0;
     uint32_t transform = 0;
     int32_t scalingMode = 0;
@@ -555,5 +555,490 @@ HWTEST_F(RSTransactionManagerTest, QueryMetaDataType001, TestSize.Level1)
     manager_->transactionQueueCache_[100] = trans; // 100 : seq
     EXPECT_EQ(manager_->QueryMetaDataType(100, type), GSERROR_OK); // 100 : seq
     manager_->transactionQueueCache_.clear();
+}
+/**
+ * @tc.name: GetMetaData001
+ * @tc.desc: GetMetaData
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, GetMetaData001, TestSize.Level1)
+{
+    std::vector<GraphicHDRMetaData> metaData;
+    EXPECT_EQ(manager_->GetMetaData(0, metaData), GSERROR_NO_ENTRY);
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    manager_->transactionQueueCache_[100] = trans; // 100 : seq
+    EXPECT_EQ(manager_->GetMetaData(100, metaData), GSERROR_OK); // 100 : seq
+    manager_->transactionQueueCache_.clear();
+}
+/**
+ * @tc.name: GetMetaDataSet001
+ * @tc.desc: GetMetaDataSet
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, GetMetaDataSet001, TestSize.Level1)
+{
+    GraphicHDRMetadataKey key;
+    std::vector<uint8_t> metaDataSet;
+    EXPECT_EQ(manager_->GetMetaDataSet(0, key, metaDataSet), GSERROR_NO_ENTRY);
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    manager_->transactionQueueCache_[100] = trans; // 100 : seq
+    EXPECT_EQ(manager_->GetMetaDataSet(100, key, metaDataSet), GSERROR_OK); // 100 : seq
+    manager_->transactionQueueCache_.clear();
+}
+/**
+ * @tc.name: UpdateTransactionConfig
+ * @tc.desc: UpdateTransactionConfig
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, UpdateTransactionConfig001, TestSize.Level1)
+{
+    const RSTransactionManagerConfig config;
+    EXPECT_EQ(manager_->UpdateTransactionConfig(config), GSERROR_OK);
+}
+/**
+ * @tc.name: GetLastFlushedDesiredPresentTimeStamp001
+ * @tc.desc: GetLastFlushedDesiredPresentTimeStamp
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, GetLastFlushedDesiredPresentTimeStamp001, TestSize.Level1)
+{
+    int64_t lastFlushedDesiredPresentTimeStamp;
+    EXPECT_EQ(manager_->GetLastFlushedDesiredPresentTimeStamp(lastFlushedDesiredPresentTimeStamp), GSERROR_OK);
+}
+/**
+ * @tc.name: GetBufferSupportFastCompose001
+ * @tc.desc: GetBufferSupportFastCompose
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, GetBufferSupportFastCompose001, TestSize.Level1)
+{
+    bool bufferSupportFastCompose;
+    EXPECT_EQ(manager_->GetBufferSupportFastCompose(bufferSupportFastCompose), GSERROR_OK);
+}
+/**
+ * @tc.name: GetCycleBuffersNumber001
+ * @tc.desc: GetCycleBuffersNumber
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, GetCycleBuffersNumber001, TestSize.Level1)
+{
+    uint32_t cycleBuffersNumber;
+    manager_->rotatingBufferNumber_ = 0;
+    EXPECT_EQ(manager_->GetCycleBuffersNumber(cycleBuffersNumber), GSERROR_OK);
+    manager_->rotatingBufferNumber_ = 1;
+    EXPECT_EQ(manager_->GetCycleBuffersNumber(cycleBuffersNumber), GSERROR_OK);
+}
+/**
+ * @tc.name: ReleaseBufferLocked001
+ * @tc.desc: ReleaseBufferLocked
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReleaseBufferLocked001, TestSize.Level1)
+{
+    sptr<SyncFence> fence = new SyncFence(1000);
+    EXPECT_CALL(*callback_, OnCompleted(testing::_)).WillOnce(testing::Return(GSERROR_INTERNAL));
+    auto ret = manager_->ReleaseBufferLocked(1, fence);
+    EXPECT_EQ(ret, GSERROR_INTERNAL);
+    EXPECT_CALL(*callback_, OnCompleted(testing::_)).WillOnce(testing::Return(GSERROR_OK));
+    ret = manager_->ReleaseBufferLocked(1, fence);
+    EXPECT_EQ(ret, GSERROR_OK);
+}
+/**
+ * @tc.name: ReleaseBuffer001
+ * @tc.desc: ReleaseBuffer
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReleaseBuffer001, TestSize.Level1)
+{
+    sptr<SyncFence> fence = new SyncFence(1000);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    EXPECT_EQ(manager_->ReleaseBuffer(buffer, fence), GSERROR_INVALID_ARGUMENTS);
+    buffer = OHOS::SurfaceBuffer::Create();
+    EXPECT_EQ(manager_->ReleaseBuffer(buffer, fence), GSERROR_OK);
+    EXPECT_CALL(*callback_, OnCompleted(testing::_)).WillOnce(testing::Return(GSERROR_INTERNAL));
+    EXPECT_EQ(manager_->ReleaseBuffer(buffer, fence), GSERROR_INTERNAL);
+}
+/**
+ * @tc.name: OnBufferDeleteForRS001
+ * @tc.desc: OnBufferDeleteForRS
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, OnBufferDeleteForRS001, TestSize.Level1)
+{
+    EXPECT_EQ(manager_->onBufferDeleteForRSMainThread_, nullptr);
+    EXPECT_EQ(manager_->onBufferDeleteForRSHardwareThread_, nullptr);
+    manager_->onBufferDeleteForRSHardwareThread_ = OnDeleteBufferFunc;
+    manager_->onBufferDeleteForRSMainThread_ = OnDeleteBufferFunc;
+    manager_->OnBufferDeleteForRS(0);
+}
+/**
+ * @tc.name: DumpCurrentFrameLayer001
+ * @tc.desc: DumpCurrentFrameLayer
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, DumpCurrentFrameLayer001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> tx = sptr<Transaction>(new Transaction(buffer));
+    manager_->pendingTransactionQueue_.push_back(tx);
+    manager_->pendingTransactionQueue_.push_back(nullptr);
+    ASSERT_EQ(manager_->pendingTransactionQueue_.size(), 2);
+    manager_->DumpCurrentFrameLayer();
+    system::SetParameter("debug.dumpstaticframe.enabled", "1");
+    manager_->DumpCurrentFrameLayer();
+}
+/**
+ * @tc.name: GetLastConsumerTime001
+ * @tc.desc: GetLastConsumerTime
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, GetLastConsumerTime001, TestSize.Level1)
+{
+    int64_t lastConsumeTime;
+    ASSERT_EQ(manager_->GetLastConsumeTime(lastConsumeTime), GSERROR_OK);
+}
+/**
+ * @tc.name: GetSurfaceBufferTransformType001
+ * @tc.desc: GetSurfaceBufferTransformType
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, GetSurfaceBufferTransformType001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    GraphicTransformType transformType;
+    ASSERT_EQ(manager_->GetSurfaceBufferTransformType(nullptr, nullptr), SURFACE_ERROR_INVALID_PARAM);
+    ASSERT_EQ(manager_->GetSurfaceBufferTransformType(nullptr, &transformType), SURFACE_ERROR_INVALID_PARAM);
+    ASSERT_EQ(manager_->GetSurfaceBufferTransformType(buffer, nullptr), SURFACE_ERROR_INVALID_PARAM);
+    ASSERT_EQ(manager_->GetSurfaceBufferTransformType(buffer, &transformType), GSERROR_OK);
+}
+/**
+ * @tc.name: WriteToMessageParcel001
+ * @tc.desc: WriteToMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, WriteToMessageParcel001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    trans->buffer_ = nullptr;
+    trans->fence_ = nullptr;
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, true), GSERROR_INTERNAL);
+    trans->fence_ = new SyncFence(1000);
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, true), GSERROR_INTERNAL);
+    trans->buffer_ = OHOS::SurfaceBuffer::Create();
+    trans->fence_ = nullptr;
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, true), GSERROR_INTERNAL);
+    trans->buffer_ = OHOS::SurfaceBuffer::Create();
+    trans->fence_ = new SyncFence(1000);
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, true), GSERROR_NOT_INIT);
+    for (uint32_t i = 0; i < SURFACE_PARCEL_SIZE_LIMIT + 1; i++) {
+        Rect rect = { 0, 0, 0, 0 };
+        trans->damages_.emplace_back(rect);
+    }
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, true), GSERROR_INVALID_ARGUMENTS);
+    trans->damages_.clear();
+    Rect rect = { 0, 0, 0, 0 };
+    trans->damages_.emplace_back(rect);
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, true), GSERROR_NOT_INIT);
+    TransactionInfo info;
+    EXPECT_EQ(trans->ReadTransactionInfoFromMessageParcel(parcel, info), GSERROR_INVALID_ARGUMENTS);
+}
+/**
+ * @tc.name: WriteToMessageParcel002
+ * @tc.desc: WriteToMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, WriteToMessageParcel002, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    BufferHandle* handle = new BufferHandle();
+    buffer->SetBufferHandle(handle);
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    trans->buffer_ = buffer;
+    trans->fence_ = new SyncFence(1000);  // 1000 : fd
+    trans->damages_.clear();
+    Rect rect = { 0, 0, 0, 0 };
+    trans->damages_.emplace_back(rect);
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, true), GSERROR_OK);
+    trans = nullptr;
+    buffer = nullptr;
+    handle = nullptr;
+}
+/**
+ * @tc.name: WriteToMessageParcel003
+ * @tc.desc: WriteToMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, WriteToMessageParcel003, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    BufferHandle* handle = new BufferHandle();
+    buffer->SetBufferHandle(handle);
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    trans->buffer_ = buffer;
+    trans->fence_ = new SyncFence(1000);  // 1000 : fd
+    trans->damages_.clear();
+    Rect rect = { 0, 0, 0, 0 };
+    trans->damages_.emplace_back(rect);
+    EXPECT_EQ(trans->WriteToMessageParcel(parcel, false), GSERROR_OK);
+    trans = nullptr;
+    buffer = nullptr;
+    handle = nullptr;
+}
+/**
+ * @tc.name: ReadFromTransactionInfo001
+ * @tc.desc: ReadFromTransactionInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadFromTransactionInfo001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    const TransactionInfo info;
+    EXPECT_EQ(trans->ReadFromTransactionInfo(info), GSERROR_OK);
+}
+/**
+ * @tc.name: ReadTransactionInfoFromMessageParcel001
+ * @tc.desc: ReadTransactionInfoFromMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadTransactionInfoFromMessageParcel001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    parcel.WriteUint32(SURFACE_PARCEL_SIZE_LIMIT + 1);
+    EXPECT_EQ(trans->ReadTransactionInfoFromMessageParcel(parcel, info), GSERROR_INVALID_ARGUMENTS);
+    parcel.WriteUint32(1);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    WriteSurfaceBufferImpl(parcel, buffer->GetSeqNum(), buffer);
+    auto ret = trans->ReadTransactionInfoFromMessageParcel(parcel, info);
+    EXPECT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+}
+/**
+ * @tc.name: ReadTransactionInfoFromMessageParcel002
+ * @tc.desc: ReadTransactionInfoFromMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadTransactionInfoFromMessageParcel002, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    parcel.WriteUint32(1);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    WriteTransactionInfoFromMessageParcel(parcel, info);
+    parcel.WriteUint32(HDRMetaDataType::HDR_NOT_USED);
+    auto ret = trans->ReadTransactionInfoFromMessageParcel(parcel, info);
+    EXPECT_EQ(ret, GSERROR_OK);
+}
+/**
+ * @tc.name: ReadFromMessageParcel001
+ * @tc.desc: ReadFromMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadFromMessageParcel001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    parcel.WriteUint32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    WriteSurfaceBufferImpl(parcel, buffer->GetSeqNum(), buffer);
+    EXPECT_EQ(trans->ReadFromMessageParcel(parcel), nullptr);
+    buffer->WriteBufferProperty(parcel);
+    trans->ReadFromMessageParcel(parcel);
+}
+/**
+ * @tc.name: ReadFromMessageParcel002
+ * @tc.desc: ReadFromMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadFromMessageParcel002, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    parcel.WriteUint32(SURFACE_PARCEL_SIZE_LIMIT + 1);
+    EXPECT_EQ(trans->ReadFromMessageParcel(parcel), nullptr);
+}
+/**
+ * @tc.name: ReadFromMessageParcel003
+ * @tc.desc: ReadFromMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadFromMessageParcel003, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    BufferHandle* handle = new BufferHandle();
+    handle->fd = 1000;
+    handle->reserveFds = 0;
+    handle->reserveInts = 0;
+    buffer->SetBufferHandle(handle);
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    parcel.WriteUint32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    WriteSurfaceBufferImpl(parcel, buffer->GetSeqNum(), buffer);
+    buffer->WriteBufferProperty(parcel);
+    parcel.WriteInt64(1);
+    parcel.WriteInt64(1);
+    parcel.WriteBool(false);
+    trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_META_DATA_SET, info.metaData, info.metaDataKey,
+        info.metaDataSet);
+    EXPECT_EQ(trans->ReadFromMessageParcel(parcel), nullptr);
+    trans = nullptr;
+    buffer = nullptr;
+    handle = nullptr;
+}
+/**
+ * @tc.name: ReadFromMessageParcel004
+ * @tc.desc: ReadFromMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadFromMessageParcel004, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    BufferHandle* handle = new BufferHandle();
+    handle->fd = 1000;
+    handle->reserveFds = 0;
+    handle->reserveInts = 0;
+    buffer->SetBufferHandle(handle);
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    parcel.WriteUint32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    parcel.WriteInt32(1);
+    WriteSurfaceBufferImpl(parcel, buffer->GetSeqNum(), buffer);
+    buffer->WriteBufferProperty(parcel);
+    parcel.WriteInt64(1);
+    parcel.WriteInt64(1);
+    parcel.WriteBool(false);
+    trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_NOT_USED, info.metaData, info.metaDataKey,
+        info.metaDataSet);
+    EXPECT_EQ(trans->ReadFromMessageParcel(parcel), nullptr);
+    trans = nullptr;
+    buffer = nullptr;
+    handle = nullptr;
+}
+/**
+ * @tc.name: ReadMetaDataFromMessageParcel001
+ * @tc.desc: ReadMetaDataFromMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, ReadMetaDataFromMessageParcel001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    parcel.WriteUint32(0);
+    auto ret = trans->ReadMetaDataFromMessageParcel(parcel, info.hdrMetaDataType, info.metaData, info.metaDataKey,
+        info.metaDataSet);
+    EXPECT_EQ(ret, GSERROR_OK);
+    parcel.WriteUint32(1);
+    std::vector<GraphicHDRMetaData> metaData = {{GRAPHIC_MATAKEY_RED_PRIMARY_X, 1}};
+    WriteHDRMetaData(parcel, metaData);
+    parcel.WriteUint32(0);
+    auto metaDataSet = std::vector<uint8_t>(5);
+    WriteHDRMetaDataSet(parcel, metaDataSet);
+    ret = trans->ReadMetaDataFromMessageParcel(parcel, info.hdrMetaDataType, info.metaData, info.metaDataKey,
+        info.metaDataSet);
+    EXPECT_EQ(ret, GSERROR_OK);
+}
+/**
+ * @tc.name: WriteMetaDataToMessageParcel001
+ * @tc.desc: WriteMetaDataToMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, WriteMetaDataToMessageParcel001, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    auto ret = trans->WriteMetaDataToMessageParcel(parcel, info.hdrMetaDataType, info.metaData, info.metaDataKey,
+        info.metaDataSet);
+    EXPECT_EQ(ret, GSERROR_OK);
+}
+/**
+ * @tc.name: WriteMetaDataToMessageParcel002
+ * @tc.desc: WriteMetaDataToMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, WriteMetaDataToMessageParcel002, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    auto ret = trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_NOT_USED,
+        info.metaData, info.metaDataKey, info.metaDataSet);
+    EXPECT_EQ(ret, GSERROR_OK);
+}
+/**
+ * @tc.name: WriteMetaDataToMessageParcel003
+ * @tc.desc: WriteMetaDataToMessageParcel
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionManagerTest, WriteMetaDataToMessageParcel003, TestSize.Level1)
+{
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<Transaction> trans = sptr<Transaction>(new Transaction(buffer));
+    MessageParcel parcel;
+    TransactionInfo info;
+    auto ret = trans->WriteMetaDataToMessageParcel(parcel, HDRMetaDataType::HDR_META_DATA_SET,
+        info.metaData, info.metaDataKey, info.metaDataSet);
+    EXPECT_EQ(ret, GSERROR_OK);
 }
 }

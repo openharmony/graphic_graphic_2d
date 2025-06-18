@@ -168,7 +168,7 @@ public:
         std::shared_lock<std::shared_mutex> lock(mutex_);
         return lastAcquireTime_;
     }
-    GSError WriteToMessageParcel(MessageParcel& parcel);
+    GSError WriteToMessageParcel(MessageParcel& parcel, bool hasBuffer);
     static sptr<Transaction> ReadFromMessageParcel(MessageParcel& parcel);
     GSError ReadFromTransactionInfo(const TransactionInfo& info);
     static GSError ReadTransactionInfoFromMessageParcel(MessageParcel& parcel, TransactionInfo& info);
@@ -559,6 +559,15 @@ public:
      * {@link GSERROR_INVALID_ARGUMENTS} 40001000 - Param invalid.
      */
     GSError GetSurfaceBufferTransformType(sptr<SurfaceBuffer> buffer, GraphicTransformType *transformType) override;
+    /**
+     * @brief Get the Available Buffer Count from the surface.
+     *
+     * @return uint32_t The Available Buffer Count of the surface.
+     */
+    uint32_t GetAvailableBufferCount() const override {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return pendingTransactionQueue_.size();
+    }
 private:
     RSTransactionManager(uint64_t uniqueId, std::string name, uint32_t maxQueueSize,
         sptr<RSITransactionCallback> transactionCallback, sptr<IBufferConsumerListener> transactionListener);
