@@ -84,4 +84,57 @@ HWTEST_F(RSForegroundFilterModifierNGTypeTest, RSForegroundFilterModifierTest, T
 
     modifier->MarkNodeDirty();
 }
+
+HWTEST_F(RSForegroundFilterModifierNGTypeTest, SetUIFilterTest, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSForegroundFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSForegroundFilterModifier>();
+    modifier->SetUIFilter(nullptr);
+
+    auto rsUIFilter = std::make_shared<RSUIFilter>();
+
+    std::shared_ptr<ModifierNG::RSForegroundFilterModifier> modifier01 =
+    std::make_shared<ModifierNG::RSForegroundFilterModifier>();
+
+    rsUIFilter->Insert(nullptr);
+    float radius = 1.0f;
+    auto filterBlurPara = std::make_shared<FilterBlurPara>();
+    filterBlurPara->SetRadius(radius);
+    auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
+    rsUIBlurFilterPara->SetBlurPara(filterBlurPara);
+    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
+    rsUIFilter->Insert(rsUIFilterParaBase);
+
+    modifier01->SetUIFilter(rsUIFilter);
+    auto node = RSCanvasNode::Create();
+    modifier01->node_ = node->weak_from_this();
+    modifier01->SetUIFilter(rsUIFilter);
+    modifier01->SetUIFilter(rsUIFilter);
+    auto rsUIFilter01 = std::make_shared<RSUIFilter>();
+    modifier01->SetUIFilter(rsUIFilter01);
+}
+
+HWTEST_F(RSForegroundFilterModifierNGTypeTest, AttachUIFilterPropertyTest, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSForegroundFilterModifier> modifier =
+        std::make_shared<ModifierNG::RSForegroundFilterModifier>();
+    modifier->AttachUIFilterProperty(nullptr);
+
+    auto node = RSCanvasNode::Create();
+    modifier->node_ = node->weak_from_this();
+
+    auto rsUIFilter = std::make_shared<RSUIFilter>();
+
+    modifier->AttachUIFilterProperty(rsUIFilter);
+
+    rsUIFilter->Insert(nullptr);
+    float radius = 1.0f;
+    auto filterBlurPara = std::make_shared<FilterBlurPara>();
+    filterBlurPara->SetRadius(radius);
+    auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
+    rsUIBlurFilterPara->SetBlurPara(filterBlurPara);
+    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
+    rsUIFilter->Insert(rsUIFilterParaBase);
+    modifier->AttachUIFilterProperty(rsUIFilter);
+}
 } // namespace OHOS::Rosen

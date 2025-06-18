@@ -70,4 +70,60 @@ HWTEST_F(RSBackgroundFilterRenderModifierNGTypeTest, RSBackgroundFilterRenderMod
     EXPECT_EQ(properties.GetBgBlurDisableSystemAdaptation(), true);
     EXPECT_EQ(properties.GetGreyCoef(), std::nullopt);
 }
+
+/**
+ * @tc.name: RSBackgroundFilterRenderModifierTest
+ * @tc.desc:AttachRenderFilterProperty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBackgroundFilterRenderModifierNGTypeTest, AttachRenderFilterPropertyTest, TestSize.Level1)
+{
+    RSBackgroundFilterRenderModifier modifier;
+    auto property = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
+
+    modifier.AttachRenderFilterProperty(nullptr, ModifierNG::RSPropertyType::HDR_UI_BRIGHTNESS);
+    modifier.AttachRenderFilterProperty(nullptr, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+    modifier.AttachRenderFilterProperty(property, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+
+    RSRenderNode node;
+    modifier.target_ = node.weak_from_this();
+    modifier.AttachRenderFilterProperty(property, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+
+    auto property_int = std::make_shared < RSRenderProperty<int>();
+    modifier.AttachRenderFilterProperty(property_int, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+
+    auto rsRenderFilter = std::make_shared<RSRenderFilter>();
+    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
+    rsRenderFilter->Insert(RSUIFilterType::BLUR, rsRenderFilterParaBase);
+    auto rsRenderProperty = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(rsRenderFilter, 0);
+    modifier.AttachRenderFilterProperty(property, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+}
+
+/**
+ * @tc.name: RSBackgroundFilterRenderModifierTest
+ * @tc.desc:DetachRenderFilterProperty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBackgroundFilterRenderModifierNGTypeTest, DetachRenderFilterPropertyTest, TestSize.Level1)
+{
+    RSBackgroundFilterRenderModifier modifier;
+    auto property = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
+
+    modifier.DetachRenderFilterProperty(nullptr, ModifierNG::RSPropertyType::HDR_UI_BRIGHTNESS);
+    modifier.DetachRenderFilterProperty(nullptr, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+    modifier.DetachRenderFilterProperty(property, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+
+    RSRenderNode node;
+    modifier.target_ = node.weak_from_this();
+    modifier.DetachRenderFilterProperty(property, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+
+    auto property_int = std::make_shared < RSRenderProperty<int>();
+    modifier.DetachRenderFilterProperty(property_int, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+
+    auto rsRenderFilter = std::make_shared<RSRenderFilter>();
+    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
+    rsRenderFilter->Insert(RSUIFilterType::BLUR, rsRenderFilterParaBase);
+    auto rsRenderProperty = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(rsRenderFilter, 0);
+    modifier.DetachRenderFilterProperty(property, ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER);
+}
 } // namespace OHOS::Rosen
