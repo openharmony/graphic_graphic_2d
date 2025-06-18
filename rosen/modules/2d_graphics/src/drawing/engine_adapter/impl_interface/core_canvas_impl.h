@@ -46,6 +46,7 @@
 #include "utils/sampling_options.h"
 #include "utils/scalar.h"
 #include "utils/vertices.h"
+#include "drawing/draw/hps_effect_types.h"
 
 class SkSVGDOM;
 
@@ -186,6 +187,9 @@ public:
     virtual void Reset(int32_t width, int32_t height) = 0;
 
     virtual bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) = 0;
+
+    virtual bool DrawImageEffectHPS(const Image& image,
+        const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams) = 0;
 
     virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) = 0;
 };
