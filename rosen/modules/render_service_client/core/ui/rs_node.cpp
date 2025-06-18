@@ -5097,7 +5097,7 @@ void RSNode::DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifi
                 continue;
             }
             prop->target_.reset();
-            UnRegisterProperty(prop->GetId());
+            UnregisterProperty(prop->GetId());
         }
     }
 }

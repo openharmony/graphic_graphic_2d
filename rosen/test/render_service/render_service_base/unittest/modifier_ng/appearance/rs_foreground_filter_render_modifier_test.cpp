@@ -84,7 +84,8 @@ HWTEST_F(RSForegroundFilterRenderModifierNGTest, AttachRenderFilterPropertyTest,
     modifier.target_ = node.weak_from_this();
     modifier.AttachRenderFilterProperty(property, ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER);
 
-    auto property_int = std::make_shared < RSRenderProperty<int>();
+    auto property_int = std::make_shared<RSRenderProperty<int>>();
+    EXPECT_NE(property_int, nullptr);
     modifier.AttachRenderFilterProperty(property_int, ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER);
 
     auto rsRenderFilter = std::make_shared<RSRenderFilter>();
@@ -112,7 +113,8 @@ HWTEST_F(RSForegroundFilterRenderModifierNGTest, DetachRenderFilterPropertyTest,
     modifier.target_ = node.weak_from_this();
     modifier.DetachRenderFilterProperty(property, ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER);
 
-    auto property_int = std::make_shared < RSRenderProperty<int>();
+    auto property_int = std::make_shared<RSRenderProperty<int>>();
+    EXPECT_NE(property_int, nullptr);
     modifier.DetachRenderFilterProperty(property_int, ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER);
 
     auto rsRenderFilter = std::make_shared<RSRenderFilter>();

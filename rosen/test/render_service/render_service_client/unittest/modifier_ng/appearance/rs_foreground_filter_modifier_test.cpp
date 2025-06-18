@@ -92,6 +92,7 @@ HWTEST_F(RSForegroundFilterModifierNGTypeTest, SetUIFilterTest, TestSize.Level1)
     modifier->SetUIFilter(nullptr);
 
     auto rsUIFilter = std::make_shared<RSUIFilter>();
+    EXPECT_NE(rsUIFilter, nullptr);
 
     std::shared_ptr<ModifierNG::RSForegroundFilterModifier> modifier01 =
     std::make_shared<ModifierNG::RSForegroundFilterModifier>();
@@ -127,6 +128,7 @@ HWTEST_F(RSForegroundFilterModifierNGTypeTest, AttachUIFilterPropertyTest, TestS
 
     modifier->AttachUIFilterProperty(rsUIFilter);
 
+    EXPECT_NE(rsUIFilter, nullptr);
     rsUIFilter->Insert(nullptr);
     float radius = 1.0f;
     auto filterBlurPara = std::make_shared<FilterBlurPara>();
