@@ -208,6 +208,42 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckContainerDirtyStatusAndUpdateDirty001
+ * @tc.desc: Test CheckContainerDirtyStatusAndUpdateDirty
+ * @tc.type: FUNC
+ * @tc.require: issueICFZGG
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CheckContainerDirtyStatusAndUpdateDirty001, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+
+    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    bool containerDirty = false;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+    containerDirty = true;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, true);
+
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    containerDirty = false;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+    containerDirty = true;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    containerDirty = false;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+    containerDirty = true;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+}
+
+/**
  * @tc.name: SetSurfaceNodeType004
  * @tc.desc: Test SetSurfaceNodeType
  * @tc.type: FUNC

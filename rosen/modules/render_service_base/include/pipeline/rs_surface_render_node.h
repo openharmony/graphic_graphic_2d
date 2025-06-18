@@ -1481,12 +1481,13 @@ public:
         return surfaceHandler_;
     }
 
-    void CheckContainerDirtyStatusAndUpdateDirty(bool containerDirty)
+    void CheckContainerDirtyStatusAndUpdateDirty(bool& containerDirty)
     {
-        if (!IsLeashOrMainWindow()) {
+        if (!containerDirty || !IsLeashOrMainWindow()) {
             return;
         }
-        dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
+        dirtyStatus_ = NodeDirty::DIRTY;
+        containerDirty = false;
     }
 
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
