@@ -283,6 +283,7 @@ template("render_service_client_source_set") {
         "hitrace:hitrace_meter",
         "image_framework:image_native",
         "qos_manager:qos",
+        "qos_manager:concurrent_task_client",
       ]
 
       if (defined(use_video_processing_engine) && use_video_processing_engine) {
