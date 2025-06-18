@@ -133,14 +133,8 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
 };
 std::once_flag flag_;
-bool IsPathAnimatableModifier(const RSModifierType& type)
-{
-    if (type == RSModifierType::BOUNDS || type == RSModifierType::FRAME || type == RSModifierType::TRANSLATE) {
-        return true;
-    }
-    return false;
-}
 
+#if defined(MODIFIER_NG)
 bool IsPathAnimatableProperty(const ModifierNG::RSPropertyType& type)
 {
     if (type == ModifierNG::RSPropertyType::BOUNDS || type == ModifierNG::RSPropertyType::FRAME ||
@@ -149,6 +143,15 @@ bool IsPathAnimatableProperty(const ModifierNG::RSPropertyType& type)
     }
     return false;
 }
+#else
+bool IsPathAnimatableModifier(const RSModifierType& type)
+{
+    if (type == RSModifierType::BOUNDS || type == RSModifierType::FRAME || type == RSModifierType::TRANSLATE) {
+        return true;
+    }
+    return false;
+}
+#endif
 } // namespace
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
@@ -954,6 +957,23 @@ void RSNode::SetPropertyNG(T value)
 }
 
 template<typename ModifierType, auto Setter, typename T>
+void RSNode::SetPropertyNG(T value, bool animatable)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto type = static_cast<uint16_t>(ModifierType::Type);
+    auto& modifier = modifiersNGCreatedBySetter_[type];
+    // Create corresponding modifier if not exist
+    if (modifier == nullptr) {
+        modifier = std::make_shared<ModifierType>();
+        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+        modifiersNGCreatedBySetter_[type] = modifier;
+        AddModifier(modifier);
+    } else {
+        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+    }
+}
+
+template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetUIFilterPropertyNG(T value)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -967,7 +987,6 @@ void RSNode::SetUIFilterPropertyNG(T value)
     }
     (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
 }
-
 #else
 template<typename ModifierName, typename PropertyName, typename T>
 void RSNode::SetProperty(RSModifierType modifierType, T value)
@@ -1240,7 +1259,7 @@ void RSNode::SetPositionZApplicableCamera3D(bool isApplicable)
 void RSNode::SetPivot(const Vector2f& pivot)
 {
 #if defined(MODIFIER_NG)
-    SetPropertyNG<ModifierNG::RSTransformModifier, &ModifierNG::RSTransformModifier::SetPivot>(pivot);
+    SetPropertyNG<ModifierNG::RSTransformModifier, &ModifierNG::RSTransformModifier::SetPivot>(pivot, true);
 #else
     SetProperty<RSPivotModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::PIVOT, pivot);
 #endif
@@ -3037,13 +3056,17 @@ void RSNode::SetShadowPath(const std::shared_ptr<RSPath>& shadowPath)
 #endif
 }
 
-void RSNode::SetShadowMask(bool shadowMask, SHADOW_MASK_STRATEGY strategy)
+void RSNode::SetShadowMask(bool shadowMask)
 {
-    int maskStrategy = shadowMask ? SHADOW_MASK_STRATEGY::MASK_BLUR : strategy;
+    SetShadowMaskStrategy(shadowMask ? SHADOW_MASK_STRATEGY::MASK_BLUR : SHADOW_MASK_STRATEGY::MASK_NONE);
+}
+
+void RSNode::SetShadowMaskStrategy(SHADOW_MASK_STRATEGY strategy)
+{
 #if defined(MODIFIER_NG)
-    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowMask>(maskStrategy);
+    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowMask>(strategy);
 #else
-    SetProperty<RSShadowMaskModifier, RSProperty<int>>(RSModifierType::SHADOW_MASK, maskStrategy);
+    SetProperty<RSShadowMaskModifier, RSProperty<int>>(RSModifierType::SHADOW_MASK, strategy);
 #endif
 }
 
@@ -5036,6 +5059,7 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
 
 void RSNode::AttachProperty(std::shared_ptr<RSPropertyBase> property)
 {
+#if defined(MODIFIER_NG)
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     if (!property) {
         return;
@@ -5044,6 +5068,7 @@ void RSNode::AttachProperty(std::shared_ptr<RSPropertyBase> property)
         property->SetMotionPathOption(motionPathOption_);
     }
     properties_.emplace(property->GetId(), property);
+#endif
 }
 
 void RSNode::DettachProperty(PropertyId id)

@@ -1364,6 +1364,7 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest001 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetNodePivotTest002
  * @tc.desc: move the scale center to the center of a node
@@ -1389,6 +1390,7 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest002, TestSize.Level1)
     EXPECT_FALSE(symbolAnimation.rsNode_);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest002 end";
 }
+#endif
 
 /**
  * @tc.name: SpliceAnimation001

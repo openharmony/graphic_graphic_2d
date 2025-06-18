@@ -55,8 +55,10 @@ constexpr static float FLOAT_DATA_POSITIVE = 485.44f;
 constexpr static float FLOAT_DATA_NEGATIVE = -34.4f;
 constexpr static float FLOAT_DATA_MAX = std::numeric_limits<float>::max();
 constexpr static float FLOAT_DATA_MIN = std::numeric_limits<float>::min();
+#ifndef MODIFIER_NG
 constexpr static float FLOAT_DATA_INIT = 0.5f;
 constexpr static float FLOAT_DATA_UPDATE = 1.0f;
+#endif
 
 class RSNodeTest : public testing::Test {
 public:
@@ -4525,6 +4527,7 @@ HWTEST_F(RSNodeTest, SetFreeze001, TestSize.Level1)
     EXPECT_TRUE(child != nullptr);
 }
 
+#ifndef MODIFIER_NG
 template<typename ModifierName, typename PropertyName, typename T>
 void SetPropertyTest(RSModifierType modifierType, T value1, T value2)
 {
@@ -4622,7 +4625,7 @@ HWTEST_F(RSNodeTest, SetProperty001, TestSize.Level1)
     SetPropertyTest<RSMaskModifier, RSProperty<std::shared_ptr<RSMask>>, std::shared_ptr<RSMask>>(
         RSModifierType::MASK, std::make_shared<RSMask>(), nullptr);
 }
-
+#endif
 
 class RSC_EXPORT MockRSNode : public RSNode {
 public:
@@ -5330,6 +5333,7 @@ HWTEST_F(RSNodeTest, GetAnimationByPropertyId, TestSize.Level1)
     EXPECT_NE(animation, nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetProperty
  * @tc.desc: test results of SetProperty
@@ -5349,6 +5353,7 @@ HWTEST_F(RSNodeTest, SetProperty, TestSize.Level1)
     rsNode->SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, 1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 }
+#endif
 
 /**
  * @tc.name: SetBounds001
@@ -5937,9 +5942,12 @@ HWTEST_F(RSNodeTest, SetGreyCoef, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetShadowMask, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    bool shadowMask = true;
-    rsNode->SetShadowMask(shadowMask);
-    EXPECT_NE(rsNode->GenerateId(), 1);
+    rsNode->SetShadowMask(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowMask(), SHADOW_MASK_STRATEGY::MASK_BLUR);
+    rsNode->SetShadowMask(false);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowMask(), SHADOW_MASK_STRATEGY::MASK_NONE);
+    rsNode->SetShadowMaskStrategy(SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetShadowMask(), SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
 }
 
 /**
@@ -6535,6 +6543,7 @@ HWTEST_F(RSNodeTest, AnimationCallback, TestSize.Level1)
     EXPECT_EQ(res, true);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: ClearAllModifiers
  * @tc.desc: test results of ClearAllModifiers
@@ -6690,6 +6699,7 @@ HWTEST_F(RSNodeTest, MarkAllExtendModifierDirty, TestSize.Level1)
     rsNode->MarkAllExtendModifierDirty();
     EXPECT_EQ(rsNode->extendModifierIsDirty_, true);
 }
+#endif
 
 /**
  * @tc.name: ResetExtendModifierDirty
@@ -7557,6 +7567,7 @@ HWTEST_F(RSNodeTest, MarkDirty, TestSize.Level1)
     EXPECT_EQ(rsNode->dirtyType_, 0);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: UpdateLocalGeometry
  * @tc.desc: test results of UpdateLocalGeometry
@@ -7578,6 +7589,7 @@ HWTEST_F(RSNodeTest, UpdateLocalGeometry, TestSize.Level1)
     rsNode->UpdateLocalGeometry();
     EXPECT_NE(rsNode->GetLocalGeometry(), nullptr);
 }
+#endif
 
 /**
  * @tc.name: UpdateGlobalGeometry
@@ -7889,6 +7901,7 @@ HWTEST_F(RSNodeTest, UpdateOcclusionCullingStatus001, TestSize.Level1)
     EXPECT_EQ(id, rsNode->GetId());
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: Dump002
  * @tc.desc: Test Dump
@@ -7931,6 +7944,7 @@ HWTEST_F(RSNodeTest, Dump002Test, TestSize.Level1)
         " Alpha:[1.0] BackgroundShader: ContentStyle:drawCmdList[]]");
     EXPECT_TRUE(pos != std::string::npos);
 }
+#endif
 
 /**
  * @tc.name: SetEnableHDREffect
@@ -7946,7 +7960,6 @@ HWTEST_F(RSNodeTest, SetEnableHDREffect, TestSize.Level1)
     rsNode->SetEnableHDREffect(true); // different branch if call again
     EXPECT_EQ(rsNode->enableHdrEffect_, true);
 }
-#if defined(MODIFIER_NG)
 
 HWTEST_F(RSNodeTest, DetachUIFilterPropertiesTest, TestSize.Level1)
 {
@@ -7995,8 +8008,6 @@ HWTEST_F(RSNodeTest, DetachUIFilterPropertiesTest, TestSize.Level1)
     rsNode->DetachUIFilterProperties(modifier03);
 }
 
-
-#else
 /**
  * @tc.name: SetandGetBgImageSize001
  * @tc.desc:
@@ -8214,6 +8225,8 @@ HWTEST_F(RSNodeTest, SetandGetBgImagePositionY003, TestSize.Level1)
     rsNode->SetBgImagePositionY(floatData[3]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBgImagePositionY(), floatData[3]));
 }
+
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetBoundsWidth
  * @tc.desc: test results of SetBoundsWidth
@@ -8616,6 +8629,7 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
     node1->DumpNode(0);
     ASSERT_TRUE(node1->GetModifierIds().size() == 1);
 }
+#endif
 /**
  * @tc.name: SetMagnifierParams
  * @tc.desc: test results of SetMagnifierParams
@@ -8686,5 +8700,4 @@ HWTEST_F(RSNodeTest, SetSepia, TestSize.Level1)
     rsNode->SetHueRotate(1.0f);
     ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
 }
-#endif
 } // namespace OHOS::Rosen

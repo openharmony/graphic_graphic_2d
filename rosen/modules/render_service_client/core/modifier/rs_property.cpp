@@ -60,18 +60,11 @@ RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 
 void RSPropertyBase::MarkModifierDirty()
 {
+#if defined(MODIFIER_NG)
     if (auto modifier = modifierNG_.lock()) {
-        // ModifierNG set dirty
-        auto node = target_.lock();
-        if (node && node->GetRSUIContext()) {
-            modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
-        } else {
-            modifier->SetDirty(true, RSModifierManagerMap::Instance()->GetModifierManager(gettid()));
-        }
-        return;
-    }
+#else
     if (auto modifier = modifier_.lock()) {
-        // legacy modifier set dirty
+#endif
         auto node = target_.lock();
         if (node && node->GetRSUIContext()) {
             modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
@@ -475,9 +468,7 @@ bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
     template class RSProperty<T>
 
 #include "modifier/rs_property_def.in"
-
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
-
 } // namespace Rosen
 } // namespace OHOS

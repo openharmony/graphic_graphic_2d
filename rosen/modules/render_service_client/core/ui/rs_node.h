@@ -1365,9 +1365,15 @@ public:
      * @brief Sets whether a shadow mask should be applied to this node.
      *
      * @param shadowMask Indicates whether to enable (true) or disable (false) the shadow mask.
-     * @param strategy Indicates the strategy of the shadow mask, default MASK_NONE.
      */
-    void SetShadowMask(bool shadowMask, SHADOW_MASK_STRATEGY strategy = SHADOW_MASK_STRATEGY::MASK_NONE);
+    void SetShadowMask(bool shadowMask);
+
+        /**
+     * @brief Sets the strategy of the shadow mask.
+     *
+     * @param strategy Indicates the strategy of the shadow mask.
+     */
+    void SetShadowMaskStrategy(SHADOW_MASK_STRATEGY strategy);
 
     /**
      * @brief Sets whether the shadow should be filled.
@@ -1903,6 +1909,18 @@ private:
      */
     template<typename ModifierType, auto Setter, typename T>
     void SetPropertyNG(T value);
+
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     * @param animatable The property is animatable or not.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetPropertyNG(T value, bool animatable);
 
     /**
      * @brief Sets a UIFilter property value for a specific modifier.

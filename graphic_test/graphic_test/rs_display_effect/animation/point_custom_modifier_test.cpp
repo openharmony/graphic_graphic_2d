@@ -17,8 +17,6 @@
 
 #include "drawing/draw/core_canvas.h"
 #include "draw/pen.h"
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,7 +35,7 @@ void PointCustomModifier::SetPosition(float position)
     }
 }
 
-void PointCustomModifier::Draw(RSDrawingContext& context) const
+void PointCustomModifier::Draw(DrawingContext& context) const
 {
     if (!position_ || !context.canvas) {
         std::cout << "AnimationCustomModifier:Draw: position_ or canvas is nullptr\n";

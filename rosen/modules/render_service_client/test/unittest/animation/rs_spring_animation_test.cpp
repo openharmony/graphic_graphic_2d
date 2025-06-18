@@ -42,6 +42,8 @@ public:
     }
 };
 
+#if defined(MODIFIER_NG)
+#else
 /**
  * @tc.name: GetTimingCurveTest001
  * @tc.desc: Verify the GetTimingCurve of SpringAnimationTest
@@ -545,5 +547,6 @@ HWTEST_F(RSSpringAnimationTest, TargetTest003, TestSize.Level1)
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest003 end";
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

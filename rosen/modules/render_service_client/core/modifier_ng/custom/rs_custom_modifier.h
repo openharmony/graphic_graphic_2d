@@ -22,7 +22,6 @@
 
 namespace OHOS::Rosen {
 class RSNode;
-class RSModifierManager;
 namespace ModifierNG {
 struct RSDrawingContext {
     Drawing::Canvas* canvas;
@@ -119,7 +118,6 @@ private:
     bool noNeedUICaptured_ = false;
 
     friend class OHOS::Rosen::RSNode;
-    friend class OHOS::Rosen::RSModifierManager;
 };
 } // namespace ModifierNG
 } // namespace OHOS::Rosen

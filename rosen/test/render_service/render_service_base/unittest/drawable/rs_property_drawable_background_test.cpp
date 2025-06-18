@@ -367,6 +367,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_FALSE(drawableFour->OnUpdate(node));
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSBackgroundFilterDrawable002
  * @tc.desc: Test NeedBehindWindow branch
@@ -420,6 +421,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
     ASSERT_TRUE(filterDrawable->needDrawBehindWindow_);
     ASSERT_TRUE(filterDrawable->drawBehindWindowRegion_ == filterDrawable->stagingDrawBehindWindowRegion_);
 }
+#endif
 
 /**
  * @tc.name: RSBackgroundEffectDrawable

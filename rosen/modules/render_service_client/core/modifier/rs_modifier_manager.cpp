@@ -28,31 +28,13 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSModifierManager::AddModifier(const std::shared_ptr<RSModifier>& modifier)
+void RSModifierManager::AddModifier(const std::shared_ptr<Modifier>& modifier)
 {
     modifiers_.insert(modifier);
 }
 
-void RSModifierManager::AddModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
-{
-    modifiersNG_.insert(modifier);
-}
-
 void RSModifierManager::Draw()
 {
-#if defined(MODIFIER_NG)
-    if (!modifiersNG_.empty()) {
-        RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiersNG_.size()) + "]");
-        for (auto& modifier : modifiersNG_) {
-            RS_TRACE_NAME("RSModifier::Draw");
-            auto customModifier = std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier);
-            customModifier->UpdateToRender();
-            customModifier->SetDirty(false);
-            customModifier->ResetRSNodeExtendModifierDirty();
-        }
-        modifiersNG_.clear();
-    }
-#else
     if (!modifiers_.empty()) {
         RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiers_.size()) + "]");
         for (auto& modifier : modifiers_) {
@@ -63,7 +45,6 @@ void RSModifierManager::Draw()
         }
         modifiers_.clear();
     }
-#endif
 }
 
 void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

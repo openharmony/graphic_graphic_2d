@@ -40,11 +40,20 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSModifier;
 class RSRenderAnimation;
+#if defined(MODIFIER_NG)
 namespace ModifierNG {
 class RSModifier;
 }
+#else
+class RSModifier;
+#endif
+
+#if defined(MODIFIER_NG)
+using Modifier = ModifierNG::RSModifier;
+#else
+using Modifier = RSModifier;
+#endif
 
 /**
  * @class RSModifierManager
@@ -68,9 +77,7 @@ public:
      *
      * @param modifier A shared pointer to the RSModifier to be added.
      */
-    void AddModifier(const std::shared_ptr<RSModifier>& modifier);
-
-    void AddModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
+    void AddModifier(const std::shared_ptr<Modifier>& modifier);
 
     /**
      * @brief Adds a animation.
@@ -203,8 +210,7 @@ private:
      */
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
 
-    std::set<std::shared_ptr<RSModifier>> modifiers_;
-    std::set<std::shared_ptr<ModifierNG::RSModifier>> modifiersNG_;
+    std::set<std::shared_ptr<Modifier>> modifiers_;
     std::unordered_map<AnimationId, std::weak_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 

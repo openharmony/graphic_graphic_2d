@@ -143,6 +143,7 @@ HWTEST_F(RSImplicitAnimatorTest, EndImplicitPathAnimation001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest EndImplicitPathAnimation001 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CancelImplicitAnimation001
  * @tc.desc: Verify the CancelImplicitAnimation
@@ -189,6 +190,7 @@ HWTEST_F(RSImplicitAnimatorTest, CancelImplicitAnimation001, TestSize.Level1)
     EXPECT_TRUE(implicitAnimator != nullptr);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CancelImplicitAnimation001 end";
 }
+#endif
 
 /**
  * @tc.name: CreateImplicitAnimationWithInitialVelocity001
@@ -222,6 +224,7 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationWithInitialVelocity001, 
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CreateImplicitAnimationWithInitialVelocity001 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CreateImplicitAnimationWithInitialVelocity002
  * @tc.desc: Verify the CreateImplicitAnimationWithInitialVelocity
@@ -266,6 +269,7 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationWithInitialVelocity002, 
     EXPECT_TRUE(implicitAnimator != nullptr);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CreateImplicitAnimationWithInitialVelocity002 end";
 }
+#endif
 
 /**
  * @tc.name: ProcessEmptyAnimationTest001

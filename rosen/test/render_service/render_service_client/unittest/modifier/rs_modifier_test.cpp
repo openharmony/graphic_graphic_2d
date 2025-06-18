@@ -25,6 +25,7 @@
 using namespace testing;
 using namespace testing::ext;
 
+#ifndef MODIFIER_NG
 namespace OHOS::Rosen {
 constexpr static float FLOAT_DATA_INIT = 0.5f;
 
@@ -224,8 +225,7 @@ HWTEST_F(RSModifierTest, ModifierManager007, TestSize.Level1)
     manager.AddModifier(modifier);
     manager.Draw();
 }
-#if defined(MODIFIER_NG)
-#else
+
 /**
  * @tc.name: AddModifier002
  * @tc.desc:
@@ -1956,5 +1956,5 @@ HWTEST_F(RSModifierTest, MaskModifier002, TestSize.Level1)
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetMask(), value);
 }
-#endif
 } // namespace OHOS::Rosen
+#endif

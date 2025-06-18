@@ -21,6 +21,7 @@ rosen_is_win = current_os == "win" || current_os == "mingw"
 rosen_is_linux = current_os == "linux"
 
 rs_common_define = []
+rs_common_define += [ "MODIFIER_NG" ]
 
 rosen_cross_platform =
     current_os == "mac" || current_os == "mingw" || current_os == "linux" ||

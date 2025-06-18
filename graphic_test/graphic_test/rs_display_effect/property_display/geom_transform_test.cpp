@@ -20,20 +20,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-class TestGeomTransModifier : public RSGeometryTransModifier {
-public:
-    TestGeomTransModifier() = default;
-    ~TestGeomTransModifier() = default;
-
-    Drawing::Matrix GeometryEffect(float width, float height) const override
-    {
-        Drawing::Matrix matrix;
-        matrix.PreTranslate(width, height);
-        return matrix;
-    }
-};
-
 class GeometryTest : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
@@ -46,31 +32,6 @@ public:
         SetScreenSize(screenWidth, screenHeight);
     }
 };
-
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test)
-{
-    int columnCount = 1;
-    int rowCount = 2;
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight / rowCount;
-
-    std::vector<Vector2f> transList = { { 0.1, 0.5 }, { 0.5, 0.2 } };
-
-    for (int i = 0; i < 2; i++) {
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround =
-            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
-        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
-        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
-        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
-        auto geomTransModifier = std::make_shared<TestGeomTransModifier>();
-        geomTransModifier->GeometryEffect(transList[i].x_, transList[i].y_);
-        testNodeBackGround->AddModifier(geomTransModifier);
-        GetRootNode()->AddChild(testNodeBackGround);
-        RegisterNode(testNodeBackGround);
-    }
-}
 
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_2)
 {

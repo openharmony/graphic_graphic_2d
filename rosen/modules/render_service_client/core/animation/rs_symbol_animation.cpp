@@ -20,6 +20,7 @@
 #include "animation/rs_keyframe_animation.h"
 #include "draw/paint.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
+#include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
@@ -566,7 +567,7 @@ void RSSymbolAnimation::SetSymbolShadow(const SymbolShadow& symbolShadow, std::s
     rsNode->SetShadowColor(symbolShadow.color.CastToColorQuad());
     rsNode->SetShadowOffset(symbolShadow.offset.GetX(), symbolShadow.offset.GetY());
     rsNode->SetShadowRadius(symbolShadow.blurRadius);
-    rsNode->SetShadowMask(false, SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
+    rsNode->SetShadowMaskStrategy(SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
 }
 
 bool RSSymbolAnimation::SetPublicAnimation(
@@ -1392,9 +1393,14 @@ void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rs
     }
 
     if (property == nullptr) {
-        const Vector2f valueBegin = {properties.at(TRANSLATE_PROP_X).at(0), properties.at(TRANSLATE_PROP_Y).at(0)};
+        const Vector2f valueBegin = { properties.at(TRANSLATE_PROP_X).at(0), properties.at(TRANSLATE_PROP_Y).at(0) };
         SymbolAnimation::CreateOrSetModifierValue(property, valueBegin);
-        auto modifier = std::make_shared<Rosen::RSTranslateModifier>(property);
+#if defined(MODIFIER_NG)
+        auto modifier = std::make_shared<ModifierNG::RSTransformModifier>();
+        modifier->AttachProperty(ModifierNG::RSPropertyType::TRANSLATE, property);
+#else
+        auto modifier = std::make_shared<RSTranslateModifier>(property);
+#endif
         rsNode->AddModifier(modifier);
     }
 
@@ -1435,7 +1441,12 @@ void RSSymbolAnimation::BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     if (property == nullptr) {
         float valueBegin = properties.at(BLUR_PROP).at(PROP_START);
         SymbolAnimation::CreateOrSetModifierValue(property, valueBegin);
-        auto modifier = std::make_shared<Rosen::RSForegroundEffectRadiusModifier>(property);
+#if defined(MODIFIER_NG)
+        auto modifier = std::make_shared<ModifierNG::RSForegroundFilterModifier>();
+        modifier->AttachProperty(ModifierNG::RSPropertyType::FOREGROUND_EFFECT_RADIUS, property);
+#else
+        auto modifier = std::make_shared<RSForegroundEffectRadiusModifier>(property);
+#endif
         rsNode->AddModifier(modifier);
     }
 

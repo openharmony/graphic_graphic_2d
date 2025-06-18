@@ -159,6 +159,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest004, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest004 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSNodeAnimateSupplementTest005
  * @tc.desc: Verify the SetMotionPathOption
@@ -270,6 +271,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest008, TestSize.Level1)
     node->SetPivotY(10.0f);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest008 end";
 }
+#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest009
@@ -320,6 +322,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest010, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest010 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSNodeAnimateSupplementTest011
  * @tc.desc: Verify the AddModifier
@@ -378,6 +381,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest012, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest012 end";
 }
+#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest013
@@ -487,6 +491,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest016 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSNodeAnimateSupplementTest017
  * @tc.desc: Verify the setcallback of Animation
@@ -538,6 +543,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest018, TestSize.Level1)
     node->SetFramePositionY(6.f);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest018 end";
 }
+#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest019
@@ -561,6 +567,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest019, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest019 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSNodeAnimateSupplementTest020
  * @tc.desc: Verify the setcallback of Animation
@@ -606,6 +613,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest021, TestSize.Level1)
     node->DumpNode(10);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest021 end";
 }
+#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest022
@@ -714,6 +722,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest026, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest026 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSNodeAnimateSupplementTest026
  * @tc.desc: Verify CloseImplicitCancelAnimationReturnStatus
@@ -740,6 +749,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest027, TestSize.Level1)
     EXPECT_EQ(ret, CancelAnimationStatus::SUCCESS);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest027 end";
 }
+#endif
 
 /**
  * @tc.name: RSNodeAnimateSupplementTest028

@@ -46,9 +46,12 @@ void RSRenderPropertyBase::Detach(std::weak_ptr<RSRenderNode> node)
 
 void RSRenderPropertyBase::OnChange() const
 {
+#if defined(MODIFIER_NG)
     if (auto modifier = modifier_.lock()) {
         modifier->SetDirty();
-    } else if (auto node = node_.lock()) {
+    }
+#else
+    if (auto node = node_.lock()) {
         node->SetDirty();
         node->AddDirtyType(modifierType_);
         if (modifierType_ < RSModifierType::BOUNDS || modifierType_ > RSModifierType::TRANSLATE_Z ||
@@ -62,6 +65,7 @@ void RSRenderPropertyBase::OnChange() const
             node->MarkParentNeedRegenerateChildren();
         }
     }
+#endif
 }
 
 void RSRenderPropertyBase::UpdatePropertyUnit(RSModifierType type)

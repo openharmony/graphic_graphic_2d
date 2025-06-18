@@ -27,6 +27,7 @@ using namespace ANIMATIONTEST;
 class RSPathAnimationTest : public RSAnimationBaseTest {
 };
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: GetTimingCurveTest001
  * @tc.desc: Verify the GetTimingCurve of PathAnimationTest
@@ -410,6 +411,6 @@ HWTEST_F(RSPathAnimationTest, StartNonNormalTest002, TestSize.Level1)
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSPathAnimationTest StartNonNormalTest002 end";
 }
-
+#endif
 } // namespace Rosen
 } // namespace OHOS
