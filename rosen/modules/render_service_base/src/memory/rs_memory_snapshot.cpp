@@ -93,10 +93,27 @@ void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>
         pidForReport = appMemorySnapshots_;
         isTotalOver = true;
     }
-    if (totalMemory_ > MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT) {
-        PrintMemorySnapshotToHilog();
+    if (memSnapshotPrintHilogLimit_ > 0) {
+        if (totalMemory_ > memSnapshotPrintHilogLimit_) {
+            PrintMemorySnapshotToHilog();
+        }
+    } else {
+        if (totalMemory_ > MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT) {
+            PrintMemorySnapshotToHilog();
+        }
     }
 }
+
+void MemorySnapshot::SetMemSnapshotPrintHilogLimit(int memSnapshotPrintHilogLimit)
+{
+    memSnapshotPrintHilogLimit_ = memSnapshotPrintHilogLimit * MEMUNIT_RATE * MEMUNIT_RATE;
+}
+
+int MemorySnapshot::GetMemSnapshotPrintHilogLimit()
+{
+    return memSnapshotPrintHilogLimit_;
+}
+
 
 void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
 {
