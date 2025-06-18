@@ -465,6 +465,36 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
     canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
 }
 
+std::string RSImage::PixelSamplingDump() const
+{
+    if (pixelMap_ == nullptr) {
+        return " pixelMap_ is nullptr";
+    }
+    std::stringstream oss;
+    int32_t w = pixelMap_->GetWidth();
+    int32_t h = pixelMap_->GetHeight();
+    oss << "[ Width:" << w << " Height:" << h;
+    oss << " pixels:" << std::hex << std::uppercase;
+#ifdef ROSEN_OHOS
+    Media::Position pos;
+    uint32_t pixel;
+
+    int32_t widthStep = std::max((w / 2) - 1, 1);
+    int32_t heightStep = std::max((h / 2) - 1, 1);
+
+    for (int32_t i = 1; i < w; i += widthStep) {
+        for (int32_t j = 1; j < h; j += heightStep) {
+            pos = {i, j};
+            pixelMap_->ReadPixel(pos, pixel);
+            oss << " ARGB-0x" << pixel;
+        }
+    }
+#endif
+    oss << ']';
+
+    return oss.str().c_str();
+}
+
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat)
 {
