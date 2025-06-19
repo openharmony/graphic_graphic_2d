@@ -49,6 +49,7 @@ HWTEST_F(RSNodeCommandTypeTest, FixNodeCommandTest001, Level1 | Standard)
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_GRAVITY), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_MATRIX3F), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_QUATERNION), value++);
+    value++;
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_IMAGE_PTR), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_MASK_PTR), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_PATH_PTR), value++);

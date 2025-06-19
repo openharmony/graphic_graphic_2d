@@ -1123,7 +1123,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
     std::string outTest6 = "";
     nodeTest->DumpDrawCmdModifiers(outTest6);
-    EXPECT_EQ(outTest6, "");
+    EXPECT_EQ(outTest6, ", DrawCmdModifier2]");
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
         std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     EXPECT_NE(propertyTest, nullptr);
