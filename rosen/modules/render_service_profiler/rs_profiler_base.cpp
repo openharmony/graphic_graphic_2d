@@ -48,7 +48,11 @@
 #include "transaction/rs_ashmem_helper.h"
 
 namespace OHOS::Rosen {
-
+#if defined(MODIFIER_NG)
+using RenderModifier = ModifierNG::RSRenderModifier;
+#else
+using RenderModifier = RSRenderModifier;
+#endif
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
 static std::vector<pid_t> g_pids;
@@ -589,7 +593,7 @@ void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, 
     MarshalNodeModifiers(node, data, fileVersion);
 }
 
-static void MarshalRenderModifier(const RSRenderModifier& modifier, std::stringstream& data)
+static void MarshalRenderModifier(const RenderModifier& modifier, std::stringstream& data)
 {
     Parcel parcel;
     parcel.SetMaxCapacity(GetParcelMaxCapacity());
@@ -601,7 +605,7 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
         return;
     }
 
-    const_cast<RSRenderModifier&>(modifier).Marshalling(parcel);
+    const_cast<RenderModifier&>(modifier).Marshalling(parcel);
 
     const size_t dataSize = parcel.GetDataSize();
     data.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
@@ -628,6 +632,25 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     }
 }
 
+#if defined(MODIFIER_NG)
+static void MarshalDrawCmdModifiers(RenderModifier& modifier, std::stringstream& data)
+{
+    auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
+    auto oldCmdList = modifier.Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
+    if (!oldCmdList) {
+        MarshalRenderModifier(modifier, data);
+        return;
+    }
+
+    auto newCmdList = std::make_shared<Drawing::DrawCmdList>(
+        oldCmdList->GetWidth(), oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+    oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get());
+    newCmdList->PatchTypefaceIds(oldCmdList);
+    modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, newCmdList);
+    MarshalRenderModifier(modifier, data);
+    modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, oldCmdList);
+}
+#else
 static void MarshalDrawCmdModifiers(
     const RSRenderNode::DrawCmdContainer& container, std::stringstream& data, uint32_t fileVersion)
 {
@@ -684,12 +707,37 @@ static RSRenderNode::DrawCmdContainer GetDrawCmdModifiers(const RSCanvasDrawingR
     container[modifier->GetType()].emplace_back(modifier);
     return container;
 }
+#endif
 
 void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
     data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
     data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
 
+#if defined(MODIFIER_NG)
+    uint32_t modifierNGCount = 0;
+    for (auto& slot : node.modifiersNG_) {
+        for (auto& modifierNG : slot) {
+            if (!modifierNG) {
+                continue;
+            }
+            modifierNGCount++;
+        }
+    }
+    data.write(reinterpret_cast<const char*>(&modifierNGCount), sizeof(modifierNGCount));
+    for (auto& slot : node.modifiersNG_) {
+        for (auto& modifierNG : slot) {
+            if (!modifierNG) {
+                continue;
+            }
+            if (modifierNG->IsCustom()) {
+                MarshalDrawCmdModifiers(*modifierNG, data);
+            } else {
+                MarshalRenderModifier(*modifierNG, data);
+            }
+        }
+    }
+#else
     const uint32_t modifierCount = node.modifiers_.size();
     data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
 
@@ -705,6 +753,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
     } else {
         MarshalDrawCmdModifiers(node.GetDrawCmdModifiers(), data, fileVersion);
     }
+#endif
 }
 
 static std::string CreateRenderSurfaceNode(RSContext& context,
@@ -864,7 +913,7 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
     return "";
 }
 
-static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data, std::string& errReason)
+static RenderModifier* UnmarshalRenderModifier(std::stringstream& data, std::string& errReason)
 {
     errReason = "";
 
@@ -896,14 +945,14 @@ static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data, std::s
         parcel->RewindRead(0);
     }
 
-    auto ptr = RSRenderModifier::Unmarshalling(*parcel);
+    auto ptr = RenderModifier::Unmarshalling(*parcel);
     if (!ptr) {
         constexpr size_t minBufferSize = 2;
         if (buffer.size() >= minBufferSize) {
             const auto typeModifier = *(reinterpret_cast<RSModifierType *>(&buffer[0]));
             errReason = RSModifierTypeString().GetModifierTypeString(typeModifier);
         } else {
-            errReason = "RSRenderModifier buffer too short";
+            errReason = "RenderModifier buffer too short";
         }
         errReason += ", size=" + std::to_string(buffer.size());
     }
@@ -945,9 +994,10 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
             RSProfiler::SendMessageBase("LOADERROR: Modifier format changed [" + errModifierCode + "]");
             continue;
         }
-        node.AddModifier(std::shared_ptr<RSRenderModifier>(ptr));
+        node.AddModifier(std::shared_ptr<RenderModifier>(ptr));
     }
 
+#ifndef MODIFIER_NG
     uint32_t drawModifierCount = 0u;
     data.read(reinterpret_cast<char*>(&drawModifierCount), sizeof(drawModifierCount));
     for (uint32_t i = 0; i < drawModifierCount; i++) {
@@ -960,9 +1010,10 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
                 RSProfiler::SendMessageBase("LOADERROR: DrawModifier format changed [" + errModifierCode + "]");
                 continue;
             }
-            node.AddModifier(std::shared_ptr<RSRenderModifier>(ptr));
+            node.AddModifier(std::shared_ptr<RenderModifier>(ptr));
         }
     }
+#endif
     if (data.eof()) {
         return "UnmarshalNodeModifiers failed, file is damaged";
     }
