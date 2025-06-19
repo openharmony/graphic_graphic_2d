@@ -3077,6 +3077,38 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetVirtualScreenAutoRotation: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetVirtualScreenAutoRotation: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isAutoRotation)) {
+        ROSEN_LOGE("SetVirtualScreenAutoRotation: WriteBool isAutoRotation err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s: Send Request err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{-1};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s Read result failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     MessageParcel data;

@@ -178,6 +178,9 @@ public:
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
     virtual bool GetCanvasRotation(ScreenId id) const = 0;
 
+    virtual int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) = 0;
+    virtual bool GetVirtualScreenAutoRotation(ScreenId id) const = 0;
+
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode ScaleMode) = 0;
     virtual ScreenScaleMode GetScaleMode(ScreenId id) const = 0;
 
@@ -350,6 +353,9 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
     bool GetCanvasRotation(ScreenId id) const override;
+
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) override;
+    bool GetVirtualScreenAutoRotation(ScreenId id) const override;
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode ScaleMode) override;
     ScreenScaleMode GetScaleMode(ScreenId id) const override;

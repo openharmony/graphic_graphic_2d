@@ -113,6 +113,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP),
@@ -1844,6 +1845,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (!reply.WriteBool(result)) {
                 RS_LOGE(
                     "RSRenderServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION Write parcel failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION): {
+            ScreenId id{INVALID_SCREEN_ID};
+            bool isAutoRotation{false};
+            if (!data.ReadUint64(id) || !data.ReadBool(isAutoRotation)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_AUTO_ROTATION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = SetVirtualScreenAutoRotation(id, isAutoRotation);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_AUTO_ROTATION Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

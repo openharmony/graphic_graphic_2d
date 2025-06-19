@@ -96,6 +96,9 @@ public:
         return drawMirrorCopy_;
     }
 private:
+    void SetVirtualScreenSize(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+        const sptr<RSScreenManager>& screenManager);
+    bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableVisibleRect();
@@ -124,6 +127,7 @@ private:
     float mirroredScreenHeight_ = 0.f;
     bool updateFlag_ = false;
     bool canvasRotation_ = false;
+    bool autoBufferRotation_ = false; // whether buffer rotation is automatically adjusted based on the screen rotation
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;

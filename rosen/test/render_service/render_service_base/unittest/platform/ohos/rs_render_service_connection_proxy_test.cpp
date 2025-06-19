@@ -994,6 +994,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualMirrorScreenScaleMode, Te
 }
 
 /**
+ * @tc.name: SetVirtualScreenAutoRotationTest
+ * @tc.desc: SetVirtualScreenAutoRotation Test
+ * @tc.type:FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
+{
+    ScreenId id = 1;
+    EXPECT_NE(proxy->SetVirtualScreenAutoRotation(id, true), StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetGlobalDarkColorMode Test
  * @tc.desc: SetGlobalDarkColorMode Test
  * @tc.type:FUNC

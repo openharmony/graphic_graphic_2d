@@ -286,6 +286,63 @@ HWTEST_F(RSScreenManagerTest, GetAllScreenIds_001, TestSize.Level1)
     sleep(1);
 }
 
+/**
+ * @tc.name: SetVirtualScreenAutoRotationTest
+ * @tc.desc: Test SetVirtualScreenAutoRotation
+ * @tc.type: FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    ScreenId screenId = 500;
+    screenManager->RemoveVirtualScreen(screenId);
+
+    ASSERT_EQ(screenManager->SetVirtualScreenAutoRotation(screenId, true), StatusCode::SCREEN_NOT_FOUND);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, nullptr);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(screenManager->SetVirtualScreenAutoRotation(id, true), StatusCode::SUCCESS);
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/**
+ * @tc.name: GetVirtualScreenAutoRotationTest
+ * @tc.desc: Test GetVirtualScreenAutoRotation
+ * @tc.type: FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenAutoRotationTest, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    ScreenId screenId = 500;
+    screenManager->RemoveVirtualScreen(screenId);
+
+    ASSERT_FALSE(screenManager->GetVirtualScreenAutoRotation(screenId));
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, nullptr);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_FALSE(screenManager->GetVirtualScreenAutoRotation(id));
+    ASSERT_EQ(screenManager->SetVirtualScreenAutoRotation(id, true), StatusCode::SUCCESS);
+    ASSERT_TRUE(screenManager->GetVirtualScreenAutoRotation(id));
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
 /*
  * @tc.name: SetVirtualScreenSurface_001
  * @tc.desc: Test SetVirtualScreenSurface

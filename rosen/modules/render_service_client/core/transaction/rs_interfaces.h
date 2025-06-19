@@ -415,6 +415,14 @@ public:
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
     /**
+     * @brief Set if resize buffer and keep content horizontal while source is rotated.
+     * @param id Virtual screen id.
+     * @param isAutoRotation True means enable, false means disable.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation);
+
+    /**
      * @brief Set scale mode for virtual mirror screen.
      * @param id Virtual screen id.
      * @param scaleMode Scale mode, see ScreenScaleMode.
