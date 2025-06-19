@@ -45,11 +45,6 @@ ohos_shared_library("effectKit_ani") {
 
   include_dirs = [
     "./include",
-    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
-    "$graphic_2d_root/rosen/modules/effect/egl/include",
-    "$graphic_2d_root/rosen/modules/effect/color_picker/include",
-    "$graphic_2d_root/rosen/modules/effect/skia_effectChain/include",
-    "$graphic_2d_root/utils/color_manager/export",
   ]
 
   public_configs = []
@@ -58,13 +53,15 @@ ohos_shared_library("effectKit_ani") {
 
   sources = [
     "./src/ani_effect_kit_module.cpp",
-    "./src/ani_effect_kit_utils.cpp",
     "./src/ani_filter.cpp",
+    "./src/ani_color_picker.cpp",
+    "./src/ani_effect_kit_utils.cpp",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
   ]
 
   external_deps = [
@@ -92,6 +89,15 @@ generate_static_abc("effectKit") {
   is_boot_abc = "True"
   device_dst_file = "/system/framework/effectKit.abc"
 }
+
+generate_static_abc("effectKit_entry") {
+  base_url = "./ets"
+  files = [ "./ets/effectKit_entry.ets"]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/effectKit_entry.abc"
+
+}
+
 ohos_prebuilt_etc("effectKit_etc") {
   source = "$target_out_dir/effectKit.abc"
   module_install_dir = "framework"

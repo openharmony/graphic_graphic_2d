@@ -23,12 +23,15 @@
 
 #include "include/core/SkImageFilter.h"
 #include "pixel_map_ani.h"
+#include "effect/shader_effect.h"
 
 namespace OHOS {
 namespace Rosen {
 enum class DrawError;
 class AniFilter {
 public:
+    AniFilter();
+    ~AniFilter();
     static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
     static ani_object Grayscale(ani_env* env, ani_object obj);
     static ani_object GetEffectPixelMap(ani_env* env, ani_object obj);
@@ -36,6 +39,12 @@ public:
     static ani_status Init(ani_env* env);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
+    // 增加五种方法声明
+    static ani_object Blur(ani_env* env, ani_object obj, ani_double param,  ani_enum_item enumItem);
+    static ani_object Brightness(ani_env* env, ani_object obj, ani_double param);
+    static ani_object Invert(ani_env* env, ani_object obj);
+    static ani_object SetColorMatrix(ani_env* env, ani_object obj, ani_object arrayObj);
+    static ani_object GetPixelMap(ani_env* env, ani_object obj);
 
 private:
     void AddNextFilter(sk_sp<SkImageFilter> filter);

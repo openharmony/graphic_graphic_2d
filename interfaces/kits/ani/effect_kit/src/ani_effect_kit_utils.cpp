@@ -14,7 +14,6 @@
  */
 
 #include "ani_effect_kit_utils.h"
-
 #include "effect_utils.h"
 
 namespace OHOS {
@@ -78,6 +77,24 @@ Media::PixelMap* AniEffectKitUtils::GetPixelMapFromEnv([[maybe_unused]] ani_env*
         return nullptr;
     }
     return (pixelMapAni->nativePixelMap_).get();
+}
+
+AniColorPicker* AniEffectKitUtils::GetColorPickerFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
+{
+    ani_status ret;
+    ani_long nativeObj {};
+    // 从 JS 对象中获取 nativeObj 字段（存储 C++ 对象指针）
+    if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
+        EFFECT_LOG_E("Object_GetField_Long fetch failed, %{public}d", ret);
+        return nullptr;
+    }
+    // 将指针转换为 AniColorPicker 类型
+    AniColorPicker* colorPicker = reinterpret_cast<AniColorPicker*>(nativeObj);
+    if (!colorPicker) {
+        EFFECT_LOG_E("AniColorPicker instance is null");
+        return nullptr;
+    }
+    return colorPicker;
 }
 } // namespace Rosen
 } // namespace OHOS

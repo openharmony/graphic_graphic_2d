@@ -13,41 +13,83 @@
  * limitations under the License.
  */
 
-import effectKit from '@ohos.effectKit';
+import effectKit from './@ohos.effectKit';
 import image from '@ohos.multimedia.image';
 
 
 function main() {
-  console.log('Test effectKit start');
+  console.println('Test effectKit start');
   const opts: image.InitializationOptions = {
     size: { width: 480, height: 360 },
     editable: true,
     pixelFormat: image.PixelMapFormat.BGRA_8888,
   };
+
+  // 删除重复声明
   let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
   if (pixelMap == undefined) {
-    console.log('Create image.createPixelMapSync failed');
-    return;
+    console.println('Create image.createPixelMapSync failed');
+  }else{
+    console.println('Create image.createPixelMapSync success');
   }
-  console.log('Create image.createPixelMapSync success');
+
   let headFilter: effectKit.Filter = effectKit.createEffect(pixelMap);
   if (headFilter == undefined) {
-      console.log('Test createEffect failed');
-      return;
+    console.println('Test createEffect failed');
+  }else{
+    console.println('Test createEffect success');
   }
-  console.log('Test createEffect success');
+
   let blurFilter: effectKit.Filter = headFilter.blur(10);
   if (blurFilter == undefined) {
-    console.log('Test blur failed');
-    return;
+    console.println('Test blur failed');
+  }else{
+    console.println('Test blur success');
   }
-  console.log('Test blur success');
+
   blurFilter.getEffectPixelMap().then((pixelMap: image.PixelMap) => {
     if (pixelMap != undefined) {
-      console.log('Test getEffectPixelMap success, getPixelBytesNumber = ', pixelMap.getPixelBytesNumber());
+      console.println(`Test getEffectPixelMap success, getPixelBytesNumber = ${pixelMap.getPixelBytesNumber()}`);
     }
   }).catch((ex: Object | null | undefined) => {
     console.error('Test getEffectPixelMap failed');
+    console.println('Test getEffectPixelMap failed');
   });
-  console.log('Test effectKit end');
+
+  let blurResult: effectKit.Filter = headFilter.blur(0.5, effectKit.TileMode.CLAMP);
+  if (blurResult == undefined) {
+    console.println('Test blur failed');
+  } else {
+    console.println('Test blur success');
+  }
+
+  let brightnessResult: effectKit.Filter = headFilter.brightness(0.5);
+  if (brightnessResult == undefined) {
+    console.println('Test brightness failed');
+  } else {
+    console.println('Test brightness success');
+  }
+  
+  let invertResult: effectKit.Filter = headFilter.invert();
+  if (invertResult == undefined) {
+    console.println('Test invert failed');
+  } else {
+    console.println('Test invert success');
+  }
+  
+  let setColorMatrixResult: effectKit.Filter = headFilter.setColorMatrix([1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1]);
+  if (setColorMatrixResult == undefined) {
+    console.println('setColorMatrix failed');
+  } else {
+    console.println('setColorMatrix success');
+  }
+
+  let getPixelMapResult: image.PixelMap = headFilter.getPixelMap();
+  if (getPixelMapResult == undefined) {
+    console.println('getPixelMap failed');
+  } else {
+    console.println('getPixelMap success');
+  }
+
+  console.println('Test effectKit end');
 }
