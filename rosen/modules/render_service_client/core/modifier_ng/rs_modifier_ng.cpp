@@ -247,7 +247,12 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
     MarkNodeDirty();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSModifierNGAttachProperty>(node->GetId(), id_, GetType(), type, renderProperty);
-    node->AddCommand(command, node->IsRenderServiceNode());
+    node->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
+    if (node->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> cmdForRemote =
+            std::make_unique<RSModifierNGAttachProperty>(node->GetId(), id_, GetType(), type, renderProperty);
+        node->AddCommand(cmdForRemote, true, node->GetFollowType(), node->GetId());
+    }
 }
 
 void RSModifier::DetachProperty(RSPropertyType type)
