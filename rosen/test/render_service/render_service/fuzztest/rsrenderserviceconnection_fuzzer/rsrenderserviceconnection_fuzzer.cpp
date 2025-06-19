@@ -816,7 +816,7 @@ bool DoSetVirtualScreenAutoRotation()
     if (rsConn_ == nullptr) {
         return false;
     }
-    uint64_t screenId = GetData<uint64_t>();
+    ScreenId screenId = GetData<ScreenId>();
     bool isAutoRotation = GetData<bool>();
     rsConn_->SetVirtualScreenAutoRotation(screenId, isAutoRotation);
     return true;
