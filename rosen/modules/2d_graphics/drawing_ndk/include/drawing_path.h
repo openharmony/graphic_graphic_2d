@@ -767,8 +767,8 @@ bool OH_Drawing_PathGetMatrix(OH_Drawing_Path* path, bool forceClosed,
  * @param count Returns with the size of array. The minimum size is 6.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or count is nullptr, or acceptableError is
- *                 less than 0.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or count is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if acceptableError is less than 0.
  * @since 20
  * @version 1.0
  */
@@ -788,7 +788,8 @@ OH_Drawing_ErrorCode OH_Drawing_PathApproximate(OH_Drawing_Path* path, float acc
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if either path, other, success or interpolatedPath is
- *                 nullptr, or weight is outside the range [0, 1].
+ *                 nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if weight is outside the range [0, 1].
  * @since 20
  * @version 1.0
  */
