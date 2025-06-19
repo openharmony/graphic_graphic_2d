@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,19 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
 bool RSDrawFrame::debugTraceEnabled_ =
     std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
 
+void RSDrawFrame::SetEarlyZFlag(Drawing::GPUContext* gpuContext)
+{
+    if (UNLIKELY(gpuContext == nullptr)) {
+        RS_LOGE("RSDrawFrame::SetEarlyZFlag gpuContext is nullptr!");
+        return;
+    }
+    bool isFlushEarlyZFlag = RSJankStats::GetInstance().GetFlushEarlyZ();
+    if (isFlushEarlyZFlag) {
+        bool earlyZEnableFlag = RSJankStats::GetInstance().GetEarlyZEnableFlag();
+        gpuContext->SetEarlyZFlag(earlyZEnableFlag);
+    }
+}
+
 void RSDrawFrame::RenderFrame()
 {
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
@@ -86,6 +99,8 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.PurgeShaderCacheAfterAnimate();
     MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsEnd(unirenderInstance_.GetDynamicRefreshRate());
+    auto gpuContext = unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    SetEarlyZFlag(gpuContext);
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
     RsFrameReport::GetInstance().UniRenderEnd();
     EndCheck();
