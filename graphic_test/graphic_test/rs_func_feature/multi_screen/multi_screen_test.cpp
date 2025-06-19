@@ -828,7 +828,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
 
     // Add blocklist to public blocklist
     RSInterfaces::GetInstance().SetVirtualScreenBlackList(INVALID_SCREEN_ID, screenBlackList);
-    // Open the public blacklist, turn on the switch to read the public blacklist, and only display ID1 in yellow
+    // Open the public blocklist, turn on the switch to read the public blocklist, and only display ID1 in yellow
     RSInterfaces::GetInstance().SetCastScreenEnableSkipWindow(screenId2, true);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
