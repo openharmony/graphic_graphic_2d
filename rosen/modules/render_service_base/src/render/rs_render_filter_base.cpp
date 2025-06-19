@@ -25,58 +25,58 @@
 namespace OHOS {
 namespace Rosen {
 
-RSUIFilterType RSRenderFilterParaBase::GetType() const
-{
-    return type_;
-}
-
-bool RSRenderFilterParaBase::IsValid() const
-{
-    return type_ != RSUIFilterType::NONE;
-}
-
-void RSRenderFilterParaBase::Dump(std::string& out) const
-{
-    GetDescription(out);
-    out += ": [";
-    std::string splitStr = "] ";
-    char buffer[UINT8_MAX] = { 0 };
-    for (const auto& [key, value] : properties_) {
-        if (sprintf_s(buffer, UINT8_MAX, "[Type:%d Value:", static_cast<int>(key))) {
-            out.append(buffer);
-        }
-        if (value) {
-            value->Dump(out);
-        } else {
-            out += "nullptr";
-        }
-        out += splitStr;
+    RSUIFilterType RSRenderFilterParaBase::GetType() const
+    {
+        return type_;
     }
-}
 
-bool RSRenderFilterParaBase::WriteToParcel(Parcel& parcel)
-{
-    return true;
-}
-
-bool RSRenderFilterParaBase::ReadFromParcel(Parcel& parcel)
-{
-    return true;
-}
-
-std::shared_ptr<RSRenderPropertyBase> RSRenderFilterParaBase::GetRenderProperty(RSUIFilterType type) const
-{
-    auto it = properties_.find(type);
-    if (it != properties_.end()) {
-        return it->second;
+    bool RSRenderFilterParaBase::IsValid() const
+    {
+        return type_ != RSUIFilterType::NONE;
     }
-    return nullptr;
-}
 
-std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderFilterParaBase::GetLeafRenderProperties()
-{
-    return {};
-}
+    void RSRenderFilterParaBase::Dump(std::string& out) const
+    {
+        GetDescription(out);
+        out += ": [";
+        std::string splitStr = "] ";
+        char buffer[UINT8_MAX] = { 0 };
+        for (const auto& [key, value] : properties_) {
+            if (sprintf_s(buffer, UINT8_MAX, "[Type:%d Value:", static_cast<int>(key))) {
+                out.append(buffer);
+            }
+            if (value) {
+                value->Dump(out);
+            } else {
+                out += "nullptr";
+            }
+            out += splitStr;
+        }
+    }
+
+    bool RSRenderFilterParaBase::WriteToParcel(Parcel& parcel)
+    {
+        return true;
+    }
+
+    bool RSRenderFilterParaBase::ReadFromParcel(Parcel& parcel)
+    {
+        return true;
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> RSRenderFilterParaBase::GetRenderProperty(RSUIFilterType type) const
+    {
+        auto it = properties_.find(type);
+        if (it != properties_.end()) {
+            return it->second;
+        }
+        return nullptr;
+    }
+
+    std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderFilterParaBase::GetLeafRenderProperties()
+    {
+        return {};
+    }
 
 } // namespace Rosen
 } // namespace OHOS
