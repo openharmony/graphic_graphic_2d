@@ -600,7 +600,7 @@ HWTEST_F(RSScreenTest, PowerStatusDump_002, testing::ext::TestSize.Level1)
     ASSERT_TRUE(dumpString=="powerStatus=POWER_STATUS_OFF_ADVANCED");
 }
 
-/*
+/**
  * @tc.name: SetVirtualScreenAutoRotationTest
  * @tc.desc: SetVirtualScreenAutoRotation Test
  * @tc.type: FUNC
