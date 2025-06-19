@@ -7694,6 +7694,49 @@ HWTEST_F(RSNodeTest, SyncDrawNodeType, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckModifierType
+ * @tc.desc: test results of CheckModifierType
+ * @tc.type: FUNC
+ * @tc.require: ICG6OK
+ */
+HWTEST_F(RSNodeTest, CheckModifierType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->CheckModifierType(RSModifierType::BOUNDS);
+    rsNode->CheckModifierType(RSModifierType::FRAME);
+    rsNode->CheckModifierType(RSModifierType::BACKGROUND_COLOR);
+    rsNode->CheckModifierType(RSModifierType::ALPHA);
+    rsNode->CheckModifierType(RSModifierType::TRANSLATE);
+    rsNode->CheckModifierType(RSModifierType::SKEW);
+    rsNode->CheckModifierType(RSModifierType::PERSP);
+    rsNode->CheckModifierType(RSModifierType::SCALE);
+    rsNode->CheckModifierType(RSModifierType::PIVOT);
+    rsNode->CheckModifierType(RSModifierType::ROTATION);
+    rsNode->CheckModifierType(RSModifierType::ROTATION_X);
+    rsNode->CheckModifierType(RSModifierType::ROTATION_Y);
+    rsNode->CheckModifierType(RSModifierType::QUATERNION);
+    ASSERT_EQ(rsNode->drawNodeType_, DrawNodeType::GeometryPropertyType);
+}
+
+/**
+ * @tc.name: SetPropertyNodeChangeCallback
+ * @tc.desc: test results of SetPropertyNodeChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: ICG6OK
+ */
+HWTEST_F(RSNodeTest, SetPropertyNodeChangeCallback, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto callback = RSNode::propertyNodeChangeCallback_;
+    rsNode->NotifyPageNodeChanged();
+    RSNode::SetPropertyNodeChangeCallback(nullptr);
+    RSNode::SetNeedCallbackNodeChange(false);
+    rsNode->NotifyPageNodeChanged();
+    ASSERT_EQ(RSNode::propertyNodeChangeCallback_, nullptr);
+    RSNode::SetPropertyNodeChangeCallback(callback);
+}
+
+/**
  * @tc.name: DumpTree
  * @tc.desc: test results of DumpTree
  * @tc.type: FUNC

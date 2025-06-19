@@ -72,6 +72,7 @@ using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 using ExportTypeChangedCallback = std::function<void(bool)>;
 using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
+using PropertyNodeChangeCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -1710,6 +1711,20 @@ public:
 
     static DrawNodeChangeCallback drawNodeChangeCallback_;
     static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    static PropertyNodeChangeCallback propertyNodeChangeCallback_;
+    /**
+     * @brief Sets the callback function for property node change events
+     *
+     * @param callback Function pointer to the callback handler
+     */
+    static void SetPropertyNodeChangeCallback(PropertyNodeChangeCallback callback);
+
+    /**
+     * @brief Enables or disables property node change callback notifications
+     *
+     * @param needCallback Boolean flag to control callback triggering
+     */
+    static void SetNeedCallbackNodeChange(bool needCallback);
     bool GetIsDrawn();
     void SetDrawNode();
     DrawNodeType GetDrawNodeType() const;
@@ -1964,6 +1979,8 @@ private:
     void SetForegroundBlurRadiusY(float blurRadiusY);
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
+    void NotifyPageNodeChanged();
+    void CheckModifierType(RSModifierType modifierType);
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -2028,6 +2045,7 @@ private:
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
+    static bool isNeedCallbackNodeChange_;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
