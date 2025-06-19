@@ -1370,6 +1370,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "SET_VIRTUAL_SCREEN_AUTO_ROTATION_TEST_001",
+    "interfaceName": "SET_VIRTUAL_SCREEN_AUTO_ROTATION",
+    "inputParams": "WriteUint64;WriteBool",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "SET_PHYSICAL_SCREEN_RESOLUTION_TEST_001",
     "interfaceName": "SET_PHYSICAL_SCREEN_RESOLUTION",
     "inputParams": "WriteUint64;WriteUint32;WriteUint32",

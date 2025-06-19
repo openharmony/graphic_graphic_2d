@@ -811,6 +811,17 @@ bool DoGetTotalAppMemSize()
     return true;
 }
 
+bool DoSetVirtualScreenAutoRotation()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t screenId = GetData<uint64_t>();
+    bool isAutoRotation = GetData<bool>();
+    rsConn_->SetVirtualScreenAutoRotation(screenId, isAutoRotation);
+    return true;
+}
+
 bool DoSetVirtualScreenBlackList()
 {
     if (rsConn_ == nullptr) {
@@ -1577,6 +1588,7 @@ void DoFuzzerTest3()
     DoNotifySoftVsyncRateDiscountEvent();
     DoSetBehindWindowFilterEnabled();
     DoGetBehindWindowFilterEnabled();
+    DoSetVirtualScreenAutoRotation();
 }
 } // namespace Rosen
 } // namespace OHOS

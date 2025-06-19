@@ -468,6 +468,24 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId screenId = GetData<ScreenId>();
+    bool isAutoRotation = GetData<bool>();
+    client->SetVirtualScreenAutoRotation(screenId, isAutoRotation);
+    return true;
+}
+
 bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2581,6 +2599,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetActiveScreenId(data, size);
     OHOS::Rosen::DoGetAllScreenIds(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
+    OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoSetVirtualScreenBlackList(data, size);
     OHOS::Rosen::DoDropFrameByPid(data, size);
     OHOS::Rosen::DoSetWatermark(data, size);
