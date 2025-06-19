@@ -177,10 +177,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_001)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_001 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
@@ -211,17 +208,10 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_002)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_002", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
-
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_002 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     displayNode1->SetBounds({ 0, 0, 1000, 1000 });
@@ -241,17 +231,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_002)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_002_2", width, height, psurface2, screenId1, -1, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_002 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -277,17 +261,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_003)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_003", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_003 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     displayNode1->SetBounds({ 0, 0, 1000, 1000 });
@@ -307,17 +285,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_003)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_003_2", width, height, psurface2, screenId1, -1, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
     RSInterfaces::GetInstance().SetMirrorScreenVisibleRect(screenId2, { 100, 100, 100, 500 });
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_003 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -343,17 +315,10 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_004)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_004", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
-
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_004 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     displayNode1->SetBounds({ 0, 0, 1000, 1000 });
@@ -373,19 +338,12 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_004)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_004_2", 2 * width, 5 * height, psurface2, screenId1, -1, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
-
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
     RSInterfaces::GetInstance().SetVirtualMirrorScreenScaleMode(screenId2, ScreenScaleMode::FILL_MODE);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_004 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 2 * width, 5 * height });
@@ -422,10 +380,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_005)
 
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_005 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
@@ -469,10 +424,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_006)
 
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_006 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
@@ -505,10 +457,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_007)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_007 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     7 displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
@@ -539,10 +488,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_008)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_008 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     displayNode->SetBounds({ 0, 0, 1000, 1000 });
     displayNode->SetFrame({ 0, 0, 1000, 1000 });
@@ -573,17 +519,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_009", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_009 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     RSSurfaceNodeConfig surfaceNodeConfig;
@@ -621,21 +561,14 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_009)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_009_2", width, height, psurface2, screenId1, 0, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
-
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
     std::vector<uint64_t> screenBlackList = { surfaceNode1->GetId() };
     LOGI("MULTI_SCREEN_TEST_009 surfaceId1:[%{public}" PRIu64 "]", surfaceNode1->GetId());
     RSInterfaces::GetInstance().SetVirtualScreenBlackList(screenId2, screenBlackList);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_009 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -661,17 +594,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_010)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_010", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_010 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     displayNode1->SetBounds({ 0, 0, 1000, 1000 });
@@ -691,17 +618,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_010)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_010_2", width, height, psurface2, screenId1, -1, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_010 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -727,17 +648,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_011)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_011", width, height, psurface1, INVALID_SCREEN_ID, -1, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode1 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_011 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     displayNode1->SetBounds({ 0, 0, 1000, 1000 });
@@ -757,17 +672,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_011)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_011_2", width, height, psurface2, screenId1, 0, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_011 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -793,17 +702,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_012", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_012 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     RSSurfaceNodeConfig surfaceNodeConfig;
@@ -841,10 +744,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
 
     ScreenId screenId2 =
         RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_012_2", width, height, psurface2, 0, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
 
     std::vector<uint64_t> screenBlackList = { surfaceNode1->GetId() };
     LOGI("MULTI_SCREEN_TEST_012 surfaceId1:[%{public}" PRIu64 "]", surfaceNode1->GetId());
@@ -853,10 +753,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_012)
     // 屏幕黑名单无数据，两个都展示
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_012 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -882,17 +779,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_013", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_013 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
     RSSurfaceNodeConfig surfaceNodeConfig;
@@ -930,10 +821,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_013_2", width, height, psurface2, screenId1, 0, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
 
     std::vector<uint64_t> screenBlackList = { surfaceNode1->GetId() };
     LOGI("MULTI_SCREEN_TEST_013 surfaceId:[%{public}" PRIu64 "]", surfaceNode1->GetId());
@@ -945,10 +833,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_013)
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_013 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -974,17 +859,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_014", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_014 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
 
@@ -1023,11 +902,8 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_014_2", width, height, psurface2, screenId1, 0, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
 
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
     std::vector<uint64_t> screenBlackList = { surfaceNode1->GetId() };
     LOGI("MULTI_SCREEN_TEST_014 surfaceId:[%{public}" PRIu64 "]", surfaceNode1->GetId());
     // 加黑名单到公共黑名单
@@ -1036,10 +912,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_014)
     RSInterfaces::GetInstance().SetCastScreenEnableSkipWindow(screenId2, false);
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_014 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
@@ -1068,10 +941,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_015)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig1 = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_015 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1124,10 +994,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_016)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig1 = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_016 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1180,10 +1047,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_017)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig1 = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode, nullptr);
     LOGI("MULTI_SCREEN_TEST_017 screenId:%{public}" PRIu64 ", nodeId:%{public}" PRIu64, screenId, displayNode->GetId());
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1233,17 +1097,10 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
     auto psurface1 = Surface::CreateSurfaceAsProducer(producer1);
     ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_018", width, height, psurface1, INVALID_SCREEN_ID, 0, {});
-    if (screenId1 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen1 failed");
-        return;
-    }
-
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
     auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
-    if (!displayNode1) {
-        LOGE("displayNode is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode1, nullptr);
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "TestsurfaceNode0";
@@ -1278,19 +1135,12 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_018)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_018_2", width, height, psurface2, screenId1, 0, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
-
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
     RSInterfaces::GetInstance().SetVirtualMirrorScreenCanvasRotation(screenId2, false);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
     auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
-    if (!displayNode2) {
-        LOGE("displayNode2 is nullptr");
-        return;
-    }
+    EXPECT_NE(displayNode2, nullptr);
     LOGI("MULTI_SCREEN_TEST_018 screenId2:%{public}" PRIu64 ", nodeId2:%{public}" PRIu64, screenId2,
         displayNode2->GetId());
     displayNode2->SetBounds({ 0, 0, 1000, 1000 });
