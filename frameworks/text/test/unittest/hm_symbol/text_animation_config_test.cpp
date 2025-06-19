@@ -128,6 +128,19 @@ HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect002, TestSize.Level0)
 }
 
 /*
+ * @tc.name: SetAnimation
+ * @tc.desc: Test SetAnimation input nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHTextAnimationConfigTest, SetAnimation, TestSize.Level1)
+{
+    // test input nullptr
+    SPText::TextAnimationConfig textEffect;
+    textEffect.SetAnimation(nullptr);
+    EXPECT_EQ(textEffect.animationFunc_, nullptr);
+}
+
+/*
  * @tc.name: SetColor
  * @tc.desc: Test whether the color was set successfully
  * @tc.type: FUNC
