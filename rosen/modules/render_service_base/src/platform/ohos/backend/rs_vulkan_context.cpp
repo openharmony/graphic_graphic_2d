@@ -70,6 +70,7 @@ static std::vector<const char*> gMandatoryDeviceExtensions = {
 
 static std::vector<const char*> gOptionalDeviceExtensions = {
     VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+    VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
 };
 
 static const int GR_CHUNK_SIZE = 1048576;
