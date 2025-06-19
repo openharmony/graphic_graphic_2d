@@ -1734,7 +1734,7 @@ int32_t RSScreenManager::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRo
         return StatusCode::SCREEN_NOT_FOUND;
     }
 
-    RS_LOGI("%{public}s: screenId: %{public}" PRIu64 " autoRotation: %{public}d", __func__, id, isAutoRotation);
+    RS_LOGI("%{public}s: screenId: %{public}" PRIu64 " isAutoRotation: %{public}d", __func__, id, isAutoRotation);
     return screen->SetVirtualScreenAutoRotation(isAutoRotation);
 }
 

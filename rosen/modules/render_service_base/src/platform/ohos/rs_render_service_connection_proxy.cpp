@@ -3098,11 +3098,12 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenAutoRotation(ScreenId id
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s: Send Request err.", __func__);
         return RS_CONNECTION_ERROR;
     }
     int32_t result{-1};
     if (!reply.ReadInt32(result)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenAutoRotation Read result failed");
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s Read result failed", __func__);
         return READ_PARCEL_ERR;
     }
     return result;

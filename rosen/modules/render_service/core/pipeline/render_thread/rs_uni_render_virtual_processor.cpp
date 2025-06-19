@@ -194,13 +194,12 @@ void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSDisplayRenderNodeDraw
     canvas_->Save();
     if (displayDrawable.IsFirstTimeToProcessor() || canvasRotation_ || autoBufferRotation_) {
         if (displayDrawable.IsFirstTimeToProcessor()) {
-            RS_LOGI("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", "
+            RS_LOGI("RSUniRenderVirtualProcessor::FirstInit, id: %{public}" PRIu64 ", "
                 "screen(%{public}f, %{public}f, %{public}f, %{public}f), "
                 "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, scaleMode: %{public}d, "
-                "autoBufferRotation: %{public}d",
-                virtualScreenId_, mirroredScreenWidth_, mirroredScreenHeight_, virtualScreenWidth_,
-                virtualScreenHeight_, screenRotation_, screenCorrection_, canvasRotation_, scaleMode_,
-                autoBufferRotation_);
+                "autoBufferRotation: %{public}d", virtualScreenId_, virtualScreenWidth_, virtualScreenHeight_,
+                mirroredScreenWidth_, mirroredScreenHeight_, screenRotation_, screenCorrection_, canvasRotation_,
+                scaleMode_, autoBufferRotation_);
         }
         displayDrawable.SetOriginScreenRotation(screenRotation_);
     }
@@ -211,10 +210,10 @@ void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSDisplayRenderNodeDraw
 
     RS_LOGD("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", "
         "screen(%{public}f, %{public}f, %{public}f, %{public}f), "
-        "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, scaleMode: %{public}d, "
-        "autoBufferRotation: %{public}d",
-        virtualScreenId_, mirroredScreenWidth_, mirroredScreenHeight_, virtualScreenWidth_, virtualScreenHeight_,
-        screenRotation_, screenCorrection_, canvasRotation_, scaleMode_, autoBufferRotation_);
+        "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, rotationAngle: %{public}d, "
+        "scaleMode: %{public}d, autoBufferRotation: %{public}d",
+        virtualScreenId_, virtualScreenWidth_, virtualScreenHeight_, mirroredScreenWidth_, mirroredScreenHeight_,
+        screenRotation_, screenCorrection_, canvasRotation_, rotationAngle, scaleMode_, autoBufferRotation_);
 }
 
 int32_t RSUniRenderVirtualProcessor::GetBufferAge() const
@@ -579,10 +578,10 @@ bool RSUniRenderVirtualProcessor::EnableVisibleRect()
     return screenManager->QueryScreenInfo(virtualScreenId_).enableVisibleRect;
 }
 
-bool RSUniRenderVirtualProcessor::CheckIfBufferRotationNeedChange(
+bool RSUniRenderVirtualProcessor::CheckIfBufferSizeNeedChange(
     ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation)
 {
-    auto rotationDiff = static_cast<int>(curBufferRotation) - static_cast<int>(firstBufferRotation);
+    auto rotationDiff = static_cast<int>(firstBufferRotation) - static_cast<int>(curBufferRotation);
     return rotationDiff % 2;    // If the difference is odd, the buffer rotation needs to be changed.
 }
 
@@ -601,7 +600,7 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenSize(
             RS_LOGI("RSUniRenderVirtualProcessor::%{public}s, set firstBufferRotation: %{public}d,"
                 "width: %{public}" PRIu32 ", height: %{public}" PRIu32, __func__, static_cast<int>(curBufferRotation),
                 renderFrameConfig_.width, renderFrameConfig_.height);
-        } else if (CheckIfBufferRotationNeedChange(firstBufferRotation, curBufferRotation)) {
+        } else if (CheckIfBufferSizeNeedChange(firstBufferRotation, curBufferRotation)) {
             std::swap(renderFrameConfig_.width, renderFrameConfig_.height);
             std::swap(virtualScreenInfo.width, virtualScreenInfo.height);
             RS_LOGI("RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}" PRIu32
