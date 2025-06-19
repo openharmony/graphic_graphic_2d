@@ -167,6 +167,7 @@ void TextFlipEffect::StopEffect()
         return;
     }
 
+    typographyConfig_.typography->SetSkipTextBlobDrawing(false);
     SPText::TextAnimationConfig textEffectConfig;
     auto animationFunc = typographyConfig_.typography->GetAnimation();
     textEffectConfig.SetAnimation(animationFunc);
@@ -181,6 +182,9 @@ void TextFlipEffect::DrawTextFlip(std::vector<TextBlobRecordInfo>& infos, Drawin
     for (auto& info : infos) {
         std::vector<std::vector<TextEngine::TextEffectElement>> effectElements = GenerateChangeElements(info.blob,
             x + info.offset.fX, y + info.offset.fY);
+        if (info.blob == nullptr || info.blob->Bounds() == nullptr) {
+            continue;
+        }
         height = info.blob->Bounds()->GetHeight();
         DrawTextFlipElements(canvas, height, info.color, animationFunc, effectElements);
     }
@@ -212,6 +216,8 @@ void TextFlipEffect::DrawTextFlipElements(Drawing::Canvas* canvas, double height
     const std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& func,
     const std::vector<std::vector<TextEngine::TextEffectElement>>& effectElements)
 {
+    const size_t unchangeIndex = 0;
+    const size_t changeIndex = 1;
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters = GenerateFlipConfig(height);
     SPText::TextAnimationConfig textEffectConfig;
     textEffectConfig.SetAnimation(func);
@@ -219,16 +225,10 @@ void TextFlipEffect::DrawTextFlipElements(Drawing::Canvas* canvas, double height
     textEffectConfig.SetColor(color);
     textEffectConfig.SetEffectStrategy(Drawing::DrawingEffectStrategy::TEXT_FLIP);
     textEffectConfig.SetEffectConfig(parameters);
-
-    for (size_t index = 0; index < effectElements.size(); index++) {
-        if (index == 0) { // index 0 is unchanged
-            textEffectConfig.AnimationUnchange(true);
-            textEffectConfig.DrawTextEffect(canvas, effectElements[index]);
-            continue;
-        }
-        textEffectConfig.AnimationUnchange(false);
-        textEffectConfig.DrawTextEffect(canvas, effectElements[index]);
-    }
+    textEffectConfig.AnimationUnchange(true);
+    textEffectConfig.DrawTextEffect(canvas, effectElements[unchangeIndex]);
+    textEffectConfig.AnimationUnchange(false);
+    textEffectConfig.DrawTextEffect(canvas, effectElements[changeIndex]);
 }
 
 void TextFlipEffect::ClearTypography()
@@ -244,6 +244,7 @@ void TextFlipEffect::ClearTypography()
 std::vector<std::vector<TextEngine::TextEffectElement>> TextFlipEffect::GenerateChangeElements(
     const std::shared_ptr<Drawing::TextBlob>& blob, double x, double y)
 {
+    const int delayTimeMs = 100;
     std::vector<std::vector<TextEngine::TextEffectElement>> effectElements;
     std::vector<TextEngine::TextEffectElement> unEffectElements;
     std::vector<TextEngine::TextEffectElement> inEffectElements;
@@ -261,7 +262,7 @@ std::vector<std::vector<TextEngine::TextEffectElement>> TextFlipEffect::Generate
         effectElement.width = rect.GetWidth();
         effectElement.height = rect.GetHeight();
         effectElement.uniqueId = currentGlyphIndex_ + index;
-        effectElement.delay = changeNumber_ * 100; // 100ms
+        effectElement.delay = changeNumber_ * delayTimeMs;
         if (currentGlyphIndex_ + index < lastAllBlobGlyphIds_.size() &&
             lastAllBlobGlyphIds_[currentGlyphIndex_ + index] == glyphIds[index]) {
             unEffectElements.emplace_back(effectElement);
