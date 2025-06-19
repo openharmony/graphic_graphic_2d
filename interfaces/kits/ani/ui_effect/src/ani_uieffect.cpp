@@ -51,6 +51,12 @@ ani_status AniEffect::BindFilterMethod(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniEffect::PixelStretch) },
         ani_native_function { "blurNative", nullptr,
             reinterpret_cast<void*>(OHOS::Rosen::AniEffect::Blur) },
+        ani_native_function { "flyInFlyOutEffectNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::FlyInFlyOutEffect) },
+        ani_native_function { "waterRippleNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::WaterRipple) },
+        ani_native_function { "distortNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::Distort) },
     };
     ani_status ret = env->Class_BindNativeMethods(filterClass, filterMethods.data(), filterMethods.size());
     if (ret != ANI_OK) {
@@ -214,6 +220,81 @@ ani_object AniEffect::CreateFilter(ani_env* env)
     ani_object retVal {};
     auto filterObj = std::make_unique<Filter>();
     retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj.release()));
+    return retVal;
+}
+
+ani_object AniEffect::FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double degree, ani_enum_item flyMode)
+{
+    ani_object retVal {};
+
+    ani_size flyModeIndex;
+    env->EnumItem_GetIndex(flyMode, &flyModeIndex);
+//    Drawing::FlyMode flyModeEnum = static_cast<Drawing::FlyMode>(flyModeIndex);
+
+    auto flyOutPara = std::make_shared<FlyOutPara>();
+    flyOutPara->SetDegree(static_cast<float>(degree));
+    flyOutPara->SetFlyMode(static_cast<uint32_t>(flyModeIndex));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(flyOutPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
+
+ani_object AniEffect::WaterRipple(ani_env* env, ani_object obj, ani_double progress,
+                                  ani_double waveCount, ani_double x, ani_double y,
+                                  ani_enum_item rippleMode)
+{
+    ani_object retVal {};
+
+    ani_size rippleModeIndex;
+    env->EnumItem_GetIndex(rippleMode, &rippleModeIndex);
+//    Drawing::WaterRippleMode rippleModeEnum = static_cast<Drawing::WaterRippleMode>(rippleModeIndex);
+
+    auto waterRipplePara = std::make_shared<WaterRipplePara>();
+    waterRipplePara->SetProgress(static_cast<float>(progress));
+    waterRipplePara->SetWaveCount(static_cast<uint32_t>(waveCount));
+    waterRipplePara->SetRippleCenterX(static_cast<float>(x));
+    waterRipplePara->SetRippleCenterY(static_cast<float>(y));
+    waterRipplePara->SetRippleMode(static_cast<uint32_t>(rippleModeIndex));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(waterRipplePara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
+
+ani_object AniEffect::Distort(ani_env* env, ani_object obj, ani_double distortionK)
+{
+    ani_object retVal {};
+
+    auto distortPara = std::make_shared<DistortPara>();
+    distortPara->SetDistortionK(static_cast<float>(distortionK));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(distortPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
     return retVal;
 }
 

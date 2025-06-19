@@ -35,6 +35,9 @@
 #include "filter/include/filter.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_blur_para.h"
+#include "filter/include/filter_fly_out_para.h"
+#include "filter/include/filter_water_ripple_para.h"
+#include "filter/include/filter_distort_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,6 +57,11 @@ public:
     static ani_object CreateFilter(ani_env* env);
     static ani_object PixelStretch(ani_env* env, ani_object obj, ani_object arrayObj, ani_enum_item enumItem);
     static ani_object Blur(ani_env* env, ani_object obj, ani_double radius);
+    static ani_object FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double degree, ani_enum_item flyMode);
+    static ani_object WaterRipple(ani_env* env, ani_object obj, ani_double progress,
+                                ani_double waveCount, ani_double x, ani_double y,
+                                ani_enum_item rippleMode);
+    static ani_object Distort(ani_env* env, ani_object obj, ani_double distortionK);
 
 private:
     static ani_object CreateAniObject(ani_env* env, std::string name, const char* signature, ani_long addr);
