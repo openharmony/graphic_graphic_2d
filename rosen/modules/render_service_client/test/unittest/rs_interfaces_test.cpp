@@ -1663,7 +1663,7 @@ HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
-/*
+/**
  * @tc.name: SetVirtualScreenAutoRotationTest
  * @tc.desc: SetVirtualScreenAutoRotation test.
  * @tc.type: FUNC

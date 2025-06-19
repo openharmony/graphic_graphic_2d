@@ -622,7 +622,7 @@ HWTEST_F(RSScreenTest, SetVirtualScreenAutoRotationTest, testing::ext::TestSize.
     ASSERT_TRUE(rsScreen->GetVirtualScreenAutoRotation());
 }
 
-/*
+/**
  * @tc.name: GetVirtualScreenAutoRotationTest
  * @tc.desc: GetVirtualScreenAutoRotation Test
  * @tc.type: FUNC
@@ -639,7 +639,7 @@ HWTEST_F(RSScreenTest, GetVirtualScreenAutoRotationTest, testing::ext::TestSize.
     ASSERT_TRUE(rsScreen->GetVirtualScreenAutoRotation());
 }
 
-/*
+/**
  * @tc.name: SetRogResolution_002
  * @tc.desc: SetRogResolution Test, trigger branch -- hdiScreen_->SetScreenOverlayResolution(width, height) < 0
  * @tc.type: FUNC

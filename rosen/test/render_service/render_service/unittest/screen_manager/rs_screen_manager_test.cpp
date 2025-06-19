@@ -286,7 +286,7 @@ HWTEST_F(RSScreenManagerTest, GetAllScreenIds_001, TestSize.Level1)
     sleep(1);
 }
 
-/*
+/**
  * @tc.name: SetVirtualScreenAutoRotationTest
  * @tc.desc: Test SetVirtualScreenAutoRotation
  * @tc.type: FUNC
@@ -313,7 +313,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
     sleep(1);
 }
 
-/*
+/**
  * @tc.name: GetVirtualScreenAutoRotationTest
  * @tc.desc: Test GetVirtualScreenAutoRotation
  * @tc.type: FUNC
@@ -338,7 +338,7 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenAutoRotationTest, TestSize.Level1)
     ASSERT_FALSE(screenManager->GetVirtualScreenAutoRotation(id));
     ASSERT_EQ(screenManager->SetVirtualScreenAutoRotation(id, true), StatusCode::SUCCESS);
     ASSERT_TRUE(screenManager->GetVirtualScreenAutoRotation(id));
-    
+
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
 }

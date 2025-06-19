@@ -1078,12 +1078,12 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenCanvasRotation001, TestSize.Level1)
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
 }
 
-/*
+/**
  * @tc.name: SetVirtualScreenAutoRotationTest
  * @tc.desc: SetVirtualScreenAutoRotation Test
  * @tc.type:FUNC
  * @tc.require: issueICGA54
-*/
+ */
 HWTEST_F(RSClientTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
 {
     auto csurface = IConsumerSurface::Create();

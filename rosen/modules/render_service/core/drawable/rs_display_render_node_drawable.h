@@ -125,7 +125,7 @@ public:
         return firstBufferRotation_;
     }
 
-    void SetFirstBufferRotation(const ScreenRotation& bufferRotation)
+    void SetFirstBufferRotation(const ScreenRotation bufferRotation)
     {
         firstBufferRotation_ = bufferRotation;
     }
