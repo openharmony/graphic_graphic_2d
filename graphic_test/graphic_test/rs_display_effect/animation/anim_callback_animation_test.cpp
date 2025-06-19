@@ -232,9 +232,6 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_OpenImplicitAnimation_Test
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // just OpenImplicitAnimation
     RSNode::OpenImplicitAnimation(protocol, timingCurve, [this]() {
-        auto finishCallbackNode = FinishCallbackFunc();
-        GetRootNode()->AddChild(finishCallbackNode);
-        RegisterNode(finishCallbackNode);
         std::cout << "Animation_OpenImplicitAnimation_Test_1 animation finish callback" << std::endl;
     });
 }
