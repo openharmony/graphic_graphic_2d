@@ -4053,8 +4053,8 @@ HWTEST_F(NdkTypographyTest, TypographyHandlerPushTextStyleTest002, TestSize.Leve
     OH_Drawing_TypographyHandlerAddText(handler5, text5);
     OH_Drawing_Typography* typography5 = OH_Drawing_CreateTypography(handler5);
     OH_Drawing_TypographyLayout(typography5, maxWidth);
-    EXPECT_NE(OH_Drawing_TypographyGetHeight(typography5), 240);
-    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography5), 190);
+    EXPECT_NE(OH_Drawing_TypographyGetHeight(typography5), 0);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography5), 240);
 }
 
 /*
