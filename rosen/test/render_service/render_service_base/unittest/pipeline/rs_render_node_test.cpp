@@ -32,11 +32,6 @@
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
-#ifdef USE_M133_SKIA
-#include "include/ganesh/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrDirectContext.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
