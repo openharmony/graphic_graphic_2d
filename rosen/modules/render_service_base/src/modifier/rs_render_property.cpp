@@ -31,9 +31,6 @@ void RSRenderPropertyBase::Attach(std::weak_ptr<RSRenderNode> node)
     node_ = node;
     OnChange();
     OnAttach();
-    if (auto node = node_.lock()) {
-        node->AddProperty(shared_from_this());
-    }
 }
 
 void RSRenderPropertyBase::Detach(std::weak_ptr<RSRenderNode> node)

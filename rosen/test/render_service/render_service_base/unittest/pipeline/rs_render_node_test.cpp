@@ -2169,6 +2169,7 @@ HWTEST_F(RSRenderNodeTest, ProcessTest014, TestSize.Level1)
 
     nodeTest->modifiers_.emplace(0, modifier1);
     nodeTest->modifiers_.emplace(1, modifier2);
+    nodeTest->properties_.emplace(1, propertyTest1);
 
     EXPECT_EQ(nodeTest->modifiers_.size(), 2);
     nodeTest->RemoveModifier(1);
