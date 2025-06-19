@@ -592,6 +592,11 @@ bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvas
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSInterfaces::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    return renderServiceClient_->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 bool RSInterfaces::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     return renderServiceClient_->SetVirtualMirrorScreenScaleMode(id, scaleMode);

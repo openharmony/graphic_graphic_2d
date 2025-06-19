@@ -1726,6 +1726,18 @@ bool RSScreenManager::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool can
     return screen->SetVirtualMirrorScreenCanvasRotation(canvasRotation);
 }
 
+int32_t RSScreenManager::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+
+    RS_LOGI("%{public}s: screenId: %{public}" PRIu64 " autoRotation: %{public}d", __func__, id, isAutoRotation);
+    return screen->SetVirtualScreenAutoRotation(isAutoRotation);
+}
+
 bool RSScreenManager::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     auto screen = GetScreen(id);
@@ -1890,6 +1902,16 @@ bool RSScreenManager::GetCanvasRotation(ScreenId id) const
         return false;
     }
     return screen->GetCanvasRotation();
+}
+
+bool RSScreenManager::GetVirtualScreenAutoRotation(ScreenId id) const
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return false;
+    }
+    return screen->GetVirtualScreenAutoRotation();
 }
 
 ScreenScaleMode RSScreenManager::GetScaleMode(ScreenId id) const

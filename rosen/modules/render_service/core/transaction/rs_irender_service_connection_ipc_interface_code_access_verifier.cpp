@@ -205,6 +205,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_AUTO_ROTATION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_AUTO_ROTATION");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE");
             break;

@@ -245,6 +245,8 @@ public:
 
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
+    virtual bool SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) = 0;
+
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) = 0;
 
     virtual ErrCode SetGlobalDarkColorMode(bool isDark) = 0;

@@ -1186,6 +1186,16 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bo
     return renderService->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetVirtualScreenAutoRotation: renderService is nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

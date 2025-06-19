@@ -218,6 +218,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) override;
+
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
 
     ErrCode SetGlobalDarkColorMode(bool isDark) override;

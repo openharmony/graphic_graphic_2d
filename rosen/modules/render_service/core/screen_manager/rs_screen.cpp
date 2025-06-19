@@ -1118,6 +1118,20 @@ bool RSScreen::GetCanvasRotation() const
     return canvasRotation_;
 }
 
+int32_t RSScreen::SetVirtualScreenAutoRotation(bool isAutoRotation)
+{
+    if (IsVirtual()) {
+        autoBufferRotation_ = isAutoRotation;
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::INVALID_ARGUMENTS;
+}
+
+bool RSScreen::GetVirtualScreenAutoRotation() const
+{
+    return autoBufferRotation_;
+}
+
 bool RSScreen::SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode)
 {
     if (IsVirtual()) {

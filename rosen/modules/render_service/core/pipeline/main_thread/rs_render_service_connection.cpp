@@ -1951,6 +1951,15 @@ bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id
     return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSRenderServiceConnection::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    return screenManager_->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 ErrCode RSRenderServiceConnection::SetGlobalDarkColorMode(bool isDark)
 {
     std::lock_guard<std::mutex> lock(mutex_);
