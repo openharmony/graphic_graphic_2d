@@ -126,18 +126,16 @@ template("skia_libtxt") {
       include_dirs += [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
       defines += [ "CROSS_PLATFORM" ]
       deps = [
+        "$skia_root:skia_$platform",
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
-        "$skia_root:skia_$platform",
       ]
       if (use_new_skia) {
         deps += [
           "//third_party/skia/m133/modules/skparagraph:skia_paragraph_ohos_new",
         ]
       } else {
-        deps += [
-          "//third_party/skia/modules/skparagraph:skia_paragraph_ohos",
-        ]
+        deps += [ "//third_party/skia/modules/skparagraph:skia_paragraph_ohos" ]
       }
     } else {
       external_deps += [
@@ -147,13 +145,9 @@ template("skia_libtxt") {
         "skia:skia_canvaskit",
       ]
       if (use_new_skia) {
-        external_deps += [
-          "skia:skia_paragraph_ohos_new",
-        ]
+        external_deps += [ "skia:skia_paragraph_ohos_new" ]
       } else {
-        external_deps += [
-          "skia:skia_paragraph_ohos",
-        ]
+        external_deps += [ "skia:skia_paragraph_ohos" ]
       }
       defines += [ "TEXT_SYSTEM_OHOS" ]
     }
@@ -189,11 +183,11 @@ ohos_static_library("font_asset") {
   defines = [ "TEXT_SYSTEM_OHOS" ]
   if (is_arkui_x) {
     deps = [
+      "$skia_root:skia_$platform",
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
       "//third_party/jsoncpp:jsoncpp_static",
-      "$skia_root:skia_$platform",
     ]
   } else {
     external_deps = [
@@ -220,6 +214,13 @@ ohos_static_library("font_asset") {
   ]
 
   if (platform_is_ohos) {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_no_nvcall = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
     external_deps += [ "init:libbegetutil" ]
     defines += [
       "HM_SYMBOL_TXT_ENABLE",
@@ -234,8 +235,8 @@ ohos_static_library("font_asset") {
     "$rosen_text_root/adapter/skia/symbol_resource/symbol_default_config_parser.cpp",
     "$rosen_text_root/adapter/skia/txt/asset_font_manager.cpp",
     "$rosen_text_root/adapter/skia/txt/font_asset_provider.cpp",
+    "$rosen_text_root/adapter/skia/txt/platform.cpp",
     "$rosen_text_root/adapter/skia/txt/typeface_font_asset_provider.cpp",
     "$rosen_text_root/service/texgine/src/font_config.cpp",
-    "txt/platform.cpp",
   ]
 }

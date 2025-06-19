@@ -196,6 +196,11 @@ template("graphics2d_source_set") {
         boundary_sanitize = true
         integer_overflow = true
         ubsan = true
+        cfi = true
+        cfi_cross_dso = true
+        cfi_no_nvcall = true
+        cfi_vcall_icall_only = true
+        debug = false
       }
       external_deps += [ "init:libbegetutil" ]
       sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
