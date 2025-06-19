@@ -214,7 +214,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
-    RSDisplayNodeConfig mainConfig{0, false, 0, false};
+    RSDisplayNodeConfig mainConfig{0, false, INVALID_SCREEN_ID, false};
     auto mainNode = std::make_shared<RSDisplayRenderNode>(mainNodeId, mainConfig);
     mainNode->InitRenderParams();
     RSDisplayNodeConfig virtualConfig{screenId, true, mainNodeId, false};
