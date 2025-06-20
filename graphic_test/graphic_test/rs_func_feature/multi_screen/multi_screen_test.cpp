@@ -1373,10 +1373,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_021)
 
     ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_021_2", width, height, psurface2, screenId1, 0, {});
-    if (screenId2 == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
     // only foundation can call Manual block stub permission check
     RSInterfaces::GetInstance().SetScreenSecurityMask(screenId2, pixelMap);
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -1490,10 +1487,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_023)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_023", width, height, psurface, INVALID_SCREEN_ID, -1, {});
-    if (screenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
-        return;
-    }
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
     if (!displayNode) {
@@ -1514,10 +1508,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_023)
     auto psurfaceSecond = Surface::CreateSurfaceAsProducer(producerSecond);
     ScreenId secondScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_023", 4 * width, 3 * height, psurfaceSecond, INVALID_SCREEN_ID, -1, {});
-    if (secondScreenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(secondScreenId, INVALID_SCREEN_ID);
     RSVirtualScreenResolution rsVirtualScreenResolution =
         RSInterfaces::GetInstance().GetVirtualScreenResolution(secondScreenId);
 
@@ -1573,10 +1564,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_024)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_024", width, height, psurface, INVALID_SCREEN_ID, -1, {});
-    if (screenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
-        return;
-    }
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
     if (!displayNode) {
@@ -1643,10 +1631,8 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_025)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_025", width, height, psurface, INVALID_SCREEN_ID, -1, {});
-    if (screenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
-        return;
-    }
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    secondScreenId
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
     if (!displayNode) {
@@ -1667,11 +1653,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_025)
     auto psurfaceSecond = Surface::CreateSurfaceAsProducer(producerSecond);
     ScreenId secondScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_025", 3 * width, 4 * height, psurfaceSecond, INVALID_SCREEN_ID, -1, {});
-    if (secondScreenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
-
+    EXPECT_NE(secondScreenId, INVALID_SCREEN_ID);
     RSVirtualScreenResolution rsVirtualScreenResolution =
         RSInterfaces::GetInstance().GetVirtualScreenResolution(secondScreenId);
 
@@ -1727,10 +1709,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_026)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_026", width, height, psurface, INVALID_SCREEN_ID, -1, {});
-    if (screenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
-        return;
-    }
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
     if (!displayNode) {
@@ -1751,10 +1730,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_026)
     auto psurfaceSecond = Surface::CreateSurfaceAsProducer(producerSecond);
     ScreenId secondScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_026", 3 * width, 4 * height, psurfaceSecond, INVALID_SCREEN_ID, -1, {});
-    if (secondScreenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
+    EXPECT_NE(secondScreenId, INVALID_SCREEN_ID);
     RSVirtualScreenResolution rsVirtualScreenResolution =
         RSInterfaces::GetInstance().GetVirtualScreenResolution(secondScreenId);
 
@@ -1810,10 +1786,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_027)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_027", width, height, psurface, INVALID_SCREEN_ID, -1, {});
-    if (screenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
-        return;
-    }
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
     if (!displayNode) {
@@ -1834,11 +1807,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_027)
     auto psurfaceSecond = Surface::CreateSurfaceAsProducer(producerSecond);
     ScreenId secondScreenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_027", 4 * width, 3 * height, psurfaceSecond, INVALID_SCREEN_ID, -1, {});
-    if (secondScreenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen2 failed");
-        return;
-    }
-
+    EXPECT_NE(secondScreenId, INVALID_SCREEN_ID);
     RSVirtualScreenResolution rsVirtualScreenResolution =
         RSInterfaces::GetInstance().GetVirtualScreenResolution(secondScreenId);
 
@@ -1877,7 +1846,6 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_028)
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode0";
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode0->SetBounds({ 0, 0, 100, 100 });
-    
     surfaceNode0->SetFrame({ 0, 0, 100, 100 });
 
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode1";
@@ -1895,10 +1863,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_028)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
         "MULTI_SCREEN_TEST_028", width, height, psurface, INVALID_SCREEN_ID, -1, {});
-    if (screenId == INVALID_SCREEN_ID) {
-        LOGE("CreateVirtualScreen failed");
-        return;
-    }
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
     if (!displayNode) {
