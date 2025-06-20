@@ -18,7 +18,7 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 config("skia_libtxt_config") {
-  if (use_new_skia) {
+  if (graphic_2d_feature_upgrade_skia) {
     defines = [
       "ENABLE_TEXT_ENHANCE",
       "ENABLE_DRAWING_ADAPTER",
@@ -47,7 +47,7 @@ config("skia_libtxt_config") {
   ]
 }
 
-if (use_new_skia) {
+if (graphic_2d_feature_upgrade_skia) {
   skia_root = "//third_party/skia/m133"
 } else {
   skia_root = "//third_party/skia"
@@ -130,7 +130,7 @@ template("skia_libtxt") {
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
       ]
-      if (use_new_skia) {
+      if (graphic_2d_feature_upgrade_skia) {
         deps += [
           "//third_party/skia/m133/modules/skparagraph:skia_paragraph_ohos_new",
         ]
@@ -144,7 +144,7 @@ template("skia_libtxt") {
         "jsoncpp:jsoncpp",
         "skia:skia_canvaskit",
       ]
-      if (use_new_skia) {
+      if (graphic_2d_feature_upgrade_skia) {
         external_deps += [ "skia:skia_paragraph_ohos_new" ]
       } else {
         external_deps += [ "skia:skia_paragraph_ohos" ]

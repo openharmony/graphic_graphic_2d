@@ -79,7 +79,7 @@ if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
       "jsoncpp:jsoncpp",
       "skia:skia_canvaskit",
     ]
-    if (use_new_skia) {
+    if (graphic_2d_feature_upgrade_skia) {
       defines += [ "USE_M133_SKIA" ]
     }
 

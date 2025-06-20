@@ -62,7 +62,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "hilog:libhilog",
   ]
 
-  if (use_new_skia) {
+  if (graphic_2d_feature_upgrade_skia) {
     external_deps += [
       "skia:skia_paragraph_ohos_new",
     ]
