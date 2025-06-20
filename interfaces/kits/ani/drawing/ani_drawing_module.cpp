@@ -73,7 +73,7 @@ static void Clean(ani_env* env, ani_object object)
         {"Pen", SafeDelete<OHOS::Rosen::Drawing::AniPen>},
         {"Region", SafeDelete<OHOS::Rosen::Drawing::AniRegion>},
         {"RoundRect", SafeDelete<OHOS::Rosen::Drawing::AniRoundRect>},
-        {"SampliongOptions", SafeDelete<OHOS::Rosen::Drawing::AniSamplingOptions>},
+        {"SamplingOptions", SafeDelete<OHOS::Rosen::Drawing::AniSamplingOptions>},
         {"Typeface", SafeDelete<OHOS::Rosen::Drawing::AniTypeface>},
         {"TypefaceArguments", SafeDelete<OHOS::Rosen::Drawing::AniTypefaceArguments>}};
 

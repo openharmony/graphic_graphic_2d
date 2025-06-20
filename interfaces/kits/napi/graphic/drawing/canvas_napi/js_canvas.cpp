@@ -194,6 +194,10 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
     }
     Drawing::Point* texsPoint = builder.TexCoords();
     uint16_t* indices = builder.Indices();
+    if (!texsPoint || !indices) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh texsPoint or indices is nullptr");
+        return;
+    }
 
     const float height = static_cast<float>(pixelMap->GetHeight());
     const float width = static_cast<float>(pixelMap->GetWidth());
