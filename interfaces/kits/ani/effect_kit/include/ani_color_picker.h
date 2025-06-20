@@ -22,13 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class AniColorPicker {
-public:
-    // ... existing code ...
-    // ... existing code ...
-    static void CommonCallbackRoutine(ani_env *env, AniColorPickerAsyncContext *&asyncContext,
-                                      const ani_object &valueParam);
-};
+    //exitsing code...
 } // namespace Rosen
 } // namespace OHOS
 #endif // OHOS_ANI_COLOR_PICKER_H

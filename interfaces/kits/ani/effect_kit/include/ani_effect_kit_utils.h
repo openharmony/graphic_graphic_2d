@@ -19,7 +19,6 @@
 #include <ani.h>
 
 #include "ani_filter.h"
-#include "ani_color_picker.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,8 +27,6 @@ public:
     static ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ani_long object);
     static ani_object CreateAniUndefined(ani_env* env);
     static AniFilter* GetFilterFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj);
-    //新增
-    static AniColorPicker* GetColorPickerFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj);
 };
 
 } // namespace Rosen

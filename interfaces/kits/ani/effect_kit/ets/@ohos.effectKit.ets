@@ -275,51 +275,6 @@ namespace effectKit {
 
   export native function createEffect(source: image.PixelMap): Filter;
 
-
-  // 修改namespace下重载函数写法
-  native function createColorPicker1(source: image.PixelMap): ColorPicker
-  native function createColorPicker2(source: image.PixelMap, region: Array<number>): ColorPicker
-
-  export function createColorPicker(source: image.PixelMap): Promise<ColorPicker> {
-    return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
-      let cb = (): ColorPicker => { return createColorPicker1(source) };
-      taskpool.execute(cb).then((ret: NullishType): void => {
-        if (ret === null || ret === undefined) {
-          let ret1: BusinessError<string> = {
-            code: -1,
-            data: "Operation failed",
-            name: "",
-            message: ""
-          };
-          reject(ret1);
-        } else {
-          let colorpicker = ret as ColorPicker;
-          resolve(colorpicker);
-        }
-      });
-    });
-  }
-
-  export function createColorPicker(source: image.PixelMap, region: Array<number>): Promise<ColorPicker> {
-    return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
-      let cb = (): ColorPicker => { return createColorPicker2(source, region) };
-      taskpool.execute(cb).then((ret: NullishType): void => {
-        if (ret === null || ret === undefined) {
-          let ret1: BusinessError<string> = {
-            code: -1,
-            data: "Operation failed",
-            name: "",
-            message: ""
-          };
-          reject(ret1);
-        } else {
-          let colorpicker = ret as ColorPicker;
-          resolve(colorpicker);
-        }
-      });
-    });
-  }
-
  
 }
 
