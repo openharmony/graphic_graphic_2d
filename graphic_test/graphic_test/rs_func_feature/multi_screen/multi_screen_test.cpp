@@ -1502,7 +1502,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_023)
         rsVirtualScreenResolution.GetVirtualScreenHeight());
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback, captureConfig);
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
     if (!CheckSurfaceCaptureCallback(callback)) {
         LOGE("TakeSurfaceCapture failed");
     }
@@ -1562,16 +1562,15 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_024)
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    RSInterfaces::GetInstance().SetVirtualScreenResolution(screenId, 3 * width 3 * height);
+    RSInterfaces::GetInstance().SetVirtualScreenResolution(screenId, 3 * width ,3 * height);
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback, captureConfig);
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
     if (!CheckSurfaceCaptureCallback(callback)) {
         LOGE("TakeSurfaceCapture failed");
     }
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(secondScreenId);
 }
 
 /*
@@ -1638,7 +1637,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_025)
         rsVirtualScreenResolution.GetVirtualScreenHeight());
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback, captureConfig);
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
     if (!CheckSurfaceCaptureCallback(callback)) {
         LOGE("TakeSurfaceCapture failed");
     }
@@ -1711,7 +1710,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_026)
         rsVirtualScreenResolution.GetVirtualScreenHeight());
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback, captureConfig);
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
     if (!CheckSurfaceCaptureCallback(callback)) {
         LOGE("TakeSurfaceCapture failed");
     }
@@ -1784,7 +1783,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_027)
         rsVirtualScreenResolution.GetVirtualScreenHeight());
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback, captureConfig);
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
     if (!CheckSurfaceCaptureCallback(callback)) {
         LOGE("TakeSurfaceCapture failed");
     }
@@ -1847,13 +1846,12 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_028)
     RSInterfaces::GetInstance().ResizeVirtualScreen(screenId, 2 * width, 2 * height);
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback, captureConfig);
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
     if (!CheckSurfaceCaptureCallback(callback)) {
         LOGE("TakeSurfaceCapture failed");
     }
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(secondScreenId);
 }
 
 } // namespace OHOS::Rosen
