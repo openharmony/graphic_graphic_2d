@@ -43,7 +43,7 @@ struct AniColorPickerAsyncContext {
 static void GetMainColorExecute(ani_env *env, ani_status status, void *data);
 static void GetMainColorComplete(ani_env *env, ani_status status, void *data);
 static void CommonCallbackRoutine(ani_env *env, AniColorPickerAsyncContext *&asyncContext,
-                                 const ani_object &valueParam);
+    const ani_object &valueParam);
 static ani_object BuildColor(ani_env *env, const ColorManager::Color &color);
 
 static void GetMainColorExecute(ani_env *env, ani_status status, void *data)
@@ -84,7 +84,7 @@ static void GetMainColorComplete(ani_env *env, ani_status status, void *data)
 }
 
 static void CommonCallbackRoutine(ani_env *env, AniColorPickerAsyncContext *&asyncContext,
-                                 const ani_object &valueParam)
+    const ani_object &valueParam)
 {
     ani_object result[2] = {nullptr, nullptr};
     ani_ref retVal = nullptr;
