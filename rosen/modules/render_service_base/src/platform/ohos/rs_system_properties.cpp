@@ -1507,8 +1507,8 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
         ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
         return 0;
     }
-    static uint32_t hybridRenderFeatureSwitch =
-        std::stoul((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
+    static uint32_t hybridRenderFeatureSwitch = static_cast<uint32_t>(
+        std::atoll(system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00").c_str()));
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
     if (bitSeq >= ComponentEnableSwitch::SWITCH_MAX) {

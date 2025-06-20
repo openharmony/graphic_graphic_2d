@@ -71,8 +71,6 @@ void RSModifiersDrawThread::Destroy()
         RSModifiersDrawThread::Instance().ClearEventResource();
     };
     RSModifiersDrawThread::Instance().PostSyncTask(task);
-    auto& instancePtr = RSModifiersDrawThread::InstancePtr();
-    instancePtr.reset();
 }
 
 void RSModifiersDrawThread::ClearEventResource()
@@ -91,12 +89,6 @@ RSModifiersDrawThread& RSModifiersDrawThread::Instance()
 {
     static RSModifiersDrawThread instance;
     return instance;
-}
-
-std::unique_ptr<RSModifiersDrawThread>& RSModifiersDrawThread::InstancePtr()
-{
-    static std::unique_ptr<RSModifiersDrawThread> instancePtr = std::make_unique<RSModifiersDrawThread>();
-    return instancePtr;
 }
 
 void RSModifiersDrawThread::SetCacheDir(const std::string& path)

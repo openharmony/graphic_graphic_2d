@@ -190,6 +190,7 @@ HWTEST_F(RSModifiersDrawThreadTest, TargetCommand002, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
 {
+    auto& modifiersDrawThread = RSModifiersDrawThread::Instance();
     NodeId nodeId = 1;
     auto mType = RSModifierType::CONTENT_STYLE;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -197,8 +198,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    RSModifiersDrawThread::Instance().PostSyncTask(
-        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
+    modifiersDrawThread.PostSyncTask([&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
     ASSERT_NE(transactionData, nullptr);
 }
 

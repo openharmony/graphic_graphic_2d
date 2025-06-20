@@ -125,14 +125,10 @@ public:
 
     static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData);
 
-    // [Attention] Do not call constructor of this class directly. The constructor and destructor are
-    // only used for InstancePtr() function with unique_ptr.
-    RSModifiersDrawThread();
-    ~RSModifiersDrawThread();
-
     static std::recursive_mutex transactionDataMutex_;
 private:
-    static std::unique_ptr<RSModifiersDrawThread>& InstancePtr();
+    RSModifiersDrawThread();
+    ~RSModifiersDrawThread();
     static void Destroy();
     RSModifiersDrawThread(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
