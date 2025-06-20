@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSC_EXPORT RSUiCaptureHelper {
+class RSB_EXPORT RSUiCaptureHelper {
 public:
     RSUiCaptureHelper() = default;
     ~RSUiCaptureHelper() = default;

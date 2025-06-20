@@ -17,7 +17,6 @@
 
 #include "src/drawing/engine_adapter/skia_adapter/rs_skia_memory_tracer.h"
 #include "memory/rs_dfx_string.h"
-#include "include/gpu/GrDirectContext.h"
 
 using namespace testing;
 using namespace testing::ext;

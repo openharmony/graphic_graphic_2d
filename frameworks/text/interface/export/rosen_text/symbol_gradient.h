@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "draw/color.h"
 #include "draw/brush.h"
 #include "draw/pen.h"
@@ -31,7 +32,7 @@ enum GradientType {
     RADIAL_GRADIENT,
 };
 
-class SymbolGradient {
+class RS_EXPORT SymbolGradient {
 public:
     SymbolGradient() = default;
     virtual ~SymbolGradient() = default;
@@ -71,7 +72,7 @@ protected:
     std::vector<float> positions_;
 };
 
-class SymbolLineGradient : public SymbolGradient {
+class RS_EXPORT SymbolLineGradient : public SymbolGradient {
 public:
     SymbolLineGradient(float rangle);
     ~SymbolLineGradient() override = default;
@@ -94,7 +95,7 @@ private:
         Drawing::Point& secondPoint);
 };
 
-class SymbolRadialGradient : public SymbolGradient {
+class RS_EXPORT SymbolRadialGradient : public SymbolGradient {
 public:
     SymbolRadialGradient(const Drawing::Point& centerPtRatio, float radiusRatio);
     ~SymbolRadialGradient() override = default;

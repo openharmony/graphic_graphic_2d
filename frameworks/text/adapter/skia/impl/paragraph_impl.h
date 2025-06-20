@@ -116,6 +116,10 @@ public:
             animationFunc_ = animationFunc;
         }
     }
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> GetAnimation() override
+    {
+        return animationFunc_;
+    }
 
     void SetParagraghId(uint32_t id) override
     {
@@ -147,9 +151,9 @@ public:
 
     std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
 
-    bool HasEnabledTextEffect() const override;
+    bool HasSkipTextBlobDrawing() const override;
 
-    void SetTextEffectState(bool state) override;
+    void SetSkipTextBlobDrawing(bool state) override;
 
     bool isRunCombinated() { return paragraph_->isRunCombinated(); }
 

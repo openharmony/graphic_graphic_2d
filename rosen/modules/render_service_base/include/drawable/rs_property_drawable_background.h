@@ -90,8 +90,6 @@ public:
     RSBackgroundColorDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-
-private:
 };
 
 class RSBackgroundShaderDrawable : public RSPropertyDrawable {
@@ -147,8 +145,10 @@ public:
     bool FuzePixelStretch(const RSRenderNode& node);
 private:
     static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
-    template <typename T>
+    template<typename T>
     static bool GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property);
+    template<typename T>
+    static bool GetBehindWindowFilterProperty(const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property);
 };
 
 class RSBackgroundEffectDrawable : public RSFilterDrawable {

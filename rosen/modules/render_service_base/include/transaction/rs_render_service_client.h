@@ -307,6 +307,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation);
+
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 
     bool SetGlobalDarkColorMode(bool isDark);
@@ -435,6 +437,8 @@ public:
     bool SetAncoForceDoDirect(bool direct);
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+
+    void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
 

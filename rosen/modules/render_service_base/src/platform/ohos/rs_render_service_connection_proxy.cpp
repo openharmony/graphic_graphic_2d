@@ -3077,6 +3077,38 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetVirtualScreenAutoRotation: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetVirtualScreenAutoRotation: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isAutoRotation)) {
+        ROSEN_LOGE("SetVirtualScreenAutoRotation: WriteBool isAutoRotation err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s: Send Request err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{-1};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s Read result failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     MessageParcel data;
@@ -3648,6 +3680,85 @@ int32_t RSRenderServiceConnectionProxy::RegisterFirstFrameCommitCallback(
         return RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();
+    return result;
+}
+
+ErrCode RSRenderServiceConnectionProxy::AvcodecVideoStart(
+    uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("AvcodecVideoStart: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(uniqueId)) {
+        ROSEN_LOGE("AvcodecVideoStart: WriteUint64 uniqueId err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteString(surfaceName)) {
+        ROSEN_LOGE("AvcodecVideoStart: WriteString surfaceName err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(fps)) {
+        ROSEN_LOGE("AvcodecVideoStart: WriteUint32 fps err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint64(reportTime)) {
+        ROSEN_LOGE("AvcodecVideoStart: WriteUint64 reportTime err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::AvcodecVideoStart: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::AvcodecVideoStart Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+ErrCode RSRenderServiceConnectionProxy::AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("AvcodecVideoStop: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(uniqueId)) {
+        ROSEN_LOGE("AvcodecVideoStop: WriteUint64 uniqueId err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteString(surfaceName)) {
+        ROSEN_LOGE("AvcodecVideoStop: WriteString surfaceName err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(fps)) {
+        ROSEN_LOGE("AvcodecVideoStop: WriteUint32 fps err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::AvcodecVideoStop: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::AvcodecVideoStop Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -5126,6 +5237,27 @@ ErrCode RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnectionProxy::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetForceRefresh: write token err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (data.WriteString(nodeIdStr) && data.WriteBool(isForceRefresh)) {
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH);
+        int32_t err = SendRequest(code, data, reply, option);
+        if (err != NO_ERROR) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::SetForceRefresh: Send Request err.");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    return ERR_OK;
+}
+
 void RSRenderServiceConnectionProxy::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
     MessageParcel data;
@@ -5176,6 +5308,10 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool v
 int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
     sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
+    if (!callback) {
+        ROSEN_LOGE("%{public}s callback is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -5183,10 +5319,6 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
-    }
-    if (!callback) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback callback is nullptr");
-        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteRemoteObject(callback->AsObject())) {

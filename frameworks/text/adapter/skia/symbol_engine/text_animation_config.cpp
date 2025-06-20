@@ -129,4 +129,20 @@ void TextAnimationConfig::ClearTextAnimation(uint64_t uniqueId)
     symbolAnimationConfig->symbolSpanId = uniqueId;
     animationFunc_(symbolAnimationConfig);
 }
+
+void TextAnimationConfig::AnimationUnchange(bool isUnchange)
+{
+    currentAnimationHasPlayed_ = isUnchange;
+}
+
+void TextAnimationConfig::ClearAllTextAnimation()
+{
+    if (animationFunc_ == nullptr) {
+        return;
+    }
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
+    symbolAnimationConfig->animationStart = false;
+    animationFunc_(symbolAnimationConfig);
+}
 }

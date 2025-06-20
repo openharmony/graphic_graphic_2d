@@ -14,7 +14,6 @@
  */
 
 #include "hpae_base/rs_hpae_scheduler.h"
-#include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "hpae_base/rs_hpae_log.h"
 #include "hpae_base/rs_hpae_perf_thread.h"
 
@@ -38,7 +37,7 @@ void RSHpaeScheduler::CacheHpaeItem(const HpaeBackgroundCacheItem& item)
     cachedItem_ = item;
 }
 
-HpaeBackgroundCacheItem RSHpaeScheduler::GetCacheHpaeItem()
+HpaeBackgroundCacheItem RSHpaeScheduler::GetCachedHpaeItem()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return cachedItem_;
@@ -70,12 +69,12 @@ void RSHpaeScheduler::NotifyBuildTaskDone()
     buildTaskCv_.notify_all();
 }
 
-void RSHpaeScheduler::WaitBulidTask()
+void RSHpaeScheduler::WaitBuildTask()
 {
     using namespace std::chrono_literals;
     std::unique_lock<std::mutex> lock(buildTaskMutex_);
-    if (buildTaskDone_) {
-        HPAE_TRACE_NAME_FMT("WaitBulidTask");
+    if (!buildTaskDone_) {
+        HPAE_TRACE_NAME("WaitBuildTask");
         buildTaskCv_.wait_for(lock, 10ms, [this]() {
             return this->buildTaskDone_;
         });

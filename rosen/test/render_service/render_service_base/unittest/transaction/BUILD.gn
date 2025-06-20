@@ -31,6 +31,7 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
     "rs_transaction_handler_test.cpp",
     "rs_transaction_proxy_test.cpp",
     "rs_uiextension_data_test.cpp",
+    "rs_transaction_test.cpp",
   ]
 
   cflags = [
@@ -57,6 +58,7 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gmock",
     "hilog:libhilog",
     "image_framework:image_native",
     "init:libbegetutil",

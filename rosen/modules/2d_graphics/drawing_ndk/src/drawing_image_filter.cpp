@@ -78,13 +78,13 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateOffset(float x, float y, OH_
     return Helper::CastTo<NativeHandle<ImageFilter>*, OH_Drawing_ImageFilter*>(imageFilterHandle);
 }
 
-OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromShaderEffect(OH_Drawing_ShaderEffect* shaderEffct)
+OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromShaderEffect(OH_Drawing_ShaderEffect* shaderEffect)
 {
-    if (shaderEffct == nullptr) {
+    if (shaderEffect == nullptr) {
         return nullptr;
     }
     NativeHandle<ShaderEffect>* shaderFilterHandle =
-        Helper::CastTo<OH_Drawing_ShaderEffect*, NativeHandle<ShaderEffect>*>(shaderEffct);
+        Helper::CastTo<OH_Drawing_ShaderEffect*, NativeHandle<ShaderEffect>*>(shaderEffect);
     if (shaderFilterHandle->value == nullptr) {
         return nullptr;
     }

@@ -48,6 +48,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
+#include "modifier/rs_render_property.h"
 
 namespace OHOS::Rosen::ModifierNG {
 // RSRenderModifier ==========================================================================
@@ -78,7 +79,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::FOREGROUND_FILTER,        RSForegroundFilterRenderModifier::ResetProperties },
 };
 
-std::array<RSRenderModifier::Constructor, ModifierNG::MODIFIER_TYPE_COUNT>
+std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT>
     RSRenderModifier::ConstructorLUT_ = {
         nullptr,                                                                        // INVALID
         [] { return new RSBoundsRenderModifier(); },                                    // BOUNDS
@@ -134,6 +135,7 @@ void RSRenderModifier::AttachProperty(RSPropertyType type, const std::shared_ptr
         property->UpdatePropertyUnitNG(type);
         node->SetDirty();
         node->AddDirtyType(GetType());
+        AttachRenderFilterProperty(property, type);
     }
     dirty_ = true;
 }
@@ -145,6 +147,7 @@ void RSRenderModifier::DetachProperty(RSPropertyType type)
         return;
     }
     if (auto node = target_.lock()) {
+        DetachRenderFilterProperty(it->second, type);
         node->properties_.erase(it->second->GetId());
         node->SetDirty();
         node->AddDirtyType(GetType());
@@ -195,6 +198,7 @@ void RSRenderModifier::OnDetachModifier()
         return;
     }
     for (auto& [type, property] : properties_) {
+        DetachRenderFilterProperty(property, type);
         node->properties_.erase(property->GetId());
     }
     node->SetDirty();
@@ -237,7 +241,7 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
         return nullptr;
     }
-    auto constructor = ConstructorLUT_[static_cast<uint8_t>(type)];
+    auto constructor = ConstructorLUT_[static_cast<uint16_t>(type)];
     if (constructor == nullptr) {
         return nullptr;
     }

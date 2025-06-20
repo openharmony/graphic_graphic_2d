@@ -59,6 +59,7 @@
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
         "graphic_2d_feature_enable_opengl_to_vulkan",
+        "graphic_2d_feature_screenless_enable",
         "graphic_2d_feature_tv_metadata_enable"
       ],
       "rom": "10000KB",
@@ -171,6 +172,16 @@
                 "canvas_napi/js_canvas.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text:text_napi_impl",
+            "header": {
+              "header_files": [
+                "paragraph_napi/js_paragraph.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text"
             }
           },
           {

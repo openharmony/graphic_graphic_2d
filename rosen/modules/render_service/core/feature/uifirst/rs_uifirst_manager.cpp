@@ -1501,8 +1501,8 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         isNeedAssignToSubThread = animation;
     }
     isNeedAssignToSubThread = (isNeedAssignToSubThread ||
-            (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT))
-            && !hasFilter && !isRotate;
+        (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT)) &&
+        !hasFilter && !isRotate;
 
     bool needFilterSCB = IS_SCB_WINDOW_TYPE(node.GetSurfaceWindowType());
     if (needFilterSCB || node.IsSelfDrawingType()) {
@@ -1653,7 +1653,7 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
     bool hasProtectedLayer = node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer) {
         RS_LOGD("uifirst disabled. id:%{public}" PRIu64 ",uifirstOn:%{public}d,support:%{public}d,"
-            "forceDisabled:%{public}d, protectLayer:%{public}d",
+            "forceDisabled:%{public}d,protectLayer:%{public}d",
             node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer);
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         // This branch will be discarded

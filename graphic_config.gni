@@ -51,7 +51,9 @@ declare_args() {
   graphic_2d_feature_overlay_display_enable = false
   enable_full_screen_recongnize = false
   graphic_2d_feature_enable_opengl_to_vulkan = false
+  graphic_2d_feature_screenless_enable = false
   graphic_2d_feature_tv_metadata_enable = false
+  graphic_2d_modifier_ng_enable = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -85,6 +87,16 @@ if (graphic_2d_feature_product == "tablet") {
 
 gpu_defines = []
 accessibility_defines = []
+
+if (graphic_2d_feature_screenless_enable) {
+  graphic_2d_feature_bootanimation_enable = false
+  graphic_2d_feature_enable_vulkan = false
+  player_framework_enable = false
+  graphic_2d_feature_drivers_interface_display_enable = false
+  graphic_2d_feature_rs_enable_uni_render = true
+
+  gpu_defines += ["SCREENLESS_DEVICE"]
+}
 if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_vulkan) {
     gpu_defines += [

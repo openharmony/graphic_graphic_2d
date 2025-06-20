@@ -34,6 +34,23 @@ config("vsync_config") {
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     ldflags = [ "-Wl,-Bsymbolic" ]
+    if (enhanced_opt) {
+      if (graphic_2d_feature_enable_pgo &&
+          graphic_2d_feature_product == "phone") {
+        cflags += [
+          "-fprofile-use=" +
+              rebase_path("${graphic_2d_feature_pgo_path}/libvsync.profdata",
+                          root_build_dir),
+          "-Wno-error=backend-plugin",
+          "-Wno-profile-instr-out-of-date",
+          "-Wno-profile-instr-unprofiled",
+        ]
+
+        if (target_cpu == "arm64" && enable_enhanced_opt) {
+          ldflags += [ "-Wl,--aarch64-inline-plt" ]
+        }
+      }
+    }
   }
 }
 

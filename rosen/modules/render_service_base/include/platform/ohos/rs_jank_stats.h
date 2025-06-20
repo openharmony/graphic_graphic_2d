@@ -123,6 +123,17 @@ struct JankDurationParams {
     bool implicitAnimationEnd_ = false;
 };
 
+struct AvcodecVideoParam {
+    std::string surfaceName;
+    uint32_t fps;
+    uint64_t reportTime;
+    uint64_t startTime;
+    uint64_t decodeCount;
+    uint32_t previousSequence = 0;
+    uint64_t previousFrameTime = 0;
+    uint32_t continuousFrameLoss = 0;
+};
+
 class RSJankStats {
 public:
     static RSJankStats& GetInstance();
@@ -144,6 +155,13 @@ public:
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd);
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
     bool IsAnimationEmpty();
+    void AvcodecVideoDump(std::string& dumpString, std::string& type, const std::string& avcodecVideo);
+    void AvcodecVideoStart(
+        const uint64_t queueId, const std::string& surfaceName, const uint32_t fps, const uint64_t reportTime);
+    void AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName = "", const uint32_t fps = 0);
+    void AvcodecVideoCollectBegin();
+    void AvcodecVideoCollectFinish();
+    void AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence);
 
 private:
     RSJankStats() = default;
@@ -248,6 +266,8 @@ private:
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
     std::mutex mutex_;
     Rosen::AppInfo appInfo_;
+    bool avcodecVideoCollectOpen_ = false;
+    std::unordered_map<uint64_t, AvcodecVideoParam> avcodecVideoMap_;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,

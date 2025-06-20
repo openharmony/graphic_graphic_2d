@@ -22,6 +22,10 @@ drawing_core_src_dir = "$rosen_root/modules/2d_graphics/src/drawing"
 src_dir = "$rosen_root/modules/2d_graphics/src"
 platform_dir = "$rosen_root/modules/platform"
 
+if (ohos_indep_compiler_enable) {
+  drawing_indep_build_path = [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+}
+
 config("2d_graphics_config") {
   include_dirs = [
     "$drawing_core_include_dir",
@@ -192,6 +196,11 @@ template("graphics2d_source_set") {
         boundary_sanitize = true
         integer_overflow = true
         ubsan = true
+        cfi = true
+        cfi_cross_dso = true
+        cfi_no_nvcall = true
+        cfi_vcall_icall_only = true
+        debug = false
       }
       external_deps += [ "init:libbegetutil" ]
       sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
@@ -223,7 +232,6 @@ template("graphics2d_source_set") {
       defines += [ "USE_M133_SKIA" ]
     }
 
-    deps = [ "$graphic_2d_root/utils/color_manager:color_manager"]
     if (defined(graphic_2d_feature_enable_sdf) &&
         graphic_2d_feature_enable_sdf) {
       deps += [ "graphic_2d_ext:libsdf" ]
@@ -304,6 +312,9 @@ template("graphics2d_source_set") {
       public_external_deps += [ "vulkan-headers:vulkan_headers" ]
     }
     if (platform == "ohos" || platform == "ohos_ng") {
+      if (ohos_indep_compiler_enable) {
+        include_dirs += drawing_indep_build_path
+      }
       external_deps += [
         "bounds_checking_function:libsec_static",
         "hilog:libhilog",
@@ -321,6 +332,7 @@ template("graphics2d_source_set") {
       ]
 
     } else {
+      deps = []
       cflags += [ "-std=c++17" ]
 
       deps += [ "$rosen_root/modules/platform:hilog" ]
@@ -363,6 +375,7 @@ template("graphics2d_source_set") {
       ]
       external_deps += [ "c_utils:utils" ]
       public_external_deps += [ "graphic_surface:surface" ]
+      deps += [ "$graphic_2d_root/utils/color_manager:color_manager"]
     }
 
     part_name = "graphic_2d"

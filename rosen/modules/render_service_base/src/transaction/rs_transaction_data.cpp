@@ -31,6 +31,9 @@ namespace {
 static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
 static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000; // one second advance most
+#ifndef ROSEN_TRACE_DISABLE
+constexpr int TRACE_LEVEL_THREE = 3;
+#endif
 }
 
 std::function<void(uint64_t, int, int)> RSTransactionData::alarmLogFunc = [](uint64_t nodeId, int count, int num) {
@@ -125,6 +128,10 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                     marshallingIndex_);
                 success = false;
             }
+#ifndef ROSEN_TRACE_DISABLE
+            RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(
+                TRACE_LEVEL_THREE, "RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
+#endif
             success = success && command->Marshalling(parcel);
             if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
                 RS_LOGE("RSTransactionData::Marshalling failed to write end position marshallingIndex:%{public}zu",
@@ -226,14 +233,19 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId 
 
 void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId)
 {
+    size_t indexVerifier = 0;
     for (auto it = payload_.begin(); it != payload_.end();) {
         auto& command = std::get<2>(*it);
-        if (command && command->GetNodeId() == nodeId) {
-            transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
-            it = payload_.erase(it);
-        } else {
-            ++it;
+        if (command) {
+            if (command->GetNodeId() == nodeId) {
+                transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
+                it = payload_.erase(it);
+                continue;
+            }
+            command->indexVerifier_ = indexVerifier;
         }
+        ++indexVerifier;
+        ++it;
     }
 }
 

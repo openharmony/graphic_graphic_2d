@@ -339,6 +339,9 @@ void RSForegroundFilterRestoreDrawable::OnSync()
         return;
     }
     foregroundFilter_ = std::move(stagingForegroundFilter_);
+    if (foregroundFilter_) {
+        foregroundFilter_->OnSync();
+    }
     needSync_ = false;
 }
 

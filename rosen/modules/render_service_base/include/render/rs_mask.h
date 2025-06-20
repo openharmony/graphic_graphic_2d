@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_MASK_H
-#define RENDER_SERVICE_CLIENT_CORE_UI_RS_MASK_H
+#ifndef RENDER_SERVICE_BASE_RENDER_UI_RS_MASK_H
+#define RENDER_SERVICE_BASE_RENDER_UI_RS_MASK_H
 
 #include <memory>
 #include "common/rs_macros.h"
@@ -103,4 +103,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_MASK_H
+#endif // RENDER_SERVICE_BASE_RENDER_UI_RS_MASK_H

@@ -824,18 +824,6 @@ HWTEST_F(RSPropertiesPainterTest, CalcAverageColor001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAndResetBlurCnt001
- * @tc.desc: test results of GetAndResetBlurCnt
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, GetAndResetBlurCnt001, TestSize.Level1)
-{
-    int res = RSPropertiesPainter::GetAndResetBlurCnt();
-    EXPECT_EQ(res, 4);
-}
-
-/**
  * @tc.name: SetBgAntiAlias001
  * @tc.desc: test results of SetBgAntiAlias
  * @tc.type:FUNC

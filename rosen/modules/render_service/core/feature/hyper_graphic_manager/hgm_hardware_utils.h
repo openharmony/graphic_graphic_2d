@@ -53,6 +53,7 @@ public:
 
 private:
     bool needRetrySetRate_ = false;
+    int32_t setRateRetryCount_ = 0;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;
     std::unordered_map<ScreenId, std::weak_ptr<HdiOutput>> outputMap_;

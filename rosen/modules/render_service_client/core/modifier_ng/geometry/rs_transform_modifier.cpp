@@ -48,9 +48,13 @@ bool RSTransformModifier::GetPositionZApplicableCamera3D() const
     return Getter(RSPropertyType::POSITION_Z_APPLICABLE_CAMERA3D, true);
 }
 
-void RSTransformModifier::SetPivot(const Vector2f& pivot)
+void RSTransformModifier::SetPivot(const Vector2f& pivot, bool animatable)
 {
-    Setter(RSPropertyType::PIVOT, pivot);
+    if (animatable) {
+        Setter(RSPropertyType::PIVOT, pivot);
+    } else {
+        Setter<RSProperty>(RSPropertyType::PIVOT, pivot);
+    }
 }
 
 Vector2f RSTransformModifier::GetPivot() const

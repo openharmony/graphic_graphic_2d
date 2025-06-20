@@ -118,6 +118,36 @@ ohos_source_set("render_service_base_src") {
     "src/modifier/rs_render_modifier.cpp",
     "src/modifier/rs_render_property.cpp",
 
+    # modifier_ng
+    "src/modifier_ng/appearance/rs_alpha_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_background_filter_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_behind_window_filter_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_blend_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_border_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_compositing_filter_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_dynamic_light_up_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_foreground_filter_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_hdr_brightness_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_mask_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_outline_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_particle_effect_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_pixel_stretch_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_point_light_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_shadow_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_use_effect_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_visibility_render_modifier.cpp",
+    "src/modifier_ng/background/rs_background_color_render_modifier.cpp",
+    "src/modifier_ng/background/rs_background_image_render_modifier.cpp",
+    "src/modifier_ng/background/rs_background_shader_render_modifier.cpp",
+    "src/modifier_ng/foreground/rs_env_foreground_color_render_modifier.cpp",
+    "src/modifier_ng/foreground/rs_foreground_color_render_modifier.cpp",
+    "src/modifier_ng/geometry/rs_bounds_clip_render_modifier.cpp",
+    "src/modifier_ng/geometry/rs_bounds_render_modifier.cpp",
+    "src/modifier_ng/geometry/rs_frame_clip_render_modifier.cpp",
+    "src/modifier_ng/geometry/rs_frame_render_modifier.cpp",
+    "src/modifier_ng/geometry/rs_transform_render_modifier.cpp",
+    "src/modifier_ng/rs_render_modifier_ng.cpp",
+
     #command
     "src/command/rs_animation_command.cpp",
     "src/command/rs_base_node_command.cpp",
@@ -238,7 +268,7 @@ ohos_source_set("render_service_base_src") {
     "src/hpae_base/rs_hpae_base_data.cpp",
     "src/hpae_base/rs_hpae_hianimation.cpp",
     "src/hpae_base/rs_hpae_ffrt_pattern_manager.cpp",
-    "src/hpae_base/rs_hpae_fliter_cache_manager.cpp",
+    "src/hpae_base/rs_hpae_filter_cache_manager.cpp",
     "src/hpae_base/rs_hpae_scheduler.cpp",
     "src/hpae_base/rs_hpae_perf_thread.cpp",
     "src/hpae_base/rs_hpae_fusion_operator.cpp",
@@ -248,6 +278,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_bezier_warp_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
+    "src/render/rs_border_light_shader.cpp",
     "src/render/rs_color_extract.cpp",
     "src/render/rs_color_gradient_shader_filter.cpp",
     "src/render/rs_color_picker.cpp",
@@ -284,6 +315,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_bezier_warp_filter.cpp",
     "src/render/rs_render_blur_filter.cpp",
     "src/render/rs_render_color_gradient_filter.cpp",
+    "src/render/rs_render_content_light_filter.cpp",
     "src/render/rs_render_dispersion_filter.cpp",
     "src/render/rs_render_displacement_distort_filter.cpp",
     "src/render/rs_render_edge_light_filter.cpp",
@@ -355,6 +387,14 @@ ohos_source_set("render_service_base_src") {
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
   ]
+  if (!build_ohos_sdk && !is_arkui_x) {
+    sources += [
+      "src/ipc_callbacks/rs_transaction_callback.cpp",
+      "src/ipc_callbacks/rs_transaction_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_transaction_callback_stub.cpp",
+      "src/transaction/transaction.cpp",
+    ]
+  }
 
   if (rs_enable_gpu) {
     sources += [
@@ -567,6 +607,7 @@ ohos_source_set("render_service_base_src") {
       "image_framework:image_native",
       "lz4:liblz4_shared",
       "init:libbegetutil",
+      "ffrt:libffrt",
     ]
   }
 

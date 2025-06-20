@@ -1951,6 +1951,14 @@ bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id
     return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSRenderServiceConnection::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    return screenManager_->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 ErrCode RSRenderServiceConnection::SetGlobalDarkColorMode(bool isDark)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -3138,6 +3146,30 @@ ErrCode RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, boo
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnection::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    if (mainThread_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeIdStr, isForceRefresh]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        context.GetNodeMap().TraverseSurfaceNodes(
+            [&nodeIdStr, &isForceRefresh](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+            if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
+                (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
+                surfaceNode->SetForceRefresh(isForceRefresh);
+                return;
+            }
+        });
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+
 void RSRenderServiceConnection::RegisterTransactionDataCallback(int32_t pid,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
@@ -3255,6 +3287,19 @@ ErrCode RSRenderServiceConnection::NotifyPageName(const std::string &packageName
 bool RSRenderServiceConnection::GetHighContrastTextState()
 {
     return RSBaseRenderEngine::IsHighContrastEnabled();
+}
+
+ErrCode RSRenderServiceConnection::AvcodecVideoStart(
+    uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime)
+{
+    RSJankStats::GetInstance().AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnection::AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps)
+{
+    RSJankStats::GetInstance().AvcodecVideoStop(uniqueId, surfaceName, fps);
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::SetBehindWindowFilterEnabled(bool enabled)

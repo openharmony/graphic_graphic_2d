@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <stack>
+
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "rs_profiler.h"
 #include "rs_profiler_json.h"
@@ -20,14 +22,13 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_utils.h"
 
-#include <stack>
 #include "common/rs_obj_geometry.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "params/rs_render_params.h"
 
 namespace OHOS::Rosen {
 
@@ -239,6 +240,95 @@ void RSProfiler::DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out
     }
 }
 
+static std::string Hex(uint32_t value)
+{
+    std::stringstream sstream;
+    sstream << std::hex << value;
+    return sstream.str();
+}
+
+#if defined(MODIFIER_NG)
+void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out)
+{
+    if (node.modifiersNG_.empty()) {
+        return;
+    }
+
+    auto& modifiersJson = out["DrawCmdModifiers"];
+    modifiersJson.PushArray();
+    for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
+        if (type < static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSITION_STYLE) &&
+            type != static_cast<uint16_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME)) {
+            continue;
+        }
+        auto& slot = node.modifiersNG_[type];
+        if (slot.empty()) {
+            continue;
+        }
+        modifiersJson.PushObject();
+        modifiersJson["type"] = type;
+        auto& modifierDesc = modifiersJson["modifiers"];
+        modifierDesc.PushArray();
+        for (auto modifier : slot) {
+            if (modifier != nullptr) {
+                DumpNodeDrawCmdModifier(node, modifierDesc, modifier);
+            }
+        }
+        modifiersJson.PopArray();
+        modifiersJson.PopObject();
+    }
+    modifiersJson.PopArray();
+}
+
+void RSProfiler::DumpNodeDrawCmdModifier(
+    const RSRenderNode& node, JsonWriter& out, std::shared_ptr<ModifierNG::RSRenderModifier> modifier)
+{
+    if (modifier->IsCustom()) {
+        auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
+        auto drawCmdList = modifier->Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
+        auto propertyStr = drawCmdList ? drawCmdList->GetOpsWithDesc() : "";
+        size_t pos = 0;
+        size_t oldpos = 0;
+        out.PushObject();
+        auto& property = out["drawCmdList"];
+        property.PushArray();
+        while ((pos = propertyStr.find('\n', oldpos)) != std::string::npos) {
+            property.Append(propertyStr.substr(oldpos, pos - oldpos));
+            oldpos = pos + 1;
+        }
+        property.PopArray();
+        out.PopObject();
+    } else if (modifier->GetType() == ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR) {
+        if (modifier->HasProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR)) {
+            auto value = modifier->Getter(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR, Color());
+            out.PushObject();
+            out["ENV_FOREGROUND_COLOR"] = "#" + Hex(value.AsRgbaInt()) + " (RGBA)";
+            out.PopObject();
+        }
+        if (modifier->HasProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY)) {
+            out.PushObject();
+            out["ENV_FOREGROUND_COLOR_STRATEGY"] =
+                modifier->Getter(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, 0);
+            out.PopObject();
+        }
+    } else if (modifier->GetType() == ModifierNG::RSModifierType::CLIP_TO_FRAME) {
+        if (modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
+            auto property = modifier->GetProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME);
+            std::string str;
+            property->Dump(str);
+            out.PushObject();
+            out["CUSTOM_CLIP_TO_FRAME"] = str;
+            out.PopObject();
+        }
+    } else if (modifier->GetType() == ModifierNG::RSModifierType::HDR_BRIGHTNESS) {
+        if (modifier->HasProperty(ModifierNG::RSPropertyType::HDR_BRIGHTNESS)) {
+            out.PushObject();
+            out["HDR_BRIGHTNESS"] = modifier->Getter(ModifierNG::RSPropertyType::HDR_BRIGHTNESS, 1.f);
+            out.PopObject();
+        }
+    }
+}
+#else
 void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out)
 {
     auto& modifiersJson = out["DrawCmdModifiers"];
@@ -257,13 +347,6 @@ void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& 
         modifiersJson.PopObject();
     }
     modifiersJson.PopArray();
-}
-
-static std::string Hex(uint32_t value)
-{
-    std::stringstream sstream;
-    sstream << std::hex << value;
-    return sstream.str();
 }
 
 void RSProfiler::DumpNodeDrawCmdModifier(
@@ -344,6 +427,7 @@ void RSProfiler::DumpNodeDrawCmdModifier(
         }
     }
 }
+#endif
 
 void RSProfiler::DumpNodeProperties(const RSProperties& properties, JsonWriter& out)
 {

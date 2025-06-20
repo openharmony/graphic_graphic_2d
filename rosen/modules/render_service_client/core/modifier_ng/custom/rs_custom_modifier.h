@@ -22,7 +22,6 @@
 
 namespace OHOS::Rosen {
 class RSNode;
-class RSModifierManager;
 namespace ModifierNG {
 struct RSDrawingContext {
     Drawing::Canvas* canvas;
@@ -51,6 +50,16 @@ public:
     bool IsCustom() const override
     {
         return true;
+    }
+
+    int16_t GetIndex() const
+    {
+        return Getter(RSPropertyType::CUSTOM_INDEX, 0);
+    }
+
+    void SetIndex(int16_t index)
+    {
+        Setter<RSProperty>(RSPropertyType::CUSTOM_INDEX, index);
     }
 
 protected:
@@ -109,7 +118,6 @@ private:
     bool noNeedUICaptured_ = false;
 
     friend class OHOS::Rosen::RSNode;
-    friend class OHOS::Rosen::RSModifierManager;
 };
 } // namespace ModifierNG
 } // namespace OHOS::Rosen

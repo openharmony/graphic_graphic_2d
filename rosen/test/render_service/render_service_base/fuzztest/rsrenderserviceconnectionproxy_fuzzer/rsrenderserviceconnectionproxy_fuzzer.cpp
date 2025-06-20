@@ -421,6 +421,29 @@ bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    bool isAutoRotation = GetData<bool>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.SetVirtualScreenAutoRotation(screenId, isAutoRotation);
+    return true;
+}
+
 bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -550,5 +573,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoAddVirtualScreenBlackList(data, size);
     OHOS::Rosen::DoRemoveVirtualScreenBlackList(data, size);
     OHOS::Rosen::DoResizeVirtualScreen(data, size);
+    OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     return 0;
 }

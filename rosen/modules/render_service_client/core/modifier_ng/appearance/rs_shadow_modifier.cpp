@@ -86,14 +86,14 @@ std::shared_ptr<RSPath> RSShadowModifier::GetShadowPath() const
     return Getter(RSPropertyType::SHADOW_PATH, std::shared_ptr<RSPath>(nullptr));
 }
 
-void RSShadowModifier::SetShadowMask(bool shadowMask)
+void RSShadowModifier::SetShadowMask(int shadowMask)
 {
     Setter<RSProperty>(RSPropertyType::SHADOW_MASK, shadowMask);
 }
 
-bool RSShadowModifier::GetShadowMask() const
+int RSShadowModifier::GetShadowMask() const
 {
-    return Getter(RSPropertyType::SHADOW_MASK, false);
+    return Getter(RSPropertyType::SHADOW_MASK, SHADOW_MASK_STRATEGY::MASK_NONE);
 }
 
 void RSShadowModifier::SetShadowColorStrategy(int shadowColorStrategy)

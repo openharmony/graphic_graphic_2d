@@ -15,7 +15,7 @@
 
 #include "rs_hpae_render_listener.h"
 
-#include "platform/commom/rs_log.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,15 +24,15 @@ RSHpaeRenderListener::~RSHpaeRenderListener() {}
 RSHpaeRenderListener::RSHpaeRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler)
     : surfaceHandler_(surfaceHandler) {}
 
-void RSHpaeRenderListener::OnBufferAvaliable()
+void RSHpaeRenderListener::OnBufferAvailable()
 {
     auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("RSHpaeRenderlistener::OnBufferAvaliable surfaceHandler is nullptr");
+        RS_LOGE("RSHpaeRenderListener::OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
-    RS_LOGD("RSHpaeRenderListener::OnBufferAvaliable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
-    surfaceHandler->IncreaseAvaliableBuffer();
+    RS_LOGD("RSHpaeRenderListener::OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
+    surfaceHandler->IncreaseAvailableBuffer();
 }
 }
 }

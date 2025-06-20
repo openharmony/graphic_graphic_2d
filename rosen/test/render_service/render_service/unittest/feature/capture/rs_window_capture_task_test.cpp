@@ -306,6 +306,9 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForInvalidScale, Function | Sm
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
+    surfaceNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 /*
@@ -338,6 +341,9 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForShouldPaint, Function | Sma
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
+    surfaceNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 /*
@@ -371,6 +377,9 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForPixelMap, Function | SmallT
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
+    surfaceNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 } // namespace Rosen
 } // namespace OHOS

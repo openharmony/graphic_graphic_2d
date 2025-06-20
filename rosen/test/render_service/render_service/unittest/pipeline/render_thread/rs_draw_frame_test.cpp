@@ -114,6 +114,31 @@ HWTEST_F(RSDrawFrameTest, SyncTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SyncTest002
+ * @tc.desc: test Sync
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSDrawFrameTest, SyncTest002, TestSize.Level1)
+{
+    RSDrawFrame drawFrame_;
+    drawFrame_.Sync();
+
+    auto param = std::unique_ptr<RSRenderThreadParams>();
+    param.reset(new RSRenderThreadParams());
+    ASSERT_NE(param, nullptr);
+    drawFrame_.SetRenderThreadParams(param);
+    drawFrame_.Sync();
+
+    auto param2 = std::unique_ptr<RSRenderThreadParams>();
+    param2.reset(new RSRenderThreadParams());
+    ASSERT_NE(param2, nullptr);
+    param2->HasDisplayHdrOn_ = true;
+    drawFrame_.SetRenderThreadParams(param2);
+    drawFrame_.Sync();
+}
+
+/**
  * @tc.name: UnlockMainThreadTest
  * @tc.desc: test UnlockMainThread
  * @tc.type: FUNC

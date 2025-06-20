@@ -98,16 +98,6 @@ void RsCommonHook::GetComponentPowerFps(FrameRateRange& range)
     }
 }
 
-bool RsCommonHook::GetIsWhiteListForEnableHwcNodeBelowSelfInApp() const
-{
-    return isWhiteListForEnableHwcNodeBelowSelfInApp_;
-}
-
-void RsCommonHook::SetIsWhiteListForEnableHwcNodeBelowSelfInApp(bool isWhiteListForEnableHwcNodeBelowSelfInApp)
-{
-    isWhiteListForEnableHwcNodeBelowSelfInApp_ = isWhiteListForEnableHwcNodeBelowSelfInApp;
-}
-
 void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
 {
     tvPlayerBundleName_ = bundleName;

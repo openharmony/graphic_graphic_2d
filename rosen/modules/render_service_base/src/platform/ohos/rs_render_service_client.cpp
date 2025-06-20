@@ -1186,6 +1186,16 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bo
     return renderService->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetVirtualScreenAutoRotation: renderService is nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -2162,6 +2172,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
+
+void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetForceRefresh(nodeIdStr, isForceRefresh);
     }
 }
 

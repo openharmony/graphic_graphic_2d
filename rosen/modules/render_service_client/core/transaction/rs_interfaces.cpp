@@ -592,6 +592,11 @@ bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvas
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSInterfaces::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    return renderServiceClient_->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 bool RSInterfaces::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     return renderServiceClient_->SetVirtualMirrorScreenScaleMode(id, scaleMode);
@@ -1145,6 +1150,11 @@ bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
+
+void RSInterfaces::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    renderServiceClient_->SetForceRefresh(nodeIdStr, isForceRefresh);
 }
 
 void RSInterfaces::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)

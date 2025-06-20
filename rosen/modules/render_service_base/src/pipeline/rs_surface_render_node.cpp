@@ -767,6 +767,7 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>&
     AddDirtyType(RSModifierType::SCALE_Z);
     AddDirtyType(RSModifierType::PERSP);
     AddDirtyType(RSModifierType::TRANSLATE);
+    AddDirtyType(ModifierNG::RSModifierType::TRANSFORM);
     if (!sendMsg) {
         return;
     }
@@ -783,6 +784,7 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
     contextAlpha_ = alpha;
     SetContentDirty();
     AddDirtyType(RSModifierType::ALPHA);
+    AddDirtyType(ModifierNG::RSModifierType::ALPHA);
     if (!sendMsg) {
         return;
     }
@@ -799,6 +801,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     contextClipRect_ = clipRegion;
     SetContentDirty();
     AddDirtyType(RSModifierType::BOUNDS);
+    AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
     if (!sendMsg) {
         return;
     }
@@ -1221,6 +1224,9 @@ void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
     } else if (hdrType == HDRComponentType::UICOMPONENT) {
         hdrUIComponentNum_++;
         RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrUIComponentNum_: %{public}d", hdrUIComponentNum_);
+    } else if (hdrType == HDRComponentType::EFFECT) {
+        hdrEffectNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
     }
 }
 
@@ -1241,6 +1247,13 @@ void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
         }
         hdrUIComponentNum_--;
         RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrUIComponentNum_: %{public}d", hdrUIComponentNum_);
+    } else if (hdrType == HDRComponentType::EFFECT) {
+        if (hdrEffectNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum effect error");
+            return;
+        }
+        hdrEffectNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
     }
 }
 
@@ -1290,6 +1303,11 @@ void RSSurfaceRenderNode::ReduceWideColorGamutNum()
         firstLevelNode->SetFirstLevelNodeColorGamutByResource(false);
     }
 #endif
+}
+
+bool RSSurfaceRenderNode::IsHdrEffectColorGamut() const
+{
+    return hdrEffectNum_ > 0;
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
@@ -1362,6 +1380,20 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
         return;
     }
     surfaceParams->SetLayerTop(isTop);
+    AddToPendingSyncList();
+#endif
+}
+
+void RSSurfaceRenderNode::SetForceRefresh(bool isForceRefresh)
+{
+#ifdef RS_ENABLE_GPU
+    isForceRefresh_ = isForceRefresh;
+    SetContentDirty();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetForceRefresh(isForceRefresh);
     AddToPendingSyncList();
 #endif
 }
@@ -3319,18 +3351,6 @@ void RSSurfaceRenderNode::SetUifirstChildrenDirtyRectParam(RectI rect)
         stagingSurfaceParams->SetUifirstChildrenDirtyRectParam(rect);
         AddToPendingSyncList();
     }
-#endif
-}
-
-void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
-{
-#ifdef RS_ENABLE_GPU
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (!stagingSurfaceParams) {
-        RS_LOGE("RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam staingSurfaceParams is null");
-        return;
-    }
-    stagingSurfaceParams->SetLeashWindowVisibleRegionEmptyParam(isLeashWindowVisibleRegionEmpty_);
 #endif
 }
 

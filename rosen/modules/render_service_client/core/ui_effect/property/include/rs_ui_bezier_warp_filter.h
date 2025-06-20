@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_BEZIER_WARP_FILTER_H
-#define RENDER_BEZIER_WARP_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_BEZIER_WARP_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_BEZIER_WARP_FILTER_H
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
 #include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "render/rs_render_bezier_warp_filter.h"
@@ -61,5 +61,5 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_BEZIER_WARP_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_BEZIER_WARP_FILTER_H
 

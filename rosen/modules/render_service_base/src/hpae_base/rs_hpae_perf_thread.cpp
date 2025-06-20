@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #include <unistd.h>
 #include "hpae_base/rs_hpae_perf_thread.h"
 #include "hpae_base/rs_hpae_log.h"
@@ -31,14 +30,18 @@ RSHpaePerfThread::RSHpaePerfThread() : runner_(AppExecFwk::EventRunner::Create("
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     if (handler_) {
         handler_->PostSyncTask([this]() {
+#if defined(ROSEN_OHOS)
             this->curThreadId_ = gettid();
+#else
+            this->curThreadId_ = 0;
+#endif
         });
     }
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> RSHpaePerfThread::CreateHandler()
 {
-    return std::make_shared<><AppExecFwk::EventHandler>(runner_);
+    return std::make_shared<AppExecFwk::EventHandler>(runner_);
 }
 
 void RSHpaePerfThread::PostTask(const std::function<void()>& task, int64_t delayTime)

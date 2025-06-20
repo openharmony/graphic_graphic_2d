@@ -14,6 +14,7 @@
  */
 
 #include "modifier_ng/appearance/rs_foreground_filter_render_modifier.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen::ModifierNG {
 const RSForegroundFilterRenderModifier::LegacyPropertyApplierMap
@@ -33,6 +34,8 @@ const RSForegroundFilterRenderModifier::LegacyPropertyApplierMap
             RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetAttractionFraction> },
         { RSPropertyType::ATTRACTION_DSTPOINT,
             RSRenderModifier::PropertyApplyHelper<Vector2f, &RSProperties::SetAttractionDstPoint> },
+        { RSPropertyType::FOREGROUND_UI_FILTER, RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSRenderFilter>,
+                                                    &RSProperties::SetForegroundUIFilter> },
     };
 
 void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
@@ -45,5 +48,70 @@ void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetDistortionK(std::nullopt);
     properties.SetAttractionFraction(0.f);
     properties.SetAttractionDstPoint(Vector2f());
+    properties.SetBackgroundUIFilter({});
 }
+
+void RSForegroundFilterRenderModifier::AttachRenderFilterProperty(
+    const std::shared_ptr<RSRenderPropertyBase>& property, RSPropertyType type)
+{
+    if (type != ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER) {
+        return;
+    }
+    if (!property) {
+        return;
+    }
+    auto node = target_.lock();
+    if (!node) {
+        return;
+    }
+    auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property);
+    if (!renderProperty) {
+        return;
+    }
+    auto& renderFilter = renderProperty->GetRef();
+    for (auto paramtype : renderFilter->GetUIFilterTypes()) {
+        auto propGroup = renderFilter->GetRenderFilterPara(paramtype);
+        if (!propGroup) {
+            continue;
+        }
+        for (auto& prop : propGroup->GetLeafRenderProperties()) {
+            if (prop) {
+                node->properties_.emplace(prop->GetId(), prop);
+                prop->Attach(shared_from_this());
+            }
+        }
+    }
+}
+
+void RSForegroundFilterRenderModifier::DetachRenderFilterProperty(
+    const std::shared_ptr<RSRenderPropertyBase>& property, RSPropertyType type)
+{
+    if (type != ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER) {
+        return;
+    }
+    if (!property) {
+        return;
+    }
+    auto node = target_.lock();
+    if (!node) {
+        return;
+    }
+    auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property);
+    if (!renderProperty) {
+        return;
+    }
+    auto& renderFilter = renderProperty->GetRef();
+    for (auto paramtype : renderFilter->GetUIFilterTypes()) {
+        auto propGroup = renderFilter->GetRenderFilterPara(paramtype);
+        if (!propGroup) {
+            continue;
+        }
+        for (auto& prop : propGroup->GetLeafRenderProperties()) {
+            if (prop) {
+                node->properties_.erase(prop->GetId());
+            }
+        }
+    }
+}
+
 } // namespace OHOS::Rosen::ModifierNG

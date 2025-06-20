@@ -92,7 +92,9 @@ private:
     napi_value OnLayoutAsync(napi_env env, napi_callback_info info);
     napi_value OnUpdateColor(napi_env env, napi_callback_info info);
     napi_value OnUpdateDecoration(napi_env env, napi_callback_info info);
+    static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
+    static std::mutex constructorMutex_;
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen

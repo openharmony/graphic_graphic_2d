@@ -1,32 +1,45 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef RENDER_SERVICE_BASE_RS_HPAE_FFRT_PATTERN_MANAGER_H
 #define RENDER_SERVICE_BASE_RS_HPAE_FFRT_PATTERN_MANAGER_H
-#include <vector>
-#include <stdexcept>
+
+#include <functional>
 #include <memory>
+#include <stdexcept>
 #include <utility>
-#include "rs_trace.h"
-#include "ffrt_inner.h"
-#include "common/rs_common_def.h"
+#include <vector>
+
 #include "common/rs_macros.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 
-//#include "rs_mhc.h"
-typedef enum {
-    PATTERN_HDR, // 对应 PatternType::HDR
-    PATTERN_BULR, // 对应 PatternType::BLUR
-} PatternType_C;
+enum class PatternType_C {
+    HDR,  // 对应 PatternType::HDR
+    BLUR // 对应 PatternType::BLUR
+};
 
-typedef enum {
-    MHC_PATTERN_TASK_HDR_AAE = 0, // 需移除aae
-    MHC_PATTERN_TASK_HDR_GPU,
-    MHC_PATTERN_TASK_HDR_MAX,
-    MHC_PATTERN_TASK_BLUR_GPU0 = MHC_PATTERN_TASK_HDR_MAX,
-    MHC_PATTERN_TASK_BLUR_AAE,
-    MHC_PATTERN_TASK_BLUR_GPU1,
-    MHC_PATTERN_TASK_BLUR_MAX
-} MHC_PatternTaskName;
+enum class MHC_PatternTaskName {
+    HDR_HPAE = 0,
+    HDR_GPU,
+    HDR_MAX,
+    BLUR_GPU0 = HDR_MAX,
+    BLUR_HPAE,
+    BLUR_GPU1,
+    BLUR_MAX
+};
 // end #include "rs_mhc.h"
 
 struct MHC_TaskInfo {
@@ -48,25 +61,25 @@ FunctionHeader* create_function_wrapper(F&& func) {
     if (func == nullptr) {
         return nullptr;
     }
-    // 1.复制/移动 lambda到堆内存
+    // 1. 复制/移动 lambda 到堆内存
     auto* func_copy = new std::decay_t<F>(std::forward<F>(func));
 
-    // 2.创建 C 接口需要的头结构
+    // 2. 创建 C 接口需要的头结构
     auto* header = new FunctionHeader;
 
-    // 3.设置执行函数：调用 lambda
+    // 3. 设置执行函数：调用 lambda
     header->execute = [](void* data) {
         auto* f = static_cast<std::decay_t<F>*>(data);
         (*f)(); // 调用 operator()
     };
 
-    //4.设置销毁函数：释放内存
+    //4. 设置销毁函数：释放内存
     header->destroy = [](void* data) {
         auto* f = static_cast<std::decay_t<F>*>(data);
         delete f;
     };
 
-    // 5.保存 lambda 指针
+    // 5. 保存 lambda 指针
     header->data = func_copy;
     return header;
 }
@@ -76,13 +89,10 @@ public:
     static RSHpaeFfrtPatternManager& Instance();
     RSHpaeFfrtPatternManager(const RSHpaeFfrtPatternManager&) = delete;
     RSHpaeFfrtPatternManager(RSHpaeFfrtPatternManager&&) = delete;
-    RSHpaeFfrtPatternManager& operator=(const RSHpaeFfrtPatternManager) = delete;
+    RSHpaeFfrtPatternManager& operator=(const RSHpaeFfrtPatternManager&) = delete;
     RSHpaeFfrtPatternManager& operator=(RSHpaeFfrtPatternManager&&) = delete;
 
-    bool IsUpdated()
-    {
-        return updated_ && IsThreadIdMatch();
-    }
+    bool IsUpdated();
 
     void SetUpdatedFlag()
     {
@@ -94,10 +104,7 @@ public:
         updated_ = false;
     }
 
-    void SetThreadId()
-    {
-        tid_ = gettid();
-    }
+    void SetThreadId();
 
     bool MHCDlOpen();
 
@@ -105,15 +112,11 @@ public:
 
     bool MHCRequestEGraph(uint64_t frameId);
 
-    bool MHCSubmitBlurTask(uint64_t frameId, MHC_PatternTaskName taskName, std::function<void()>&& preFunc, void** taskHandle, std::function<void()>&& afterFunc);
-
-    bool MHCSubmitVulkanTask(uint64_t frameId, MHC_PatternTaskName taskName, std::function<void()>&& preFunc, std::function<void()>&& afterFunc);
-
     bool MHCWait(uint64_t frameId, MHC_PatternTaskName taskName);
 
-    uint16_t MHCGetVlukanTaskWaitEvent(uint64_t frameId, MHC_PatternTaskName taskName);
+    uint16_t MHCGetVulkanTaskWaitEvent(uint64_t frameId, MHC_PatternTaskName taskName);
 
-    uint16_t MHCGetVlukanTaskNotifyEvent(uint64_t frameId, MHC_PatternTaskName taskName);
+    uint16_t MHCGetVulkanTaskNotifyEvent(uint64_t frameId, MHC_PatternTaskName taskName);
 
     bool MHCReleaseEGraph(uint64_t frameId);
 
@@ -164,14 +167,15 @@ protected:
     RSHpaeFfrtPatternManager();
     ~RSHpaeFfrtPatternManager();
 
-    bool IsThreadIdMatch()
-    {
-        return tid_ == gettid();
-    }
+    bool IsThreadIdMatch();
 
     void* g_instance = nullptr;
     bool updated_ = false;
+#if defined(ROSEN_OHOS)
     pid_t tid_ = -1;
+#else
+    int32_t tid_ = -1;
+#endif
     uint64_t vsyncId_ = 0;
     uint64_t curFrameId_ = 0;
     uint64_t lastFrameId_ = 0;

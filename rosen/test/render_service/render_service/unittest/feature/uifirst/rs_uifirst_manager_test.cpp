@@ -2136,7 +2136,7 @@ HWTEST_F(RSUifirstManagerTest, GetCacheSurfaceProcessedStatusTest, TestSize.Leve
  * @tc.desc: Test strategy with trans and blur scenes by uifirst.
  * @tc.type: FUNC
  * @tc.require: issueIC4F7H
-*/
+ */
 HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter001, TestSize.Level1)
 {
     // no children node
@@ -2178,7 +2178,7 @@ HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter001, TestSize.Level1)
  * @tc.desc: Test strategy with trans and blur scenes by uifirst.
  * @tc.type: FUNC
  * @tc.require: issueIC4F7H
-*/
+ */
 HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter002, TestSize.Level1)
 {
     // leash window --> app window
@@ -2228,7 +2228,7 @@ HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter002, TestSize.Level1)
  * @tc.desc: Test if ArkTsCard node should enable uifirst
  * @tc.type: FUNC
  * @tc.require: issueICCSTG
-*/
+ */
 HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
 {
     RSSurfaceRenderNode node(100);
@@ -2270,7 +2270,7 @@ HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
  * @tc.desc: Test ProcessDoneNodeInner
  * @tc.type: FUNC
  * @tc.require: issueIC4F7H
-*/
+ */
 HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInnerTest, TestSize.Level1)
 {
     uifirstManager_.subthreadProcessDoneNode_.clear();
@@ -2303,7 +2303,7 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInnerTest, TestSize.Level1)
  * @tc.desc: Test ProcessSkippedNode
  * @tc.type: FUNC
  * @tc.require: issueIC4F7H
-*/
+ */
 HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
 {
     uifirstManager_.subthreadProcessSkippedNode_.clear();

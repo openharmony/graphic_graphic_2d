@@ -217,6 +217,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest001 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AnimationSupplementTest002
  * @tc.desc: Verify the setcallback of Animation
@@ -259,9 +260,11 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
     animation->OnFinish();
     animation->Reverse();
     animation->OnReverse();
+    EXPECT_EQ(animation->GetModifierType(), RSModifierType::INVALID);
     EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest002 end";
 }
+#endif
 
 /**
  * @tc.name: AnimationSupplementTest003
@@ -396,6 +399,7 @@ public:
     }
 };
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AnimationSupplementTest005
  * @tc.desc: Verify the setcallback of Animation
@@ -507,6 +511,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest006, TestSize.Level1)
     modifierManager->RemoveAnimation(animation->GetId());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest006 end";
 }
+#endif
 
 /**
  * @tc.name: AnimationSupplementTest007
@@ -794,6 +799,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest015, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest015 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AnimationSupplementTest016
  * @tc.desc: Verify the setcallback of Animation
@@ -832,6 +838,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest016, TestSize.Level1)
     EXPECT_TRUE(animation->GetAutoReverse());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest016 end";
 }
+#endif
 
 /**
  * @tc.name: AnimationSupplementTest017

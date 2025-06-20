@@ -35,13 +35,14 @@
 namespace OHOS {
 namespace Rosen {
 class RSDrawingFilter;
+class RSHpaeFilterCacheManager;
 // Note: we don't care about if the filter will be applied to background or foreground, the caller should take care of
 // this. This means if both background and foreground need to apply filter, the caller should create two
 // RSFilterCacheManager, pass the correct dirty region, and call the DrawFilter() in correct order.
 // Warn: Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures.
 class RSB_EXPORT RSFilterCacheManager final {
 public:
-    RSFilterCacheManager() = default;
+    RSFilterCacheManager();
     ~RSFilterCacheManager() = default;
     RSFilterCacheManager(const RSFilterCacheManager&) = delete;
     RSFilterCacheManager(const RSFilterCacheManager&&) = delete;
@@ -58,10 +59,13 @@ public:
     const RectI& GetCachedImageRegion() const;
     FilterCacheType GetCachedType() const;
 
+    bool DrawFilterUsingHpae(RSPaintFilterCanvas& paintFilterCanvas, const std::shared_ptr<RSFilter>& filter,
+            const std::shard_ptr<RSHpaeFilterCacheManager> hpaeCacheManager, NodeId nodeId);
+
     // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
-    void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
+    void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,NodeId nodeId
         bool manuallyHandleFilterCache = false, bool shouldClearFilteredCache = true,
         const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
@@ -120,24 +124,14 @@ public:
     bool WouldDrawLargeAreaBlurPrecisely();
 
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedSnapshot() const { return cachedSnapshot_; }
-    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const { return cachedFilteredSnapshot_; }
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const {
+        return cachedFilteredSnapshot_; }
     RectI GetSnapshotRegion() const { return snapshotRegion_; }
     void ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion,
-        bool isHpaeCacheFilteredSnapshot = false) {
-        if (cachedSnapshot) {
-            cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedSnapshot->cachedImage_, cachedSnapshot->cachedRect_);
-        } else {
-            cachedSnapshot_.reset();
-        }
-        if (cachedFilteredSnapshot) {
-            cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
-        } else {
-            cachedFilteredSnapshot.reset();
-        }
-        snapshotRegion_ = snapshotRegion;
-        isHpaeCachedFilteredSnapshot_ = isHpaeCachedFilteredSnapshot;
-    }
+        bool isHpaeCachedFilteredSnapshot = false);
+    
+    bool ForceUpadateCacheByHpae();
     bool ClearCacheAfterDrawing() const { return renderClearFilteredCachedAfterDrawing_; }
 
     void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
@@ -215,7 +209,7 @@ private:
     bool canSkipFrame_ = false;
     bool stagingIsSkipFrame_  = false;
     RSFilter::FilterType filterType_ = RSFilter::NONE;
-    bool forceUseCached_ = false;
+    bool forceUseCache_ = false;
 
     // Cache age, used to determine if we can delay the cache update.
     int cacheUpdateInterval_ = 0;
@@ -225,7 +219,8 @@ private:
 
     // last stagingInForegroundFilter_ value
     NodeId lastInForegroundFilter_ = INVALID_NODEID;
-
+    
+    std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager_;
     bool isHpaeCachedFilteredSnapshot_ = false;
     bool snapshotNeedUpdate_ = false;
 public:

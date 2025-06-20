@@ -152,6 +152,7 @@ private:
     bool isDirty_ { false };
 
     friend class OHOS::Rosen::RSModifierExtractor;
+    friend class OHOS::Rosen::RSModifierManager;
     friend class OHOS::Rosen::RSNode;
     friend class OHOS::Rosen::RSPropertyBase;
 };

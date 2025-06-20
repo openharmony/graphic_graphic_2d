@@ -19,26 +19,28 @@
 #include <deque>
 #include <mutex>
 #include <optional>
+
 #include "hpae_base/rs_hpae_base_types.h"
+
 #include "common/rs_common_def.h"
-#include "common/rs_vector4.h"
 #include "common/rs_vector2.h"
+#include "common/rs_vector4.h"
 
 namespace OHOS::Rosen {
 
 constexpr NodeId INVALID_BLUR_NODE_ID = INVALID_NODEID; // 0
 
 using HpaeStatus = struct HpaeStatus_ {
-    bool gotHapeBlurNode = false;
+    bool gotHpaeBlurNode = false;
     NodeId blurNodeId = INVALID_BLUR_NODE_ID;
-    bool hpaeBlurEnable = false;
+    bool hpaeBlurEnabled = false;
 
     std::optional<Vector4f> pixelStretch;
     int tileMode = 0;
     std::optional<Vector2f> greyCoef;
-    float blurRadius;
-    float brightness;
-    float saturation;
+    float blurRadius = 0.0;
+    float brightness = 0.0;
+    float saturation = 0.0;
 };
 
 class RSB_EXPORT RSHpaeBaseData {
@@ -81,6 +83,7 @@ private:
     std::deque<HpaeBufferInfo> inputBufferQueue_;
     std::deque<HpaeBufferInfo> outputBufferQueue_;
     bool isFirstFrame_ = false;
+    bool needReset_ = false;
     bool blurContentChanged_ = false;
 
     HpaeStatus hpaeStatus_;

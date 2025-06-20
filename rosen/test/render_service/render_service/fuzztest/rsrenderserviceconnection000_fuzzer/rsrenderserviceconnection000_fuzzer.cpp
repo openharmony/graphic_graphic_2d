@@ -100,7 +100,8 @@ const uint8_t DO_REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK = 45;
 const uint8_t DO_NOTIFY_PAGE_NAME = 46;
 const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 47;
 const uint8_t DO_SET_COLOR_FOLLOW = 48;
-const uint8_t TARGET_SIZE = 49;
+const uint8_t DO_SET_FORCE_REFRESH = 49;
+const uint8_t TARGET_SIZE = 50;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -284,6 +285,9 @@ void DoUnregisterSurfaceBufferCallback()
 void DoSetLayerTop()
 {}
 
+void DoSetForceRefresh()
+{}
+
 void DoSetScreenActiveRect()
 {}
 
@@ -458,6 +462,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_LAYER_TOP:
             OHOS::Rosen::DoSetLayerTop();
+            break;
+        case OHOS::Rosen::DO_SET_FORCE_REFRESH:
+            OHOS::Rosen::DoSetForceRefresh();
             break;
         case OHOS::Rosen::DO_SET_SCREEN_ACTIVE_RECT:
             OHOS::Rosen::DoSetScreenActiveRect();

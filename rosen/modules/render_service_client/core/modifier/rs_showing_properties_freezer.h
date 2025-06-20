@@ -32,6 +32,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_SHOWING_PROPERTIES_FREEZER_H
 
 #include "common/rs_common_def.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "property/rs_properties.h"
 
 namespace OHOS {
@@ -213,13 +214,6 @@ public:
     std::optional<Color> GetBackgroundColor() const;
 
     /**
-     * @brief Gets the background color of surface.
-     *
-     * @return The background color of the surface.
-     */
-    std::optional<Color> GetSurfaceBgColor() const;
-
-    /**
      * @brief Gets the background image width.
      *
      * @return The width of the background image.
@@ -350,6 +344,8 @@ private:
     std::weak_ptr<RSUIContext> rsUIContext_;
     template<typename T, RSModifierType Type>
     std::optional<T> GetPropertyImpl() const;
+    template<typename T, ModifierNG::RSModifierType ModifierType, ModifierNG::RSPropertyType PropertyType>
+    std::optional<T> GetPropertyImplNG() const;
 };
 } // namespace Rosen
 } // namespace OHOS

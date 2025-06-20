@@ -26,7 +26,6 @@
 #include "common/rs_macros.h"
 
 #include "image/image.h"
-#include "text/hm_symbol.h"
 
 #define RSPARCELVER_ALWAYS 0x100
 #define RSPARCELVER_ADD_ANIMTOKEN 0
@@ -49,8 +48,13 @@ class Image;
 class Bitmap;
 class Typeface;
 }
+namespace ModifierNG {
+class RSRenderModifier;
+}
 class RSFilter;
 class RSRenderFilter;
+class RSNGRenderFilterBase;
+class RSNGRenderMaskBase;
 class RSImage;
 class RSImageBase;
 class RSMask;
@@ -136,6 +140,7 @@ public:
         }
         return true;
     }
+
     static bool Unmarshalling(Parcel& parcel, std::string& val)
     {
         if (!parcel.ReadString(val)) {
@@ -152,6 +157,7 @@ public:
         }
         return parcel.WriteUnpadBuffer(val, count * sizeof(T));
     }
+
     template<typename T>
     static bool UnmarshallingArray(Parcel& parcel, T*& val, int count)
     {
@@ -225,8 +231,6 @@ public:
     // skia types
     DECLARE_FUNCTION_OVERLOAD(Drawing::Matrix)
     DECLARE_FUNCTION_OVERLOAD(Drawing::Bitmap)
-    static bool SkipData(Parcel& parcel);
-    static bool SkipImage(Parcel& parcel);
     // RS types
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
@@ -238,6 +242,8 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderFilter>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
@@ -258,12 +264,12 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
-    static bool SkipPixelMap(Parcel& parcel);
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation
@@ -303,6 +309,7 @@ public:
         }
         return true;
     }
+
     template<typename T, typename P>
     static bool Unmarshalling(Parcel& parcel, std::map<T, P>& val)
     {
@@ -380,6 +387,7 @@ public:
         }
         return Marshalling(parcel, val.value());
     }
+
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::optional<T>& val)
     {
@@ -400,6 +408,7 @@ public:
     {
         return Marshalling(parcel, val.first) && Marshalling(parcel, val.second);
     }
+
     template<class T1, class T2>
     static bool Unmarshalling(Parcel& parcel, std::pair<T1, T2>& val)
     {
@@ -411,6 +420,7 @@ public:
     {
         return Marshalling(parcel, first) && Marshalling(parcel, args...);
     }
+
     template<typename T, typename... Args>
     static bool Unmarshalling(Parcel& parcel, T& first, Args&... args)
     {
@@ -432,6 +442,10 @@ public:
     static bool UnmarshallingTransactionVer(Parcel& parcel);
     static bool TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag);
 
+    static bool SkipData(Parcel& parcel);
+    static bool SkipImage(Parcel& parcel);
+    static bool SkipPixelMap(Parcel& parcel);
+
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc);
@@ -447,7 +461,6 @@ private:
     friend class RSProfiler;
 #endif
 };
-
 } // namespace Rosen
 } // namespace OHOS
 

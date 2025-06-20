@@ -313,11 +313,13 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Strategy_Te
         int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
         auto testNodeParent = RSCanvasNode::Create();
         testNodeParent->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+
         auto imageModifier = std::make_shared<ImageCustomModifier>();
         imageModifier->SetWidth(FIVE_HUNDRED_);
         imageModifier->SetHeight(FIVE_HUNDRED_);
         imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
         testNodeParent->AddModifier(imageModifier);
+
         GetRootNode()->AddChild(testNodeParent);
         RegisterNode(testNodeParent);
 

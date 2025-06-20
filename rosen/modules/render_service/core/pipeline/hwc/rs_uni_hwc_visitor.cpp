@@ -582,9 +582,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             RSUniHwcComputeUtil::UpdateHwcNodeProperty(hwcNodePtr);
             UpdateHwcNodeEnableByAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByRotate(hwcNodePtr);
-            if (!RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInApp()) {
-                UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcNodePtr, hwcRects);
-            }
+            UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcNodePtr, hwcRects);
             if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
                 ancoNodes.insert(hwcNodePtr);
             }

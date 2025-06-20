@@ -35,7 +35,6 @@
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
-#include "feature/hpae/rs_hpae_manager.h"
 #include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
@@ -43,6 +42,7 @@
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -785,18 +785,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
 
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
     if (!isHdrOn && RSHpaeManager::GetInstance().HasHpaeBlurNode()) {
-        bool isHebc = true;
-        if (RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
-            // check this before DisplayRenderNodeDrawable::RequestFrame
-            isHebc = false;
-            RS_LOGI("anco request frame not use hebc");
-        }
-        // GraphicPixelFormat pixelFormat = params->GetNewPixelFormat();
-        GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+        bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AncoHebcStatus::NOT_USE_HEBC);
+        GraphicPixelFormat pixelFormat = params->GetNewPixelFormat();
         GraphicColorGamut colorSpace = params->GetNewColorSpace();
-        RSHpaeManager::Getinstance().SetUpHpaeSurface(pixelFormat, colorSpace, isHebc);
+        RSHpaeManager::GetInstance().SetUpHpaeSurface(pixelFormat, colorSpace, isHebc);
     }
+#endif
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
@@ -881,7 +877,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 ScaleCanvasIfNeeded(screenInfo);
                 auto rect = curCanvas_->GetDeviceClipBounds();
                 PrepareOffscreenRender(*this, !screenInfo.isSamplingOn, !screenInfo.isSamplingOn);
-                if (params->GetHDRPresent() || isScRGBEnable) {
+                if (!params->GetNeedOffscreen() && !screenInfo.isSamplingOn &&
+                    (params->GetHDRPresent() || isScRGBEnable)) {
                     curCanvas_->ClipRect(rect);
                 }
             }

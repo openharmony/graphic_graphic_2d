@@ -67,7 +67,7 @@ protected:
 
     public:
         void AddCallback(FontCallbackType cb);
-        void ExcuteCallback(const FontCollection* fc, const std::string& family) const;
+        void ExecuteCallback(const FontCollection* fc, const std::string& family) const;
     };
     static FontCallback unloadFontStartCallback_;
     static FontCallback unloadFontFinishCallback_;

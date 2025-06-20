@@ -27,27 +27,29 @@
 #include <variant>
 #include <vector>
 
+#include "display_engine/rs_luminance_control.h"
+#include "feature/opinc/rs_opinc_cache.h"
+#include "feature/single_frame_composer/rs_single_frame_composer.h"
+#include "hwc/rs_hwc_recorder.h"
+
 #include "animation/rs_animation_manager.h"
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
-#include "display_engine/rs_luminance_control.h"
 #include "draw/surface.h"
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
-#include "feature/opinc/rs_opinc_cache.h"
-#include "feature/single_frame_composer/rs_single_frame_composer.h"
-#include "hwc/rs_hwc_recorder.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_snapshot.h"
 #include "modifier/rs_render_modifier.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_display_sync.h"
 #include "property/rs_properties.h"
-#include "drawable/rs_render_node_drawable_adapter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +65,10 @@ class RSCommand;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
+namespace ModifierNG {
+class RSRenderModifier;
+enum class RSModifierType : uint16_t;
+}
 struct SharedTransitionParam;
 
 struct CurFrameInfoDetail {
@@ -73,10 +79,11 @@ struct CurFrameInfoDetail {
     bool curFrameReverseChildren = false;
 };
 
-class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
+class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
+    using ModifierNGContainer = std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
     std::atomic<int32_t> cacheCnt_ = -1;
     virtual RSRenderNodeType GetType() const
@@ -356,6 +363,11 @@ public:
         dirtyTypes_.set(static_cast<int>(type), true);
     }
 
+    virtual void AddDirtyType(ModifierNG::RSModifierType type)
+    {
+        dirtyTypesNG_.set(static_cast<int>(type), true);
+    }
+
     std::tuple<bool, bool, bool> Animate(
         int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
 
@@ -430,11 +442,23 @@ public:
     void CleanDirtyRegionUpdated();
     
     std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
+    void AddProperty(std::shared_ptr<RSRenderPropertyBase> property);
+    void RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
     void RemoveAllModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
+
+    void AddModifier(const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
+    void RemoveModifier(ModifierNG::RSModifierType type, ModifierId id);
+    void RemoveModifierNG(ModifierId id);
+    void RemoveAllModifiersNG();
+    std::shared_ptr<ModifierNG::RSRenderModifier> GetModifierNG(
+        ModifierNG::RSModifierType type, ModifierId id = 0) const;
+    const ModifierNGContainer& GetModifiersNG(ModifierNG::RSModifierType type) const;
+    bool HasDrawCmdModifiers() const;
+    bool HasContentStyleModifierOnly() const;
 
     size_t GetAllModifierSize();
 
@@ -483,7 +507,7 @@ public:
         return cacheSurface_;
     }
 
-// use for uni render visitor
+    // use for uni render visitor
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
         bool releaseAfterGet = false);
 
@@ -646,15 +670,10 @@ public:
     std::string QuickGetNodeDebugInfo();
 
     // mark support node
-    void OpincUpdateNodeSupportFlag(bool supportFlag);
+    void OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode);
     virtual bool OpincGetNodeSupportFlag()
     {
-        return isOpincNodeSupportFlag_;
-    }
-
-    void OpincSetNodeSupportFlag(bool supportFlag)
-    {
-        isOpincNodeSupportFlag_ = supportFlag;
+        return false;
     }
 
     // arkui mark
@@ -865,6 +884,8 @@ public:
     }
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
+    void SetEnableHdrEffect(bool enableHdrEffect);
+
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {
         isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
@@ -918,6 +939,8 @@ public:
     }
 
     bool IsForegroundFilterEnable();
+    void ResetPixelStretchSlot();
+    bool CanFuzePixelStretch();
 
 protected:
     void ResetDirtyStatus();
@@ -1010,6 +1033,9 @@ protected:
     ModifierDirtyTypes dirtyTypes_;
     ModifierDirtyTypes curDirtyTypes_;
 
+    ModifierNG::ModifierDirtyTypes dirtyTypesNG_;
+    ModifierNG::ModifierDirtyTypes curDirtyTypesNG_;
+
     CurFrameInfoDetail curFrameInfoDetail_;
 
     // Enable HWCompose
@@ -1054,7 +1080,6 @@ private:
     bool isLastVisible_ = false;
     bool isAccumulatedClipFlagChanged_ = false;
     bool hasAccumulatedClipFlag_ = false;
-    bool isOpincNodeSupportFlag_ = true;
     // since preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool geoUpdateDelay_ = false;
@@ -1122,6 +1147,10 @@ private:
     // bounds and frame modifiers must be unique
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
+
+    std::shared_ptr<ModifierNG::RSRenderModifier> boundsModifierNG_;
+    std::shared_ptr<ModifierNG::RSRenderModifier> frameModifierNG_;
+
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.
     // When an empty list is needed, use EmptyChildrenList instead.
@@ -1171,6 +1200,11 @@ private:
     std::vector<SharedPtr> cloneCrossNodeVec_;
     bool hasVisitedCrossNode_ = false;
     std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
+
+    std::array<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>, ModifierNG::MODIFIER_TYPE_COUNT>
+        modifiersNG_;
+    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
+
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
@@ -1181,8 +1215,6 @@ private:
     RSDrawable::Vec drawableVec_;
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
-
-    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
@@ -1214,6 +1246,8 @@ private:
     bool isRepaintBoundary_ = false;
     void UpdateBlurEffectCounter(int deltaCount);
     int GetBlurEffectDrawbleCount();
+
+    bool enableHdrEffect_ = false;
 
     void SetParent(WeakPtr parent);
     void ResetParent();
@@ -1258,6 +1292,8 @@ private:
 
     void ChildrenListDump(std::string& out) const;
 
+    void ResetAndApplyModifiers();
+
     friend class DrawFuncOpItem;
     friend class RSContext;
     friend class RSMainThread;
@@ -1270,6 +1306,7 @@ private:
     friend class DrawableV2::RSRenderNodeDrawableAdapter;
     friend class DrawableV2::RSChildrenDrawable;
     friend class DrawableV2::RSRenderNodeShadowDrawable;
+    friend class ModifierNG::RSRenderModifier;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

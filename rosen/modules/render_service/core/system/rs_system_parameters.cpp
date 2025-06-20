@@ -198,9 +198,9 @@ bool RSSystemParameters::GetHideNotchStatus()
 
 bool RSSystemParameters::GetHpaeBlurEnabled()
 {
-    static CacheHandler g_Handle = CachedParameterCreate("debug.graphic.hpae.blur.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.hpae.blur.enabled", "1");
     int changed = 0;
-    const char *enable = CacheParameterGetChanged(g_Handle, &changed);
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
 

@@ -369,7 +369,7 @@ void RSUniRenderUtil::SetDrawRegionForQuickReject(
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        if (!surfaceParams || !surfaceParams->IsMainWindowType()) {
+        if (!surfaceParams || (!surfaceParams->IsMainWindowType() && !surfaceParams->IsLeashWindow())) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();

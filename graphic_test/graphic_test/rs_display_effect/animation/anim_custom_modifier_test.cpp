@@ -41,7 +41,7 @@ void AnimationCustomModifier::SetPointColor(Drawing::Color color)
     pointColor_ = color;
 }
 
-void AnimationCustomModifier::Draw(RSDrawingContext& context) const
+void AnimationCustomModifier::Draw(DrawingContext& context) const
 {
     if (!position_) {
         std::cout << "AnimationCustomModifier position_ is nullptr, Draw none\n";

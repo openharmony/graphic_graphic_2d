@@ -26,12 +26,24 @@ struct Location {
     int32_t width;             // the width of selfDrawingNode rect
     int32_t height;            // the height of selfDrawingNode rect
     int32_t z;                 // the z-order of all selfDrawingNode in the process
+
+    bool operator==(const Location& location) const
+    {
+        return x == location.x && y == location.y && width == location.width && height == location.height &&
+               z == location.z;
+    }
 };
 
 struct PixelMapInfo {
     std::shared_ptr<Media::PixelMap> pixelMap;
     Location location;
     std::string nodeName;
+
+    bool operator==(const PixelMapInfo& pixelMapInfo) const
+    {
+        return pixelMap == pixelMapInfo.pixelMap && location == pixelMapInfo.location &&
+               nodeName == pixelMapInfo.nodeName;
+    }
 };
 } // namespace Rosen
 } // namespace OHOS

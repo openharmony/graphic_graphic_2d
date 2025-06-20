@@ -32,11 +32,6 @@
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
-#ifdef USE_M133_SKIA
-#include "include/ganesh/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrDirectContext.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -2169,6 +2164,7 @@ HWTEST_F(RSRenderNodeTest, ProcessTest014, TestSize.Level1)
 
     nodeTest->modifiers_.emplace(0, modifier1);
     nodeTest->modifiers_.emplace(1, modifier2);
+    nodeTest->properties_.emplace(1, propertyTest1);
 
     EXPECT_EQ(nodeTest->modifiers_.size(), 2);
     nodeTest->RemoveModifier(1);
@@ -2829,6 +2825,29 @@ HWTEST_F(RSRenderNodeTest, UpdateAbsDirtyRegion001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateDrawRectAndDirtyRegion001
+ * @tc.desc: test UpdateDrawRectAndDirtyRegion with both foreground filter and background filter.
+ * @tc.type: FUNC
+ * @tc.require: issueICEQZR
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawRectAndDirtyRegion001, TestSize.Level1)
+{
+    RSDirtyRegionManager rsDirtyManager;
+    // forground filter
+    RSRenderNode foregroundNode(id, context);
+    auto& fgProperties = foregroundNode.GetMutableRenderProperties();
+    fgProperties.filter_ = std::make_shared<RSFilter>();
+    foregroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
+    ASSERT_FALSE(foregroundNode.IsBackgroundInAppOrNodeSelfDirty());
+    // background filter
+    RSRenderNode backgroundNode(id, context);
+    auto& bgProperties = backgroundNode.GetMutableRenderProperties();
+    bgProperties.backgroundFilter_ = std::make_shared<RSFilter>();
+    backgroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
+    ASSERT_FALSE(backgroundNode.IsBackgroundInAppOrNodeSelfDirty());
+}
+
+/**
  * @tc.name: MarkForceClearFilterCacheWithInvisible
  * @tc.desc: test
  * @tc.type: FUNC
@@ -3225,6 +3244,24 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
 
     EXPECT_NE(compositingFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(compositingFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+}
+
+/**
+ * @tc.name: HasHpaeBackgroundFilter
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: wzwz
+ */
+HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    ASSERT_FALSE(renderNode->HasHpaeBackgroundFilter());
+
+    auto drawableFilter = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
+    EXPECT_NE(drawableFilter, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
+    ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
 }
 } // namespace Rosen
 } // namespace OHOS

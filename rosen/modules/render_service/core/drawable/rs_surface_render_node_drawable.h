@@ -111,6 +111,11 @@ public:
     bool IsHardwareEnabledTopSurface() const;
     void UpdateSurfaceDirtyRegion(std::shared_ptr<RSPaintFilterCanvas>& canvas);
 
+    RSRenderNodeDrawableType GetDrawableType() const override
+    {
+        return RSRenderNodeDrawableType::SURFACE_NODE_DRAWABLE;
+    }
+
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,

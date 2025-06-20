@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SOUND_WAVE_FILTER_H
-#define RENDER_SOUND_WAVE_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_SOUND_WAVE_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_SOUND_WAVE_FILTER_H
 #include <memory>
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
 
@@ -51,4 +51,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SOUND_WAVE_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_SOUND_WAVE_FILTER_H

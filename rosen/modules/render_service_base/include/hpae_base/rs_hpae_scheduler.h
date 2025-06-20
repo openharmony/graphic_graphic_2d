@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_RS_HPAE_SCHEDULER_H
-#define RENDER_SERVICE_RS_HPAE_SCHEDULER_H
+#ifndef RENDER_SERVICE_BASE_RS_HPAE_SCHEDULER_H
+#define RENDER_SERVICE_BASE_RS_HPAE_SCHEDULER_H
 
 #include <map>
 #include <mutex>
@@ -24,7 +24,7 @@
 
 namespace OHOS::Rosen {
 
-class RSHpaeScheduler {
+class RSB_EXPORT RSHpaeScheduler {
 public:
     RSHpaeScheduler(const RSHpaeScheduler &) = delete;
     RSHpaeScheduler &operator=(const RSHpaeScheduler &) = delete;
@@ -48,7 +48,7 @@ private:
     ~RSHpaeScheduler() = default;
 
     mutable std::mutex mutex_; // main mutex for public API
-    HpaeBackgroundCacheItem cacheItem_; // item to submit for current frame
+    HpaeBackgroundCacheItem cachedItem_; // item to submit for current frame
     uint64_t hpaeFrameId_ = 0; // frameId for background (preFrameId)
 
     std::mutex buildTaskMutex_;
@@ -58,4 +58,4 @@ private:
 
 } // OHOS::Rosen
 
-#endif // RENDER_SERVICE_RS_HPAE_SCHEDULER_H
+#endif // RENDER_SERVICE_BASE_RS_HPAE_SCHEDULER_H

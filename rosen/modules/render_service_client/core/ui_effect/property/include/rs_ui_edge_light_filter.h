@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_EDGE_LIGHT_FILTER_H
-#define RENDER_EDGE_LIGHT_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_EDGE_LIGHT_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_EDGE_LIGHT_FILTER_H
 #include <memory>
 #include <vector>
 
@@ -55,6 +55,8 @@ public:
 
     virtual std::vector<std::shared_ptr<RSPropertyBase>> GetLeafProperties() override;
 
+    virtual bool CheckEnableHdrEffect() override;
+
 private:
     static std::shared_ptr<RSUIMaskPara> CreateMask(RSUIFilterType type);
 
@@ -78,4 +80,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_EDGE_LIGHT_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_EDGE_LIGHT_FILTER_H

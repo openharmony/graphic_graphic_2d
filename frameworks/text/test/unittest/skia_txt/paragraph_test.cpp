@@ -833,12 +833,12 @@ HWTEST_F(ParagraphTest, ParagraphTestTextEffect001, TestSize.Level0)
     std::unique_ptr<skt::Paragraph> temp = nullptr;
     paragraphImpl->paragraph_.swap(temp);
     EXPECT_EQ(paragraphImpl->GetTextBlobRecordInfo().size(), 0);
-    paragraphImpl->SetTextEffectState(true);
-    EXPECT_FALSE(paragraphImpl->HasEnabledTextEffect());
+    paragraphImpl->SetSkipTextBlobDrawing(true);
+    EXPECT_FALSE(paragraphImpl->HasSkipTextBlobDrawing());
 
     paragraphImpl->paragraph_.swap(temp);
     EXPECT_NE(paragraphImpl->GetTextBlobRecordInfo().size(), 0);
-    paragraphImpl->SetTextEffectState(true);
-    EXPECT_TRUE(paragraphImpl->HasEnabledTextEffect());
+    paragraphImpl->SetSkipTextBlobDrawing(true);
+    EXPECT_TRUE(paragraphImpl->HasSkipTextBlobDrawing());
 }
 } // namespace txt

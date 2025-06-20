@@ -16,10 +16,11 @@
 #ifndef RENDER_SERVICE_BASE_INCLUDE_HPAE_FUSION_OPERATOR_H
 #define RENDER_SERVICE_BASE_INCLUDE_HPAE_FUSION_OPERATOR_H
 
-#include "utils/rect.h"
-#include "render/rs_drawing_filter.h"
 #include "hpae_base/rs_hpae_base_types.h"
 #include "hpae_base/rs_hpae_hianimation_types.h"
+
+#include "utils/rect.h"
+#include "render/rs_drawing_filter.h"
 
 namespace OHOS::Rosen {
 
@@ -33,9 +34,9 @@ public:
 
     static HaePixel GetHaePixel(const std::shared_ptr<RSDrawingFilter> &filter);
 
-    static Drawing::Matrix GetShaderTransform(const Drawing::Rect& blurRect, float scalW, float scaleH);
+    static Drawing::Matrix GetShaderTransform(const Drawing::Rect& blurRect, float scaleW, float scaleH);
 };
 
-} // namespace OHOS::Rosen
+}  // namespace OHOS::Rosen
 
-#endif // RENDER_SERVICE_BASE_INCLUDE_HPAE_FUSION_OPERATOR_H
+#endif  // RENDER_SERVICE_BASE_INCLUDE_HPAE_FUSION_OPERATOR_H

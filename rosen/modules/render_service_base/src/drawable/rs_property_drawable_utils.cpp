@@ -277,8 +277,7 @@ void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
 
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
-    const std::shared_ptr<RSHpaeFilterCacheManager>& hpaeCacheManager, NodeId nodeId,
-    const bool isForegroundFilter)
+    NodeId nodeId, const bool isForegroundFilter)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -342,8 +341,8 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         }
 
         if (hasHpaeBlur) {
-            hpaeCacheManager->ResetFilterCache(cacheManager->GetCachedSnapshot(), cachemanager->GetCachedFilteredSnapshot(),
-                cacheManager->GetSnapshotRegion());
+            hpaeCacheManager->ResetFilterCache(cacheManager->GetCachedSnapshot(),
+                cachemanager->GetCachedFilteredSnapshot(), cacheManager->GetSnapshotRegion());
             if (0 == hapeCacheManager->DrawFilter(*paintFilterCanvas, filter, cacheManager->ClearCacheAfterDrawing())) {
                 cacheManager->ResetFilterCache(hpaeCacheManager->GetCachedSnapshot(),
                     hpaeCacheManager->GetCachedFilteredSnapshot(), hpaeCacheManager->GetSnapshotRegion(), true);
@@ -360,19 +359,11 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter);
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, nodeId);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         return;
     }
 #endif
-    // if (hasHpaeBlur) {
-    //     hpaeCacheManager->ClearFilterCacheIfNeed(nullptr, nullptr);
-    //     if (0 == hpaeCacheManager->DrawFilter(*paintFilterCanvas, filter, true)) {
-    //         return;
-    //     } else {
-    //         hpaeCacheManager->InvalidateFilterCache(FilterCacheType::BOTH);
-    //     }
-    // }
 
     auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
     if (rsShaderFilter != nullptr) {
@@ -448,6 +439,12 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
     }
     auto rsdrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     if (rsdrawingFilter != nullptr && (rsFilter->GetFilterType() == RSFilter::BEZIER_WARP)) {
+        rsdrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
+            imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+        return;
+    }
+
+    if (rsdrawingFilter != nullptr && (rsFilter->GetFilterType() == RSFilter::CONTENT_LIGHT)) {
         rsdrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
             imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
         return;
@@ -886,8 +883,9 @@ void RSPropertyDrawableUtils::DrawBinarization(Drawing::Canvas* canvas, const st
     canvas->DrawBackground(brush);
 }
 
-void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, NodeId nodeId, const std::optional<Vector4f>& pixelStretch,
-    const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
+void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas,
+    const std::optional<Vector4f>& pixelStretch, const RectF& boundsRect,
+    const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
 {
     if (!pixelStretch.has_value()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");

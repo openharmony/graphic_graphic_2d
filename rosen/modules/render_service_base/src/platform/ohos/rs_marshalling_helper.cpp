@@ -42,18 +42,19 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
 #include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
 #include "modifier/rs_render_modifier.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
-#include "render/rs_light_up_effect_filter.h"
 #include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
-#include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
@@ -65,6 +66,7 @@
 #include "buffer_utils.h"
 #endif
 #include "recording/mask_cmd_list.h"
+
 #include "property/rs_properties_def.h"
 
 namespace OHOS {
@@ -257,7 +259,6 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
 }
 } // namespace
 
-
 // Drawing::Data
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val)
 {
@@ -351,7 +352,6 @@ bool RSMarshallingHelper::UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<
     }
     return success;
 }
-
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Bitmap& val)
 {
@@ -695,7 +695,6 @@ bool RSMarshallingHelper::SkipImage(Parcel& parcel)
         return size == 0 ? true : SkipFromParcel(parcel, size);
     }
 }
-
 
 // RSShader
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
@@ -1596,6 +1595,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
     }
     return flag;
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>& val)
 {
     if (parcel.ReadInt32() == -1) {
@@ -1637,6 +1637,56 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
     return val->ReadFromParcel(parcel);
 }
 
+// RSNGRenderFilterBase
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderFilterBase>& val)
+{
+    if (val == nullptr) {
+        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
+        if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderFilterBase write end failed");
+            return false;
+        }
+        return true;
+    }
+    bool success = val->Marshalling(parcel);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderFilterBase failed");
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderFilterBase>& val)
+{
+    bool success = RSNGRenderFilterBase::Unmarshalling(parcel, val);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSNGRenderFilterBase failed");
+    }
+    return success;
+}
+
+// RSNGRenderMaskBase
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderMaskBase>& val)
+{
+    if (val == nullptr) {
+        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
+        if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderFilterBase write end failed");
+            return false;
+        }
+        return true;
+    }
+    bool success = val->Marshalling(parcel);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderMaskBase failed");
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val)
+{
+    return false;
+}
+
 // RSImageBase
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSImageBase>& val)
 {
@@ -1654,6 +1704,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSIm
     }
     return success;
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSImageBase>& val)
 {
     if (parcel.ReadInt32() == -1) {
@@ -1836,6 +1887,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RRectT<float>& val)
            Marshalling(parcel, val.radius_[1]) && Marshalling(parcel, val.radius_[2]) &&
            Marshalling(parcel, val.radius_[3]);
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 {
     return Unmarshalling(parcel, val.rect_) && Unmarshalling(parcel, val.radius_[0]) &&
@@ -2727,9 +2779,21 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRe
 {
     return val != nullptr && val->Marshalling(parcel);
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderModifier>& val)
 {
     val.reset(RSRenderModifier::Unmarshalling(parcel));
+    return val != nullptr;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ModifierNG::RSRenderModifier>& val)
+{
+    return val != nullptr && val->Marshalling(parcel);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ModifierNG::RSRenderModifier>& val)
+{
+    val.reset(ModifierNG::RSRenderModifier::Unmarshalling(parcel));
     return val != nullptr;
 }
 
@@ -2776,6 +2840,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderFilterBase>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderMaskBase>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                      \
@@ -2945,6 +3011,7 @@ void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid)
     g_useSharedMem = false;
     g_tid = tid;
 }
+
 void RSMarshallingHelper::EndNoSharedMem()
 {
     std::unique_lock<std::mutex> lock(g_writeMutex);

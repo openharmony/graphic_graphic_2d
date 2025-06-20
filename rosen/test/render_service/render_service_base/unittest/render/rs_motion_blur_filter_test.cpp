@@ -375,7 +375,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImage001, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -410,7 +414,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_UNKNOWN, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -445,7 +453,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_565, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -480,7 +492,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_ARGB_4444, TestSize.
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -515,7 +531,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_8888, TestSize.
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -550,7 +570,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_BGRA_8888, TestSize.
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -585,7 +609,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_F16, TestSize.L
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -620,7 +648,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_N32, TestSize.Level1
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -656,7 +688,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_1010102, TestSi
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -691,7 +727,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_GRAY_8, TestSize.Lev
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -726,7 +766,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_888X, TestSize.L
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -761,7 +805,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_UNKNOWNALPHATYPE_PRE
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -796,7 +844,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_565ALPHATYPE_PRE
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -831,7 +883,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_ARGB_4444ALPHATYPE_P
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -866,7 +922,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_8888ALPHATYPE_P
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -901,7 +961,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_BGRA_8888ALPHATYPE_P
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -936,7 +1000,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_F16ALPHATYPE_PR
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -971,7 +1039,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_N32ALPHATYPE_PREMUL,
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1007,7 +1079,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_1010102ALPHATYP
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1042,7 +1118,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_GRAY_8ALPHATYPE_PREM
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1077,7 +1157,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_888XALPHATYPE_PR
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1112,7 +1196,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_UNKNOWNALPHATYPE_UNP
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1147,7 +1235,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_565ALPHATYPE_UNP
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1182,7 +1274,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_ARGB_4444ALPHATYPE_U
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1217,7 +1313,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_8888ALPHATYPE_U
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1252,7 +1352,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_BGRA_8888ALPHATYPE_U
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1287,7 +1391,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_F16ALPHATYPE_UN
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1322,7 +1430,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_N32ALPHATYPE_UNPREMU
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1358,7 +1470,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_1010102ALPHATYP
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1393,7 +1509,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_GRAY_8ALPHATYPE_UNPR
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1428,7 +1548,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_888XALPHATYPE_UN
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1461,7 +1585,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImage002, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
@@ -1494,7 +1622,11 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImage003, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);

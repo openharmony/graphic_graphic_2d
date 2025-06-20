@@ -23,24 +23,23 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "common/rs_special_layer_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
-#include "feature/opinc/rs_opinc_manager.h"
-#include "feature/hpae/rs_hpae_manager.h"
-#include "feature/hdr/rs_hdr_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
-#include "feature/opinc/rs_opinc_cache.h"
-#include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/uifirst/rs_uifirst_manager.h"
-#include "monitor/self_drawing_node_monitor.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "common/rs_special_layer_manager.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/opinc/rs_opinc_cache.h"
+#include "feature/opinc/rs_opinc_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "memory/rs_tag_tracker.h"
+#include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_display_render_params.h"
-#include "params/rs_rcd_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
@@ -63,7 +62,6 @@
 #include <v1_0/cm_color_space.h>
 
 #include "feature_cfg/graphic_feature_param_manager.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
 
@@ -417,10 +415,15 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         RS_LOGD("CheckPixelFormat curDisplayNode forceclosehdr.");
         return;
     }
-    if (node.GetHDRPresent()) {
+    if (node.GetHDRPresent() || node.IsHdrEffectColorGamut()) {
         RS_LOGD("CheckPixelFormat HDRService SetHDRPresent true, surfaceNode: %{public}" PRIu64, node.GetId());
         curDisplayNode_->SetHasUniRenderHdrSurface(true);
-        curDisplayNode_->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+        if (node.GetHDRPresent()) {
+            curDisplayNode_->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+        }
+        if (node.IsHdrEffectColorGamut()) {
+            curDisplayNode_->CollectHdrStatus(HdrStatus::HDR_EFFECT);
+        }
         RSHdrUtil::SetHDRParam(node, true);
         if (curDisplayNode_->GetIsLuminanceStatusChange()) {
             node.SetContentDirty();
@@ -1070,8 +1073,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         dirtyRect.GetHeight());
 
     RSUifirstManager::Instance().RecordDirtyRegionMatrix(node, geoPtr->GetAbsMatrix());
-    // Update whether leash window's visible region is empty after prepare children
-    UpdateLeashWindowVisibleRegionEmpty(node);
 
     if (node.IsLeashWindow() && RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()) {
         CheckIsGpuOverDrawBufferOptimizeNode(node);
@@ -1532,9 +1533,6 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
         node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
         (node.GetOpincCache().OpincGetRootFlag() && IsAccessibilityConfigChanged());
     node.GetOpincCache().OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_, isSelfDirty);
-    if (node.GetOpincCache().IsReseted()) {
-        node.OpincSetNodeSupportFlag(true);
-    }
     node.UpdateOpincParam();
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
@@ -1700,7 +1698,9 @@ inline void RSUniRenderVisitor::CollectNodeForOcclusion(RSRenderNode& node)
 
 void RSUniRenderVisitor::RegisterHpaeCallback(RSRenderNode& node)
 {
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
     RSHpaeManager::GetInstance().RegisterHpaeCallback(node, screenInfo_.phyWidth, screenInfo_.phyHeight);
+#endif
 }
 
 bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
@@ -1816,7 +1816,6 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
         RSMainThread::Instance()->CheckAndUpdateInstanceContentStaticStatus(curSurfaceNode_);
         curSurfaceNode_->UpdateSurfaceCacheContentStaticFlag(IsAccessibilityConfigChanged());
         curSurfaceNode_->UpdateSurfaceSubTreeDirtyFlag();
-        curSurfaceNode_->SetLeashWindowVisibleRegionEmpty(false);
     } else if (node.IsAbilityComponent()) {
         if (auto nodePtr = node.ReinterpretCastTo<RSSurfaceRenderNode>()) {
             RSMainThread::Instance()->CheckAndUpdateInstanceContentStaticStatus(nodePtr);
@@ -1870,7 +1869,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
         curDisplayNode_->AddSurfaceNodePosByDescZOrder(node.GetId(), node.GetOldDirtyInSurface());
     }
     // 2. Update Occlusion info before children preparation
-    if (node.IsMainWindowType()) {
+    if (node.IsLeashOrMainWindow()) {
         UpdateNodeVisibleRegion(node);
     }
     // 3. Update HwcNode Info for appNode
@@ -1885,40 +1884,6 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
         CheckColorSpace(node);
     }
     return true;
-}
-
-void RSUniRenderVisitor::UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node)
-{
-    if (!node.IsLeashWindow() || !RSSystemParameters::GetUIFirstOcclusionEnabled()) {
-        return;
-    }
-
-    auto dirtyManager = node.GetDirtyManager();
-    if (dirtyManager && dirtyManager->IsCurrentFrameDirty()) {
-        RS_LOGD("UpdateLeashWindowVisibleRegionEmpty[false] : %{public}s is current frame dirty.",
-            node.GetName().c_str());
-        node.SetLeashWindowVisibleRegionEmpty(false);
-        return;
-    }
-
-    auto sortedChildren = node.GetSortedChildren();
-    if (sortedChildren == nullptr || sortedChildren->empty()) {
-        RS_TRACE_NAME_FMT("%s don't have children", node.GetName().c_str());
-        node.SetLeashWindowVisibleRegionEmpty(true);
-        return;
-    }
-
-    // leash window's visible region is empty when all child are app windows with empty visible region
-    for (const auto& child : *sortedChildren) {
-        const auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-        if (!childSurfaceNode || !childSurfaceNode->IsAppWindow() ||
-            !childSurfaceNode->GetVisibleRegion().IsEmpty()) {
-            node.SetLeashWindowVisibleRegionEmpty(false);
-            return;
-        }
-    }
-    RS_TRACE_NAME_FMT("visible region of %s's children is empty", node.GetName().c_str());
-    node.SetLeashWindowVisibleRegionEmpty(true);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
@@ -2211,6 +2176,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             RS_LOGE("UpdateSurfaceDirtyAndGlobalDirty surfaceNode is nullptr");
             return;
         }
+        accumulatedDirtyRegion.OrSelf(curDisplayNode_->GetDisappearedSurfaceRegionBelowCurrent(surfaceNode->GetId()));
         auto dirtyManager = surfaceNode->GetDirtyManager();
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         // 0. update hwc node dirty region and create layer
@@ -2868,7 +2834,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
-        nodeParent->OpincUpdateNodeSupportFlag(node.OpincGetNodeSupportFlag());
+        nodeParent->OpincUpdateNodeSupportFlag(node.OpincGetNodeSupportFlag(), node.GetOpincCache().OpincGetRootFlag());
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {
@@ -3260,6 +3226,7 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
             return;
         }
         parent->AddDirtyType(RSModifierType::CHILDREN);
+        parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
         parent->ApplyModifiers();
         // avoid changing the paired status or unpairedShareTransitions_
         auto param = sptr->GetSharedTransitionParam();

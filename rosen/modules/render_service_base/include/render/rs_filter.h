@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
-#define ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTRS_FILTER_H
+#define ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTRS_FILTER_H
 
 #include <memory>
 #include <stdint.h>
@@ -84,6 +84,7 @@ public:
         HDR_UI_BRIGHTNESS,
         BEZIER_WARP,
         DISPERSION,
+        CONTENT_LIGHT,
     };
     FilterType GetFilterType() const
     {
@@ -117,6 +118,8 @@ public:
         return hash_;
     }
 
+    virtual void OnSync() {}
+
     bool NeedSnapshotOutset() const
     {
         return needSnapshotOutset_;
@@ -128,7 +131,7 @@ public:
     }
 
     bool GetHpaeCallback() const {
-        return hasHape_;
+        return hasHpae_;
     }
 
 protected:
@@ -141,4 +144,4 @@ protected:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTRS_FILTER_H

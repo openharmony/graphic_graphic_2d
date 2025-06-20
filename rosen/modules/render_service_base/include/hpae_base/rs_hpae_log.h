@@ -16,12 +16,10 @@
 #ifndef RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_LOG_H
 #define RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_LOG_H
 
-#include "rs_trace.h"
-#ifdef OHOS_PLATFORM
-#include <hilog/log.h>
-#endif
+#if defined(ROSEN_OHOS)&& defined(ENABLE_HPAE_BLUR)
 
-#if 1
+#include "rs_trace.h"
+#include <hilog/log.h>
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001406
@@ -32,20 +30,20 @@
 #define HPAE_LOGE(format, ...) \
     HILOG_ERROR(LOG_CORE, "[HPAE] " format, ##__VA_ARGS__)
 
-#define HPAE_LOGE(format, ...) \
+#define HPAE_LOGI(format, ...) \
     HILOG_INFO(LOG_CORE, "[HPAE] " format, ##__VA_ARGS__)
 
-#define HPAE_LOGE(format, ...) \
+#define HPAE_LOGW(format, ...) \
     HILOG_WARN(LOG_CORE, "[HPAE] " format, ##__VA_ARGS__)
 
-#define HPAE_LOGE(format, ...) \
+#define HPAE_LOGD(format, ...) \
     HILOG_DEBUG(LOG_CORE, "[HPAE] " format, ##__VA_ARGS__)
 
 #define HPAE_TRACE_NAME(name) \
-    HIREACE_METER_NAME(HITRACE_TAG_GRAPHIC_AGP, name)
+    HITRACE_METER_NAME(HITRACE_TAG_GRAPHIC_AGP, name)
 
 #define HPAE_TRACE_NAME_FMT(fmt, ...) \
-    HIREACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, fmt, ##__VA_AGES__)
+    HITRACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, fmt, ##__VA_ARGS__)
 
 #define HPAE_TRACE_BEGIN(name) \
     StartTrace(HITRACE_TAG_GRAPHIC_AGP, name)

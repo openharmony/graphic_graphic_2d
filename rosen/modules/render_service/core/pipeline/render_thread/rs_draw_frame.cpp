@@ -226,10 +226,12 @@ void RSDrawFrame::Sync()
     RS_TRACE_NAME_FMT("Sync");
     RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode()->Sync();
     bool isHdrOn = false;
-    if (stagingRenderThreadParams_ && stagingRenderThreadParams_->HasDiaplayHdron()) {
+    if (stagingRenderThreadParams_ && stagingRenderThreadParams_->HasDisplayHdrOn()) {
         isHdrOn = true;
     }
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
     RSHpaeManager::GetInstance().OnSync(isHdrOn);
+#endif
 
     auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
     for (auto [id, weakPtr] : stagingSyncCanvasDrawingNodes_) {

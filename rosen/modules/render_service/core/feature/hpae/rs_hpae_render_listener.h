@@ -13,24 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICR_HPAE_RS_HPAE_RENDER_LISTENER_H
-#define RENDER_SERVICR_HPAE_RS_HPAE_RENDER_LISTENER_H
+#ifndef RENDER_SERVICE_HPAE_RS_HPAE_RENDER_LISTENER_H
+#define RENDER_SERVICE_HPAE_RS_HPAE_RENDER_LISTENER_H
 
-#include <memory>
 #include <ibuffer_consumer_listener.h>
+#include <memory>
+
 #include "pipeline/rs_surface_handler.h"
 
 namespace OHOS {
 namespace Rosen {
-class  RSHpaeRenderListener : public IbufferConsumerListener {
+class RSHpaeRenderListener : public IBufferConsumerListener {
 public:
-    RSHpaeRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler);
+    explicit RSHpaeRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler);
     ~RSHpaeRenderListener() override;
-    void OnBufferAvaliable() override;
+    void OnBufferAvailable() override;
 
 private:
     std::weak_ptr<RSSurfaceHandler> surfaceHandler_;
 };
-} // namesapce Rosen
+} // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICR_HPAE_RS_HPAE_RENDER_LISTENER_H
+#endif // RENDER_SERVICE_HPAE_RS_HPAE_RENDER_LISTENER_H

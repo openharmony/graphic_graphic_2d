@@ -42,7 +42,7 @@ public:
     void SetSandBox(std::optional<Vector2f> parentPosition);
     void SetPositionZ(float positionZ);
     void SetPositionZApplicableCamera3D(bool isApplicable);
-    void SetPivot(const Vector2f& pivot);
+    void SetPivot(const Vector2f& pivot, bool animatable = true);
     void SetPivotZ(float pivotZ);
     std::optional<Vector2f> GetSandBox() const;
     float GetPositionZ() const;

@@ -37,28 +37,25 @@ public:
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_1)
 {
     auto testNode = RSCanvasNode::Create();
-    testNode->SetBounds({0, 0, 500, 500});
+    testNode->SetBounds({ 0, 0, 500, 500 });
     auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(animationCustomModifier);
     animationCustomModifier->SetPosition(100);
     animationCustomModifier->SetTimeInterval(8.0f);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
-
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
-        animationCustomModifier->SetPosition(500);
-    }, []() {
-        std::cout << "Animation_Curve_Test_1 animation finish callback" << std::endl;
-    });
+    RSNode::Animate(
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
+        []() { std::cout << "Animation_Curve_Test_1 animation finish callback" << std::endl; });
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_2)
 {
     auto testNode = RSCanvasNode::Create();
-    testNode->SetBounds({0, 0, 500, 500});
+    testNode->SetBounds({ 0, 0, 500, 500 });
     auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(animationCustomModifier);
     animationCustomModifier->SetPosition(100);
@@ -69,11 +66,9 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_2)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    RSNode::Animate(protocol, timingCurve, [&]() {
-        animationCustomModifier->SetPosition(500);
-    }, []() {
-        std::cout << "Animation_Curve_Test_2 animation finish callback" << std::endl;
-    });
+    RSNode::Animate(
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
+        []() { std::cout << "Animation_Curve_Test_2 animation finish callback" << std::endl; });
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_3)

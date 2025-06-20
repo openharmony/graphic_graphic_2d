@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_ENGINE_CORE_RENDER_UI_FILTER_BASE_H
-#define ROSEN_ENGINE_CORE_RENDER_UI_FILTER_BASE_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_PARA_BASE_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_PARA_BASE_H
 
 #include "modifier/rs_property.h"
 #include "render/rs_render_filter_base.h"
@@ -41,8 +41,6 @@ public:
 
     virtual void SetProperty(const std::shared_ptr<RSUIFilterParaBase>& other) = 0;
 
-    void OnAttach(RSNode& node);
-    // temporary fix
     RSPropertyType GetPropertyType() const override { return RSPropertyType::UI_FILTER; }
     void SetIsCustom(bool isCustom) override {}
     bool GetIsCustom() const override { return false; }
@@ -87,7 +85,18 @@ public:
 
     virtual std::vector<std::shared_ptr<RSPropertyBase>> GetLeafProperties();
 
+    virtual bool CheckEnableHdrEffect();
+
+    bool GetEnableHdrEffect() const;
+
+    bool GetStagingEnableHdrEffect() const;
+
+    void SetStagingEnableHdrEffect(bool enableHdrEffect);
+
 protected:
+    bool enableHdrEffect_ = false;
+    bool stagingEnableHdrEffect_ = false;
+
     std::weak_ptr<RSNode> node_;
     RSUIFilterType type_;
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
@@ -95,4 +104,4 @@ protected:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_ENGINE_CORE_RENDER_UI_FILTER_BASE_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_PARA_BASE_H

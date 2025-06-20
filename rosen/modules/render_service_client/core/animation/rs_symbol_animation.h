@@ -165,7 +165,7 @@ private:
     bool SetDisableAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     bool SetDisableAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
         std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
-        const std::shared_ptr<RSNode>& rsNoddeRoot);
+        const std::shared_ptr<RSNode>& rsNodeRoot);
 
     void SetDisableParameter(std::vector<Drawing::DrawingPiecewiseParameter>& parameter,
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);

@@ -72,6 +72,9 @@ public:
     void SetFeature(std::string tag, int value);
     std::string GetFeatureSettings() const;
     const std::vector<std::pair<std::string, int>> &GetFontFeatures() const;
+    FontFeatures() = default;
+    FontFeatures(const FontFeatures& other) = default;
+    FontFeatures& operator=(const FontFeatures& other) = default;
     bool operator ==(const FontFeatures& rhs) const;
     void Clear();
 
@@ -83,6 +86,9 @@ class RS_EXPORT FontVariations {
 public:
     void SetAxisValue(const std::string& tag, float value);
     const std::map<std::string, float>& GetAxisValues() const;
+    FontVariations() = default;
+    FontVariations(const FontVariations& other) = default;
+    FontVariations& operator=(const FontVariations& other) = default;
     bool operator ==(const FontVariations& rhs) const;
     void Clear();
 private:
@@ -96,6 +102,8 @@ struct RS_EXPORT TextShadow {
 
     TextShadow();
     TextShadow(Drawing::Color shadowColor, Drawing::Point shadowOffset, double shadowBlurRadius);
+    TextShadow(const TextShadow& other) = default;
+    TextShadow& operator=(const TextShadow& other) = default;
     bool operator ==(const TextShadow& rhs) const;
     bool operator !=(const TextShadow& rhs) const;
     bool HasShadow() const;
@@ -111,7 +119,7 @@ struct RS_EXPORT RectStyle {
     bool operator !=(const RectStyle& rhs) const;
 };
 
-struct TextStyle {
+struct RS_EXPORT TextStyle {
     Drawing::Color color = Drawing::Color::COLOR_WHITE;
     TextDecoration decoration = TextDecoration::NONE;
     Drawing::Color decorationColor = Drawing::Color::COLOR_TRANSPARENT;
@@ -142,6 +150,9 @@ struct TextStyle {
     RectStyle backgroundRect{0, 0.0, 0.0, 0.0, 0.0};
     int styleId{0};
     size_t textStyleUid{0};
+    TextStyle() = default;
+    TextStyle(const TextStyle& other) = default;
+    TextStyle& operator=(const TextStyle& other) = default;
     bool operator ==(const TextStyle &rhs) const;
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;

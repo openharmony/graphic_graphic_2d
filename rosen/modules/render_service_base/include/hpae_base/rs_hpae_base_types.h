@@ -16,9 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_TYPES_H
 #define RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_TYPES_H
 
-#include <buffer_handle.h>
-#include "image/gpu_context.h"
 #include "draw/surface.h"
+#include "image/gpu_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,15 +27,15 @@ using HpaeBufferInfo = struct HpaeBufferInfo_ {
     std::shared_ptr<Drawing::Surface> surface = nullptr;
     std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
     std::shared_ptr<Drawing::GPUContext> grContext = nullptr;
-    BufferHandle* bufferHandle = nullptr;
+    void* bufferHandle = nullptr;
     std::shared_ptr<Drawing::Image> snapshot = nullptr;
 
     void operator=(const HpaeBufferInfo_ &hpaeBufferInfo) {
         this->surface = hpaeBufferInfo.surface;
-        this->canvas = hpaeBufferInfp.canvas;
+        this->canvas = hpaeBufferInfo.canvas;
         this->grContext = hpaeBufferInfo.grContext;
         this->bufferHandle = hpaeBufferInfo.bufferHandle;
-        this->snapshot = hapeBufferInfo.snapshot;
+        this->snapshot = hpaeBufferInfo.snapshot;
     }
 };
 

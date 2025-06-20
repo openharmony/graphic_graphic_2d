@@ -277,12 +277,16 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
         filterRegion = Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()));
         dirtyRegion = filterRegion;
     }
+    // Subtree dirty region doesn't need to be considered for background filter.
+    auto& filterProperties = filterNode.GetRenderProperties();
+    bool isBackgroundFilterClean = (filterProperties.GetBackgroundFilter() ||
+        filterProperties.GetNeedDrawBehindWindow()) && !filterNode.IsBackgroundInAppOrNodeSelfDirty();
     FilterDirtyRegionInfo filterInfo = {
         .id_ = filterNode.GetId(),
         .intersectRegion_ = isSurface ? filterRegion : dirtyRegion,
         .filterDirty_ = dirtyRegion,
         .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
-        .belowDirty_ = preDirty.value_or(Occlusion::Region())
+        .belowDirty_ = !isBackgroundFilterClean && preDirty.has_value() ? preDirty.value() : Occlusion::Region()
     };
     return filterInfo;
 }
@@ -311,10 +315,6 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandDisplayAccumulatedParams(
     params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
         (displayDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
 
-    // update accumulated UIFirst force update
-    params.SetAccumulatedUifirstForceUpdate(params.GetAccumulatedUifirstForceUpdate() ||
-        RSUifirstManager::Instance().HasForceUpdateNode());
-
     // update accumulated hdr status changed
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 }
@@ -330,11 +330,9 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(
         RS_TRACE_NAME("CheckVirtualExpandDisplaySkip has special layer can not skip");
         return false;
     }
-    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d, isAccumulatedUifirstForceUpdate: %d, "
-        "isAccumulatedHdrStatusChanged: %d", params.GetAccumulatedDirty(), params.GetAccumulatedUifirstForceUpdate(),
-        params.GetAccumulatedHdrStatusChanged());
-    return !params.GetAccumulatedDirty() && !params.GetAccumulatedUifirstForceUpdate() &&
-        !params.GetAccumulatedHdrStatusChanged();
+    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d, isAccumulatedHdrStatusChanged: %d",
+        params.GetAccumulatedDirty(), params.GetAccumulatedHdrStatusChanged());
+    return !params.GetAccumulatedDirty() && !params.GetAccumulatedHdrStatusChanged();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -27,6 +27,7 @@ using namespace ANIMATIONTEST;
 class RSCurveAnimationTest : public RSAnimationBaseTest {
 };
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: GetTimingCurveTest001
  * @tc.desc: Verify the GetTimingCurve of CurveAnimationTest
@@ -377,6 +378,7 @@ HWTEST_F(RSCurveAnimationTest, SetIsCustomTest002, TestSize.Level1)
     curveAnimation->IsSupportInteractiveAnimator();
     GTEST_LOG_(INFO) << "RSCurveAnimationTest SetIsCustomTest002 end" ;
 }
+#endif
 
 /**
  * @tc.name: IsSupportInteractiveAnimator001

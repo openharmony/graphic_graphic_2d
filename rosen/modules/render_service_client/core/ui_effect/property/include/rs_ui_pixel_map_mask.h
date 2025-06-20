@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_PIXEL_MAP_MASK_H
-#define RENDER_PIXEL_MAP_MASK_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_PIXEL_MAP_MASK_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_PIXEL_MAP_MASK_H
 
 #include "pixel_map.h"
 #include "ui_effect/mask/include/mask_para.h"
@@ -61,4 +61,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_PIXEL_MAP_MASK_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_PIXEL_MAP_MASK_H

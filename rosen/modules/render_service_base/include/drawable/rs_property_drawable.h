@@ -110,7 +110,7 @@ public:
 private:
 };
 
-class RSFilterDrawable : public RSDrawable {
+class RSB_EXPORT RSFilterDrawable : public RSDrawable {
 public:
     RSFilterDrawable();
     ~RSFilterDrawable() override = default;

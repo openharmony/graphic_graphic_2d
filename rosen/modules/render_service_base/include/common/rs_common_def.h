@@ -36,12 +36,14 @@ class Surface;
 namespace Rosen {
 using AnimationId = uint64_t;
 using NodeType = uint8_t;
-using NodeId = uint64_t;
-using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
-using SurfaceId = uint64_t;
 using InteractiveImplictAnimatorId = uint64_t;
 using LeashPersistentId = uint64_t;
+using ModifierId = uint64_t;
+using NodeId = uint64_t;
+using PropertyId = uint64_t;
+using SurfaceId = uint64_t;
+
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
@@ -227,6 +229,29 @@ enum class TpFeatureConfigType : uint8_t {
     AFT_TP_FEATURE,
 };
 #endif
+
+// types for RenderNodeDrawable
+enum class RSRenderNodeDrawableType : uint32_t {
+    UNKNOW = 0,
+    RS_NODE_DRAWABLE,
+    DISPLAY_NODE_DRAWABLE,
+    SURFACE_NODE_DRAWABLE,
+    CANVAS_NODE_DRAWABLE,
+    EFFECT_NODE_DRAWABLE,
+    ROOT_NODE_DRAWABLE,
+    CANVAS_DRAWING_NODE_DRAWABLE,
+};
+
+// zOrder of topLayer
+enum class TopLayerZOrder : uint32_t {
+    ROUNDED_CORNER_1 = 9901,
+    ROUNDED_CORNER_2 = 9900,
+    POINTER_WINDOW = 9800,
+    CHARGE_ACTION_TEXT = 9300,
+    CHARGE_3D_MOTION = 9200,
+    STYLUS = 9100,
+    MINIMUM_VALUE = 9000,
+};
 
 struct FocusAppInfo {
     int32_t pid = -1;

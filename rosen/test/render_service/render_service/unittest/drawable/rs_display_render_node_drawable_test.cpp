@@ -31,7 +31,8 @@
 #include "screen_manager/rs_screen.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
-
+#include "feature/hpae/rs_hpae_manager.h"
+#include "feature/anco_manager/rs_anco_manager.h"
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
@@ -760,6 +761,40 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest003, TestSize.Level1)
     params->SetAccumulatedDirty(false);
 }
 
+/**
+ * @tc.name: OnDrawTest004
+ * @tc.desc: Test OnDraw
+ * @tc.type: FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest004, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    Drawing::Canvas canvas;
+    HardCursorInfo hardInfo;
+    hardInfo.id = 1;
+    auto renderNode = std::make_shared<RSRenderNode>(hardInfo.id);
+    hardInfo.drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNdoe);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->renderParams_.get());
+    params->SetHDRPresent(true);
+    RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
+    displayDrawable_->OnDraw(canvas);
+
+    params->SetHDRPresent(true);
+    RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode = false;
+    displayDrawable_->OnDraw(canvas);
+
+    params->SetHDRPresent(false);
+    RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
+    RSAncoManager::Instance()->SetAncHebcStatus(AncoHebcStatus::NOT_USE_HEBC);
+    displayDrawable_->OnDraw(canvas);
+
+    params->SetHDRPresent(false);
+    RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
+    RSAncoManager::Instance()->SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
+    displayDrawable_->OnDraw(canvas);
+}
 /**
  * @tc.name: DrawMirrorScreen
  * @tc.desc: Test DrawMirrorScreen

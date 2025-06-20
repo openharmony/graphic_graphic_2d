@@ -37,7 +37,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -48,9 +48,9 @@ GRAPHIC_TEST(RsImageNativeTest, CONTENT_DISPLAY_TEST, RS_IMAGE_SCALE_TEST)
     }
 
     float scale = 0.5;
-    int32_t nodeWith = 800;
-    int32_t nodeHeight = 500;
-    int32_t gap = 100;
+    int32_t nodeWith = 500;
+    int32_t nodeHeight = 300;
+    int32_t gap = 50;
     int32_t raw = 4;
 
     for (int32_t i = 0; i < raw; i++) {
@@ -82,9 +82,9 @@ GRAPHIC_TEST(RsImageNativeTest, CONTENT_DISPLAY_TEST, RS_IMAGE_RADIUS_TEST)
     }
 
     float radiusCorner = 1.f;
-    int32_t nodeWith = 800;
-    int32_t nodeHeight = 500;
-    int32_t gap = 100;
+    int32_t nodeWith = 500;
+    int32_t nodeHeight = 300;
+    int32_t gap = 50;
     int32_t raw = 4;
 
     for (int32_t i = 0; i < raw; i++) {
@@ -119,8 +119,8 @@ GRAPHIC_TEST(RsImageNativeTest, CONTENT_DISPLAY_TEST, RS_IMAGE_NATIVE_IMAGEFIT_T
 
     int32_t fit = 0;
     int32_t nodeWith = 300;
-    int32_t nodeHeight = 300;
-    int32_t gap = 100;
+    int32_t nodeHeight = 280;
+    int32_t gap = 50;
     int32_t column = 3;
     int32_t raw = 6;
 
@@ -153,9 +153,9 @@ GRAPHIC_TEST(RsImageNativeTest, CONTENT_DISPLAY_TEST, RS_IMAGE_REPEAT_TEST)
     }
 
     int32_t repeat = 0;
-    int32_t nodeWith = 800;
-    int32_t nodeHeight = 500;
-    int32_t gap = 100;
+    int32_t nodeWith = 500;
+    int32_t nodeHeight = 400;
+    int32_t gap = 50;
     int32_t raw = 4;
 
     for (int32_t i = 0; i < raw; i++) {
@@ -218,9 +218,9 @@ GRAPHIC_TEST(RsImageNativeTest, CONTENT_DISPLAY_TEST, RS_IMAGE_ROTATE_DEGREE_TES
     }
 
     int32_t rotateDegree = -90;
-    int32_t nodeWith = 800;
-    int32_t nodeHeight = 500;
-    int32_t gap = 100;
+    int32_t nodeWith = 500;
+    int32_t nodeHeight = 300;
+    int32_t gap = 50;
     int32_t raw = 4;
 
     for (int32_t i = 0; i < raw; i++) {
@@ -254,7 +254,7 @@ GRAPHIC_TEST(RsImageNativeTest, CONTENT_DISPLAY_TEST, RS_IMAGE_ROTATE_DEGREE_AND
     int32_t orientationFit = 0;
     int32_t nodeWith = 300;
     int32_t nodeHeight = 300;
-    int32_t gap = 100;
+    int32_t gap = 50;
     int32_t column = 3;
     int32_t raw = 4;
 
@@ -374,7 +374,7 @@ GRAPHIC_TEST(RsImageNativeTest, CONTENT_DISPLAY_TEST, RS_IMAGE_FIT_MATRIX_TEST)
 
     int32_t nodeWith = 300;
     int32_t nodeHeight = 300;
-    int32_t gap = 100;
+    int32_t gap = 50;
     int32_t column = 3;
     int32_t raw = 5;
 

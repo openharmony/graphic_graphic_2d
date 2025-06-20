@@ -25,6 +25,7 @@
 #include "recording/recording_canvas.h"
 
 #include "modifier/rs_modifier_type.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
@@ -148,6 +149,8 @@ public:
     // Step 1, calculate dirtySlots based on dirty modifiers
     static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(
         const ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
+    static std::unordered_set<RSDrawableSlot> CalculateDirtySlotsNG(
+        const ModifierNG::ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
     // Step 2, for every dirtySlot, update or generate RSDrawable
     static bool UpdateDirtySlots(
         const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots);
@@ -155,6 +158,8 @@ public:
     static bool FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec);
     // Step 3, insert necessary Clip/Save/Restore into drawableVec
     static void UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus);
+    static void ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVec);
+    static bool CanFusePixelStretch(Vec &drawableVec);
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_H

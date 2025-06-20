@@ -245,6 +245,8 @@ public:
 
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
+    virtual int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) = 0;
+
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) = 0;
 
     virtual ErrCode SetGlobalDarkColorMode(bool isDark) = 0;
@@ -398,6 +400,8 @@ public:
 
     virtual ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 
+    virtual ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) = 0;
+
     virtual void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) = 0;
 #ifdef TP_FEATURE_ENABLE
     virtual ErrCode SetTpFeatureConfig(
@@ -418,6 +422,11 @@ public:
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
+
+    virtual ErrCode AvcodecVideoStart(
+        uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) = 0;
+
+    virtual ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) = 0;
 
     virtual bool GetHighContrastTextState() = 0;
 

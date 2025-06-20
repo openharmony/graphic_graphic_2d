@@ -22,6 +22,7 @@ public:
     enum ParaType {
         NONE,
         BACKGROUND_COLOR_EFFECT,
+        BORDER_LIGHT_EFFECT,
     };
 
     VisualEffectPara()  = default;

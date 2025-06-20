@@ -20,6 +20,7 @@
 
 #include "effect/include/background_color_effect_para.h"
 #include "effect/include/blender.h"
+#include "effect/include/border_light_effect_para.h"
 #include "effect/include/brightness_blender.h"
 #include "effect/include/visual_effect.h"
 #include "effect/include/visual_effect_para.h"
@@ -54,7 +55,9 @@ private:
     static napi_value SetBackgroundColorBlender(napi_env env, napi_callback_info info);
     static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender);
     static napi_value SetHDRUIBrightness(napi_env env, napi_callback_info info);
-
+    static napi_value CreateBorderLight(napi_env env, napi_callback_info info);
+    static bool GetBorderLight(napi_env env, napi_value* param, std::shared_ptr<BorderLightEffectPara>& para);
+    static float GetSpecialValue(napi_env env, napi_value argValue);
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };
 } // namespace Rosen

@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_DISPLACEMENT_DISTORT_FILTER_H
-#define RENDER_DISPLACEMENT_DISTORT_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_DISPLACEMENT_DISTORT_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_DISPLACEMENT_DISTORT_FILTER_H
 #include <memory>
 
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
@@ -54,4 +54,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_DISPLACEMENT_DISTORT_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_DISPLACEMENT_DISTORT_FILTER_H

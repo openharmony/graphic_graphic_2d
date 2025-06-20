@@ -49,6 +49,10 @@ rosen/modules/render_service_client/core/animation/ @comicchang
 rosen/modules/render_service/core/feature/uifirst/ @conan13234
 rosen/modules/render_service/core/drawable/rs_ui_first_surface_render_node_drawable.cpp @conan13234
 
+[opinc]
+rosen/modules/render_service_base/src/feature/opinc/ @conan13234
+rosen/modules/render_service/core/feature/opinc/ @conan13234
+
 [main_thread]
 rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.h @aslklw
 rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.cpp @aslklw

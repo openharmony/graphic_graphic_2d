@@ -40,6 +40,7 @@ RSShaderMask::RSShaderMask(const std::shared_ptr<RSRenderMaskPara>& renderMask)
     CalHash();
 }
 
+// mask generator
 std::shared_ptr<Drawing::GEShaderMask> RSShaderMask::GenerateGEShaderMask() const
 {
     if (renderMask_ == nullptr) {

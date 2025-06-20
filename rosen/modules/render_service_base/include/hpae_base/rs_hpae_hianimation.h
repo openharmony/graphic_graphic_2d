@@ -15,13 +15,16 @@
 
 #ifndef RENDER_SERVICE_BASE_RS_HPAE_HIANIMATION_H
 #define RENDER_SERVICE_BASE_RS_HPAE_HIANIMATION_H
-#include <cstdint>
-#include <mutex>
-#include <deque>
-#include <set>
+
 #include <condition_variable>
-#include "common/rs_macros.h"
+#include <cstdint>
+#include <deque>
+#include <mutex>
+#include <set>
+
 #include "hpae_base/rs_hpae_hianimation_types.h"
+
+#include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
 
@@ -39,16 +42,14 @@ public:
     void OpenDevice();
     void CloseDevice();
 
-    bool HianimationInputCheck(const struct BlurImgParam *ImgInfo, const struct HaeNoiseValue *noisePara);
+    bool HianimationInputCheck(const struct BlurImgParam *imgInfo, const struct HaeNoiseValue *noisePara);
 
     int32_t HianimationAlgoInit(uint32_t imgWidth, uint32_t imgHeight, float maxSigma, uint32_t format);
 
     int32_t HianimationAlgoDeInit();
 
-    int32_t HianimationBuildTask(const struct HaeBlurBaseicAttr *basicInfo,
+    int32_t HianimationBuildTask(const struct HaeBlurBasicAttr *basicInfo,
         const struct HaeBlurEffectAttr *effectInfo, uint32_t *outTaskId, void **outTaskPtr);
-
-    void* HianimationCommitTask(void* taskFunc, uint32_t taskId, std::vector<void*> hpaeDependence);
 
     int32_t HianimationDestroyTask(uint32_t taskId);
 
@@ -73,17 +74,17 @@ private:
     void WaitHpaeDone();
     void NotifyHpaeDone();
 
-    hianimation_algo_device_t *hianimationDevice_;
-    void* libHandle_;
+    hianimation_algo_device_t *hianimationDevice_ = nullptr;
+    void *libHandle_ = nullptr;
 
     std::mutex hpaePerfMutex_;
     bool hpaePerfDone_ = true;
-    std::condidition_variable hpaePerfCv_;
+    std::condition_variable hpaePerfCv_;
 
     int openFailNum_ = 0;
 
     std::set<uint32_t> taskIdMap_;
-    std::condition_variable taskAvaliableCv_;
+    std::condition_variable taskAvailableCv_;
 
     std::mutex algoInitMutex_;
     bool algoInitDone_ = true;

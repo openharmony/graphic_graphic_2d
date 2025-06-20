@@ -118,6 +118,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, FillParcelWithTransactionData, Test
 }
 
 /**
+ * @tc.name: FillParcelWithTransactionData Test
+ * @tc.desc: FillParcelWithTransactionData Test
+ * @tc.type:FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, FillParcelWithTransactionData002, TestSize.Level1)
+{
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    parcel->SetDataSize(102401);
+    auto transactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(proxy->FillParcelWithTransactionData(transactionData, parcel));
+}
+
+/**
  * @tc.name: CreateNodeAndSurface Test
  * @tc.desc: CreateNodeAndSurface Test
  * @tc.type:FUNC
@@ -980,6 +994,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualMirrorScreenScaleMode, Te
 }
 
 /**
+ * @tc.name: SetVirtualScreenAutoRotationTest
+ * @tc.desc: SetVirtualScreenAutoRotation Test
+ * @tc.type:FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
+{
+    ScreenId id = 1;
+    EXPECT_NE(proxy->SetVirtualScreenAutoRotation(id, true), StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetGlobalDarkColorMode Test
  * @tc.desc: SetGlobalDarkColorMode Test
  * @tc.type:FUNC
@@ -1316,6 +1342,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
     const std::string nodeIdStr = "123456";
     proxy->SetLayerTop(nodeIdStr, true);
     proxy->SetLayerTop(nodeIdStr, false);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: SetForceRefresh Test
+ * @tc.desc: SetForceRefresh Test
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetForceRefresh, TestSize.Level1)
+{
+    const std::string nodeIdStr = "123456";
+    proxy->SetForceRefresh(nodeIdStr, true);
+    proxy->SetForceRefresh(nodeIdStr, false);
     ASSERT_TRUE(proxy);
 }
 

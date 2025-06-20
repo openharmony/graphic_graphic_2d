@@ -24,6 +24,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "convert_test.cpp",
     "font_collection_test.cpp",
     "run_test.cpp",
+    "style_copy_test.cpp",
     "text_line_base_test.cpp",
     "typography_create_test.cpp",
     "typography_relayout_test.cpp",
@@ -69,7 +70,7 @@ ohos_unittest("rosen_text_adapt_test") {
     external_deps += [
       "skia:skia_paragraph_ohos",
     ]
-  }      
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

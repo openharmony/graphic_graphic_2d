@@ -14,19 +14,18 @@
  */
 
 #include "feature/hpae/rs_hpae_buffer.h"
+
 #include "feature/hpae/rs_hpae_render_listener.h"
 #include "hpae_base/rs_hpae_log.h"
-#include "platformat/common/rs_log.h"
 
-#include "pipeline/render_thread/rs_base_render_engine.h"
-
-#include "pipeline/rs_surface_handler.h"
-#include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "memory/rs_tag_tracker.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/rs_surface_handler.h"
+#include "platform/common/rs_log.h"
 #ifdef RS_ENABLE_VK
-#include "paltform/ohos/backend/rs_surface_ohos_vulkan.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -42,10 +41,11 @@ RSHpaeBuffer::~RSHpaeBuffer()
 {
 }
 
-// reference to RSDisplyRenderNodeDrawable::RequestFrame
+// reference to RSDisplayRenderNodeDrawable::RequestFrame
 std::unique_ptr<RSRenderFrame> RSHpaeBuffer::RequestFrame(const BufferRequestConfig& config, bool isHebc)
 {
-    HPAE_TRACE_NAME("RSHpaeBuffer::RequestFrame");
+#if defined(ROSEN_OHOS)&&defined(ENABLE_HPAE_BLUR)
+    HPAE_TRACE_NAME("RSHpaeBuffer:RequestFrame");
     bufferConfig_ = config;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (UNLIKELY(!uniRenderEngine)) {
@@ -57,12 +57,12 @@ std::unique_ptr<RSRenderFrame> RSHpaeBuffer::RequestFrame(const BufferRequestCon
         if (uniRenderEngine->GetRenderContext()) {
             grContext_ = uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext();
         } else {
-            HPAE_TRACE_NAME("Expection: context is nullptr");
+            HPAE_TRACE_NAME("Exception: context is nullptr");
             return nullptr;
         }
     }
 
-    if (!surfaceCreate_) {
+    if (!surfaceCreated_) {
         sptr<IBufferConsumerListener> listener = new RSHpaeRenderListener(surfaceHandler_);
         HPAE_TRACE_NAME("create layer surface");
         if (!CreateSurface(listener)) {
@@ -72,7 +72,7 @@ std::unique_ptr<RSRenderFrame> RSHpaeBuffer::RequestFrame(const BufferRequestCon
     }
 
     if (rsSurface_ == nullptr) {
-        RS_LOGE("RSHpaeBuffer::RequestFrame: surface is nullptr");
+        RS_LOGE("RSHpaeBuffer::RequestFrame: surface is null!");
         return nullptr;
     }
 
@@ -84,11 +84,15 @@ std::unique_ptr<RSRenderFrame> RSHpaeBuffer::RequestFrame(const BufferRequestCon
     }
 
     return renderFrame;
+#else
+    return nullptr;
+#endif
 }
 
 bool RSHpaeBuffer::FlushFrame()
 {
-    if (!productSurface_ || !surfaceHandler_) {
+#if defined(ROSEN_OHOS)&&defined(ENABLE_HPAE_BLUR)
+    if (!producerSurface_ || !surfaceHandler_) {
         RS_LOGE("RSHpaeBuffer::FlushFrame producerSurface_ or surfaceHandler_ is nullptr");
         return false;
     }
@@ -107,14 +111,19 @@ bool RSHpaeBuffer::FlushFrame()
     SurfaceError err = producerSurface_->FlushBuffer(fbBuffer, -1, flushConfig_);
     if (err != SURFACE_ERROR_OK) {
         int errval = err;
-        RS_LOGE("RSHpaeBuffer::Flushframe Failed, error is : %{public}s, errval:%{public}d", SurfaceErrorStr(err).c_str(), errval);
+        RS_LOGE("RSHpaeBuffer::Flushframe Failed, error is : %{public}s, errval:%{public}d",
+            SurfaceErrorStr(err).c_str(), errval);
         return false;
     }
     return true;
+#else
+    return false;
+#endif
 }
 
 GSError RSHpaeBuffer::ForceDropFrame(uint64_t presentWhen)
 {
+#if defined(ROSEN_OHOS)&&defined(ENABLE_HPAE_BLUR)
     if (!surfaceHandler_) {
         RS_LOGE("RSHpaeBuffer::ForceDropFrame surfaceHandler_ is nullptr");
         return OHOS::GSERROR_NOT_INIT;
@@ -131,31 +140,29 @@ GSError RSHpaeBuffer::ForceDropFrame(uint64_t presentWhen)
     int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGE("RSHpaeBuffer::DropFrameProcess(node: %{public}" PRIu64"): AcquireBuffer failed("
-            "ret: %{public}d), do nothing ", surfaceHandler_->GetNodeId(), ret);
-        return OHOS::GSERRROR_NO_BUFFER;
+            " ret: %{public}d), do nothing ", surfaceHandler_->GetNodeId(), ret);
+        return OHOS::GSERROR_NO_BUFFER;
     }
 
-    HPAE_TRACE_NAME_FMT("Force drop: DropFrame: %p, %p", returnValue.buffer.GetRefPtr(), surfaceHandler_->GetBuffer().GetRefPtr());
+    HPAE_TRACE_NAME_FMT("Force drop: DropFrame: %p, %p", returnValue.buffer.GetRefPtr(),
+        surfaceHandler_->GetBuffer().GetRefPtr());
     ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGE("RSHpaeBuffer::DropFrameProcess(node: %{public}" PRIu64
             "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
             surfaceHandler_->GetNodeId(), ret);
     }
-    surfaceHandle_->SetAvaliableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvaliableBufferCount()));
+    surfaceHandler_->SetAvailiableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
     RS_LOGD("RsDebug RSHpaeBuffer::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
         surfaceHandler_->GetNodeId());
 
-    // TODO: check following action were necessary
-    // auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    // if (LIKELY(renderEngine)) {
-    //     renderEngine->RegisterDeleteBufferListener(surfaceConsumer);
-    //     renderEngine->RegisterDeleteBufferListener(*surfaceHandler_);
-    // }
-
     return OHOS::GSERROR_OK;
+#else
+    return GSERROR_NOT_INIT;
+#endif
 }
 
+#if defined(ROSEN_OHOS)
 // reference to RSDisplayRenderNodeDrawable::CreateSurface
 bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
@@ -174,7 +181,6 @@ bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
         RS_LOGE("RSHpaeBuffer::CreateSurface RegisterConsumerListener fail");
         return false;
     }
-    // consumerListener_ = listener;
     auto producer = consumer->GetProducer();
     producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
     if (!producerSurface_) {
@@ -183,18 +189,20 @@ bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
     }
     producerSurface_->SetQueueSize(HPAE_BUFFER_SIZE);
 
-    auto client = std::static_pointer_cast(RSRenderServiceClient)(RSIRenderClient::CreateRenderServiceClient());
+    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     auto surface = client->CreateRSSurface(producerSurface_);
     rsSurface_ = std::static_pointer_cast<RSSurfaceOhos>(surface);
     RS_LOGI("RSHpaeBuffer::CreateSurface end");
     surfaceCreated_ = true;
-    surfaceHandle_->SetConsumer(consumer);
+    surfaceHandler_->SetConsumer(consumer);
 
     return true;
 }
+#endif
 
-BufferHandle* RSHpaeBuffer::GetBufferHandle()
+void* RSHpaeBuffer::GetBufferHandle()
 {
+#if defined(ROSEN_OHOS)&&defined(ENABLE_HPAE_BLUR)
     if (UNLIKELY(!rsSurface_)) {
         HPAE_LOGE("surface not exist");
         return nullptr;
@@ -203,10 +211,10 @@ BufferHandle* RSHpaeBuffer::GetBufferHandle()
     auto buffer = rsSurface_->GetCurrentBuffer();
     if (buffer) {
         bufferHandle_ = buffer->GetBufferHandle();
-        HPAE_TRACE_NAME_FMT("getBufferHandle: %p", bufferHnadle_);
-        return bufferHandl_;
+        HPAE_TRACE_NAME_FMT("getBufferHandle: %p", bufferHandle_);
+        return bufferHandle_;
     }
-
+#endif
     return nullptr;
 }
 

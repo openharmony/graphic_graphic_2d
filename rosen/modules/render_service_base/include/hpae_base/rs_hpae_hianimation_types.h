@@ -15,8 +15,8 @@
 
 #ifndef RENDER_SERVICE_BASE_RS_HPAE_HIANIMATION_TYPES_H
 #define RENDER_SERVICE_BASE_RS_HPAE_HIANIMATION_TYPES_H
+
 #include <cstdint>
-#include "buffer_handle.h"
 
 const uint32_t HAE_COLOR_MATRIX_COEF_COUNT = 20;
 namespace OHOS::Rosen {
@@ -42,7 +42,7 @@ struct HaeRect {
 };
 
 struct HaeImage {
-    BufferHandle *handle;
+    void *handle;
     struct HaeRect rect;
 };
 
@@ -54,7 +54,7 @@ struct HaePixel {
 };
 
 struct HaeNoiseValue {
-    float noiseRation;
+    float noiseRatio;
     float noiseValue;
     float noiseUpClip;
     float noiseDnClip;
@@ -70,7 +70,7 @@ struct HaeBlurBasicAttr {
     struct HaeImage *srcLayer;
     struct HaeImage *dstLayer;
     uint32_t perfLevel;
-    uint32_t timeoutMs;
+    uint32_t timeoutMs = 0;
     int32_t expectRunTime = -1;
     float sigmaNum;
     bool enablePremult;
@@ -80,10 +80,11 @@ enum BlppAbility : uint32_t {
     BLPP_CANCEL_PREMULT_EN = 1 << 0,
     BLPP_NOISE_EN = 1 << 1,
     BLPP_ALPHA_REPLACE_EN = 1 << 2,
+    BLPP_COLOR_MATRIX_EN = 1 << 3,
     BLPP_PREMULT_EN = 1 << 4,
     BLPP_COLOR_MASK_EN = 1 << 5,
-    BLPP_CLMASK_PREMULT_EN = 1 << 6;
-    BLPP_CLMASK_CXL_PREMULT_EN = 1 << 7;
+    BLPP_CLMASK_PREMULT_EN = 1 << 6,
+    BLPP_CLMASK_CXL_PREMULT_EN = 1 << 7,
 };
 
 struct HaeBlurEffectAttr {
@@ -131,8 +132,8 @@ struct hianimation_algo_device_t {
      * 输入参数    ：const struct HaeBlurBasicAttr *basicInfo，调用者传入的基础通路信息，
      *              包括输入/输出buffer; 图层坐标; AAE工作频点; 模糊半径; 预乘使能开关
      *              const struct HaeBlurEffectAttr *effectInfo，调用者传入的效果参数信息
-     *              包括BLPP所有效果开关及配置参数。先判断效果对应bit位是否拉高，再配置对应
-     *              效果参数，即if (effectinfo->effectCaps & HAE_BLPP_XXX) {config}
+     *              包括BLPP中所有效果开关及配置参数。先判断效果对应bit位是否拉高，再配置对应
+     *              效果参数，即if (effectInfo->effectCaps & HAE_BLPP_XXX) {config}
      * 输出参数    ：void **task_ptr返回配置信息地址，提供给调用者，用于构建FFTS任务
      *               uint32_t *taskId返回该次模糊任务taskId，用于传递给destroy任务
      * 返 回 值    ：成功返回0，失败返回小于0
@@ -146,8 +147,8 @@ struct hianimation_algo_device_t {
      * 输入参数    ：const struct HaeBlurBasicAttr *basicInfo，调用者传入的基础通路信息，
      *              包括输入/输出buffer; 图层坐标; AAE工作频点; 模糊半径; 预乘使能开关
      *              const struct HaeBlurEffectAttr *effectInfo，调用者传入的效果参数信息
-     *              包括BLPP所有效果开关及配置参数。先判断效果对应bit位是否拉高，再配置对应
-     *              效果参数，即if (effectinfo->effectCaps & HAE_BLPP_XXX) {config}
+     *              包括BLPP中所有效果开关及配置参数。先判断效果对应bit位是否拉高，再配置对应
+     *              效果参数，即if (effectInfo->effectCaps & HAE_BLPP_XXX) {config}
      * 输出参数    ：无
      * 返 回 值    ：成功返回0，失败返回小于0
     */

@@ -529,22 +529,22 @@ std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
     return textBlobRecordInfos;
 }
 
-bool ParagraphImpl::HasEnabledTextEffect() const
+bool ParagraphImpl::HasSkipTextBlobDrawing() const
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return false;
     }
-    return paragraph_->hasEnabledTextEffect();
+    return paragraph_->hasSkipTextBlobDrawing();
 }
 
-void ParagraphImpl::SetTextEffectState(bool state)
+void ParagraphImpl::SetSkipTextBlobDrawing(bool state)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
-    paragraph_->setTextEffectState(state);
+    paragraph_->setSkipTextBlobDrawing(state);
 }
 
 void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const

@@ -16,17 +16,17 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 
+#include <limits>
 #include <optional>
 #include <stack>
 #include <vector>
-
-#include "surface_type.h"
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "screen_manager/screen_types.h"
+#include "surface_type.h"
 #include "utils/region.h"
 
 namespace OHOS {

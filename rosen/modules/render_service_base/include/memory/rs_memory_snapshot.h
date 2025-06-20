@@ -54,6 +54,8 @@ public:
     void FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     size_t GetTotalMemory();
     void PrintMemorySnapshotToHilog();
+    void SetMemSnapshotPrintHilogLimit(int memSnapshotPrintHilogLimit);
+    int GetMemSnapshotPrintHilogLimit();
 private:
     MemorySnapshot() = default;
     ~MemorySnapshot() = default;
@@ -76,6 +78,7 @@ private:
     size_t totalMemory_ = 0; // record the total memory of all processes
     MemoryOverflowCalllback callback_ = nullptr;
     int64_t memorySnapshotHilogTime_ = 0;
+    int memSnapshotPrintHilogLimit_ = 0;
 };
 } // namespace OHOS
 } // namespace Rosen

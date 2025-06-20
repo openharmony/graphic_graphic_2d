@@ -688,7 +688,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp001, Tes
     hwcRects.emplace_back(0, 100, 100, 200);
     surfaceNode->SetDstRect(RectI(0, 150, 100, 200));
     surfaceNode->SetHardwareForcedDisabledState(false);
-    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInApp(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(surfaceNode, hwcRects);
 }
 

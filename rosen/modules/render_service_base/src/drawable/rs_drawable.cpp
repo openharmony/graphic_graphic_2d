@@ -61,7 +61,6 @@ static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDraw
     { RSModifierType::BG_IMAGE_HEIGHT,                           RSDrawableSlot::BACKGROUND_IMAGE },
     { RSModifierType::BG_IMAGE_POSITION_X,                       RSDrawableSlot::BACKGROUND_IMAGE },
     { RSModifierType::BG_IMAGE_POSITION_Y,                       RSDrawableSlot::BACKGROUND_IMAGE },
-    { RSModifierType::SURFACE_BG_COLOR,                          RSDrawableSlot::INVALID },
     { RSModifierType::BORDER_COLOR,                              RSDrawableSlot::BORDER },
     { RSModifierType::BORDER_WIDTH,                              RSDrawableSlot::BORDER },
     { RSModifierType::BORDER_STYLE,                              RSDrawableSlot::BORDER },
@@ -169,6 +168,8 @@ static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDraw
     { RSModifierType::HDR_UI_BRIGHTNESS,                         RSDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::FOREGROUND_UI_FILTER,                      RSDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::HDR_BRIGHTNESS_FACTOR,                     RSDrawableSlot::INVALID },
+    { RSModifierType::FOREGROUND_NG_FILTER,                      RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::BACKGROUND_NG_FILTER,                      RSDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::CUSTOM,                                    RSDrawableSlot::INVALID },
     { RSModifierType::EXTENDED,                                  RSDrawableSlot::INVALID },
     { RSModifierType::TRANSITION,                                RSDrawableSlot::TRANSITION },
@@ -187,6 +188,44 @@ static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDraw
     { RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS,           RSDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR,           RSDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::CHILDREN,                                  RSDrawableSlot::CHILDREN },
+};
+
+static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_propertyToDrawableLutNG = {
+    { ModifierNG::RSModifierType::INVALID,                      RSDrawableSlot::INVALID },
+    { ModifierNG::RSModifierType::BOUNDS,                       RSDrawableSlot::CLIP_TO_BOUNDS },
+    { ModifierNG::RSModifierType::FRAME,                        RSDrawableSlot::FRAME_OFFSET },
+    { ModifierNG::RSModifierType::TRANSFORM,                    RSDrawableSlot::INVALID },
+    { ModifierNG::RSModifierType::ALPHA,                        RSDrawableSlot::INVALID },
+    { ModifierNG::RSModifierType::FOREGROUND_COLOR,             RSDrawableSlot::FOREGROUND_COLOR },
+    { ModifierNG::RSModifierType::BACKGROUND_COLOR,             RSDrawableSlot::BACKGROUND_COLOR },
+    { ModifierNG::RSModifierType::BACKGROUND_SHADER,            RSDrawableSlot::BACKGROUND_SHADER },
+    { ModifierNG::RSModifierType::BACKGROUND_IMAGE,             RSDrawableSlot::BACKGROUND_IMAGE },
+    { ModifierNG::RSModifierType::BORDER,                       RSDrawableSlot::BORDER },
+    { ModifierNG::RSModifierType::OUTLINE,                      RSDrawableSlot::OUTLINE },
+    { ModifierNG::RSModifierType::CLIP_TO_BOUNDS,               RSDrawableSlot::CLIP_TO_BOUNDS },
+    { ModifierNG::RSModifierType::CLIP_TO_FRAME,                RSDrawableSlot::CLIP_TO_FRAME },
+    { ModifierNG::RSModifierType::VISIBILITY,                   RSDrawableSlot::INVALID },
+    { ModifierNG::RSModifierType::DYNAMIC_LIGHT_UP,             RSDrawableSlot::DYNAMIC_LIGHT_UP },
+    { ModifierNG::RSModifierType::SHADOW,                       RSDrawableSlot::SHADOW },
+    { ModifierNG::RSModifierType::MASK,                         RSDrawableSlot::MASK },
+    { ModifierNG::RSModifierType::PIXEL_STRETCH,                RSDrawableSlot::PIXEL_STRETCH },
+    { ModifierNG::RSModifierType::USE_EFFECT,                   RSDrawableSlot::USE_EFFECT },
+    { ModifierNG::RSModifierType::BLENDER,                      RSDrawableSlot::BLENDER },
+    { ModifierNG::RSModifierType::POINT_LIGHT,                  RSDrawableSlot::POINT_LIGHT },
+    { ModifierNG::RSModifierType::PARTICLE_EFFECT,              RSDrawableSlot::PARTICLE_EFFECT },
+    { ModifierNG::RSModifierType::COMPOSITING_FILTER,           RSDrawableSlot::COMPOSITING_FILTER },
+    { ModifierNG::RSModifierType::BACKGROUND_FILTER,            RSDrawableSlot::BACKGROUND_FILTER },
+    { ModifierNG::RSModifierType::FOREGROUND_FILTER,            RSDrawableSlot::FOREGROUND_FILTER },
+    { ModifierNG::RSModifierType::HDR_BRIGHTNESS,               RSDrawableSlot::FOREGROUND_FILTER },
+    { ModifierNG::RSModifierType::TRANSITION_STYLE,             RSDrawableSlot::TRANSITION },
+    { ModifierNG::RSModifierType::BACKGROUND_STYLE,             RSDrawableSlot::BACKGROUND_STYLE },
+    { ModifierNG::RSModifierType::CONTENT_STYLE,                RSDrawableSlot::CONTENT_STYLE },
+    { ModifierNG::RSModifierType::FOREGROUND_STYLE,             RSDrawableSlot::FOREGROUND_STYLE },
+    { ModifierNG::RSModifierType::OVERLAY_STYLE,                RSDrawableSlot::OVERLAY },
+    { ModifierNG::RSModifierType::NODE_MODIFIER,                RSDrawableSlot::INVALID },
+    { ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR,         RSDrawableSlot::ENV_FOREGROUND_COLOR },
+    { ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER,         RSDrawableSlot::BACKGROUND_FILTER },
+    { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
 
 template<RSModifierType type>
@@ -565,6 +604,75 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     return dirtySlots;
 }
 
+std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
+    const ModifierNG::ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec)
+{
+    // Step 1.1: calculate dirty slots by looking up g_propertyToDrawableLut
+    std::unordered_set<RSDrawableSlot> dirtySlots;
+    for (const auto& [modifierType, drawableSlot] : g_propertyToDrawableLutNG) {
+        if (dirtyTypes.test(static_cast<size_t>(modifierType)) && drawableSlot != RSDrawableSlot::INVALID) {
+            dirtySlots.emplace(drawableSlot);
+        }
+    }
+
+    // Step 1.2: expand dirty slots by rules
+    // if bounds or cornerRadius changed, mark affected drawables as dirty
+    if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS)) ||
+        dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_BOUNDS))) {
+        MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
+    }
+
+    if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::SHADOW))) {
+        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
+    }
+
+    if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::FRAME))) {
+        dirtySlots.emplace(RSDrawableSlot::CONTENT_STYLE);
+        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_STYLE);
+    }
+
+    if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::COMPOSITING_FILTER))) {
+        dirtySlots.emplace(RSDrawableSlot::LIGHT_UP_EFFECT);
+        dirtySlots.emplace(RSDrawableSlot::BINARIZATION);
+        dirtySlots.emplace(RSDrawableSlot::DYNAMIC_DIM);
+        dirtySlots.emplace(RSDrawableSlot::COLOR_FILTER);
+    }
+
+    if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR))) {
+        dirtySlots.emplace(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY);
+    }
+
+    if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME))) {
+        dirtySlots.emplace(RSDrawableSlot::CUSTOM_CLIP_TO_FRAME);
+    }
+
+    // if frame changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
+        MarkAffectedSlots(frameDirtyTypes, drawableVec, dirtySlots);
+    }
+
+    // if border changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::BORDER)) {
+        MarkAffectedSlots(borderDirtyTypes, drawableVec, dirtySlots);
+    }
+
+    // PLANNING: merge these restore operations with RESTORE_ALL drawable
+    if (dirtySlots.count(RSDrawableSlot::FOREGROUND_FILTER)) {
+        dirtySlots.emplace(RSDrawableSlot::RESTORE_FOREGROUND_FILTER);
+    }
+
+    // if pixel-stretch changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH)) {
+        MarkAffectedSlots(stretchDirtyTypes, drawableVec, dirtySlots);
+    }
+    // if background filter changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::BACKGROUND_FILTER)) {
+        MarkAffectedSlots(bgfilterDirtyTypes, drawableVec, dirtySlots);
+    }
+
+    return dirtySlots;
+}
+
 bool RSDrawable::UpdateDirtySlots(
     const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots)
 {
@@ -595,6 +703,35 @@ bool RSDrawable::UpdateDirtySlots(
     }
 
     return drawableAddedOrRemoved;
+}
+
+void RSDrawable::ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVec)
+{
+    auto &stretchDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
+    if (stretchDrawable) {
+        auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(stretchDrawable);
+        pixelStretchDrawable->OnUpdate(node);
+        float INFTY = std::numeric_limits<float>::infinity();
+        pixelStretchDrawable->SetPixelStretch(Vector4f{INFTY, INFTY, INFTY, INFTY});
+    }
+}
+
+bool RSDrawable::CanFusePixelStretch(Vec &drawableVec)
+{
+    if (!drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] ||
+        !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
+            return false;
+    }
+
+    size_t start = static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
+    size_t end = static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH);
+    // we do not fuze if drawableSlots between BACKGROUND_FILTER and PIXEL_STRETCH exist
+    for (size_t ptr = start; ptr < end; ptr++) {
+        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(ptr)) && drawableVec[ptr]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)

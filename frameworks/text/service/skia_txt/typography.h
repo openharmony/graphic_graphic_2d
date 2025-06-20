@@ -66,6 +66,7 @@ public:
     void SetAnimation(
         std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
     ) override;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> GetAnimation() override;
     void SetParagraghId(uint32_t id) override;
     Drawing::FontMetrics MeasureText() override;
     bool GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics) override;
@@ -82,8 +83,8 @@ public:
     void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) override;
     void UpdateAllTextStyles(const TextStyle& textStyleTemplate) override;
-    void SetTextEffectState(bool state) override;
-    bool HasEnabledTextEffect() const override;
+    void SetSkipTextBlobDrawing(bool state) override;
+    bool HasSkipTextBlobDrawing() const override;
     std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
     void SetTextEffectAssociation(bool association) override { textEffectAssociation_ = association; }
     bool GetTextEffectAssociation() const override { return textEffectAssociation_; }

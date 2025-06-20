@@ -95,20 +95,6 @@ HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetIsWhiteListForEnableHwcNodeBelowSelfInAppTest
- * @tc.desc: Verify GetIsWhiteListForEnableHwcNodeBelowSelfInApp
- * @tc.type:FUNC
- * @tc.require: issuesIC82H3
- */
-HWTEST_F(RsCommonHookTest, GetIsWhiteListForEnableHwcNodeBelowSelfInAppTest, TestSize.Level1)
-{
-    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInApp(true);
-    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInApp(), true);
-    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInApp(false);
-    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInApp(), false);
-}
-
-/**
  * @tc.name: SetAndGetBundleNameTest
  * @tc.desc: test results of SetTvPlayerBundleName and GetTvPlayerBundleName
  * @tc.type:FUNC

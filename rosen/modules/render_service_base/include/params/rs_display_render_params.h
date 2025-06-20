@@ -207,16 +207,6 @@ public:
         return isAccumulatedDirty_;
     }
 
-    void SetAccumulatedUifirstForceUpdate(bool isUifirstForceUpdate)
-    {
-        isAccumulatedUifirstForceUpdate_ = isUifirstForceUpdate;
-    }
-
-    bool GetAccumulatedUifirstForceUpdate() const
-    {
-        return isAccumulatedUifirstForceUpdate_;
-    }
-
     void SetAccumulatedHdrStatusChanged(bool isHdrStatusChanged)
     {
         isAccumulatedHdrStatusChanged_ = isHdrStatusChanged;
@@ -230,7 +220,6 @@ public:
     void ResetVirtualExpandAccumulatedParams()
     {
         isAccumulatedDirty_ = false;
-        isAccumulatedUifirstForceUpdate_ = false;
         isAccumulatedHdrStatusChanged_ = false;
     }
 
@@ -286,7 +275,6 @@ private:
     bool virtualScreenMuteStatus_ = false;
     // Only used in virtual expand screen to record accumulate frame status
     bool isAccumulatedDirty_ = false;
-    bool isAccumulatedUifirstForceUpdate_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;

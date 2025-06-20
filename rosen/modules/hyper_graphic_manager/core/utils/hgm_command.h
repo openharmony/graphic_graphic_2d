@@ -210,7 +210,6 @@ public:
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
     std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
-    std::unordered_map<std::string, std::string> enableHwcNodeBelowSelfInAppConfig_;
     // <"up_timeout_ms", 3000>
     std::unordered_map<std::string, std::string> timeoutStrategyConfig_;
     std::unordered_map<std::string, std::string> videoCallLayerConfig_;
@@ -270,15 +269,20 @@ public:
     virtual void SetSettingModeId(int32_t settingModeId) = 0;
     virtual void SetXmlModeId(const std::string& xmlModeId) = 0;
     virtual void ChangeScreen(const std::string& screenConfigType) = 0;
+
     virtual HgmErrCode GetStrategyConfig(const std::string& strategyName,
                                          PolicyConfigData::StrategyConfig& strategyRes) const = 0;
+
     virtual const PolicyConfigData::ScreenSetting& GetScreenSetting() const = 0;
     virtual const PolicyConfigData::DynamicSettingMap& GetAceSceneDynamicSettingMap() const = 0;
+
     virtual HgmErrCode GetAppStrategyConfig(const std::string& pkgName,
                                             int32_t appType,
                                             PolicyConfigData::StrategyConfig& strategyRes) const = 0;
+
     virtual HgmErrCode GetDynamicAppStrategyConfig(const std::string& pkgName,
-                                                  PolicyConfigData::StrategyConfig& strategyRes) const = 0;
+                                                   PolicyConfigData::StrategyConfig& strategyRes) const = 0;
+
     virtual std::string GetGameNodeName(const std::string& pkgName) const = 0;
 };
 
@@ -291,16 +295,22 @@ public:
     void SetSettingModeId(int32_t settingModeId) override;
     void SetXmlModeId(const std::string& xmlModeId) override;
     void ChangeScreen(const std::string& screenConfigType) override;
+
     HgmErrCode GetStrategyConfig(const std::string& strategyName,
                                  PolicyConfigData::StrategyConfig& strategyRes) const override;
+
     const PolicyConfigData::ScreenSetting& GetScreenSetting() const override;
     const PolicyConfigData::DynamicSettingMap& GetAceSceneDynamicSettingMap() const override;
+
     HgmErrCode GetAppStrategyConfig(const std::string& pkgName,
                                     int32_t appType,
                                     PolicyConfigData::StrategyConfig& strategyRes) const override;
+
     HgmErrCode GetDynamicAppStrategyConfig(const std::string& pkgName,
-                                    PolicyConfigData::StrategyConfig& strategyRes) const override { return HGM_ERROR; }
+                                           PolicyConfigData::StrategyConfig& strategyRes) const override;
+
     std::string GetGameNodeName(const std::string& pkgName) const override;
+
 protected:
     std::string SettingModeId2XmlModeId(int32_t settingModeId) const;
     int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const;
@@ -309,7 +319,7 @@ protected:
 
     const PolicyConfigData configData_;
     int32_t settingModeId_{ 0 };
-    std::string xmlModeId_{ "-1" };
+    std::string xmlModeId_{ "-1" }; // auto mode
     std::string screenConfigType_{ "LTPO-DEFAULT" };
 };
 } // namespace OHOS

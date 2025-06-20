@@ -231,20 +231,6 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
 
-    void SetLeashWindowVisibleRegionEmptyParam(bool isLeashWindowVisibleRegionEmpty)
-    {
-        if (isLeashWindowVisibleRegionEmpty_ == isLeashWindowVisibleRegionEmpty) {
-            return;
-        }
-        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
-        needSync_ = true;
-    }
-
-    bool GetLeashWindowVisibleRegionEmptyParam() const
-    {
-        return isLeashWindowVisibleRegionEmpty_;
-    }
-
     bool SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
@@ -412,6 +398,9 @@ public:
 
     void SetLayerTop(bool isTop);
     bool IsLayerTop() const;
+
+    void SetForceRefresh(bool isForceRefresh);
+    bool IsForceRefresh() const;
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
     
@@ -806,7 +795,6 @@ private:
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
     bool occlusionVisible_ = false;
-    bool isLeashWindowVisibleRegionEmpty_ = false;
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
@@ -845,6 +833,7 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
+    bool isForceRefresh_ = false;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;

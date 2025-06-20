@@ -205,6 +205,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_AUTO_ROTATION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_AUTO_ROTATION");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE");
             break;
@@ -493,6 +497,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_LAYER_TOP");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FORCE_REFRESH): {
+            hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_COLOR_FOLLOW): {
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_COLOR_FOLLOW");
             break;
@@ -519,6 +527,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXELMAP_BY_PROCESSID): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PIXELMAP_BY_PROCESSID");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::AVCODEC_VIDEO_START): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::AVCODEC_VIDEO_START");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::AVCODEC_VIDEO_STOP): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::AVCODEC_VIDEO_STOP");
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

@@ -27,6 +27,7 @@ using namespace ANIMATIONTEST;
 class RSKeyframeAnimationTest : public RSAnimationBaseTest {
 };
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AddKeyFrameTest001
  * @tc.desc: Verify the AddKeyFrame of KeyframeAnimationTest
@@ -421,5 +422,6 @@ HWTEST_F(RSKeyframeAnimationTest, KeyframeAnimationTest001, TestSize.Level1)
     EXPECT_TRUE(keyframeAnimation->isDurationKeyframe_);
     GTEST_LOG_(INFO) << "RSKeyframeAnimationTest KeyframeAnimationTest001 end";
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -49,8 +49,6 @@ public:
     void GetComponentPowerFps(FrameRateRange& range);
     bool GetIsWhiteListForSolidColorLayerFlag() const;
     void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
-    bool GetIsWhiteListForEnableHwcNodeBelowSelfInApp() const;
-    void SetIsWhiteListForEnableHwcNodeBelowSelfInApp(bool isWhiteListForEnableHwcNodeBelowSelfInApp);
 
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
@@ -66,8 +64,6 @@ private:
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
     std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
-    // use in updating hwc node hardware state with hwc node below self in app
-    std::atomic<bool> isWhiteListForEnableHwcNodeBelowSelfInApp_{false};
     
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 };

@@ -120,12 +120,27 @@ public:
         isFirstTimeToProcessor_ = false;
     }
 
+    ScreenRotation GetFirstBufferRotation() const
+    {
+        return firstBufferRotation_;
+    }
+
+    void SetFirstBufferRotation(const ScreenRotation bufferRotation)
+    {
+        firstBufferRotation_ = bufferRotation;
+    }
+
     ScreenRotation GetOriginScreenRotation() const
     {
         return originScreenRotation_;
     }
     bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisivleRect = true);
+
+    RSRenderNodeDrawableType GetDrawableType() const override
+    {
+        return RSRenderNodeDrawableType::DISPLAY_NODE_DRAWABLE;
+    }
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -216,6 +231,7 @@ private:
     bool resetRotate_ = false;
     bool isFirstTimeToProcessor_ = true;
     ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    ScreenRotation firstBufferRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
     std::vector<RectI> dirtyRects_;

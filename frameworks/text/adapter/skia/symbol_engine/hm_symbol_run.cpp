@@ -27,6 +27,8 @@ static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
     RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
     RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR, RSEffectStrategy::QUICK_REPLACE_APPEAR};
 
+static const float SHADOW_EPSILON = 0.999f; // if blur radius less than 1, do noe need to draw
+
 HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     const HMSymbolTxt& symbolTxt,
     const std::shared_ptr<RSTextBlob>& textBlob,
@@ -384,7 +386,8 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
         multPaths.push_back(multPath);
     }
 
-    if (symbolTxt_.GetSymbolShadow().has_value()) {
+    if (symbolTxt_.GetSymbolShadow().has_value() &&
+        symbolTxt_.GetSymbolShadow().value().blurRadius > SHADOW_EPSILON) {
         DrawSymbolShadow(canvas, multPaths);
     }
 
@@ -400,6 +403,14 @@ void HMSymbolRun::DrawSymbolShadow(RSCanvas* canvas, const std::vector<RSPath>& 
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
     brush.SetFilter(filter);
+
+    RSRecordingCanvas* recordingCanvas = nullptr;
+    if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        recordingCanvas = static_cast<RSRecordingCanvas*>(canvas);
+    }
+    if (recordingCanvas != nullptr) {
+        recordingCanvas->GetDrawCmdList()->SetHybridRenderType(RSHybridRenderType::NONE);
+    }
 
     RSColor color;
     for (size_t i = 0; i < multPaths.size(); i++) {

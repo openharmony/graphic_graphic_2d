@@ -25,6 +25,7 @@
 using namespace testing;
 using namespace testing::ext;
 
+#ifndef MODIFIER_NG
 namespace OHOS::Rosen {
 constexpr static float FLOAT_DATA_INIT = 0.5f;
 
@@ -88,6 +89,141 @@ HWTEST_F(RSModifierTest, AddModifier001, TestSize.Level1)
     node->AddModifier(modifier);
     node->AddModifier(modifier);
     ASSERT_TRUE(node != nullptr);
+}
+/**
+ * @tc.name: ModifierManager001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager001, TestSize.Level1)
+{
+    RSModifierManager manager;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
+    manager.AddModifier(modifier);
+    manager.Draw();
+}
+
+/**
+ * @tc.name: ModifierManager002
+ * @tc.desc: animation is exit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager002, TestSize.Level1)
+{
+    RSModifierManager manager;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    auto animation = std::make_shared<RSRenderAnimation>();
+    ASSERT_NE(animation, nullptr);
+    manager.AddAnimation(animation);
+    manager.AddModifier(modifier);
+    manager.Draw();
+}
+
+/**
+ * @tc.name: ModifierManager003
+ * @tc.desc: animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager003, TestSize.Level1)
+{
+    RSModifierManager manager;
+    AnimationId id = 0;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    auto animation = std::make_shared<RSRenderAnimation>(id);
+    ASSERT_NE(animation, nullptr);
+    manager.AddAnimation(animation);
+    manager.AddModifier(modifier);
+    manager.Draw();
+}
+
+/**
+ * @tc.name: ModifierManager004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager004, TestSize.Level1)
+{
+    RSModifierManager manager;
+    AnimationId id = 10;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    auto animation = std::make_shared<RSRenderAnimation>();
+    ASSERT_NE(animation, nullptr);
+    manager.AddAnimation(animation);
+    manager.RemoveAnimation(id);
+    manager.AddModifier(modifier);
+    manager.Draw();
+}
+
+/**
+ * @tc.name: ModifierManager005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager005, TestSize.Level1)
+{
+    RSModifierManager manager;
+    AnimationId id = 0;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    auto animation = std::make_shared<RSRenderAnimation>(id);
+    ASSERT_NE(animation, nullptr);
+    manager.AddAnimation(animation);
+    manager.RemoveAnimation(id);
+    manager.AddModifier(modifier);
+    manager.Draw();
+}
+
+/**
+ * @tc.name: ModifierManager006
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager006, TestSize.Level1)
+{
+    RSModifierManager manager;
+    int64_t time = 0;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
+    manager.Animate(time);
+    manager.AddModifier(modifier);
+    manager.Draw();
+}
+
+/**
+ * @tc.name: ModifierManager007
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager007, TestSize.Level1)
+{
+    RSModifierManager manager;
+    int64_t time = 10;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
+    manager.Animate(time);
+    manager.AddModifier(modifier);
+    manager.Draw();
 }
 
 /**
@@ -451,6 +587,23 @@ HWTEST_F(RSModifierTest, RotationYModifier002, TestSize.Level1)
     value = -360.f;
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetRotationY(), value);
+}
+
+/**
+ * @tc.name: CameraDistanceModifier001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, CameraDistanceModifier001, TestSize.Level1)
+{
+    auto value = 0.f;
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
+    auto modifier = std::make_shared<RSRotationYModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    ASSERT_TRUE(node != nullptr);
+    node->AddModifier(modifier);
+    ASSERT_EQ(node->GetStagingProperties().GetCameraDistance(), value);
 }
 
 /**
@@ -1803,140 +1956,5 @@ HWTEST_F(RSModifierTest, MaskModifier002, TestSize.Level1)
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetMask(), value);
 }
-
-/**
- * @tc.name: ModifierManager001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, ModifierManager001, TestSize.Level1)
-{
-    RSModifierManager manager;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    ASSERT_NE(modifier, nullptr);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
-
-/**
- * @tc.name: ModifierManager002
- * @tc.desc: animation is exit
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, ModifierManager002, TestSize.Level1)
-{
-    RSModifierManager manager;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    auto animation = std::make_shared<RSRenderAnimation>();
-    ASSERT_NE(animation, nullptr);
-    manager.AddAnimation(animation);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
-
-/**
- * @tc.name: ModifierManager003
- * @tc.desc: animation is nullptr
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, ModifierManager003, TestSize.Level1)
-{
-    RSModifierManager manager;
-    AnimationId id = 0;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    auto animation = std::make_shared<RSRenderAnimation>(id);
-    ASSERT_NE(animation, nullptr);
-    manager.AddAnimation(animation);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
-
-/**
- * @tc.name: ModifierManager004
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, ModifierManager004, TestSize.Level1)
-{
-    RSModifierManager manager;
-    AnimationId id = 10;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    auto animation = std::make_shared<RSRenderAnimation>();
-    ASSERT_NE(animation, nullptr);
-    manager.AddAnimation(animation);
-    manager.RemoveAnimation(id);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
-
-/**
- * @tc.name: ModifierManager005
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, ModifierManager005, TestSize.Level1)
-{
-    RSModifierManager manager;
-    AnimationId id = 0;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    auto animation = std::make_shared<RSRenderAnimation>(id);
-    ASSERT_NE(animation, nullptr);
-    manager.AddAnimation(animation);
-    manager.RemoveAnimation(id);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
-
-/**
- * @tc.name: ModifierManager006
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, ModifierManager006, TestSize.Level1)
-{
-    RSModifierManager manager;
-    int64_t time = 0;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    ASSERT_NE(modifier, nullptr);
-    manager.Animate(time);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
-
-/**
- * @tc.name: ModifierManager007
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, ModifierManager007, TestSize.Level1)
-{
-    RSModifierManager manager;
-    int64_t time = 10;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    ASSERT_NE(modifier, nullptr);
-    manager.Animate(time);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
 } // namespace OHOS::Rosen
+#endif

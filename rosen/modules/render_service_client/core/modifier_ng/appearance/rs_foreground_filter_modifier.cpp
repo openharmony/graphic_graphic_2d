@@ -71,6 +71,52 @@ void RSForegroundFilterModifier::SetDistortionK(std::optional<float> distortionK
     SetterOptional<RSAnimatableProperty>(RSPropertyType::DISTORTION_K, distortionK);
 }
 
+void RSForegroundFilterModifier::SetUIFilter(std::shared_ptr<RSUIFilter> foregroundFilter)
+{
+    if (!foregroundFilter) {
+        return;
+    }
+    auto iter = properties_.find(RSPropertyType::FOREGROUND_UI_FILTER);
+    if (iter != properties_.end() && iter->second != nullptr) {
+        std::shared_ptr<RSUIFilter> oldUIFilter = nullptr;
+        auto oldProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(iter->second);
+        if (oldProperty) {
+            oldUIFilter = oldProperty->Get();
+        }
+        if (oldUIFilter && foregroundFilter->IsStructureSame(oldUIFilter)) {
+            oldUIFilter->SetValue(foregroundFilter);
+            return;
+        }
+    }
+    AttachUIFilterProperty(foregroundFilter);
+}
+
+void RSForegroundFilterModifier::AttachUIFilterProperty(std::shared_ptr<RSUIFilter> uiFilter)
+{
+    if (!uiFilter) {
+        return;
+    }
+    auto property = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(uiFilter);
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    for (auto type : uiFilter->GetUIFilterTypes()) {
+        auto paraGroup = uiFilter->GetUIFilterPara(type);
+        if (!paraGroup) {
+            continue;
+        }
+        for (auto& prop : paraGroup->GetLeafProperties()) {
+            if (!prop) {
+                continue;
+            }
+            prop->target_ = node;
+            node->RegisterProperty(prop);
+        }
+    }
+    AttachProperty(RSPropertyType::FOREGROUND_UI_FILTER, property);
+}
+
 std::optional<float> RSForegroundFilterModifier::GetDistortionK() const
 {
     return GetterOptional<float>(RSPropertyType::DISTORTION_K);

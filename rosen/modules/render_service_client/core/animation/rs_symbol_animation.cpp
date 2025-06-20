@@ -13,11 +13,17 @@
  * limitations under the License.
  */
 
+#include "animation/rs_symbol_animation.h"
+
 #include <cmath>
 
-#include "animation/rs_symbol_animation.h"
 #include "animation/rs_keyframe_animation.h"
 #include "draw/paint.h"
+#include "modifier_ng/appearance/rs_alpha_modifier.h"
+#include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_modifier.h"
+#include "modifier_ng/geometry/rs_frame_modifier.h"
+#include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "platform/common/rs_log.h"
 #include "utils/point.h"
 
@@ -240,7 +246,7 @@ bool RSSymbolAnimation::SetDisappearConfig(
     disappearConfig->numNodes = numNodes;
     // 0 is the byLayer effect and 1 is the wholeSymbol effect
     disappearConfig->animationMode = animationLevelNum > 0 ? 0 : 1;
-    return true;
+    return numNodes > 0;
 }
 
 bool RSSymbolAnimation::SetReplaceAnimation(
@@ -559,10 +565,9 @@ void RSSymbolAnimation::SetSymbolShadow(
 void RSSymbolAnimation::SetSymbolShadow(const SymbolShadow& symbolShadow, std::shared_ptr<RSNode>& rsNode)
 {
     rsNode->SetShadowColor(symbolShadow.color.CastToColorQuad());
-    rsNode->SetShadowOffset(symbolShadow.offset.GetX(), symbolShadow.offset.GetX());
+    rsNode->SetShadowOffset(symbolShadow.offset.GetX(), symbolShadow.offset.GetY());
     rsNode->SetShadowRadius(symbolShadow.blurRadius);
-    int shadowMaskColor = SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR;
-    rsNode->SetProperty<RSShadowMaskModifier, RSProperty<int>>(RSModifierType::SHADOW_MASK, shadowMaskColor);
+    rsNode->SetShadowMaskStrategy(SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
 }
 
 bool RSSymbolAnimation::SetPublicAnimation(
@@ -622,6 +627,12 @@ bool RSSymbolAnimation::SetPublicAnimation(
 bool RSSymbolAnimation::SetTextFlipAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
+    if (!symbolAnimationConfig->animationStart) {
+        ROSEN_LOGD("Clear all text animation");
+        std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
+        rsNode_->canvasNodesListMap_.clear();
+        return true;
+    }
     if (symbolAnimationConfig->parameters.size() < PROPERTIES) {
         ROSEN_LOGE("Invalid animation parameters of text flip, parameters.size: %{public}zu ",
             symbolAnimationConfig->parameters.size());
@@ -742,11 +753,14 @@ void RSSymbolAnimation::SetNodePivot(const std::shared_ptr<RSNode>& rsNode)
     Vector2f curNodePivot = rsNode->GetStagingProperties().GetPivot();
     pivotProperty_ = nullptr; // reset
     if (!(curNodePivot.x_ == CENTER_NODE_COORDINATE.x_ && curNodePivot.y_ == CENTER_NODE_COORDINATE.y_)) {
-        bool isCreate = SymbolAnimation::CreateOrSetModifierValue(pivotProperty_, CENTER_NODE_COORDINATE);
-        if (isCreate) {
-            auto pivotModifier = std::make_shared<RSPivotModifier>(pivotProperty_);
-            rsNode->AddModifier(pivotModifier);
-        }
+        SymbolAnimation::CreateOrSetModifierValue(pivotProperty_, CENTER_NODE_COORDINATE);
+#if defined(MODIFIER_NG)
+        auto modifier = std::make_shared<ModifierNG::RSTransformModifier>();
+        modifier->AttachProperty(ModifierNG::RSPropertyType::PIVOT, pivotProperty_);
+#else
+        auto modifier = std::make_shared<RSPivotModifier>(pivotProperty_);
+#endif
+        rsNode->AddModifier(modifier);
     }
 }
 
@@ -796,7 +810,7 @@ bool RSSymbolAnimation::SetDisableAnimation(
 bool RSSymbolAnimation::SetDisableAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
-    const std::shared_ptr<RSNode>& rsNoddeRoot)
+    const std::shared_ptr<RSNode>& rsNodeRoot)
 {
     if (parameters.empty()) {
         ROSEN_LOGE("HmSymbol Failed to get disable parameters");
@@ -806,7 +820,7 @@ bool RSSymbolAnimation::SetDisableAnimation(
 
     // Create a child node the same as the rsNode_
     std::shared_ptr<RSNode> rsNode = nullptr;
-    CreateSameNode(symbolAnimationConfig->symbolSpanId, rsNode, rsNoddeRoot);
+    CreateSameNode(symbolAnimationConfig->symbolSpanId, rsNode, rsNodeRoot);
     if (rsNode == nullptr) {
         ROSEN_LOGE("HmSymbol Failed to create rsNode");
         return false;
@@ -832,7 +846,7 @@ bool RSSymbolAnimation::SetDisableAnimation(
         ROSEN_LOGE("Invalid parameter of clip layer in HmSymbol");
         return false;
     }
-    return SetClipAnimation(rsNoddeRoot, symbolAnimationConfig, parameters[symbolNode.animationIndex], n, offsets);
+    return SetClipAnimation(rsNodeRoot, symbolAnimationConfig, parameters[symbolNode.animationIndex], n, offsets);
 }
 
 // set disable parameter with slope of symbol
@@ -1109,6 +1123,14 @@ bool RSSymbolAnimation::SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode,
     if (rsNode == nullptr) {
         return false;
     }
+#if defined(MODIFIER_NG)
+    auto frameModifier = std::make_shared<ModifierNG::RSFrameModifier>();
+    frameModifier->SetFrame(bounds);
+    rsNode->AddModifier(frameModifier);
+    auto boundsModifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    boundsModifier->SetBounds(bounds);
+    rsNode->AddModifier(boundsModifier);
+#else
     std::shared_ptr<RSAnimatableProperty<Vector4f>> frameProperty = nullptr;
     std::shared_ptr<RSAnimatableProperty<Vector4f>> boundsProperty = nullptr;
 
@@ -1122,6 +1144,7 @@ bool RSSymbolAnimation::SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode,
         auto boundsModifier = std::make_shared<RSBoundsModifier>(boundsProperty);
         rsNode->AddModifier(boundsModifier);
     }
+#endif
     rsNode_->SetClipToBounds(false);
     rsNode_->SetClipToFrame(false);
     return true;
@@ -1141,9 +1164,14 @@ bool RSSymbolAnimation::SetKeyframeAlphaAnimation(const std::shared_ptr<RSNode>&
     if (!GetKeyframeAlphaAnimationParas(parameters, duration, timePercents)) {
         return false;
     }
-
+#if defined(MODIFIER_NG)
+    auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    // 0 means the first stage of a node
+    alphaModifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, alphaPropertyStages_[0]);
+#else
     // 0 means the first stage of a node
     auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaPropertyStages_[0]);
+#endif
     rsNode->AddModifier(alphaModifier);
     std::shared_ptr<RSAnimation> animation = nullptr;
     animation = KeyframeAlphaSymbolAnimation(rsNode, parameters[0], duration, timePercents);
@@ -1279,10 +1307,15 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
 
     if (scaleProperty == nullptr) {
         SetNodePivot(rsNode);
-        const Vector2f scaleValueBegin = {properties.at(SCALE_PROP_X).at(0), properties.at(SCALE_PROP_Y).at(0)};
+        const Vector2f scaleValueBegin = { properties.at(SCALE_PROP_X).at(0), properties.at(SCALE_PROP_Y).at(0) };
         SymbolAnimation::CreateOrSetModifierValue(scaleProperty, scaleValueBegin);
-        auto scaleModifier = std::make_shared<Rosen::RSScaleModifier>(scaleProperty);
-        rsNode->AddModifier(scaleModifier);
+#if defined(MODIFIER_NG)
+        auto modifier = std::make_shared<ModifierNG::RSTransformModifier>();
+        modifier->AttachProperty(ModifierNG::RSPropertyType::SCALE, scaleProperty);
+#else
+        auto modifier = std::make_shared<Rosen::RSScaleModifier>(scaleProperty);
+#endif
+        rsNode->AddModifier(modifier);
     }
 
     const Vector2f scaleValueEnd = {properties.at(SCALE_PROP_X).at(PROP_END), properties.at(SCALE_PROP_Y).at(PROP_END)};
@@ -1324,7 +1357,12 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
     if (alphaProperty == nullptr) {
         float alphaValueBegin = static_cast<float>(properties.at(ALPHA_PROP).at(PROP_START));
         SymbolAnimation::CreateOrSetModifierValue(alphaProperty, alphaValueBegin);
+#if defined(MODIFIER_NG)
+        auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+        alphaModifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, alphaProperty);
+#else
         auto alphaModifier = std::make_shared<Rosen::RSAlphaModifier>(alphaProperty);
+#endif
         rsNode->AddModifier(alphaModifier);
     }
     float alphaValueEnd = static_cast<float>(properties.at(ALPHA_PROP).at(PROP_END));
@@ -1338,8 +1376,8 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
     RSAnimationTimingCurve alphaCurve;
     SymbolAnimation::CreateAnimationTimingCurve(alphaParameter.curveType, alphaParameter.curveArgs, alphaCurve);
 
-    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(),
-        alphaProtocol, alphaCurve, [&alphaProperty, &alphaValueEnd]() { alphaProperty->Set(alphaValueEnd); });
+    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(), alphaProtocol,
+        alphaCurve, [&alphaProperty, &alphaValueEnd]() { alphaProperty->Set(alphaValueEnd); });
 
     if (animations1.size() > 0 && animations1[0] != nullptr) {
         animations.emplace_back(animations1[0]);
@@ -1361,9 +1399,14 @@ void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rs
     }
 
     if (property == nullptr) {
-        const Vector2f valueBegin = {properties.at(TRANSLATE_PROP_X).at(0), properties.at(TRANSLATE_PROP_Y).at(0)};
+        const Vector2f valueBegin = { properties.at(TRANSLATE_PROP_X).at(0), properties.at(TRANSLATE_PROP_Y).at(0) };
         SymbolAnimation::CreateOrSetModifierValue(property, valueBegin);
-        auto modifier = std::make_shared<Rosen::RSTranslateModifier>(property);
+#if defined(MODIFIER_NG)
+        auto modifier = std::make_shared<ModifierNG::RSTransformModifier>();
+        modifier->AttachProperty(ModifierNG::RSPropertyType::TRANSLATE, property);
+#else
+        auto modifier = std::make_shared<RSTranslateModifier>(property);
+#endif
         rsNode->AddModifier(modifier);
     }
 
@@ -1404,7 +1447,12 @@ void RSSymbolAnimation::BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     if (property == nullptr) {
         float valueBegin = properties.at(BLUR_PROP).at(PROP_START);
         SymbolAnimation::CreateOrSetModifierValue(property, valueBegin);
-        auto modifier = std::make_shared<Rosen::RSForegroundEffectRadiusModifier>(property);
+#if defined(MODIFIER_NG)
+        auto modifier = std::make_shared<ModifierNG::RSForegroundFilterModifier>();
+        modifier->AttachProperty(ModifierNG::RSPropertyType::FOREGROUND_EFFECT_RADIUS, property);
+#else
+        auto modifier = std::make_shared<RSForegroundEffectRadiusModifier>(property);
+#endif
         rsNode->AddModifier(modifier);
     }
 

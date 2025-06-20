@@ -185,7 +185,7 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
     EXPECT_NE(filterDrawable, nullptr);
 
     filterDrawable->needSync_ = true;
-    filterDrawable->stagingFilter_ = nullptr;
+    filterDrawable->stagingFilter_ = std::shared_ptr<RSFilter>(new RSFilter());
     filterDrawable->stagingIntersectWithDRM_=true;
     filterDrawable->stagingIsDarkColorMode_=true;
     filterDrawable->OnSync();

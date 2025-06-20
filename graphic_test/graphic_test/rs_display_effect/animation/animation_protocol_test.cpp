@@ -32,7 +32,7 @@ private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
 
-    void RegisterTestNode(std::shared_ptr<RSModifier> modifier)
+    void RegisterTestNode(std::shared_ptr<Modifier> modifier)
     {
         auto testNode = RSCanvasNode::Create();
         testNode->SetBounds({ 0, 0, screenWidth, screenHeight });

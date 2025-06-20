@@ -523,6 +523,18 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
     ASSERT_TRUE(result.IsEmpty());
 
     surfaceParams->isMainWindowType_ = true;
+    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->isAppWindow_ = false;
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
+    ASSERT_FALSE(result.IsEmpty());
+
+    surfaceParams->isMainWindowType_ = false;
+    surfaceParams->isLeashWindow_ = false;
+    surfaceParams->isAppWindow_ = false;
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
+    ASSERT_FALSE(result.IsEmpty());
+
+    surfaceParams->isMainWindowType_ = true;
     surfaceParams->isLeashWindow_ = false;
     surfaceParams->isAppWindow_ = false;
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);

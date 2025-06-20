@@ -25,6 +25,8 @@
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
+#include "hpae_base/rs_hpae_base_data.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 class RSPropertyDrawableUtilsTest : public testing::Test {
@@ -136,7 +138,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
     paintFilterCanvasTest1.surface_ = nullptr;
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
@@ -148,17 +150,17 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     EXPECT_NE(rsFilter->imageFilter_, nullptr);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
-    rsPropertyDrawableUtils->DrawFilter(nullptr, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(nullptr, rsFilter, cacheManager, 0, false);
     auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvasTest1.surface_ = surface.get();
     paintFilterCanvasTest1.SetDisableFilterCache(false);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     paintFilterCanvasTest1.SetDisableFilterCache(true);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     auto magnifierParams = std::make_shared<RSMagnifierParams>();
     auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierParams);
     magnifierFilter->type_ = RSUIFilterType::MAGNIFIER;
@@ -166,7 +168,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsFilter->type_ = RSFilter::BLUR;
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
 
     // second: BeginForegroundFilter test
     Drawing::Canvas canvasTest2;
@@ -188,6 +190,47 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
     rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
     rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, false);
+}
+
+/**
+ * @tc.name: DrawFilterTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:wz
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawFilterTest002, testing::ext::TestSize.Level1)
+{
+    // first: DrawFilter test
+    NodeId id = 1;
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    Drawing::Canvas canvasTest1;
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
+    std::shared_ptr<RSFilter> rsFilter = nullptr;
+    std::shared_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
+    paintFilterCanvasTest1.size_ = nullptr;
+    cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
+    auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
+    rsFilterTest->type_ = RSUIFilterType::LINEAR_GRANDIENT_BLUR;
+    EXPECT_NE(rsFilterTest, nullptr);
+    rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
+    EXPECT_NE(rsFilterTest, nullptr);
+    rsFilter->type_ = RSFilter::BLUR;
+    rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
+    EXPECT_NE(rsFilter->imageFilter_, nullptr);
+    cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
+    auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvasTest1.surface_ = surface.get();
+    paintFilterCanvasTest1.SetDisableFilterCache(false);
+    cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
+
+    auto manager = std::shared_ptr<RSHpaeFilterCacheManager>(new RSHpaeFilterCacheManager());
+    EXPECT_NE(manager, nullptr);
+    RSHpaeBaseData::GetInstance().hpaeStatus_.blurNodId = id;
+    RSHpaeBaseData::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, id, false);
 }
 
 /**

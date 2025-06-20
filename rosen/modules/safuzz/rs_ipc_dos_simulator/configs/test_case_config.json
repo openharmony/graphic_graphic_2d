@@ -1370,6 +1370,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "SET_VIRTUAL_SCREEN_AUTO_ROTATION_TEST_001",
+    "interfaceName": "SET_VIRTUAL_SCREEN_AUTO_ROTATION",
+    "inputParams": "WriteUint64;WriteBool",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "SET_PHYSICAL_SCREEN_RESOLUTION_TEST_001",
     "interfaceName": "SET_PHYSICAL_SCREEN_RESOLUTION",
     "inputParams": "WriteUint64;WriteUint32;WriteUint32",
@@ -2168,6 +2175,13 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "SET_FORCE_REFRESH_TEST_001",
+    "interfaceName": "SET_FORCE_REFRESH",
+    "inputParams": "WriteString;WriteBool",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "SET_HIDE_PRIVACY_CONTENT_TEST_001",
     "interfaceName": "SET_HIDE_PRIVACY_CONTENT",
     "inputParams": "WriteUint64;WriteBool",
@@ -2299,5 +2313,19 @@
     "inputParams": "WriteInt32;WriteUint64;WriteTransactionDataCallbackSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "AVCODEC_VIDEO_START_TEST_001",
+    "interfaceName": "AVCODEC_VIDEO_START",
+    "inputParams": "WriteUint64;WriteString;WriteUint32;WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "AVCODEC_VIDEO_STOP_TEST_001",
+    "interfaceName": "AVCODEC_VIDEO_STOP",
+    "inputParams": "WriteUint64;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]

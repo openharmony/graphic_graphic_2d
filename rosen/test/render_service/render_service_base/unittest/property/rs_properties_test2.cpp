@@ -35,6 +35,7 @@ class PropertiesTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static bool IsForegroundFilter(RSProperties& properties);
     void SetUp() override;
     void TearDown() override;
 };
@@ -43,6 +44,15 @@ void PropertiesTest::SetUpTestCase() {}
 void PropertiesTest::TearDownTestCase() {}
 void PropertiesTest::SetUp() {}
 void PropertiesTest::TearDown() {}
+bool PropertiesTest::IsForegroundFilter(RSProperties& properties)
+{
+    bool isUniRender = RSProperties::IS_UNI_RENDER;
+    if (isUniRender) {
+        return properties.foregroundFilterCache_ != nullptr;
+    } else {
+        return properties.foregroundFilter_ != nullptr;
+    }
+}
 
 /**
  * @tc.name: SetBgImageInnerRectTest
@@ -1429,35 +1439,17 @@ HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
 HWTEST_F(PropertiesTest, UpdateForegroundFilterTest001, TestSize.Level1)
 {
     RSProperties properties;
-    bool isUniRender = RSProperties::IS_UNI_RENDER;
-    if (isUniRender) {
-        EXPECT_TRUE(properties.foregroundFilterCache_ == nullptr);
-    } else {
-        EXPECT_TRUE(properties.foregroundFilter_ == nullptr);
-    }
     properties.SetShadowMask(0); // mask none
     properties.UpdateForegroundFilter();
-    if (isUniRender) {
-        EXPECT_TRUE(properties.foregroundFilterCache_ == nullptr);
-    } else {
-        EXPECT_TRUE(properties.foregroundFilter_ == nullptr);
-    }
+    EXPECT_FALSE(IsForegroundFilter(properties));
 
     properties.SetShadowMask(10); // 10 is invalid
     properties.UpdateForegroundFilter();
-    if (isUniRender) {
-        EXPECT_TRUE(properties.foregroundFilterCache_ == nullptr);
-    } else {
-        EXPECT_TRUE(properties.foregroundFilter_ == nullptr);
-    }
+    EXPECT_FALSE(IsForegroundFilter(properties));
 
     properties.SetShadowMask(2); // mask color blur
     properties.UpdateForegroundFilter();
-    if (isUniRender) {
-        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
-    } else {
-        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
-    }
+    EXPECT_TRUE(IsForegroundFilter(properties));
 }
 
 /**
@@ -1477,6 +1469,7 @@ HWTEST_F(PropertiesTest, SetAlwaysSnapshotTest, TestSize.Level1)
     ASSERT_NE(properties.backgroundFilter_, nullptr);
     EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
 }
+
 /**
  * @tc.name: GenerateAlwaysSnapshotFilterTest
  * @tc.desc: test GenerateAlwaysSnapshotFilter
@@ -1488,6 +1481,21 @@ HWTEST_F(PropertiesTest,  GenerateAlwaysSnapshotFilterTest, TestSize.Level1)
     properties.GenerateAlwaysSnapshotFilter();
     ASSERT_NE(properties.backgroundFilter_, nullptr);
     EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
+}
+
+/**
+ * @tc.name: SetEnableHDREffect Test
+ * @tc.desc: test SetEnableHDREffect Get, Set and UpdateFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetEnableHDREffectTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetEnableHDREffect(true);
+    properties.SetEnableHDREffect(true); // different branch if call again
+    EXPECT_EQ(properties.GetEnableHDREffect(), true);
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.needFilter_);
 }
 } // namespace Rosen
 } // namespace OHOS

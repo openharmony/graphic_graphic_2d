@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_BACKGROUND_FILTER_MODIFIER_H
 
 #include "modifier_ng/rs_modifier_ng.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
 
 namespace OHOS::Rosen::ModifierNG {
 class RSC_EXPORT RSBackgroundFilterModifier : public RSModifier {
@@ -47,6 +48,7 @@ public:
     void SetBgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     void SetAlwaysSnapshot(bool enable);
+    void SetUIFilter(std::shared_ptr<RSUIFilter> backgroundFilter);
 
     bool GetSystemBarEffect() const;
     float GetWaterRippleProgress() const;
@@ -63,6 +65,9 @@ public:
     bool GetBgBlurDisableSystemAdaptation() const;
     std::optional<Vector2f> GetGreyCoef() const;
     bool GetAlwaysSnapshot() const;
+
+private:
+    void AttachUIFilterProperty(std::shared_ptr<RSUIFilter> uiFilter);
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_BACKGROUND_FILTER_MODIFIER_H

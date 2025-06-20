@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_FOREGROUND_FILTER_MODIFIER_H
 
 #include "modifier_ng/rs_modifier_ng.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
 
 namespace OHOS::Rosen::ModifierNG {
 class RSC_EXPORT RSForegroundFilterModifier : public RSModifier {
@@ -45,6 +46,7 @@ public:
     void SetDistortionK(const std::optional<float> distortionK);
     void SetAttractionFraction(float fraction);
     void SetAttractionDstPoint(const Vector2f& dstPoint);
+    void SetUIFilter(std::shared_ptr<RSUIFilter> foregroundFilter);
 
     float GetSpherize() const;
     float GetForegroundEffectRadius() const;
@@ -54,6 +56,9 @@ public:
     std::optional<float> GetDistortionK() const;
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
+
+private:
+    void AttachUIFilterProperty(std::shared_ptr<RSUIFilter> uiFilter);
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_FOREGROUND_FILTER_MODIFIER_H

@@ -43,7 +43,7 @@ private:
     RSHpaePerfThread& operator=(const RSHpaePerfThread&&);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
-    std::shared_ptr<AppExecFwk::EventRunner> handler_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     int32_t curThreadId_ = -1;
 };
 

@@ -1,37 +1,56 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
-#include "hpae_base/rs_hpae_log.h"
-#include "platform/common/rs_log.h"
+
+#if defined(ROSEN_OHOS)
 #include <dlfcn.h>
+#include <unistd.h>
+#endif
+
+#include "hpae_base/rs_hpae_log.h"
+
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 
+namespace {
 using GPInstanceGetFunc = void*(*)(PatternType_C, const char*);
 using GPInstanceInitFunc = bool(*)(void*, size_t);
-using GPInstanceDstroyFunc = void(*)(void*);
-using GPRequestEGraphFunc = bool(*)(void*, uint64_t);
+using GPInstanceDestroyFunc = void(*)(void*);
+using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseAllEGraphFunc = bool(*)(void*);
-using GPAAETaskSubmitFunc = void*(*)(void*, uint64_t, MHC_PatternTaskName, void*, void**, void*);
 using GPWaitFunc = void*(*)(void*, uint64_t, MHC_PatternTaskName);
-using GPGPUTaskSubmitFunc = void*(*)(void*, uint64_t, MHC_PatternTaskName, void*, void*);
 using GPGetGPUWaitEventFunc = uint16_t(*)(void*, uint64_t, MHC_PatternTaskName);
 using GPGetGPUNotifyEventFunc = uint16_t(*)(void*, uint64_t, MHC_PatternTaskName);
-using GPGPTaskSubmitFunc = void(*)(void*, uint64_t, MHC_PatternTaskName);
+using GPGPTaskSubmitFunc = void(*)(void*, uint64_t, MHC_TaskInfo*);
 
-static GPInstanceGetFunc g_getGraphPatternInstance = nullptr;
-static GPInstanceInitFunc g_graphPatternInit = nullptr;
-static GPInstanceDstroyFunc g_graphPatternDestroy = nullptr;
-static GPRequestEGraphFunc g_graphPatternRequestEGraph = nullptr;
-static GPReleaseEGraphFunc g_graphPatternReleaseEGraph = nullptr;
-static GPReleaseAllEGraphFunc g_graphPatternReleaseAll = nullptr;
-static GPAAETaskSubmitFunc g_graphPatternAnimationTaskSubmit = nullptr;
-static GPGPUTaskSubmitFunc g_graphPatternVulkanTaskSubmit = nullptr;
-static GPWaitFunc g_graphPatternWait = nullptr;
-static GPGetGPUWaitEventFunc g_graphPatternGetVulkanWaitEvent = nullptr;
-static GPGetGPUNotifyEventFunc g_graphPatternGetVulkanNotifyEvent = nullptr;
-static GPGPTaskSubmitFunc g_graphPatternTaskSubmit = nullptr;
+static GPInstanceGetFunc g_getGPInstance = nullptr;
+static GPInstanceInitFunc g_GPInit = nullptr;
+static GPInstanceDestroyFunc g_GPDestroy = nullptr;
+static GPRequestEGraphFunc g_GPRequestEGraph = nullptr;
+static GPReleaseEGraphFunc g_GPReleaseEGraph = nullptr;
+static GPReleaseAllEGraphFunc g_GPReleaseAll = nullptr;
+static GPWaitFunc g_GPnWait = nullptr;
+static GPGetGPUWaitEventFunc g_GPGetVulkanWaitEvent = nullptr;
+static GPGetGPUNotifyEventFunc g_GPGetVulkanNotifyEvent = nullptr;
+static GPGPTaskSubmitFunc g_GPTaskSubmit = nullptr;
 static void* g_mhc_libframeworkHandle = nullptr;
+}
 
 RSHpaeFfrtPatternManager& RSHpaeFfrtPatternManager::Instance()
 {
@@ -50,66 +69,67 @@ RSHpaeFfrtPatternManager::RSHpaeFfrtPatternManager()
     HPAE_LOGW("mhc_so MHCGraphPatternInit success!");
 }
 
-RSHpaeFfrtPatternManager::~RSHpaeFfrPatternManager()
+RSHpaeFfrtPatternManager::~RSHpaeFfrtPatternManager()
 {
     if (g_instance) {
-        g_graphPatternDestroy(g_instance);
+        g_GPDestroy(g_instance);
         g_instance = nullptr;
     }
-    if (g_mhc_libframeworkHandle) {
-        dlclose(g_mhc_libframeworkHandle);
-        g_getGraphPatternInstance = nullptr;
-        g_graphPatternInit = nullptr;
-        g_graphPatternDestroy = nullptr;
-        g_graphPatternRequestEGraph = nullptr;
-        g_graphPatternReleaseEGraph = nullptr;
-        g_graphPatternReleaseAll = nullptr;
-        g_graphPatternAnimationTaskSubmit = nullptr;
-        g_graphPatternVulkanTaskSubmit = nullptr;
-        g_graphPatternWait = nullptr;
-        g_graphPatternGetVulkanWaitEvent = nullptr;
-        g_graphPatternGetVulkanNotifyEvent = nullptr;
-        g_graphPatternTaskSubmit = nullptr;
-        g_mhc_libframeworkHandle = nullptr;
+
+    if (g_mhcHandle) {
+#if defined(ROSEN_OHOS)
+        dlclose(g_mhcHandle);
+#endif
+        g_getGPInstance = nullptr;
+        g_GPInit = nullptr;
+        g_GPDestroy = nullptr;
+        g_GPRequestEGraph = nullptr;
+        g_GPReleaseEGraph = nullptr;
+        g_GPReleaseAll = nullptr;
+        g_GPWait = nullptr;
+        g_GPGetVulkanWaitEvent = nullptr;
+        g_GPGetVulkanNotifyEvent = nullptr;
+        g_GPTaskSubmit = nullptr;
+        g_mhcHandle = nullptr;
     }
 }
 
 bool RSHpaeFfrtPatternManager::MHCDlOpen()
 {
+#if defined(ROSEN_OHOS)
     HPAE_LOGW("mhc_so MHCDlOpen start\n");
-    if (g_mhc_libframeworkHandle == nullptr) {
-        g_mhc_libframeworkHandle = dlopen("/vendor/lib64/libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
-        if (!g_mhc_libframeworkHandle) {
-            HPAE_LOGW("mhc_so diopen libmhc_framework.so error\n");
+    if (g_mhcHandle == nullptr) {
+        g_mhcHandle = dlopen("/vendor/lib64/libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
+        if (!g_mhcHandle) {
+            HPAE_LOGW("mhc_so dlopen libmhc_framework.so error\n");
             return false;
         }
     }
-
-    g_getGraphPatternInstance = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_getGraphPatternInstance, "mhc_graph_pattern_get"));
-    g_graphPatternInit = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternInit, "mhc_graph_pattern_init"));
-    g_graphPatternDestroy = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternDestroy, "mhc_graph_pattern_destroy"));
-    g_graphPatternRequestEGraph = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternRequestEGraph, "mhc_graph_request_eg"));
-    g_graphPatternReleaseEGraph = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternReleaseEGraph, "mhc_graph_release_eg"));
-    g_graphPatternReleaseAll = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternReleaseAll, "mhc_graph_relsease_all"));
-    g_graphPatternAnimationTaskSubmit = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternAnimationTaskSubmit, "mhc_gp_animation_task_submit"));
-    g_graphPatternVulkanTaskSubmit = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_getGraphPatternInstance, "mhc_gp_vulkan_task_submit"));
-    g_graphPatternWait = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternWait, "mhc_gp_task_wait"));
-    g_graphPatternGetVulkanWaitEvent = reinterpret_cast<GPInstanceGetFunc>(gdlsym(_graphPatternGetVulkanWaitEvent, "mhc_gp_vulkan_task_get_wait_event"));
-    g_graphPatternGetVulkanNotifyEvent = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternGetVulkanNotifyEvent, "mhc_gp_vulkan_task_get_notify_event"));
-    g_graphPatternTaskSubmit = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_graphPatternTaskSubmit, "mhc_gp_task_submit"));
-
-    if (!g_getGraphPatternInstance || !g_graphPatternInit || !g_graphPatternDestroy\
-        || !g_graphPatternRequestEGraph || !g_graphPatternReleaseEGraph || !g_graphPatternReleaseAll\
-        || !g_graphPatternAnimationTaskSubmit || !g_graphPatternVulkanTaskSubmit || !g_graphPatternWait\
-        || !g_graphPatternGetVulkanWaitEvent || !g_graphPatternGetVulkanNotifyEvent || !g_graphPatternTaskSubmit) {
+    g_getGPInstance = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_get"));
+    g_GPInit = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_init"));
+    g_GPDestroy = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_destroy"));
+    g_GPRequestEGraph = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_request_eg"));
+    g_GPReleaseEGraph = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_release_eg"));
+    g_GPReleaseAll = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_relsease_all"));
+    g_GPWait = reinterpret_cast<GPWaitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_wait"));
+    g_GPGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(dlsym(g_mhcHandle, "mhc_gp_task_get_wait_event"));
+    g_GPGetVulkanNotifyEvent = reinterpret_cast<GPGetGPUNotifyEventFunc>(dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_notify_event"));
+    g_GPTaskSubmit = reinterpret_cast<GPGPTaskSubmitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_submit"));
+    if (!g_getGPInstance || !g_GPInit || !g_GPDestroy\
+        || !g_GPRequestEGraph || !g_GPReleaseEGraph ||
+        || !g_GPVulkanTaskSubmit || !g_GPWait\
+        || !g_GPGetVulkanWaitEvent || !g_GPGetVulkanNotifyEvent || !g_GPTaskSubmit) {
         HPAE_LOGE("mhc_so dlsym error\n");
-        dlclose(g_mhc_libframeworkHandle);
-        g_mhc_libframeworkHandle = nullptr;
+        dlclose(g_mhcHandle);
+        g_mhcHandle = nullptr;
         return false;
     }
 
     HPAE_LOGW("mhc_so LoadLibMHC success\n");
     return true;
+#else
+    return false;
+#endif
 }
 
 bool RSHpaeFfrtPatternManager::MHCCheck(const std::string logTag, uint64_t frameId)
@@ -128,12 +148,12 @@ bool RSHpaeFfrtPatternManager::MHCGraphPatternInit(size_t size)
     if (g_instance) {
         return true;
     }
-    if (g_getGraphPatternInstance == nullptr) {
-        HPAE_LOGW("mhc_so g_getGraphPatternInstance nullptr");
+    if (g_getGPInstance == nullptr) {
+        HPAE_LOGW("mhc_so g_getGPInstance nullptr");
         return false;
     }
-    g_instance =  g_getGraphPatternInstance(PATTERN_BLUR, "test_blur_graph");
-    return g_graphPatternInit(g_instance, size);
+    g_instance =  g_getGPInstance(PatternType_C::BLUR, "blur_graph");
+    return g_GPInit(g_instance, size);
 }
 
 bool RSHpaeFfrtPatternManager::MHCRequestEGraph(uint64_t frameId)
@@ -142,67 +162,25 @@ bool RSHpaeFfrtPatternManager::MHCRequestEGraph(uint64_t frameId)
         HPAE_LOGW("mhc_so MHCRequestEGraph g_instance nullptr");
         return false;
     }
-    if (g_graphPatternRequestEGraph == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternRequestEGraph nullptr");
+    if (g_GPRequestEGraph == nullptr) {
+        HPAE_LOGW("mhc_so g_GPRequestEGraph nullptr");
         return false;
     }
-    return g_graphPatternRequestEGraph(g_instance, frameId);
+    return g_GPRequestEGraph(g_instance, frameId);
 }
 
-bool RSHpaeFfrtPatternManager::MHCSubmitBlurTask(uint64_t frameId, MHC_PatternTaskName taskName, \
-    std::function<void()>&& preFunc, void** taskHandle, std::function<void()>&& afterFunc)
-{
-    if (!MHCCheck("MHCSubmitBlurTask", frameId)) {
-        return false;
-    }
-
-    if (g_graphPatternAnimationTaskSubmit == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternAnimationTaskSubmit nullptr");
-        return false;
-    }
-
-    FunctionHeader* preFuncHeader = create_function_wrapper(std::move(preFunc));
-    void* c_preFunc = static_cast<void*>(preFuncHeader);
-    FunctionHeader* afterFuncHeader = create_function_wrapper(std::move(afterFunc));
-    void* c_afterFunc = static_cast<void*>(afterFuncHeader);
-
-    g_graphPatternAnimationTaskSubmit(g_instance, frameId, taskName, c_preFunc, taskHandle, c_afterFunc);
-    return true;
-}
-
-bool RSHpaeFfrtPatternManager::MHCSubmitVulkanTask(uint64_t frameId, MHC_PatternTaskName taskName, \
-    std::function<void()>&& preFunc, std::function<void()>&& afterFunc)
-{
-    if (!MHCCheck("MHCSubmitVulkanTask", frameId)) {
-        return false;
-    }
-
-    if (g_graphPatternVulkanTaskSubmit == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternVulkanTaskSubmit nullptr");
-        return false;
-    }
-
-    FunctionHeader* preFuncHeader = create_function_wrapper(std::move(preFunc));
-    void* c_preFunc = static_cast<void*>(preFuncHeader);
-    FunctionHeader* afterFuncHeader = create_function_wrapper(std::move(afterFunc));
-    void* c_afterFunc = static_cast<void*>(afterFuncHeader);
-
-    g_graphPatternVulkanTaskSubmit(g_instance, frameId, taskName, c_preFunc, c_afterFunc);
-    return true;
-}
-
-bool RSHpaeFfrtPatternManager::MHCWait(uint64_t framId, MHC_PatternTaskName taskName)
+bool RSHpaeFfrtPatternManager::MHCWait(uint64_t frameId, MHC_PatternTaskName taskName)
 {
     if (!MHCCheck("MHCWait", frameId)) {
         return false;
     }
 
-    if (g_graphPatternWait == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternVulkanTaskSubmit nullptr");
+    if (g_GPWait == nullptr) {
+        HPAE_LOGW("mhc_so g_GPWait nullptr");
         return false;
     }
 
-    g_graphPatternWait(g_instance, frameId, taskName);
+    g_GPWait(g_instance, frameId, taskName);
     return true;
 }
 
@@ -212,29 +190,29 @@ uint16_t RSHpaeFfrtPatternManager::MHCGetVulkanTaskWaitEvent(uint64_t frameId, M
         return false;
     }
 
-    if (g_graphPatternGetVulkanWaitEvent == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternGetVulkanWaitEvent nullptr");
+    if (g_GPGetVulkanWaitEvent == nullptr) {
+        HPAE_LOGW("mhc_so g_GPGetVulkanWaitEvent nullptr");
         return false;
     }
 
-    auto eventId = g_graphPatternGetVulkanWaitEvent(g_instance, frameId, taskName);
-    HPAE_LOGW("mhc_so RSHpaeFfrtPatternManager::MHCGetVulkanTaskWaitEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
+    auto eventId = g_GPGetVulkanWaitEvent(g_instance, frameId, taskName);
+    HPAE_LOGW("mhc_so MHCGetVulkanTaskWaitEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
     return eventId;
 }
 
-uint64_t RSHpaeFfrtPatternManager::MHCGetVulkanTaskNotifyEvent(uint64_t frameId, MHC_PatternTaskName taskName)
+uint16_t RSHpaeFfrtPatternManager::MHCGetVulkanTaskNotifyEvent(uint64_t frameId, MHC_PatternTaskName taskName)
 {
     if (!MHCCheck("MHCGetVulkanTaskNotifyEvent", frameId)) {
         return false;
     }
 
-    if (g_graphPatternGetVulkanNotifyEvent == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternGetVulkanNotifyEvent nullptr");
+    if (g_GPGetVulkanNotifyEvent == nullptr) {
+        HPAE_LOGW("mhc_so g_GPGetVulkanNotifyEvent nullptr");
         return false;
     }
 
-    auto eventId = g_graphPatternGetVulkanNotifyEvent(g_instance, frameId, taskName);
-    HPAE_LOGW("mhc_so RSHpaeFfrtPatternManager::MHCGetVulkanTaskNotifyEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
+    auto eventId = g_GPGetVulkanNotifyEvent(g_instance, frameId, taskName);
+    HPAE_LOGW("mhc_so MHCGetVulkanTaskNotifyEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
     return eventId;
 }
 
@@ -244,12 +222,12 @@ bool RSHpaeFfrtPatternManager::MHCReleaseEGraph(uint64_t frameId)
         return false;
     }
 
-    if (g_graphPatternReleaseEGraph == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternReleaseEGraph nullptr");
+    if (g_GPReleaseEGraph == nullptr) {
+        HPAE_LOGW("mhc_so g_GPReleaseEGraph nullptr");
         return false;
     }
 
-    return g_graphPatternReleaseEGraph(g_instance, frameId);
+    return g_GPReleaseEGraph(g_instance, frameId);
 }
 
 void RSHpaeFfrtPatternManager::MHCReleaseAll()
@@ -259,20 +237,25 @@ void RSHpaeFfrtPatternManager::MHCReleaseAll()
         HPAE_LOGE("mhc_so MHCReleaseAll g_instance == nullptr");
         return;
     }
+
+    if (g_GPReleaseAll == nullptr) {
+        HPAE_LOGW("mhc_so g_GPReleaseAll nullptr");
+        return;
+    }
     // return 1 is succ
-    int ret = g_graphPatternReleaseAll(g_instance);
-    HPAE_LOGW("mhc_so MHCReleaseAll, ret=%{public}d", ret);
+    int ret = g_GPReleaseAll(g_instance);
+    ROSEN_LOGI("mhc_so MHCReleaseAll, ret=%{public}d", ret);
 }
 
 bool RSHpaeFfrtPatternManager::MHCSubmitTask(uint64_t frameId, MHC_PatternTaskName taskName, \
-    std::function<void()>&& preFunc, void*** taskHandleVec, size_t numTask, std::function<void()&&afterFunc>)
+    std::function<void()>&& preFunc, void*** taskHandleVec, size_t numTask, std::function<void()>&&afterFunc)
 {
     if (!MHCCheck("MHCSubmitTask", frameId)) {
         return false;
     }
 
-    if (g_graphPatternTaskSubmit == nullptr) {
-        HPAE_LOGW("mhc_so g_graphPatternTaskSubmit nullptr");
+    if (g_GPTaskSubmit == nullptr) {
+        HPAE_LOGW("mhc_so g_GPTaskSubmit nullptr");
         return false;
     }
 
@@ -282,14 +265,33 @@ bool RSHpaeFfrtPatternManager::MHCSubmitTask(uint64_t frameId, MHC_PatternTaskNa
     void* c_afterFunc = static_cast<void*>(afterFuncHeader);
 
     MHC_TaskInfo mhcTaskInfo = {
-        .taskName = taskName;
-        .c_prefunc = c_prefunc;
-        .c_taskHandles = c_taskHandles;
-        .numTasks = numTasks;
-        .c_afterFunc = c_afterFunc;
+        .taskName = taskName,
+        .c_prefunc = c_preFunc,
+        .c_taskHandles = c_taskHandleVec,
+        .numTasks = numTasks,
+        .c_afterFunc = c_afterFunc,
     };
-    g_graphPatternTaskSubmit(g_instance, frameId, &mhcTaskInfo);
+    g_GPTaskSubmit(g_instance, frameId, &mhcTaskInfo);
     return true;
+}
+
+bool RSHpaeFfrtPatternManager::IsThreadIdMatch()
+{
+#if defined(ROSEN_OHOS)
+    return tid_ == gettid();
+#else
+    return false;
+#endif
+}
+void RSHpaeFfrtPatternManager::SetThreadId()
+{
+#if defined(ROSEN_OHOS)
+    tid_ = gettid();
+#endif
+}
+bool RSHpaeFfrtPatternManager::IsUpdated()
+{
+    return updated_ && IsThreadIdMatch();
 }
 
 } // namespace Rosen

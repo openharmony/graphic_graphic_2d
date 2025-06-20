@@ -1575,6 +1575,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 RS_LOGD("SubThread is processing %{public}s, skip acquire buffer", surfaceNode->GetName().c_str());
                 return;
             }
+            if (surfaceNode->IsForceRefresh()) {
+                isForceRefresh_ = true;
+            }
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetAvailableBufferCount() > 0) {
                 if (rsVSyncDistributor_ != nullptr) {
@@ -1677,7 +1680,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
         };
     }
+    RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
+    RSJankStats::GetInstance().AvcodecVideoCollectFinish();
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (requestNextVsyncTime_ != -1) {
         RequestNextVSync("unknown", 0, requestNextVsyncTime_);
@@ -1863,10 +1868,6 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode == nullptr) {
-        RS_LOGE("CheckIfHardwareForcedDisabled rootNode is nullptr");
-        return;
-    }
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
     MultiDisplayChange(isMultiDisplay);
 
@@ -2262,11 +2263,13 @@ void RSMainThread::ClearUnmappedCache()
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
 #ifdef RS_ENABLE_GPU
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    RSHpaeManager::GetInstance().OnUniRenderStart();
+#endif
     if (isAccessibilityConfigChanged_) {
         RS_LOGD("UniRender AccessibilityConfig has Changed");
     }
     RSUifirstManager::Instance().RefreshUIFirstParam();
-    UpdateRogSizeIfNeeded();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
     int64_t rsPeriod = 0;
@@ -2501,8 +2504,11 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetRogWidthRatio(1.0f);
             }
             processor->CreateLayer(*surfaceNode, *params);
-            // buffer is synced to directComposition
-            params->SetBufferSynced(true);
+            // Set buffer to synced state in directComposition only when buffer is consumed.
+            // If buffer is not consumed, it should keep buffer sync state until next buffer consumed.
+            if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
+                params->SetBufferSynced(true);
+            }
         }
     }
     RSLuminanceControl::Get().SetHdrStatus(screenId,
@@ -2666,6 +2672,7 @@ void RSMainThread::Render()
 
 void RSMainThread::OnUniRenderDraw()
 {
+#ifndef SCREENLESS_DEVICE
     if (!isUniRender_) {
         RsFrameReport::GetInstance().RenderEnd();
         return;
@@ -2693,6 +2700,7 @@ void RSMainThread::OnUniRenderDraw()
 
     UpdateDisplayNodeScreenId();
     RsFrameReport::GetInstance().RenderEnd();
+#endif
 #endif
 }
 

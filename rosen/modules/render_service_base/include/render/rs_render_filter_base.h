@@ -15,15 +15,22 @@
 
 #ifndef RENDER_SERVICE_BASE_RENDER_FILTER_BASE_H
 #define RENDER_SERVICE_BASE_RENDER_FILTER_BASE_H
+
 #include "draw/canvas.h"
+#include "effect/rs_render_property_tag.h"
 #include "effect/runtime_shader_builder.h"
-#include "modifier/rs_render_property.h"
 #include "render/rs_filter.h"
-#include "transaction/rs_marshalling_helper.h"
+
 namespace OHOS {
 namespace Rosen {
 
+namespace Drawing {
+class GEVisualEffectContainer;
+class GEVisualEffect;
+} // namespace Drawing
+
 enum class RSUIFilterType : int16_t {
+    INVALID = -1,
     NONE = 0,
     // filter type
     BLUR,
@@ -122,12 +129,15 @@ enum class RSUIFilterType : int16_t {
     RADIAL_GRADIENT_MASK_RADIUSY, // float
     RADIAL_GRADIENT_MASK_COLORS, // vector<float>
     RADIAL_GRADIENT_MASK_POSITIONS, // vector<float>
+
+    //content light filter value type
+    CONTENT_LIGHT,
+    LIGHT_POSITION,
+    LIGHT_COLOR,
+    LIGHT_INTENSITY,
 };
 
-namespace Drawing {
-class GEVisualEffectContainer;
-class GEVisualEffect;
-} // namespace Drawing
+using RSUIFilterTypeUnderlying = std::underlying_type<RSUIFilterType>::type;
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,
     public std::enable_shared_from_this<RSRenderFilterParaBase> {

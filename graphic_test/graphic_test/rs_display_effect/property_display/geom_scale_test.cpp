@@ -33,57 +33,219 @@ public:
     }
 };
 
+/* SetScaleX: 1.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleX_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleX(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleX: 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleX_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleX(0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleX: 2.0 f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleX_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleX(2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleY: 1.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleY_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleY(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleY: 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleY_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleY(0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleY: 2.0 f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleY_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleY(2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale1f: 1.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale1f_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale1f: 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale1f_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale(0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale1f: 2.0 f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale1f_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale(2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale2f: 0.5f, 2.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale2f_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale(0.5f, 2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale2f: 0.5f, 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale2f_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale(0.5f, 0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale2f: 2.0f, 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale2f_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale(2.0f, 0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale2f: 2.0f, 2.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale2f_Test_4)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale(2.0f, 2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleV2f: 0.5f, 2.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleV2f_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale({ 0.5f, 2.0f });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleV2f: 0.5f, 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleV2f_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale({ 0.5f, 0.5f });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleV2f: 2.0f, 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleV2f_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale({ 2.0f, 0.5f });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale2f: 2.0f, 2.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleV2f_Test_4)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScale({ 2.0f, 2.0f });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleX and SetScaleY: 0.5f, 2.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleX_And_SetScaleY_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleX(0.5f);
+    testNode->SetScaleY(2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleV2f: 0.5f, 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleX_And_SetScaleY_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleX(0.5f);
+    testNode->SetScaleY(0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleV2f: 2.0f, 0.5f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleX_And_SetScaleY_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleX(2.0f);
+    testNode->SetScaleY(0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScale2f: 2.0f, 2.0f */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleX_And_SetScaleY_Test_4)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetScaleX(2.0f);
+    testNode->SetScaleY(2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetScaleZ */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleZ_Test_1)
+{
+    vector<float> vecs = { -0.5, 0.0, 0.5, 1, 100.0 };
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetScaleZ(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+/* SetScale: composition case1 */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_1)
 {
-    float zList[] = { 1, 0.5, 2 };
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            auto testNode =
-                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
-            testNode->SetPivot(Vector2f(0.5, 0.5));
-            testNode->SetScaleX(zList[i]);
-            testNode->SetScaleY(zList[j]);
-            GetRootNode()->AddChild(testNode);
-            RegisterNode(testNode);
-        }
-    }
-}
-
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_2)
-{
-    float zList[] = { 1, 0.5, 2 };
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            auto testNode =
-                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
-            testNode->SetPivot(Vector2f(0.5, 0.5));
-            testNode->SetScale(zList[i], zList[j]);
-            GetRootNode()->AddChild(testNode);
-            RegisterNode(testNode);
-        }
-    }
-}
-
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_3)
-{
-    float zList[] = { 1, 0.5, 2 };
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            auto testNode =
-                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
-            testNode->SetPivot(Vector2f(0.5, 0.5));
-            testNode->SetScale({ zList[i], zList[j] });
-            GetRootNode()->AddChild(testNode);
-            RegisterNode(testNode);
-        }
-    }
-}
-
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_4)
-{
-    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
     for (int i = 0; i < scaleData.size(); i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
         testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
         testNode->SetScale({ scaleData[i], 0.5 });
         GetRootNode()->AddChild(testNode);
@@ -91,12 +253,13 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_4)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_5)
+/* SetScale: composition case2 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_2)
 {
     std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
     for (int i = 0; i < scaleData.size(); i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
-        testNode->SetPivot(Vector2f(0.5, 0.5));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(0, 0));
         testNode->SetRotation(0.0, 0, 45.0);
         testNode->SetScale({ scaleData[i], 0.5 });
         GetRootNode()->AddChild(testNode);
@@ -104,12 +267,13 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_5)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_6)
+/* SetScale: composition case3 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_3)
 {
     std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
     for (int i = 0; i < scaleData.size(); i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
-        testNode->SetPivot(Vector2f(0.5, 0.5));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(0, 0));
         testNode->SetRotation(45.0, 0, 0.0);
         testNode->SetScale({ scaleData[i], 0.5 });
         GetRootNode()->AddChild(testNode);
@@ -117,12 +281,13 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_6)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_7)
+/* SetScale: composition case4 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_4)
 {
     std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
     for (int i = 0; i < scaleData.size(); i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
-        testNode->SetPivot(Vector2f(0.5, 0.5));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(0, 0));
         testNode->SetScale({ scaleData[i], 0.5 });
         testNode->SetScaleZ(0.5);
         GetRootNode()->AddChild(testNode);
@@ -130,12 +295,13 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_7)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_8)
+/* SetScale: composition case5 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_5)
 {
     std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
     for (int i = 0; i < scaleData.size(); i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
-        testNode->SetPivot(Vector2f(0.5, 0.5));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(0, 0));
         testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
         testNode->SetScale({ scaleData[i], 0.5 });
         testNode->SetScaleZ(0.5);
@@ -144,18 +310,19 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_8)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_9)
+/* SetScale: composition case6 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_6)
 {
     int row = 5;
     int col = 3;
-    int nodeSize[2] = {screenWidth / col, screenHeight / row};
-    int nodeSpace[2] = {10, 10}; // col space , row space
+    int nodeSize[2] = { screenWidth / col, screenHeight / row };
+    int nodeSpace[2] = { 10, 10 }; // col space , row space
     float scale = 1.0;
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
-            testNode->SetPivot(Vector2f(0.5, 0.5));
+                { j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1] });
+            testNode->SetPivot(Vector2f(0, 0));
             testNode->SetScaleX(scale);
             testNode->SetScaleY(scale);
             GetRootNode()->AddChild(testNode);
@@ -165,18 +332,19 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_9)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_10)
+/* SetScale: composition case7 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_7)
 {
     int row = 5;
     int col = 3;
-    int nodeSize[2] = {screenWidth / col, screenHeight / row};
-    int nodeSpace[2] = {10, 10}; // col space , row space
+    int nodeSize[2] = { screenWidth / col, screenHeight / row };
+    int nodeSpace[2] = { 10, 10 }; // col space , row space
     float scale = 0.99;
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
-            testNode->SetPivot(Vector2f(0.5, 0.5));
+                { j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1] });
+            testNode->SetPivot(Vector2f(0, 0));
             testNode->SetScaleZ(scale);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
@@ -185,16 +353,103 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_10)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleZ_Test_1)
+/* SetScale: composition case8 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_8)
 {
-    vector<float> vecs = {-0.5, 0.0, 0.5, 1, 100.0};
-    for (int i = 0; i < vecs.size(); i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
-        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
-        testNode->SetPivot(Vector2f(0.5, 0.5));
-        testNode->SetScaleZ(vecs[i]);
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(1, 1));
+        testNode->SetRotation(45.0, 0, 45.0);
+        testNode->SetScale({ scaleData[i], scaleData[i]});
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
+    }
+}
+
+/* SetScale: composition case9 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_9)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(1, 1));
+        testNode->SetRotation(45.0, 0, 0.0);
+        testNode->SetScale({ scaleData[i], 0.1 });
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+/* SetScale: composition case10 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_10)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(1, 1));
+        testNode->SetScale({ scaleData[i], scaleData[i] });
+        testNode->SetScaleZ(0.5);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+/* SetScale: composition case11 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_11)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 350 + 20, 300, 300 });
+        testNode->SetPivot(Vector2f(1, 1));
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetScale({ scaleData[i], scaleData[i] });
+        testNode->SetScaleZ(0.5);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+/* SetScale: composition case12 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_12)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = { screenWidth / col, screenHeight / row };
+    int nodeSpace[2] = { 10, 10 }; // col space , row space
+    float scale = 1.0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                { j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1] });
+            testNode->SetPivot(Vector2f(1, 1));
+            testNode->SetScaleX(scale);
+            testNode->SetScaleY(scale);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            scale -= 0.06;
+        }
+    }
+}
+
+/* SetScale: composition case13 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_13)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = { screenWidth / col, screenHeight / row };
+    int nodeSpace[2] = { 10, 10 }; // col space , row space
+    float scale = 0.99;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                { j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1] });
+            testNode->SetPivot(Vector2f(1, 1));
+            testNode->SetScaleZ(scale);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            scale -= 0.06;
+        }
     }
 }
 

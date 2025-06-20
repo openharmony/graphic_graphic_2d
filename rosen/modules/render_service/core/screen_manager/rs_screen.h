@@ -146,6 +146,9 @@ public:
     virtual bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) = 0;
     virtual bool GetCanvasRotation() const = 0;
 
+    virtual int32_t SetVirtualScreenAutoRotation(bool isAutoRotation) = 0;
+    virtual bool GetVirtualScreenAutoRotation() const = 0;
+
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) = 0;
     virtual ScreenScaleMode GetScaleMode() const = 0;
 
@@ -284,6 +287,9 @@ public:
     bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) override;
     bool GetCanvasRotation() const override;
 
+    int32_t SetVirtualScreenAutoRotation(bool isAutoRotation) override;
+    bool GetVirtualScreenAutoRotation() const override;
+
     bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) override;
     ScreenScaleMode GetScaleMode() const override;
 
@@ -390,6 +396,7 @@ private:
 
     std::atomic<ScreenRotation> screenRotation_ = ScreenRotation::ROTATION_0;
     std::atomic<bool> canvasRotation_ = false; // just for virtual screen to use
+    std::atomic<bool> autoBufferRotation_ = false; // whether automatically adjust buffer rotation, virtual screen only
     std::atomic<ScreenScaleMode> scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;
     static std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> COMMON_COLOR_SPACE_TYPE_TO_RS_MAP;

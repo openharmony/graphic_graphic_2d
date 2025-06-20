@@ -12,17 +12,53 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 
 module_output_path = "graphic_2d/graphic_2d/render_service_base/hpae_base"
 
-##############################  RSRenderServiceBaseHpaeBaseTest  ##############################
-ohos_unittest("RSHpaeFilterCacheManagerTest") {
-    module_out_path = module_output_path;
+##############################  RSRenderServiceBaseHpaeBaseTest  #################################
+ohos_source_set("mock_dlfcn") {
+    testonly = true
 
-    source = [
+    sources = [ "mock_dlfcn.cpp" ]
+    cflags = [
+        "-Dprivate=public",
+        "-Dprotected=public",
+    ]
+
+    configs = [
+        ":render_test",
+        "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+    ]
+
+    include_dirs = [
+        "$graphic_2d_root/rosen/modules/render_service_base/include",
+    ]
+
+    deps = [
+        "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    ]
+
+    external_deps = [
+        "ffrt:libffrt",
+    ]
+
+    subsystem_name = "graphic"
+}
+
+ohos_unittest("RSRenderServiceBaseHpaeBaseTest") {
+    module_out_path = module_output_path
+
+    sources = [
+        "rs_hpae_base_data_test.cpp",
+        "rs_hpae_ffrt_pattern_manager_test.cpp",
         "rs_hpae_filter_cache_manager_test.cpp",
+        "rs_hpae_fusion_operator_test.cpp",
+        "rs_hpae_hianimation_test.cpp",
+        "rs_hpae_perf_thread_test.cpp",
+        "rs_hpae_scheduler_test.cpp",
     ]
 
     cflags = [
@@ -32,22 +68,24 @@ ohos_unittest("RSHpaeFilterCacheManagerTest") {
 
     configs = [
         ":render_test",
-        "&graphic_2d_root/rosen/module/render_service_base:export_config",
+        "$graphic_2d_root/rosen/modules/render_service_base:export_config",
     ]
 
     include_dirs = [
-        "&graphic_2d_root/rosen/module/render_service_base/include",
-        "&graphic_2d_root/rosen/module/render_service_client/core",
-        "&graphic_2d_root/rosen/include",
-        "&graphic_2d_root/rosen/test/include",
-        "&graphic_2d_root/rosen/module/render_service_base/src",
-        "&graphic_2d_root/rosen/module/render_service/core",
+        "$graphic_2d_root/rosen/modules/render_service_base/include",
+        "$graphic_2d_root/rosen/modules/render_service_client/core",
+        "$graphic_2d_root/rosen/include",
+        "$graphic_2d_root/rosen/test/include",
+        "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/modules/render_service/core",
+        "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     ]
 
     deps = [
-        "&graphic_2d_root/rosen/module/render_service_base:render_service_base_src",
-        "&graphic_2d_root/rosen/module/render_service_client:librender_service_client",
-        "&graphic_2d_root/rosen/module/render_service_client:render_service_client_src",
+        ":mock_dlfcn",
+        "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+        "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+        "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
     ]
 
     external_deps = [
@@ -56,6 +94,7 @@ ohos_unittest("RSHpaeFilterCacheManagerTest") {
         "graphic_surface:buffer_handle",
         "graphics_effect:graphics_effect_core",
         "init:libbegetutil",
+        "ffrt:libffrt",
     ]
 
     subsystem_name = "graphic"
@@ -63,14 +102,15 @@ ohos_unittest("RSHpaeFilterCacheManagerTest") {
 
 ###############################################################################
 config("render_test") {
-    visibitily = [ ":*" ]
+    visibility = [ ":*" ]
     include_dirs = [
-        "&graphic_2d_root/rosen/module/render_service_base",
+        "$ace_root",
+        "$graphic_2d_root/rosen/modules/render_service_base",
     ]
 }
 
 group("unittest") {
     testonly = true
 
-    deps = [ "RSHpaeFilterCacheManagerTest" ]
+    deps = [ ":RSRenderServiceBaseHpaeBaseTest" ]
 }

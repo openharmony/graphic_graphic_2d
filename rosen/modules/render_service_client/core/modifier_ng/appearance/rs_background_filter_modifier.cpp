@@ -154,4 +154,51 @@ std::optional<Vector2f> RSBackgroundFilterModifier::GetGreyCoef() const
 {
     return GetterOptional<Vector2f>(RSPropertyType::GREY_COEF);
 }
+
+void RSBackgroundFilterModifier::SetUIFilter(std::shared_ptr<RSUIFilter> backgroundFilter)
+{
+    if (!backgroundFilter) {
+        return;
+    }
+    auto iter = properties_.find(RSPropertyType::BACKGROUND_UI_FILTER);
+    if (iter != properties_.end() && iter->second != nullptr) {
+        std::shared_ptr<RSUIFilter> oldUIFilter = nullptr;
+        auto oldProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(iter->second);
+        if (oldProperty) {
+            oldUIFilter = oldProperty->Get();
+        }
+        if (oldUIFilter && backgroundFilter->IsStructureSame(oldUIFilter)) {
+            oldUIFilter->SetValue(backgroundFilter);
+            return;
+        }
+    }
+    AttachUIFilterProperty(backgroundFilter);
+}
+
+void RSBackgroundFilterModifier::AttachUIFilterProperty(std::shared_ptr<RSUIFilter> uiFilter)
+{
+    if (!uiFilter) {
+        return;
+    }
+    auto property = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(uiFilter);
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    for (auto type : uiFilter->GetUIFilterTypes()) {
+        auto paraGroup = uiFilter->GetUIFilterPara(type);
+        if (!paraGroup) {
+            continue;
+        }
+        for (auto& prop : paraGroup->GetLeafProperties()) {
+            if (!prop) {
+                continue;
+            }
+            prop->target_ = node;
+            node->RegisterProperty(prop);
+        }
+    }
+    AttachProperty(RSPropertyType::BACKGROUND_UI_FILTER, property);
+}
+
 } // namespace OHOS::Rosen::ModifierNG

@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_DISPERSION_FILTER_H
-#define RENDER_DISPERSION_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_DISPERSION_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_DISPERSION_FILTER_H
 
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
@@ -58,4 +58,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_EDGE_LIGHT_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_EDGE_LIGHT_FILTER_H

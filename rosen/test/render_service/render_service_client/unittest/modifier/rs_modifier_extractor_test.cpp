@@ -50,7 +50,6 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
 
     RSColor valTest1 { 0, 0, 0, 0 };
 
-    ASSERT_EQ(extractor.GetSurfaceBgColor(), valTest1);
     ASSERT_EQ(extractor.GetBloom(), 0.f);
 
     // Node is not nullptr
@@ -218,6 +217,20 @@ HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
     RSModifierExtractor extractor(id);
     float radius = extractor.GetForegroundEffectRadius();
     EXPECT_TRUE(radius == 0.f);
+}
+
+/**
+ * @tc.name: GetShadowMask001
+ * @tc.desc: test results of GetShadowMask
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowMask001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    bool res = extractor.GetShadowMask();
+    EXPECT_FALSE(res);
 }
 
 /**

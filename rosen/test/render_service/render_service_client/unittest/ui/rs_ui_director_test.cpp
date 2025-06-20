@@ -117,6 +117,8 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
     director->SetRSSurfaceNode(surfaceNode);
+    auto ret = director->GetRSSurfaceNode();
+    ASSERT_NE(ret, nullptr);
 }
 
 /**
@@ -221,6 +223,26 @@ HWTEST_F(RSUIDirectorTest, DirectorSendMessages001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
     director->SendMessages();
+}
+
+/**
+ * @tc.name: DirectorSendMessages002
+ * @tc.desc: test results of SendMessages
+ * @tc.type: FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSUIDirectorTest, DirectorSendMessages002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    bool result = false;
+    FlushEmptyCallback callback = [&result](const uint64_t timestamp) -> bool {
+        result = true;
+        return true;
+    };
+    director->SetFlushEmptyCallback(callback);
+    director->SendMessages();
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -661,13 +683,9 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->SendMessages();
-    uint32_t index = director->GetIndex();
-    if (RSSystemProperties::GetHybridRenderEnabled()) {
-        EXPECT_TRUE(index == 0);
-    } else {
-        EXPECT_TRUE(index != 0);
-    }
+    ASSERT_TRUE(director != nullptr);
+    director->index_ = g_ExtremeInt_1;
+    ASSERT_EQ(director->GetIndex(), g_ExtremeInt_1);
 }
 
 /**

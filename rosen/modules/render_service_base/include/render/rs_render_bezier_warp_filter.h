@@ -16,6 +16,7 @@
 #define RENDER_BEZIER_WARP_FILTER_RENDER_PROPERTY_H
 
 #include "render/rs_render_filter_base.h"
+
 namespace OHOS {
 namespace Rosen {
 constexpr size_t BEZIER_WARP_POINT_NUM = 12; // 12 anchor points of a patch

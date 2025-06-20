@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_GRADIENT_BLUR_PARA_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_GRADIENT_BLUR_PARA_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_GRADIENT_BLUR_PARA_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_GRADIENT_BLUR_PARA_H
 
 #include <array>
 #include "common/rs_macros.h"
@@ -74,4 +74,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_GRADIENT_BLUR_PARA_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_GRADIENT_BLUR_PARA_H

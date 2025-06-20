@@ -113,6 +113,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP),
@@ -191,10 +192,13 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
@@ -1846,6 +1850,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION): {
+            ScreenId id{INVALID_SCREEN_ID};
+            bool isAutoRotation{false};
+            if (!data.ReadUint64(id) || !data.ReadBool(isAutoRotation)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_AUTO_ROTATION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = SetVirtualScreenAutoRotation(id, isAutoRotation);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_AUTO_ROTATION Write parcel failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE): {
             ScreenId id{INVALID_SCREEN_ID};
             uint32_t scaleMode{0};
@@ -3457,6 +3477,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetLayerTop(nodeIdStr, isTop);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH) : {
+            std::string nodeIdStr;
+            bool isForceRefresh{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isForceRefresh)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_FORCE_REFRESH Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetForceRefresh(nodeIdStr, isForceRefresh);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW) : {
             std::string nodeIdStr;
             bool isColorFollow{false};
@@ -3600,6 +3632,40 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             RS_LOGD("RenderServiceConnectionStub::GET_PID_GPU_MEMORY_IN_MB, ret: %{public}d, gpuMemInMB: %{public}f",
                 ret, gpuMemInMB);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START): {
+            uint64_t uniqueId{0};
+            std::string surfaceName;
+            uint32_t fps{0};
+            uint64_t reportTime{0};
+            if (!data.ReadUint64(uniqueId) || !data.ReadString(surfaceName)
+                || !data.ReadUint32(fps) || !data.ReadUint64(reportTime)) {
+                RS_LOGE("RenderServiceConnectionStub::AVCODEC_VIDEO_START : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSRenderServiceConnectionStub::AVCODEC_VIDEO_START Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP): {
+            uint64_t uniqueId{0};
+            std::string surfaceName;
+            uint32_t fps{0};
+            if (!data.ReadUint64(uniqueId) || !data.ReadString(surfaceName) || !data.ReadUint32(fps)) {
+                RS_LOGE("RSRenderServiceConnectionStub::AVCODEC_VIDEO_STOP : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = AvcodecVideoStop(uniqueId, surfaceName, fps);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSRenderServiceConnectionStub::AVCODEC_VIDEO_STOP Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         default: {

@@ -127,7 +127,11 @@ std::shared_ptr<RSFilter> RandomRSFilter::GetRandomAIBarFilter()
         filter = filter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
         auto blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(aiBarRadius, aiBarRadius, tileMode, nullptr);
+#ifdef USE_M133_SKIA
+        uint32_t hash = SkChecksum::Hash32(&aiBarRadius, sizeof(aiBarRadius), 0);
+#else
         uint32_t hash = SkOpts::hash(&aiBarRadius, sizeof(aiBarRadius), 0);
+#endif
         filter = filter->Compose(blurFilter, hash);
     }
     filter->SetFilterType(RSFilter::AIBAR);

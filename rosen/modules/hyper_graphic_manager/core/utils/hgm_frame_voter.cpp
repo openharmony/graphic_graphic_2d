@@ -161,6 +161,7 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             continue;
         }
         if (checkVote_ != nullptr && !checkVote_(*voterIter, curVoteInfo)) {
+            ProcessVoteLog(curVoteInfo, true);
             continue;
         }
         if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
@@ -215,7 +216,8 @@ bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIte
     }
     auto curVoteInfo = *firstValidVoteInfoIter;
     if (checkVote_ != nullptr && !checkVote_(voter, curVoteInfo)) {
-            return false;
+        ProcessVoteLog(curVoteInfo, true);
+        return false;
     }
     if (voter == "VOTER_GAMES") {
         voterGamesEffective = true;

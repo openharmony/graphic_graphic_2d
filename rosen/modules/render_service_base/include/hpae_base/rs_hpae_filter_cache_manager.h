@@ -16,17 +16,19 @@
 #ifndef RENDER_SERVICE_BASE_INCLUDE_HPAE_FILTER_CACHE_MANAGER_H
 #define RENDER_SERVICE_BASE_INCLUDE_HPAE_FILTER_CACHE_MANAGER_H
 
-#include <mutex>
-#include <deque>
 #include <condition_variable>
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "platform/common/rs_system_properties.h"
-#include "render/rect.h"
-#include "utils/rect.h"
-#include "common/rs_rect.h"
+#include <deque>
+#include <mutex>
+
 #include "hpae_base/rs_hpae_base_data.h"
 #include "hpae_base/rs_hpae_base_types.h"
+
+#include "common/rs_rect.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_system_properties.h"
+#include "render/rs_filter.h"
 #include "render/rs_pixel_stretch_params.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,8 +40,8 @@ public:
     ~RSHpaeFilterCacheManager() = default;
     RSHpaeFilterCacheManager(const RSHpaeFilterCacheManager&) = delete;
     RSHpaeFilterCacheManager(const RSHpaeFilterCacheManager&&) = delete;
-    RSHpaeFilterCacheManager& operator=(RSHpaeFilterCacheManager&) = delete;
-    RSHpaeFilterCacheManager& operator=(RSHpaeFilterCacheManager&&) = delete;
+    RSHpaeFilterCacheManager& operator=(const RSHpaeFilterCacheManager&) = delete;
+    RSHpaeFilterCacheManager& operator=(const RSHpaeFilterCacheManager&&) = delete;
 
     int DrawBackgroundToCanvas(RSPaintFilterCanvas& canvas);
     int DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& filter,
@@ -63,53 +65,40 @@ public:
         float radius, const std::shared_ptr<RSDrawingFilter> &filter);
 
     int ProcessHianimationBlur(const std::shared_ptr<RSDrawingFilter>& filter, float radius);
-    int processGpuBlur(const HpaeBufferInfo &inputBuffer,
+    int ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
         const HpaeBufferInfo &outputBuffer, const std::shared_ptr<RSDrawingFilter>& filter, float radius);
 
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedSnapshot() const { return cachedSnapshot_; }
-    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const { return cachedFilteredSnapshot_; }
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const {
+        return cachedFilteredSnapshot_;
+    }
     RectI GetSnapshotRegion() const { return snapshotRegion_; }
-    void ClearFilterCachedIfNeed(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
-        std::shared_ptr<RSPaintFilterCanvas::CacheEffectData> cachedFilteredSnapshot) {
-        // if (cachedFilteredSnapshot == nullptr) {
-        //    cachedFilteredSnapshot_.reset();
-        // }
+    void ClearFilterCacheIfNeed(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
+        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot) {
         if (cachedFilteredSnapshot) {
-            cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedFilteredSnapshot->cachedInage_, cachedFilteredSnapshot->cachedRect_);
+            cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
+                cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
         } else {
             cachedFilteredSnapshot_.reset();
         }
         if (cachedSnapshot) {
-            cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedSnapshot->cachedIamge_, cachedSnapshot->cachedRect_);
+            cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
+                cachedSnapshot->cachedImage_, cachedSnapshot->cachedRect_);
         } else {
             cachedSnapshot_.reset();
         }
     }
 
     void ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
-        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilterSnapshot, RectI snapshotRegion)
-    {
-        if (cachedSnapshot) {
-            cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedSnapshot->cachedImage_, cachedSnapshot->cachedRect_);
-        } else {
-            cachedSnapshot_.reset();
-        }
-        if (cachedFilterSnapshot) {
-            cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
-        } else {
-            cachedFilteredSnapshot.reset();
-        }
-        snapshotRegion_ = snapshotRegion;
-    }
+        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion);
     void InvalidateFilterCache(FilterCacheType clearType);
 
-    bool BlurContentChaged() {
-        return blurcontentChanged_;
+    bool BlurContentChanged() {
+        return blurContentChanged_;
     }
 
-    int wzTest(int num);
-
 private:
+    bool CheckIfUsingGpu();
     void SetBlurOutput(HpaeBackgroundCacheItem &outputBuffer);
     HpaeBackgroundCacheItem GetBlurOutput();
 
@@ -117,11 +106,9 @@ private:
         const std::shared_ptr<Drawing::Image>& image,
         const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& src,
-        bool shouldClearFilterCache);
+        bool shouldClearFilteredCache);
 
     int BlurUsingFilteredSnapshot();
-
-    float GetBlurRadius(const std::shared_ptr<RSDrawingFilter> &filter);
 
     // Region of the cached image, used to determine if we need to invalidate the cache.
     RectI snapshotRegion_; // Note: in device coordinate.
@@ -135,11 +122,12 @@ private:
     HpaeBufferInfo outputBufferInfo_;
 
     // blur output deque
-    std::deque<HpaeBackGroundCacheItem> hpaeBlurOutputQueue_;
+    std::mutex blurOutMutex_;
+    std::deque<HpaeBackgroundCacheItem> hpaeBlurOutputQueue_;
 
     bool drawUsingGpu_ = false;
     float curRadius_ = 0.f;
-    float backGroundRadius_ = 0.f;
+    float backgroundRadius_ = 0.f;
     bool blurContentChanged_ = false;
     std::shared_ptr<Drawing::Image> prevBlurImage_ = nullptr;
 };
