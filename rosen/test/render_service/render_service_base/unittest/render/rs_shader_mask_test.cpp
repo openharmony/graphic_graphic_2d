@@ -60,7 +60,11 @@ HWTEST_F(RSShaderMaskTest, PixelMapMaskTest001, TestSize.Level1)
 {
     auto rsRenderPixelMapMaskPara = std::make_shared<RSRenderPixelMapMaskPara>(0);
     auto rsShaderMask = std::make_shared<RSShaderMask>(rsRenderPixelMapMaskPara);
+#ifdef USE_M133_SKIA
+    EXPECT_NE(rsShaderMask->hash_, 0);
+#else
     EXPECT_EQ(rsShaderMask->hash_, 0);
+#endif
     EXPECT_EQ(rsShaderMask->GenerateGEShaderMask(), nullptr);
     ASSERT_NE(rsShaderMask->renderMask_, nullptr);
     rsRenderPixelMapMaskPara = std::static_pointer_cast<RSRenderPixelMapMaskPara>(rsShaderMask->renderMask_);
@@ -71,7 +75,11 @@ HWTEST_F(RSShaderMaskTest, PixelMapMaskTest001, TestSize.Level1)
     rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP] = renderProperty;
     rsRenderPixelMapMaskPara->cacheImage_ = std::make_shared<Drawing::Image>();
     rsShaderMask->CalHash();
+#ifdef USE_M133_SKIA
+    EXPECT_NE(rsShaderMask->hash_, 0);
+#else
     EXPECT_EQ(rsShaderMask->hash_, 0);
+#endif
     EXPECT_EQ(rsShaderMask->GenerateGEShaderMask(), nullptr);
 
     // src
@@ -81,7 +89,11 @@ HWTEST_F(RSShaderMaskTest, PixelMapMaskTest001, TestSize.Level1)
     prop->Set(Vector4f(0.5, 0.1, 0.3, 0.5));
     rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_SRC] = renderProperty;
     rsShaderMask->CalHash();
+#ifdef USE_M133_SKIA
+    EXPECT_NE(rsShaderMask->hash_, 0);
+#else
     EXPECT_EQ(rsShaderMask->hash_, 0);
+#endif
     EXPECT_EQ(rsShaderMask->GenerateGEShaderMask(), nullptr);
 
     // dst
@@ -89,7 +101,11 @@ HWTEST_F(RSShaderMaskTest, PixelMapMaskTest001, TestSize.Level1)
     ASSERT_NE(renderProperty, nullptr);
     rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_DST] = renderProperty;
     rsShaderMask->CalHash();
+#ifdef USE_M133_SKIA
+    EXPECT_NE(rsShaderMask->hash_, 0);
+#else
     EXPECT_EQ(rsShaderMask->hash_, 0);
+#endif
     EXPECT_EQ(rsShaderMask->GenerateGEShaderMask(), nullptr);
 
     // fill color
