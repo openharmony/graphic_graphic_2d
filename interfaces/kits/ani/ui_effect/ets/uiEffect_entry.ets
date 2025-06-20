@@ -46,7 +46,8 @@ function main() {
     console.println('fly succ');
   }
 
-  let waterRippleResult: uiEffect.Filter = filter.waterRipple(0.2, 0.2, 0.2, 0.2, uiEffect.WaterRippleMode.SMALL2MEDIUM_RECV);
+  let waterRippleResult: uiEffect.Filter = filter.waterRipple(0.2, 0.2, 0.2, 0.2,
+    uiEffect.WaterRippleMode.SMALL2MEDIUM_RECV);
   if (waterRippleResult == undefined) {
     console.println('waterRipple failed');
   } else {
