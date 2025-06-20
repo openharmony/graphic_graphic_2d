@@ -146,17 +146,19 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     if (!uniParam->IsDirtyAlignEnabled()) {
         ExpandDamageRegionToSingleRect(damageRegion);
     }
+    // [Attention]: Filter dirty must be the last. If sampling is needed, sample after filter dirty processing.
     Occlusion::Region drawnRegion;
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
+        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+            damageRegion, damageRegion, displayDrawable, std::nullopt, false);
         GetSampledDamageAndDrawnRegion(screenInfo, damageRegion, uniParam->IsDirtyAlignEnabled(),
             damageRegion, drawnRegion);
     } else {
         drawnRegion = uniParam->IsDirtyAlignEnabled() ?
             damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
+        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+            damageRegion, drawnRegion, displayDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
     }
-    // [Attention]: filter dirty process must be the last step.
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-        damageRegion, drawnRegion, displayDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, drawnRegion, damageRegion);
