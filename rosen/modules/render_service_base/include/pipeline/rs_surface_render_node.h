@@ -697,10 +697,8 @@ public:
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
 
-    bool GetIsWideColorGamut() const;
-
-    void IncreaseWideColorGamutNum();
-    void ReduceWideColorGamutNum();
+    void IncreaseCanvasGamutNum(GraphicColorGamut gamut);
+    void ReduceCanvasGamutNum(GraphicColorGamut gamut);
 
     bool IsHdrEffectColorGamut() const;
 
@@ -894,8 +892,8 @@ public:
     GraphicColorGamut GetColorSpace() const;
     // Only call this if the node is first level node.
     GraphicColorGamut GetFirstLevelNodeColorGamut() const;
-    void SetFirstLevelNodeColorGamutByResource(bool changeToP3);
-    void SetFirstLevelNodeColorGamutByWindow(bool changeToP3);
+    void SetFirstLevelNodeColorGamutByResource(bool isOnTree, GraphicColorGamut gamut);
+    void SetFirstLevelNodeColorGamutByWindow(bool isOnTree, GraphicColorGamut gamut);
 
     // Only call this if the node is self-drawing surface node.
     void UpdateColorSpaceWithMetadata();
@@ -1758,6 +1756,12 @@ private:
     // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
     int hdrUIComponentNum_ = 0;
     int hdrEffectNum_ = 0;
+    int bt2020Num_ = 0;
+    int p3Num_ = 0;
+    int firstLevelNodeBt2020WindowNum_ = 0;
+    int firstLevelNodeP3WindowNum_ = 0;
+    int firstLevelNodeBt2020ResourceNum_ = 0;
+    int firstLevelNodeP3ResourceNum_ = 0;
     int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;

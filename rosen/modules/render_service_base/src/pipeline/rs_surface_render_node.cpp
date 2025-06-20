@@ -105,6 +105,51 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
     }
     return false;
 }
+
+GraphicColorGamut GamutChange(GraphicColorGamut gamut)
+{
+    switch (gamut) {
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+        case GRAPHIC_COLOR_GAMUT_BT2100_PQ:
+        case GRAPHIC_COLOR_GAMUT_BT2100_HLG:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
+        default:
+            return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+}
+
+#ifndef ROSEN_CROSS_PLATFORM
+GraphicColorGamut CMPrimariesToGamut(HDI::Display::Graphic::Common::V1_0::CM_ColorPrimaries primary)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    switch (primary) {
+        case COLORPRIMARIES_ADOBERGB:
+        case COLORPRIMARIES_P3_DCI:
+        case COLORPRIMARIES_P3_D65:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        case COLORPRIMARIES_BT2020: // COLORPRIMARIES_BT2100 = COLORPRIMARIES_BT2020
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
+        default:
+            return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+}
+#endif
+
+GraphicColorGamut JudgeGamut(int bt2020Num, int p3Num)
+{
+    if (bt2020Num > 0) {
+        return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
+    } else if (p3Num > 0) {
+        return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    } else {
+        return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+}
 }
 
 void OcclusionParams::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
@@ -1138,7 +1183,7 @@ void RSSurfaceRenderNode::SyncColorGamutInfoToFirstLevelNode()
     if (colorSpace_ != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (firstLevelNode) {
-            firstLevelNode->SetFirstLevelNodeColorGamutByWindow(IsOnTheTree());
+            firstLevelNode->SetFirstLevelNodeColorGamutByWindow(IsOnTheTree(), colorSpace_);
         }
     }
 }
@@ -1257,50 +1302,60 @@ void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
     }
 }
 
-bool RSSurfaceRenderNode::GetIsWideColorGamut() const
-{
-    return wideColorGamutNum_ > 0;
-}
-
-void RSSurfaceRenderNode::IncreaseWideColorGamutNum()
+void RSSurfaceRenderNode::IncreaseCanvasGamutNum(GraphicColorGamut gamut)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    // If the count was zero brfore this increment, meaning the first P3 resource appears in the subtree.
-    // Notify firstLevelNode to increment the wide color window count.
-    if (!GetIsWideColorGamut()) {
+    GraphicColorGamut canvasGamut = GamutChange(gamut);
+    if (gamut == GRAPHIC_COLOR_GAMUT_SRGB) {
+        return;
+    }
+    GraphicColorGamut oldGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        ++p3Num_;
+    } else if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        ++bt2020Num_;
+    }
+    GraphicColorGamut newGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (newGamut != oldGamut) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (!firstLevelNode) {
             RS_LOGE("RSSurfaceRenderNode::IncreaseWideColorGamutNum firstLevelNode is nullptr");
             wideColorGamutNum_++;
             return;
         }
-        RS_LOGD("RSSurfaceRenderNode::IncreaseWideColorGamutNum notify firstLevelNodeId[%{public}" PRIu64
-            "] now wideColorGamutNum_[%{public}d]", firstLevelNode->GetId(), wideColorGamutNum_ + 1);
-        firstLevelNode->SetFirstLevelNodeColorGamutByResource(true);
+        RS_LOGD("RSSurfaceRenderNode::IncreaseCanvasGamutNum notify firstLevelNodeId[%{public}" PRIu64
+            "] old gamut[%{public}d] new gamut[%{public}d]", firstLevelNode->GetId(), oldGamut, newGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(false, oldGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(true, newGamut);
     }
-    wideColorGamutNum_++;
 #endif
 }
 
-void RSSurfaceRenderNode::ReduceWideColorGamutNum()
+void RSSurfaceRenderNode::ReduceCanvasGamutNum(GraphicColorGamut gamut)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (!GetIsWideColorGamut()) {
-        ROSEN_LOGE("RSSurfaceRenderNode::ReduceWideColorGamutNum error");
+    GraphicColorGamut canvasGamut = GamutChange(gamut);
+    if (gamut == GRAPHIC_COLOR_GAMUT_SRGB) {
         return;
     }
-    // If the count was zero after this decrement, meaning no P3 resources remain in the subtree.
-    // Notify firstLevelNode to decrement the wide color window count.
-    wideColorGamutNum_--;
-    if (!GetIsWideColorGamut()) {
+    GraphicColorGamut oldGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        p3Num_ = p3Num_ > 0 ? p3Num_ - 1 : 0;
+    } else if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        bt2020Num_ = bt2020Num_ > 0 ? bt2020Num_ - 1 : 0;
+    }
+    GraphicColorGamut newGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (newGamut != oldGamut) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (!firstLevelNode) {
-            RS_LOGE("RSSurfaceRenderNode::ReduceWideColorGamutNum firstLevelNode is nullptr");
+            RS_LOGE("RSSurfaceRenderNode::IncreaseWideColorGamutNum firstLevelNode is nullptr");
+            wideColorGamutNum_++;
             return;
         }
-        RS_LOGD("RSSurfaceRenderNode::ReduceWideColorGamutNum notify firstLevelNodeId[%{public}" PRIu64
-            "] now wideColorGamutNum_[%{public}d]", firstLevelNode->GetId(), wideColorGamutNum_);
-        firstLevelNode->SetFirstLevelNodeColorGamutByResource(false);
+        RS_LOGD("RSSurfaceRenderNode::IncreaseCanvasGamutNum notify firstLevelNodeId[%{public}" PRIu64
+            "] old gamut[%{public}d] new gamut[%{public}d]", firstLevelNode->GetId(), oldGamut, newGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(false, oldGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(true, newGamut);
     }
 #endif
 }
@@ -1433,10 +1488,11 @@ bool RSSurfaceRenderNode::GetHardCursorLastStatus() const
 
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
-    if (colorSpace_ == colorSpace) {
+    GraphicColorGamut newGamut = GamutChange(colorSpace);
+    if (colorSpace_ == newGamut) {
         return;
     }
-    colorSpace_ = colorSpace;
+    colorSpace_ = newGamut;
     if (!isOnTheTree_) {
         return;
     }
@@ -1445,7 +1501,7 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
         RS_LOGE("RSSurfaceRenderNode::SetColorSpace firstLevelNode is nullptr");
         return;
     }
-    firstLevelNode->SetFirstLevelNodeColorGamutByWindow(colorSpace_ != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    firstLevelNode->SetFirstLevelNodeColorGamutByWindow(true, colorSpace_);
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
@@ -1453,10 +1509,19 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutNum_ > 0) {
-        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    int bt2020Num = 0;
+    int p3Num = 0;
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled()) {
+        bt2020Num = bt2020Num_;
+        p3Num = p3Num_;
     }
-    return colorSpace_;
+    GraphicColorGamut selfGamut = GamutChange(colorSpace_);
+    if (selfGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        ++p3Num;
+    } else if (selfGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        ++bt2020Num;
+    }
+    return JudgeGamut(bt2020Num, p3Num);
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
@@ -1464,29 +1529,36 @@ GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (wideColorGamutWindowCount_ > 0 ||
-        (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutResourceWindowCount_ > 0)) {
-        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-    } else {
-        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    int bt2020Num = firstLevelNodeBt2020WindowNum_;
+    int p3Num = firstLevelNodeP3WindowNum_;
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled()) {
+        bt2020Num += firstLevelNodeBt2020ResourceNum_;
+        p3Num += firstLevelNodeP3ResourceNum_;
+    }
+    return JudgeGamut(bt2020Num, p3Num);
+}
+
+void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByResource(bool isOnTree, GraphicColorGamut gamut)
+{
+    int tempNum = isOnTree ? 1 : -1;
+    if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        firstLevelNodeP3ResourceNum_ += tempNum;
+        firstLevelNodeP3ResourceNum_ = std::max(firstLevelNodeP3ResourceNum_, 0);
+    } else if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        firstLevelNodeBt2020ResourceNum_ += tempNum;
+        firstLevelNodeP3ResourceNum_ = std::max(firstLevelNodeP3ResourceNum_, 0);
     }
 }
 
-void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByResource(bool changeToP3)
+void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool isOnTree, GraphicColorGamut gamut)
 {
-    if (changeToP3) {
-        wideColorGamutResourceWindowCount_++;
-    } else {
-        wideColorGamutResourceWindowCount_--;
-    }
-}
-
-void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool changeToP3)
-{
-    if (changeToP3) {
-        wideColorGamutWindowCount_++;
-    } else {
-        wideColorGamutWindowCount_--;
+    int tempNum = isOnTree ? 1 : -1;
+    if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        firstLevelNodeP3WindowNum_ += tempNum;
+        firstLevelNodeP3WindowNum_ = std::max(firstLevelNodeP3WindowNum_, 0);
+    } else if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        firstLevelNodeBt2020WindowNum_ += tempNum;
+        firstLevelNodeP3WindowNum_ = std::max(firstLevelNodeP3WindowNum_, 0);
     }
 }
 
@@ -1505,9 +1577,7 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
         RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata get color space info failed.");
         return;
     }
-    // currently, P3 is the only supported wide color gamut, this may be modified later.
-    SetColorSpace(colorSpaceInfo.primaries != COLORPRIMARIES_SRGB ?
-        GRAPHIC_COLOR_GAMUT_DISPLAY_P3 : GRAPHIC_COLOR_GAMUT_SRGB);
+    SetColorSpace(CMPrimariesToGamut(colorSpaceInfo.primaries));
 #endif
 }
 

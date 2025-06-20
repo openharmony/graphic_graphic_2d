@@ -267,19 +267,22 @@ void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool n
 
 void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 {
-    // currently, P3 is the only supported wide color gamut, this may be modified later.
-    if (node.IsAppWindow() && node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
-        if (!curDisplayNode_) {
-            RS_LOGD("CheckColorSpace: curDisplayNode_ is nullptr");
-            return;
-        }
-        curDisplayNode_->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-        RS_LOGD("CheckColorSpace: node(%{public}s) set new colorgamut %{public}d",
-            node.GetName().c_str(), static_cast<int>(GRAPHIC_COLOR_GAMUT_DISPLAY_P3));
+    if (!node.IsAppWindow()) {
+        return;
+    }
+    if (!curDisplayNode_) {
+        RS_LOGD("RSUniRenderVisitor::CheckColorSpace: curDisplayNode_ is nullptr");
+        return;
+    }
+    GraphicColorGamut gamut = node.GetColorSpace();
+    if (gamut != GRAPHIC_COLOR_GAMUT_SRGB) {
+        curDisplayNode_->UpdateColorSpace(gamut);
+        RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorgamut %{public}d",
+            node.GetName().c_str(), static_cast<int>(gamut));
     }
 }
 
-void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicColorGamut& newColorSpace)
+void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node)
 {
     if (!node.IsOnTheTree()) {
         RS_LOGD("CheckColorSpaceWithSelfDrawingNode node(%{public}s) is not on the tree",
@@ -291,20 +294,25 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
             node.GetName().c_str());
         return;
     }
+    if (curDisplayNode_ == nullptr) {
+        RS_LOGD("CheckColorSpaceWithSelfDrawingNode curDisplayNode_ is nullptr");
+        return;
+    }
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     node.UpdateColorSpaceWithMetadata();
     auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetInstanceRootNode());
     if (ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection() && appSurfaceNode
         && appSurfaceNode->IsMainWindowType() && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
         RS_LOGD("CheckColorSpaceWithSelfDrawingNode node(%{public}s) failed to set new color "
-                "gamut %{public}d because the window is blocked", node.GetName().c_str(), newColorSpace);
+                "gamut because the window is blocked", node.GetName().c_str());
         return;
     }
 
-    if (node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
-        newColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    GraphicColorGamut gamut = node.GetColorSpace();
+    if (gamut != GRAPHIC_COLOR_GAMUT_SRGB) {
+        curDisplayNode_->UpdateColorSpace(gamut);
         RS_LOGD("CheckColorSpaceWithSelfDrawingNode node(%{public}s) set new colorgamut %{public}d",
-            node.GetName().c_str(), newColorSpace);
+            node.GetName().c_str(), static_cast<int>(gamut));
     }
 }
 
@@ -328,10 +336,9 @@ void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node)
         }
         auto ancestorDisplayNode = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
         if (ancestorDisplayNode != nullptr && node.GetId() == ancestorDisplayNode->GetId()) {
-            CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
+            CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode);
         }
     }
-    node.SetColorSpace(colorSpace);
 }
 
 bool IsScreenSupportedWideColorGamut(ScreenId id, const sptr<RSScreenManager>& screenManager)
@@ -350,6 +357,10 @@ bool IsScreenSupportedWideColorGamut(ScreenId id, const sptr<RSScreenManager>& s
 
 void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
+    if (screenManager == nullptr) {
+        RS_LOGD("HandleColorGamuts screenManager is nullptr.");
+        return;
+    }
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGD("HandleColorGamuts get screen type failed.");
@@ -371,6 +382,13 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
         return;
     }
+    std::vector<ScreenColorGamut> mode;
+    int32_t ret = screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
+    if (ret != SUCCESS) {
+        RS_LOGD("RSUniRenderVisitor::HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
+        mode = std::vector<ScreenColorGamut>{GRAPHIC_COLOR_GAMUT_SRGB};
+    }
+    node.SelectBestGamut(mode);
 
     if (RSMainThread::Instance()->HasWiredMirrorDisplay() && !MultiScreenParam::IsMirrorDisplayCloseP3()) {
         std::shared_ptr<RSDisplayRenderNode> mirrorNode = node.GetMirrorSource().lock();

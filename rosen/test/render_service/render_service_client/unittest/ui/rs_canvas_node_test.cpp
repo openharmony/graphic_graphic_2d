@@ -3592,18 +3592,18 @@ HWTEST_F(RSCanvasNodeTest, SetHDRPresent001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetIsWideColorGamutTest
- * @tc.desc: test results of SetIsWideColorGamut
+ * @tc.name: SetColorGamutTest
+ * @tc.desc: test results of SetColorGamut
  * @tc.type: FUNC
- * @tc.require: issueIC1PS1
+ * @tc.require: issueICGKPE
  */
-HWTEST_F(RSCanvasNodeTest, SetIsWideColorGamutTest, TestSize.Level1)
+HWTEST_F(RSCanvasNodeTest, SetColorGamutTest, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetIsWideColorGamut(true);
+    canvasNode->SetColorGamut(3); // 3 is DISPLAY_P3
     EXPECT_TRUE(RSTransactionProxy::instance_);
 
-    canvasNode->SetIsWideColorGamut(false);
+    canvasNode->SetColorGamut(4); // 4 is SRGB
     EXPECT_TRUE(RSTransactionProxy::instance_);
 }
 

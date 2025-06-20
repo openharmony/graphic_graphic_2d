@@ -98,9 +98,9 @@ void RSCanvasNode::SetHDRPresent(bool hdrPresent)
     }
 }
 
-void RSCanvasNode::SetIsWideColorGamut(bool isWideColorGamut)
+void RSCanvasNode::SetColorGamut(uint32_t colorGamut)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetIsWideColorGamut>(GetId(), isWideColorGamut);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetColorGamut>(GetId(), colorGamut);
     AddCommand(command, true);
 }
 

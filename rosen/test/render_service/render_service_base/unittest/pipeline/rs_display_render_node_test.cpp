@@ -830,6 +830,32 @@ HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateColorSpaceTest
+ * @tc.desc: test results of UpdateColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issueICGKPE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, UpdateColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, node->GetColorSpace());
+}
+
+/**
  * @tc.name: SetPixelFormat GetPixelFormat
  * @tc.desc: test results of SetPixelFormat GetPixelFormat
  * @tc.type:FUNC
