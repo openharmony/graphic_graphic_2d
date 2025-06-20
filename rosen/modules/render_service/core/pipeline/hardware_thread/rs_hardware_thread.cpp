@@ -74,6 +74,10 @@
 #include "ressched_event_listener.h"
 #endif
 
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
+
 #undef LOG_TAG
 #define LOG_TAG "RSHardwareThread"
 
@@ -964,6 +968,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
 #endif
     RedrawScreenRCD(*canvas, layers);
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    auto rsSurface = renderFrame->GetSurface();
+    RSTvMetadataManager::Instance().CopyFromLayersToSurface(layers, rsSurface);
+#endif
     renderFrame->Flush();
     RS_LOGD("RsDebug Redraw flush frame buffer end");
 }

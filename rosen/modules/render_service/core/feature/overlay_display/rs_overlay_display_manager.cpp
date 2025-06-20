@@ -82,6 +82,9 @@ void RSOverlayDisplayManager::PostProcFilter(RSPaintFilterCanvas& canvas)
 {
     std::shared_lock lock(mutex_);
     if (modeOfCurrentVsync_ == 0) {
+#ifdef RS_ENABLE_TV_PQ_METADATA
+        RSTvMetadataManager::Instance().ResetDpPixelFormat();
+#endif
         return;
     }
     if (postProcFunc_ == nullptr) {
