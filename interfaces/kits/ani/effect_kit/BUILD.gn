@@ -45,6 +45,11 @@ ohos_shared_library("effectKit_ani") {
 
   include_dirs = [
     "./include",
+    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
+    "$graphic_2d_root/rosen/modules/effect/egl/include",
+    "$graphic_2d_root/rosen/modules/effect/color_picker/include",
+    "$graphic_2d_root/rosen/modules/effect/skia_effectChain/include",
+    "$graphic_2d_root/utils/color_manager/export",
   ]
 
   public_configs = []
@@ -84,7 +89,6 @@ generate_static_abc("effectKit") {
   base_url = "./ets"  # base_url需配置到导出接口文件的所在目录
   files = [
     "./ets/@ohos.effectKit.ets",
-    "./ets/effectKit_entry.ets",
   ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/effectKit.abc"
