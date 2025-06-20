@@ -220,6 +220,7 @@ public:
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
     void SetTextureExport(bool isTextureExportNode) override;
+    void SetCompositeLayer(TopLayerZOrder zOrder) {};
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const;
     /**

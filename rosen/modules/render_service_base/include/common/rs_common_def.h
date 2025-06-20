@@ -242,6 +242,17 @@ enum class RSRenderNodeDrawableType : uint32_t {
     CANVAS_DRAWING_NODE_DRAWABLE,
 };
 
+// zOrder of topLayer
+enum class TopLayerZOrder : uint32_t {
+    ROUNDED_CORNER_1 = 9901,
+    ROUNDED_CORNER_2 = 9900,
+    POINTER_WINDOW = 9800,
+    CHARGE_ACTION_TEXT = 9300,
+    CHARGE_3D_MOTION = 9200,
+    STYLUS = 9100,
+    MINIMUM_VALUE = 9000,
+};
+
 struct FocusAppInfo {
     int32_t pid = -1;
     int32_t uid = -1;
