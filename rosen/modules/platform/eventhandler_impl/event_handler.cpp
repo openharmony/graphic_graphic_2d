@@ -45,7 +45,7 @@ namespace OHOS {
 namespace AppExecFwk {
 static constexpr int DATETIME_STRING_LENGTH = 80;
 
-thread_local std::weak_ptr<EventHandler> EventHandler::currentEventHandler;
+static thread_local std::weak_ptr<EventHandler> currentEventHandler;
 
 std::shared_ptr<EventHandler> EventHandler::Current()
 {

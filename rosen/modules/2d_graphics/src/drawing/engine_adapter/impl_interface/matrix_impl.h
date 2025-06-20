@@ -68,11 +68,11 @@ public:
     virtual bool Equals(const Matrix& a, const Matrix& b) const = 0;
     virtual void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2) = 0;
-    virtual bool SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf);
-    virtual void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const;
-    virtual bool MapRect(Rect& dst, const Rect& src) const;
-    virtual bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count);
-    virtual void Set(int index, scalar value);
+    virtual bool SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf) = 0;
+    virtual void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const = 0;
+    virtual bool MapRect(Rect& dst, const Rect& src) const = 0;
+    virtual bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count) = 0;
+    virtual void Set(int index, scalar value) = 0;
     virtual scalar Get(int index) const = 0;
     virtual void GetAll(std::array<scalar, MATRIX_SIZE>& buffer) const = 0;
     virtual void SetAll(std::array<scalar, MATRIX_SIZE>& buffer) = 0;

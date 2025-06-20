@@ -21,6 +21,7 @@
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_darwin.h"
+#include <dispatch/dispatch.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -53,6 +54,15 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
         ROSEN_LOGE("RSSurfaceDarwin::RequestFrame, producer is nullptr");
         return nullptr;
     }
+
+#ifdef USE_GLFW_WINDOW
+    if (GlfwRenderContext::GetGlobal()->IsVisible()) {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+          GlfwRenderContext::GetGlobal()->CreateRenderingContext();
+        });
+    }
+#endif
+
     auto frame = std::make_unique<RSSurfaceFrameDarwin>(width, height);
     if (SetupGrContext() == false) {
         return frame;
@@ -70,13 +80,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
         ROSEN_LOGE("RSSurfaceDarwin::RequestFrame, surface bind failed");
         return frame;
     }
-#ifdef USE_GLFW_WINDOW
-    const auto canvas = frame->surface_->GetCanvas();
-    if (canvas != nullptr) {
-        canvas->Translate(0, frame->height_);
-        canvas->Scale(1, -1);
-    }
-#endif
     return frame;
 }
 
@@ -108,11 +111,6 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
             image->ReadPixels(bitmap, 0, 0);
         }
     }
-#ifdef USE_GLFW_WINDOW
-    if (frameDarwin->surface_ != nullptr) {
-        YInvert(addr, frameDarwin->width_, frameDarwin->height_);
-    }
-#endif
 
     int32_t width = frameDarwin->width_;
     int32_t height = frameDarwin->height_;
@@ -120,7 +118,7 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
     onRender_(addr, size, width, height, uiTimestamp);
 
 #ifdef USE_GLFW_WINDOW
-    GlfwRenderContext::GetGlobal()->SwapBuffers();
+    GlfwRenderContext::GetGlobal()->CopySnapshot(addr);
 #endif
     return true;
 }
@@ -135,47 +133,50 @@ void RSSurfaceDarwin::SetRenderContext(RenderContext* context)
     renderContext_ = context;
 }
 
-void RSSurfaceDarwin::YInvert(void *addr, int32_t width, int32_t height)
-{
-    const auto &pixels = reinterpret_cast<uint32_t *>(addr);
-    const auto &halfHeight = height / 0x2;
-    const auto &tmpPixels = std::make_unique<uint32_t[]>(width * halfHeight);
-    for (int32_t i = 0; i < halfHeight; i++) {
-        for (int32_t j = 0; j < width; j++) {
-            tmpPixels[i * width + j] = pixels[i * width + j];
-        }
-    }
-
-    for (int32_t i = 0; i < halfHeight; i++) {
-        const auto &r = height - 1 - i;
-        for (int32_t j = 0; j < width; j++) {
-            pixels[i * width + j] = pixels[r * width + j];
-        }
-    }
-
-    for (int32_t i = 0; i < halfHeight; i++) {
-        const auto &r = height - 1 - i;
-        for (int32_t j = 0; j < width; j++) {
-            pixels[r * width + j] = tmpPixels[i * width + j];
-        }
-    }
-}
-
 bool RSSurfaceDarwin::SetupGrContext()
 {
     if (grContext_ != nullptr) {
+#ifdef USE_GLFW_WINDOW
+        if (GlfwRenderContext::GetGlobal()->IsVisible()) {
+            GlfwRenderContext::GetGlobal()->MakeRenderingCurrent();
+        }
+#endif
         return true;
     }
 
-    GlfwRenderContext::GetGlobal()->MakeCurrent();
-    auto grContext = std::make_shared<Drawing::GPUContext>();
-    Drawing::GPUContextOptions options;
-    if (!grContext->BuildFromGL(options)) {
-        RS_LOGE("grContext is nullptr");
-        return false;
+    bool createOnMainThread = false;
+#ifdef USE_GLFW_WINDOW
+    if (GlfwRenderContext::GetGlobal()->IsVisible()) {
+        createOnMainThread = true;
     }
-    grContext_ = grContext;
-    return true;
+#endif
+    if (createOnMainThread) {
+        __block auto grContext = std::make_shared<Drawing::GPUContext>();
+        __block bool contextCreated = true;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            Drawing::GPUContextOptions options;
+            if (!grContext->BuildFromGL(options)) {
+                RS_LOGE("grContext is nullptr");
+                contextCreated = false;
+            }
+        });
+        if (!contextCreated) {
+            return false;
+        }
+        GlfwRenderContext::GetGlobal()->MakeRenderingCurrent();
+        grContext_ = grContext;
+        return true;
+    } else {
+        GlfwRenderContext::GetGlobal()->MakeCurrent();
+        auto grContext = std::make_shared<Drawing::GPUContext>();
+        Drawing::GPUContextOptions options;
+        if (!grContext->BuildFromGL(options)) {
+            RS_LOGE("grContext is nullptr");
+            return false;
+        }
+        grContext_ = grContext;
+        return true;
+    }
 }
 
 uint32_t RSSurfaceDarwin::GetQueueSize() const
