@@ -119,7 +119,7 @@ ohos_unittest("RSGraphicTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "init:libbegetutil",
-    "nativetoken:libnativetoken",
+    "selinux_adapter:librestorecon",
   ]
 
   defines += gpu_defines
