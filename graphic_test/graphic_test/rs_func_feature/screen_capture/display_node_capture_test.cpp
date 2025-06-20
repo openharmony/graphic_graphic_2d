@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 #include <filesystem>
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
 
+#include "token_setproc.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing;
@@ -71,6 +74,22 @@ public:
     // called before each tests
     void BeforeEach() override
     {
+        uint64_t tokenId;
+        const char* perms[1];
+        perms[0] = "ohos.permission.CAPTURE_SCREEN";
+        NativeTokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 1,
+            .aclsNum = 0,
+            .dcaps = NULL,
+            .perms = perms,
+            .acls = NULL,
+            .processName = "foundation",
+            .aplStr = "system_basic",
+        };
+        tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
         auto size = GetScreenSize();
         SetSurfaceBounds({0, 0, size.x_ / 2.0f, size.y_ / 2.0f});
         SetSurfaceColor(RSColor(0xffff0000));
