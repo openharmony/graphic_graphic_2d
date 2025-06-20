@@ -116,13 +116,13 @@ ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
         EFFECT_LOG_E("Render error");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    return Media::PixelMapAni::CreatePixelMap(env, thisFilter->GetDstPixelMap());
+    return Media::PixelMapTaiheAni::CreateEtsPixelMap(env, thisFilter->GetDstPixelMap());
 }
 
 ani_object AniFilter::CreateEffect(ani_env* env, ani_object para)
 {
     auto aniFilter = std::make_unique<AniFilter>();
-    std::shared_ptr<Media::PixelMap> pixelMap(AniEffectKitUtils::GetPixelMapFromEnv(env, para));
+    std::shared_ptr<Media::PixelMap> pixelMap = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, para);
     if (!pixelMap) {
         EFFECT_LOG_E("pixelMap is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
@@ -243,7 +243,7 @@ ani_object AniFilter::GetPixelMap(ani_env* env, ani_object obj)
         EFFECT_LOG_E("Render error");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    return Media::PixelMapAni::CreatePixelMap(env, thisFilter->GetDstPixelMap());
+    return Media::PixelMapTaiheAni::CreateEtsPixelMap(env, thisFilter->GetDstPixelMap());
 }
 
 ani_status AniFilter::Init(ani_env* env)

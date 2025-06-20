@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "include/core/SkImageFilter.h"
-#include "pixel_map_ani.h"
+#include "pixel_map_taihe_ani.h"
 #include "effect/shader_effect.h"
 
 namespace OHOS {
