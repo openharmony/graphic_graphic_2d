@@ -1268,11 +1268,11 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_020)
     surfaceNode1->SetFrame({ 0, 0, 400, 400 });
     surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
 
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode0);
-    displayNode->SetBackgroundColor(SK_ColorBLACK);
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode0);
+    displayNode1->SetBackgroundColor(SK_ColorBLACK);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -1333,9 +1333,9 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_021)
     surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
     surfaceNode0->SetSecurityLayer(true);
 
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->RSNode::AddChild(surfaceNode0);
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->RSNode::AddChild(surfaceNode0);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -1403,9 +1403,9 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_022)
     EXPECT_NE(displayNode1, nullptr);
     LOGI("MULTI_SCREEN_TEST_022 screenId1:%{public}" PRIu64 ", nodeId1:%{public}" PRIu64, screenId1,
         displayNode1->GetId());
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
-    displayNode->SetBackgroundColor(SK_ColorBLUE);
+    displayNode1->SetBounds({ 0, 0, 1000, 1000 });
+    displayNode1->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode1->SetBackgroundColor(SK_ColorBLUE);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
