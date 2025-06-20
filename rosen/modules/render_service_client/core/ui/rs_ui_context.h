@@ -31,6 +31,7 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 
 #include "animation/rs_animation.h"
 #include "animation/rs_implicit_animator.h"
@@ -187,7 +188,7 @@ private:
     RSNodeMapV2 nodeMap_;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandler_;
     std::shared_ptr<RSSyncTransactionHandler> rsSyncTransactionHandler_;
-    std::shared_ptr<RSImplicitAnimator> rsImplicitAnimator_;
+    std::unordered_map<pid_t, std::shared_ptr<RSImplicitAnimator>> rsImplicitAnimators_;
     std::shared_ptr<RSModifierManager> rsModifierManager_;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
@@ -195,6 +196,7 @@ private:
     std::recursive_mutex animationMutex_;
 
     TaskRunner taskRunner_ = TaskRunner();
+    std::mutex implicitAnimatorMutex_;
 
     friend class RSUIContextManager;
 };

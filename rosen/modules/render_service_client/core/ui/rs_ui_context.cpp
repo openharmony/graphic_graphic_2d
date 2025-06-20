@@ -33,11 +33,19 @@ RSUIContext::~RSUIContext() {}
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
 {
-    if (rsImplicitAnimator_ == nullptr) {
-        rsImplicitAnimator_ = std::make_shared<RSImplicitAnimator>();
-        rsImplicitAnimator_->SetRSUIContext(weak_from_this());
+    std::lock_guard<std::mutex> lock(implicitAnimatorMutex_);
+    auto it = rsImplicitAnimators_.find(gettid());
+    if (it != rsImplicitAnimators_.end()) {
+        return it->second;
+    } else {
+        if (rsImplicitAnimators_.size() > 0) {
+            RS_LOGI_LIMIT("Too many threads are using the same animator");
+        }
+        auto rsImplicitAnimator = std::make_shared<RSImplicitAnimator>();
+        rsImplicitAnimator->SetRSUIContext(weak_from_this());
+        rsImplicitAnimators_.emplace(gettid(), rsImplicitAnimator);
+        return rsImplicitAnimator;
     }
-    return rsImplicitAnimator_;
 }
 
 const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
