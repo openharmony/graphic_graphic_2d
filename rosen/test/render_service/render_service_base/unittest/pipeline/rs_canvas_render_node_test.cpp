@@ -510,6 +510,16 @@ HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
 
     EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
 
+    rsCanvasRenderNode->childHasVisibleFilter_ = true;
+    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleFilter_ = false;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    rsCanvasRenderNode->childHasVisibleEffect_ = true;
+    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleEffect_ = false;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
     auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
     Color color(255, 0, 0);
     std::optional<Color> colorBlend = color;
