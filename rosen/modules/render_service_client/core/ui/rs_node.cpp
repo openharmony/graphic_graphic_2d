@@ -2650,12 +2650,14 @@ void RSNode::SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffect
     }
     auto borderLightEffectPara = std::static_pointer_cast<BorderLightEffectPara>(visualEffectPara);
     Vector3f rotationAngle;
+    float cornerRadius = 1.0f;
     RSBorderLightParams borderLightParam = {
         borderLightEffectPara->GetLightPosition(),
         borderLightEffectPara->GetLightColor(),
         borderLightEffectPara->GetLightIntensity(),
         borderLightEffectPara->GetLightWidth(),
-        rotationAngle
+        rotationAngle,
+        cornerRadius
     };
     auto borderLightShader = std::make_shared<RSBorderLightShader>();
     borderLightShader->SetRSBorderLightParams(borderLightParam);

@@ -390,8 +390,8 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
     napi_get_undefined(env, &result);
     napi_status status;
     napi_value thisVar = nullptr;
-    napi_value argValue[NUM_3] = {0};
-    size_t argCount = NUM_3;
+    napi_value argValue[NUM_4] = {0};
+    size_t argCount = NUM_4;
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         FILTER_LOG_E("FilterNapi SetContentLight parsing input fail"));
@@ -400,8 +400,8 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetContentLight para is nullptr"));
 
-    if (argCount != NUM_3) {
-        FILTER_LOG_E("Args number less than 3");
+    if (argCount != NUM_4) {
+        FILTER_LOG_E("Args number less than 4");
         return thisVar;
     }
 

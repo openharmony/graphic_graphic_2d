@@ -575,7 +575,12 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     lastRect_ = rect;
     bgShaderNeedUpdate_ = true;
     if (foregroundRenderFilter_) {
-        GenerateContentLightFilter();
+        for (auto type : foregroundRenderFilter_->GetUIFilterTypes()) {
+            if (type == RSUIFilterType::CONTENT_LIGHT) {
+                filterNeedUpdate_ = true;
+                break;
+            }
+        }
     }
     return dirtyFlag;
 }
@@ -5197,8 +5202,10 @@ void RSProperties::UpdateBackgroundShader()
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
         if (bgShader->GetShaderType() == RSShader::ShaderType::BORDER_LIGHT) {
             Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+            float cornerRadius = GetCornerRadius().x_;
             auto RSBLShader = std::static_pointer_cast<RSBorderLightShader>(bgShader);
             RSBLShader->SetRotationAngle(rotationAngle);
+            RSBLShader->SetCornerRadius(cornerRadius);
         }
     }
 }
