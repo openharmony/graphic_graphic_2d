@@ -87,15 +87,20 @@ namespace uiEffect {
   }
   export class FilterInternal implements Filter {
     private filterNativeObj: long = 0;
+    private interface waterRipplePara {
+      progress: number;
+      waveCount: number;
+      x: number; 
+      y: number; 
+      rippleMode: WaterRippleMode;
+    }
     constructor(context: long) {
       this.filterNativeObj = context;
     }
     public native pixelStretchNative(stretchSizes: Array<number>, tileMode: TileMode): Filter;
     public native blurNative(blurRadius: number): Filter;
     public native flyInFlyOutEffectNative(degree: number, flyMode: FlyMode ): Filter;
-    public native waterRippleNative(progress: number, waveCount: number, 
-                                    x: number, y: number, 
-                                    rippleMode: WaterRippleMode): Filter;
+    public native waterRippleNative(waterPara: waterRipplePara): Filter;
     public native distortNative(distortionK: number): Filter;
 
     public pixelStretch(stretchSizes: Array<number>, tileMode: TileMode): Filter {
@@ -108,7 +113,14 @@ namespace uiEffect {
       return this.flyInFlyOutEffectNative(degree, flyMode);
     }
     public waterRipple(progress: number, waveCount: number, x: number, y: number, rippleMode: WaterRippleMode): Filter{
-      return this.waterRippleNative(progress, waveCount, x, y, rippleMode);
+      let waterPara: waterRipplePara = {
+        progress: progress,
+        waveCount: waveCount,
+        x: x,
+        y: y,
+        rippleMode: rippleMode
+      };
+      return this.waterRippleNative(waterPara);
     }
     public distort(distortionK: number): Filter{
       return this.distortNative(distortionK);

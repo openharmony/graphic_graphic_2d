@@ -58,9 +58,7 @@ public:
     static ani_object PixelStretch(ani_env* env, ani_object obj, ani_object arrayObj, ani_enum_item enumItem);
     static ani_object Blur(ani_env* env, ani_object obj, ani_double radius);
     static ani_object FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double degree, ani_enum_item flyMode);
-    static ani_object WaterRipple(ani_env* env, ani_object obj, ani_double progress,
-                                ani_double waveCount, ani_double x, ani_double y,
-                                ani_enum_item rippleMode);
+    static ani_object WaterRipple(ani_env* env, ani_object obj, ani_object waterPara);
     static ani_object Distort(ani_env* env, ani_object obj, ani_double distortionK);
 
 private:

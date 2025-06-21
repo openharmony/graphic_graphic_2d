@@ -228,10 +228,16 @@ ani_object AniEffect::FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double
     ani_object retVal {};
 
     ani_size flyModeIndex;
-    env->EnumItem_GetIndex(flyMode, &flyModeIndex);
-//    Drawing::FlyMode flyModeEnum = static_cast<Drawing::FlyMode>(flyModeIndex);
-
+    if (ANI_OK != env->EnumItem_GetIndex(flyMode, &flyModeIndex)) {
+        UIEFFECT_LOG_E("get flyModeIndex failed");
+        return retVal;
+    }
     auto flyOutPara = std::make_shared<FlyOutPara>();
+
+    if (degree < -3.4E+38 || degree > 3.4E+38) {
+    UIEFFECT_LOG_E("degree out of float range");
+    return retVal;
+    }
     flyOutPara->SetDegree(static_cast<float>(degree));
     flyOutPara->SetFlyMode(static_cast<uint32_t>(flyModeIndex));
 
@@ -248,16 +254,46 @@ ani_object AniEffect::FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double
     return retVal;
 }
 
-ani_object AniEffect::WaterRipple(ani_env* env, ani_object obj, ani_double progress,
-                                  ani_double waveCount, ani_double x, ani_double y,
-                                  ani_enum_item rippleMode)
+ani_object AniEffect::WaterRipple(ani_env* env, ani_object obj, ani_object waterPara)
 {
     ani_object retVal {};
+    ani_double progress;
+    ani_int waveCount;
+    ani_double x;
+    ani_double y;
+    ani_ref rippleMode;
 
+    if (ANI_OK != env->Object_GetPropertyByName_Double(waterPara, "progress", &progress)) {
+        UIEFFECT_LOG_E("get progress failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Int(waterPara, "waveCount", &waveCount)) {
+        UIEFFECT_LOG_E("get waveCount failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Double(waterPara, "x", &x)) {
+        UIEFFECT_LOG_E("get x failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Double(waterPara, "y", &y)) {
+        UIEFFECT_LOG_E("get y failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Ref(waterPara, "rippleMode", &rippleMode)) {
+        UIEFFECT_LOG_E("get rippleMode failed");
+        return retVal;
+    }
+    
+    ani_enum_item rippleModeEnum = static_cast<ani_enum_item>(rippleMode);
     ani_size rippleModeIndex;
-    env->EnumItem_GetIndex(rippleMode, &rippleModeIndex);
-//    Drawing::WaterRippleMode rippleModeEnum = static_cast<Drawing::WaterRippleMode>(rippleModeIndex);
-
+    if (ANI_OK != env->EnumItem_GetIndex(rippleModeEnum, &rippleModeIndex)) {
+        UIEFFECT_LOG_E("get rippleModeIndex failed");
+        return retVal;
+    }
     auto waterRipplePara = std::make_shared<WaterRipplePara>();
     waterRipplePara->SetProgress(static_cast<float>(progress));
     waterRipplePara->SetWaveCount(static_cast<uint32_t>(waveCount));
