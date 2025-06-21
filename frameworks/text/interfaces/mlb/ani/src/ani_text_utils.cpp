@@ -262,7 +262,7 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        env->Object_CallMethodByName_Double(reinterpret_cast<ani_object>(ref), "doubleValue", ":D", &value);
+        env->Object_CallMethodByName_Double(reinterpret_cast<ani_object>(ref), "unboxed", ":D", &value);
     }
     return result;
 }
