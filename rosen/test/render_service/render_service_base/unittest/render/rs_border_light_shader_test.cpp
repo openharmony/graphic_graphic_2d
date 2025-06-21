@@ -135,6 +135,7 @@ HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest007, TestSize.Level1)
 
 /**
  * @tc.name: RSBorderLightShaderTest008
+ * @tc.desc: test results of SetCornerRadius
  * @tc.type: FUNC
  */
 HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest008, TestSize.Level1)
