@@ -2044,11 +2044,46 @@ HWTEST_F(RSPropertiesTest, Dirty001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetDirty();
+    properties.geoDirty_ = true;
+    properties.contentDirty_ = true;
+    properties.subTreeAllDirty_ = true;
     EXPECT_TRUE(properties.IsDirty());
+    EXPECT_TRUE(properties.IsGeoDirty());
+    EXPECT_TRUE(properties.IsContentDirty());
+    EXPECT_TRUE(properties.IsSubTreeAllDirty());
     properties.ResetDirty();
     EXPECT_FALSE(properties.IsDirty());
     EXPECT_FALSE(properties.IsGeoDirty());
     EXPECT_FALSE(properties.IsContentDirty());
+    EXPECT_FALSE(properties.IsSubTreeAllDirty());
+}
+
+/**
+ * @tc.name: Dirty002
+ * @tc.desc: test RecordCurDirtyStatus and AccmulateDirtyStatus
+ * @tc.type: FUNC
+ * @tc.require: issueICAJPW
+ */
+HWTEST_F(RSPropertiesTest, Dirty002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetDirty();
+    properties.geoDirty_ = true;
+    properties.contentDirty_ = true;
+    properties.subTreeAllDirty_ = true;
+    properties.RecordCurDirtyStatus();
+
+    properties.ResetDirty();
+    EXPECT_FALSE(properties.IsDirty());
+    EXPECT_FALSE(properties.IsGeoDirty());
+    EXPECT_FALSE(properties.IsContentDirty());
+    EXPECT_FALSE(properties.IsSubTreeAllDirty());
+
+    properties.AccmulateDirtyStatus();
+    EXPECT_TRUE(properties.IsDirty());
+    EXPECT_TRUE(properties.IsGeoDirty());
+    EXPECT_TRUE(properties.IsContentDirty());
+    EXPECT_TRUE(properties.IsSubTreeAllDirty());
 }
 
 /**
