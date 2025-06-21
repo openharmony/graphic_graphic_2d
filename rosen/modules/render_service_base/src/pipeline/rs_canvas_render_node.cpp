@@ -31,6 +31,9 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#endif
 #include "render/rs_light_up_effect_filter.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -127,10 +130,8 @@ void RSCanvasRenderNode::OnTreeStateChanged()
     }
     RSRenderNode::OnTreeStateChanged();
 
-    // When the P3 canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
-    if (GetIsWideColorGamut()) {
-        ModifyWideWindowColorGamutNum(IsOnTheTree());
-    }
+    // When the canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
+    ModifyWindowWideColorGamutNum(IsOnTheTree(), graphicColorGamut_);
 }
 
 bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
@@ -357,34 +358,40 @@ bool RSCanvasRenderNode::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
-void RSCanvasRenderNode::SetIsWideColorGamut(bool isWideColorGamut)
+void RSCanvasRenderNode::SetColorGamut(uint32_t gamut)
 {
-    if (isWideColorGamut_ == isWideColorGamut) {
+    if (colorGamut_ == gamut) {
         return;
     }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GraphicColorGamut nowGamut = graphicColorGamut_;
+    graphicColorGamut_ = RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(
+        static_cast<OHOS::ColorManager::ColorSpaceName>(gamut));
     if (IsOnTheTree()) {
-        ModifyWideWindowColorGamutNum(isWideColorGamut_);
+        ModifyWindowWideColorGamutNum(false, nowGamut);
+        ModifyWindowWideColorGamutNum(true, graphicColorGamut_);
     }
-    isWideColorGamut_ = isWideColorGamut;
+#endif
+    colorGamut_ = gamut;
 }
 
-bool RSCanvasRenderNode::GetIsWideColorGamut() const
+uint32_t RSCanvasRenderNode::GetColorGamut()
 {
-    return isWideColorGamut_;
+    return colorGamut_;
 }
 
-void RSCanvasRenderNode::ModifyWideWindowColorGamutNum(bool flag)
+void RSCanvasRenderNode::ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut gamut)
 {
     auto parentInstance = GetInstanceRootNode();
     if (!parentInstance) {
-        RS_LOGE("RSCanvasRenderNode::ModifyWideWindowColorGamutNum get instanceRootNode failed.");
+        RS_LOGE("RSCanvasRenderNode::ModifyWindowWideColorGamutNum get instanceRootNode failed.");
         return;
     }
     if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-        if (flag) {
-            parentSurface->IncreaseWideColorGamutNum();
+        if (isOnTree) {
+            parentSurface->IncreaseCanvasGamutNum(gamut);
         } else {
-            parentSurface->ReduceWideColorGamutNum();
+            parentSurface->ReduceCanvasGamutNum(gamut);
         }
     }
 }

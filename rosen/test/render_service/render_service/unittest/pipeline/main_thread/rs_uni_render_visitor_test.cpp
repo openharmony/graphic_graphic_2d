@@ -1707,57 +1707,23 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts001, TestSize.Level2)
 /**
  * @tc.name: CheckColorSpaceWithSelfDrawingNode001
  * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpaceWithSelfDrawingNode while
- *           selfDrawingNode's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB,
+ *           selfDrawingNode's color space is equal to GRAPHIC_COLOR_GAMUT_DISPLAY_P3,
  *           and this node will be drawn with gpu
  * @tc.type: FUNC
- * @tc.require: issueIAW3W0
+ * @tc.require: issueICGKPE
  */
 HWTEST_F(RSUniRenderVisitorTest, CheckColorSpaceWithSelfDrawingNode001, TestSize.Level2)
 {
     auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(selfDrawingNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    GraphicColorGamut colorSpace = GRAPHIC_COLOR_GAMUT_ADOBE_RGB;
-    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
     selfDrawingNode->SetHardwareForcedDisabledState(true);
     selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     selfDrawingNode->SetIsOnTheTree(true);
 
-    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
-    ASSERT_EQ(colorSpace, selfDrawingNode->GetColorSpace());
-
-    auto& instance = GraphicFeatureParamManager::GetInstance();
-    std::shared_ptr<FeatureParam> param = std::make_shared<ColorGamutParam>();
-    instance.featureParamMap_["ColorGamutConfig"] = param;
-    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
-    ASSERT_EQ(colorSpace, selfDrawingNode->GetColorSpace());
-    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
-    ASSERT_EQ(selfDrawingNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-}
-
-/**
- * @tc.name: CheckColorSpaceWithSelfDrawingNode002
- * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpaceWithSelfDrawingNode while
- *           selfDrawingNode's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB,
- *           and this node will not be drawn with gpu
- * @tc.type: FUNC
- * @tc.require: issueIAW3W0
- */
-HWTEST_F(RSUniRenderVisitorTest, CheckColorSpaceWithSelfDrawingNode002, TestSize.Level2)
-{
-    auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(selfDrawingNode, nullptr);
-    selfDrawingNode->SetProtectedLayer(true);
-    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    selfDrawingNode->SetIsOnTheTree(true);
-
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    GraphicColorGamut colorSpace = GRAPHIC_COLOR_GAMUT_ADOBE_RGB;
-    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
-    ASSERT_NE(colorSpace, selfDrawingNode->GetColorSpace());
+    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode);
+    ASSERT_EQ(GRAPHIC_COLOR_GAMUT_DISPLAY_P3, selfDrawingNode->GetColorSpace());
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

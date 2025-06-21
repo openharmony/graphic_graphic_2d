@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_BASE_RENDER_UI_RS_COLORSPACE_CONVERT_H
 
 #include "colorspace_converter_display.h"
+#include "color_space.h"
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "image/image.h"
@@ -65,6 +66,7 @@ public:
     bool SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer, VPEParameter& parameter,
         GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode, float hdrBrightness);
     bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceInfo& colorSpaceInfo);
+    static GraphicColorGamut ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name);
 
 private:
     RSColorSpaceConvert();

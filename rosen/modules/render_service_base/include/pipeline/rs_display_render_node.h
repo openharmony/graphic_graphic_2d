@@ -428,6 +428,8 @@ public:
     }
 
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
+    void UpdateColorSpace(const GraphicColorGamut& newColorSpace);
+    void SelectBestGamut(const std::vector<ScreenColorGamut>& mode);
     GraphicColorGamut GetColorSpace() const;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()

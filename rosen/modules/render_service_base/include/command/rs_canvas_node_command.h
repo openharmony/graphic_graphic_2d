@@ -34,7 +34,7 @@ enum RSCanvasNodeCommandType : uint16_t {
     CANVAS_NODE_CLEAR_RECORDING = 2,
     CANVAS_NODE_SET_HDR_PRESENT = 3,
     CANVAS_NODE_SET_LINKED_ROOTNODE = 4,
-    CANVAS_NODE_SET_IS_WIDE_COLOR_GAMUT = 5,
+    CANVAS_NODE_SET_COLOR_GAMUT = 5,
 };
 
 namespace Drawing {
@@ -48,7 +48,7 @@ public:
         RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType);
     static void ClearRecording(RSContext& context, NodeId id);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
-    static void SetIsWideColorGamut(RSContext& context, NodeId nodeId, bool isWideColorGamut);
+    static void SetColorGamut(RSContext& context, NodeId nodeId, uint32_t colorGamut);
 
     // [Attention] Only used in PC window resize scene now
     static void SetLinkedRootNodeId(RSContext& context, NodeId nodeId, NodeId rootNodeId);
@@ -70,9 +70,9 @@ ADD_COMMAND(RSCanvasNodeClearRecording,
 ADD_COMMAND(RSCanvasNodeSetHDRPresent,
     ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_SET_HDR_PRESENT,
         RSCanvasNodeCommandHelper::SetHDRPresent, NodeId, bool))
-ADD_COMMAND(RSCanvasNodeSetIsWideColorGamut,
-    ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_SET_IS_WIDE_COLOR_GAMUT,
-        RSCanvasNodeCommandHelper::SetIsWideColorGamut, NodeId, bool))
+ADD_COMMAND(RSCanvasNodeSetColorGamut,
+    ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_SET_COLOR_GAMUT,
+        RSCanvasNodeCommandHelper::SetColorGamut, NodeId, uint32_t))
 
 // [Attention] Only used in PC window resize scene now
 ADD_COMMAND(RSCanvasNodeSetLinkedRootNodeId,

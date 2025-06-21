@@ -306,46 +306,31 @@ HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetIsWideColorGamut001
- * @tc.desc: test true of SetIsWideColorGamut
+ * @tc.name: SetColorGamut001
+ * @tc.desc: test true of SetColorGamut
  * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
+ * @tc.require: issueICGKPE
  */
-HWTEST_F(RSCanvasRenderNodeTest, SetIsWideColorGamut001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, SetColorGamut001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetIsWideColorGamut(true);
-    EXPECT_TRUE(rsCanvasRenderNode.GetIsWideColorGamut());
+    rsCanvasRenderNode.SetColorGamut(3); // 3 is DISPLAY_P3
+    EXPECT_EQ(rsCanvasRenderNode.GetColorGamut(), 3); // 3 is DISPLAY_P3
 }
 
 /**
- * @tc.name: SetIsWideColorGamut002
- * @tc.desc: test false of SetIsWideColorGamut
+ * @tc.name: ModifyWindowWideColorGamutNum001
+ * @tc.desc: test ModifyWindowWideColorGamutNum
  * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
+ * @tc.require: issueICGKPE
  */
-HWTEST_F(RSCanvasRenderNodeTest, SetIsWideColorGamut002, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetIsWideColorGamut(false);
-    EXPECT_FALSE(rsCanvasRenderNode.GetIsWideColorGamut());
-}
-
-/**
- * @tc.name: ModifyWideWindowColorGamutNum001
- * @tc.desc: test ModifyWideWindowColorGamutNum
- * @tc.type: FUNC
- * @tc.require: issueIBF3VR
- */
-HWTEST_F(RSCanvasRenderNodeTest, ModifyWideWindowColorGamutNum001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, ModifyWindowWideColorGamutNum001, TestSize.Level1)
 {
     NodeId testId = 0;
     std::shared_ptr<RSCanvasRenderNode> testNode = std::make_shared<RSCanvasRenderNode>(testId);
-    testNode->ModifyWideWindowColorGamutNum(false);
+    testNode->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     EXPECT_TRUE(testNode->GetContext().lock() == nullptr);
 
     NodeId nodeId = 1;
@@ -358,10 +343,15 @@ HWTEST_F(RSCanvasRenderNodeTest, ModifyWideWindowColorGamutNum001, TestSize.Leve
     auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
     node->instanceRootNodeId_ = surfaceNodeId;
     
-    node->ModifyWideWindowColorGamutNum(true);
-    ASSERT_EQ(surfaceNode->wideColorGamutNum_, 1);
-    node->ModifyWideWindowColorGamutNum(false);
-    ASSERT_EQ(surfaceNode->wideColorGamutNum_, 0);
+    node->ModifyWindowWideColorGamutNum(true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(surfaceNode->p3Num_, 1);
+    node->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(surfaceNode->p3Num_, 0);
+
+    node->ModifyWindowWideColorGamutNum(true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
+    ASSERT_EQ(surfaceNode->bt2020Num_, 1);
+    node->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
+    ASSERT_EQ(surfaceNode->bt2020Num_, 0);
 }
 
 /**

@@ -136,11 +136,11 @@ public:
     void SetHDRPresent(bool hdrPresent);
 
     /**
-     * @brief Sets whether the canvas node uses a wide color gamut.
+     * @brief Sets the canvas node's color gamut.
      *
-     * @param isWideColorGamut True to enable wide color gamut; false to use standard color gamut.
+     * @param colorGamut The enum of ColorSpaceName.
      */
-    void SetIsWideColorGamut(bool isWideColorGamut);
+    void SetColorGamut(uint32_t colorGamut);
 
     /**
      * @brief Sets the callback function to be called when the bounds of the canvas node change.
