@@ -510,6 +510,8 @@ HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
 
     EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
 
+    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = true;
+
     rsCanvasRenderNode->childHasVisibleFilter_ = true;
     EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
     rsCanvasRenderNode->childHasVisibleFilter_ = false;
@@ -517,6 +519,18 @@ HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
 
     rsCanvasRenderNode->childHasVisibleEffect_ = true;
     EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleEffect_ = false;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = false;
+
+    rsCanvasRenderNode->childHasVisibleFilter_ = true;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleFilter_ = false;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    rsCanvasRenderNode->childHasVisibleEffect_ = true;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
     rsCanvasRenderNode->childHasVisibleEffect_ = false;
     EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
 
