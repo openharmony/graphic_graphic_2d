@@ -32,6 +32,19 @@ namespace uiEffect {
     MIRROR,
     DECAL
   }
+
+  export enum FlyMode {
+    BOTTOM,
+    TOP
+  }
+
+  export enum WaterRippleMode {
+    SMALL2MEDIUM_RECV,
+    SMALL2MEDIUM_SEND,
+    SMALL2SMALL,
+    MINI_RECV
+  }
+
   export interface BrightnessBlender {
     cubicRate: number;
     quadraticRate: number;
@@ -68,19 +81,49 @@ namespace uiEffect {
   export interface Filter {
     pixelStretch(stretchSizes: Array<number>, tileMode: TileMode): Filter;
     blur(blurRadius: number): Filter;
+    flyInFlyOutEffect(degree: number, flyMode: FlyMode ): Filter;
+    waterRipple(progress: number, waveCount: number, x: number, y: number, rippleMode: WaterRippleMode): Filter;
+    distort(distortionK: number): Filter;
   }
   export class FilterInternal implements Filter {
     private filterNativeObj: long = 0;
+    private interface waterRipplePara {
+      progress: number;
+      waveCount: number;
+      x: number; 
+      y: number; 
+      rippleMode: WaterRippleMode;
+    }
     constructor(context: long) {
       this.filterNativeObj = context;
     }
     public native pixelStretchNative(stretchSizes: Array<number>, tileMode: TileMode): Filter;
     public native blurNative(blurRadius: number): Filter;
+    public native flyInFlyOutEffectNative(degree: number, flyMode: FlyMode ): Filter;
+    public native waterRippleNative(waterPara: waterRipplePara): Filter;
+    public native distortNative(distortionK: number): Filter;
+
     public pixelStretch(stretchSizes: Array<number>, tileMode: TileMode): Filter {
       return this.pixelStretchNative(stretchSizes, tileMode);
     }
     public blur(blurRadius: number): Filter {
       return this.blurNative(blurRadius);
+    }
+    public flyInFlyOutEffect(degree: number, flyMode: FlyMode ): Filter{
+      return this.flyInFlyOutEffectNative(degree, flyMode);
+    }
+    public waterRipple(progress: number, waveCount: number, x: number, y: number, rippleMode: WaterRippleMode): Filter{
+      let waterPara: waterRipplePara = {
+        progress: progress,
+        waveCount: waveCount,
+        x: x,
+        y: y,
+        rippleMode: rippleMode
+      };
+      return this.waterRippleNative(waterPara);
+    }
+    public distort(distortionK: number): Filter{
+      return this.distortNative(distortionK);
     }
   }
   export native function createEffect(): VisualEffect;
