@@ -235,8 +235,8 @@ ani_object AniEffect::FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double
     auto flyOutPara = std::make_shared<FlyOutPara>();
 
     if (degree < -3.4E+38 || degree > 3.4E+38) {
-    UIEFFECT_LOG_E("degree out of float range");
-    return retVal;
+        UIEFFECT_LOG_E("degree out of float range");
+        return retVal;
     }
     flyOutPara->SetDegree(static_cast<float>(degree));
     flyOutPara->SetFlyMode(static_cast<uint32_t>(flyModeIndex));
