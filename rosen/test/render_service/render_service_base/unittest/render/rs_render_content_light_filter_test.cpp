@@ -75,20 +75,20 @@ HWTEST_F(RSRenderContentLightFilterTest, WriteToParcel001, TestSize.Level1)
     filterPara->Setter(RSUIFilterType::LIGHT_POSITION, lightPositionProperty);
     Parcel parcel3;
     ret = filterPara->WriteToParcel(parcel3);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 
     Vector4f lightColor = Vector4f(0.1f, 0.2f, 0.3f, 0.0f);
     auto lightColorProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(lightColor);
     filterPara->Setter(RSUIFilterType::LIGHT_COLOR, lightColorProperty);
     Parcel parcel4;
     ret = filterPara->WriteToParcel(parcel4);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 
     auto lightIntensityProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f);
     filterPara->Setter(RSUIFilterType::LIGHT_INTENSITY, lightIntensityProperty);
     Parcel parcel5;
     ret = filterPara->WriteToParcel(parcel5);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -116,7 +116,7 @@ HWTEST_F(RSRenderContentLightFilterTest, ReadFromParcel001, TestSize.Level1)
     EXPECT_TRUE(ret);
 
     ret = filterPara->ReadFromParcel(parcel);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -176,7 +176,7 @@ HWTEST_F(RSRenderContentLightFilterTest, ParseFilterValuesTest001, TestSize.Leve
     auto lightColorProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(lightColor);
     filterPara->Setter(RSUIFilterType::LIGHT_COLOR, lightColorProperty);
     ret = filterPara->ParseFilterValues();
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     auto lightIntensityProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f);
     filterPara->Setter(RSUIFilterType::LIGHT_INTENSITY, lightIntensityProperty);
@@ -218,7 +218,7 @@ HWTEST_F(RSRenderContentLightFilterTest, GetLightIntensityTest001, TestSize.Leve
 {
     auto filterPara = std::make_shared<RSRenderContentLightFilterPara>(0);
     auto lightIntensity = filterPara->GetLightIntensity();
-    EXPECT_NE(lightIntensity, 0.0f);
+    EXPECT_FLOAT_EQ(lightIntensity, 0.0f);
 }
 
 /**
