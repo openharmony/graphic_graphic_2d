@@ -22,7 +22,7 @@ function main() {
   if (visualEffect == undefined) {
     console.println('createEffect failed');
   } else {
-    console.println("createEffect SUCCEED");
+    console.println('createEffect SUCCEED');
   }
   let brightnessBlender: uiEffect.BrightnessBlender = uiEffect.createBrightnessBlender({
     cubicRate: 0.5,
@@ -35,15 +35,15 @@ function main() {
     fraction: 0.5
   });
   if (brightnessBlender == undefined) {
-    console.println("createBrightnessBlender failed");
+    console.println('createBrightnessBlender failed');
   } else {
-    console.println("createBrightnessBlender SUCCEED, value is correct");
+    console.println('createBrightnessBlender SUCCEED, value is correct');
   }
   let result: uiEffect.VisualEffect = visualEffect.backgroundColorBlender(brightnessBlender);
   if (result == undefined) {
     console.println('backgroundColorBlender failed');
   } else {
-    console.println("backgroundColorBlender SUCCEED");
+    console.println('backgroundColorBlender SUCCEED');
   }  
   let filter: uiEffect.Filter = uiEffect.createFilter();
   if (filter == undefined) {
@@ -70,7 +70,8 @@ function main() {
   } else {
     console.println('fly succ');
   }
-  let waterRippleResult: uiEffect.Filter = filter.waterRipple(0.2, 0.2, 0.2, 0.2, uiEffect.WaterRippleMode.SMALL2MEDIUM_RECV);
+  let waterRippleResult: uiEffect.Filter = filter.waterRipple(0.2, 0.2, 0.2, 0.2,
+    uiEffect.WaterRippleMode.SMALL2MEDIUM_RECV);
   if (waterRippleResult == undefined) {
     console.println('waterRipple failed');
   } else {
