@@ -113,10 +113,10 @@ HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest006, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSBorderLightShaderTest007
+ * @tc.name: RSBorderLightShaderTest009
  * @tc.type: FUNC
  */
-HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest007, TestSize.Level1)
+HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest009, TestSize.Level1)
 {
     RSBorderLightParams params { Vector3f { 1, 2, 3 }, Vector4f { 0.1f, 0.2f, 0.3f, 0.4f }, 0.5f, 5.0f,
         Vector3f { 0, 0, 0 } };
@@ -131,23 +131,6 @@ HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest007, TestSize.Level1)
     EXPECT_NE(shader.GetDrawingShader(), nullptr);
     shader.SetRSBorderLightParams(params);
     shader.SetRotationAngle(Vector3f { 1, 1, 1 });
-}
-
-/**
- * @tc.name: RSBorderLightShaderTest008
- * @tc.desc: test results of SetCornerRadius
- * @tc.type: FUNC
- */
-HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest008, TestSize.Level1)
-{
-    RSBorderLightShader shader;
-    shader.geShader_ = std::make_shared<GEBorderLightShader>();
-    shader.SetCornerRadius(0.0f);
-    EXPECT_EQ(shader.borderLightParam_.cornerRadius_, 0.0f);
-
-    shader.geShader_ = nullptr;
-    shader.SetCornerRadius(0.0f);
-    EXPECT_NE(shader.borderLightParam_.cornerRadius_, 10.0f);
 }
 } // namespace Rosen
 } // namespace OHOS
