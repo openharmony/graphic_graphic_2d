@@ -28,7 +28,7 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-using GPInstanceGetFunc = void*(*)(PatternType_C, const char*);
+using GPInstanceGetFunc = void*(*)(void*, const char*);
 using GPInstanceInitFunc = bool(*)(void*, size_t);
 using GPInstanceDestroyFunc = void(*)(void*);
 using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
@@ -45,11 +45,11 @@ static GPInstanceDestroyFunc g_GPDestroy = nullptr;
 static GPRequstEGraphFunc g_GPRequestEGraph = nullptr;
 static GPReleaseEGraphFunc g_GPReleaseEGraph = nullptr;
 static GPReleaseAllEGraphFunc g_GPReleaseAll = nullptr;
-static GPWaitFunc g_GPnWait = nullptr;
+static GPWaitFunc g_GPWait = nullptr;
 static GPGetGPUWaitEventFunc g_GPGetVulkanWaitEvent = nullptr;
 static GPGetGPUNotifyEventFunc g_GPGetVulkanNotifyEvent = nullptr;
 static GPGPTaskSubmitFunc g_GPTaskSubmit = nullptr;
-static void* g_mhc_libframeworkHandle = nullptr;
+static void* g_mhcHandle = nullptr;
 }
 
 RSHpaeFfrtPatternManager& RSHpaeFfrtPatternManager::Instance()
