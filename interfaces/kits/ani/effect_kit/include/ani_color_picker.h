@@ -20,12 +20,9 @@
 #include "effect_type.h"
 #include "color_picker.h"
 
-namespace OHOS
-{
-    namespace Rosen
-    {
-        class AniColorPicker
-        {
+namespace OHOS {
+    namespace Rosen {
+        class AniColorPicker {
         public:
             static ani_status Init(ani_env* env);
 
