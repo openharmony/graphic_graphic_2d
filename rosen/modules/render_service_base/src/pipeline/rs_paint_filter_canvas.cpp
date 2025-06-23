@@ -1522,7 +1522,7 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing:
     : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
 {}
 
-SPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Drawing::Image>& image,
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Drawing::Image>& image,
     const Drawing::RectI& rect)
     : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
 {}
