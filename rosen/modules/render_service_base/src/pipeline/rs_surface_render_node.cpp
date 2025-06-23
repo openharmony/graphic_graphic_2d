@@ -1425,6 +1425,14 @@ void RSSurfaceRenderNode::NotifyTreeStateChange()
     }
 }
 
+void RSSurfaceRenderNode::SetTopLayerZOrder(uint32_t zOrder)
+{
+    if (!isLayerTop_) {
+        return;
+    }
+    topLayerZOrder_ = zOrder;
+}
+
 void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 {
 #ifdef RS_ENABLE_GPU

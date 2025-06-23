@@ -1568,5 +1568,12 @@ int RSSystemProperties::GetSubThreadDropFrameInterval()
         system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
     return dropFrameInterval;
 }
+
+bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    static bool compositeLayerEnable =
+        system::GetBoolParameter("rosen.graphic.composite.layer", false);
+    return compositeLayerEnable;
+}
 } // namespace Rosen
 } // namespace OHOS

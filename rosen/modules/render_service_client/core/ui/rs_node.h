@@ -142,6 +142,8 @@ public:
      */
     virtual void AddChild(SharedPtr child, int index = -1);
 
+    bool AddCompositeNodeChild(SharedPtr node, int index);
+
     /**
      * @brief Moves a child node to a new index within the current node.
      *

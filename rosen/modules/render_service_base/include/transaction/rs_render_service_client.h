@@ -436,6 +436,8 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    void SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder);
+
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
     void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);

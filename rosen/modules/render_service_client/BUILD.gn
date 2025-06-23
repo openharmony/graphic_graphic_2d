@@ -101,6 +101,7 @@ template("render_service_client_source_set") {
 
       #feature
       "core/feature/anco_manager/rs_ext_node_operation.cpp",
+      "core/feature/composite_layer/rs_composite_layer_utils.cpp",
       "core/feature/ui_capture/rs_divided_ui_capture.cpp",
 
       #modifier

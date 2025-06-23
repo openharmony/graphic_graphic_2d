@@ -48,6 +48,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_vector4.h"
+#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
@@ -1036,6 +1037,12 @@ void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
 // Bounds
 void RSNode::SetBounds(const Vector4f& bounds)
 {
+    if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
+        auto compositeLayerUtils = surfaceNode->GetCompositeLayerUtils();
+        if (compositeLayerUtils) {
+            compositeLayerUtils->UpdateVirtualNodeBounds(bounds);
+        }
+    }
 #if defined(MODIFIER_NG)
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetBounds>(bounds);
 #else
@@ -4432,6 +4439,9 @@ void RSNode::AddChild(SharedPtr child, int index)
         ROSEN_LOGE("RSNode::AddChild, child is nullptr");
         return;
     }
+    if (!IsTextureExportNode() && child->IsTextureExportNode() && AddCompositeNodeChild(child, index)) {
+        return;
+    }
     if (child->parent_.lock().get() == this) {
         ROSEN_LOGD("RSNode::AddChild, child already exist");
         return;
@@ -4476,6 +4486,27 @@ void RSNode::AddChild(SharedPtr child, int index)
             id_, childId, surfaceNode->GetName().c_str());
     }
     child->SetIsOnTheTree(isOnTheTree_);
+}
+
+bool RSNode::AddCompositeNodeChild(SharedPtr node, int index)
+{
+    if (!node) {
+        return false;
+    }
+    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceNode>();
+    if (!surfaceNode) {
+        return false;
+    }
+    auto compositeLayerUtils = surfaceNode->GetCompositeLayerUtils();
+    if (compositeLayerUtils) {
+        auto compositeNode = compositeLayerUtils->GetCompositeNode();
+        if (compositeNode) {
+            compositeNode->RemoveFromTree();
+            RSBaseNode::AddChild(compositeNode, index);
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSNode::MoveChild(SharedPtr child, int index)

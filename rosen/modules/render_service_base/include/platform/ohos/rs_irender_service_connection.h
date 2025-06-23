@@ -398,6 +398,8 @@ public:
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
 
+    virtual ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) = 0;
+
     virtual ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 
     virtual ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) = 0;

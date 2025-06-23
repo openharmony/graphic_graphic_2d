@@ -244,8 +244,8 @@ enum class RSRenderNodeDrawableType : uint32_t {
 
 // zOrder of topLayer
 enum class TopLayerZOrder : uint32_t {
-    ROUNDED_CORNER_1 = 9901,
-    ROUNDED_CORNER_2 = 9900,
+    ROUNDED_CORNER_TOP = 9901,
+    ROUNDED_CORNER_BOTTOM = 9900,
     POINTER_WINDOW = 9800,
     CHARGE_ACTION_TEXT = 9300,
     CHARGE_3D_MOTION = 9200,

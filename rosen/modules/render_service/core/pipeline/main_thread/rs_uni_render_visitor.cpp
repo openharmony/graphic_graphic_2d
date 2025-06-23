@@ -2097,8 +2097,8 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     }
     std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = pointWindow->GetMutableRSSurfaceHandler();
     if (pointSurfaceHandler) {
-        // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
-        pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
+        // globalZOrder_ is displayNode layer, point window must be at the top.
+        pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
         if (!curDisplayNode_) {
             return;
         }
@@ -2126,7 +2126,11 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
     for (const auto& topLayer : topLayers) {
         std::shared_ptr<RSSurfaceHandler> topLayerSurfaceHandler = topLayer->GetMutableRSSurfaceHandler();
         if (topLayerSurfaceHandler) {
-            topLayerSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 1);
+            if (topLayer->GetTopLayerZOrder() == 0) {
+                topLayerSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 1);
+            } else {
+                topLayerSurfaceHandler->SetGlobalZOrder(static_cast<float>(topLayer->GetTopLayerZOrder()));
+            }
             topLayer->SetCalcRectInPrepare(false);
             bool hwcDisabled = !IsHardwareComposerEnabled() || !topLayer->ShouldPaint() ||
                 curDisplayNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty();

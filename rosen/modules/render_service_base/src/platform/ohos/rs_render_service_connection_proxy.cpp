@@ -5216,6 +5216,28 @@ ErrCode RSRenderServiceConnectionProxy::UnregisterSurfaceBufferCallback(pid_t pi
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnectionProxy::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetLayerTopForHWC: write token err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (data.WriteString(nodeIdStr) && data.WriteBool(isTop) && data.WriteUint32(zOrder)) {
+        uint32_t code =
+            static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
+        int32_t err = SendRequest(code, data, reply, option);
+        if (err != NO_ERROR) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::SetLayerTopForHWC: Send Request err.");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     MessageParcel data;

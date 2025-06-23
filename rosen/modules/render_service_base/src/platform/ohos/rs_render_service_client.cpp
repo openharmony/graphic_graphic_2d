@@ -2167,6 +2167,14 @@ void RSRenderServiceClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBuffer
     }
 }
 
+void RSRenderServiceClient::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTopForHWC(nodeIdStr, isTop, zOrder);
+    }
+}
+
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

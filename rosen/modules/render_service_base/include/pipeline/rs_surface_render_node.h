@@ -1586,6 +1586,13 @@ public:
         return appWindowZOrder_;
     }
 
+    void SetTopLayerZOrder(uint32_t zOrder);
+
+    uint32_t GetTopLayerZOrder() const
+    {
+        return topLayerZOrder_;
+    }
+
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
@@ -1652,6 +1659,7 @@ private:
     bool qosPidCal_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    uint32_t topLayerZOrder_ = 0;
     bool isLayerTop_ = false;
     bool isForceRefresh_ = false; // the self-drawing node need force refresh
     // Specifying hardware enable is only a 'hint' to RS that
