@@ -147,6 +147,9 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
     }
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
         captureParam.endNodeId_ == GetId() &&

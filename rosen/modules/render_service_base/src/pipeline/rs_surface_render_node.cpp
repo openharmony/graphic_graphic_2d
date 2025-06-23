@@ -1116,6 +1116,27 @@ void RSSurfaceRenderNode::SyncBlackListInfoToFirstLevelNode()
     }
 }
 
+void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo(
+    const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo)
+{
+    if (!IsLeashOrMainWindow()) {
+        return;
+    }
+    for (const auto& [screenId, whiteList] : allWhiteListInfo) {
+        bool ret = false;
+        if ((whiteList.find(GetId()) != whiteList.end()) ||
+            (whiteList.find(GetLeashPersistentId()) != whiteList.end())) {
+            ret = true;
+            SetHasWhiteListNode(screenId, ret);
+        }
+        auto nodeParent = GetParent().lock();
+        if (nodeParent == nullptr) {
+            continue;
+        }
+        nodeParent->SetHasWhiteListNode(screenId, ret);
+    }
+}
+
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
 {
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());

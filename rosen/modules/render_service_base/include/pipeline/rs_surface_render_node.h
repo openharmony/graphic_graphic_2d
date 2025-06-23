@@ -614,6 +614,8 @@ public:
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
     void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
+    void UpdateVirtualScreenWhiteListInfo(
+        const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;

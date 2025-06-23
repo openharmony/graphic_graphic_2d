@@ -917,6 +917,13 @@ public:
         return opincCache_;
     }
 
+    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    {
+        hasVirtualScreenWhiteList_[screenId] |= hasWhiteListNode;
+    }
+
+    void UpdateVirtualScreenWhiteListInfo();
+
     bool IsForegroundFilterEnable();
 
 protected:
@@ -1203,6 +1210,8 @@ private:
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
+
+    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
 
     RSProperties renderProperties_;
     DrawCmdContainer drawCmdModifiers_;
