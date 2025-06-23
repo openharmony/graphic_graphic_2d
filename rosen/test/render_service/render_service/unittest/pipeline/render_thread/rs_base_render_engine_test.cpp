@@ -334,6 +334,26 @@ HWTEST_F(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetCanvasColorSpace002
+ * @tc.desc: Test GetCanvasColorSpace when surface not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, GetCanvasColorSpace002, TestSize.Level1)
+{
+    auto colorSpace = Drawing::ColorSpace::CreateSRGB();
+    auto info = Drawing::ImageInfo(10, 10, Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace);
+    auto surface = Drawing::Surface::MakeRaster(info);
+    ASSERT_NE(surface, nullptr);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(surface.get());
+    ASSERT_NE(canvas, nullptr);
+    auto canvasColorSpace = RSBaseRenderEngine::GetCanvasColorSpace(*canvas);
+    ASSERT_NE(canvasColorSpace, nullptr);
+    EXPECT_TRUE(canvasColorSpace->Equals(colorSpace));
+}
+
+/**
  * @tc.name: CreateImageFromBuffer001
  * @tc.desc: Test CreateImageFromBuffer
  * @tc.type: FUNC
@@ -387,6 +407,64 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer002, TestSize.Level1)
         params.buffer->SetBufferDeleteFromCacheFlag(true);
         EXPECT_NE(renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo), nullptr);
         EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
+    }
+#endif
+}
+
+/**
+ * @tc.name: CreateImageFromBuffer003
+ * @tc.desc: Test CreateImageFromBuffer:
+ *              When the color space of the self-drawing layer is different from the canvas color space,
+ *              AlphaType expect ALPHATYPE_OPAQUE, otherwise it is ALPHATYPE_PREMUL.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer003, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        auto renderEngine = std::make_shared<RSRenderEngine>();
+        renderEngine->Init();
+        EXPECT_NE(renderEngine->vkImageManager_, nullptr);
+
+        auto p3ColorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+            Drawing::CMSMatrixType::DCIP3);
+        auto p3Info = Drawing::ImageInfo(10, 10, Drawing::ColorType::COLORTYPE_RGBA_8888,
+            Drawing::AlphaType::ALPHATYPE_PREMUL, p3ColorSpace);
+        auto p3Surface = Drawing::Surface::MakeRaster(p3Info);
+        ASSERT_NE(p3Surface, nullptr);
+
+        auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+        drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
+        EXPECT_NE(recordingCanvas, nullptr);
+
+        recordingCanvas->surface_ = p3Surface.get();
+        std::set<uint32_t> unmappedCache;
+        BufferDrawParam params;
+        VideoInfo videoInfo;
+        params.buffer = CreateBuffer();
+        EXPECT_NE(params.buffer, nullptr);
+        if (params.buffer && renderEngine->vkImageManager_ && recordingCanvas) {
+            unmappedCache.insert(params.buffer->GetSeqNum());
+            params.buffer->SetBufferDeleteFromCacheFlag(false);
+            auto image = renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo);
+            EXPECT_NE(image, nullptr);
+            EXPECT_EQ(image->GetAlphaType(), Drawing::AlphaType::ALPHATYPE_OPAQUE);
+        }
+
+        auto sRGBColorSpace = Drawing::ColorSpace::CreateSRGB();
+        auto sRGBInfo = Drawing::ImageInfo(10, 10, Drawing::ColorType::COLORTYPE_RGBA_8888,
+            Drawing::AlphaType::ALPHATYPE_PREMUL, sRGBColorSpace);
+        auto sRGBSurface = Drawing::Surface::MakeRaster(sRGBInfo);
+        ASSERT_NE(sRGBSurface, nullptr);
+
+        recordingCanvas->surface_ = sRGBSurface.get();
+        if (params.buffer && renderEngine->vkImageManager_ && recordingCanvas) {
+            auto image = renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo);
+            EXPECT_NE(image, nullptr);
+            EXPECT_EQ(image->GetAlphaType(), Drawing::AlphaType::ALPHATYPE_PREMUL);
+        }
     }
 #endif
 }

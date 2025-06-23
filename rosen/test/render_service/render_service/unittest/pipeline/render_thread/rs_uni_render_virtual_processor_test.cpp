@@ -195,7 +195,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
     auto newVirtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(newProcessor);
     ASSERT_NE(newVirtualProcessor, nullptr);
     newVirtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    ASSERT_EQ(virtualProcessor->renderFrameConfig_.colorGamut, mainRenderParams->GetNewColorSpace());
+    ASSERT_EQ(newVirtualProcessor->renderFrameConfig_.colorGamut, mainRenderParams->GetNewColorSpace());
 }
 
 /**
