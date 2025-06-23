@@ -122,15 +122,16 @@ ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
 ani_object AniFilter::CreateEffect(ani_env* env, ani_object para)
 {
     auto aniFilter = std::make_unique<AniFilter>();
-    std::shared_ptr<Media::PixelMap> pixelMap = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, para);
+
+    auto pixelMap = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, para);
     if (!pixelMap) {
-        EFFECT_LOG_E("pixelMap is null");
+        EFFECT_LOG_E("AniFilter: pixelMap is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     aniFilter->srcPixelMap_ = pixelMap;
 
-    static const char* className = ANI_CLASS_FILTER.c_str();
-    const char* methodSig = "J:V";
+    static const char *className = ANI_CLASS_FILTER.c_str(); // Class name in ETS
+    const char *methodSig = "J:V"; // Constructor signature
     return AniEffectKitUtils::CreateAniObject(
         env, className, methodSig, reinterpret_cast<ani_long>(aniFilter.release()));
 }
@@ -257,16 +258,14 @@ ani_status AniFilter::Init(ani_env* env)
 
     std::array methods = {
         ani_native_function { "blurNative", "D:L@ohos/effectKit/effectKit/Filter;",
-            reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_double)>(
-                                &OHOS::Rosen::AniFilter::Blur)) },
+            reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_double)>(&OHOS::Rosen::AniFilter::Blur)) },
         ani_native_function { "grayscaleNative", ":L@ohos/effectKit/effectKit/Filter;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Grayscale) },
         ani_native_function { "getEffectPixelMapNative", ":L@ohos/multimedia/image/image/PixelMap;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) },
         // 增加五种方法绑定
         ani_native_function { "blurNative", "DL@ohos/effectKit/effectKit/TileMode;:L@ohos/effectKit/effectKit/Filter;",
-            reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_double, ani_enum_item)>(
-                                &OHOS::Rosen::AniFilter::Blur)) },
+            reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_double, ani_enum_item)>(&OHOS::Rosen::AniFilter::Blur)) },  
         ani_native_function { "brightnessNative", "D:L@ohos/effectKit/effectKit/Filter;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Brightness) },
         ani_native_function { "invertNative", ":L@ohos/effectKit/effectKit/Filter;",

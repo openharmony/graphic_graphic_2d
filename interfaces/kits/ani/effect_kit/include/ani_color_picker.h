@@ -20,9 +20,33 @@
 #include "effect_type.h"
 #include "color_picker.h"
 
-namespace OHOS {
-namespace Rosen {
-    //exitsing code...
-} // namespace Rosen
+namespace OHOS
+{
+    namespace Rosen
+    {
+        class AniColorPicker
+        {
+        public:
+            static ani_status Init(ani_env* env);
+
+            static ani_object createColorPicker1(ani_env* env, ani_object pixelmap);
+            static ani_object createColorPicker2(ani_env* env, ani_object pixelmap, ani_object region);
+
+            static ani_object GetMainColor(ani_env* env, ani_object obj);
+            static ani_object GetMainColorSync(ani_env* env, ani_object obj);
+            static ani_object GetLargestProportionColor(ani_env* env, ani_object obj);
+            static ani_object GetTopProportionColors(ani_env* env, ani_object obj, ani_double color_count);
+            static ani_object GetHighestSaturationColor(ani_env* env, ani_object obj);
+            static ani_object GetAverageColor(ani_env* env, ani_object obj);
+            static ani_boolean IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_double color_value);
+
+            std::shared_ptr<ColorPicker> nativeColorPicker_ = {nullptr};
+            std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
+            double coordinatesBuffer[4];
+
+        private:
+            static thread_local std::shared_ptr<ColorPicker> sColorPicker_;
+        };
+    } // namespace Rosen
 } // namespace OHOS
 #endif // OHOS_ANI_COLOR_PICKER_H

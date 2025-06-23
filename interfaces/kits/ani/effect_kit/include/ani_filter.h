@@ -32,11 +32,14 @@ class AniFilter {
 public:
     AniFilter();
     ~AniFilter();
+
+    static ani_status Init(ani_env* env);
+
+    static ani_object CreateEffect(ani_env* env, ani_object para);
     static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
     static ani_object Grayscale(ani_env* env, ani_object obj);
     static ani_object GetEffectPixelMap(ani_env* env, ani_object obj);
-    static ani_object CreateEffect(ani_env* env, ani_object para);
-    static ani_status Init(ani_env* env);
+
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
     // 增加五种方法声明

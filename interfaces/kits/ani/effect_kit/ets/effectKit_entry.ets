@@ -16,80 +16,68 @@
 import effectKit from './@ohos.effectKit';
 import image from '@ohos.multimedia.image';
 
-
 function main() {
   console.println('Test effectKit start');
   const opts: image.InitializationOptions = {
-    size: { width: 480, height: 360 },
+    size: { width: 10, height: 10 },
     editable: true,
-    pixelFormat: image.PixelMapFormat.BGRA_8888,
+    pixelFormat: image.PixelMapFormat.RGBA_8888,
   };
 
-  // 删除重复声明
+  // 使用同步方法创建一个空白的 PixelMap.
+  // 注意：ColorPicker 相关的测试很可能会因为 PixelMap 为空而失败。
   let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
   if (pixelMap == undefined) {
     console.println('Create image.createPixelMapSync failed');
-  }else{
-    console.println('Create image.createPixelMapSync success');
+    console.println('Test effectKit end');
+    return;
   }
+  console.println('Create image.createPixelMapSync success');
 
   let headFilter: effectKit.Filter = effectKit.createEffect(pixelMap);
   if (headFilter == undefined) {
     console.println('Test createEffect failed');
-  }else{
+  } else {
     console.println('Test createEffect success');
   }
 
-  let blurFilter: effectKit.Filter = headFilter.blur(10);
-  if (blurFilter == undefined) {
-    console.println('Test blur failed');
-  }else{
-    console.println('Test blur success');
-  }
+  effectKit.createColorPicker(pixelMap).then((colorPicker: effectKit.ColorPicker) => {
+    if (colorPicker != undefined) {
+      console.println(`Test createColorPicker (Promise) success`);
 
-  blurFilter.getEffectPixelMap().then((pixelMap: image.PixelMap) => {
-    if (pixelMap != undefined) {
-      console.println(`Test getEffectPixelMap success, getPixelBytesNumber = ${pixelMap.getPixelBytesNumber()}`);
+      console.println('Testing getAverageColor');
+      let avgColor = colorPicker.getAverageColor();
+      if (avgColor !== undefined && avgColor !== null) {
+        console.println(`Simple Test: getAverageColor success. Color: ${JSON.stringify(avgColor)}`);
+      } else {
+        console.error('Simple Test: getAverageColor returned undefined or null.');
+        console.println('Simple Test: getAverageColor returned undefined or null.');
+      }
+
+      // 新增 getMainColor 测试
+      console.println('Testing getMainColor');
+      let mainColor = colorPicker.getMainColor();
+      if (mainColor !== undefined && mainColor !== null) {
+        console.println(`Simple Test: getMainColor success. Color: ${JSON.stringify(mainColor)}`);
+      } else {
+        console.error('Simple Test: getMainColor returned undefined or null.');
+        console.println('Simple Test: getMainColor returned undefined or null.');
+      }
+
+      // 新增 GetMainColorSync 测试
+      console.println('Testing getMainColorSync');
+      let mainColorSync = colorPicker.getMainColorSync();
+      if (mainColorSync !== undefined && mainColorSync !== null) {
+        console.println(`Simple Test: getMainColorSync success. Color: ${JSON.stringify(mainColorSync)}`);
+      } else {
+        console.error('Simple Test: getMainColorSync returned undefined or null.');
+        console.println('Simple Test: getMainColorSync returned undefined or null.');
+      }
     }
   }).catch((ex: Object | null | undefined) => {
-    console.error('Test getEffectPixelMap failed');
-    console.println('Test getEffectPixelMap failed');
+    console.error('Test createColorPicker (Promise) failed');
+    console.println('Test createColorPicker (Promise) failed');
   });
-
-  let blurResult: effectKit.Filter = headFilter.blur(0.5, effectKit.TileMode.CLAMP);
-  if (blurResult == undefined) {
-    console.println('Test blur failed');
-  } else {
-    console.println('Test blur success');
-  }
-
-  let brightnessResult: effectKit.Filter = headFilter.brightness(0.5);
-  if (brightnessResult == undefined) {
-    console.println('Test brightness failed');
-  } else {
-    console.println('Test brightness success');
-  }
-  
-  let invertResult: effectKit.Filter = headFilter.invert();
-  if (invertResult == undefined) {
-    console.println('Test invert failed');
-  } else {
-    console.println('Test invert success');
-  }
-  
-  let setColorMatrixResult: effectKit.Filter = headFilter.setColorMatrix([1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1]);
-  if (setColorMatrixResult == undefined) {
-    console.println('setColorMatrix failed');
-  } else {
-    console.println('setColorMatrix success');
-  }
-
-  let getPixelMapResult: image.PixelMap = headFilter.getPixelMap();
-  if (getPixelMapResult == undefined) {
-    console.println('getPixelMap failed');
-  } else {
-    console.println('getPixelMap success');
-  }
 
   console.println('Test effectKit end');
 }

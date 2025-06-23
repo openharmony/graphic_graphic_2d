@@ -275,7 +275,167 @@ namespace effectKit {
 
   export native function createEffect(source: image.PixelMap): Filter;
 
- 
+
+  export interface ColorPicker {
+    getMainColor(): Promise<Color>;
+    getMainColorSync(): Color;
+    getLargestProportionColor(): Color;
+    getTopProportionColors(colorCount: number): Array<Color | null>;
+    getHighestSaturationColor(): Color;
+    getAverageColor(): Color;
+    isBlackOrWhiteOrGrayColor(color: number): boolean;
+  }
+
+  export class ColorPickerInternal implements ColorPicker {
+    private nativeObj: long = 0;
+
+    constructor(context:long) {
+      console.log(`[EFFECT_KIT_DEBUG] ColorPickerInternal.constructor called, context: 0x${context.toString(16)}`);
+      this.nativeObj = context;
+    }
+
+    public native getMainColorNative(): Promise<Color>;
+    public native getMainColorSyncNative(): Color;
+    public native getLargestProportionColorNative(): Color;
+    public native getTopProportionColorsNative(colorCount: number): Array<Color | null>;
+    public native getHighestSaturationColorNative(): Color;
+    public native getAverageColorNative(): Color;
+    public native isBlackOrWhiteOrGrayColorNative(color: number): boolean;
+
+    public getMainColor(): Promise<Color> {
+      return new Promise<Color>((resolve: (value: Color) => void,
+        reject: (error: BusinessError) => void) => {
+        taskpool.execute((): Color => {
+          let color = this.getMainColorSync();
+          return color;
+        }).then((ret: NullishType) => {
+          resolve(ret as Color);
+        }).catch((err: NullishType) => {
+          reject(err as BusinessError);
+        });
+      });
+    }
+    public getMainColorSync(): Color {
+      return this.getMainColorSyncNative();
+    }
+    public getLargestProportionColor(): Color {
+      return this.getLargestProportionColorNative();
+    }
+    public getTopProportionColors(colorCount: number): Array<Color | null> {
+      return this.getTopProportionColorsNative(colorCount);
+    }
+    public getHighestSaturationColor(): Color {
+      return this.getHighestSaturationColorNative();
+    }
+    public getAverageColor(): Color {
+      console.log(`[EFFECT_KIT_DEBUG] getAverageColor called, nativeObj: 0x${this.nativeObj.toString(16)}`);
+      return this.getAverageColorNative();
+    }
+    public isBlackOrWhiteOrGrayColor(color: number): boolean {
+      return this.isBlackOrWhiteOrGrayColorNative(color);
+    }
+  }
+
+  // 修改namespace下重载函数写法
+  native function createColorPicker1(source: image.PixelMap): ColorPicker
+  native function createColorPicker2(source: image.PixelMap, region: Array<number>): ColorPicker
+
+  export function createColorPicker(source: image.PixelMap): Promise<ColorPicker> {
+    console.log(`[EFFECT_KIT_DEBUG] createColorPicker called`);
+    return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
+      let cb = (): ColorPicker => {
+        console.log(`[EFFECT_KIT_DEBUG] createColorPicker1 native call`);
+        return createColorPicker1(source)
+      };
+      taskpool.execute(cb).then((ret: NullishType): void => {
+        console.log(`[EFFECT_KIT_DEBUG] createColorPicker1 returned:`, ret);
+        if (ret === null || ret === undefined) {
+          let ret1: BusinessError<string> = {
+            code: -1,
+            data: "Operation failed",
+            name: "",
+            message: ""
+          };
+          reject(ret1);
+        } else {
+          let colorpicker = ret as ColorPicker;
+          resolve(colorpicker);
+        }
+      });
+    });
+  }
+
+  export function createColorPicker(source: image.PixelMap, region: Array<number>): Promise<ColorPicker> {
+    return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
+      let cb = (): ColorPicker => { return createColorPicker2(source, region) };
+      taskpool.execute(cb).then((ret: NullishType): void => {
+        if (ret === null || ret === undefined) {
+          let ret1: BusinessError<string> = {
+            code: -1,
+            data: "Operation failed",
+            name: "",
+            message: ""
+          };
+          reject(ret1);
+        } else {
+          let colorpicker = ret as ColorPicker;
+          resolve(colorpicker);
+        }
+      });
+    });
+  }
+
+  export function createColorPicker(source: image.PixelMap, callback: AsyncCallback<ColorPicker | undefined>): void {
+    try {
+      const result = createColorPicker1(source);
+      if (result) {
+        const error: BusinessError = { code: 0, name: '', message: '' };
+        callback(error, result);
+      } else {
+        const error: BusinessError = {
+          code: -1,
+          name: "EffectKitNativeError",
+          message: "Failed to create ColorPicker. Native method returned null or undefined."
+        };
+        callback(error, undefined);
+      }
+    } catch (e) {
+      const error: BusinessError = {
+        code: (e as BusinessError).code || -1,
+        name: (e as BusinessError).name || "EffectKitNativeError",
+        message: (e as BusinessError).message || "An unexpected native error occurred."
+      };
+      callback(error, undefined);
+    }
+
+  }
+
+  export function createColorPicker(source: image.PixelMap, region: Array<number>, callback: AsyncCallback<ColorPicker | undefined>): void {
+    try {
+      const result = createColorPicker2(source, region);
+      if (result) {
+        const error: BusinessError = { code: 0, name: '', message: '' };
+        callback(error, result);
+      } else {
+        const error: BusinessError = {
+          code: -1,
+          name: "EffectKitNativeError",
+          message: "Failed to create ColorPicker with region. Native method returned null or undefined."
+        };
+        callback(error, undefined);
+      }
+    } catch (e) {
+      const error: BusinessError = {
+        code: (e as BusinessError).code || -1,
+        name: (e as BusinessError).name || "EffectKitNativeError",
+        message: (e as BusinessError).message || "An unexpected native error occurred."
+      };
+      callback(error, undefined);
+    }
+  }
+
+
+
 }
 
 export default effectKit;
