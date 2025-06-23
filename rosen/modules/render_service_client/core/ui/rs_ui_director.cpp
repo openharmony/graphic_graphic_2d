@@ -63,6 +63,7 @@ namespace Rosen {
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
+static std::once_flag g_isResidentProcessFlag;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -800,6 +801,17 @@ int32_t RSUIDirector::GetAnimateExpectedRate() const
         }
     }
     return animateRate;
+}
+
+void RSUIDirector::SetTypicalResidentProcessOnce(bool isTypicalResidentProcess)
+{
+    std::call_once(g_isResidentProcessFlag,
+        [isTypicalResidentProcess]() { RSSystemProperties::SetTypicalResidentProcess(isTypicalResidentProcess); });
+}
+
+void RSUIDirector::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+    SetTypicalResidentProcessOnce(isTypicalResidentProcess);
 }
 } // namespace Rosen
 } // namespace OHOS

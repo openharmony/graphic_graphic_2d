@@ -750,5 +750,9 @@ bool RSSystemProperties::GetCompositeLayerEnabled()
 {
     return false;
 }
+
+void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+}
 } // namespace Rosen
 } // namespace OHOS
