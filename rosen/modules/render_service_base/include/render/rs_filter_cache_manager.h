@@ -60,12 +60,12 @@ public:
     FilterCacheType GetCachedType() const;
 
     bool DrawFilterUsingHpae(RSPaintFilterCanvas& paintFilterCanvas, const std::shared_ptr<RSFilter>& filter,
-            const std::shard_ptr<RSHpaeFilterCacheManager> hpaeCacheManager, NodeId nodeId);
+            const std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager, NodeId nodeId);
 
     // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
-    void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,NodeId nodeId
+    void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,NodeId nodeId,
         bool manuallyHandleFilterCache = false, bool shouldClearFilteredCache = true,
         const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
@@ -132,7 +132,7 @@ public:
         bool isHpaeCachedFilteredSnapshot = false);
     
     bool ForceUpadateCacheByHpae();
-    bool ClearCacheAfterDrawing() const { return renderClearFilteredCachedAfterDrawing_; }
+    bool ClearCacheAfterDrawing() const { return renderClearFilteredCacheAfterDrawing_; }
 
     void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
     RSFilter::FilterType GetFilterType() const {
