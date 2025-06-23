@@ -79,20 +79,20 @@ public:
         const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;
 
-    GLuint MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex);
-    void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false) override; // only used for divided_render
 
 private:
     void WaitAcquireFence(const sptr<SyncFence>& acquireFence);
-    GLuint CreateEglImageCacheFromBuffer(
-        const sptr<OHOS::SurfaceBuffer>& buffer, const pid_t threadIndex);
+    GLuint CreateEglImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const pid_t threadIndex);
+    GLuint MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex);
+    void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
 
     static constexpr size_t MAX_CACHE_SIZE = 16;
-    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
     std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
     std::unordered_map<int32_t, std::unique_ptr<EglImageResource>> imageCacheSeqs_; // guarded by opMutex_
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
 };
 } // namespace Rosen
 } // namespace OHOS
