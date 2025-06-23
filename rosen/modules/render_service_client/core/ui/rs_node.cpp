@@ -4969,8 +4969,13 @@ void RSNode::SetDrawNodeChangeCallback(DrawNodeChangeCallback callback)
 #if defined(MODIFIER_NG)
 void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 {
-    if (modifier == nullptr || modifiersNG_.count(modifier->GetId())) {
-        RS_LOGE("RSNode::AddModifier: null modifier or modifier exist.");
+    if (modifier == nullptr) {
+        RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, GetId());
+        return;
+    }
+    if (modifiersNG_.count(modifier->GetId())) {
+        RS_LOGD("RSNode::AddModifier: modifier exist, nodeId=%{public}" PRIu64 ", modifierId=%{public}" PRIu64
+            ", modifierType=%{public}du", GetId(), modifier->GetId(), modifier->GetType());
         return;
     }
     modifiersNG_.emplace(modifier->GetId(), modifier);
