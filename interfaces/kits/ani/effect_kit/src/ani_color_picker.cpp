@@ -173,8 +173,7 @@ ani_object AniColorPicker::GetMainColor(ani_env *env, ani_object info)
     // 获取 nativeColorPicker 指针
     asyncContext->colorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, thisVar);
     // 设置 rColorPicker 指向实际的 ColorPicker 实例
-    if (asyncContext->colorPicker != nullptr)
-    {
+    if (asyncContext->colorPicker != nullptr) {
         asyncContext->rColorPicker = asyncContext->colorPicker->nativeColorPicker_;
     }
 
