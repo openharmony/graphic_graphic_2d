@@ -18,7 +18,9 @@
 #endif
 #include "hpae_base/rs_hpae_hianimation.h"
 #include "hpae_base/rs_hpae_log.h"
+#if defined(ROSEN_OHOS)
 #include "cpp/ffrt_dynamic_graph.h"
+#endif
 #include "hpae_base/rs_hpae_perf_thread.h"
 
 namespace OHOS::Rosen {
