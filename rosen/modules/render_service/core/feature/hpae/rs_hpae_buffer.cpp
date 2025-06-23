@@ -34,7 +34,7 @@ namespace DrawableV2 {
 RSHpaeBuffer::RSHpaeBuffer(const std::string& name, const int layerId)
 {
     layerName_ = name;
-    surfaceHandler_ = std::make_shared<RSSurfaceHandler>(layerId);
+    surfaceHandle_ = std::make_shared<RSSurfaceHandler>(layerId);
 }
 
 RSHpaeBuffer::~RSHpaeBuffer()
@@ -63,7 +63,7 @@ std::unique_ptr<RSRenderFrame> RSHpaeBuffer::RequestFrame(const BufferRequestCon
     }
 
     if (!surfaceCreated_) {
-        sptr<IBufferConsumerListener> listener = new RSHpaeRenderListener(surfaceHandler_);
+        sptr<IBufferConsumerListener> listener = new RSHpaeRenderListener(surfaceHandle_);
         HPAE_TRACE_NAME("create layer surface");
         if (!CreateSurface(listener)) {
             RS_LOGE("RSHpaeBuffer::RequestFrame CreateSurface failed");
@@ -92,8 +92,8 @@ std::unique_ptr<RSRenderFrame> RSHpaeBuffer::RequestFrame(const BufferRequestCon
 bool RSHpaeBuffer::FlushFrame()
 {
 #if defined(ROSEN_OHOS)&&defined(ENABLE_HPAE_BLUR)
-    if (!producerSurface_ || !surfaceHandler_) {
-        RS_LOGE("RSHpaeBuffer::FlushFrame producerSurface_ or surfaceHandler_ is nullptr");
+    if (!producerSurface_ || !surfaceHandle_) {
+        RS_LOGE("RSHpaeBuffer::FlushFrame producerSurface_ or surfaceHandle_ is nullptr");
         return false;
     }
     BufferFlushConfig flushConfig_ = {
@@ -104,7 +104,7 @@ bool RSHpaeBuffer::FlushFrame()
             .h = bufferConfig_.height,
         },
     };
-    HPAE_TRACE_NAME_FMT("RSHpaeBuffer::FlushFrame: %p", surfaceHandler_->GetBuffer().GetRefPtr());
+    HPAE_TRACE_NAME_FMT("RSHpaeBuffer::FlushFrame: %p", surfaceHandle_->GetBuffer().GetRefPtr());
 
     auto fbBuffer = rsSurface_->GetCurrentBuffer();
 
@@ -124,14 +124,14 @@ bool RSHpaeBuffer::FlushFrame()
 GSError RSHpaeBuffer::ForceDropFrame(uint64_t presentWhen)
 {
 #if defined(ROSEN_OHOS)&&defined(ENABLE_HPAE_BLUR)
-    if (!surfaceHandler_) {
-        RS_LOGE("RSHpaeBuffer::ForceDropFrame surfaceHandler_ is nullptr");
+    if (!surfaceHandle_) {
+        RS_LOGE("RSHpaeBuffer::ForceDropFrame surfaceHandle_ is nullptr");
         return OHOS::GSERROR_NOT_INIT;
     }
-    const auto surfaceConsumer = surfaceHandler_->GetConsumer();
+    const auto surfaceConsumer = surfaceHandle_->GetConsumer();
     if (surfaceConsumer == nullptr) {
         RS_LOGE("RsDebug RSHpaeBuffer::DropFrame (node: %{public}" PRIu64"): surfaceConsumer is null!",
-        surfaceHandler_->GetNodeId());
+        surfaceHandle_->GetNodeId());
         return OHOS::GSERROR_NO_CONSUMER;
     }
 
@@ -140,21 +140,21 @@ GSError RSHpaeBuffer::ForceDropFrame(uint64_t presentWhen)
     int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGE("RSHpaeBuffer::DropFrameProcess(node: %{public}" PRIu64"): AcquireBuffer failed("
-            " ret: %{public}d), do nothing ", surfaceHandler_->GetNodeId(), ret);
+            " ret: %{public}d), do nothing ", surfaceHandle_->GetNodeId(), ret);
         return OHOS::GSERROR_NO_BUFFER;
     }
 
     HPAE_TRACE_NAME_FMT("Force drop: DropFrame: %p, %p", returnValue.buffer.GetRefPtr(),
-        surfaceHandler_->GetBuffer().GetRefPtr());
+        surfaceHandle_->GetBuffer().GetRefPtr());
     ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGE("RSHpaeBuffer::DropFrameProcess(node: %{public}" PRIu64
             "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
-            surfaceHandler_->GetNodeId(), ret);
+            surfaceHandle_->GetNodeId(), ret);
     }
-    surfaceHandler_->SetAvailiableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
+    surfaceHandle_->SetAvailiableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
     RS_LOGD("RsDebug RSHpaeBuffer::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
-        surfaceHandler_->GetNodeId());
+        surfaceHandle_->GetNodeId());
 
     return OHOS::GSERROR_OK;
 #else
@@ -166,7 +166,7 @@ GSError RSHpaeBuffer::ForceDropFrame(uint64_t presentWhen)
 // reference to RSDisplayRenderNodeDrawable::CreateSurface
 bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
-    auto consumer = surfaceHandler_->GetConsumer();
+    auto consumer = surfaceHandle_->GetConsumer();
     if (consumer != nullptr && rsSurface_ != nullptr) {
         RS_LOGI("RSHpaeBuffer::CreateSurface already created, return");
         return true;
@@ -194,7 +194,7 @@ bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
     rsSurface_ = std::static_pointer_cast<RSSurfaceOhos>(surface);
     RS_LOGI("RSHpaeBuffer::CreateSurface end");
     surfaceCreated_ = true;
-    surfaceHandler_->SetConsumer(consumer);
+    surfaceHandle_->SetConsumer(consumer);
 
     return true;
 }
