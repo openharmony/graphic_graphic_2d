@@ -14,7 +14,7 @@
  */
 
 #include <new>
-
+#include <limits>
 #include "gtest/gtest.h"
 
 #include "common/rs_rect.h"
@@ -386,10 +386,10 @@ HWTEST_F(RSRectTest, Inset001, TestSize.Level1)
  */
 HWTEST_F(RSRectTest, IsNaN, TestSize.Level1)
 {
-    float nanNum = 0.0 / 0.0;
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
     RectF rect1(nanNum, nanNum, nanNum, nanNum);
     EXPECT_TRUE(rect1.IsNaN());
-    float normalNum = 1.0;
+    float normalNum = 1.0f;
     RectF rect2(normalNum, normalNum, normalNum, normalNum);
     EXPECT_FALSE(rect2.IsNaN());
 }
@@ -401,13 +401,13 @@ HWTEST_F(RSRectTest, IsNaN, TestSize.Level1)
  */
 HWTEST_F(RSRectTest, IsValid, TestSize.Level1)
 {
-    float infiniteNum = 1.0 / 0.0;
+    float infiniteNum = std::numeric_limits<float>::infinity();
     RectF rect1(infiniteNum, infiniteNum, infiniteNum, infiniteNum);
     EXPECT_FALSE(rect1.IsValid());
-    float nanNum = 0.0 / 0.0;
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
     RectF rect2(nanNum, nanNum, nanNum, nanNum);
     EXPECT_FALSE(rect2.IsValid());
-    float normalNum = 1.0;
+    float normalNum = 1.0f;
     RectF rect3(normalNum, normalNum, normalNum, normalNum);
     EXPECT_TRUE(rect3.IsValid());
 }

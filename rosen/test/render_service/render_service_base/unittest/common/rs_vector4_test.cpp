@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <limits>
 #include "gtest/gtest.h"
 
 #include "common/rs_vector4.h"
@@ -520,11 +521,10 @@ HWTEST_F(Vector4Test, AddEqual, TestSize.Level1)
  */
 HWTEST_F(Vector4Test, IsNaN, TestSize.Level1)
 {
-    
-    float nanNum = 0.0 / 0.0;
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
     Vector4 vec1(nanNum);
     EXPECT_TRUE(vec1.IsNaN());
-    float normalNum = 1.0;
+    float normalNum = 1.0f;
     Vector4 vec2(normalNum);
     EXPECT_FALSE(vec2.IsNaN());
 }
@@ -536,10 +536,10 @@ HWTEST_F(Vector4Test, IsNaN, TestSize.Level1)
  */
 HWTEST_F(Vector4Test, IsValid, TestSize.Level1)
 {
-    float infiniteNum = 1.0 / 0.0;
+    float infiniteNum = std::numeric_limits<float>::infinity();
     Vector4 vec1(infiniteNum);
     EXPECT_FALSE(vec1.IsValid());
-    float nanNum = 0.0 / 0.0;
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
     Vector4 vec2(nanNum);
     EXPECT_FALSE(vec2.IsValid());
     float normalNum = 1.0;
