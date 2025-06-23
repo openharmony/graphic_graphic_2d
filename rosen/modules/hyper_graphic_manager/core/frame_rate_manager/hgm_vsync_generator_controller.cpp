@@ -84,14 +84,13 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         HGM_LOGE("HgmVSyncGeneratorController::vsyncGenerator is nullptr");
         return vsyncCount;
     }
-    int pulseNum;
     if (auto configPluseNum = HgmCore::Instance().GetPluseNum(); configPluseNum != -1) {
-        pulseNum = configPluseNum;
+        pulseNum_ = configPluseNum;
     } else {
-        if (isNeedUpdateAppOffset && controllerRate == OLED_60_HZ) {
-            pulseNum = 0;
+        if (isNeedUpdateAppOffset && CheckNeedUpdateAppOffsetRefreshRate(controllerRate)) {
+            pulseNum_ = 0;
         } else {
-            pulseNum = GetAppOffset(controllerRate);
+            pulseNum_ = GetAppOffset(controllerRate);
         }
     }
 
@@ -100,24 +99,29 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
 
     if (currentRate_ != controllerRate) {
         HGM_LOGD("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate = %{public}d, appOffset = %{public}d",
-            controllerRate, pulseNum);
+            controllerRate, pulseNum_);
         RS_TRACE_NAME("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate: " +
-            std::to_string(controllerRate) + ", appOffset: " + std::to_string(pulseNum) +
+            std::to_string(controllerRate) + ", appOffset: " + std::to_string(pulseNum_) +
             ", nextVSyncTargetTime =" + std::to_string(targetTime));
         listenerPhase.cb = appController_;
-        listenerPhase.phaseByPulseNum = pulseNum;
+        listenerPhase.phaseByPulseNum = pulseNum_;
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(
             listenerRate, listenerPhase, controllerRate, vsyncCount, targetTime);
-        currentOffset_ = vsyncGenerator_->GetVSyncPulse() * pulseNum;
+        currentOffset_ = vsyncGenerator_->GetVSyncPulse() * pulseNum_;
         currentRate_ = controllerRate;
     } else {
         if (isNeedUpdateAppOffset) {
             listenerPhase.cb = appController_;
-            listenerPhase.phaseByPulseNum = pulseNum;
+            listenerPhase.phaseByPulseNum = pulseNum_;
         }
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, vsyncCount);
     }
     return vsyncCount;
+}
+
+bool HgmVSyncGeneratorController::CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate)
+{
+    return refreshRate <= OLED_60_HZ;
 }
 } // namespace Rosen
 } // namespace OHOS
