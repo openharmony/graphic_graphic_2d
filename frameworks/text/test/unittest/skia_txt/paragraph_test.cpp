@@ -439,6 +439,30 @@ HWTEST_F(ParagraphTest, ParagraphTest016, TestSize.Level0)
     EXPECT_EQ(glyphs2.at(3), 1546);
 }
 
+/*
+ * @tc.name: ParagraphTestGlyphPositionAtCoordinate001
+ * @tc.desc: test for GlyphPositionAtCoordinate with dash 
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestGlyphPositionAtCoordinate001, TestSize.Level0)
+{
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    ParagraphStyle paragraphStyle;
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    OHOS::Rosen::SPText::TextStyle style;
+    style.fontSize = 40; // 40 default fontsize
+    paragraphBuilder->PushStyle(style);
+    std::u16string text = u"—————\u200C—";
+    paragraphBuilder->AddText(text);
+    std::shared_ptr<Paragraph> paragraphWithDash = paragraphBuilder->Build();
+    ASSERT_NE(paragraphWithDash, nullptr);
+    paragraphWithDash->Layout(1000);
+    EXPECT_EQ(paragraphWithDash->GetGlyphPositionAtCoordinate(50, 0.0).position, 2.0);
+    EXPECT_EQ(paragraphWithDash->GetGlyphPositionAtCoordinate(50, 0.0).affinity, OHOS::Rosen::SPText::Affinity::DOWNSTREAM);
+}
+
 void ParagraphTest::PrepareMiddleEllipsis(size_t& maxLines, const std::u16string& str, const std::u16string& text)
 {
     ParagraphStyle paragraphStyle;
