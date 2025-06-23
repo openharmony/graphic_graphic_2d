@@ -53,7 +53,7 @@ ohos_unittest("RSRenderServiceBaseHpaeBaseTest") {
 
     sources = [
         "rs_hpae_base_data_test.cpp",
-        "rs_hpae_ffrt_pattern_manager_test.cpp",
+        "rs_hpae_ffrt_pattern_manaer_test.cpp",
         "rs_hpae_filter_cache_manager_test.cpp",
         "rs_hpae_fusion_operator_test.cpp",
         "rs_hpae_hianimation_test.cpp",
