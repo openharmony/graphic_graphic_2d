@@ -749,4 +749,16 @@ HWTEST_F(RSPropertyTest, GetRenderProperty012, TestSize.Level1)
     auto rsRenderProperty3 = property.GetRenderProperty();
     EXPECT_NE(rsRenderProperty3, nullptr);
 }
+
+/**
+ * @tc.name: GetPropertyTypeNG
+ * @tc.desc: test results of GetPropertyTypeNG
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyTest, GetPropertyTypeNG, TestSize.Level1)
+{
+    auto property = std::make_shared<RSProperty<float>>();
+    property->SetPropertyTypeNG(ModifierNG::RSPropertyType::ALPHA);
+    EXPECT_EQ(property->GetPropertyTypeNG(), ModifierNG::RSPropertyType::ALPHA);
+}
 } // namespace OHOS::Rosen

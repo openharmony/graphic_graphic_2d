@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <limits>
 #include "gtest/gtest.h"
 
 #include "common/rs_vector4.h"
@@ -511,5 +512,38 @@ HWTEST_F(Vector4Test, AddEqual, TestSize.Level1)
     Vector4 value(1.f, 1.f, 2.f, 1.f); // for test
     value += Vector4(1.f, 2.f, 2.f, 1.f);
     EXPECT_EQ(value, Vector4(2.f, 3.f, 4.f, 2.f));
+}
+
+/**
+ * @tc.name: IsNaN
+ * @tc.desc: test results of IsNaN
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, IsNaN, TestSize.Level1)
+{
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
+    Vector4 vec1(nanNum);
+    EXPECT_TRUE(vec1.IsNaN());
+    float normalNum = 1.0f;
+    Vector4 vec2(normalNum);
+    EXPECT_FALSE(vec2.IsNaN());
+}
+
+/**
+ * @tc.name: IsValid
+ * @tc.desc: test results of IsValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(Vector4Test, IsValid, TestSize.Level1)
+{
+    float infiniteNum = std::numeric_limits<float>::infinity();
+    Vector4 vec1(infiniteNum);
+    EXPECT_FALSE(vec1.IsValid());
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
+    Vector4 vec2(nanNum);
+    EXPECT_FALSE(vec2.IsValid());
+    float normalNum = 1.0f;
+    Vector4 vec3(normalNum);
+    EXPECT_TRUE(vec3.IsValid());
 }
 } // namespace OHOS::Rosen
