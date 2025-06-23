@@ -228,24 +228,17 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest005, TestSize.Level0)
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level1)
 {
-    OHOS::Rosen::TypographyStyle typographyStyle0;
-    typographyStyle0.enableAutoSpace = false;
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
-        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
-        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
-    std::u16string text = u"88";
-    typographyCreate->AppendText(text);
-    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate->CreateTypography();
-    double maxWidth = 1500;
-    typography0->Layout(maxWidth);
-    std::shared_ptr<Typography> typography(typography0.release());
-    TypographyConfig config = { typography, {0, text.length()} };
+    TypographyConfig config = CreateConfig();
     effect_->AppendTypography({config});
-    typography->SetSkipTextBlobDrawing(true);
-    typography->Paint(mockCanvas_.get(), 100.0, 200.0);
-
-    std::vector<TextBlobRecordInfo> records = typography->GetTextBlobRecordInfo();
+    std::vector<TextBlobRecordInfo> records;
+    TextBlobRecordInfo record1 = {nullptr, {0.0f, 0.0f}, Drawing::Color::COLOR_BLACK};
+    std::string info = "88";
+    OHOS::Rosen::Drawing::Font font;
+    font.SetSize(24);
+    std::shared_ptr<Drawing::TextBlob> blob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
+    TextBlobRecordInfo record2 = {blob, {0.0f, 0.0f}, Drawing::Color::COLOR_BLACK};
+    records.emplace_back(record1);
+    records.emplace_back(record2);
     double x = 0.0;
     double y = 0.0;
     effect_->DrawTextFlip(records, mockCanvas_.get(), x, y);
@@ -359,25 +352,46 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest010, TestSize.Level1)
     typographyStyle0.enableAutoSpace = false;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
     std::u16string text = u"88";
-    typographyCreate->AppendText(text);
-    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate->CreateTypography();
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
     double maxWidth = 1500;
     typography0->Layout(maxWidth);
-    std::shared_ptr<Typography> typography(typography0.release());
-    TypographyConfig config = { typography, {0, text.length()} };
-    effect_->AppendTypography({config});
-    typography->SetSkipTextBlobDrawing(true);
-    typography->Paint(mockCanvas_.get(), 100.0, 200.0);
-    std::vector<TextBlobRecordInfo> records = typography->GetTextBlobRecordInfo();
+    std::shared_ptr<Typography> typographySharePtr0(typography0.release());
+    TypographyConfig config0 = { typographySharePtr0, {0, text.length()} };
+    effect_->AppendTypography({config0});
+    double x = 100.0;
+    double y = 200.0;
+    effect_->StartEffect(mockCanvas_.get(), x, y);
+
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.enableAutoSpace = false;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    text = u"89";
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+    std::shared_ptr<Typography> typographySharePtr1(typography1.release());
+    TypographyConfig config1 = { typographySharePtr1, {0, text.length()} };
+    std::vector<std::pair<TypographyConfig, TypographyConfig>> typographyConfigs;
+    std::pair<TypographyConfig, TypographyConfig> typographyConfig(config0, config1);
+    typographyConfigs.emplace_back(typographyConfig);
+    effect_->UpdateTypography(typographyConfigs);
+    typographySharePtr1->SetSkipTextBlobDrawing(true);
+    typographySharePtr1->Paint(mockCanvas_.get(), x, y);
+    std::vector<TextBlobRecordInfo> records = typographySharePtr1->GetTextBlobRecordInfo();
     EXPECT_FALSE(records.empty());
-    effect_->GenerateChangeElements(records[0].blob, 100.0, 100.0);
-    EXPECT_TRUE(effect_->lastAllBlobGlyphIds_.empty());
-    effect_->currentGlyphIndex_ = 0;
-    effect_->GenerateChangeElements(records[0].blob, 100.0, 100.0);
-    EXPECT_TRUE(effect_->lastAllBlobGlyphIds_.empty());
+    std::vector<std::vector<TextEngine::TextEffectElement>> effectElements;
+    for (auto& info : records) {
+        effectElements = effect_->GenerateChangeElements(info.blob,
+            x + info.offset.fX, y + info.offset.fY);
+    }
+    EXPECT_FALSE(effectElements.empty());
 }
 
 /*
