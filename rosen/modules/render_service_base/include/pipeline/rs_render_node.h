@@ -90,7 +90,7 @@ public:
     {
         return Type;
     }
-
+    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
     explicit RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     explicit RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
@@ -1203,7 +1203,6 @@ private:
 
     std::array<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>, ModifierNG::MODIFIER_TYPE_COUNT>
         modifiersNG_;
-    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     DrawCmdIndex stagingDrawCmdIndex_;
