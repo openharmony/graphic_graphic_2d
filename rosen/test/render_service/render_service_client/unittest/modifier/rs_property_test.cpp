@@ -757,8 +757,8 @@ HWTEST_F(RSPropertyTest, GetRenderProperty012, TestSize.Level1)
  */
 HWTEST_F(RSPropertyTest, GetPropertyTypeNG, TestSize.Level1)
 {
-    auto property2 = std::make_shared<RSProperty<float>>();
-    property2->SetPropertyTypeNG(ModifierNG::RSPropertyType::ALPHA);
-    EXPECT_EQ(property2->GetPropertyTypeNG(), ModifierNG::RSPropertyType::ALPHA);
+    auto property = std::make_shared<RSProperty<float>>();
+    property->SetPropertyTypeNG(ModifierNG::RSPropertyType::ALPHA);
+    EXPECT_EQ(property->GetPropertyTypeNG(), ModifierNG::RSPropertyType::ALPHA);
 }
 } // namespace OHOS::Rosen
