@@ -32,7 +32,7 @@ public:
     static void GetColorMatrixCoef(const std::shared_ptr<RSDrawingFilter> &filter,
         float (&colorMatrix)[HAE_COLOR_MATRIX_COEF_COUNT]);
 
-    static HaePixel GetHaePixel(const std::shared_ptr<RSDrawingFilter> &filter);
+    static HaePixel GetHpaePixel(const std::shared_ptr<RSDrawingFilter> &filter);
 
     static Drawing::Matrix GetShaderTransform(const Drawing::Rect& blurRect, float scaleW, float scaleH);
 };
