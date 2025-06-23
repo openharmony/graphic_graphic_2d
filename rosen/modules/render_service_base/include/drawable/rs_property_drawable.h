@@ -175,7 +175,7 @@ protected:
     std::shared_ptr<RSFilter> stagingFilter_;
     std::unique_ptr<RSFilterCacheManager> stagingCacheManager_;
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
-    std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager_;
+    std::shared_ptr<RSHpaeFilterCacheManger> hpaeCacheManager_;
     RectI drawBehindWindowRegion_;
     RectI stagingDrawBehindWindowRegion_;
 };
