@@ -43,7 +43,7 @@ public:
     }
 
     void* GetBufferHandle();
-    std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const { return surfaceHandler_; }
+    std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const { return surfaceHandle_; }
 
 private:
 #if defined(ROSEN_OHOS)
