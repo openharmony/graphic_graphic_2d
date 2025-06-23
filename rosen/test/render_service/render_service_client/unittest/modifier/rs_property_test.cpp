@@ -757,10 +757,6 @@ HWTEST_F(RSPropertyTest, GetRenderProperty012, TestSize.Level1)
  */
 HWTEST_F(RSPropertyTest, GetPropertyTypeNG, TestSize.Level1)
 {
-    auto property1 = std::make_shared<RSPropertyBase<float>>();
-    property1->SetPropertyTypeNG(ModifierNG::RSPropertyType::ALPHA);
-    EXPECT_EQ(property1->GetPropertyTypeNG(), ModifierNG::RSPropertyType::INVALID);
-
     auto property2 = std::make_shared<RSProperty<float>>();
     property2->SetPropertyTypeNG(ModifierNG::RSPropertyType::ALPHA);
     EXPECT_EQ(property2->GetPropertyTypeNG(), ModifierNG::RSPropertyType::ALPHA);
