@@ -1641,14 +1641,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     node.ResetChildUifirstSupportFlag();
     auto children = node.GetSortedChildren();
 
-    bool oldStatus = RSHpaeManager::GetInstance().GetInTargetSurface();
-    if (node.IsInstanceOf<RSSurfaceRenderNode>()) {
-        auto surfaceNode = static_cast<RSSurfaceRenderNode*>(&node);
-        if (surfaceNode) {
-            RSHpaeManager::GetInstance().CheckInTargetSurface(surfaceNode->GetName());
-        }
-    }
-
     if (NeedPrepareChindrenInReverseOrder(node)) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
         curFrameInfoDetail.curFrameReverseChildren = true;
@@ -1683,7 +1675,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             child->QuickPrepare(shared_from_this());
         });
     }
-    RSHpaeManager::GetInstance().SetInTargetSurface(oldStatus);
     ancestorNodeHasAnimation_ = animationBackup;
     node.ResetGeoUpdateDelay();
 }
