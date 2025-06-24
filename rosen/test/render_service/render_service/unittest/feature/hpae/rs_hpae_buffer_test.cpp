@@ -23,7 +23,7 @@
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "inconsumer_surface.h"
+#include "iconsumer_surface.h"
 #include "feature/mock/mock_iconsumer_surface.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 
