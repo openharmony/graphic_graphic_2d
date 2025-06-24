@@ -2794,6 +2794,56 @@ HWTEST_F(RSRenderNodeTest, CheckFilterCacheAndUpdateDirtySlots, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetOldAbsMatrix001
+ * @tc.desc: test GetOldAbsMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueICAJPW
+ */
+HWTEST_F(RSRenderNodeTest, GetOldAbsMatrix001, TestSize.Level1)
+{
+    Drawing::Matrix testMatrix;
+    constexpr float translateX{2.f};
+    constexpr float translateY{3.f};
+    testMatrix.Translate(translateX, translateY);
+
+    RSRenderNode node(id, context);
+    node.oldAbsMatrix_ = testMatrix;
+    EXPECT_EQ(node.GetOldAbsMatrix(), testMatrix);
+}
+
+/**
+ * @tc.name: UpdateAbsDirtyRegion001
+ * @tc.desc: test UpdateAbsDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICAJPW
+ */
+HWTEST_F(RSRenderNodeTest, UpdateAbsDirtyRegion001, TestSize.Level1)
+{
+    constexpr int surfaceWidth{1000};
+    constexpr int surfaceHeight{2000};
+    constexpr int defaultLeft{10};
+    constexpr int defaultTop{20};
+    constexpr int defaultWidth{500};
+    constexpr int defaultHeight{600};
+
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->SetSurfaceSize(surfaceWidth, surfaceHeight);
+    RSRenderNode node(id, context);
+    node.GetMutableRenderProperties().subTreeAllDirty_ = true;
+    node.oldChildrenRect_ = RectI(defaultLeft, defaultTop, defaultWidth, defaultHeight);
+    node.oldClipRect_ = RectI(0, 0, defaultWidth, defaultHeight);
+
+    RectI clipRect(0, 0, surfaceWidth, surfaceHeight);
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), node.oldChildrenRect_.IntersectRect(node.oldClipRect_));
+
+    rsDirtyManager->Clear();
+    node.isFirstLevelCrossNode_ = true;
+    node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), node.oldChildrenRect_);
+}
+
+/**
  * @tc.name: MarkForceClearFilterCacheWithInvisible
  * @tc.desc: test
  * @tc.type: FUNC
