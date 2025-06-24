@@ -29,7 +29,7 @@
 #include "typeface_ani/ani_typeface.h"
 #include "typeface_arguments_ani/ani_typeface_arguments.h"
 
-const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/Cleaner;";
+const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/drawing/Cleaner;";
 
 template <typename T>
 void SafeDelete(ani_long& ptr)
