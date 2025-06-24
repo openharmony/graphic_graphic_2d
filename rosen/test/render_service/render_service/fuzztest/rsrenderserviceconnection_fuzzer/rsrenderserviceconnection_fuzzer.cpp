@@ -1443,6 +1443,37 @@ bool DoGetBehindWindowFilterEnabled()
     return true;
 }
 
+bool DoProfilerServiceOpenFile()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t fd = 0;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN, "", ""};
+    rsConn_->ProfilerServiceOpenFile(dirInfo, "", 0, fd);
+    return true;
+}
+
+bool DoProfilerServicePopulateFiles()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::vector<HrpServiceFileInfo> outFiles;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN, "", ""};
+    rsConn_->ProfilerServicePopulateFiles(dirInfo, 0, outFiles);
+    return true;
+}
+
+bool DoProfilerIsSecureScreen()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->ProfilerIsSecureScreen();
+    return true;
+}
+
 class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
 public:
     explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
@@ -1612,6 +1643,9 @@ void DoFuzzerTest3()
     DoGetBehindWindowFilterEnabled();
     DoSetVirtualScreenAutoRotation();
     DoSetWindowExpectedRefreshRate();
+    DoProfilerServiceOpenFile();
+    DoProfilerServicePopulateFiles();
+    DoProfilerIsSecureScreen();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1274,5 +1274,51 @@ HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
     auto res = rsClient->GetPidGpuMemoryInMB(pid, gpuMemInMB);
     EXPECT_EQ(res, ERR_INVALID_DATA);
 }
+
+/**
+* @tc.name: ProfilerIsSecureScreenTest
+* @tc.desc: ProfilerIsSecureScreenTest
+* @tc.type: FUNC
+* @tc.require: issuesIC98WU
+*/
+HWTEST_F(RSClientTest, ProfilerIsSecureScreenTest, TestSize.Level1)
+{
+    auto res = rsClient->ProfilerIsSecureScreen();
+    usleep(SET_OPERATION_SLEEP_US);
+    ASSERT_NE(rsClient, nullptr);
+    ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ProfilerServiceOpenFileTest
+ * @tc.desc: ProfilerServiceOpenFileTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC98WU
+ */
+HWTEST_F(RSClientTest, ProfilerServiceOpenFileTest, TestSize.Level1)
+{
+    int32_t fd = 0;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_COMMON, "subdir", "subdir2"};
+
+    auto res = rsClient->ProfilerServiceOpenFile(dirInfo, "filename", 0, fd);
+    ASSERT_NE(rsClient, nullptr);
+    ASSERT_EQ(res, RET_HRP_SERVICE_ERR_UNSUPPORTED);
+}
+
+/**
+ * @tc.name: ProfilerServicePopulateFilesTest
+ * @tc.desc: ProfilerServicePopulateFilesTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC98WU
+ */
+HWTEST_F(RSClientTest, ProfilerServicePopulateFilesTest, TestSize.Level1)
+{
+    std::vector<HrpServiceFileInfo> outFiles;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_COMMON, "subdir", "subdir2"};
+
+    auto res = rsClient->ProfilerServicePopulateFiles(dirInfo, 0, outFiles);
+    ASSERT_NE(rsClient, nullptr);
+    ASSERT_EQ(res, RET_HRP_SERVICE_ERR_UNSUPPORTED);
+}
 } // namespace Rosen
 } // namespace OHOS

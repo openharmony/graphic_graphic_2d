@@ -20,6 +20,7 @@
 
 #include "rs_profiler_test_tree.h"
 #include "common/rs_macros.h"
+#include "transaction/rs_hrp_service.h"
 #ifdef RS_PROFILER_ENABLED
 
 #include <map>
@@ -233,6 +234,11 @@ public:
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
     RSB_EXPORT static std::vector<RSRenderNode::WeakPtr>& GetChildOfDisplayNodesPostponed();
+
+    RSB_EXPORT static RetCodeHrpService HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd);
+    RSB_EXPORT static RetCodeHrpService HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
     RSB_EXPORT static bool IsPlaybackParcel(const Parcel& parcel);
@@ -290,6 +296,7 @@ private:
 
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static bool IsEnabled();
+    RSB_EXPORT static bool IsHrpServiceEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();
     RSB_EXPORT static uint32_t GetCommandExecuteCount();
@@ -527,6 +534,7 @@ private:
     static RSContext* context_;
     // flag for enabling profiler
     RSB_EXPORT static bool enabled_;
+    RSB_EXPORT static bool hrpServiceEnabled_;
     RSB_EXPORT static std::atomic_uint32_t mode_;
     // flag for enabling profiler beta recording feature
     RSB_EXPORT static bool betaRecordingEnabled_;
@@ -542,6 +550,7 @@ private:
 
     RSB_EXPORT static std::vector<std::shared_ptr<RSRenderNode>> testTree_;
     friend class TestTreeBuilder;
+    friend class RSRenderServiceConnection;
 };
 
 } // namespace OHOS::Rosen
