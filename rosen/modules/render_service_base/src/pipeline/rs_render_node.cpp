@@ -533,7 +533,7 @@ void RSRenderNode::ResetPixelStretchSlot()
 
 bool RSRenderNode::CanFuzePixelStretch()
 {
-    return RSDrawable::CanFuzePixelStretch(drawableVec_);
+    return RSDrawable::CanFusePixelStretch(drawableVec_);
 }
 
 void RSRenderNode::UpdateChildrenRect(const RectI& subRect)

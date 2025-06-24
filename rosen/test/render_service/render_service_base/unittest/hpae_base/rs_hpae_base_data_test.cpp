@@ -49,12 +49,11 @@ void RSHpaeBaseDataTest::SetUpTestCase()
     hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1");
-
 }
 void RSHpaeBaseDataTest::TearDownTestCase()
 {
-    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled",hpaeSwitch);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",hpaeAaeSwitch);
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
 void RSHpaeBaseDataTest::SetUp() {}
 void RSHpaeBaseDataTest::TearDown() {}

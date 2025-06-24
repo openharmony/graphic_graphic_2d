@@ -16,7 +16,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include <unistd.h>
-#include "param/sys_param.h" 
+#include "param/sys_param.h"
 #include "hpae_base/rs_hpae_scheduler.h"
 #include "hpae_base/rs_hpae_base_types.h"
 
@@ -41,7 +41,7 @@ void RSHpaeSchedulerTest::SetUpTestCase()
     hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
     hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1"); 
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1");
 }
 void RSHpaeSchedulerTest::TearDownTestCase() {
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);

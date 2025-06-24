@@ -132,7 +132,7 @@ extern "C" void* dlsym(void* handle, const char* symbol) {
     if (strcmp(symbol, "mhc_graph_pattern_release_all") == 0) {
         return reinterpret_cast<void *>(MockGPReleaseAll);
     }
-    if (strcmp(symbol, "mhc_gp_task_wait") ==0) {
+    if (strcmp(symbol, "mhc_gp_task_wait") == 0) {
         return reinterpret_cast<void *>(MockGPWait);
     }
     if (strcmp(symbol, "mhc_gp_vulkan_task_get_wait_event") == 0) {
@@ -147,7 +147,7 @@ extern "C" void* dlsym(void* handle, const char* symbol) {
     if (strcmp(symbol, "GetHianimationDevice") == 0) {
         return reinterpret_cast<void *>(MockGetHianimationDeviceFunc);
     }
-    return NULL;
+    return nullptr;
 }
 
 extern "C" void* dlopen(const char *filename, int flags)
@@ -158,7 +158,7 @@ extern "C" void* dlopen(const char *filename, int flags)
     if (strcmp(filename, "libanimation.z.so") == 0) {
         return reinterpret_cast<void *>(0x1234);
     }
-    return NULL;
+    return nullptr;
 }
 
 extern "C" int dlclose(void *handle)

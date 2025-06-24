@@ -16,7 +16,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include <unistd.h>
-#include "param/sys_param.h" 
+#include "param/sys_param.h"
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
 #include "hpae_base/rs_hpae_base_types.h"
 
@@ -44,8 +44,8 @@ void RSHpaeFfrtPatternManagerTest::SetUpTestCase()
 }
 void RSHpaeFfrtPatternManagerTest::TearDownTestCase()
 {
-    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled",hpaeSwitch);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",hpaeAaeSwitch);
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
 void RSHpaeFfrtPatternManagerTest::SetUp() {}
 void RSHpaeFfrtPatternManagerTest::TearDown() {}
@@ -124,7 +124,7 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.L
  * @tc.name: MHCGetVulkanTaskNotifyEventTest
  * @tc.desc: Verify function MHCGetVulkanTaskNotifyEvent
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize.Level1)
 {

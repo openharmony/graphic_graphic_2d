@@ -16,7 +16,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include <unistd.h>
-#include "param/sys_param.h" 
+#include "param/sys_param.h"
 #include "hpae_base/rs_hpae_fusion_operator.h"
 #include "hpae_base/rs_hpae_base_types.h"
 #include "hpae_base/rs_hpae_base_data.h"

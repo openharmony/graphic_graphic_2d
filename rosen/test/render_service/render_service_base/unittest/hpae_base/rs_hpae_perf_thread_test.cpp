@@ -16,7 +16,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include <unistd.h>
-#include "param/sys_param.h" 
+#include "param/sys_param.h"
 #include "hpae_base/rs_hpae_perf_thread.h"
 #include "hpae_base/rs_hpae_base_types.h"
 

@@ -17,7 +17,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include <unistd.h>
-#include "param/sys_param.h" 
+#include "param/sys_param.h"
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "hpae_base/rs_hpae_base_types.h"
 #include "hpae_base/rs_hpae_fusion_operator.h"
@@ -51,8 +51,8 @@ void RSHpaeFilterCacheManagerTest::SetUpTestCase()
 }
 void RSHpaeFilterCacheManagerTest::TearDownTestCase()
 {
-    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled",hpaeSwitch);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",hpaeAaeSwitch);
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
 void RSHpaeFilterCacheManagerTest::SetUp() {}
 void RSHpaeFilterCacheManagerTest::TearDown() {}
@@ -372,7 +372,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest01, TestSize.L
     outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
 
     resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
-    EXPECT_EQ(resultTask.taskPtr, nullptr); 
+    EXPECT_EQ(resultTask.taskPtr, nullptr);
 
     inputBuffer.canvas.reset();
     resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
@@ -636,7 +636,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GetBlurOutputTest01, TestSize.Level1)
  * @tc.name: resetfiltercachetest
  * @tc.desc: Verify function GetBlurOutput
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, ResetFilterCacheTest, TestSize.Level1)
 {
@@ -645,7 +645,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ResetFilterCacheTest, TestSize.Level1)
     
     auto cachedSnapshot = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     auto cachedFilteredSnapshot = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    hpaeCacheManager.ResetFilterCache(cachedSnapshot,cachedFilteredSnapshot, srcRect);
+    hpaeCacheManager.ResetFilterCache(cachedSnapshot, cachedFilteredSnapshot, srcRect);
     EXPECT_NE(hpaeCacheManager.cachedSnapshot_, nullptr);
     EXPECT_NE(hpaeCacheManager.cachedFilteredSnapshot_, nullptr);
 }
@@ -798,7 +798,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, BlurUsingFilteredSnapshotTest, TestSize.L
     HpaeBackgroundCacheItem hpaeOutputItem;
     hpaeCacheManager.hpaeBlurOutputQueue_.push_back(hpaeOutputItem);
     ret  = hpaeCacheManager.BlurUsingFilteredSnapshot();
-    EXPECT_EQ(ret, 0); 
+    EXPECT_EQ(ret, 0);
 
     hpaeCacheManager.cachedFilteredSnapshot_->cachedImage_ = std::make_shared<Drawing::Image>();
     hpaeCacheManager.hpaeBlurOutputQueue_.clear();
