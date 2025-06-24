@@ -98,7 +98,7 @@ std::shared_ptr<Drawing::ShaderEffect> MakeGreyShader(
 {
     // parameter check: near zero
     constexpr static float EPS = 1e-5f;
-    if (ROSEN_EQ(greyLow, 0.f, EPS) && ROSEN_EQ(greyHeigh, 0.f, EPS)) {
+    if (ROSEN_EQ(greyLow, 0.f, EPS) && ROSEN_EQ(greyHigh, 0.f, EPS)) {
         HPAE_LOGI("MakeGreyShader: grey value is zero!");
         return imageShader;
     }
