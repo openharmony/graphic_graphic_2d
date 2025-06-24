@@ -57,7 +57,8 @@ struct FunctionHeader {
 };
 
 template<typename F>
-FunctionHeader* create_function_wrapper(F&& func) {
+FunctionHeader* create_function_wrapper(F&& func)
+{
     if (func == nullptr) {
         return nullptr;
     }
