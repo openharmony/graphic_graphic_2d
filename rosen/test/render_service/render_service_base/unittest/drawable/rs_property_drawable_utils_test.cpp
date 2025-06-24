@@ -205,16 +205,16 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawFilterTest002, testing::ext::TestSize.
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
     Drawing::Canvas canvasTest1;
-    RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
-    std::shared_ptr<RSFilter> rsFilter = nullptr;
-    std::shared_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
-    paintFilterCanvasTest1.size_ = nullptr;
+    RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
+    std::shared_ptr<RSDrawingFilter> rsFilter = nullptr;
+    std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
+    paintFilterCanvasTest1.surface_ = nullptr;
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
-    rsFilterTest->type_ = RSUIFilterType::LINEAR_GRANDIENT_BLUR;
-    EXPECT_NE(rsFilterTest, nullptr);
+    rsFilterTest->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
+    EXPECT_NE(rsFilter, nullptr);
     rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     EXPECT_NE(rsFilterTest, nullptr);
     rsFilter->type_ = RSFilter::BLUR;
@@ -226,9 +226,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawFilterTest002, testing::ext::TestSize.
     paintFilterCanvasTest1.SetDisableFilterCache(false);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
 
-    auto manager = std::make_shard<RSHpaeFilterCacheManager>();
+    auto manager = std::make_shared<RSHpaeFilterCacheManager>();
     EXPECT_NE(manager, nullptr);
-    RSHpaeBaseData::GetInstance().hpaeStatus_.blurNodId = id;
+    RSHpaeBaseData::GetInstance().hpaeStatus_.blurNodeId_ = id;
     RSHpaeBaseData::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, id, false);
 }
