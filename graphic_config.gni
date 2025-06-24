@@ -364,7 +364,15 @@ graphic_2d_ext_root = "//foundation/graphic/graphic_2d_ext"
 hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"
-skia_root_new = "//third_party/skia"
+if (graphic_2d_feature_upgrade_skia) {
+  if (!defined(skia_root_new)) {
+    skia_root_new = "//third_party/skia/m133"
+  }
+} else {
+    if (!defined(skia_root_new)) {
+    skia_root_new = "//third_party/skia"
+  }
+}
 graphic_surface_root = "//foundation/graphic/graphic_surface"
 fuzz_test_output_path = "graphic_2d/graphic_2d"
 video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
