@@ -60,7 +60,8 @@
         "graphic_2d_feature_overlay_display_enable",
         "graphic_2d_feature_enable_opengl_to_vulkan",
         "graphic_2d_feature_screenless_enable",
-        "graphic_2d_feature_tv_metadata_enable"
+        "graphic_2d_feature_tv_metadata_enable",
+        "graphic_2d_feature_upgrade_skia"
       ],
       "rom": "10000KB",
       "ram": "10000KB",

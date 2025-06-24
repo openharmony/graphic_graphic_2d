@@ -17,6 +17,9 @@
 
 #include <unistd.h>
 #include <securec.h>
+#ifdef CROSS_PLATFORM
+#include <vector>
+#endif
 
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
