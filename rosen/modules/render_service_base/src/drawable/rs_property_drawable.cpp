@@ -179,7 +179,6 @@ RSFilterDrawable::RSFilterDrawable()
         stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
-    hpaeCacheManager_ = std::make_shared<RSHpaeFilterCacheManager>();
 }
 
 void RSFilterDrawable::OnSync()
