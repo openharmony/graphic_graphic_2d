@@ -94,11 +94,11 @@ static void MakeGreyShaderEffect()
 }
 
 std::shared_ptr<Drawing::ShaderEffect> MakeGreyShader(
-    float greyLow, float greyHeigh, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+    float greyLow, float greyHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
     // parameter check: near zero
     constexpr static float EPS = 1e-5f;
-    if (ROSEN_EQ(greyLow, 0.f, EPS)EPS && ROSEN_EQ(greyHeigh, 0.f, EPS)) {
+    if (ROSEN_EQ(greyLow, 0.f, EPS) && ROSEN_EQ(greyHeigh, 0.f, EPS)) {
         HPAE_LOGI("MakeGreyShader: grey value is zero!");
         return imageShader;
     }
