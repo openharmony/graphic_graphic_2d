@@ -74,17 +74,17 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(
     if (retryIter != setRateRetryMap_.end()) {
         needRetrySetRate = retryIter->second.first;
     }
-    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastCurScreenId != curScreenId ||
-        needRetrySetRate) {
+    bool shouldSetRefreshRate = (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) ||
+                                 lastCurScreenId != curScreenId);
+    if (shouldSetRefreshRate || needRetrySetRate) {
         RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
             needRetrySetRate %{public}d", static_cast<int>(id), refreshRate, needRetrySetRate);
         int32_t sceneId = (lastCurScreenId != curScreenId || needRetrySetRate) ? SWITCH_SCREEN_SCENE : 0;
         hgmCore.GetFrameRateMgr()->SetLastCurScreenId(curScreenId);
-        bool shouldSendCallback = (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) ||
-                                   lastCurScreenId != curScreenId);
-        int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate, shouldSendCallback);
+        int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate, shouldSetRefreshRate);
         if (retryIter != setRateRetryMap_.end()) {
             retryIter->second.first = false;
+            retryIter->second.first = shouldSetRefreshRate ? 0 : retryIter->second.second;
         }
         if (status < EXEC_SUCCESS) {
             RS_LOGD("HgmContext: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "",
