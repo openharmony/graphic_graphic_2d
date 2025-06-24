@@ -30,7 +30,8 @@ using HpaeBufferInfo = struct HpaeBufferInfo_ {
     void* bufferHandle = nullptr;
     std::shared_ptr<Drawing::Image> snapshot = nullptr;
 
-    void operator=(const HpaeBufferInfo_ &hpaeBufferInfo) {
+    void operator=(const HpaeBufferInfo_ &hpaeBufferInfo)
+    {
         this->surface = hpaeBufferInfo.surface;
         this->canvas = hpaeBufferInfo.canvas;
         this->grContext = hpaeBufferInfo.grContext;
