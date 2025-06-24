@@ -96,11 +96,11 @@ public:
         const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;
 
+    void DumpVkImageInfo(std::string &dumpString) override;
+private:
     std::shared_ptr<VkImageResource> MapVkImageFromSurfaceBuffer(
         const sptr<OHOS::SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr);
-    void DumpVkImageInfo(std::string &dumpString) override;
-private:
     std::shared_ptr<VkImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer> buffer,
         const sptr<SyncFence>& acquireFence) ;
     std::shared_ptr<VkImageResource> NewImageCacheFromBuffer(
