@@ -60,7 +60,7 @@ public:
     FilterCacheType GetCachedType() const;
 
     bool DrawFilterUsingHpae(RSPaintFilterCanvas& paintFilterCanvas, const std::shared_ptr<RSFilter>& filter,
-            const std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager, NodeId nodeId);
+            const std::shared_ptr<RSHpaeFilterCacheManager>& hpaeCacheManager, NodeId nodeId);
 
     // Call this function during the process phase to apply the filter. Depending on the cache state, it may either
     // regenerate the cache or reuse the existing cache.
