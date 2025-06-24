@@ -12,26 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#if defined(ROSEN_OHOS)
-#include "hpae_base/rs_hpae_filter_cache_manager.h"
-#include "hpae_base/rs_hpae_hianimation.h"
-#include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_mesa_blur_shader_filter.h"
-#include "render/rs_grey_shader_filter.h"
-#include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
-#include "hpae_base/rs_hpae_log.h"
-#include "hpae_base/rs_hpae_scheduler.h"
-#include "hpae_base/rs_hpae_fusion_operator.h"
-#endif
 
 #if defined(ASYNC_BUILD_TASK)&& defined(ROSEN_OHOS)
 #include "cpp/ffrt_dynamic_graph.h"
 #endif
+
 #include "ge_render.h"
-#include "platform/common/rs_log.h"
+#include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
+#include "hpae_base/rs_hpae_fusion_operator.h"
+#include "hpae_base/rs_hpae_hianimation.h"
+#include "hpae_base/rs_hpae_log.h"
+#include "hpae_base/rs_hpae_scheduler.h"
 #include "unistd.h"
 #include "common/rs_background_thread.h"
+#include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -94,21 +91,21 @@ int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std:
 
 bool RSHpaeFilterCacheManager::CheckIfUsingGpu()
 {
-    bool usingGpu_ = false;
+    bool usingGpu = false;
     {
         std::unique_lock<std::mutex> lock(blurOutMutex_);
         if (hpaeBlurOutputQueue_.empty()) {
-            usingGpu_ = true;
+            usingGpu = true;
         }
     }
 
     // wait here, before using previous blur result
-    if (uingGpu_ == false && !HianimatiionManager::GetInstance().WaitPreviousTask()) {
+    if (usingGpu == false && !HianimationManager::GetInstance().WaitPreviousTask()) {
         HPAE_LOGW("Hianimation resource not enough");
-        usingGpu_ = true;
+        usingGpu = true;
     }
 
-    return uingGpu;
+    return usingGpu;
 }
 
 int RSHpaeFilterCacheManager::DrawFilterImpl(const std::shared_ptr<RSDrawingFilter>& filter,
@@ -376,7 +373,7 @@ int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
     float saturation = RSHpaeBaseData::GetInstance().GetSaturation();
     float brightness = RSHpaeBaseData::GetInstance().GetBrightness();
     auto hpsParam = Drawing::HpsBlurParameter(srcRect, dstRect, radius, saturation, brightness);
-    if (RSSystemProperties::GetHpsBlurEnableed() && filter->GetFilterType() == RSFilter::MATERIAL) {
+    if (RSSystemProperties::GetHpsBlurEnabled() && filter->GetFilterType() == RSFilter::MATERIAL) {
         RS_TRACE_NAME_FMT("HPAE:ApplyHPSBlur::radius %f", radius);
         if (HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(*outCanvas, image, hpsParam,
             brush.GetColor().GetAlphaF(), brush.GetFilter().GetColorFilter())) {
@@ -528,7 +525,7 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
 static bool CanDiscardCanvas(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect)
 {
     /* Check that drawing will be in full canvas and no issues with clip */
-    return (RSSystemProperities::GetDuscardCanvasBeforeFilterEnable() && canvas.IsClipRect() &&
+    return (RSSystemProperities::GetDiscardCanvasBeforeFilterEnabled() && canvas.IsClipRect() &&
         canvas.GetDeviceClipBounds() == dstRect && canvas.GetWidth() == dstRect.GetWidth() &&
         canvas.GetHeight() == dstRect.GetHeight() && dstRect.GetLeft() ==0 && dstRect.GetTop() == 0 &&
         canvas.GetAlpha() == 1.0 && !canvas.HasOffscreenLayer());
@@ -541,7 +538,7 @@ static void ClipVisibleRect(RSPaintFilterCanvas& canvas)
     Drawing::RectI visibleIRect = {(int)visibleRectF.GetLeft(), (int)visibleRectF.GetTop(),
         (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom()};
     auto deviceClipRect = canvas.GetDeviceClipBounds();
-    if (!visibleIRct.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
+    if (!visibleIRect.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
         canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
     }
 }
@@ -563,7 +560,7 @@ int RSHpaeFilterCacheManager::DrawBackgroundToCanvas(RSPaintFilterCanvas& canvas
     }
 
     backgroundRadius_ = hpaeBlurItem.radius_;
-    if (FloatEqual(backgroundRadius_,curRadius)) {
+    if (FloatEqual(backgroundRadius_,curRadius_)) {
         blurContentChanged_ = false;
     } else {
         blurContentChanged_ = true;
