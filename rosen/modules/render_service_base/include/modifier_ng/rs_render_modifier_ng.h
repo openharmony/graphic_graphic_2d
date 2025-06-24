@@ -304,9 +304,9 @@ public:
         return isSingleFrameModifier_;
     }
 
-    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const
+    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
     {
-        return Getter<Drawing::DrawCmdListPtr>(ModifierTypeConvertor::GetPropertyType(GetType(), nullptr));
+        return Getter<Drawing::DrawCmdListPtr>(ModifierTypeConvertor::GetPropertyType(GetType()), nullptr);
     }
 
     void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) override;
