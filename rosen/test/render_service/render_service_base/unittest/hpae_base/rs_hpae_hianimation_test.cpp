@@ -90,6 +90,7 @@ void RSHpaeHianimationTest::SetUpTestCase()
 void RSHpaeHianimationTest::TearDownTestCase()
 {
     delete mockHianimationDevice_;
+    mockHianimationDevice_ = nullptr;
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
