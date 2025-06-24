@@ -21,21 +21,6 @@
 import type common2D from '@ohos.graphics.common2D';
 import image from '@ohos.multimedia.image';
 
-class Cleaner {
-  private ptr: long = 0;
-  private className: string;
-  constructor(className: string, ptr: long) {
-    this.ptr = ptr;
-    this.className = className;
-  }
-  native clean(): void;
-}
-
-let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
-  cleaner.clean();
-});
-let unregisterToken = new object();
-
 /**
  * Provides functions such as 2D graphics rendering, text drawing, and image display.
  *
@@ -45,6 +30,22 @@ let unregisterToken = new object();
  */
 namespace drawing {
   loadLibrary("drawing_ani");
+  class Cleaner {
+    static { loadLibrary("drawing_ani"); }
+    private ptr: long = 0;
+    private className: string;
+    constructor(className: string, ptr: long) {
+      this.ptr = ptr;
+      this.className = className;
+    }
+    native clean(): void;
+  }
+
+  let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+    cleaner.clean();
+  });
+  let unregisterToken = new object();
+
   /**
    * Enumerate blending modes for colors.
    * Blend is a operation that use 4 components(red, green, blue, alpha) to generate
