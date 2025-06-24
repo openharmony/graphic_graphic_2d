@@ -27,11 +27,12 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_filter_cache_manager.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "rs_frame_report.h"
 #include "rs_uni_render_thread.h"
 
 #include "rs_profiler.h"
-#include "render/rs_high_performance_visual_engine.h"
+
 
 namespace OHOS {
 namespace Rosen {
