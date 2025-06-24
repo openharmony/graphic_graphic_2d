@@ -1539,6 +1539,32 @@ bool DoSetVirtualScreenStatus()
     return true;
 }
 
+bool DoSetVirtualScreenAutoRotation()
+{
+    uint64_t screenId = GetData<uint64_t>();
+    bool isAutoRotation = GetData<bool>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(screenId)) {
+        return false;
+    }
+    if (!dataP.WriteBool(isAutoRotation)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 bool DoSetVirtualScreenBlackList()
 {
     uint64_t id = GetData<uint64_t>();
@@ -3835,6 +3861,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetVirtualScreenResolution();
     OHOS::Rosen::DoGetVirtualScreenResolution();
     OHOS::Rosen::DoSetVirtualScreenStatus();
+    OHOS::Rosen::DoSetVirtualScreenAutoRotation();
     OHOS::Rosen::DoSetVirtualScreenBlackList();
     OHOS::Rosen::DoAddVirtualScreenBlackList();
     OHOS::Rosen::DoRemoveVirtualScreenBlackList();

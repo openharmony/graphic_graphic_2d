@@ -685,7 +685,8 @@ void MemoryManager::MemoryOverForReport(std::unordered_map<pid_t, MemorySnapshot
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto now = std::chrono::steady_clock::now().time_since_epoch();
-    uint64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    uint64_t currentTime =
+        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
     // total memory overflow of all processes in renderservice
     if (isTotalOver && currentTime > totalMemoryReportTime_) {
         TotalMemoryOverReport(infoMap);

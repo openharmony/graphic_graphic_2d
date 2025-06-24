@@ -34,10 +34,12 @@
 #endif
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "ui/rs_proxy_node.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "rs_ui_context.h"
+#include "transaction/rs_interfaces.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_utils.h"
@@ -83,6 +85,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;
+    node->surfaceNodeType_ = config.nodeType;
 
     RS_TRACE_NAME_FMT("RSSurfaceNode::Create name: %s type: %hhu, id: %lu, token:%lu", node->name_.c_str(),
         config.nodeType, node->GetId(), rsUIContext ? rsUIContext->GetToken() : -1);
@@ -95,10 +98,12 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
             config.id, config.name, static_cast<uint8_t>(config.nodeType), config.surfaceWindowType);
         node->AddCommand(command, isWindow);
     } else {
+#ifndef SCREENLESS_DEVICE
         if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId, unobscured)) {
             ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
             return nullptr;
         }
+#endif
     }
 
     node->SetClipToFrame(true);
@@ -121,7 +126,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         node->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
         // codes for arkui-x
-#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID)
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID) && !defined(SCREENLESS_DEVICE)
         if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_TEXTURE,
@@ -131,7 +136,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         }
 #endif
         // codes for arkui-x
-#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS)
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && !defined(SCREENLESS_DEVICE)
         if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
             (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface")) {
             RSSurfaceExtConfig config = {
@@ -692,12 +697,6 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     }
 }
 
-/**
- * @brief Enable Camera Rotation Unchanged
- *
- * @param flag If flag is set to true, the camera fix rotation is enabled.
- * @return void
- */
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(GetId(), flag);
@@ -997,6 +996,39 @@ void RSSurfaceNode::SetRegionToBeMagnified(const Vector4f& regionToBeMagnified)
     AddCommand(command, true);
     RS_LOGI_LIMIT("RSSurfaceNode::SetRegionToBeMagnified, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
         regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
+}
+
+bool RSSurfaceNode::IsSelfDrawingNode() const
+{
+    if (surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool RSSurfaceNode::SetCompositeLayer(TopLayerZOrder zOrder)
+{
+    if (!RSSystemProperties::GetCompositeLayerEnabled()) {
+        return false;
+    }
+    RS_TRACE_NAME_FMT("RSSurfaceNode::SetCompositeLayer %llu zOrder: %u", GetId(), zOrder);
+    uint32_t topLayerZOrder = static_cast<uint32_t>(zOrder);
+
+    compositeLayerUtils_ = std::make_shared<RSCompositeLayerUtils>(shared_from_this(), topLayerZOrder);
+    if (zOrder == TopLayerZOrder::CHARGE_3D_MOTION && GetChildren().size() == 1) {
+        bool ret = compositeLayerUtils_->DealWithSelfDrawCompositeNode(GetChildren()[0].lock(), topLayerZOrder);
+        compositeLayerUtils_ = nullptr;
+        return ret;
+    }
+
+    name_ = "compositeLayer_" + std::to_string(GetId());
+    return compositeLayerUtils_->CreateCompositeLayer();
+}
+
+std::shared_ptr<RSCompositeLayerUtils> RSSurfaceNode::GetCompositeLayerUtils() const
+{
+    return compositeLayerUtils_;
 }
 
 void RSSurfaceNode::SetFrameGravityNewVersionEnabled(bool isEnabled)

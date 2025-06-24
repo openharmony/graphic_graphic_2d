@@ -49,5 +49,7 @@ using RSCommonSubType = RSDrawing::DrawingCommonSubType;
 using RSAnimationInfo = RSDrawing::DrawingAnimationInfo;
 using RSAnimationPara = RSDrawing::DrawingAnimationPara;
 using RSPiecewiseParameter = RSDrawing::DrawingPiecewiseParameter;
+using RSRecordingCanvas = RSDrawing::RecordingCanvas;
+using RSHybridRenderType = RSDrawing::DrawCmdList::HybridRenderType;
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXGINE_DRAWING_DRAWING_H

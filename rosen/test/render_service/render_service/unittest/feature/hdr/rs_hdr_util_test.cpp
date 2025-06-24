@@ -36,7 +36,10 @@ public:
     void TearDown() override;
 };
 
-void RSHdrUtilTest::SetUpTestCase() {}
+void RSHdrUtilTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSHdrUtilTest::TearDownTestCase() {}
 void RSHdrUtilTest::SetUp() {}
 void RSHdrUtilTest::TearDown() {}

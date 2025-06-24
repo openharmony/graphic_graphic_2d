@@ -19,6 +19,13 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+static int64_t SystemTime()
+{
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
+}
+
 class VSyncControllerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -137,5 +144,77 @@ HWTEST_F(VSyncControllerTest, SetEnable002, Function | MediumTest | Level2)
 HWTEST_F(VSyncControllerTest, SetPhaseOffset002, Function | MediumTest | Level2)
 {
     ASSERT_EQ(VSyncControllerTest::vsyncController_->SetPhaseOffset(2), VSYNC_ERROR_INVALID_OPERATING);
+}
+
+/*
+* Function: ChangeAdaptiveStatus
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call ChangeAdaptiveStatus
+ */
+HWTEST_F(VSyncControllerTest, ChangeAdaptiveStatus, Function | MediumTest | Level2)
+{
+    VSyncControllerTest::vsyncController_->phaseOffset_ = 10;
+    VSyncControllerTest::vsyncController_->normalPhaseOffset_ = 20;
+    VSyncControllerTest::vsyncController_->ChangeAdaptiveStatus(true);
+    ASSERT_NE(VSyncControllerTest::vsyncController_->phaseOffset_,
+        VSyncControllerTest::vsyncController_->normalPhaseOffset_);
+    VSyncControllerTest::vsyncController_->ChangeAdaptiveStatus(false);
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_,
+        VSyncControllerTest::vsyncController_->normalPhaseOffset_);
+}
+ 
+/*
+* Function: AdjustAdaptiveOffset
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AdjustAdaptiveOffset
+ */
+HWTEST_F(VSyncControllerTest, AdjustAdaptiveOffset, Function | MediumTest | Level2)
+{
+    VSyncControllerTest::vsyncController_->phaseOffset_ = 20;
+    VSyncControllerTest::vsyncController_->AdjustAdaptiveOffset(0, 20);
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_, 20);
+    VSyncControllerTest::vsyncController_->AdjustAdaptiveOffset(100, 20);
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_, 40);
+}
+ 
+/*
+* Function: ResetOffset
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call ResetOffset
+ */
+HWTEST_F(VSyncControllerTest, ResetOffset, Function | MediumTest | Level2)
+{
+    VSyncControllerTest::vsyncController_->phaseOffset_ = 10;
+    VSyncControllerTest::vsyncController_->normalPhaseOffset_ = 20;
+    VSyncControllerTest::vsyncController_->ResetOffset();
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_,
+        VSyncControllerTest::vsyncController_->normalPhaseOffset_);
+}
+ 
+/*
+* Function: NeedPreexecuteAndUpdateTs
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NeedPreexecuteAndUpdateTs
+ */
+HWTEST_F(VSyncControllerTest, NeedPreexecuteAndUpdateTs, Function | MediumTest | Level2)
+{
+    VSyncControllerTest::vsyncController_->generator_ = nullptr;
+    int64_t timestamp = 0;
+    int64_t period = 0;
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->NeedPreexecuteAndUpdateTs(timestamp, period), false);
+    VSyncControllerTest::vsyncController_->generator_ = vsyncGenerator_;
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(
+        VSyncControllerTest::vsyncController_->generator_.GetRefPtr());
+    vsyncGeneratorImpl->period_ = 10000000;
+    VSyncControllerTest::vsyncController_->lastVsyncTime_ = SystemTime();
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->NeedPreexecuteAndUpdateTs(timestamp, period), true);
 }
 }

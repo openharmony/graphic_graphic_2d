@@ -22,7 +22,6 @@
 #include <mutex>
 #include <string>
 #include "sync_fence.h"
-#include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
 #include "platform/ohos/backend/rs_vulkan_header_ext.h"
@@ -446,9 +445,6 @@ private:
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
     std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;
-    // drawing context
-    static thread_local std::weak_ptr<Drawing::GPUContext> drawingContext_;
-    static thread_local std::weak_ptr<Drawing::GPUContext> protectedDrawingContext_;
     // drawingContextMap_ : <tid, <drawingContext, isRecyclable>>
     static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> drawingContextMap_;
     static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> protectedDrawingContextMap_;
@@ -456,6 +452,7 @@ private:
     // use for recyclable singleton
     static std::recursive_mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
+    // isRecyclableSingletonValid_ : true -> has been initialized and is valid , false -> has been released
     static std::atomic<bool> isRecyclableSingletonValid_;
     // use to mark current process has created vulkan context at least once
     static std::atomic<bool> isInited_;

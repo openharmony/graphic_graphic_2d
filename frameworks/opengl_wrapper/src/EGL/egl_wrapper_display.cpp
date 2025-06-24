@@ -27,6 +27,8 @@
 #include "external_window.h"
 #include "surface.h"
 #include "window.h"
+#include <parameter.h>
+#include <parameters.h>
 
 namespace OHOS {
 static constexpr const char *VENDOR_VALUE = "OpenHarmony";
@@ -62,6 +64,9 @@ static constexpr const char *EXTENSION_VALUE =
     "EGL_KHR_wait_sync "
     "EGL_EXT_protected_surface "
 ;
+static constexpr const char *SWAP_BUFFER_EXTENSIONS =
+    "EGL_KHR_swap_buffers_with_damage "
+;
 
 EglWrapperDisplay EglWrapperDisplay::wrapperDisp_;
 
@@ -84,6 +89,13 @@ void EglWrapperDisplay::UpdateQueryValue(EGLint *major, EGLint *minor)
     vendorValue_ = VENDOR_VALUE;
     clientApiValue_ = CLIENT_API_VALUE;
     extensionValue_ = EXTENSION_VALUE;
+    auto isPartialFlushSupport = system::GetParameter("debug.swap.buffer.with.damage", "1");
+    if (isPartialFlushSupport == "1") {
+        extensionValue_ = std::string(EXTENSION_VALUE) + std::string(SWAP_BUFFER_EXTENSIONS);
+        WLOGI("GetParameter debug.swap.buffer.with.damage 1");
+    } else {
+        WLOGI("GetParameter debug.swap.buffer.with.damage 0");
+    }
 }
 
 EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)

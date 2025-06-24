@@ -610,8 +610,8 @@ bool DoTakeSurfaceCapture()
     captureConfig.isSync = GetData<bool>();
     uint8_t listSize = GetData<uint8_t>();
     for (uint8_t i = 0; i < listSize; ++i) {
-        uint64_t nodeId = GetData<uint64_t>();
-        captureConfig.blackList.push_back(nodeId);
+        uint64_t listNodeId = GetData<uint64_t>();
+        captureConfig.blackList.push_back(listNodeId);
     }
     captureConfig.mainScreenRect.left_ = GetData<float>();
     captureConfig.mainScreenRect.top_ = GetData<float>();
@@ -808,6 +808,17 @@ bool DoGetTotalAppMemSize()
     float cpuMemSize = GetData<float>();
     float gpuMemSize = GetData<float>();
     rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+    return true;
+}
+
+bool DoSetVirtualScreenAutoRotation()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    ScreenId screenId = GetData<ScreenId>();
+    bool isAutoRotation = GetData<bool>();
+    rsConn_->SetVirtualScreenAutoRotation(screenId, isAutoRotation);
     return true;
 }
 
@@ -1346,6 +1357,17 @@ bool DOSetLayerTop()
     return true;
 }
 
+bool DoSetForceRefresh()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string nodeIdStr = GetData<std::string>();
+    bool isForceRefresh = GetData<bool>();
+    rsConn_->SetForceRefresh(nodeIdStr, isForceRefresh);
+    return true;
+}
+
 bool DOSetFreeMultiWindowStatus()
 {
     if (rsConn_ == nullptr) {
@@ -1549,6 +1571,7 @@ void DoFuzzerTest2()
     DOSetCurtainScreenUsingStatus();
     DOSetVirtualScreenStatus();
     DOSetLayerTop();
+    DoSetForceRefresh();
     DOSetFreeMultiWindowStatus();
 }
 
@@ -1565,6 +1588,7 @@ void DoFuzzerTest3()
     DoNotifySoftVsyncRateDiscountEvent();
     DoSetBehindWindowFilterEnabled();
     DoGetBehindWindowFilterEnabled();
+    DoSetVirtualScreenAutoRotation();
 }
 } // namespace Rosen
 } // namespace OHOS

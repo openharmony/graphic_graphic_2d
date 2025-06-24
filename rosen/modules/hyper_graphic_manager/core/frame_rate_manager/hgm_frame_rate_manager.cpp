@@ -126,8 +126,9 @@ void HgmFrameRateManager::InitConfig()
     std::string curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
-        if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
-            curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
+        auto iter = configData->screenStrategyConfigs_.find(curScreenName);
+        if (iter != configData->screenStrategyConfigs_.end()) {
+            curScreenStrategyId_ = iter->second;
         }
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
@@ -828,7 +829,7 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
     hfbcConfig.HandleHfbcConfig(packageList);
     multiAppStrategy_.HandlePkgsEvent(packageList);
-    HgmEventDistributor::Instance().HandlePackageEvent(packageList);
+    HgmEventDistributor::Instance()->HandlePackageEvent(packageList);
     MarkVoteChange("VOTER_SCENE");
     UpdateAppSupportedState();
 }
@@ -1096,7 +1097,7 @@ void HgmFrameRateManager::UpdateScreenExtStrategyConfig(const PolicyConfigData::
 
     for (auto it = screenExtStrategyMap_.begin(); it != screenExtStrategyMap_.end();) {
         if (std::find_if(screenConfigKeys.begin(), screenConfigKeys.end(),
-            [&](const auto &item) {return item.find(it->first) != std::string::npos; }) == screenConfigKeys.end()) {
+            [&](const auto &item) { return item.find(it->first) != std::string::npos; }) == screenConfigKeys.end()) {
             it = screenExtStrategyMap_.erase(it);
         } else {
             ++it;
@@ -1152,7 +1153,7 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
 {
     // control the list of supported frame rates for stylus pen, not control frame rate directly
     HandleStylusSceneEvent(eventInfo.description);
-    HgmEventDistributor::Instance().HandleSceneEvent(pid, eventInfo);
+    HgmEventDistributor::Instance()->HandleSceneEvent(pid, eventInfo);
 }
 
 void HgmFrameRateManager::HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo)
@@ -1289,7 +1290,7 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
         isAdaptive_.store(isGameSupportAS_);
         return;
     }
-    
+
     if (!HgmCore::Instance().GetAdaptiveSyncEnabled()) {
         return;
     }
@@ -1334,6 +1335,9 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 
     auto sampler = CreateVSyncSampler();
     sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
+    if (controller_ != nullptr) {
+        controller_->ChangeAdaptiveStatus(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
+    }
     return resultVoteInfo;
 }
 
@@ -1479,7 +1483,7 @@ void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::str
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT);
     }
-    HgmEventDistributor::Instance().HandleAppStrategyConfigEvent(pkgName, newConfig);
+    HgmEventDistributor::Instance()->HandleAppStrategyConfigEvent(pkgName, newConfig);
 }
 
 void HgmFrameRateManager::SetChangeGeneratorRateValid(bool valid)

@@ -419,7 +419,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutChild, TestSize.Level1)
     NodeId id = 1;
     RSUniRenderThread::GetCaptureParam().endNodeId_ = id;
     drawable->OnDraw(canvas);
-    ASSERT_FALSE(RSUniRenderThread::IsInCaptureProcess());
+    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
 
     CaptureParam param;
     param.isSnapshot_ = true;
@@ -552,27 +552,6 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipCulledNodeOrEntireSubtree001, TestSize.Le
 
     Drawing::Rect bounds;
     EXPECT_EQ(drawable->SkipCulledNodeOrEntireSubtree(paintFilterCanvas, bounds), false);
-}
-
-/**
- * @tc.name: SkipCulledNodeOrEntireSubtree002
- * @tc.desc: Test SkipCulledNodeOrEntireSubtree with node can be skipped
- * @tc.type: FUNC
- * @tc.require: issueICA6FQ
- */
-HWTEST_F(RSRenderNodeDrawableTest, SkipCulledNodeOrEntireSubtree002, TestSize.Level1)
-{
-    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    ASSERT_NE(drawable, nullptr);
-    drawable->SetOcclusionCullingEnabled(true);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    std::unordered_set<NodeId> culledNodes{drawable->GetId()};
-    paintFilterCanvas.SetCulledNodes(std::move(culledNodes));
-
-    Drawing::Rect bounds;
-    EXPECT_EQ(drawable->SkipCulledNodeOrEntireSubtree(paintFilterCanvas, bounds), true);
 }
 
 /**

@@ -19,11 +19,14 @@
 #include <bitset>
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 #include "draw/color.h"
-#include "text/hm_symbol.h"
 #include "symbol_constants.h"
+#include "symbol_gradient.h"
+#include "text/hm_symbol.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +37,8 @@ enum class RelayoutSymbolStyleAttribute {
     COMMONSUB_TYPE = 3,
     COLOR_LIST = 4,
     RENDER_MODE = 5,
+    GRADIENT_COLOR = 6,
+    SYMBOL_SHADOW = 7,
 
     SYMBOL_ATTRIBUTE_BUTT,
 };
@@ -46,9 +51,16 @@ enum VisualMode {
 
 using SymbolBitmapType = std::bitset<static_cast<size_t>(RelayoutSymbolStyleAttribute::SYMBOL_ATTRIBUTE_BUTT)>;
 
+struct SymbolColor {
+    SymbolColorType colorType = SymbolColorType::COLOR_TYPE;
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+};
+
 class RS_EXPORT HMSymbolTxt {
 public:
     HMSymbolTxt() {}
+    HMSymbolTxt(const HMSymbolTxt& other) = default;
+    HMSymbolTxt& operator=(const HMSymbolTxt& other) = default;
     ~HMSymbolTxt() {}
 
     void SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList);
@@ -103,8 +115,15 @@ public:
 
     const SymbolBitmapType& GetSymbolBitmap() const;
 
+    SymbolColor GetSymbolColor() const;
+
+    void SetSymbolColor(const SymbolColor& symbolColor);
+
+    void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
+
+    const std::optional<SymbolShadow>& GetSymbolShadow() const;
 private:
-    std::vector<Drawing::DrawingSColor> colorList_;
+    SymbolColor symbolColor_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
     Drawing::DrawingEffectStrategy effectStrategy_ = Drawing::DrawingEffectStrategy::NONE;
 
@@ -119,6 +138,7 @@ private:
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
     SymbolType symbolType_{SymbolType::SYSTEM};
     SymbolBitmapType relayoutChangeBitmap_;
+    std::optional<SymbolShadow> symbolShadow_;
 };
 }
 }

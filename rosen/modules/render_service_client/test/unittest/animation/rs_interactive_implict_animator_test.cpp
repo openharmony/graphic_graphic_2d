@@ -28,7 +28,8 @@ class RSInteractiveImplictAnimatorTest : public RSAnimationBaseTest {
 public:
     static constexpr float FRACTION_1 = 0.5f;
 };
-
+#if defined(MODIFIER_NG)
+#else
 /**
  * @tc.name: AddAnimation
  * @tc.desc: Verify the AddAnimation of RSInteractiveAnimator
@@ -428,5 +429,6 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SetFinishCallBack001, TestSize.Level1
     });
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest SetFinishCallBack001 end";
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

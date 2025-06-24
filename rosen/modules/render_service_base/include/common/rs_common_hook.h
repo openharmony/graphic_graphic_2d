@@ -37,6 +37,9 @@ public:
     void SetAdaptiveColorGamutEnable(bool isAdaptiveColorGamutEnable);
     bool IsAdaptiveColorGamutEnabled() const;
 
+    void SetTvPlayerBundleName(const std::string& bundleName);
+    std::string GetTvPlayerBundleName() const;
+
     // use in updating hwcnode hardware state with background alpha
     void SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
@@ -46,8 +49,6 @@ public:
     void GetComponentPowerFps(FrameRateRange& range);
     bool GetIsWhiteListForSolidColorLayerFlag() const;
     void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
-    bool GetIsWhiteListForEnableHwcNodeBelowSelfInApp() const;
-    void SetIsWhiteListForEnableHwcNodeBelowSelfInApp(bool isWhiteListForEnableHwcNodeBelowSelfInApp);
 
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
@@ -57,12 +58,12 @@ private:
     // use to implement product isolation for the adaptive P3 scheme
     std::atomic<bool> isAdaptiveColorGamutEnable_{false};
 
+    std::string tvPlayerBundleName_;
+
     // use in updating hwc node hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
     std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
-    // use in updating hwc node hardware state with hwc node below self in app
-    std::atomic<bool> isWhiteListForEnableHwcNodeBelowSelfInApp_{false};
     
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 };

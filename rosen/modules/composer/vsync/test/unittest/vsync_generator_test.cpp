@@ -1266,6 +1266,28 @@ HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForListener001, Functi
     vsyncGeneratorImpl->WaitForTimeoutConNotifyLockedForListener();
     ASSERT_EQ(vsyncGeneratorImpl->nextTimeStamp_, time);
 }
+
+/*
+ * @tc.name: NeedPreexecuteAndUpdateTs001
+ * @tc.desc: Test For NeedPreexecuteAndUpdateTs
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs001, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->period_ = 10000000;
+    int64_t period = 0;
+    int64_t timestamp = 0;
+    int64_t lastVsyncTime = SystemTime();
+    int64_t offset = 0;
+    usleep(10000);
+    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, offset, lastVsyncTime), true);
+ 
+    lastVsyncTime = SystemTime();
+    usleep(9100);
+    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, offset, lastVsyncTime), false);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

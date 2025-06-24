@@ -20,6 +20,7 @@
 #include "draw/color.h"
 #include "text/hm_symbol.h"
 #include "common/rs_vector4.h"
+#include "symbol_constants.h"
 #include "symbol_gradient.h"
 
 
@@ -54,6 +55,7 @@ struct SymbolAnimationConfig {
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
     TextEffectElement effectElement;
     Drawing::Color color;
+    std::optional<SymbolShadow> symbolShadow;
     uint32_t numNodes = 0;
     Drawing::DrawingEffectStrategy effectStrategy = Drawing::DrawingEffectStrategy::NONE;
     uint64_t symbolSpanId = 0;

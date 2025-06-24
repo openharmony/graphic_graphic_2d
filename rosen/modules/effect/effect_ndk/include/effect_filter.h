@@ -14,7 +14,7 @@
  */
 
 /**
- * @addtogroup image
+ * @addtogroup effectKit
  * @{
  *
  * @brief Provides APIs for obtaining effect filter and information.

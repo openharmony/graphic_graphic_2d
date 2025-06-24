@@ -14,7 +14,7 @@
  */
 
 #include <new>
-
+#include <limits>
 #include "gtest/gtest.h"
 
 #include "common/rs_rect.h"
@@ -377,5 +377,38 @@ HWTEST_F(RSRectTest, Inset001, TestSize.Level1)
     EXPECT_EQ(rrect1.rect_.GetLeft(), 2.f); // 2.f is left + width.x_
     EXPECT_EQ(rrect1.rect_.GetWidth(), 8.f); // 8.f is width_ - (width.x_ + width.y_)
     EXPECT_NE(rrect1.radius_[0], rrect.radius_[0]);
+}
+
+/**
+ * @tc.name: IsNaN
+ * @tc.desc: test results of IsNaN
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, IsNaN, TestSize.Level1)
+{
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
+    RectF rect1(nanNum, nanNum, nanNum, nanNum);
+    EXPECT_TRUE(rect1.IsNaN());
+    float normalNum = 1.0f;
+    RectF rect2(normalNum, normalNum, normalNum, normalNum);
+    EXPECT_FALSE(rect2.IsNaN());
+}
+
+/**
+ * @tc.name: IsValid
+ * @tc.desc: test results of IsValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRectTest, IsValid, TestSize.Level1)
+{
+    float infiniteNum = std::numeric_limits<float>::infinity();
+    RectF rect1(infiniteNum, infiniteNum, infiniteNum, infiniteNum);
+    EXPECT_FALSE(rect1.IsValid());
+    float nanNum = std::numeric_limits<float>::quiet_NaN();
+    RectF rect2(nanNum, nanNum, nanNum, nanNum);
+    EXPECT_FALSE(rect2.IsValid());
+    float normalNum = 1.0f;
+    RectF rect3(normalNum, normalNum, normalNum, normalNum);
+    EXPECT_TRUE(rect3.IsValid());
 }
 } // namespace OHOS::Rosen

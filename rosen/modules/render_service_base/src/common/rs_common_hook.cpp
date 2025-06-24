@@ -98,14 +98,14 @@ void RsCommonHook::GetComponentPowerFps(FrameRateRange& range)
     }
 }
 
-bool RsCommonHook::GetIsWhiteListForEnableHwcNodeBelowSelfInApp() const
+void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
 {
-    return isWhiteListForEnableHwcNodeBelowSelfInApp_;
+    tvPlayerBundleName_ = bundleName;
 }
 
-void RsCommonHook::SetIsWhiteListForEnableHwcNodeBelowSelfInApp(bool isWhiteListForEnableHwcNodeBelowSelfInApp)
+std::string RsCommonHook::GetTvPlayerBundleName() const
 {
-    isWhiteListForEnableHwcNodeBelowSelfInApp_ = isWhiteListForEnableHwcNodeBelowSelfInApp;
+    return tvPlayerBundleName_;
 }
 
 } // namespace OHOS::Rosen

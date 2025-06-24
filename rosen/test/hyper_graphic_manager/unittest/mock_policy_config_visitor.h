@@ -16,9 +16,9 @@
 #ifndef POLICY_CONFIG_VISITOR_MOCK_H
 #define POLICY_CONFIG_VISITOR_MOCK_H
 
-#include "hgm_command.h"
-
 #include <gmock/gmock.h>
+
+#include "hgm_command.h"
 
 namespace OHOS {
 namespace Rosen {

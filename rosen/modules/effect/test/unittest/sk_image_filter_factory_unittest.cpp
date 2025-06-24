@@ -48,7 +48,11 @@ HWTEST_F(SKImageFilterFactoryUnittest, BlurTest002, TestSize.Level1)
     GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BlurTest002 start";
     // 0 blur radius for test
     auto filter = Rosen::SKImageFilterFactory::Blur(0);
+#ifdef USE_M133_SKIA
+    EXPECT_TRUE(filter != nullptr);
+#else
     EXPECT_TRUE(filter == nullptr);
+#endif
 }
 
 /**

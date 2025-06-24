@@ -62,17 +62,14 @@ void RSOpincCache::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& uncha
     }
     if (isSelfDirty) {
         NodeCacheStateChange(NodeChangeType::SELF_DIRTY);
-        isReseted_ = true;
     } else if (nodeCacheState_ != NodeCacheState::STATE_UNCHANGE) {
         NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
-        isReseted_ = false;
     } else {
         if (waitCount_ > 0) {
             waitCount_--;
         } else {
             unchangeCountUpper_ = MIN_UNCHANGE_COUNT;
         }
-        isReseted_ = false;
     }
 }
 
@@ -179,6 +176,7 @@ void RSOpincCache::NodeCacheStateReset(NodeCacheState nodeCacheState)
     }
     cacheChangeFlag_ = true;
     isOpincRootFlag_ = false;
+    isOpincSupportFlag_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

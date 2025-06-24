@@ -1663,6 +1663,30 @@ HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
+/**
+ * @tc.name: SetVirtualScreenAutoRotationTest
+ * @tc.desc: SetVirtualScreenAutoRotation test.
+ * @tc.type: FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenAutoRotationTest, Function | SmallTest | Level2)
+{
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", 500, 500, nullptr, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    int32_t ret = rsInterfaces->SetVirtualScreenAutoRotation(virtualScreenId, true);
+    ASSERT_EQ(ret, 0);
+
+    ret = rsInterfaces->SetVirtualScreenAutoRotation(INVALID_SCREEN_ID, true);
+    ASSERT_NE(ret, 0);
+
+    ret = rsInterfaces->SetVirtualScreenAutoRotation(0, true);
+    ASSERT_NE(ret, 0);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
 /*
  * @tc.name: SetCurtainScreenUsingStatus001
  * @tc.desc: Test SetCurtainScreenUsingStatus interface while input is true.
@@ -2320,6 +2344,32 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     std::string nodeIdStr = "123456";
     rsInterfaces->SetLayerTop(nodeIdStr, true);
+}
+
+/*
+ * @tc.name: SetForceRefresh_001
+ * @tc.desc: Test SetForceRefresh with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetForceRefresh_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetForceRefresh(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetForceRefresh_002
+ * @tc.desc: Test SetForceRefresh with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetForceRefresh_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetForceRefresh(nodeIdStr, true);
 }
 
 /*

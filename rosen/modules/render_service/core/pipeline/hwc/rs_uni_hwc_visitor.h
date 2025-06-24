@@ -100,10 +100,13 @@ private:
     RSUniRenderVisitor& uniRenderVisitor_;
 
     // Functions
-    bool FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
-        const RSRenderNode& rootNode);
-    void UpdateHwcNodeClipRect(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
-        const RSRenderNode& rootNode, RectI& clipRect);
+    bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
+    void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
+        Drawing::Rect& childRectMapped);
+    void UpdateHwcNodeMatrix(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
+        Drawing::Matrix& accumulatedMatrix);
+    void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+        const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

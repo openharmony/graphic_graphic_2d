@@ -306,6 +306,20 @@ HWTEST_F(RSTransactionDataTest, Marshalling, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Marshalling
+ * @tc.desc: Test Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSTransactionDataTest, Marshalling002, TestSize.Level1)
+{
+    RSTransactionData rsTransactionData;
+    Parcel parcel;
+    parcel.SetDataSize(1843201);
+    ASSERT_EQ(rsTransactionData.Marshalling(parcel), true);
+}
+
+/**
  * @tc.name: AlarmRsNodeLog
  * @tc.desc: Test UnmarshallingCommand
  * @tc.type:FUNC

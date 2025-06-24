@@ -155,7 +155,7 @@ public:
     UnmarshallingPlayer(const DrawCmdList& cmdList);
     ~UnmarshallingPlayer() = default;
 
-    std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle, size_t avaliableSize);
+    std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle, size_t avaliableSize, bool isReplayMode);
 private:
     const DrawCmdList& cmdList_;
 };

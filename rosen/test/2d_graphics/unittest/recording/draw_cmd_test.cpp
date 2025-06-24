@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include "gtest/gtest.h"
 
 #include "draw/surface.h"
@@ -1570,6 +1571,40 @@ HWTEST_F(DrawCmdTest, ClipRectOpItem_Marshalling001, TestSize.Level1)
     ASSERT_TRUE(drawCmdList != nullptr);
     opItem.Marshalling(*drawCmdList);
     EXPECT_EQ(drawCmdList->opCnt_, 1);
+}
+
+/**
+ * @tc.name: UnmarshallingPlayer
+ * @tc.desc: Test UnmarshallingPlayer
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
+{
+    {
+        auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+        auto player = UnmarshallingPlayer(*drawCmdList);
+        auto drawOpItem = player.Unmarshalling(0, nullptr, 0, false);
+        EXPECT_EQ(drawOpItem, nullptr);
+    }
+
+    {
+        auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+        auto type = DrawOpItem::RECT_OPITEM;
+        auto paintHandle = Drawing::PaintHandle {
+            .style = Drawing::Paint::PaintStyle::PAINT_FILL,
+            .color = { Drawing::Color::COLOR_WHITE },
+        };
+        auto rect = Drawing::Rect(0, 0, 0, 0);
+        auto roundRect = Drawing::RoundRect(rect, 0.f, 0.f);
+        auto handle = std::make_shared<DrawRoundRectOpItem::ConstructorHandle>(
+            roundRect, paintHandle
+        );
+        auto size = sizeof(DrawRectOpItem::ConstructorHandle);
+
+        auto player = UnmarshallingPlayer(*drawCmdList);
+        auto drawOpItem = player.Unmarshalling(type, static_cast<void*>(handle.get()), size, false);
+        EXPECT_EQ(drawOpItem->GetOpDesc(), "RECT_OPITEM");
+    }
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -16,10 +16,106 @@
 #include "render/rs_render_color_gradient_filter.h"
 #include "platform/common/rs_log.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
+#include "ui_effect/property/include/rs_ui_radial_gradient_mask.h"
 #include "ui_effect/property/include/rs_ui_ripple_mask.h"
 
 namespace OHOS {
 namespace Rosen {
+
+#undef LOG_TAG
+#define LOG_TAG "RSNGColorGradientFilter"
+
+std::shared_ptr<RSNGRenderFilterBase> RSNGColorGradientFilter::GetRenderEffect()
+{
+    return nullptr;
+}
+
+bool RSNGColorGradientFilter::SetValue(const std::shared_ptr<RSNGFilterBase>& other, std::shared_ptr<RSNode> node)
+{
+    if (other == nullptr || GetType() != other->GetType()) {
+        return false;
+    }
+
+    auto otherDown = std::static_pointer_cast<RSNGColorGradientFilter>(other);
+    bool updateFlag = SetColors(otherDown->colors_) &&
+        SetPositions(otherDown->positions_) &&
+        SetStrengths(otherDown->strengths_);
+    if (!updateFlag) {
+        return false;
+    }
+
+    if (!Base::SetValue(other, node)) {
+        return false;
+    }
+    return updateFlag;
+}
+
+void RSNGColorGradientFilter::Attach(const std::shared_ptr<RSNode>& node)
+{
+    std::for_each(colors_.begin(), colors_.end(), [&node](const auto& propTag) {
+        (RSUIFilterUtils::Attach(propTag.value_, node));
+    });
+    std::for_each(positions_.begin(), positions_.end(), [&node](const auto& propTag) {
+        (RSUIFilterUtils::Attach(propTag.value_, node));
+    });
+    std::for_each(strengths_.begin(), strengths_.end(), [&node](const auto& propTag) {
+        (RSUIFilterUtils::Attach(propTag.value_, node));
+    });
+    Base::Attach(node);
+}
+
+void RSNGColorGradientFilter::Detach()
+{
+    std::for_each(colors_.begin(), colors_.end(), [](const auto& propTag) {
+        (RSUIFilterUtils::Detach(propTag.value_));
+    });
+    std::for_each(positions_.begin(), positions_.end(), [](const auto& propTag) {
+        (RSUIFilterUtils::Detach(propTag.value_));
+    });
+    std::for_each(strengths_.begin(), strengths_.end(), [](const auto& propTag) {
+        (RSUIFilterUtils::Detach(propTag.value_));
+    });
+    Base::Detach();
+}
+
+bool RSNGColorGradientFilter::SetColors(std::vector<ColorGradientColorTag> colors)
+{
+    size_t colorSize = colors.size();
+    if (colorSize != colors_.size()) {
+        return false;
+    }
+
+    for (size_t index = 0; index < colorSize; ++index) {
+        colors_[index].value_->Set(colors[index].value_->Get());
+    }
+    return true;
+}
+
+bool RSNGColorGradientFilter::SetPositions(std::vector<ColorGradientPositionTag> positions)
+{
+    size_t positionSize = positions.size();
+    if (positionSize != positions_.size()) {
+        return false;
+    }
+
+    for (size_t index = 0; index < positionSize; ++index) {
+        positions_[index].value_->Set(positions[index].value_->Get());
+    }
+    return true;
+}
+
+bool RSNGColorGradientFilter::SetStrengths(std::vector<ColorGradientStrengthTag> strengths)
+{
+    size_t strengthSize = strengths.size();
+    if (strengthSize != strengths_.size()) {
+        return false;
+    }
+
+    for (size_t index = 0; index < strengthSize; ++index) {
+        strengths_[index].value_->Set(strengths[index].value_->Get());
+    }
+    return true;
+}
 
 bool RSUIColorGradientFilterPara::Equals(const std::shared_ptr<RSUIFilterParaBase>& other)
 {
@@ -271,6 +367,9 @@ std::shared_ptr<RSUIMaskPara> RSUIColorGradientFilterPara::CreateMask(RSUIFilter
     switch (type) {
         case RSUIFilterType::RIPPLE_MASK: {
             return std::make_shared<RSUIRippleMaskPara>();
+        }
+        case RSUIFilterType::RADIAL_GRADIENT_MASK: {
+            return std::make_shared<RSUIRadialGradientMaskPara>();
         }
         default:
             return nullptr;

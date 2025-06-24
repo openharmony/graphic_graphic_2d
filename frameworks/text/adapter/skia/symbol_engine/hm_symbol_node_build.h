@@ -107,6 +107,11 @@ public:
         disableSlashColor_ = color;
     }
 
+    void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow)
+    {
+        symbolShadow_ = symbolShadow;
+    }
+
 private:
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
@@ -127,6 +132,7 @@ private:
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     std::vector<std::shared_ptr<SymbolGradient>> gradients_;
     std::shared_ptr<SymbolGradient> disableSlashColor_ = nullptr;
+    std::optional<SymbolShadow> symbolShadow_;
 
     void SetSymbolNodeColors(const TextEngine::SymbolNode& symbolNode, TextEngine::SymbolNode& outSymbolNode);
 

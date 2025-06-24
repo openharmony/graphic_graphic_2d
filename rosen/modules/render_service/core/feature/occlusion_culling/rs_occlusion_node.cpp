@@ -94,18 +94,17 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     if (isSubTreeIgnored_) {
         return;
     }
+    // The node is considered opaque if its background color is fully opaque,
+    // and it does not use brightness or color blend modes.
     isBgOpaque_ = static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha()) == UINT8_MAX &&
-        !renderProperties.IsBgBrightnessValid();
+        !renderProperties.IsBgBrightnessValid() && !renderProperties.IsFgBrightnessValid() &&
+        renderProperties.IsColorBlendModeNone();
     rootOcclusionNode_ = parentShared->rootOcclusionNode_;
     localScale_ = renderProperties.GetScale();
     localAlpha_ = renderProperties.GetAlpha();
     isNeedClip_ = renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
         renderProperties.GetClipToRRect();
-    const auto& cornerRadius = renderProperties.GetCornerRadius();
-    cornerRadius_.x_ = std::isnan(cornerRadius.x_) ? 0.f : cornerRadius.x_;
-    cornerRadius_.y_ = std::isnan(cornerRadius.y_) ? 0.f : cornerRadius.y_;
-    cornerRadius_.z_ = std::isnan(cornerRadius.z_) ? 0.f : cornerRadius.z_;
-    cornerRadius_.w_ = std::isnan(cornerRadius.w_) ? 0.f : cornerRadius.w_;
+    cornerRadius_ = renderProperties.GetCornerRadius();
 
     CalculateDrawRect(node, renderProperties);
 }
@@ -154,6 +153,12 @@ void OcclusionNode::CalculateDrawRect(const RSRenderNode& node, const RSProperti
     const auto& translate = renderProperties.GetTranslate();
     const auto& center = renderProperties.GetPivot();
     auto clipRRect = renderProperties.GetClipRRect().rect_;
+    // If the node has invalid properties, ignore the subtree.
+    isSubTreeIgnored_ |= !localScale_.IsValid() || !IsValid(localAlpha_) || !cornerRadius_.IsValid() ||
+        !originBounds.IsValid() || !translate.IsValid() || !center.IsValid() || !clipRRect.IsValid();
+    if (isSubTreeIgnored_) {
+        return;
+    }
 
     // calculate new pos.
     auto centOffset = center * Vector2f(originBounds.z_, originBounds.w_);

@@ -24,26 +24,31 @@ RSTvMetadataManager& RSTvMetadataManager::Instance()
     return instance;
 }
 
+void RSTvMetadataManager::CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMetadata& srcMetadata)
+{
+    srcMetadata.sceneTag != 0 ? dstMetadata.sceneTag = srcMetadata.sceneTag : 0;
+    srcMetadata.uiFrameCnt != 0 ? dstMetadata.uiFrameCnt = srcMetadata.uiFrameCnt : 0;
+    srcMetadata.vidFrameCnt != 0 ? dstMetadata.vidFrameCnt = srcMetadata.vidFrameCnt : 0;
+    srcMetadata.vidFps != 0 ? dstMetadata.vidFps = srcMetadata.vidFps : 0;
+    srcMetadata.vidWinX != 0 ? dstMetadata.vidWinX = srcMetadata.vidWinX : 0;
+    srcMetadata.vidWinY != 0 ? dstMetadata.vidWinY = srcMetadata.vidWinY : 0;
+    srcMetadata.vidWinWidth != 0 ? dstMetadata.vidWinWidth = srcMetadata.vidWinWidth : 0;
+    srcMetadata.vidWinHeight != 0 ? dstMetadata.vidWinHeight = srcMetadata.vidWinHeight : 0;
+    srcMetadata.vidWinSize != 0 ? dstMetadata.vidWinSize = srcMetadata.vidWinSize : 0;
+    srcMetadata.vidVdhWidth != 0 ? dstMetadata.vidVdhWidth = srcMetadata.vidVdhWidth : 0;
+    srcMetadata.vidVdhHeight != 0 ? dstMetadata.vidVdhHeight = srcMetadata.vidVdhHeight : 0;
+    srcMetadata.scaleMode != 0 ? dstMetadata.scaleMode = srcMetadata.scaleMode : 0;
+    srcMetadata.dpPixFmt != 0 ? dstMetadata.dpPixFmt = srcMetadata.dpPixFmt : 0;
+    srcMetadata.colorimetry != 0 ? dstMetadata.colorimetry = srcMetadata.colorimetry : 0;
+    srcMetadata.hdr != 0 ? dstMetadata.hdr = srcMetadata.hdr : 0;
+    srcMetadata.hdrLuminance != 0 ? dstMetadata.hdrLuminance = srcMetadata.hdrLuminance : 0;
+    srcMetadata.hdrRatio != 0 ? dstMetadata.hdrRatio = srcMetadata.hdrRatio : 0;
+}
+
 void RSTvMetadataManager::RecordAndCombineMetadata(const TvPQMetadata& metadata)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    metadata.sceneTag != 0 ? metadata_.sceneTag = metadata.sceneTag : 0;
-    metadata.uiFrameCnt != 0 ? metadata_.uiFrameCnt = metadata.uiFrameCnt : 0;
-    metadata.vidFrameCnt != 0 ? metadata_.vidFrameCnt = metadata.vidFrameCnt : 0;
-    metadata.vidFps != 0 ? metadata_.vidFps = metadata.vidFps : 0;
-    metadata.vidWinX != 0 ? metadata_.vidWinX = metadata.vidWinX : 0;
-    metadata.vidWinY != 0 ? metadata_.vidWinY = metadata.vidWinY : 0;
-    metadata.vidWinWidth != 0 ? metadata_.vidWinWidth = metadata.vidWinWidth : 0;
-    metadata.vidWinHeight != 0 ? metadata_.vidWinHeight = metadata.vidWinHeight : 0;
-    metadata.vidWinSize != 0 ? metadata_.vidWinSize = metadata.vidWinSize : 0;
-    metadata.vidVdhWidth != 0 ? metadata_.vidVdhWidth = metadata.vidVdhWidth : 0;
-    metadata.vidVdhHeight != 0 ? metadata_.vidVdhHeight = metadata.vidVdhHeight : 0;
-    metadata.scaleMode != 0 ? metadata_.scaleMode = metadata.scaleMode : 0;
-    metadata.dpPixFmt != 0 ? metadata_.dpPixFmt = metadata.dpPixFmt : 0;
-    metadata.colorimetry != 0 ? metadata_.colorimetry = metadata.colorimetry : 0;
-    metadata.hdr != 0 ? metadata_.hdr = metadata.hdr : 0;
-    metadata.hdrLuminance != 0 ? metadata_.hdrLuminance = metadata.hdrLuminance : 0;
-    metadata.hdrRatio != 0 ? metadata_.hdrRatio = metadata.hdrRatio : 0;
+    CombineMetadata(metadata_, metadata);
 }
 
 void RSTvMetadataManager::Reset()
@@ -56,6 +61,12 @@ TvPQMetadata RSTvMetadataManager::GetMetadata() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return metadata_;
+}
+
+void RSTvMetadataManager::ResetDpPixelFormat()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    metadata_.dpPixFmt = 0;
 }
 
 void RSTvMetadataManager::CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>& surface)
@@ -71,4 +82,26 @@ void RSTvMetadataManager::CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>
     (void)memset_s(&metadata_, sizeof(metadata_), 0, sizeof(metadata_));
 }
 
+void RSTvMetadataManager::CopyFromLayersToSurface(const std::vector<LayerInfoPtr>& layers,
+    std::shared_ptr<RSSurfaceOhos>& surface)
+{
+    if (surface == nullptr || surface->GetCurrentBuffer() == nullptr) {
+        return;
+    }
+    TvPQMetadata tvMetadataCombined = { 0 };
+    for (const auto &layer : layers) {
+        if (layer && layer->GetBuffer()) {
+            auto buffer = layer->GetBuffer();
+            TvPQMetadata tvMetadata = { 0 };
+            if (MetadataHelper::GetVideoTVMetadata(buffer, tvMetadata) == GSERROR_OK) {
+                CombineMetadata(tvMetadataCombined, tvMetadata);
+            }
+        }
+    }
+
+    auto buffer = surface->GetCurrentBuffer();
+    if (MetadataHelper::SetVideoTVMetadata(buffer, tvMetadataCombined) != GSERROR_OK) {
+        RS_LOGE("RSTvMetadataManager CopyFromLayersToSurface failed!");
+    }
+}
 } // namespace OHOS::Rosen

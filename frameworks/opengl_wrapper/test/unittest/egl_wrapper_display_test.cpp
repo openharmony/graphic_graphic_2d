@@ -19,6 +19,8 @@
 
 #include "egl_defs.h"
 #include "thread_private_data_ctl.h"
+#include <parameter.h>
+#include <parameters.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -832,4 +834,35 @@ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageEXT002, Level1)
     ASSERT_EQ(EGL_FALSE, result);
 }
 
+/**
+ * @tc.name: UpdateQueryValue001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, UpdateQueryValue001, Level1)
+{
+    EGLint major;
+    EGLint minor;
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+    system::SetParameter("debug.swap.buffer.with.damage", "0");
+    eglWrapperDisplay->UpdateQueryValue(&major, &minor);
+    auto value = strstr(eglWrapperDisplay->GetExtensionValue(), "EGL_KHR_swap_buffers_with_damage");
+    EXPECT_EQ(value, nullptr);
+}
+
+/**
+ * @tc.name: UpdateQueryValue002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperDisplayTest, UpdateQueryValue002, Level1)
+{
+    EGLint major;
+    EGLint minor;
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+    auto value = std::string(eglWrapperDisplay->extensionValue_) + std::string("EGL_KHR_swap_buffers_with_damage ");
+    system::SetParameter("debug.swap.buffer.with.damage", "1");
+    eglWrapperDisplay->UpdateQueryValue(&major, &minor);
+    EXPECT_EQ(value, eglWrapperDisplay->GetExtensionValue());
+}
 } // OHOS::Rosen

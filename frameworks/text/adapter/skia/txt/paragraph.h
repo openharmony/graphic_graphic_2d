@@ -187,6 +187,7 @@ public:
 
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) = 0;
+    virtual std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> GetAnimation() = 0;
 
     virtual void SetParagraghId(uint32_t id) = 0;
 
@@ -208,8 +209,8 @@ public:
     virtual void SetLayoutState(size_t state) = 0;
     virtual void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles) = 0;
     virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
-    virtual bool HasEnabledTextEffect() const = 0;
-    virtual void SetTextEffectState(bool state) = 0;
+    virtual bool HasSkipTextBlobDrawing() const = 0;
+    virtual void SetSkipTextBlobDrawing(bool state) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

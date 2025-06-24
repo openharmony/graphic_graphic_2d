@@ -121,12 +121,6 @@ bool RSRenderNodeDrawable::SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             return true;
         }
-        if (paintFilterCanvas->GetCulledNodes().count(id) > 0) {
-            RS_OPTIONAL_TRACE_NAME_FMT("%s, id: %" PRIu64 " culled success", __func__, id);
-            SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
-            DrawChildren(canvas, bounds);
-            return true;
-        }
     }
     return false;
 }

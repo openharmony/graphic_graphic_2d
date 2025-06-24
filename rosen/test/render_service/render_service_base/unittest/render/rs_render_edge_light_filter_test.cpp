@@ -144,6 +144,9 @@ HWTEST_F(RSRenderEdgeLightFilterTest, ParseFilterValuesTest001, TestSize.Level1)
     auto maskRenderProperty = std::make_shared<RSRenderRippleMaskPara>(0);
     filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
+
+    auto filterCopy = filter->DeepCopy();
+    EXPECT_NE(filterCopy, nullptr);
 }
 
 /**

@@ -18,6 +18,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
+
+#include "draw/path.h"
+#include "draw/color.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,6 +42,11 @@ enum class SymbolColorType {
     GRADIENT_TYPE = 1,
 };
 
+struct SymbolShadow {
+    Drawing::Color color = Drawing::Color::COLOR_BLACK;
+    Drawing::Point offset;
+    double blurRadius = 0.0;
+};
 } // namespace Rosen
 } // namespace OHOS
 

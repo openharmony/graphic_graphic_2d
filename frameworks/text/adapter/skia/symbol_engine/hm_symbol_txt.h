@@ -29,11 +29,6 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 
-struct SymbolColor {
-    SymbolColorType colorType = SymbolColorType::COLOR_TYPE;
-    std::vector<std::shared_ptr<SymbolGradient>> gradients;
-};
-
 class HMSymbolTxt {
 public:
     HMSymbolTxt() {}
@@ -93,6 +88,10 @@ public:
 
     const SymbolBitmapType& GetSymbolBitmap() const;
 
+    void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
+
+    const std::optional<SymbolShadow>& GetSymbolShadow() const;
+
     std::string familyName_;
 
 private:
@@ -106,6 +105,7 @@ private:
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
     SymbolType symbolType_{SymbolType::SYSTEM};
     SymbolBitmapType relayoutChangeBitmap_;
+    std::optional<SymbolShadow> symbolShadow_;
 };
 }
 }

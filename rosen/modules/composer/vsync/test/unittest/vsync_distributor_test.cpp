@@ -430,8 +430,9 @@ HWTEST_F(VSyncDistributorTest, SetHardwareTaskNum001, Function | MediumTest| Lev
     uint32_t num = 0;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
-    ASSERT_EQ(res, VSYNC_ERROR_OK);
     VSyncDistributorTest::vsyncDistributor->SetHardwareTaskNum(num);
+    VSyncDistributorTest::vsyncDistributor->SetTaskEndWithTime(0);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
 }
 
 /*
@@ -1138,6 +1139,351 @@ HWTEST_F(VSyncDistributorTest, NeedTriggeredVsync001, Function | MediumTest | Le
     ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
     currentTime = 10;
     ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
+}
+
+/*
+* Function: QosGetPidByNameTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_1234"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest001, Function | MediumTest| Level3)
+{
+    std::string name = "WM_1234";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_OK);
+    ASSERT_EQ(pid, 1234);
+}
+
+/*
+* Function: QosGetPidByNameTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_123a"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest002, Function | MediumTest| Level3)
+{
+    std::string name = "WM_123a";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_OK);
+    ASSERT_EQ(pid, 123);
+}
+
+/*
+* Function: QosGetPidByNameTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_123456789"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest003, Function | MediumTest| Level3)
+{
+    std::string name = "WM_12345678";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_OK);
+    ASSERT_EQ(pid, 12345678);
+}
+
+/*
+* Function: QosGetPidByNameTest004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_a123"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest004, Function | MediumTest| Level3)
+{
+    std::string name = "WM_a123";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest005
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_abc"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest005, Function | MediumTest| Level3)
+{
+    std::string name = "WM_abc";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest006
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest006, Function | MediumTest| Level3)
+{
+    std::string name = "WM_";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest007
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "NWeb_"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest007, Function | MediumTest| Level3)
+{
+    std::string name = "NWeb_";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest008
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "ArkWebCore_"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest008, Function | MediumTest| Level3)
+{
+    std::string name = "ArkWebCore_";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest009
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "_WM"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest009, Function | MediumTest| Level3)
+{
+    std::string name = "_WM";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest010
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "_NWeb"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest010, Function | MediumTest| Level3)
+{
+    std::string name = "_NWeb";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest011
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "_ArkWebCore"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest011, Function | MediumTest| Level3)
+{
+    std::string name = "_ArkWebCore";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest012
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest012, Function | MediumTest| Level3)
+{
+    std::string name = "WM";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest013
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "NWeb"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest013, Function | MediumTest| Level3)
+{
+    std::string name = "NWeb";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest014
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "ArkWebCore"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest014, Function | MediumTest| Level3)
+{
+    std::string name = "ArkWebCore";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest015
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM1234"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest015, Function | MediumTest| Level3)
+{
+    std::string name = "WM1234";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest016
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "NWeb_1234"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest016, Function | MediumTest| Level3)
+{
+    std::string name = "NWeb_1234";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest017
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "ArkWebCore_1234"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest017, Function | MediumTest| Level3)
+{
+    std::string name = "ArkWebCore_1234";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest018
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_NWeb"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest018, Function | MediumTest| Level3)
+{
+    std::string name = "WM_NWeb";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest019
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_ArkWebCore"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest019, Function | MediumTest| Level3)
+{
+    std::string name = "WM_ArkWebCore";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest020
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "NWeb_WM"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest020, Function | MediumTest| Level3)
+{
+    std::string name = "NWeb_WM";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest021
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "ArkWebCore_WM"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest021, Function | MediumTest| Level3)
+{
+    std::string name = "ArkWebCore_WM";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest022
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_-1"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest022, Function | MediumTest| Level3)
+{
+    std::string name = "WM_-1";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: QosGetPidByNameTest023
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test QosGetPidByName with name "WM_99999999999999999999999"
+ */
+HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest023, Function | MediumTest| Level3)
+{
+    std::string name = "WM_99999999999999999999999";
+    uint32_t pid = 0;
+    ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(pid, 0);
 }
 } // namespace
 } // namespace Rosen

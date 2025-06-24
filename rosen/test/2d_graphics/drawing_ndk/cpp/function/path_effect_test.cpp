@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -136,7 +136,7 @@ void FunctionPathEffectCreateComposePathEffect::OnTestFunction(OH_Drawing_Canvas
     OH_Drawing_Rect* pathRect = OH_Drawing_RectCreate(0, 0, 10, 10);
     OH_Drawing_PathAddRectWithInitialCorner(discretePath, pathRect, OH_Drawing_PathDirection::PATH_DIRECTION_CW, 0);
     OH_Drawing_PathEffect* pathDashEffect = OH_Drawing_CreatePathDashEffect(discretePath, 20, 0,
-        OH_Drawing_PathEffectType::PATH_EFFECT_MORPH);
+        OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_MORPH);
     OH_Drawing_PathEffect* composePathEffect3 = OH_Drawing_CreateComposePathEffect(pathDashEffect, discretePathEffect);
     DRAWING_LOGI("FunctionPathEffectCreateComposePathEffect test: is composePathEffect3 nullptr = %{public}d",
         composePathEffect3 == nullptr);
@@ -200,20 +200,20 @@ void FunctionPathEffectCreatePathDashEffect::OnTestFunction(OH_Drawing_Canvas* c
     OH_Drawing_PathAddRectWithInitialCorner(discretePath, pathRect, OH_Drawing_PathDirection::PATH_DIRECTION_CW, 0);
 
     OH_Drawing_PathEffect* pathDashEffect1 = OH_Drawing_CreatePathDashEffect(nullptr, 20, 0,
-        OH_Drawing_PathEffectType::PATH_EFFECT_MORPH);
+        OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_MORPH);
     DRAWING_LOGI("FunctionPathEffectCreatePathDashEffect test: is pathDashEffect1 nullptr = %{public}d",
         pathDashEffect1 == nullptr);
     OH_Drawing_PathEffect* pathDashEffect2 = OH_Drawing_CreatePathDashEffect(discretePath, 0, 0,
-        OH_Drawing_PathEffectType::PATH_EFFECT_MORPH);
+        OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_MORPH);
     DRAWING_LOGI("FunctionPathEffectCreatePathDashEffect test: is pathDashEffect2 nullptr = %{public}d",
         pathDashEffect2 == nullptr);
     OH_Drawing_PathEffect* pathDashEffect3 = OH_Drawing_CreatePathDashEffect(discretePath, -10, 0,
-        OH_Drawing_PathEffectType::PATH_EFFECT_MORPH);
+        OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_MORPH);
     DRAWING_LOGI("FunctionPathEffectCreatePathDashEffect test: is pathDashEffect3 nullptr = %{public}d",
         pathDashEffect3 == nullptr);
     
     OH_Drawing_PathEffect* pathDashEffect4 = OH_Drawing_CreatePathDashEffect(discretePath, 40, 10,
-        OH_Drawing_PathEffectType::PATH_EFFECT_TRANSLATE);
+        OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_TRANSLATE);
     DRAWING_LOGI("FunctionPathEffectCreatePathDashEffect test: is pathDashEffect4 nullptr = %{public}d",
         pathDashEffect4 == nullptr);
     
@@ -221,7 +221,7 @@ void FunctionPathEffectCreatePathDashEffect::OnTestFunction(OH_Drawing_Canvas* c
     OH_Drawing_Rect* pathRect5 = OH_Drawing_RectCreate(10, 10, 20, 20);
     OH_Drawing_PathAddRectWithInitialCorner(discretePath5, pathRect5, OH_Drawing_PathDirection::PATH_DIRECTION_CW, 10);
     OH_Drawing_PathEffect* pathDashEffect5 = OH_Drawing_CreatePathDashEffect(discretePath5, 20, 0,
-        OH_Drawing_PathEffectType::PATH_EFFECT_ROTATE);
+        OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_ROTATE);
     DRAWING_LOGI("FunctionPathEffectCreatePathDashEffect test: is pathDashEffect5 nullptr = %{public}d",
         pathDashEffect5 == nullptr);
 

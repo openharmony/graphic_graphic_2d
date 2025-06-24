@@ -25,24 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
-std::shared_ptr<ImageResource> ImageResource::EglCreate(
-    EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientBuffer)
-{
-    return std::static_pointer_cast<ImageResource>(
-        std::make_shared<EglImageResource>(eglDisplay, eglImage, eglClientBuffer));
-}
-#ifdef RS_ENABLE_VK
-std::shared_ptr<ImageResource> ImageResource::VkCreate(
-    NativeWindowBuffer* nativeWindowBuffer, Drawing::BackendTexture backendTexture,
-    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper)
-{
-    return std::static_pointer_cast<ImageResource>(
-        std::make_shared<VkImageResource>(nativeWindowBuffer, backendTexture, vulkanCleanupHelper));
-}
-#endif // RS_ENABLE_VK
-
-std::shared_ptr<RSImageManager> RSImageManager::Create()
+std::shared_ptr<RSImageManager> RSImageManager::Create(std::shared_ptr<RenderContext>& renderContext)
 {
     std::shared_ptr<RSImageManager> imageManager;
     if (RSSystemProperties::IsUseVulkan()) {
@@ -50,7 +33,9 @@ std::shared_ptr<RSImageManager> RSImageManager::Create()
         imageManager = std::make_shared<RSVkImageManager>();
 #endif
     } else {
-        imageManager = std::make_shared<RSEglImageManager>(EGL_NO_DISPLAY);
+        if (renderContext != nullptr) {
+            imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        }
     }
     return imageManager;
 }

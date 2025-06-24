@@ -30,7 +30,7 @@ class OHHmSymbolGradientTest : public testing::Test {};
  * @tc.desc: test SymbolGradient
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolGradientTest, SymbolGradientTest001, TestSize.Level1)
+HWTEST_F(OHHmSymbolGradientTest, SymbolGradientTest001, TestSize.Level0)
 {
     // init data
     SymbolGradient gradient = SymbolGradient();
@@ -65,7 +65,7 @@ HWTEST_F(OHHmSymbolGradientTest, SymbolGradientTest001, TestSize.Level1)
  * @tc.desc: test IsNearlyEqual
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual001, TestSize.Level1)
+HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual001, TestSize.Level0)
 {
     // init data
     auto gradient1 = std::make_shared<SymbolGradient>();
@@ -114,7 +114,7 @@ HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual001, TestSize.Level1)
  * @tc.desc: test SymbolLineGradient
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolGradientTest, SymbolLineGradient001, TestSize.Level1)
+HWTEST_F(OHHmSymbolGradientTest, SymbolLineGradient001, TestSize.Level0)
 {
     // init data
     SymbolLineGradient gradient = SymbolLineGradient(45.0f); // 45.0f is angle of linegradient
@@ -144,7 +144,7 @@ HWTEST_F(OHHmSymbolGradientTest, SymbolLineGradient001, TestSize.Level1)
  * @tc.desc: test PointsFromAngle
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolGradientTest, PointsFromAngle001, TestSize.Level1)
+HWTEST_F(OHHmSymbolGradientTest, PointsFromAngle001, TestSize.Level0)
 {
     // init data
     // 0.0f left, 0.0f top, 100.0f right, 100.0f bottom
@@ -197,7 +197,7 @@ HWTEST_F(OHHmSymbolGradientTest, PointsFromAngle001, TestSize.Level1)
  * @tc.desc: test PointsFromAngle
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient001, TestSize.Level1)
+HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient001, TestSize.Level0)
 {
     // init data
     Drawing::Point centerPt = Drawing::Point(0.5f, 0.5f); // 0.5f: x, 0.5f: y

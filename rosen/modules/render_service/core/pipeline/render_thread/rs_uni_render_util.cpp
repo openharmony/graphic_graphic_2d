@@ -30,6 +30,7 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -115,10 +116,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec());
 
     RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-    // overlay display expand dirty region
-    RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, dirtyRegion);
-#endif
+
     Occlusion::Region globalDirtyRegion;
     for (const auto& rect : dirtyManager->GetAdvancedDirtyRegion()) {
         Occlusion::Region region = Occlusion::Region(Occlusion::Rect(rect));
@@ -148,17 +146,23 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     if (!uniParam->IsDirtyAlignEnabled()) {
         ExpandDamageRegionToSingleRect(damageRegion);
     }
+    // [Attention]: Filter dirty must be the last. If sampling is needed, sample after filter dirty processing.
     Occlusion::Region drawnRegion;
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
+        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+            damageRegion, damageRegion, displayDrawable, std::nullopt, false);
         GetSampledDamageAndDrawnRegion(screenInfo, damageRegion, uniParam->IsDirtyAlignEnabled(),
             damageRegion, drawnRegion);
     } else {
         drawnRegion = uniParam->IsDirtyAlignEnabled() ?
             damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
+        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+            damageRegion, drawnRegion, displayDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
     }
-    // [Attention]: filter dirty process must be the last step.
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-        damageRegion, drawnRegion, displayDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    // overlay display expand dirty region
+    RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, drawnRegion, damageRegion);
+#endif
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
     rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
@@ -367,7 +371,7 @@ void RSUniRenderUtil::SetDrawRegionForQuickReject(
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        if (!surfaceParams || !surfaceParams->IsMainWindowType()) {
+        if (!surfaceParams || (!surfaceParams->IsMainWindowType() && !surfaceParams->IsLeashWindow())) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
@@ -700,13 +704,14 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    RSAncoManager::UpdateCropRectForAnco(surfaceNodeParams->GetAncoFlags(),
+                                         surfaceNodeParams->GetAncoSrcCrop(), params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
-    SetSrcRectForAnco(*surfaceNodeParams, params);
     RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderUtil::CreateBufferDrawParam(DrawableV2::RSSurfaceRenderNodeDrawable):"
         " Parameters creation completed");
     return params;
@@ -896,14 +901,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         RS_LOGE("buffer or surface is nullptr");
         return params;
     }
-
+    RSAncoManager::UpdateCropRectForAnco(layer->GetAncoFlags(), layer->GetCropRect(), params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, surface, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
-    SetSrcRectForAnco(layer, params);
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
     return params;
@@ -1406,32 +1410,6 @@ void RSUniRenderUtil::GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInf
         RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), invertedScaleMatrix);
         Occlusion::Region mappedRegion{mappedRect};
         sampledDrawnRegion.OrSelf(mappedRegion);
-    }
-}
-
-void RSUniRenderUtil::SetSrcRectForAnco(const LayerInfoPtr& layer, BufferDrawParam& params)
-{
-    if (layer != nullptr && layer->IsAncoSfv()) {
-        const auto& srcCrop = layer->GetCropRect();
-        if (srcCrop.w > 0 && srcCrop.h > 0) {
-            params.srcRect = Drawing::Rect(srcCrop.x, srcCrop.y, srcCrop.w + srcCrop.x, srcCrop.h + srcCrop.y);
-        }
-    }
-}
-
-void RSUniRenderUtil::SetSrcRectForAnco(const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
-{
-    if (surfaceParams.IsAncoSfv()) {
-        const Rect& cropRect = surfaceParams.GetAncoSrcCrop();
-        Drawing::Rect srcRect{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
-        float left = std::max(params.srcRect.left_, srcRect.left_);
-        float top = std::max(params.srcRect.top_, srcRect.top_);
-        float right = std::min(params.srcRect.right_, srcRect.right_);
-        float bottom = std::min(params.srcRect.bottom_, srcRect.bottom_);
-        Drawing::Rect intersectRect(left, top, right, bottom);
-        if (intersectRect.IsValid()) {
-            params.srcRect = intersectRect;
-        }
     }
 }
 } // namespace Rosen

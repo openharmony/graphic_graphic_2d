@@ -119,7 +119,7 @@ bool ParseRippleMask(
     return (parseTimes == realArgc);
 }
 
-bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<Vector2f>& values)
+bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<float>& colors, std::vector<float>& positions)
 {
     bool isArray = false;
     napi_is_array(env, valuesArray, &isArray);
@@ -131,17 +131,28 @@ bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<Vector2f>
     if (napi_get_array_length(env, valuesArray, &length) != napi_ok) {
         return false;
     }
-    values.reserve(length);
+    colors.reserve(length);
+    positions.reserve(length);
+    double val = 0.0;
     for (uint32_t i = 0; i < length; i++) {
         napi_value tmpArray = nullptr;
         if (napi_get_element(env, valuesArray, i, &tmpArray) != napi_ok || !tmpArray) {
             return false;
         }
-        Vector2f point(0.f, 0.f);
-        if (!ParseJsVector2f(env, tmpArray, point)) {
+        uint32_t tmpLen = 0;
+        if (napi_get_array_length(env, tmpArray, &tmpLen) != napi_ok || tmpLen != NUM_2) {
             return false;
         }
-        values.emplace_back(point);
+
+        if (!ConvertDoubleValueFromJsElement(env, tmpArray, NUM_0, val)) {
+            return false;
+        }
+        colors.emplace_back(static_cast<float>(val));
+
+        if (!ConvertDoubleValueFromJsElement(env, tmpArray, NUM_1, val)) {
+            return false;
+        }
+        positions.emplace_back(static_cast<float>(val));
     }
     return true;
 }
@@ -168,9 +179,11 @@ bool ParseRadialGradientMask(
         mask->SetRadiusY(static_cast<float>(val));
         parseTimes++;
     }
-    std::vector<Vector2f> values;
-    if (ParseValueArray(env, argv[NUM_3], values)) {
-        mask->SetValues(values);
+    std::vector<float> colors;
+    std::vector<float> positions;
+    if (ParseValueArray(env, argv[NUM_3], colors, positions)) {
+        mask->SetColors(colors);
+        mask->SetPositions(positions);
         parseTimes++;
     }
     return (parseTimes == NUM_4);
@@ -218,7 +231,7 @@ napi_value MaskNapi::CreateRippleMask(napi_env env, napi_callback_info info)
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireMinArgc <= realArgc && realArgc <= requireMaxArgc, nullptr,
         MASK_LOG_E("MaskNapi CreateRippleMask parsing input fail."));
-    
+
     auto maskPara = std::make_shared<RippleMaskPara>();
     UIEFFECT_NAPI_CHECK_RET_D(ParseRippleMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRippleMask parsing mask input fail."));

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_ENGINE_CORE_RENDER_FILTER_RENDER_PROPERTY_H
-#define ROSEN_ENGINE_CORE_RENDER_FILTER_RENDER_PROPERTY_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTFILTER_RENDER_PROPERTY_H
+#define ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTFILTER_RENDER_PROPERTY_H
 
 #include "render/rs_render_filter_base.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -66,4 +66,4 @@ protected:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_ENGINE_CORE_RENDER_FILTER_RENDER_PROPERTY_H
+#endif // ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTFILTER_RENDER_PROPERTY_H

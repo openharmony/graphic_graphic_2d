@@ -247,6 +247,23 @@ public:
         return rect.release();
     }
     #endif
+
+    bool IsInfinite() const
+    {
+        return std::isinf(data_[0]) || std::isinf(data_[1]) ||
+            std::isinf(data_[2]) || std::isinf(data_[3]);
+    }
+
+    bool IsNaN() const
+    {
+        return std::isnan(data_[0]) || std::isnan(data_[1]) ||
+            std::isnan(data_[2]) || std::isnan(data_[3]);
+    }
+
+    bool IsValid() const
+    {
+        return !IsInfinite() && !IsNaN();
+    }
 };
 
 typedef RectT<int> RectI;

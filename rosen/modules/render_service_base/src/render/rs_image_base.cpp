@@ -713,10 +713,11 @@ RSImageBase::PixelMapUseCountGuard::~PixelMapUseCountGuard()
 #endif
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat)
+static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat, bool isHdr)
 {
     switch (pixelFormat) {
-        case Media::PixelFormat::ASTC_4x4: return Drawing::CompressedType::ASTC_RGBA8_4x4;
+        case Media::PixelFormat::ASTC_4x4: return isHdr ? Drawing::CompressedType::ASTC_RGBA10_4x4 :
+            Drawing::CompressedType::ASTC_RGBA8_4x4;
         case Media::PixelFormat::ASTC_6x6: return Drawing::CompressedType::ASTC_RGBA8_6x6;
         case Media::PixelFormat::ASTC_8x8: return Drawing::CompressedType::ASTC_RGBA8_8x8;
         case Media::PixelFormat::UNKNOWN:
@@ -763,7 +764,7 @@ void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
                 ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
             bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
                 static_cast<int>(realSize.width), static_cast<int>(realSize.height),
-                PixelFormatToCompressedType(imageInfo.pixelFormat), colorSpace);
+                PixelFormatToCompressedType(imageInfo.pixelFormat, pixelMap_->IsHdr()), colorSpace);
             if (result) {
                 image_ = image;
                 SKResourceManager::Instance().HoldResource(image);

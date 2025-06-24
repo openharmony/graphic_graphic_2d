@@ -1258,7 +1258,7 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene)
 {
     RS_TRACE_NAME_FMT("OnProcessAnimateScene systemAnimatedScene:%d", systemAnimatedScene);
-    RS_LOGI("OnProcessAnimateScene SystemAnimatedScene:[%{public}d]", systemAnimatedScene);
+    RS_LOGD("OnProcessAnimateScene SystemAnimatedScene:[%{public}d]", systemAnimatedScene);
     switch (systemAnimatedScene) {
         // recent task scene for phone
         case SystemAnimatedScenes::ENTER_RECENTS:
@@ -1501,8 +1501,8 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         isNeedAssignToSubThread = animation;
     }
     isNeedAssignToSubThread = (isNeedAssignToSubThread ||
-            (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT))
-            && !hasFilter && !isRotate;
+        (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT)) &&
+        !hasFilter && !isRotate;
 
     bool needFilterSCB = IS_SCB_WINDOW_TYPE(node.GetSurfaceWindowType());
     if (needFilterSCB || node.IsSelfDrawingType()) {
@@ -1653,7 +1653,7 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
     bool hasProtectedLayer = node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || isForceDisabled || hasProtectedLayer) {
         RS_LOGD("uifirst disabled. id:%{public}" PRIu64 ",uifirstOn:%{public}d,support:%{public}d,"
-            "forceDisabled:%{public}d, protectLayer:%{public}d",
+            "forceDisabled:%{public}d,protectLayer:%{public}d",
             node.GetId(), isUiFirstOn_, node.GetUifirstSupportFlag(), isForceDisabled, hasProtectedLayer);
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         // This branch will be discarded
@@ -1905,7 +1905,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     if (rootId == INVALID_NODEID) {
         /* uifirst will not draw with no firstlevel node, and there's no need to check and wait for uifirst onDraw */
-        RS_LOGW("uifirst node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
+        RS_LOGD("uifirst node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
         return true;
     }
 

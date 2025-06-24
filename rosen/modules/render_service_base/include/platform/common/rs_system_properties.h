@@ -373,6 +373,8 @@ public:
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();
     static int GetSubThreadDropFrameInterval();
+    static bool GetCompositeLayerEnabled();
+
 private:
     RSSystemProperties() = default;
 

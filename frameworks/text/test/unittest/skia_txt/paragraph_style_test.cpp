@@ -28,7 +28,7 @@ class ParagraphStyleTest : public testing::Test {};
  * @tc.desc: test for ConvertToTextStyle
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphStyleTest, ParagraphStyleTest001, TestSize.Level1)
+HWTEST_F(ParagraphStyleTest, ParagraphStyleTest001, TestSize.Level0)
 {
     auto paragraphStyle = std::make_shared<OHOS::Rosen::SPText::ParagraphStyle>();
     auto result = paragraphStyle->ConvertToTextStyle();
@@ -40,7 +40,7 @@ HWTEST_F(ParagraphStyleTest, ParagraphStyleTest001, TestSize.Level1)
  * @tc.desc: test for GetEquivalentAlign
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphStyleTest, ParagraphStyleTest002, TestSize.Level1)
+HWTEST_F(ParagraphStyleTest, ParagraphStyleTest002, TestSize.Level0)
 {
     auto paragraphStyle = std::make_shared<OHOS::Rosen::SPText::ParagraphStyle>();
     // 默认 TextDirection 为 LTR

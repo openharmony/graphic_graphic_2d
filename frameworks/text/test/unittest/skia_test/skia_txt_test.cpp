@@ -32,7 +32,7 @@ class OHSkiaTxtTest : public testing::Test {};
  * @tc.desc: test for text
  * @tc.type: FUNC
  */
-HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest001, TestSize.Level1)
+HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest001, TestSize.Level0)
 {
     RectT<int> rectTest;
     // 1 is used for initialization
@@ -66,7 +66,7 @@ HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest001, TestSize.Level1)
  * @tc.desc: test for text
  * @tc.type: FUNC
  */
-HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest002, TestSize.Level1)
+HWTEST_F(OHSkiaTxtTest, OHSkiaTxtTest002, TestSize.Level0)
 {
     TextStyle textStyle1;
     TextStyle textStyle2;

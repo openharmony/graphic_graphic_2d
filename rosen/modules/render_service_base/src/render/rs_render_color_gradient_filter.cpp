@@ -19,11 +19,41 @@
 #include "ge_visual_effect_container.h"
 
 #include "platform/common/rs_log.h"
+#include "render/rs_render_radial_gradient_mask.h"
 #include "render/rs_render_ripple_mask.h"
 #include "render/rs_shader_mask.h"
 
 namespace OHOS {
 namespace Rosen {
+
+void RSRenderColorGradientFilterPara::CalculateHash()
+{
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(colors_.data(), colors_.size() * sizeof(float), hash_);
+    hash_ = hashFunc(positions_.data(), positions_.size() * sizeof(float), hash_);
+    hash_ = hashFunc(strengths_.data(), strengths_.size() * sizeof(float), hash_);
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+}
+
+std::shared_ptr<RSRenderFilterParaBase> RSRenderColorGradientFilterPara::DeepCopy() const
+{
+    auto copyFilter = std::make_shared<RSRenderColorGradientFilterPara>(id_);
+    copyFilter->type_ = type_;
+    copyFilter->colors_ = colors_;
+    copyFilter->positions_ = positions_;
+    copyFilter->strengths_ = strengths_;
+    copyFilter->mask_ = mask_;
+    copyFilter->CalculateHash();
+    return copyFilter;
+}
+
 void RSRenderColorGradientFilterPara::GetDescription(std::string& out) const
 {
     out += "RSRenderColorGradientFilterPara";
@@ -150,6 +180,9 @@ std::shared_ptr<RSRenderMaskPara> RSRenderColorGradientFilterPara::CreateMaskRen
         case RSUIFilterType::RIPPLE_MASK : {
             return std::make_shared<RSRenderRippleMaskPara>(0);
         }
+        case RSUIFilterType::RADIAL_GRADIENT_MASK : {
+            return std::make_shared<RSRenderRadialGradientMaskPara>(0);
+        }
         default: {
             ROSEN_LOGD("RSRenderColorGradientFilterPara::CreateMaskRenderProperty RSUIFilterType nullptr");
             return nullptr;
@@ -228,18 +261,6 @@ bool RSRenderColorGradientFilterPara::ParseFilterValues()
     positions_ = positionProperty->Get();
     strengths_ = strengthProperty->Get();
     mask_ = maskProperty ? std::make_shared<RSShaderMask>(maskProperty) : nullptr;
-#ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
-#else
-    const auto hashFunc = SkOpts::hash;
-#endif
-    hash_ = hashFunc(colors_.data(), colors_.size() * sizeof(float), hash_);
-    hash_ = hashFunc(positions_.data(), positions_.size() * sizeof(float), hash_);
-    hash_ = hashFunc(strengths_.data(), strengths_.size() * sizeof(float), hash_);
-    if (mask_) {
-        auto maskHash = mask_->Hash();
-        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
-    }
     return true;
 }
 

@@ -67,7 +67,7 @@ void OHDrawingTextLineBaseTest::TearDown()
  * @tc.desc: test for GetGlyphRuns and GetGlyphCount
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest001, TestSize.Level1)
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest001, TestSize.Level0)
 {
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
@@ -80,7 +80,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest001, TestSize.Level
  * @tc.desc: test for GetTextRange
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest002, TestSize.Level1)
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest002, TestSize.Level0)
 {
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
@@ -93,7 +93,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest002, TestSize.Level
  * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest003, TestSize.Level1)
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest003, TestSize.Level0)
 {
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
@@ -106,7 +106,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest003, TestSize.Level
  * @tc.desc: test for nullptr, only for the branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest004, TestSize.Level1)
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest004, TestSize.Level0)
 {
     auto textLineImpl = std::make_unique<AdapterTxt::TextLineBaseImpl>(nullptr);
 
@@ -122,7 +122,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest004, TestSize.Level
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level1)
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level0)
 {
     std::string ellipsisStr;
     std::unique_ptr<TextLineBase> line
@@ -149,7 +149,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest006, TestSize.Level1)
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest006, TestSize.Level0)
 {
     std::unique_ptr<TextLineBase> textLineBase = std::make_unique<AdapterTxt::TextLineBaseImpl>(nullptr);
 

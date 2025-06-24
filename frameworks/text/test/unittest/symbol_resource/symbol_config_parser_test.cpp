@@ -102,7 +102,7 @@ private:
  * @tc.desc: test for lack native_glyph_id
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest001, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest001, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0].removeMember("native_glyph_id");
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
@@ -115,7 +115,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest001, TestSize.Level1)
  * @tc.desc: test for error native_glyph_id
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest002, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest002, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0]["native_glyph_id"] = "invalid_id";
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
@@ -128,7 +128,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest002, TestSize.Level1)
  * @tc.desc: test for invalid color
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest003, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest003, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0]["render_modes"][0]["render_groups"][0]["default_color"] = "INVALID_COLOR";
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
@@ -143,7 +143,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest003, TestSize.Level1)
  * @tc.desc: test for lack animation_type
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest004, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest004, TestSize.Level0)
 {
     rootAnimations_["animations"][0].removeMember("animation_type");
     std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
@@ -156,7 +156,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest004, TestSize.Level1)
  * @tc.desc: test for invalid common_sub_type
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest005, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest005, TestSize.Level0)
 {
     rootAnimations_["animations"][0]["animation_parameters"][0]["common_sub_type"] = "invalid_direction";
     std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
@@ -170,7 +170,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest005, TestSize.Level1)
  * @tc.desc: test for empty layers
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest006, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest006, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0]["layers"] = Json::arrayValue;
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
@@ -183,7 +183,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest006, TestSize.Level1)
  * @tc.desc: test for valid symbol layers data
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest007, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest007, TestSize.Level0)
 {
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_TRUE(SymbolConfigParser::ParseSymbolLayersGrouping(rootLayers_, symbolConfig));
@@ -200,7 +200,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest007, TestSize.Level1)
  * @tc.desc: test for valid symbol animations data
  * @tc.type: FUNC
  */
-HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest008, TestSize.Level1)
+HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest008, TestSize.Level0)
 {
     std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
     SymbolConfigParser::ParseSymbolAnimations(rootAnimations_["animations"], animationInfos);

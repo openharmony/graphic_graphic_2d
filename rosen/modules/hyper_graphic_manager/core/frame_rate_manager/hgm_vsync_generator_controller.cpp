@@ -118,9 +118,19 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
     }
     return vsyncCount;
 }
+
 bool HgmVSyncGeneratorController::CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate)
 {
     return refreshRate <= OLED_60_HZ;
+}
+
+void HgmVSyncGeneratorController::ChangeAdaptiveStatus(bool isAdaptive)
+{
+    if (rsController_ == nullptr) {
+        HGM_LOGE("HgmVSyncGeneratorController::ChangeAdaptiveStatus rsController is null");
+        return;
+    }
+    rsController_->ChangeAdaptiveStatus(isAdaptive);
 }
 } // namespace Rosen
 } // namespace OHOS

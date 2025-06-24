@@ -129,7 +129,7 @@ void HgmFrameRateMgrTest::TearDownTestCase()
 
 void HgmFrameRateMgrTest::SetUp()
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     hgmCore.hgmFrameRateMgr_ = std::make_unique<HgmFrameRateManager>();
 }
 
@@ -781,6 +781,8 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest2, Function | SmallTest 
     frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_30_HZ, OLED_120_HZ, 0}, true);
     resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
     EXPECT_EQ(resVoteInfo.max, OLED_30_HZ);
+    frameRateMgr.controller_ = std::make_shared<HgmVSyncGeneratorController>(nullptr, nullptr, nullptr);
+    resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
     sleep(1); // wait for handler task finished
 }
 
@@ -1338,7 +1340,9 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, TOUCH_DOWN, 1);
-
+    mgr.HandleTouchEvent(0, TOUCH_UP, 1);
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    sleep(1);
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
 }
 

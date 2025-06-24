@@ -430,6 +430,7 @@ public:
     bool IsHardwareEnabledNodesNeedSync();
     bool WaitHardwareThreadTaskExecute();
     void NotifyHardwareThreadCanExecuteTask();
+    void SetTaskEndWithTime(int64_t time);
 
     uint32_t GetVsyncRefreshRate();
 

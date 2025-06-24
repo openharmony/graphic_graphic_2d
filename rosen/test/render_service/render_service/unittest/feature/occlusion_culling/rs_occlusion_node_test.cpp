@@ -355,6 +355,28 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_004, TestSize.Level1)
 }
 
 /*
+ * @tc.name: CalculateDrawRect_001
+ * @tc.desc: Test CalculateDrawRect with invalid properties.
+ * @tc.type: FUNC
+ * @tc.require: issueIC2H2
+ */
+HWTEST_F(RSOcclusionNodeTest, CalculateDrawRect_001, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<OcclusionNode> parentOcNode =
+        std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
+    rootNode->parentOcNode_ = parentOcNode;
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(nodeId);
+    renderNode->renderProperties_.SetBounds(Vector4f(0.f, 0.f, 100.f, 200.f));
+    rootNode->CalculateDrawRect(*renderNode, renderNode->renderProperties_);
+    EXPECT_FALSE(rootNode->isSubTreeIgnored_);
+    renderNode->renderProperties_.boundsGeo_->x_ = std::nan("");
+    rootNode->CalculateDrawRect(*renderNode, renderNode->renderProperties_);
+    EXPECT_TRUE(rootNode->isSubTreeIgnored_);
+}
+
+/*
  * @tc.name: CalculateNodeAllBounds_001
  * @tc.desc: Test CalculateNodeAllBounds when isSubTreeIgnored_ is true
  * @tc.type: FUNC
@@ -484,6 +506,28 @@ HWTEST_F(RSOcclusionNodeTest, UpdateSubTreeProp_001, TestSize.Level1)
     EXPECT_EQ(children->outerRect_.top_, expectChildrenOuterRect.top_);
     EXPECT_EQ(children->outerRect_.width_, expectChildrenOuterRect.width_);
     EXPECT_EQ(children->outerRect_.height_, expectChildrenOuterRect.height_);
+}
+
+/*
+ * @tc.name: UpdateSubTreeProp_002
+ * @tc.desc: Test UpdateSubTreePropWithRing
+ * @tc.type: FUNC
+ * @tc.require: issueIC2H2
+ */
+HWTEST_F(RSOcclusionNodeTest, UpdateSubTreeProp_002, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<OcclusionNode> children =
+        std::make_shared<OcclusionNode>(firstNodeId, RSRenderNodeType::CANVAS_NODE);
+    rootNode->lastChild_ = children;
+    rootNode->parentOcNode_ = children;
+    children->lastChild_ = rootNode;
+    children->parentOcNode_ = rootNode;
+    rootNode->UpdateSubTreeProp();
+    // In this case, the parent node is also the child node, but each node only update once.
+    EXPECT_EQ(rootNode->isValidInCurrentFrame_, true);
+    EXPECT_EQ(children->isValidInCurrentFrame_, true);
 }
 
 /*

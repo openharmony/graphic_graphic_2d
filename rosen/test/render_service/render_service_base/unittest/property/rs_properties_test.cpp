@@ -883,6 +883,40 @@ HWTEST_F(RSPropertiesTest, UpdateGeometryByParent001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateGeometryByParent002
+ * @tc.desc: test results of UpdateGeometryByParent
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, UpdateGeometryByParent002, TestSize.Level1)
+{
+    RSProperties properties;
+    Drawing::Matrix* parentMatrix = new Drawing::Matrix();
+    Drawing::Point point;
+    std::optional<Drawing::Point> offset = point;
+    RectI rect;
+    properties.lastRect_ = rect;
+    {
+        auto renderFilter = std::make_shared<RSRenderFilter>();
+        auto contentLightRenderFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::CONTENT_LIGHT);
+        renderFilter->Insert(RSUIFilterType::CONTENT_LIGHT, contentLightRenderFilter);
+        properties.foregroundRenderFilter_ = renderFilter;
+        properties.UpdateGeometryByParent(parentMatrix, offset);
+        EXPECT_TRUE(properties.filterNeedUpdate_);
+    }
+    {
+        auto renderFilter = std::make_shared<RSRenderFilter>();
+        auto contentLightRenderFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::LIGHT_POSITION);
+        renderFilter->Insert(RSUIFilterType::LIGHT_POSITION, contentLightRenderFilter);
+        properties.foregroundRenderFilter_ = renderFilter;
+        properties.UpdateGeometryByParent(parentMatrix, offset);
+        EXPECT_TRUE(properties.filterNeedUpdate_);
+    }
+    delete parentMatrix;
+    parentMatrix = nullptr;
+}
+
+/**
  * @tc.name: SandBox001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -3254,6 +3288,59 @@ HWTEST_F(RSPropertiesTest, GenerateRenderFilterDispersion001, TestSize.Level1)
 
     properties.GenerateRenderFilterDispersion();
     EXPECT_NE(properties.backgroundFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateForegroundRenderFilter001
+ * @tc.desc: test results of GenerateForegroundRenderFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, GenerateForegroundRenderFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto rsRenderFilter = std::make_shared<RSRenderFilter>();
+    properties.foregroundRenderFilter_ = rsRenderFilter;
+    properties.foregroundRenderFilter_->propertyTypes_.push_back(RSUIFilterType::CONTENT_LIGHT);
+    properties.GenerateForegroundRenderFilter();
+    EXPECT_EQ(properties.foregroundRenderFilter_, rsRenderFilter);
+}
+
+/**
+ * @tc.name: GenerateContentLightFilter001
+ * @tc.desc: test results of GenerateContentLightFilter
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, GenerateContentLightFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateContentLightFilter();
+    EXPECT_EQ(properties.foregroundFilter_, nullptr);
+
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    properties.foregroundRenderFilter_ = renderFilter;
+    renderFilter->Insert(RSUIFilterType::CONTENT_LIGHT, nullptr);
+    properties.GenerateContentLightFilter();
+    EXPECT_NE(properties.foregroundRenderFilter_, nullptr);
+
+    auto contentLightFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::CONTENT_LIGHT);
+    auto lightPositionProperty = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(0.0f, 0.0f, 0.0f));
+    contentLightFilter->Setter(RSUIFilterType::LIGHT_POSITION, lightPositionProperty);
+    auto lightColorProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.2f, 0.4f, 0.6f, 0.0f));
+    contentLightFilter->Setter(RSUIFilterType::LIGHT_COLOR, lightColorProperty);
+
+    properties.foregroundFilter_ = nullptr;
+    renderFilter->Insert(RSUIFilterType::CONTENT_LIGHT, contentLightFilter);
+    properties.GenerateContentLightFilter();
+
+    auto lightIntensityProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f);
+    contentLightFilter->Setter(RSUIFilterType::LIGHT_INTENSITY, lightIntensityProperty);
+
+    auto tempFilter1 = properties.foregroundFilter_;
+    auto tempFilter2 = properties.foregroundFilter_;
+    renderFilter->Insert(RSUIFilterType::CONTENT_LIGHT, contentLightFilter);
+    properties.GenerateContentLightFilter();
+    EXPECT_NE(properties.foregroundRenderFilter_, nullptr);
 }
 
 /**

@@ -58,7 +58,7 @@ void RSShadow::SetPath(const std::shared_ptr<RSPath>& path)
     path_ = path;
 }
 
-void RSShadow::SetMask(bool mask)
+void RSShadow::SetMask(int mask)
 {
     imageMask_ = mask;
 }
@@ -108,7 +108,7 @@ const std::shared_ptr<RSPath>& RSShadow::GetPath() const
     return path_;
 }
 
-bool RSShadow::GetMask() const
+int RSShadow::GetMask() const
 {
     return imageMask_;
 }

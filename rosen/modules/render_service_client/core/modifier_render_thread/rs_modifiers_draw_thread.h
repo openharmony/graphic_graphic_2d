@@ -125,20 +125,17 @@ public:
 
     static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData);
 
-    // [Attention] Do not call constructor of this class directly. The constructor and destructor are
-    // only used for InstancePtr() function with unique_ptr.
+    static std::recursive_mutex transactionDataMutex_;
+private:
     RSModifiersDrawThread();
     ~RSModifiersDrawThread();
-
-    static std::mutex transactionDataMutex_;
-private:
-    static std::unique_ptr<RSModifiersDrawThread>& InstancePtr();
     static void Destroy();
     RSModifiersDrawThread(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
     void ClearEventResource();
+    static bool LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData);
 
     static bool TargetCommand(
         Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty);

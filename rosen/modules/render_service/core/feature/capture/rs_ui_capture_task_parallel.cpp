@@ -464,6 +464,9 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
             }
             auto tmpImg = std::make_shared<Drawing::Image>();
             DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
+            RS_LOGI("RSUiCaptureTaskParallel::Capture DMA success nodeId:[%{public}" PRIu64
+                "], pixelMap width: %{public}d, height: %{public}d",
+                id, pixelmap->GetWidth(), pixelmap->GetHeight());
         } else {
 #else
         {

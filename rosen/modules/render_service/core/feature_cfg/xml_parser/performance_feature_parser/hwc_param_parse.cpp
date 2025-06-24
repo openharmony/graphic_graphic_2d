@@ -15,6 +15,8 @@
 
 #include "hwc_param_parse.h"
 
+#include "common/rs_common_hook.h"
+
 #undef LOG_TAG
 #define LOG_TAG "HWCParamParse"
 
@@ -72,6 +74,11 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("parse MultiParam fail");
         }
+    } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
+        if (name == "TvPlayerBundleName") {
+            RsCommonHook::Instance().SetTvPlayerBundleName(val);
+            RS_LOGI("parse TvPlayerBundleName ok");
+        }
     }
 
     return PARSE_EXEC_SUCCESS;
@@ -98,8 +105,6 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& 
             hwcParam_->SetSourceTuningForApp(appName, val);
         } else if (name == "RsSolidColorLayerConfig") {
             hwcParam_->SetSolidColorLayerForApp(appName, val);
-        } else if (name == "EnableHwcNodeBelowSelfInApp") {
-            hwcParam_->SetEnableHwcNodeBelowSelfInAppForApp(appName, val);
         } else {
             RS_LOGD("ParseFeatureMultiParam cannot find name");
             return PARSE_NO_PARAM;

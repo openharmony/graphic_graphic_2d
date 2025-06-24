@@ -22,6 +22,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node_allocator.h"
 #include "platform/common/rs_log.h"
 #include "utils/rect.h"
 #include "utils/region.h"
@@ -37,7 +38,14 @@ RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(std::shared_ptr<const RSR
 
 RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return new RSCanvasRenderNodeDrawable(std::move(node));
+    auto generator = [] (std::shared_ptr<const RSRenderNode> node,
+        RSRenderNodeAllocator::DrawablePtr front) -> RSRenderNodeAllocator::DrawablePtr {
+            if (front != nullptr) {
+                return new (front)RSCanvasRenderNodeDrawable(std::move(node));
+            }
+            return new RSCanvasRenderNodeDrawable(std::move(node));
+    };
+    return RSRenderNodeAllocator::Instance().CreateRSRenderNodeDrawable(node, generator);
 }
 
 /*

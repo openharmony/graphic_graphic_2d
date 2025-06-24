@@ -1123,7 +1123,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
     std::string outTest6 = "";
     nodeTest->DumpDrawCmdModifiers(outTest6);
-    EXPECT_EQ(outTest6, "");
+    EXPECT_EQ(outTest6, ", DrawCmdModifier2]");
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
         std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     EXPECT_NE(propertyTest, nullptr);
@@ -1415,6 +1415,30 @@ HWTEST_F(RSRenderNodeTest2, SetHdrNum, TestSize.Level1)
     EXPECT_EQ(surfaceNode->hdrPhotoNum_, 0);
     node->SetHdrNum(false, 1, HDRComponentType::UICOMPONENT);
     EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 0);
+}
+
+/**
+ * @tc.name: SetEnableHdrEffect
+ * @tc.desc: SetEnableHdrEffect test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetEnableHdrEffect, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = surfaceNode;
+    node->SetEnableHdrEffect(false);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+    node->SetEnableHdrEffect(true);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+    node->SetIsOnTheTree(true, 0, 1, 1, 1);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+    node->SetEnableHdrEffect(false);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
 }
 
 /**

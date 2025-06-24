@@ -118,4 +118,78 @@ HWTEST_F(RSRenderRippleMaskTest, GetLeafRenderProperties001, TestSize.Level1)
     auto rsRenderPropertyBaseVec = rsRenderRippleMaskPara->GetLeafRenderProperties();
     EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
 }
+
+/**
+ * @tc.name: LimitedDeepCopy
+ * @tc.desc: test for LimitedDeepCopy
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderRippleMaskTest, LimitedDeepCopy001, TestSize.Level1)
+{
+    auto rsRenderRippleMaskPara = std::make_shared<RSRenderRippleMaskPara>(0);
+    rsRenderRippleMaskPara->modifierType_ = RSModifierType::BACKGROUND_UI_FILTER;
+    rsRenderRippleMaskPara->Setter(RSUIFilterType::RIPPLE_MASK, nullptr);
+
+    // center
+    Vector2f center = {5.f, 2.f};
+    auto centerProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(center, 0);
+    rsRenderRippleMaskPara->Setter(RSUIFilterType::RIPPLE_MASK_CENTER, centerProperty);
+
+    // radius
+    float radius = 7.2;
+    auto radiusProperty = std::make_shared<RSRenderAnimatableProperty<float>>(radius, 0);
+    rsRenderRippleMaskPara->Setter(RSUIFilterType::RIPPLE_MASK_RADIUS, radiusProperty);
+
+    // width
+    float width = 3.4;
+    auto widthProperty = std::make_shared<RSRenderAnimatableProperty<float>>(width, 0);
+    rsRenderRippleMaskPara->Setter(RSUIFilterType::RIPPLE_MASK_WIDTH, widthProperty);
+
+    // center offset
+    float centerOffset = 2.2;
+    auto centerOffsetProperty = std::make_shared<RSRenderAnimatableProperty<float>>(centerOffset, 0);
+    rsRenderRippleMaskPara->Setter(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET, centerOffsetProperty);
+
+    rsRenderRippleMaskPara->Setter(RSUIFilterType::EDGE_LIGHT, centerOffsetProperty);
+
+    auto para = rsRenderRippleMaskPara->LimitedDeepCopy();
+    ASSERT_NE(para, nullptr);
+    auto newRippleMaskPara = std::static_pointer_cast<RSRenderRippleMaskPara>(para);
+
+    EXPECT_EQ(rsRenderRippleMaskPara->id_, newRippleMaskPara->id_);
+    EXPECT_EQ(rsRenderRippleMaskPara->type_, newRippleMaskPara->type_);
+    EXPECT_EQ(rsRenderRippleMaskPara->modifierType_, newRippleMaskPara->modifierType_);
+
+    // center
+    ASSERT_NE(newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_CENTER], nullptr);
+    EXPECT_NE(rsRenderRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_CENTER],
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_CENTER]);
+    auto newCenter = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_CENTER])->Get();
+    EXPECT_EQ(center, newCenter);
+
+    // radius
+    ASSERT_NE(newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_RADIUS], nullptr);
+    EXPECT_NE(rsRenderRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_RADIUS],
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_RADIUS]);
+    auto newRadius = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_RADIUS])->Get();
+    EXPECT_EQ(radius, newRadius);
+
+    // width
+    ASSERT_NE(newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH], nullptr);
+    EXPECT_NE(rsRenderRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH],
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH]);
+    auto newWidth = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH])->Get();
+    EXPECT_EQ(width, newWidth);
+
+    // center offset
+    ASSERT_NE(newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET], nullptr);
+    EXPECT_NE(rsRenderRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET],
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET]);
+    auto newCenterOffset = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        newRippleMaskPara->properties_[RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET])->Get();
+    EXPECT_EQ(centerOffset, newCenterOffset);
+}
 } // namespace OHOS::Rosen

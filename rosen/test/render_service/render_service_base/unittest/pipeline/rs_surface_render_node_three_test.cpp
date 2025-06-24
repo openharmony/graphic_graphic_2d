@@ -20,6 +20,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "visitor/rs_node_visitor.h"
+#include "common/rs_common_hook.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -950,6 +951,50 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, SetHardCursorStatusTest, TestSize.Level1)
     node->SetHardCursorStatus(false);
     EXPECT_EQ(node->GetHardCursorStatus(), false);
     EXPECT_EQ(node->GetHardCursorLastStatus(), true);
+}
+
+/**
+ * @tc.name: IsHardwareForcedDisabledTest001
+ * @tc.desc: IsHardwareForcedDisabled test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, IsHardwareForcedDisabledTest001, TestSize.Level1)
+{
+    const std::string testBundleName = "com.example.tvplayer";
+    RsCommonHook::Instance().SetTvPlayerBundleName(testBundleName);
+
+    RSSurfaceRenderNodeConfig config{};
+    config.id = ++id;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.bundleName = testBundleName;
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    node->SetIsOnTheTree(true);
+    node->SetGlobalAlpha(0.05f);
+    EXPECT_EQ(node->IsHardwareForcedDisabled(), true);
+}
+
+/**
+ * @tc.name: IsHardwareForcedDisabledTest002
+ * @tc.desc: IsHardwareForcedDisabled test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, IsHardwareForcedDisabledTest002, TestSize.Level1)
+{
+    const std::string testBundleName = "com.example.tvplayer";
+    RsCommonHook::Instance().SetTvPlayerBundleName(testBundleName);
+
+    RSSurfaceRenderNodeConfig config{};
+    config.id = ++id;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.bundleName = "com.example.others";
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    node->SetIsOnTheTree(true);
+    node->SetGlobalAlpha(0.05f);
+    EXPECT_EQ(node->IsHardwareForcedDisabled(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

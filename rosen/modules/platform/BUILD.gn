@@ -37,7 +37,7 @@ group("eventhandler") {
 }
 
 config("eventhandler_config") {
-  if (!(platform == "ohos" || cross_platform)) {
+  if (platform != "ohos") {
     include_dirs = [ "eventhandler" ]
   }
 }

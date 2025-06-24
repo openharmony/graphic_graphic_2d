@@ -1385,7 +1385,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_002, Function |
     node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
 
     auto result = RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /*

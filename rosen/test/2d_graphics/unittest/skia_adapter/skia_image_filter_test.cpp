@@ -55,7 +55,11 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur001, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::REPEAT, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
+#ifdef USE_M133_SKIA
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
+#else
     EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+#endif
 }
 
 /**
@@ -73,7 +77,11 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur002, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::MIRROR, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
+#ifdef USE_M133_SKIA
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
+#else
     EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+#endif
 }
 
 /**
@@ -91,7 +99,11 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur003, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::DECAL, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
+#ifdef USE_M133_SKIA
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
+#else
     EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+#endif
 }
 
 /**

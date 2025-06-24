@@ -201,6 +201,7 @@ bool RSUiCaptureSoloTaskParallel::CopyDataToPixelMap(std::shared_ptr<Drawing::Im
     bitmap.SetPixels(data);
     if (!img->ReadPixels(bitmap, 0, 0)) {
         RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap readPixels failed");
+        ::munmap(ptr, size);
         ::close(fd);
         return false;
     }

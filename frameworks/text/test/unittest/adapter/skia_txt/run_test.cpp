@@ -92,7 +92,7 @@ void OHDrawingRunTest::PrepareCreateRunForGlyphDrawing()
  * @tc.desc: test for GetFont
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest001, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest001, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -104,7 +104,7 @@ HWTEST_F(OHDrawingRunTest, RunTest001, TestSize.Level1)
  * @tc.desc: test for GetGlyphCount
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest002, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest002, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -116,7 +116,7 @@ HWTEST_F(OHDrawingRunTest, RunTest002, TestSize.Level1)
  * @tc.desc: test for GetGlyphs
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest003, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest003, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_.at(0), nullptr);
@@ -129,7 +129,7 @@ HWTEST_F(OHDrawingRunTest, RunTest003, TestSize.Level1)
  * @tc.desc: test for GetPositions
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest004, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest004, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_[0], nullptr);
@@ -142,7 +142,7 @@ HWTEST_F(OHDrawingRunTest, RunTest004, TestSize.Level1)
  * @tc.desc: test for GetOffsets
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest005, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest005, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_[0], nullptr);
@@ -155,7 +155,7 @@ HWTEST_F(OHDrawingRunTest, RunTest005, TestSize.Level1)
  * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest006, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest006, TestSize.Level0)
 {
     EXPECT_EQ(runs_.size(), 1);
     ASSERT_NE(runs_[0], nullptr);
@@ -169,7 +169,7 @@ HWTEST_F(OHDrawingRunTest, RunTest006, TestSize.Level1)
  * @tc.desc: test for nullptr, only for the branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest007, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest007, TestSize.Level0)
 {
     std::unique_ptr<AdapterTxt::RunImpl> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
     EXPECT_EQ(runNull->GetFont().GetSize(), Drawing::Font().GetSize());
@@ -184,7 +184,7 @@ HWTEST_F(OHDrawingRunTest, RunTest007, TestSize.Level1)
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest008, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest008, TestSize.Level0)
 {
     EXPECT_EQ(runs_[0]->GetGlyphs(0, 12).size(), 5);
     EXPECT_EQ(runs_[0]->GetPositions(0, 10).size(), 5);
@@ -203,7 +203,7 @@ HWTEST_F(OHDrawingRunTest, RunTest008, TestSize.Level1)
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunTest009, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest009, TestSize.Level0)
 {
     EXPECT_EQ(runs_[0]->GetGlyphs(-1, 12), std::vector<uint16_t>());
     EXPECT_EQ(runs_[0]->GetGlyphs(0, -1), std::vector<uint16_t>());
@@ -234,7 +234,7 @@ HWTEST_F(OHDrawingRunTest, RunTest009, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the English text.
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest001, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest001, TestSize.Level0)
 {
     text_ = u"Hello你好";
     PrepareCreateRunForGlyphDrawing();
@@ -251,7 +251,7 @@ HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest001, TestSize.Level1)
  * @tc.desc: Test for the glyph drawing of the RTL text.
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest002, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest002, TestSize.Level0)
 {
     text_ = u"مرحبا";
     PrepareCreateRunForGlyphDrawing();
@@ -268,7 +268,7 @@ HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest002, TestSize.Level1)
  * @tc.desc: test for nullptr, only for the branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest003, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest003, TestSize.Level0)
 {
     std::unique_ptr<AdapterTxt::RunImpl> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
     EXPECT_EQ(runNull->GetTextDirection(), OHOS::Rosen::TextDirection::LTR);

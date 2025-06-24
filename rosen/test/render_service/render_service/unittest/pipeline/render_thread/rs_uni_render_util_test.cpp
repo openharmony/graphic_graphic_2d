@@ -1369,6 +1369,59 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDrawRegionForQuickReject001
+ * @tc.desc: test SetDrawRegionForQuickReject
+ * @tc.type: FUNC
+ * @tc.require: issueICDSYF
+ */
+HWTEST_F(RSUniRenderUtilTest, SetDrawRegionForQuickReject001, TestSize.Level1)
+{
+    constexpr int defaultDirtyRegionWidth{1000};
+    constexpr int defaultDirtyRegionHeight{2000};
+    Occlusion::Region mergedDirtyRects{Occlusion::Rect(0, 0, defaultDirtyRegionWidth, defaultDirtyRegionHeight)};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr surfaceAdapter(
+        RSSurfaceRenderNodeDrawable::OnGenerate(renderNode));
+    ASSERT_TRUE(surfaceAdapter != nullptr);
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
+    allSurfaceDrawables.emplace_back(nullptr);
+    allSurfaceDrawables.emplace_back(surfaceAdapter);
+    auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceAdapter);
+    ASSERT_TRUE(surfaceNodeDrawable != nullptr);
+    auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+    ASSERT_TRUE(surfaceDirtyManager != nullptr);
+
+    surfaceNodeDrawable->renderParams_ = nullptr;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), true);
+
+    surfaceNodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), true);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+    ASSERT_TRUE(surfaceParams != nullptr);
+    surfaceParams->isMainWindowType_ = false;
+    surfaceParams->isLeashWindow_ = true;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
+
+    surfaceDirtyManager->dirtyRegionForQuickReject_.clear();
+    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->isLeashWindow_ = false;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
+
+    surfaceDirtyManager->dirtyRegionForQuickReject_.clear();
+    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->isLeashWindow_ = true;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
+    EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
+}
+
+/**
  * @tc.name: FrameAwareTraceBoostTest
  * @tc.desc: test FrameAwareTraceBoost
  * @tc.type: FUNC
@@ -1404,70 +1457,5 @@ HWTEST_F(RSUniRenderUtilTest, GetImageRegionsTest, TestSize.Level1)
     realImageHeight = 10.0f;
     regions = RSUniRenderUtil::GetImageRegions(screenHeight, screenWidth, realImageHeight, realImageWidth);
     ASSERT_EQ(regions.GetHeight(), 100);
-}
-
-/**
- * @tc.name: SetSrcRectForAnco
- * @tc.desc: SetSrcRectForAnco test for anco node
- * @tc.type: FUNC
- * @tc.require: issueICA0I8
- */
-HWTEST_F(RSUniRenderUtilTest, SetSrcRectForAnco, TestSize.Level2)
-{
-    BufferDrawParam params;
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
-    auto buffer = surfaceNode->surfaceHandler_->GetBuffer();
-    ASSERT_NE(buffer, nullptr);
-    buffer->SetSurfaceBufferWidth(100);
-    buffer->SetSurfaceBufferHeight(100);
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    LayerInfoPtr nullLayer = nullptr;
-    layer->SetBuffer(buffer, {});
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    layer->SetSurface(csurface);
-    params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, false);
-    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
-    RSUniRenderUtil::SetSrcRectForAnco(nullLayer, params);
-    layer->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
-    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
-
-    layer->SetCropRect({0, 0, 100, 0});
-    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
-    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
-    layer->SetCropRect({0, 0, 0, 100});
-    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
-    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
-    layer->SetCropRect({0, 0, 50, 50});
-    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
-    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 50, 50));
-
-    auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    ASSERT_NE(drawable, nullptr);
-    ASSERT_EQ(drawable->renderParams_, nullptr);
-    drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId() + 1);
-    RSSurfaceRenderParams* surfaceParams = nullptr;
-    surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    surfaceParams->buffer_ = buffer;
-    drawable->consumerOnDraw_ = surfaceNode->surfaceHandler_->GetConsumer();
-    ASSERT_NE(drawable->consumerOnDraw_, nullptr);
-    params = RSUniRenderUtil::CreateBufferDrawParam(*drawable, false, 1);
-    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
-
-    surfaceParams->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
-    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
-    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
-    surfaceParams->SetAncoSrcCrop({0, 0, 100, 0});
-    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
-    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
-    surfaceParams->SetAncoSrcCrop({0, 0, 0, 100});
-    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
-    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
-    surfaceParams->SetAncoSrcCrop({0, 0, 50, 50});
-    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
-    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 50, 50));
 }
 } // namespace OHOS::Rosen

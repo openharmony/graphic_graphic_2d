@@ -245,6 +245,8 @@ public:
 
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
+    virtual int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) = 0;
+
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) = 0;
 
     virtual ErrCode SetGlobalDarkColorMode(bool isDark) = 0;
@@ -396,7 +398,11 @@ public:
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
 
+    virtual ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) = 0;
+
     virtual ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
+
+    virtual ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) = 0;
 
     virtual void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) = 0;
 #ifdef TP_FEATURE_ENABLE
@@ -419,11 +425,18 @@ public:
 
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 
+    virtual ErrCode AvcodecVideoStart(
+        uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) = 0;
+
+    virtual ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) = 0;
+
     virtual bool GetHighContrastTextState() = 0;
 
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
 
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
+
+    virtual int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

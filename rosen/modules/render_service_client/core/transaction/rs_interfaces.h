@@ -289,12 +289,9 @@ public:
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
     
     /**
-     * @brief Get component snapshot.
+     * @brief Get a list of pixelmap information, each node of the component node tree will have a pixelmap.
      * @param node can be rootNode、surfaceNode、canvasNode、CanvasDrawingNode.
-     * @param callback When the snapshot is compelete, the callback will be triggered.
-     * @param captureConfig Indicates the configrutation items required for snapshot.
-     * @param specifiedAreaRect Indicates the range that user wants to clip the snapshot.
-     * @return return true if snaphot success, else return false.
+     * @return return a vector of pair, the first element is the NodeId, the second element is the pixelmap.
      */
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
         TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node);
@@ -416,6 +413,14 @@ public:
      * @return True if success, false if failed.
      */
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
+
+    /**
+     * @brief Set if resize buffer and keep content horizontal while source is rotated.
+     * @param id Virtual screen id.
+     * @param isAutoRotation True means enable, false means disable.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation);
 
     /**
      * @brief Set scale mode for virtual mirror screen.
@@ -1121,6 +1126,8 @@ public:
      */
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
+    void SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder);
+
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     /**
      * @brief Set selfdrawing component of stylus engine force use DSS.
@@ -1128,6 +1135,14 @@ public:
      * @param isTop is function switch.
      */
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+
+    // Make this node(nodeIdStr) should do DSS composition and set the surface force refresh.
+    /**
+     * @brief Set selfdrawing component of stylus engine force refresh.
+     * @param nodeIdStr surfaceNode name.
+     * @param isForceRefresh is function switch.
+     */
+    void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
 
     /**
      * @brief Configures the stylus engine's self-drawing component to skip gamut conversion during redering.
@@ -1184,6 +1199,8 @@ public:
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
+
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

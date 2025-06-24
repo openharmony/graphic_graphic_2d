@@ -50,7 +50,6 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
 
     RSColor valTest1 { 0, 0, 0, 0 };
 
-    ASSERT_EQ(extractor.GetSurfaceBgColor(), valTest1);
     ASSERT_EQ(extractor.GetBloom(), 0.f);
 
     // Node is not nullptr
@@ -218,6 +217,20 @@ HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
     RSModifierExtractor extractor(id);
     float radius = extractor.GetForegroundEffectRadius();
     EXPECT_TRUE(radius == 0.f);
+}
+
+/**
+ * @tc.name: GetShadowMask001
+ * @tc.desc: test results of GetShadowMask
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowMask001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    bool res = extractor.GetShadowMask();
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -425,5 +438,20 @@ HWTEST_F(RSModifierExtractorTest, GetHDRUIBrightnessTest, TestSize.Level1)
     RSModifierExtractor extractor(id);
     float hdrUIBrightness = extractor.GetHDRUIBrightness();
     EXPECT_TRUE(hdrUIBrightness == 1.0f);
+}
+
+/**
+ * @tc.name: DumpTest
+ * @tc.desc: test results of DumpTest
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, DumpTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    std::string dumpInfo = extractor->Dump();
+    std::string expected = "Bounds[0.0 0.0 0.0 0.0] Frame[0.0 0.0 0.0 0.0]";
+    EXPECT_EQ(dumpInfo, expected);
 }
 } // namespace OHOS::Rosen

@@ -24,6 +24,11 @@
 namespace OHOS {
 namespace Rosen {
 
+namespace RSLuminanceConst {
+    constexpr float DEFAULT_CAST_HDR_NITS = 1000.0f;
+    constexpr float DEFAULT_CAST_SDR_NITS = 203.0f;
+}
+
 enum CLOSEHDR_SCENEID : uint32_t {
     MULTI_DISPLAY = 0,
     CLOSEHDR_SCENEID_MAX
@@ -32,6 +37,7 @@ enum CLOSEHDR_SCENEID : uint32_t {
 enum HDRComponentType : uint32_t {
     IMAGE = 0,
     UICOMPONENT,
+    EFFECT,
 };
 
 enum HdrStatus : uint32_t {
@@ -39,6 +45,7 @@ enum HdrStatus : uint32_t {
     HDR_PHOTO = 0x0001,
     HDR_VIDEO = 0x0010,
     AI_HDR_VIDEO = 0x0100,
+    HDR_EFFECT = 0x1000,
 };
 
 class RSLuminanceControlInterface {

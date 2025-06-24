@@ -36,6 +36,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         updateCallback_.emplace_back(callback);
     }
+
     virtual void OnUpdate()
     {
         std::lock_guard<std::mutex> lock(mutex_);

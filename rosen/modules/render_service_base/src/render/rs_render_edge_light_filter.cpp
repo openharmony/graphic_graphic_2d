@@ -22,6 +22,7 @@
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_render_filter_base.h"
+#include "render/rs_render_radial_gradient_mask.h"
 #include "render/rs_render_pixel_map_mask.h"
 #include "render/rs_shader_mask.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -33,6 +34,34 @@ static const std::vector<RSUIFilterType> FILTER_TYPE_WITHOUT_MASK = {
     RSUIFilterType::EDGE_LIGHT_BLOOM,
     RSUIFilterType::EDGE_LIGHT_COLOR,
 };
+
+void RSRenderEdgeLightFilterPara::CalculateHash()
+{
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
+    hash_ = hashFunc(&bloom_, sizeof(bloom_), hash_);
+    hash_ = hashFunc(&color_, sizeof(color_), hash_);
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+}
+
+std::shared_ptr<RSRenderFilterParaBase> RSRenderEdgeLightFilterPara::DeepCopy() const
+{
+    auto copyFilter = std::make_shared<RSRenderEdgeLightFilterPara>(id_);
+    copyFilter->type_ = type_;
+    copyFilter->alpha_ = alpha_;
+    copyFilter->bloom_ = bloom_;
+    copyFilter->color_ = color_;
+    copyFilter->mask_ = mask_;
+    copyFilter->CalculateHash();
+    return copyFilter;
+}
 
 void RSRenderEdgeLightFilterPara::GetDescription(std::string& out) const
 {
@@ -56,6 +85,9 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderP
         }
         case RSUIFilterType::PIXEL_MAP_MASK : {
             return std::make_shared<RSRenderPixelMapMaskPara>(0);
+        }
+        case RSUIFilterType::RADIAL_GRADIENT_MASK : {
+            return std::make_shared<RSRenderRadialGradientMaskPara>(0);
         }
         default: {
             ROSEN_LOGD("RSRenderEdgeLightFilterPara::CreateRenderProperty nullptr");
@@ -114,7 +146,7 @@ bool RSRenderEdgeLightFilterPara::WriteToParcel(Parcel& parcel)
 }
 
 bool RSRenderEdgeLightFilterPara::ReadFromParcel(Parcel& parcel)
-{   
+{
     ROSEN_LOGD("RSRenderEdgeLightFilterPara::ReadFromParcel %{public}d %{public}d %{public}d",
         static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
     if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
@@ -231,18 +263,6 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
             return false;
         }
         mask_ = std::make_shared<RSShaderMask>(edgeLightMask);
-    }
-#ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
-#else
-    const auto hashFunc = SkOpts::hash;
-#endif
-    hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
-    hash_ = hashFunc(&bloom_, sizeof(bloom_), hash_);
-    hash_ = hashFunc(&color_, sizeof(color_), hash_);
-    if (mask_) {
-        auto maskHash = mask_->Hash();
-        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
     }
     return true;
 }

@@ -410,25 +410,6 @@ bool DoGetBackgroundColor(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetSurfaceBgColor(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetSurfaceBgColor();
-
-    return true;
-}
-
 bool DoGetBgImageWidth(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -796,7 +777,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetCornerRadius(data, size);
     OHOS::Rosen::DoGetForegroundColor(data, size);
     OHOS::Rosen::DoGetBackgroundColor(data, size);
-    OHOS::Rosen::DoGetSurfaceBgColor(data, size);
     OHOS::Rosen::DoGetBgImageWidth(data, size);
     OHOS::Rosen::DoGetBgImageHeight(data, size);
     OHOS::Rosen::DoGetBgImagePositionX(data, size);

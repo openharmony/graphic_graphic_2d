@@ -38,30 +38,66 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
 
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
 {
-    colorList_.clear();
-    colorList_ = colorList;
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    symbolColor_.gradients.clear();
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    for (auto color : colorList) {
+        auto gradient = std::make_shared<SymbolGradient>();
+        std::vector<Drawing::ColorQuad> colors;
+        Drawing::Color color1;
+        color1.SetRgb(color.r, color.g, color.b, color.a);
+        colors.push_back(color1.CastToColorQuad());
+        gradient->SetColors(colors);
+        gradients.push_back(gradient);
+    }
+    symbolColor_.gradients = gradients;
 }
 
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 {
-    colorList_.clear();
-    for (auto color: colorList) {
-        Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-        colorList_.push_back(colorIt);
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    symbolColor_.gradients.clear();
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    for (auto color : colorList) {
+        auto gradient = std::make_shared<SymbolGradient>();
+        std::vector<Drawing::ColorQuad> colors;
+        Drawing::Color color1;
+        color1.SetRgb(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
+        colors.push_back(color1.CastToColorQuad());
+        gradient->SetColors(colors);
+        gradients.push_back(gradient);
     }
+    symbolColor_.gradients = gradients;
 }
 
 void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 {
-    colorList_.clear();
-    Drawing::DrawingSColor colorIt = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
-    colorList_ = {colorIt};
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    symbolColor_.gradients.clear();
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    auto gradient = std::make_shared<SymbolGradient>();
+    std::vector<Drawing::ColorQuad> colors;
+    Drawing::Color color1;
+    color1.SetRgb(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
+    colors.push_back(color1.CastToColorQuad());
+    gradient->SetColors(colors);
+    gradients.push_back(gradient);
+    symbolColor_.gradients = gradients;
 }
 
 void HMSymbolTxt::SetRenderColor(const Drawing::DrawingSColor& colorList)
 {
-    colorList_.clear();
-    colorList_ = {colorList};
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    symbolColor_.gradients.clear();
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    auto gradient = std::make_shared<SymbolGradient>();
+    std::vector<Drawing::ColorQuad> colors;
+    Drawing::Color color1;
+    color1.SetRgb(colorList.r, colorList.g, colorList.b, colorList.a);
+    colors.push_back(color1.CastToColorQuad());
+    gradient->SetColors(colors);
+    gradients.push_back(gradient);
+    symbolColor_.gradients = gradients;
 }
 
 void HMSymbolTxt::SetRenderMode(const uint32_t& renderMode)
@@ -91,7 +127,18 @@ void HMSymbolTxt::SetSymbolEffect(const uint32_t& effectStrategy)
 
 std::vector<Drawing::DrawingSColor> HMSymbolTxt::GetRenderColor() const
 {
-    return colorList_;
+    std::vector<Drawing::DrawingSColor> colorList;
+    for (const auto& gradient : symbolColor_.gradients) {
+        bool isInvalid = gradient == nullptr || gradient->GetColors().empty();
+        if (isInvalid) {
+            continue;
+        }
+        auto gradientColor = gradient->GetColors()[0];
+        Drawing::Color color(gradientColor);
+        Drawing::DrawingSColor scolor = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
+        colorList.push_back(scolor);
+    }
+    return colorList;
 }
 
 Drawing::DrawingSymbolRenderingStrategy HMSymbolTxt::GetRenderMode() const
@@ -190,6 +237,26 @@ const SymbolBitmapType& HMSymbolTxt::GetSymbolBitmap() const
 void HMSymbolTxt::SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap)
 {
     relayoutChangeBitmap_ = symbolStyleBitmap;
+}
+
+SymbolColor HMSymbolTxt::GetSymbolColor() const
+{
+    return symbolColor_;
+}
+
+void HMSymbolTxt::SetSymbolColor(const SymbolColor& symbolColor)
+{
+    symbolColor_ = symbolColor;
+}
+
+void HMSymbolTxt::SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow)
+{
+    symbolShadow_ = symbolShadow;
+}
+
+const std::optional<SymbolShadow>& HMSymbolTxt::GetSymbolShadow() const
+{
+    return symbolShadow_;
 }
 } // namespace Rosen
 } // namespace OHOS

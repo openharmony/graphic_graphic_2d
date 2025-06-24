@@ -559,6 +559,23 @@ HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Leve
 }
 
 /**
+ * @tc.name: RSForegroundNGFilterModifierTest
+ * @tc.desc: RSForegroundNGFilterModifierTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSForegroundNGFilterModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSForegroundNGFilterModifier> modifier =
+        std::make_shared<RSForegroundNGFilterModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::FOREGROUND_NG_FILTER);
+}
+
+/**
  * @tc.name: RSHDRUIBrightnessModifier001
  * @tc.desc: test RSHDRUIBrightnessModifier
  * @tc.type: FUNC

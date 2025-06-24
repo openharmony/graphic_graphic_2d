@@ -64,10 +64,10 @@ void SkiaRuntimeEffect::InitForShader(const std::string& sl, const RuntimeEffect
     GlslToSksl(sksl, glsl);
 
     SkRuntimeEffect::Options skOptions;
+    skOptions.useAF = options.useAF;
 #ifdef USE_M133_SKIA
     skOptions.forceUnoptimized = options.forceNoInline;
 #else
-    skOptions.useAF = options.useAF;
     skOptions.forceNoInline = options.forceNoInline;
 #endif
     auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(sksl.c_str()), skOptions);

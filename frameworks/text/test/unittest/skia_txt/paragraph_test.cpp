@@ -93,7 +93,7 @@ bool ParagraphTest::AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimat
  * @tc.desc: test for GetMaxWidth
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level0)
 {
     EXPECT_EQ(paragraph_->GetMaxWidth(), layoutWidth_);
     EXPECT_EQ(paragraph_->GetHeight(), 19);
@@ -127,7 +127,7 @@ HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level1)
  * @tc.desc: test for SetIndents
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest002, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest002, TestSize.Level0)
 {
     // 0.5 just for test
     std::vector<float> indents = { 0.5, 1 };
@@ -141,7 +141,7 @@ HWTEST_F(ParagraphTest, ParagraphTest002, TestSize.Level1)
  * @tc.desc: test for MarkDirty
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest003, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest003, TestSize.Level0)
 {
     paragraph_->MarkDirty();
     auto paragraphImpl = GetParagraphSkiaImpl(paragraph_);
@@ -153,7 +153,7 @@ HWTEST_F(ParagraphTest, ParagraphTest003, TestSize.Level1)
  * @tc.desc: test for UpdateFontSize
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest004, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest004, TestSize.Level0)
 {
     // 2 24.0 just for test
     paragraph_->UpdateFontSize(0, text_.size(), 24.0);
@@ -167,7 +167,7 @@ HWTEST_F(ParagraphTest, ParagraphTest004, TestSize.Level1)
  * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest005, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest005, TestSize.Level0)
 {
     SkCanvas skCanvas;
     // redundancy because it has been checked in setup
@@ -184,7 +184,7 @@ HWTEST_F(ParagraphTest, ParagraphTest005, TestSize.Level1)
  * @tc.desc: test for GetLineMetricsAt
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest006, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest006, TestSize.Level0)
 {
     skia::textlayout::LineMetrics lineMetrics;
     auto metrics = paragraph_->MeasureText();
@@ -198,7 +198,7 @@ HWTEST_F(ParagraphTest, ParagraphTest006, TestSize.Level1)
  * @tc.desc: test for SetAnimation
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest007, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest007, TestSize.Level0)
 {
     std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
         ParagraphTest::AnimationFunc;
@@ -212,7 +212,7 @@ HWTEST_F(ParagraphTest, ParagraphTest007, TestSize.Level1)
  * @tc.desc: test for SetParagraghId
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest008, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest008, TestSize.Level0)
 {
     paragraph_->SetParagraghId(1);
     auto paragraphImpl = GetParagraphImpl(paragraph_);
@@ -224,7 +224,7 @@ HWTEST_F(ParagraphTest, ParagraphTest008, TestSize.Level1)
  * @tc.desc: test for GetFontMetricsResult
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest009, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest009, TestSize.Level0)
 {
     SPText::TextStyle textStyle;
     auto fontMetrics = paragraph_->GetFontMetricsResult(textStyle);
@@ -236,7 +236,7 @@ HWTEST_F(ParagraphTest, ParagraphTest009, TestSize.Level1)
  * @tc.desc: test for GetLineFontMetrics
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest010, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest010, TestSize.Level0)
 {
     size_t charNumber = 1;
     std::vector<Drawing::FontMetrics> fontMetrics;
@@ -252,7 +252,7 @@ HWTEST_F(ParagraphTest, ParagraphTest010, TestSize.Level1)
  * @tc.desc: test for CloneSelf
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest011, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest011, TestSize.Level0)
 {
     auto paragraphClone = paragraph_->CloneSelf();
     EXPECT_EQ(paragraphClone->GetHeight(), paragraph_->GetHeight());
@@ -269,7 +269,7 @@ HWTEST_F(ParagraphTest, ParagraphTest011, TestSize.Level1)
  * @tc.desc: test for SkStyleToTextStyle
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest012, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest012, TestSize.Level0)
 {
     skt::TextStyle skStyle;
     skStyle.setBackgroundPaintID(-1);
@@ -295,7 +295,7 @@ HWTEST_F(ParagraphTest, ParagraphTest012, TestSize.Level1)
  * @tc.desc: test for UpdateColor
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest013, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest013, TestSize.Level0)
 {
     RSColor color(255, 0, 0, 255);
     std::u16string text = u"text";
@@ -311,7 +311,7 @@ HWTEST_F(ParagraphTest, ParagraphTest013, TestSize.Level1)
  * @tc.desc: test for SkStyleToTextStyle
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest014, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest014, TestSize.Level0)
 {
     auto metrics = paragraph_->GetLineMetrics();
     for (auto skLineMetrics : metrics) {
@@ -328,7 +328,7 @@ HWTEST_F(ParagraphTest, ParagraphTest014, TestSize.Level1)
  * @tc.desc: test for text break work with hyphen strategy in en-gb env.
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphHyphenTest001, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphHyphenTest001, TestSize.Level0)
 {
     OHOS::Rosen::SPText::TextStyle style;
     style.fontSize = 50;
@@ -367,7 +367,7 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest001, TestSize.Level1)
  * @tc.desc: test for text break work with hyphen strategy in en-gb env, and text word ends with special chars.
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level0)
 {
     ParagraphStyle paragraphStyle;
     paragraphStyle.maxLines = 10;
@@ -404,7 +404,7 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level1)
  * @tc.desc: test for combin follow liga
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest016, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTest016, TestSize.Level0)
 {
     OHOS::Rosen::SPText::TextStyle style;
     style.fontSize = 30;
@@ -463,7 +463,7 @@ void ParagraphTest::PrepareMiddleEllipsis(size_t& maxLines, const std::u16string
  * @tc.desc: test for Middle Ellipsis 001, English word
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis001, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis001, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"Hello World");
@@ -478,7 +478,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis001, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 002,Burmese combin
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis002, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis002, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"ျမင့္ေသာ ႏွလုံးခုန္ႏႈန္း သတ္မွတ္ခ်က္");
@@ -493,7 +493,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis002, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 003,emoji
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis003, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis003, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"😊😂 MM abc 中文 123");
@@ -508,7 +508,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis003, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 004,chinese & number & English
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis004, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis004, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"你好       123    Hello ");
@@ -523,7 +523,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis004, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 005,Tibetan
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis005, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis005, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"བོད་སྐད་ནི་སྒྲ་གཉིས་ཀྱི་བྱུས་དང་སྤྱི་ཚད་ཁུར་སྒྲ་སེམས་བཞིན་ཡོད།");
@@ -538,7 +538,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis005, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 006,Empty ellipsis,Empty String
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis006, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis006, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"", u"");
@@ -553,7 +553,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis006, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 007,maxLines != 1
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis007, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis007, TestSize.Level0)
 {
     size_t maxLines = 2;
     PrepareMiddleEllipsis(maxLines, u"...", u"Hello World");
@@ -568,7 +568,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis007, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 008, uygurqa
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis008, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis008, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"ياخشىمۇ سىز؟ ھەركىمگە قۇتلۇق كۈنىمىز بولسۇن!");
@@ -583,7 +583,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis008, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 009, long tail space
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis009, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis009, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"Hello Wolrd                ");
@@ -598,7 +598,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis009, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 010, empty text
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis010, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis010, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"");
@@ -613,7 +613,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis010, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 011, empty ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis011, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis011, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"", u"Hello World");
@@ -628,7 +628,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis011, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 012, add placeholder
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis012, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis012, TestSize.Level0)
 {
     size_t maxLines = 1;
     ParagraphStyle paragraphStyle;
@@ -661,7 +661,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis012, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 013, \n
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis013, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis013, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"A\nB");
@@ -676,7 +676,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis013, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 014, \n
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis014, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis014, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"\nB");
@@ -691,7 +691,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis014, TestSize.Level1)
  * @tc.desc: test for Middle Ellipsis 015, get glyph position
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis015, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis015, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"你好世界 Hello World");
@@ -718,7 +718,7 @@ OHOS::Rosen::SPText::ParagraphImpl* ProcessRelayout(std::shared_ptr<Paragraph> p
  * @tc.desc: test for relayout foreground brush with multiple textstyle
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush001, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush001, TestSize.Level0)
 {
     ParagraphStyle paragraphStyle;
     auto fontCollection = std::make_shared<FontCollection>();
@@ -757,7 +757,7 @@ HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush001, TestSize.Level1)
  * @tc.desc: test for relayout foreground brush with symbol textstyle
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush002, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush002, TestSize.Level0)
 {
     ParagraphStyle paragraphStyle;
     auto fontCollection = std::make_shared<FontCollection>();
@@ -792,7 +792,7 @@ HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush002, TestSize.Level1)
  * @tc.desc: test for relayout foreground with nullopt
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush003, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush003, TestSize.Level0)
 {
     ParagraphStyle paragraphStyle;
     auto fontCollection = std::make_shared<FontCollection>();
@@ -824,7 +824,7 @@ HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush003, TestSize.Level1)
  * @tc.desc: test for text effect state
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTestTextEffect001, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphTestTextEffect001, TestSize.Level0)
 {
     Canvas canvas;
     paragraph_->Paint(&canvas, 0.0, 0.0);
@@ -833,12 +833,12 @@ HWTEST_F(ParagraphTest, ParagraphTestTextEffect001, TestSize.Level1)
     std::unique_ptr<skt::Paragraph> temp = nullptr;
     paragraphImpl->paragraph_.swap(temp);
     EXPECT_EQ(paragraphImpl->GetTextBlobRecordInfo().size(), 0);
-    paragraphImpl->SetTextEffectState(true);
-    EXPECT_FALSE(paragraphImpl->HasEnabledTextEffect());
+    paragraphImpl->SetSkipTextBlobDrawing(true);
+    EXPECT_FALSE(paragraphImpl->HasSkipTextBlobDrawing());
 
     paragraphImpl->paragraph_.swap(temp);
     EXPECT_NE(paragraphImpl->GetTextBlobRecordInfo().size(), 0);
-    paragraphImpl->SetTextEffectState(true);
-    EXPECT_TRUE(paragraphImpl->HasEnabledTextEffect());
+    paragraphImpl->SetSkipTextBlobDrawing(true);
+    EXPECT_TRUE(paragraphImpl->HasSkipTextBlobDrawing());
 }
 } // namespace txt

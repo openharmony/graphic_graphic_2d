@@ -157,7 +157,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect002, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -200,7 +204,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect201, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -243,7 +251,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2011, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -286,7 +298,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2012, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -329,7 +345,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2013, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -372,7 +392,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect202, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -415,7 +439,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2021, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -458,7 +486,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2022, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -501,7 +533,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2023, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -544,7 +580,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect203, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -587,7 +627,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2032, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -630,7 +674,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2033, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -673,7 +721,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2031, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -716,7 +768,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect204, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -759,7 +815,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2041, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -802,7 +862,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2042, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -845,7 +909,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2043, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -888,7 +956,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect205, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -931,7 +1003,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2051, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -974,7 +1050,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2052, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1017,7 +1097,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2053, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1059,7 +1143,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect206, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1102,7 +1190,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2061, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1145,7 +1237,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2062, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1188,7 +1284,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2063, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1231,7 +1331,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect207, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1274,7 +1378,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2071, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1317,7 +1425,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2072, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1360,7 +1472,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2073, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1404,7 +1520,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect208, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1447,7 +1567,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect209, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1490,7 +1614,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2091, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1533,7 +1661,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2092, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1576,7 +1708,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2093, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1619,7 +1755,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect210, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1662,7 +1802,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect211, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1705,7 +1849,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2111, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1748,7 +1896,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2112, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1791,7 +1943,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect2113, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1834,7 +1990,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect003, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);
@@ -1865,7 +2025,11 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect004, TestSize.Level1)
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
     image->imageImplPtr = skiaImage;
     effectFilter.DrawImageRect(canvas, image, src, dst);

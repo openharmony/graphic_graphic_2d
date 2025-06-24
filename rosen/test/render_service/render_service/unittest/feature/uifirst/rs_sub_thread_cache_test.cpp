@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "parameters.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -39,6 +40,7 @@ public:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::shared_ptr<Drawing::Canvas> drawingCanvas_;
 
+    static inline RSUifirstManager& uifirstManager_ = RSUifirstManager::Instance();
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -270,6 +272,27 @@ HWTEST_F(RSSubThreadCacheTest, IsCurFrameStaticTest, TestSize.Level1)
 HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+    surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
+    ASSERT_NE(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_, nullptr);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
+        0);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+    surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
+        0);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+    surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
+        0);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
     surfaceDrawable_->syncDirtyManager_->dirtyRegion_ = {0, 0, 10, 10};
     surfaceDrawable_->GetRsSubThreadCache().isCacheValid_ = true;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
@@ -285,6 +308,7 @@ HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
         15);
     surfaceDrawable_->syncDirtyManager_->Clear();
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->Clear();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
 }
 
 /**
@@ -310,6 +334,41 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
 }
 
 /**
+ @tc.name: UpadteAllSurfaceUifirstDirtyEnableState
+ @tc.desc: Test UpadteAllSurfaceUifirstDirtyEnableState
+ @tc.type: FUNC
+ @tc.require: #ICEFXX
+ */
+HWTEST_F(RSSubThreadCacheTest, UpadteAllSurfaceUifirstDirtyEnableState, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto dirtyEnableFlag = false;
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_.get(), dirtyEnableFlag);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_.get(), dirtyEnableFlag);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_.get(), dirtyEnableFlag);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+    surfaceDrawable_->GetRsSubThreadCache().UpadteAllSurfaceUifirstDirtyEnableState(
+    surfaceDrawable_.get(), dirtyEnableFlag);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+}
+
+/**
  * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest
  * @tc.desc: Test MergeUifirstAllSurfaceDirtyRegion
  * @tc.type: FUNC
@@ -318,6 +377,27 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
 HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+    Drawing::RectI dirtyRect = {};
+    bool dirtyEnableFlag = surfaceDrawable_->GetRsSubThreadCache().MergeUifirstAllSurfaceDirtyRegion(
+        surfaceDrawable_.get(), dirtyRect);
+    ASSERT_EQ(dirtyEnableFlag, false);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
+    dirtyEnableFlag = surfaceDrawable_->GetRsSubThreadCache().MergeUifirstAllSurfaceDirtyRegion(
+        surfaceDrawable_.get(), dirtyRect);
+    ASSERT_EQ(dirtyEnableFlag, false);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "0");
+    dirtyEnableFlag = surfaceDrawable_->GetRsSubThreadCache().MergeUifirstAllSurfaceDirtyRegion(
+        surfaceDrawable_.get(), dirtyRect);
+    ASSERT_EQ(dirtyEnableFlag, false);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    system::SetParameter("rosen.ui.first.dirty.enabled", "1");
     RectI dirtyRegion = {0, 0, 10, 10};
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->historyHead_ = 0;
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->dirtyHistory_[0]= dirtyRegion;
@@ -326,10 +406,10 @@ HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.L
     surfaceParams->allSubSurfaceNodeIds_.insert(renderNode_->GetId());
     Drawing::RectF bounds = {1, 1, 2, 2};
     surfaceParams->boundsRect_ = bounds;
-    Drawing::RectI dirtyRect = {};
-    bool dirtyEnableFlag = surfaceDrawable_->GetRsSubThreadCache().MergeUifirstAllSurfaceDirtyRegion(
+    dirtyEnableFlag = surfaceDrawable_->GetRsSubThreadCache().MergeUifirstAllSurfaceDirtyRegion(
         surfaceDrawable_.get(), dirtyRect);
     ASSERT_EQ(dirtyEnableFlag, false);
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
 }
 
 /**
@@ -342,7 +422,10 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), *drawingCanvas_.get());
+    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    surfaceDrawable_->GetRsSubThreadCache().SubDraw(nullptr, rscanvas);
+    EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
+    surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
     EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
 }
 
@@ -355,20 +438,31 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest, TestSize.Level1)
 HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
-    auto result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCache(surfaceDrawable_.get(), rscanvas, true);
-    EXPECT_EQ(result, false);
-    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().HasCachedTexture());
+    // drawable is null
+    ASSERT_FALSE(subCache.DrawUIFirstCache(nullptr, rscanvas, false));
 
-    result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCache(surfaceDrawable_.get(), rscanvas, false);
-    EXPECT_EQ(result, false);
+    NodeId id = 100;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    surfaceDrawable->renderParams_ = nullptr;
+    // render param is null, draw cache failed
+    ASSERT_FALSE(subCache.DrawUIFirstCache(nullptr, rscanvas, false));
+    surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    subCache.isCacheCompletedValid_ = false;
+    ASSERT_FALSE(subCache.HasCachedTexture());
+    // no valid cache and skip wait sub thread, draw cache failed
+    ASSERT_FALSE(subCache.DrawUIFirstCache(surfaceDrawable.get(), rscanvas, true));
+    ASSERT_FALSE(subCache.HasCachedTexture());
 
-    surfaceDrawable_->GetRsSubThreadCache().isCacheCompletedValid_ = true;
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().HasCachedTexture());
-    result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCache(surfaceDrawable_.get(), rscanvas, false);
-    EXPECT_EQ(result, false);
-    surfaceDrawable_->GetRsSubThreadCache().isCacheCompletedValid_ = false;
+    subCache.isCacheValid_ = true;
+    subCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+    // no cache, wait sub thread
+    subCache.DrawUIFirstCache(surfaceDrawable.get(), rscanvas, false);
+    ASSERT_TRUE(subCache.HasCachedTexture());
 }
 
 /**
@@ -551,58 +645,169 @@ HWTEST_F(RSSubThreadCacheTest, DrawUIFirstDfxTest, TestSize.Level1)
 
 /**
  * @tc.name: DealWithUIFirstCache
- * @tc.desc: Test DealWithUIFirstCache
+ * @tc.desc: Test not use uifirst cache
  * @tc.type: FUNC
  * @tc.require: issueIAEDYI
  */
-HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest001, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     auto uniParams = std::make_shared<RSRenderThreadParams>();
-    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_,
-        *surfaceParams, *uniParams));
+    // drawable is null
+    ASSERT_FALSE(subThreadCache.DealWithUIFirstCache(nullptr, *canvas_, *surfaceParams, *uniParams));
 
-    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_,
-        *surfaceParams, *uniParams));
+    RSUniRenderThread::GetCaptureParam().isMirror_ = false;
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
+    subThreadCache.SetCacheSurfaceProcessedStatus(CacheProcessStatus::SKIPPED);
+    // uifirst disabled and no sub thread task
+    ASSERT_FALSE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = true;
+    subThreadCache.isCacheCompletedValid_ = false;
+    // no uifirst cache
+    ASSERT_FALSE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+}
+
+/**
+ * @tc.name: DealWithUIFirstCacheTest002
+ * @tc.desc: Test skip drawing special nodes in the virtual screen
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
 
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
-    uniParams->isUIFirstDebugEnable_ = true;
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_,
-        *surfaceParams, *uniParams));
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
+    RSUniRenderThread::GetCaptureParam().isMirror_ = true;
 
-    /* OnGlobalPositionEnabled is true */
-    surfaceParams->isGlobalPositionEnabled_ = true;
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_,
-                                                                             *surfaceParams, *uniParams));
-    // To set matrix is singular matrix
-    surfaceParams->matrix_.SetMatrix(1, 2, 3, 2, 4, 6, 3, 6, 9);
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_,
-                                                                             *surfaceParams, *uniParams));
-    surfaceParams->uifirstUseStarting_ = 1;
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_,
-        *surfaceParams, *uniParams));
+    uint64_t virtualScreenId = 1;
+    RSUniRenderThread::GetCaptureParam().virtualScreenId_ = virtualScreenId;
+    surfaceParams->blackListIds_[virtualScreenId].insert(surfaceParams->GetId());
+    surfaceParams->blackListIds_[0].insert(surfaceParams->GetId());
+    // node in black list
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+
+    RSUniRenderThread::GetCaptureParam().virtualScreenId_ = -1;
+    // node in black list
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+    surfaceParams->blackListIds_.clear();
 }
- 
+
 /**
- * @tc.name: DealWithUIFirstCache001
- * @tc.desc: Test DealWithUIFirstCache while capture but don't has cache texture
+ * @tc.name: DealWithUIFirstCacheTest003
+ * @tc.desc: Test reuse mainthread cache
  * @tc.type: FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCache002, TestSize.Level2)
+HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest003, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     auto uniParams = std::make_shared<RSRenderThreadParams>();
-    
-    RSUniRenderThread::GetCaptureParam().isSnapshot_ = true;
-    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_,
-        *surfaceParams, *uniParams));
+
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    subThreadCache.isCacheCompletedValid_ = false;
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    int32_t width = 100;
+    int32_t height = 100;
+    bmp.Build(width, height, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    subThreadCache.drawWindowCache_.image_ = bmp.MakeImage();
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
 }
+
+/**
+ * @tc.name: DealWithUIFirstCacheTest004
+ * @tc.desc: Test reuse subthread cache
+ * @tc.type: FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
+    RSUniRenderThread::GetCaptureParam().isMirror_ = false;
+
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
+    // uifirst enabled, draw uifirst cache
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
+    subThreadCache.SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+    // uifirst disabled, but we have task in waitting state, still use uifirst cache
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
+    subThreadCache.SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
+    // uifirst disabled, but we have task in doing state, still use uifirst cache
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = true;
+    subThreadCache.isCacheCompletedValid_ = true;
+    // snapshot reuse uifirst cache
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+}
+
+/**
+ * @tc.name: DealWithUIFirstCacheTest005
+ * @tc.desc: Test reuse subthread cache
+ * @tc.type: FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
+
+    RSUniRenderThread::GetCaptureParam().isMirror_ = false;
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
+
+    surfaceParams->SetGlobalPositionEnabled(true);
+    surfaceParams->SetUifirstUseStarting(0);
+    surfaceParams->isLeashWindow_ = true;
+    uniParams->isUIFirstDebugEnable_ = true;
+    // irrevertible matrix
+    surfaceParams->matrix_.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+    // invertible matrix
+    surfaceParams->matrix_.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+
+    surfaceParams->SetGlobalPositionEnabled(true);
+    surfaceParams->SetUifirstUseStarting(1);
+    surfaceParams->isLeashWindow_ = false;
+    uniParams->isUIFirstDebugEnable_ = false;
+    // draw starting window
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+
+    surfaceParams->SetGlobalPositionEnabled(false);
+    // global position disabled
+    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
+}
+
 
 /**
  * @tc.name: SetSubThreadSkip001
@@ -642,20 +847,36 @@ HWTEST_F(RSSubThreadCacheTest, CacheBehindWindowDataTest, TestSize.Level1)
  * @tc.name: DrawBehindWindowBeforeCacheTest
  * @tc.desc: Test DrawBehindWindowBeforeCache
  * @tc.type: FUNC
- * @tc.require: issuesIC0HM8
+ * @tc.require: issuesICFWAC
  */
 HWTEST_F(RSSubThreadCacheTest, DrawBehindWindowBeforeCacheTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    float scaleFactor = 2;
+    canvas.Scale(scaleFactor, scaleFactor);
+    // CacheBehindWindowData is null
+    subThreadCache.DrawBehindWindowBeforeCache(canvas);
+    ASSERT_EQ(canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), scaleFactor);
+
     auto data = std::make_shared<RSPaintFilterCanvas::CacheBehindWindowData>();
+    subThreadCache.cacheCompletedBehindWindowData_ = data;
+    // filter invalid
+    subThreadCache.DrawBehindWindowBeforeCache(canvas);
+    ASSERT_EQ(canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), scaleFactor);
+
     data->filter_ = RSFilter::CreateMaterialFilter(80.0f, 1.9f, 1.0f, 0xFFFFFFE5);
+    data->rect_ = {200, 0, 100, 100};
+    // rect invalid
+    subThreadCache.DrawBehindWindowBeforeCache(canvas);
+    ASSERT_EQ(canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), scaleFactor);
+
     data->rect_ = {0, 0, 100, 100};
-    surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_ = data;
-    ASSERT_NE(surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_->filter_, nullptr);
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_->rect_.IsValid());
-    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
-    surfaceDrawable_->GetRsSubThreadCache().DrawBehindWindowBeforeCache(rscanvas);
+    // surface is null
+    subThreadCache.DrawBehindWindowBeforeCache(canvas);
+    ASSERT_EQ(canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X), scaleFactor);
 }
 
 /**
@@ -693,5 +914,218 @@ HWTEST_F(RSSubThreadCacheTest, ResetUifirstTest, TestSize.Level1)
     subCache.ResetUifirst(false);
     ASSERT_EQ(subCache.cacheSurface_, nullptr);
     ASSERT_EQ(subCache.cacheCompletedSurface_, nullptr);
+}
+
+/**
+ * @tc.name: PushDirtyRegionToStack
+ * @tc.desc: Test push dirty region
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, PushDirtyRegionToStack, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    Drawing::Region region;
+    Drawing::Region dirtyRegion;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetIsParallelCanvas(true);
+    subCache.SetUifrstDirtyEnableFlag(false);
+    // push nothing
+    subCache.PushDirtyRegionToStack(canvas, region);
+    ASSERT_TRUE(canvas.IsDirtyRegionStackEmpty());
+
+    canvas.SetIsParallelCanvas(true);
+    subCache.SetUifrstDirtyEnableFlag(true);
+    subCache.SetUifirstDirtyRegion(dirtyRegion);
+    // push uifirst dirty region
+    subCache.PushDirtyRegionToStack(canvas, region);
+    ASSERT_FALSE(canvas.IsDirtyRegionStackEmpty());
+    canvas.PopDirtyRegion();
+    ASSERT_TRUE(canvas.IsDirtyRegionStackEmpty());
+
+    canvas.SetIsParallelCanvas(false);
+    // push region
+    subCache.PushDirtyRegionToStack(canvas, region);
+    ASSERT_FALSE(canvas.IsDirtyRegionStackEmpty());
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceDirtyManagerTest
+ * @tc.desc: Test update cache surface dirty manager failed
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceDirtyManagerTest001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    RsSubThreadCache subCache;
+    bool hasCompleteCache = true;
+    bool isLastFrameSkip = true;
+    // drawable is null
+    ASSERT_FALSE(subCache.UpdateCacheSurfaceDirtyManager(nullptr, hasCompleteCache, isLastFrameSkip));
+
+    subCache.syncUifirstDirtyManager_ = nullptr;
+    // dirty manager is null
+    ASSERT_FALSE(subCache.UpdateCacheSurfaceDirtyManager(surfaceDrawable.get(), hasCompleteCache, isLastFrameSkip));
+
+    subCache.syncUifirstDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    surfaceDrawable->syncDirtyManager_ = nullptr;
+    // dirty manager is null
+    ASSERT_FALSE(subCache.UpdateCacheSurfaceDirtyManager(surfaceDrawable.get(), hasCompleteCache, isLastFrameSkip));
+
+    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    surfaceDrawable->renderParams_ = nullptr;
+    // param is null
+    ASSERT_FALSE(subCache.UpdateCacheSurfaceDirtyManager(surfaceDrawable.get(), hasCompleteCache, isLastFrameSkip));
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceDirtyManagerTest
+ * @tc.desc: Test update cache surface dirty manager success
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceDirtyManagerTest002, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    RsSubThreadCache subCache;
+
+    subCache.syncUifirstDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+
+    ASSERT_TRUE(subCache.UpdateCacheSurfaceDirtyManager(surfaceDrawable.get(), true, true));
+    ASSERT_TRUE(subCache.UpdateCacheSurfaceDirtyManager(surfaceDrawable.get(), false, false));
+}
+
+/**
+ * @tc.name: IsDirtyRecordCompletatedTest
+ * @tc.desc: Test IsDirtyRecordCompletated
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, IsDirtyRecordCompletatedTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    subCache.UpdateDirtyRecordCompletatedState(true);
+    ASSERT_TRUE(subCache.IsDirtyRecordCompletated());
+    subCache.UpdateDirtyRecordCompletatedState(false);
+    ASSERT_FALSE(subCache.IsDirtyRecordCompletated());
+}
+
+/**
+ * @tc.name: GetUifirstDirtyRegionTest
+ * @tc.desc: Test GetUifirstDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, GetUifirstDirtyRegionTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    Drawing::Region dirtyRegion;
+    Drawing::RectI rectI = {0, 0, 200, 200};
+    dirtyRegion.SetRect(rectI);
+    ASSERT_TRUE(subCache.GetUifirstDirtyRegion().IsEmpty());
+    subCache.SetUifirstDirtyRegion(dirtyRegion);
+    ASSERT_FALSE(subCache.GetUifirstDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: GetUifrstDirtyEnableFlagTest
+ * @tc.desc: Test GetUifrstDirtyEnableFlag
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, GetUifrstDirtyEnableFlagTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    subCache.SetUifrstDirtyEnableFlag(true);
+    ASSERT_TRUE(subCache.GetUifrstDirtyEnableFlag());
+    subCache.SetUifrstDirtyEnableFlag(false);
+    ASSERT_FALSE(subCache.GetUifrstDirtyEnableFlag());
+}
+
+/**
+ * @tc.name: GetCurDirtyRegionWithMatrixTest
+ * @tc.desc: Test current dirty region
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, GetCurDirtyRegionWithMatrixTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    Drawing::Matrix matrix;
+    Drawing::RectF latestDirtyRect;
+    Drawing::RectF absDrawRect;
+
+    // irrevertible matrix
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    ASSERT_FALSE(subCache.GetCurDirtyRegionWithMatrix(matrix, latestDirtyRect, absDrawRect));
+    // invertible matrix
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    ASSERT_TRUE(subCache.GetCurDirtyRegionWithMatrix(matrix, latestDirtyRect, absDrawRect));
+}
+
+/**
+ * @tc.name: UifirstDirtyRegionDfxTest
+ * @tc.desc: Test dfx
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, UifirstDirtyRegionDfxTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    Drawing::Canvas drawingCanvas;
+    Drawing::RectI rect;
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "1");
+    OHOS::system::SetParameter("rosen.ui.first.dirty.dfx.enabled", "1");
+    ASSERT_TRUE(RSSystemProperties::GetUIFirstDirtyDebugEnabled());
+    subCache.UifirstDirtyRegionDfx(drawingCanvas, rect);
+    OHOS::system::SetParameter("rosen.ui.first.dirty.dfx.enabled", "0");
+    subCache.UifirstDirtyRegionDfx(drawingCanvas, rect);
+    ASSERT_FALSE(RSSystemProperties::GetUIFirstDirtyDebugEnabled());
+    OHOS::system::SetParameter("rosen.ui.first.dirty.dfx.enabled", param);
+}
+
+/**
+ * @tc.name: TotalProcessedSurfaceCountIncTest
+ * @tc.desc: Test processed surface node count
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, TotalProcessedSurfaceCountIncTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    subCache.totalProcessedSurfaceCount_ = 0;
+    canvas.SetIsParallelCanvas(false);
+    subCache.TotalProcessedSurfaceCountInc(canvas);
+    ASSERT_EQ(subCache.GetTotalProcessedSurfaceCount(), 0);
+    canvas.SetIsParallelCanvas(true);
+    subCache.TotalProcessedSurfaceCountInc(canvas);
+    ASSERT_EQ(subCache.GetTotalProcessedSurfaceCount(), 1);
+}
+
+/**
+ * @tc.name: GetSurfaceSkipPriorityTest
+ * @tc.desc: Test surface skip priority
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, GetSurfaceSkipPriorityTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    subCache.ResetSurfaceSkipCount();
+    ASSERT_EQ(subCache.GetSurfaceSkipCount(), 0);
+    ASSERT_EQ(subCache.isSurfaceSkipPriority_, 0);
+    ASSERT_EQ(subCache.GetSurfaceSkipPriority(), 1);
 }
 }

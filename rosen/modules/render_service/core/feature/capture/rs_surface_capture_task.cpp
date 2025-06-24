@@ -181,11 +181,12 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
     std::shared_ptr<Drawing::ColorSpace> colorSpace)
 {
     auto captureType = captureConfig.captureType;
-    // captureConfig.usedDma = ture, Exception Settings(DMA-CCM not configured), But use Dma
+    // captureConfig.usedDma = ture, Entering This process is an abnormal situation(maybe dma-ccm not configed)
     // The memory needs to be reassigned
     bool isUsedClientPixelMap = (captureConfig.isClientPixelMap && !captureConfig.useDma);
     if (!isUsedClientPixelMap &&
-        !RSCapturePixelMapManager::SetCapturePixelMapMem(pixelmap, captureConfig, uniRenderEnabledType)) {
+        !RSCapturePixelMapManager::SetCapturePixelMapMem(pixelmap, captureConfig.captureType,
+        uniRenderEnabledType, false)) {
         RS_LOGE("CopyDataToPixelMap::SetCapturePixelMapMem Fail");
         return false;
     }

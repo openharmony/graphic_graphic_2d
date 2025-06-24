@@ -16,35 +16,35 @@
 
 #include "modifier/rs_modifier_manager.h"
 
+#include "rs_trace.h"
+
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_property_modifier.h"
+#include "modifier_ng/custom/rs_custom_modifier.h"
 #include "platform/common/rs_log.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
-void RSModifierManager::AddModifier(const std::shared_ptr<RSModifier>& modifier)
+void RSModifierManager::AddModifier(const std::shared_ptr<Modifier>& modifier)
 {
     modifiers_.insert(modifier);
 }
 
 void RSModifierManager::Draw()
 {
-    if (modifiers_.empty()) {
-        return;
+    if (!modifiers_.empty()) {
+        RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiers_.size()) + "]");
+        for (auto& modifier : modifiers_) {
+            RS_TRACE_NAME("RSModifier::Draw");
+            modifier->UpdateToRender();
+            modifier->SetDirty(false);
+            modifier->ResetRSNodeExtendModifierDirty();
+        }
+        modifiers_.clear();
     }
-
-    RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiers_.size()) + "]");
-    for (auto& modifier : modifiers_) {
-        RS_TRACE_NAME("RSModifier::Draw");
-        modifier->UpdateToRender();
-        modifier->SetDirty(false);
-        modifier->ResetRSNodeExtendModifierDirty();
-    }
-    modifiers_.clear();
 }
 
 void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

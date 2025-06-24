@@ -104,7 +104,7 @@ public:
     static bool IsOpenPerf();
     static int64_t GetCurrentTime();
     static void SetCurrentNodeId(uint64_t nodeId);
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     static void GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,
        const std::map<std::string, TextureEvent>& grTextureEvent);
     static void GrBlurEventConvert2Rs(std::map<std::string, RsBlurEvent>& rsBlurEvent,

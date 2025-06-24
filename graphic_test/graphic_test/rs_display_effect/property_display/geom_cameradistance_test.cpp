@@ -46,4 +46,63 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_1)
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 0, 0, 500, 500 });
+    testNode->SetPivot(Vector2f(0.5, 0.5));
+    testNode->SetRotation(45.0, 0, 45.0);
+    testNode->SetCameraDistance(-50);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 0, 0, 500, 500 });
+    testNode->SetPivot(Vector2f(0.5, 0.5));
+    testNode->SetRotation(45.0, 0, 45.0);
+    testNode->SetCameraDistance(50);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_4)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 0, 0, 500, 500 });
+    testNode->SetPivot(Vector2f(0.5, 0.5));
+    testNode->SetRotation(45.0, 0, 45.0);
+    testNode->SetCameraDistance(0);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_5)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 0, 0, 500, 500 });
+    testNode->SetPivot(Vector2f(0.5, 0.5));
+    testNode->SetRotation(45.0, 45.0, 0);
+    testNode->SetCameraDistance(-50);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_6)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 0, 0, 500, 500 });
+    testNode->SetPivot(Vector2f(0.5, 0.5));
+    testNode->SetRotation(180.0, 180.0, 0);
+    testNode->SetCameraDistance(50);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_7)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 0, 0, 500, 500 });
+    testNode->SetPivot(Vector2f(0.5, 0.5));
+    testNode->SetRotation(90.0, 90.0, 90.0);
+    testNode->SetCameraDistance(0);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
 } // namespace OHOS::Rosen

@@ -263,7 +263,7 @@ void RSBackgroundUIFilterModifier::OnDetachFromNode()
                 continue;
             }
             prop->target_.reset();
-            node->UnRegisterProperty(prop->GetId());
+            node->UnregisterProperty(prop->GetId());
         }
     }
 }
@@ -355,9 +355,39 @@ void RSForegroundUIFilterModifier::OnDetachFromNode()
                 continue;
             }
             prop->target_.reset();
-            node->UnRegisterProperty(prop->GetId());
+            node->UnregisterProperty(prop->GetId());
         }
     }
+}
+
+RSForegroundNGFilterModifier::RSForegroundNGFilterModifier(const std::shared_ptr<RSPropertyBase>& property)
+    : RSForegroundModifier(property, RSModifierType::FOREGROUND_NG_FILTER)
+{}
+
+std::shared_ptr<RSRenderModifier> RSForegroundNGFilterModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    return std::make_shared<RSForegroundNGFilterRenderModifier>(renderProperty);
+}
+
+RSModifierType RSForegroundNGFilterModifier::GetModifierType() const
+{
+    return RSModifierType::FOREGROUND_NG_FILTER;
+}
+
+RSBackgroundNGFilterModifier::RSBackgroundNGFilterModifier(const std::shared_ptr<RSPropertyBase>& property)
+    : RSBackgroundModifier(property, RSModifierType::BACKGROUND_NG_FILTER)
+{}
+
+std::shared_ptr<RSRenderModifier> RSBackgroundNGFilterModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    return std::make_shared<RSBackgroundNGFilterRenderModifier>(renderProperty);
+}
+
+RSModifierType RSBackgroundNGFilterModifier::GetModifierType() const
+{
+    return RSModifierType::BACKGROUND_NG_FILTER;
 }
 
 void RSBoundsModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)

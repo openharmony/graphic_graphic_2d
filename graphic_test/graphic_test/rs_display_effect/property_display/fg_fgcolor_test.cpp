@@ -63,4 +63,94 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_2)
     RegisterNode(testNode1);
     RegisterNode(testNode2);
 }
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_4)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, 500 });
+    testNode1->SetForegroundColor(0xff000000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_5)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, 0, 500, 500 });
+    testNode1->SetForegroundColor(0xf0f00000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_6)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, -100, 500, 500 });
+    testNode1->SetForegroundColor(0xf00f0000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_7)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, -500, 500 });
+    testNode1->SetForegroundColor(0xf00f0000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_8)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, 500, -500 });
+    testNode1->SetForegroundColor(0xf000f000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_9)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 0, 0, -500, -500 });
+    testNode1->SetForegroundColor(0xf0000f00);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_10)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, -100, 500, 500 });
+    testNode1->SetForegroundColor(0xf00000f0);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_11)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, -100, -500, 500 });
+    testNode1->SetForegroundColor(0xf000000f);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_12)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ -100, -100, -500, -500 });
+    testNode1->SetForegroundColor(0x000ff000);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgColor_Test_13)
+{
+    auto testNode1 = RSCanvasNode::Create();
+    testNode1->SetBounds({ 100, 100, 500, 500 });
+    testNode1->SetForegroundColor(0x000000ff);
+    GetRootNode()->AddChild(testNode1);
+    RegisterNode(testNode1);
+}
 } // namespace OHOS::Rosen

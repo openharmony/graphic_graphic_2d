@@ -187,6 +187,13 @@ void CreateVirtualScreen()
     CreateOrGetScreenManager()->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
 }
 
+void SetVirtualScreenAutoRotation()
+{
+    ScreenId screenId = GetData<Rosen::ScreenId>();
+    bool isAutoRotation = GetData<bool>();
+    CreateOrGetScreenManager()->SetVirtualScreenAutoRotation(screenId, isAutoRotation);
+}
+
 void SetVirtualScreenBlackList()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -721,8 +728,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::DisablePowerOffRenderControl,
         OHOS::Rosen::GetDisplayPropertyForHardCursor,
         OHOS::Rosen::SetScreenHasProtectedLayer,
-        OHOS::Rosen::IsVisibleRectSupportRotation
-    }; 
+        OHOS::Rosen::IsVisibleRectSupportRotation,
+        OHOS::Rosen::SetVirtualScreenAutoRotation
+    };
     /* Run your code on data */
     uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
     funcVector[pos]();

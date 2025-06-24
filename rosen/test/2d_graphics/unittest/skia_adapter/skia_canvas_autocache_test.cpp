@@ -30,6 +30,10 @@
 #include "skia_adapter/skia_vertices.h"
 #include "text/rs_xform.h"
 #include "utils/rect.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkRRect.h"
+#include "include/core/SkImage.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -340,19 +344,38 @@ HWTEST_F(SkiaCanvasAutoCacheTest, onDrawImage2001, TestSize.Level1)
     paint.SetAntiAlias(true);
     SkPaint skPaint;
     SkiaPaint::PaintToSkPaint(paint, skPaint);
+#ifdef USE_M133_SKIA
+    auto info = SkImageInfo::Make(300, 500, SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGBA_8888),
+        SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_PREMUL));
+    SkBitmap bitmap;
+    bool isBuildSuccess = bitmap.setInfo(info) && bitmap.tryAllocPixels();
+    ASSERT_TRUE(isBuildSuccess);
+    sk_sp<SkImage> image = SkImages::RasterFromBitmap(bitmap);
+#else
     SkImageInfo info;
     info.makeWH(300, 500); // 300, 500 means newWidth and newHeight
     SkImage image(info, 1); // 1 means uniqueID
+#endif
     const SamplingOptions sampling;
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
     ASSERT_TRUE(samplingOptions != nullptr);
+#ifdef USE_M133_SKIA
+    skiaCanvasAutoCache.onDrawImage2(image.get(), 100.f, 200.f, *samplingOptions,
+        &skPaint); // 100.f, 200.f means left and top
+#else
     skiaCanvasAutoCache.onDrawImage2(&image, 100.f, 200.f, *samplingOptions,
         &skPaint); // 100.f, 200.f means left and top
+#endif
 
     const SkRect skRect = SkRect::MakeLTRB(100, 100, 400, 300); // rect.Left, rect.Top, rect.Right, rect.Bottom
     SkCanvas::Lattice lattice;
+#ifdef USE_M133_SKIA
+    skiaCanvasAutoCache.onDrawImageLattice2(image.get(), lattice, skRect,
+        static_cast<SkFilterMode>(FilterMode::LINEAR), &skPaint);
+#else
     skiaCanvasAutoCache.onDrawImageLattice2(&image, lattice, skRect,
         static_cast<SkFilterMode>(FilterMode::LINEAR), &skPaint);
+#endif
 }
 
 /**

@@ -37,6 +37,14 @@ constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 constexpr int64_t MAX_IDLE_TIME_THRESHOLD = 900000000; // 900000000ns == 900ms
 constexpr double SAMPLE_VARIANCE_THRESHOLD = 250000000000.0; // 500 usec squared
+constexpr int64_t INSPECTION_PERIOD = 5000000000;
+
+static int64_t SystemTime()
+{
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
+}
 }
 sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::GetInstance() noexcept
 {
@@ -66,14 +74,18 @@ void VSyncSampler::ResetErrorLocked()
 
 void VSyncSampler::SetAdaptive(bool isAdaptive)
 {
+    if (isAdaptive_.load() == isAdaptive) {
+        return;
+    }
+    lastAdaptiveTime_ = 0;
     isAdaptive_.store(isAdaptive);
 }
 
 void VSyncSampler::SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     RS_TRACE_NAME_FMT("SetVsyncEnabledScreenId:%lu", vsyncEnabledScreenId);
     VLOGI("SetVsyncEnabledScreenId:" VPUBU64, vsyncEnabledScreenId);
+    std::lock_guard<std::mutex> lock(mutex_);
     vsyncEnabledScreenId_ = vsyncEnabledScreenId;
 }
 
@@ -184,8 +196,13 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
         if (isAdaptive_.load() && CreateVSyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
             RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample, intervalStamp:%ld", intervalStamp);
             numSamples_ = 0;
+            lastAdaptiveTime_.store(SystemTime());
             return true;
         }
+    }
+
+    if (isAdaptive_.load() && SystemTime() - lastAdaptiveTime_.load() < INSPECTION_PERIOD) {
+        return true;
     }
 
     if (numSamples_ < MAX_SAMPLES - 1) {

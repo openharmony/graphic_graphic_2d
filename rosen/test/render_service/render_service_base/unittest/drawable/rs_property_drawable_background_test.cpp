@@ -21,7 +21,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "render/rs_drawing_filter.h"
-#include "include/core/SkStream.h"
 #include "surface_buffer_impl.h"
 #include "buffer_handle.h"
 #include "buffer_handle_utils.h"
@@ -367,6 +366,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_FALSE(drawableFour->OnUpdate(node));
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSBackgroundFilterDrawable002
  * @tc.desc: Test NeedBehindWindow branch
@@ -420,6 +420,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
     ASSERT_TRUE(filterDrawable->needDrawBehindWindow_);
     ASSERT_TRUE(filterDrawable->drawBehindWindowRegion_ == filterDrawable->stagingDrawBehindWindowRegion_);
 }
+#endif
 
 /**
  * @tc.name: RSBackgroundEffectDrawable

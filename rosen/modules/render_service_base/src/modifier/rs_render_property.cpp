@@ -19,14 +19,36 @@
 
 #include "rs_profiler.h"
 
+#include "effect/rs_render_filter_base.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 
+void RSRenderPropertyBase::Attach(std::weak_ptr<RSRenderNode> node)
+{
+    node_ = node;
+    OnChange();
+    OnAttach();
+}
+
+void RSRenderPropertyBase::Detach(std::weak_ptr<RSRenderNode> node)
+{
+    OnDetach();
+    if (auto node = node_.lock()) {
+        node->RemoveProperty(shared_from_this());
+    }
+}
+
 void RSRenderPropertyBase::OnChange() const
 {
+#if defined(MODIFIER_NG)
+    if (auto modifier = modifier_.lock()) {
+        modifier->SetDirty();
+    }
+#else
     if (auto node = node_.lock()) {
         node->SetDirty();
         node->AddDirtyType(modifierType_);
@@ -41,6 +63,7 @@ void RSRenderPropertyBase::OnChange() const
             node->MarkParentNeedRegenerateChildren();
         }
     }
+#endif
 }
 
 void RSRenderPropertyBase::UpdatePropertyUnit(RSModifierType type)
@@ -56,6 +79,27 @@ void RSRenderPropertyBase::UpdatePropertyUnit(RSModifierType type)
         case RSModifierType::ROTATION_X:
         case RSModifierType::ROTATION_Y:
         case RSModifierType::ROTATION:
+            SetPropertyUnit(RSPropertyUnit::ANGLE_ROTATION);
+            break;
+        default:
+            SetPropertyUnit(RSPropertyUnit::UNKNOWN);
+            break;
+    }
+}
+
+void RSRenderPropertyBase::UpdatePropertyUnitNG(ModifierNG::RSPropertyType propertyType)
+{
+    switch (propertyType) {
+        case ModifierNG::RSPropertyType::FRAME:
+        case ModifierNG::RSPropertyType::TRANSLATE:
+            SetPropertyUnit(RSPropertyUnit::PIXEL_POSITION);
+            break;
+        case ModifierNG::RSPropertyType::SCALE:
+            SetPropertyUnit(RSPropertyUnit::RATIO_SCALE);
+            break;
+        case ModifierNG::RSPropertyType::ROTATION_X:
+        case ModifierNG::RSPropertyType::ROTATION_Y:
+        case ModifierNG::RSPropertyType::ROTATION:
             SetPropertyUnit(RSPropertyUnit::ANGLE_ROTATION);
             break;
         default:
@@ -214,7 +258,7 @@ bool operator!=(
 }
 
 template<typename T>
-bool RSRenderProperty<T>::onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
+bool RSRenderProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     auto ret = new RSRenderProperty<T>();
     if (ret == nullptr) {
@@ -232,7 +276,7 @@ bool RSRenderProperty<T>::onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRend
 }
 
 template<typename T>
-bool RSRenderAnimatableProperty<T>::onUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
+bool RSRenderAnimatableProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     auto ret = new RSRenderAnimatableProperty<T>();
     if (ret == nullptr) {
@@ -424,7 +468,7 @@ void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
-#ifdef USE_M133_SKIA
+#ifdef TODO_M133_SKIA
     (void)out; // todo : Intrusive modification of the waiting turn
 #else
     Get().dump(out, 0);
@@ -509,6 +553,14 @@ void RSRenderProperty<std::shared_ptr<RSShader>>::Dump(std::string& out) const
 }
 
 template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& out) const
+{
+    if (auto property = Get()) {
+        property->Dump(out);
+    }
+}
+
+template<>
 void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
 {
     if (!Get()) {
@@ -517,8 +569,7 @@ void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
     }
     std::string info;
     Get()->Dump(info, 0);
-    info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }),
-        info.end());
+    info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }), info.end());
     out += "[\"" + info + "\"]";
 }
 
@@ -675,6 +726,36 @@ bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     }
     ROSEN_LOGE("RSRenderAnimatableProperty<RRect>::IsNearEqual: the value of the comparison is a null pointer!");
     return true;
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach()
+{
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Attach(node);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnDetach()
+{
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Detach(node);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType()
+{
+    stagingValue_->SetModifierType(modifierType_);
 }
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>

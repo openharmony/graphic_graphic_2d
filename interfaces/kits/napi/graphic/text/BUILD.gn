@@ -91,6 +91,10 @@ ohos_shared_library("text_napi_impl") {
     ":text_config",
   ]
 
+  public_configs = [
+    ":text_config"
+  ]
+
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -115,9 +119,13 @@ ohos_shared_library("text_napi_impl") {
     "resource_management:global_resmgr",
   ]
 
+  if (!defined(defines)) {
+    defines = []
+  }
+
   if (current_os == "ohos" || current_os == "ohos_ng") {
     external_deps += [ "init:libbegetutil" ]
-    defines = [ "ENABLE_OHOS_ENHANCE" ]
+    defines += [ "ENABLE_OHOS_ENHANCE" ]
   }
   cflags_cc = [ "-std=c++17" ]
 

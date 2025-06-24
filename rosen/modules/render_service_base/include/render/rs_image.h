@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_H
 
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
@@ -210,4 +210,4 @@ inline bool ROSEN_EQ(const std::shared_ptr<RSImage>& x, const std::shared_ptr<RS
 }
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_H

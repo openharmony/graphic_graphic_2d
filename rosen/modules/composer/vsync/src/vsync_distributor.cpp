@@ -55,6 +55,7 @@ constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 256;
 constexpr std::string_view URGENT_SELF_DRAWING = "UrgentSelfdrawing";
 constexpr int32_t MAX_VSYNC_QUEUE_SIZE = 100;
 constexpr int64_t VSYNC_TIME_TOLERANCE_THRESHOLD = 2000000;
+constexpr int64_t MAX_SIZE_OF_DIGIT_NUM_FOR_PID = 8;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -677,10 +678,12 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
     return true;
 }
 
-void VSyncDistributor::EnableVSync()
+void VSyncDistributor::EnableVSync(bool isUrgent)
 {
     if (controller_ != nullptr && vsyncEnabled_ == false) {
         controller_->SetCallback(this);
+        controller_->SetUrgent(isUrgent);
+        controller_->SetRS(isRs_);
         controller_->SetEnable(true, vsyncEnabled_);
         // Start of DVSync
         RecordEnableVsync();
@@ -1137,7 +1140,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         if (isUrgent) {
             NeedPreexecute = VSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
         }
-        EnableVSync();
+        EnableVSync(isUrgent);
         // Start of DVSync
         DVSyncRecordRNV(connection, fromWhom, lastVSyncTS);
         // adaptive sync game mode, urgent scenario don't need to preexecute
@@ -1228,7 +1231,12 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
     if (pos == std::string::npos || (pos + 1) >= name.size()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    pid = static_cast<uint32_t>(stoi(name.substr(pos + 1)));
+    std::string pidStr = name.substr(pos + 1);
+    if (pidStr.empty() || pidStr.size() > MAX_SIZE_OF_DIGIT_NUM_FOR_PID || !std::isdigit(pidStr[0])) {
+        VLOGI("get pid failed, name:%{public}s", name.c_str());
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    pid = static_cast<uint32_t>(stoi(pidStr));
     return VSYNC_ERROR_OK;
 }
 
@@ -1872,6 +1880,13 @@ void VSyncDistributor::FirstRequestVsync()
 {
     std::unique_lock<std::mutex> locker(mutex_);
     isFirstRequest_ = true;
+}
+
+void VSyncDistributor::SetTaskEndWithTime(uint64_t time)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().SetTaskEndWithTime(time);
+#endif
 }
 }
 }

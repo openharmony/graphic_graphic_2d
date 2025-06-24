@@ -23,6 +23,7 @@ namespace Rosen {
 namespace {
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr uint32_t DELAY_TIME_OFFSET = 100;
+constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
 }
 void HgmHardwareUtils::RegisterChangeDssRefreshRateCb()
 {
@@ -117,6 +118,16 @@ void HgmHardwareUtils::PerformSetActiveMode(
 
         uint32_t ret = screenManager->SetScreenActiveMode(id, modeId);
         needRetrySetRate_ = (ret == StatusCode::SET_RATE_ERROR);
+        if (needRetrySetRate_) {
+            if (setRateRetryCount_ < MAX_SETRATE_RETRY_COUNT) {
+                setRateRetryCount_++;
+            } else {
+                RS_LOGW("set refresh rate failed more than %{public}d, skip retrying", MAX_SETRATE_RETRY_COUNT);
+                needRetrySetRate_ = false;
+            }
+        } else {
+            setRateRetryCount_ = 0;
+        }
         RS_LOGD_IF(needRetrySetRate_, "HgmContext: need retry set modeId %{public}d", modeId);
 
         auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));

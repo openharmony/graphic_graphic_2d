@@ -131,17 +131,6 @@ void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered
     }
 }
 
-#ifdef RS_ENABLE_VK
-void RsFrameReport::ModifierReportSchedEvent(
-    FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
-{
-    if (!frameSchedSoLoaded_) {
-        LoadLibrary();
-    }
-    ReportSchedEvent(event, payload);
-}
-#endif
-
 void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
 {
     if (setFrameParamFunc_ == nullptr) {

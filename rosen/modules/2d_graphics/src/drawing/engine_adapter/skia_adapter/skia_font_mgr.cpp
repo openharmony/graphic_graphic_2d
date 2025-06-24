@@ -190,10 +190,8 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
             return nullptr;
         } else {
             dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
-#ifndef USE_M133_SKIA
             typeface->setIsCustomTypeface(true);
             typeface->setIsThemeTypeface(true);
-#endif
             std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
             return new Typeface(typefaceImpl);
         }

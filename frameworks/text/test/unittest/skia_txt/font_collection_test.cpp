@@ -28,7 +28,7 @@ class FontCollectionTest : public testing::Test {};
  * @tc.desc: test for GetFontManagersCount and SetupDefaultFontManager and SetDefaultFontManager
  * @tc.type: FUNC
  */
-HWTEST_F(FontCollectionTest, FontCollectionTest001, TestSize.Level1)
+HWTEST_F(FontCollectionTest, FontCollectionTest001, TestSize.Level0)
 {
     FontCollection fontCollection;
     EXPECT_EQ(fontCollection.GetFontManagersCount(), 0);
@@ -45,7 +45,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest001, TestSize.Level1)
  * @tc.desc: test for SetAssetFontManager
  * @tc.type: FUNC
  */
-HWTEST_F(FontCollectionTest, FontCollectionTest004, TestSize.Level1)
+HWTEST_F(FontCollectionTest, FontCollectionTest004, TestSize.Level0)
 {
     FontCollection fontCollection;
     fontCollection.SetAssetFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
@@ -58,7 +58,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest004, TestSize.Level1)
  * @tc.desc: test for SetDynamicFontManager
  * @tc.type: FUNC
  */
-HWTEST_F(FontCollectionTest, FontCollectionTest005, TestSize.Level1)
+HWTEST_F(FontCollectionTest, FontCollectionTest005, TestSize.Level0)
 {
     FontCollection fontCollection;
     fontCollection.SetDynamicFontManager(OHOS::Rosen::Drawing::FontMgr::CreateDynamicFontMgr());
@@ -71,7 +71,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest005, TestSize.Level1)
  * @tc.desc: test for SetTestFontManager
  * @tc.type: FUNC
  */
-HWTEST_F(FontCollectionTest, FontCollectionTest006, TestSize.Level1)
+HWTEST_F(FontCollectionTest, FontCollectionTest006, TestSize.Level0)
 {
     FontCollection fontCollection;
     fontCollection.SetTestFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
@@ -84,7 +84,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest006, TestSize.Level1)
  * @tc.desc: test for GetFontManagerOrder
  * @tc.type: FUNC
  */
-HWTEST_F(FontCollectionTest, FontCollectionTest007, TestSize.Level1)
+HWTEST_F(FontCollectionTest, FontCollectionTest007, TestSize.Level0)
 {
     FontCollection fontCollection;
     fontCollection.SetupDefaultFontManager();
@@ -104,7 +104,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest007, TestSize.Level1)
  * @tc.desc: test for DisableFontFallback
  * @tc.type: FUNC
  */
-HWTEST_F(FontCollectionTest, FontCollectionTest008, TestSize.Level1)
+HWTEST_F(FontCollectionTest, FontCollectionTest008, TestSize.Level0)
 {
     FontCollection fontCollection;
     fontCollection.CreateSktFontCollection();
@@ -119,7 +119,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest008, TestSize.Level1)
  * @tc.desc: test for ClearFontFamilyCache
  * @tc.type: FUNC
  */
-HWTEST_F(FontCollectionTest, FontCollectionTest009, TestSize.Level1)
+HWTEST_F(FontCollectionTest, FontCollectionTest009, TestSize.Level0)
 {
     FontCollection fontCollection;
     fontCollection.CreateSktFontCollection();

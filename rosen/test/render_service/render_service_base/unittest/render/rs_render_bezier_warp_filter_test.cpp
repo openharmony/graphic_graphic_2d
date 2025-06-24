@@ -185,5 +185,8 @@ HWTEST_F(RSRenderBezierWarpFilterTest, ParseFilterValuesTest002, TestSize.Level1
         rsBezierWarpFilter->Setter(POINTS_TYPE[i], renderProperty);
     }
     EXPECT_FALSE(rsBezierWarpFilter->ParseFilterValues());
+
+    auto rsBezierWarpFilterCopy = rsBezierWarpFilter->DeepCopy();
+    EXPECT_NE(rsBezierWarpFilterCopy, nullptr);
 }
 } // namespace OHOS::Rosen

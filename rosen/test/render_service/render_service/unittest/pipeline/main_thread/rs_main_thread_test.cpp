@@ -1643,28 +1643,11 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
 
 /**
  * @tc.name: CheckIfHardwareForcedDisabled
- * @tc.desc: CheckIfHardwareForcedDisabled002 test rootNode = nullptr
+ * @tc.desc: CheckIfHardwareForcedDisabled002 test child = nullptr and type != DISPLAY_NODE
  * @tc.type: FUNC
  * @tc.require: issueIAS924
  */
 HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    ASSERT_NE(mainThread->context_, nullptr);
-    auto rootNode = mainThread->context_->globalRootRenderNode_;
-    mainThread->context_->globalRootRenderNode_ = nullptr;
-    mainThread->CheckIfHardwareForcedDisabled();
-    mainThread->context_->globalRootRenderNode_ = rootNode;
-}
-
-/**
- * @tc.name: CheckIfHardwareForcedDisabled
- * @tc.desc: CheckIfHardwareForcedDisabled003 test child = nullptr and type != DISPLAY_NODE
- * @tc.type: FUNC
- * @tc.require: issueIAS924
- */
-HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -5314,5 +5297,95 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
     system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
     delete handle;
+}
+
+/**
+ * @tc.name: DoDirectComposition004
+ * @tc.desc: Test DoDirectComposition For HwcNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
+{
+    // INIT SCREEN
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(5, false, HdiOutput::CreateHdiOutput(5), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
+    screenManager->MockHdiScreenConnected(rsScreen);
+
+    // INIT DISPLAY
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    config.screenId = 5; // screeId is 5 for test
+
+    // INIT CHILDLIST
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    displayNode->SetScreenId(config.screenId);
+
+    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(2, config);
+
+    rootNode->AddChild(displayNode);
+    rootNode->AddChild(displayNode2);
+    rootNode->GenerateFullChildrenList();
+    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+
+    // INIT NodeList
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config.screenId, mainThread->context_);
+    surfaceNode->InitRenderParams();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true);
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->hardwareEnabledNodes_.emplace_back(surfaceNode);
+
+    // true true
+    mainThread->isUniRender_ = true;
+    displayNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
+    surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
+    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    // true false
+    displayNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
+    surfaceNode->surfaceHandler_->ResetCurrentFrameBufferConsumed();
+    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    mainThread->renderEngine_ = renderEngine;
+    // false true
+    displayNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
+    mainThread->isUniRender_ = false;
+    surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
+    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    // false false
+    displayNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
+    mainThread->isUniRender_ = false;
+    surfaceNode->surfaceHandler_->ResetCurrentFrameBufferConsumed();
+    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    // RESET
+    mainThread->renderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: SetTaskEndWithTime001
+ * @tc.desc: Test SetTaskEndWithTime
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, SetTaskEndWithTime001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto rsVSyncDistributor = mainThread->rsVSyncDistributor_;
+    mainThread->SetTaskEndWithTime(0);
 }
 } // namespace OHOS::Rosen

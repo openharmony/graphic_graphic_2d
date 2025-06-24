@@ -46,7 +46,7 @@ static int32_t GetUnresolvedGlyphCount(const void* text, size_t length, OH_Drawi
  * @tc.desc: Test valid UTF-8 text input scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddValidUTF8TextTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddValidUTF8TextTest, TestSize.Level0)
 {
     // Basic ASCII characters
     const char ascii[] = u8"Hello World";
@@ -74,7 +74,7 @@ HWTEST_F(NdkAddTextTest, AddValidUTF8TextTest, TestSize.Level1)
  * @tc.desc: Test invalid UTF-8 text input scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddInvalidUTF8TextTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddInvalidUTF8TextTest, TestSize.Level0)
 {
     // Invalid continuation bytes
     const char invalid1[] = "abc\x80\xff";
@@ -94,7 +94,7 @@ HWTEST_F(NdkAddTextTest, AddInvalidUTF8TextTest, TestSize.Level1)
  * @tc.desc: Test valid UTF-16 text input scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddValidUTF16TextTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddValidUTF16TextTest, TestSize.Level0)
 {
     // Basic BMP characters
     const char16_t ascii16[] = u"Hello World";
@@ -118,7 +118,7 @@ HWTEST_F(NdkAddTextTest, AddValidUTF16TextTest, TestSize.Level1)
  * @tc.desc: Test invalid UTF-16 text input scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddInvalidUTF16TextTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddInvalidUTF16TextTest, TestSize.Level0)
 {
     // Unpaired high surrogate
     const char16_t invalid1[] = u"\xD800\x0041";
@@ -138,7 +138,7 @@ HWTEST_F(NdkAddTextTest, AddInvalidUTF16TextTest, TestSize.Level1)
  * @tc.desc: Test valid UTF-32 text input scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddValidUTF32TextTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddValidUTF32TextTest, TestSize.Level0)
 {
     // Basic ASCII range
     const char32_t ascii32[] = U"ASCII Text!";
@@ -157,7 +157,7 @@ HWTEST_F(NdkAddTextTest, AddValidUTF32TextTest, TestSize.Level1)
  * @tc.desc: Test invalid UTF-32 text input scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddInvalidUTF32TextTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddInvalidUTF32TextTest, TestSize.Level0)
 {
     // Code point beyond U+10FFFF
     const char32_t invalid1[] = { 0x110000 };
@@ -177,7 +177,7 @@ HWTEST_F(NdkAddTextTest, AddInvalidUTF32TextTest, TestSize.Level1)
  * @tc.desc: Test boundary cases and edge conditions
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddTextBoundaryTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddTextBoundaryTest, TestSize.Level0)
 {
     // Empty input with different encodings
     EXPECT_EQ(GetUnresolvedGlyphCount("", 0, TEXT_ENCODING_UTF8), -1);
@@ -201,7 +201,7 @@ HWTEST_F(NdkAddTextTest, AddTextBoundaryTest, TestSize.Level1)
  * @tc.desc: Test stress and performance scenarios
  * @tc.type: PERF
  */
-HWTEST_F(NdkAddTextTest, AddTextStressTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddTextStressTest, TestSize.Level0)
 {
     // Large UTF-8 text
     std::vector<char> bigUtf8(10000, 'A');
@@ -226,7 +226,7 @@ HWTEST_F(NdkAddTextTest, AddTextStressTest, TestSize.Level1)
  * @tc.desc: Test invalid encoding type scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkAddTextTest, AddTextInvalidEncodingTest, TestSize.Level1)
+HWTEST_F(NdkAddTextTest, AddTextInvalidEncodingTest, TestSize.Level0)
 {
     // Invalid encoding type
     const char testStr[] = "test";

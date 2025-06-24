@@ -208,6 +208,42 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckContainerDirtyStatusAndUpdateDirty001
+ * @tc.desc: Test CheckContainerDirtyStatusAndUpdateDirty
+ * @tc.type: FUNC
+ * @tc.require: issueICFZGG
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CheckContainerDirtyStatusAndUpdateDirty001, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+
+    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    bool containerDirty = false;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+    containerDirty = true;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, true);
+
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    containerDirty = false;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+    containerDirty = true;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    containerDirty = false;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+    containerDirty = true;
+    node->CheckContainerDirtyStatusAndUpdateDirty(containerDirty);
+    EXPECT_EQ(containerDirty, false);
+}
+
+/**
  * @tc.name: SetSurfaceNodeType004
  * @tc.desc: Test SetSurfaceNodeType
  * @tc.type: FUNC
@@ -2318,43 +2354,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetIsWideColorGamut001
- * @tc.desc: GetIsWideColorGamut test
- * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
- */
-HWTEST_F(RSSurfaceRenderNodeTest, GetIsWideColorGamut001, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    surfaceNode->wideColorGamutNum_ = 0;
-    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
-    surfaceNode->wideColorGamutNum_++;
-    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
-}
-
-/**
- * @tc.name: IncreaseWideColorGamutNum001
- * @tc.desc: IncreaseWideColorGamutNum and ReduceWideColorGamutNum test
- * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IncreaseWideColorGamutNum001, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->wideColorGamutNum_ = 0;
-    EXPECT_TRUE(surfaceNode->GetContext().lock() == nullptr);
-
-    surfaceNode->firstLevelNodeId_ = id + 1;
-    surfaceNode->IncreaseWideColorGamutNum();
-    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
-    surfaceNode->ReduceWideColorGamutNum();
-    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
-}
-
-/**
  * @tc.name: CheckIfOcclusionReusable
  * @tc.desc: test results of CheckIfOcclusionReusable
  * @tc.type: FUNC
@@ -2703,53 +2702,5 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
-
-#ifndef ROSEN_CROSS_PLATFORM
-/**
- * @tc.name: UpdateLayerSrcRectForAnco
- * @tc.desc: test results of UpdateLayerSrcRectForAnco
- * @tc.type: FUNC
- * @tc.require: issueICA0I8
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateLayerSrcRectForAnco, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(node, nullptr);
-    ASSERT_EQ(node->stagingRenderParams_, nullptr);
-    node->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
-    node->SetAncoSrcCrop({0, 0, 0, 0});
-    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    RSLayerInfo layerInfo{};
-    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
-    node->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
-    node->SetAncoSrcCrop({0, 0, 0, 0});
-    GraphicIRect rect{0, 0, 100, 100};
-    layerInfo.srcRect = rect;
-    surfaceParams->SetLayerInfo(layerInfo);
-    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
-    auto layer = node->stagingRenderParams_->GetLayerInfo();
-    ASSERT_TRUE(layer.srcRect == rect);
-
-    node->SetAncoSrcCrop({0, 0, 50, 0});
-    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
-    layer = node->stagingRenderParams_->GetLayerInfo();
-    ASSERT_TRUE(layer.srcRect == rect);
-
-    node->SetAncoSrcCrop({0, 0, 0, 50});
-    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
-    layer = node->stagingRenderParams_->GetLayerInfo();
-    ASSERT_TRUE(layer.srcRect == rect);
-
-    node->SetAncoSrcCrop({0, 0, 50, 50});
-    rect = GraphicIRect {0, 0, 50, 50};
-    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
-    layer = node->stagingRenderParams_->GetLayerInfo();
-    ASSERT_TRUE(layer.srcRect == rect);
-    GraphicTransformType transform{};
-    node->UpdateHwcNodeLayerInfo(transform);
-}
-#endif
 } // namespace Rosen
 } // namespace OHOS

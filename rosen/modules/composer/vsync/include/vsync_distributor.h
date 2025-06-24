@@ -175,6 +175,7 @@ public:
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
+    void SetTaskEndWithTime(uint64_t time);
 
 private:
 
@@ -187,7 +188,7 @@ private:
         uint32_t refreshRate;
     };
     void ThreadMain();
-    void EnableVSync();
+    void EnableVSync(bool isUrgent = false);
     void DisableVSync();
     void OnVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);

@@ -87,11 +87,7 @@ std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skPixmap, rasterReleaseProc, releaseContext);
 #endif
     if (skImage == nullptr) {
-        SkImageInfo info = skPixmap.info();
-        LOGE("SkiaImage::MakeFromRaster failed. Pixmap info [width: %{public}d height: %{public}d"
-            " colorType: %{public}d alphaType: %{public}d validRowBytes: %{public}d byteSizeOverflow: %{public}d]",
-            info.width(), info.height(), info.colorType(), info.alphaType(), info.validRowBytes(skPixmap.rowBytes()),
-            SkImageInfo::ByteSizeOverflowed(info.computeByteSize(skPixmap.rowBytes())));
+        LOGD("SkiaImage::MakeFromRaster failed");
         return nullptr;
     }
     std::shared_ptr<Image> image = std::make_shared<Image>();
@@ -115,11 +111,7 @@ std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::sha
     sk_sp<SkImage> skImage = SkImage::MakeRasterData(skImageInfo, skData, rowBytes);
 #endif
     if (skImage == nullptr) {
-        LOGE("SkiaImage::MakeRasterData failed. Pixmap info [width: %{public}d height: %{public}d"
-            " colorType: %{public}d alphaType: %{public}d validRowBytes: %{public}d byteSizeOverflow: %{public}d]",
-            skImageInfo.width(), skImageInfo.height(), skImageInfo.colorType(), skImageInfo.alphaType(),
-            skImageInfo.validRowBytes(rowBytes),
-            SkImageInfo::ByteSizeOverflowed(skImageInfo.computeByteSize(rowBytes)));
+        LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     std::shared_ptr<Image> image = std::make_shared<Image>();
@@ -253,7 +245,7 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     }
 #ifdef USE_M133_SKIA
     skiaImage_ = SkImages::TextureFromCompressedTextureData(grContext_.get(), skData, width, height,
-        static_cast<SkTextureCompressionType>(type), skgpu::Mipmapped::kNo, GrProtected::kNo);
+        static_cast<SkTextureCompressionType>(type), skgpu::Mipmapped::kNo, GrProtected::kNo, skColorSpace);
 #else
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
         skData, width, height, static_cast<SkImage::CompressionType>(type),
@@ -572,11 +564,6 @@ std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat encodedImageFor
     }
 #ifdef USE_M133_SKIA
     auto grContext = as_IB(skiaImage_.get())->directContext();
-    if (!grContext) {
-        LOGD("SkiaImage::EncodeToData failed, grContext is null!");
-        return nullptr;
-    }
-
     sk_sp<SkData> skData = nullptr;
     if (encodedImageFormat == EncodedImageFormat::PNG) {
         SkPngEncoder::Options options;
@@ -662,9 +649,7 @@ bool SkiaImage::IsOpaque() const
 
 void SkiaImage::HintCacheGpuResource() const
 {
-#ifndef USE_M133_SKIA
     as_IB(skiaImage_.get())->hintCacheGpuResource();
-#endif
 }
 
 const sk_sp<SkImage> SkiaImage::GetImage() const
