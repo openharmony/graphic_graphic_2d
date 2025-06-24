@@ -150,7 +150,7 @@ int RSHpaeFusionOperator::ProcessGreyAndStretch(const Drawing::RectI& clipBounds
 
     float greyScaleRatio = 1.0 * targetCanvas->GetWidth() / src.GetWidth();
     auto pixelStretch = RSHpaeBaseData::GetInstance().GetPixelStretch();
-    Vector4f stretchOffset( std::abs(pixelStretch.x_) / image->GetWidth(),
+    Vector4f stretchOffset(std::abs(pixelStretch.x_) / image->GetWidth(),
     std::abs(pixelStretch.y_) / image->GetHeight(),
     std::abs(pixelStretch.z_) / image->GetWidth(),
     std::abs(pixelStretch.w_) / image->GetHeight());

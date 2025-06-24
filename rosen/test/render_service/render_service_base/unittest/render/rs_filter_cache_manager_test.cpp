@@ -1175,20 +1175,20 @@ HWTEST_F(RSFilterCacheManagerTest, ClearFilterCacheForPendingPurgeWithoutDirty, 
  */
 HWTEST_F(RSFilterCacheManagerTest, DrawCachedFilteredSnapShotTest002, TestSize.Level1)
 {
-    auto manager = std::make_shared<RSFilterCacheManagerTest>();
+    auto manager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
-    std::share_ptr<Drawing::ImageFilter> imageFilter = std::make_shared<Drawing::ImageFilter>();
+    std::shared_ptr<Drawing::ImageFilter> imageFilter = std::make_shared<Drawing::ImageFilter>();
     manager->isHpaeCachedFilteredSnapshot_ = true;
     Drawing::RectI detRect;
     manager->DrawCachedFilteredSnapShot(canvas, detRect, filter);
     EXPECT_TRUE(manager->cachedFilteredSnapShot_ != nullptr);
     EXPECT_TRUE(manager->cachedFilteredSnapShot_->cachedImage_ != nullptr);
 
-    canvas.visibleRect.right_ = 10;
-    canvas.visibleRect.bottom_ = 10;
+    canvas.visibleRect_.right_ = 10;
+    canvas.visibleRect_.bottom_ = 10;
     manager->DrawCachedFilteredSnapShot(canvas, detRect, filter);
     EXPECT_TRUE(manager->cachedFilteredSnapShot_->cachedImage_ != nullptr);
 

@@ -30,7 +30,6 @@
 #include "rs_surface_frame_ohos_vulkan.h"
 #include <surface.h>
 
-// 后续需移除
 typedef enum VkSemaphoreExtTypeHUAWEI {
     VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
     VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,

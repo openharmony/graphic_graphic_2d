@@ -98,7 +98,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, DrawFilterTest, TestSize.Level1)
  * @tc.name: DrawFilterTest
  * @tc.desc: Verify function DrawFilter
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, DrawFilterTest01, TestSize.Level1)
 {
@@ -145,7 +145,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, DrawFilterTest01, TestSize.Level1)
  * @tc.name: DrawFilterImplTest
  * @tc.desc: Verify function DrawFilterImplTest
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, DrawFilterImplTest, TestSize.Level1)
 {
@@ -165,7 +165,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, DrawFilterImplTest, TestSize.Level1)
  * @tc.name: DrawBackgroundTocanvasTest
  * @tc.desc: Verify function DrawBackgroundTocanvas
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, DrawBackgroundToCanvasTest, TestSize.Level1)
 {
@@ -184,7 +184,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, DrawBackgroundToCanvasTest, TestSize.Leve
  * @tc.name: DrawBackgroundTocanvasTest01
  * @tc.desc: Verify function DrawBackgroundTocanvas
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, DrawBackgroundToCanvasTest01, TestSize.Level1)
 {
@@ -208,7 +208,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, DrawBackgroundToCanvasTest01, TestSize.Le
  * @tc.name: TaskSnapshotTest
  * @tc.desc: Verify function TaskSnapshot
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
 {
@@ -228,7 +228,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
  * @tc.name: ProcessGpuBlurTest
  * @tc.desc: Verify function ProcessGpuBlur
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessGpuBlurTest, TestSize.Level1)
 {
@@ -260,7 +260,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessGpuBlurTest, TestSize.Level1)
  * @tc.name: ProcessGpuBlurTest01
  * @tc.desc: Verify function ProcessGpuBlur
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessGpuBlurTest01, TestSize.Level1)
 {
@@ -324,7 +324,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest, TestSize.Lev
  * @tc.name: GenerateHianimationTaskTest01
  * @tc.desc: Verify function GenerateHianimationTask
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest01, TestSize.Level1)
 {
@@ -406,7 +406,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest01, TestSize.L
  * @tc.name: ProcessHianimationBlurTest
  * @tc.desc: Verify function ProcessHianimationBlur
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest, TestSize.Level1)
 {
@@ -438,7 +438,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest, TestSize.Leve
  * @tc.name: ProcessHianimationBlurTest
  * @tc.desc: Verify function ProcessHianimationBlur01
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest01, TestSize.Level1)
 {
@@ -521,7 +521,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHpaeBlurTest, TestSize.Level1)
  * @tc.name: ProcessHpaeBlurTest
  * @tc.desc: Verify function ProcessHpaeBlur01
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHpaeBlurTest01, TestSize.Level1)
 {
@@ -566,7 +566,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHpaeBlurTest01, TestSize.Level1)
  * @tc.name: GetBlurOutputTest
  * @tc.desc: Verify function GetBlurOutput
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, GetBlurOutputTest, TestSize.Level1)
 {
@@ -593,7 +593,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GetBlurOutputTest, TestSize.Level1)
  * @tc.name: GetBlurOutputTest01
  * @tc.desc: Verify function GetBlurOutput01
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, GetBlurOutputTest01, TestSize.Level1)
 {

@@ -202,7 +202,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     const std::optional<Drawing::RectI>& dstRect)
 {
     RS_OPTIONAL_TRACE_FUNC();
-    if (nodeId !=0 && DrawFilterUsingHpae(canvas,filter,hpaeCacheManager_, nodeId)) {
+    if (nodeId !=0 && DrawFilterUsingHpae(canvas, filter, hpaeCacheManager_, nodeId)) {
         return;
     }
 
@@ -870,7 +870,7 @@ bool RSFilterCacheManager::ForceUpadateCacheByHpae()
     if (belowDirty_) {
         return false;
     }
-    if (forceUseCache_ || filterType_ == RSFilter::AIBAR){
+    if (forceUseCache_ || filterType_ == RSFilter::AIBAR) {
         return false;
     }
     return RSHpaeBaseData::GetInstance().GetBlurContentChanged();
