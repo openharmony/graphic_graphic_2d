@@ -2345,7 +2345,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSize.Level
     opts.size.width = width;
     opts.size.height = height;
     opts.editable = true;
-    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
 
     ASSERT_TRUE(pixelMap != nullptr);
     auto img = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
@@ -2358,27 +2358,27 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSize.Level
 
     Drawing::Canvas drawingCanvas(400, 400);
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    auto screen = static_cast<iml::RSScreenManager*>(screenManager.GetRefPtr())->GetScreen(screenId);
-    auto screenRawPtr = static_cast<imp::RSScreen*>(screen.get());
+    auto screen = static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->GetScreen(screenId);
+    auto screenRawPtr = static_cast<impl::RSScreen*>(screen.get());
     ASSERT_TRUE(screenRawPtr != nullptr);
 
     // Test0 ScreenCorrection = INVALID_SCREEN_ROTATION && ScreenRotation = ROTATION_0
-    param->screenRotation_ = ScreenRotation::ROTATION_0;
+    params->screenRotation_ = ScreenRotation::ROTATION_0;
     screenRawPtr->screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     displayDrawable_->DrawWatermarkIfNeed(*param, canvas);
 
     // Test1 ScreenCorrection = ROTATION_0 && ScreenRotation = ROTATION_180
-    param->screenRotation_ = ScreenRotation::ROTATION_180;
+    params->screenRotation_ = ScreenRotation::ROTATION_180;
     screenRawPtr->screenRotation_ = ScreenRotation::ROTATION_0;
     displayDrawable_->DrawWatermarkIfNeed(*param, canvas);
 
     // Test2 ScreenCorrection = ROTATION_0 && ScreenRotation = ROTATION_90
-    param->screenRotation_ = ScreenRotation::ROTATION_90;
+    params->screenRotation_ = ScreenRotation::ROTATION_90;
     screenRawPtr->screenRotation_ = ScreenRotation::ROTATION_0;
     displayDrawable_->DrawWatermarkIfNeed(*param, canvas);
 
     // Test3 ScreenCorrection = ROTATION_270 && ScreenRotation = ROTATION_180
-    param->screenRotation_ = ScreenRotation::ROTATION_180;
+    params->screenRotation_ = ScreenRotation::ROTATION_180;
     screenRawPtr->screenRotation_ = ScreenRotation::ROTATION_270;
     displayDrawable_->DrawWatermarkIfNeed(*param, canvas);
 
