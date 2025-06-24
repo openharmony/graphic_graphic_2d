@@ -35,9 +35,9 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     }
     std::array staticMethods = {
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniFilter::CreateEffect) },
-        ani_native_function { "CreateColorPickerNormal", nullptr,
+        ani_native_function { "createColorPickerNormal", nullptr,
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::CreateColorPickerNormal) },
-        ani_native_function { "CreateColorPickerWithRegion", nullptr,
+        ani_native_function { "createColorPickerWithRegion", nullptr,
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::CreateColorPickerWithRegion) },
     };
     if (env->Namespace_BindNativeFunctions(effectKitNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {

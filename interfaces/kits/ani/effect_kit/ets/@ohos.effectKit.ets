@@ -333,18 +333,18 @@ namespace effectKit {
     }
   }
 
-  native function createColorPicker1(source: image.PixelMap): ColorPicker
-  native function createColorPicker2(source: image.PixelMap, region: Array<number>): ColorPicker
+  native function createColorPickerNormal(source: image.PixelMap): ColorPicker
+  native function createColorPickerWithRegion(source: image.PixelMap, region: Array<number>): ColorPicker
 
   export function createColorPicker(source: image.PixelMap): Promise<ColorPicker> {
     console.log(`[EFFECT_KIT_DEBUG] createColorPicker called`);
     return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
       let cb = (): ColorPicker => {
-        console.log(`[EFFECT_KIT_DEBUG] createColorPicker1 native call`);
-        return createColorPicker1(source)
+        console.log(`[EFFECT_KIT_DEBUG] createColorPickerNormal native call`);
+        return createColorPickerNormal(source)
       };
       taskpool.execute(cb).then((ret: NullishType): void => {
-        console.log(`[EFFECT_KIT_DEBUG] createColorPicker1 returned:`, ret);
+        console.log(`[EFFECT_KIT_DEBUG] createColorPickerNormal returned:`, ret);
         if (ret === null || ret === undefined) {
           let ret1: BusinessError<string> = {
             code: -1,
@@ -363,7 +363,7 @@ namespace effectKit {
 
   export function createColorPicker(source: image.PixelMap, region: Array<number>): Promise<ColorPicker> {
     return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
-      let cb = (): ColorPicker => { return createColorPicker2(source, region) };
+      let cb = (): ColorPicker => { return createColorPickerWithRegion(source, region) };
       taskpool.execute(cb).then((ret: NullishType): void => {
         if (ret === null || ret === undefined) {
           let ret1: BusinessError<string> = {
@@ -383,7 +383,7 @@ namespace effectKit {
 
   export function createColorPicker(source: image.PixelMap, callback: AsyncCallback<ColorPicker | undefined>): void {
     try {
-      const result = createColorPicker1(source);
+      const result = createColorPickerNormal(source);
       if (result) {
         const error: BusinessError = { code: 0, name: '', message: '' };
         callback(error, result);
@@ -408,7 +408,7 @@ namespace effectKit {
 
   export function createColorPicker(source: image.PixelMap, region: Array<number>, callback: AsyncCallback<ColorPicker | undefined>): void {
     try {
-      const result = createColorPicker2(source, region);
+      const result = createColorPickerWithRegion(source, region);
       if (result) {
         const error: BusinessError = { code: 0, name: '', message: '' };
         callback(error, result);

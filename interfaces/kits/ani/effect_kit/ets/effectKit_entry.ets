@@ -42,7 +42,7 @@ function main() {
   effectKit.createColorPicker(pixelMap).then((colorPicker: effectKit.ColorPicker) => {
     if (colorPicker != undefined) {
       console.println(`Test createColorPicker (Promise) success`);
-
+      
       console.println('Testing getAverageColor');
       let avgColor = colorPicker.getAverageColor();
       if (avgColor !== undefined && avgColor !== null) {
@@ -69,11 +69,43 @@ function main() {
         console.error('Simple Test: getMainColorSync returned undefined or null.');
         console.println('Simple Test: getMainColorSync returned undefined or null.');
       }
+      
     }
   }).catch((ex: Object | null | undefined) => {
     console.error('Test createColorPicker (Promise) failed');
     console.println('Test createColorPicker (Promise) failed');
   });
+  
+  effectKit.createColorPicker(pixelMap, [0, 0, 5, 5]).then((colorPicker: effectKit.ColorPicker) => {
+    if (colorPicker != undefined) {
+      console.println(`Test createColorPicker (Promise, region) success`);
+    }
+  }).catch((ex: Object | null | undefined) => {
+    console.error('Test createColorPicker (Promise, region) failed');
+    console.println('Test createColorPicker (Promise, region) failed');
+  });
+  
+  effectKit.createColorPicker(pixelMap, (error, colorPicker: effectKit.ColorPicker | undefined) => {
+    if (error && error.code != 0) {
+      console.error('Test createColorPicker (Callback) failed');
+      console.println('Test createColorPicker (Callback) failed');
+    } else if (colorPicker != undefined) {
+      console.println('Test createColorPicker (Callback) success');
+    } else {
+      console.println('Test createColorPicker (Callback) failed (colorPicker = undefined)');
+    }
+  });
 
+  effectKit.createColorPicker(pixelMap, [0, 0, 5, 5], (error, colorPicker: effectKit.ColorPicker | undefined) => {
+    if (error && error.code != 0) {
+      console.error('Test createColorPicker (Callback, region) failed');
+      console.println('Test createColorPicker (Callback, region) failed');
+    } else if (colorPicker != undefined) {
+      console.println('Test createColorPicker (Callback, region) success');
+    } else {
+      console.println('Test createColorPicker (Callback, region) failed (colorPicker = undefined)');
+    }
+  });
+  
   console.println('Test effectKit end');
 }
