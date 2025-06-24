@@ -31,7 +31,7 @@ namespace {
 using GPInstanceGetFunc = void*(*)(PatternType_C, const char*);
 using GPInstanceInitFunc = bool(*)(void*, size_t);
 using GPInstanceDestroyFunc = void(*)(void*);
-using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
+using GPRequestEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseAllEGraphFunc = bool(*)(void*);
 using GPWaitFunc = void*(*)(void*, uint64_t, MHC_PatternTaskName);
@@ -42,7 +42,7 @@ using GPGPTaskSubmitFunc = void(*)(void*, uint64_t, MHC_TaskInfo*);
 static GPInstanceGetFunc g_getGPInstance = nullptr;
 static GPInstanceInitFunc g_GPInit = nullptr;
 static GPInstanceDestroyFunc g_GPDestroy = nullptr;
-static GPRequstEGraphFunc g_GPRequestEGraph = nullptr;
+static GPRequestEGraphFunc g_GPRequestEGraph = nullptr;
 static GPReleaseEGraphFunc g_GPReleaseEGraph = nullptr;
 static GPReleaseAllEGraphFunc g_GPReleaseAll = nullptr;
 static GPWaitFunc g_GPWait = nullptr;
