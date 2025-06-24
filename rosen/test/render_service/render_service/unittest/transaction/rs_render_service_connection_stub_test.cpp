@@ -1066,4 +1066,23 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByVsyncNameTest0
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 }
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest001
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:issuesICE0QR
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB);
+    data.WriteUint32(1001);
+    MessageParcel reply;
+    MessageOption option;
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
 } // namespace OHOS::Rosen
