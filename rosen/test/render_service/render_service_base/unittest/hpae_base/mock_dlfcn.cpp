@@ -113,7 +113,8 @@ hianimation_algo_device_t* MockGetHianimationDeviceFunc()
     return &mockHianimationDevice;
 }
 
-extern "C" void* dlsym(void* handle, const char* symbol) {
+extern "C" void* dlsym(void* handle, const char* symbol)
+{
     if (strcmp(symbol, "mhc_graph_pattern_get") == 0) {
         return reinterpret_cast<void *>(MockgetGPInstance);
     }
