@@ -308,7 +308,8 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     colorPicker->nativeColorPicker_ = ColorPicker::CreateColorPicker(
         pixelMap, colorPicker->coordinatesBuffer_, errorCode);
     if (colorPicker->nativeColorPicker_ == nullptr || errorCode != SUCCESS) {
-        EFFECT_LOG_E("AniColorPicker::CreateColorPickerWithRegion: Failed to create ColorPicker, errorCode: %u", errorCode);
+        EFFECT_LOG_E("AniColorPicker::CreateColorPickerWithRegion: Failed to create ColorPicker, errorCode: %u",
+            errorCode);
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
 

@@ -27,8 +27,6 @@
 #include "sk_image_filter_factory.h"
 #include <unordered_map>
 
-
-
 namespace OHOS {
 namespace Rosen {
 
@@ -150,7 +148,8 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param, ani_e
     auto blur = Rosen::SKImageFilterFactory::Blur(radius, static_cast<SkTileMode>(tileMode));
     aniFilter->AddNextFilter(blur);
     
-    return AniEffectKitUtils::CreateAniObject(env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
+    return AniEffectKitUtils::CreateAniObject(env, ANI_CLASS_FILTER.c_str(), nullptr,
+        reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::Brightness(ani_env* env, ani_object obj, ani_double param)
