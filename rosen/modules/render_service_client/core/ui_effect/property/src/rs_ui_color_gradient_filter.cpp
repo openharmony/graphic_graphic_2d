@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#include "render/rs_render_color_gradient_filter.h"
-#include "platform/common/rs_log.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
+
+#include "platform/common/rs_log.h"
+#include "render/rs_render_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_radial_gradient_mask.h"
 #include "ui_effect/property/include/rs_ui_ripple_mask.h"
 
@@ -30,7 +31,8 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGColorGradientFilter::GetRenderEffect()
     return nullptr;
 }
 
-bool RSNGColorGradientFilter::SetValue(const std::shared_ptr<RSNGFilterBase>& other, std::shared_ptr<RSNode> node)
+bool RSNGColorGradientFilter::SetValue(
+    const std::shared_ptr<RSNGFilterBase>& other, RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
 {
     if (other == nullptr || GetType() != other->GetType()) {
         return false;
@@ -44,36 +46,33 @@ bool RSNGColorGradientFilter::SetValue(const std::shared_ptr<RSNGFilterBase>& ot
         return false;
     }
 
-    if (!Base::SetValue(other, node)) {
-        return false;
-    }
-    return updateFlag;
+    return Base::SetValue(other, node, modifier);
 }
 
-void RSNGColorGradientFilter::Attach(const std::shared_ptr<RSNode>& node)
+void RSNGColorGradientFilter::Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
 {
-    std::for_each(colors_.begin(), colors_.end(), [&node](const auto& propTag) {
-        (RSUIFilterUtils::Attach(propTag.value_, node));
+    std::for_each(colors_.begin(), colors_.end(), [&node, &modifier](const auto& propTag) {
+        (RSNGEffectUtils::Attach(propTag.value_, node, modifier));
     });
-    std::for_each(positions_.begin(), positions_.end(), [&node](const auto& propTag) {
-        (RSUIFilterUtils::Attach(propTag.value_, node));
+    std::for_each(positions_.begin(), positions_.end(), [&node, &modifier](const auto& propTag) {
+        (RSNGEffectUtils::Attach(propTag.value_, node, modifier));
     });
-    std::for_each(strengths_.begin(), strengths_.end(), [&node](const auto& propTag) {
-        (RSUIFilterUtils::Attach(propTag.value_, node));
+    std::for_each(strengths_.begin(), strengths_.end(), [&node, &modifier](const auto& propTag) {
+        (RSNGEffectUtils::Attach(propTag.value_, node, modifier));
     });
-    Base::Attach(node);
+    Base::Attach(node, modifier);
 }
 
 void RSNGColorGradientFilter::Detach()
 {
     std::for_each(colors_.begin(), colors_.end(), [](const auto& propTag) {
-        (RSUIFilterUtils::Detach(propTag.value_));
+        (RSNGEffectUtils::Detach(propTag.value_));
     });
     std::for_each(positions_.begin(), positions_.end(), [](const auto& propTag) {
-        (RSUIFilterUtils::Detach(propTag.value_));
+        (RSNGEffectUtils::Detach(propTag.value_));
     });
     std::for_each(strengths_.begin(), strengths_.end(), [](const auto& propTag) {
-        (RSUIFilterUtils::Detach(propTag.value_));
+        (RSNGEffectUtils::Detach(propTag.value_));
     });
     Base::Detach();
 }

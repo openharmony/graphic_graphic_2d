@@ -119,7 +119,11 @@ protected:
 
     void AttachToNode(const std::shared_ptr<RSNode> target)
     {
-        property_->Attach(target);
+        if (!target) {
+            property_->target_.reset();
+        } else {
+            property_->Attach(*target);
+        }
         property_->AttachModifier(shared_from_this());
         MarkNodeDirty();
         OnAttachToNode(target);

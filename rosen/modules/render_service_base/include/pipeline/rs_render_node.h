@@ -443,8 +443,9 @@ public:
     void CleanDirtyRegionUpdated();
     
     std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
-    void AddProperty(std::shared_ptr<RSRenderPropertyBase> property);
-    void RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property);
+    void RegisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property);
+    void UnregisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property);
+    void UnregisterProperty(PropertyId id);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);

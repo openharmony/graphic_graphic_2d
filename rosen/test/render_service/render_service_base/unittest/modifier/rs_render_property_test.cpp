@@ -225,8 +225,9 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
 HWTEST_F(RSRenderPropertyTest, OnChange, TestSize.Level1)
 {
     std::shared_ptr<RSRenderPropertyBase> base = std::make_shared<RSRenderProperty<bool>>();
+    RSRenderNode node(1);
     base->OnChange();
-    base->Attach(std::make_shared<RSRenderNode>(1));
+    base->Attach(node);
     base->modifierType_ = RSModifierType::FOREGROUND_COLOR;
     base->OnChange();
     base->modifierType_ = RSModifierType::POSITION_Z;
