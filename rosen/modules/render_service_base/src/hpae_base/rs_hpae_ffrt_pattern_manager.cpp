@@ -28,7 +28,7 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-using GPInstanceGetFunc = void*(*)(void*, const char*);
+using GPInstanceGetFunc = void*(*)(PatternType_C, const char*);
 using GPInstanceInitFunc = bool(*)(void*, size_t);
 using GPInstanceDestroyFunc = void(*)(void*);
 using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
