@@ -82,10 +82,10 @@ public:
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,
         int& fenceFd, bool useAFBC, bool isProtected = false);
     bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
     bool NeedSubmitWithFFTS();
-
-    // graphic pattern
     void HcsSubmitGPGpuAndHpae(uint64_t preFrameId, int64_t curFrameId);
+#endif
 
 private:
     struct NativeWindow* mNativeWindow = nullptr;
