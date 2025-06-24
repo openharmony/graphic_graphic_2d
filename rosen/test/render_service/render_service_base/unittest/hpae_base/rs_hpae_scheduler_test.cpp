@@ -43,7 +43,8 @@ void RSHpaeSchedulerTest::SetUpTestCase()
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1");
 }
-void RSHpaeSchedulerTest::TearDownTestCase() {
+void RSHpaeSchedulerTest::TearDownTestCase()
+{
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
