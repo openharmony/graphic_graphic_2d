@@ -264,4 +264,20 @@ HWTEST_F(RSDisplayRenderParamsTest, GetSecurityExemption001, TestSize.Level1)
     RSDisplayRenderParams params(id);
     EXPECT_FALSE(params.GetSecurityExemption());
 }
+
+/**
+ * @tc.name: ResetVirtualExpandAccumulatedParams
+ * @tc.desc: test ResetVirtualExpandAccumulatedParams can set target params to false
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSDisplayRenderParamsTest, ResetVirtualExpandAccumulatedParams, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    params.SetAccumulatedDirty(true);
+    ASSERT_TRUE(params.GetAccumulatedDirty());
+    params.ResetVirtualExpandAccumulatedParams();
+    ASSERT_FALSE(params.GetAccumulatedDirty());
+}
 } // namespace OHOS::Rosen

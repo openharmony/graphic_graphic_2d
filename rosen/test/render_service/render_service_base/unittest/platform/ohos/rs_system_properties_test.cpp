@@ -976,5 +976,29 @@ HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
     EXPECT_EQ(RSSystemProperties::GetVirtualScreenScaleModeDFX(), 2);
     ASSERT_EQ(RSSystemProperties::GetSubTreePrepareCheckType(), SubTreePrepareCheckType::ENABLED);
 }
+
+/**
+ * @tc.name: GetVirtualDirtyEnabled
+ * @tc.desc: GetVirtualDirtyEnabled Test
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVirtualDirtyEnabled, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.uni.virtualdirty.enabled", "1");
+    ASSERT_EQ(std::to_string(RSSystemProperties::GetVirtualDirtyEnabled()), type);
+}
+
+/**
+ * @tc.name: GetVirtualExpandScreenSkipEnabled
+ * @tc.desc: GetVirtualExpandScreenSkipEnabled Test
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVirtualExpandScreenSkipEnabled, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    ASSERT_EQ(std::to_string(RSSystemProperties::GetVirtualExpandScreenSkipEnabled()), type);
+}
 } // namespace Rosen
 } // namespace OHOS

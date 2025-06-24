@@ -622,6 +622,26 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDraw002
+ * @tc.desc: Test OnDraw can skip when virtual expand screen do not need refresh
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest002, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->compositeType_ = RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    Drawing::Canvas canvas;
+    displayDrawable_->OnDraw(canvas);
+    ASSERT_FALSE(params->GetAccumulatedDirty());
+    // restore
+    params->compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+}
+
+/**
  * @tc.name: DrawMirrorScreen
  * @tc.desc: Test DrawMirrorScreen
  * @tc.type: FUNC
