@@ -1209,22 +1209,22 @@ HWTEST_F(RSFilterCacheManagerTest, ForceUpdateCacheByHpaeTest, TestSize.Level1)
     EXPECT_NE(rsFilterCacheManager, nullptr);
     rsFilterCacheManager->belowDirty_ = false;
     rsFilterCacheManager->forceUseCache_ = true;
-    ASSERT_FALSE(rsFilterCacheManager->ForceUpdateCacheByHpae());
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
 
     rsFilterCacheManager->forceUseCache_ = false;
     rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
     rsFilterCacheManager->CompactFilterCache();
-    ASSERT_FALSE(rsFilterCacheManager->ForceUpdateCacheByHpae());
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
 
     rsFilterCacheManager->forceUseCache_ = true;
     rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
     rsFilterCacheManager->CompactFilterCache();
-    ASSERT_FALSE(rsFilterCacheManager->ForceUpdateCacheByHpae());
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
 
     rsFilterCacheManager->forceUseCache_ = false;
     rsFilterCacheManager->filterType_ = RSFilter::NONE;
     rsFilterCacheManager->CompactFilterCache();
-    ASSERT_FALSE(rsFilterCacheManager->ForceUpdateCacheByHpae());
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
 }
 
 /**
