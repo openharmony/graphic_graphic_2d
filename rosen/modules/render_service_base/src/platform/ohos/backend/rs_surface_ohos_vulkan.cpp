@@ -320,12 +320,12 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
 
     return 0;
 }
-void RSSurfaceOhosVulkan::SubmitHpaeTask(const uint64_t& curFrameId) 
+void RSSurfaceOhosVulkan::SubmitHpaeTask(const uint64_t& curFrameId)
 {
         // Submit HPAE
         auto hpaeItem = RSHpaeScheduler::GetInstance().GetCacheHpaeItem();
         auto hpaeTask = hpaeItem.hpaeTask_;
-        if(hpaeTask.taskPtr == nullptr) {
+        if (hpaeTask.taskPtr == nullptr) {
             return;
         }
         HPAE_TRACE_NAME("SubmitHpae:. curFrameId=%u, item.gpFrameId=%u", curFrameId, hpaeItem.gpFrameId_);
@@ -401,10 +401,9 @@ void RSSurfaceOhosVulkan::SubmitGPGpuAndHpaeTask(const uint64_t& preFrameId, con
     RSHpaeFfrtPatternManager::Instance().ResetUpdateFlag();  // 避免gpu投屏场景二次进入
 }
 
-void SetGpuSemaphore(bool& submitWithFFTS,const uint64_t& curFrameId,const uint64_t& curFrameId,
+void SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& curFrameId, const uint64_t& curFrameId,
     std::vector<GrBackendSemaphore>& semphoreVec, NativeBufferUtils::NativeSurfaceInfo& surface)
 {
-
     int ret = -1;
     if (preFrameId > 0) {
         VkSemaphore preNotifySemaphore;
@@ -481,7 +480,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         submitWithFFTS, preFrameId, curFrameId);
     
     if (submitWithFFTS) {
-        SetGpuSemaphore(submitWithFFTS,preFrameId,curFrameId,semphoreVec);
+        SetGpuSemaphore(submitWithFFTS, preFrameId, curFrameId, semphoreVec);
     }
 #endif
     Drawing::FlushInfo drawingFlushInfo;

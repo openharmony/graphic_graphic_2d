@@ -89,7 +89,7 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     interfaceType_ = vulkanInterfaceType;
     CreateInstance();
     SelectPhysicalDevice(isProtected);
-    CreateDevice(isProtected,isHtsEnable);
+    CreateDevice(isProtected, isHtsEnable);
     std::unique_lock<std::mutex> lock(vkMutex_);
     CreateSkiaBackendContext(&backendContext_, isProtected);
 }

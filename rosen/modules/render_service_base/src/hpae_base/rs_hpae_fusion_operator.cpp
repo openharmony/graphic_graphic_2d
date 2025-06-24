@@ -150,16 +150,15 @@ int RSHpaeFusionOperator::ProcessGreyAndStretch(const Drawing::RectI& clipBounds
 
     float greyScaleRatio = 1.0 * targetCanvas->GetWidth() / src.GetWidth();
     auto pixelStretch = RSHpaeBaseData::GetInstance().GetPixelStretch();
-        Vector4f stretchOffset( std::abs(pixelStretch.x_) / image->GetWidth(),
-        std::abs(pixelStretch.y_) / image->GetHeight(),
-        std::abs(pixelStretch.z_) / image->GetWidth(),
-        std::abs(pixelStretch.w_) / image->GetHeight());
+    Vector4f stretchOffset( std::abs(pixelStretch.x_) / image->GetWidth(),
+    std::abs(pixelStretch.y_) / image->GetHeight(),
+    std::abs(pixelStretch.z_) / image->GetWidth(),
+    std::abs(pixelStretch.w_) / image->GetHeight());
     Drawing::Matrix shaderMatrix;
     BuildShaderMatrix(shaderMatrix, src, greyScaleRatio, stretchOffset);
 
     auto tileMode = static_cast<Drawing::TileMode>(RSHpaeBaseData::GetInstance().GetTileMode());
-    HPAE_TRACE_NAME_FMT("ProcessGreyAndStretch. offset:[%f, %f, %f, %f],
-        tileMode:%d, image:[%dx%d]",
+    HPAE_TRACE_NAME_FMT("ProcessGreyAndStretch. offset:[%f, %f, %f, %f], tileMode:%d, image:[%dx%d]",
         pixelStretch.x_, pixelStretch.y_, pixelStretch.z_, pixelStretch.w_, tileMode,
         image->GetWidth(), image->GetHeight());
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(

@@ -49,22 +49,18 @@ int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std:
     const std::optional<Drawing::RectI>& dstRect)
 {
     RSHpaeScheduler::GetInstance().Reset();
-
     inputBufferInfo_ = RSHpaeBaseData::GetInstance().RequestHpaeInputBuffer();
     outputBufferInfo_ = RSHpaeBaseData::GetInstance().RequestHpaeOutputBuffer();
-
     if (inputBufferInfo_.canvas == nullptr || outputBufferInfo_.canvas == nullptr) {
         HPAE_LOGE("invalid canvas");
         return -1;
     }
-
     Drawing::RectI clipBounds = canvas.GetDeviceClipBounds();
     Drawing::RectI src = canvas.GetRoundInDeviceClipBounds();
     if (clipBounds.IsEmpty() || src.IsEmpty()) {
         HPAE_LOGE("canvas rect is empty");
         return -1; // -1 or 0?
     }
-
     if (RSHpaeBaseData::GetInstance().GetNeedReset()) {
         std::unique_lock<std::mutex> lock(blurOutMutex_);
         HPAE_TRACE_NAME("Clear for first frame");
@@ -73,21 +69,16 @@ int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std:
         prevBlurImage_ = nullptr;
         RSHpaeBaseData::GetInstance().SetResetDone();
     }
-
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-
     int32_t radiusI = (int)RSHpaeBaseData::GetInstance().GetBlurRadius();
     curRadius_ = radiusI; // use int radius
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     }
-
     drawUsingGpu_ = CheckIfUsingGpu();
-
     if (DrawFilterImpl(filter, clipBounds, src, shouldClearFilteredCache) == 0) {
         return DrawBackgroundToCanvas(canvas);
     }
-
     return -1;
 };
 

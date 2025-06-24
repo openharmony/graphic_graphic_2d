@@ -107,7 +107,7 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCWaitTest, TestSize.Level1)
  * @tc.name: MHCGetVulkanTaskWaitEventTest
  * @tc.desc: Verify function MHCGetVulkanTaskWaitEvent
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.Level1)
 {

@@ -383,7 +383,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest01, TestSize.L
 
     inputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasIn.get());
     resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
-    EXPECT_EQ(resultTask.taskPtr, nullptr); 
+    EXPECT_EQ(resultTask.taskPtr, nullptr);
     
     inputBuffer.bufferHandle = &bufferHandleIn;
     outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
@@ -475,7 +475,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest01, TestSize.Le
  * @tc.name: ProcessHpaeBlurTest
  * @tc.desc: Verify function ProcessHpaeBlur
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHpaeBlurTest, TestSize.Level1)
 {
