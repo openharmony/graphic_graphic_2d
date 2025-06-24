@@ -714,12 +714,12 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest, Test
 }
 
 /**
- * @tc.name: OnDraw
+ * @tc.name: OnDraw001
  * @tc.desc: Test OnDraw
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
+HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest001, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
     Drawing::Canvas canvas;
@@ -732,6 +732,48 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     hardInfo.drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
     displayDrawable_->OnDraw(canvas);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+}
+
+/**
+ * @tc.name: OnDraw002
+ * @tc.desc: Test OnDraw can skip when virtual expand screen do not need refresh
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest002, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->compositeType_ = RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    Drawing::Canvas canvas;
+    displayDrawable_->OnDraw(canvas);
+    ASSERT_FALSE(params->GetAccumulatedDirty());
+    // restore
+    params->compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+}
+
+/**
+ * @tc.name: OnDraw003
+ * @tc.desc: Test OnDraw should not skip when virtual expand screen need refresh
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest003, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->compositeType_ = RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->SetMainAndLeashSurfaceDirty(true);
+    Drawing::Canvas canvas;
+    displayDrawable_->OnDraw(canvas);
+    ASSERT_TRUE(params->GetAccumulatedDirty());
+    // restore
+    params->compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    params->SetAccumulatedDirty(false);
 }
 
 /**
