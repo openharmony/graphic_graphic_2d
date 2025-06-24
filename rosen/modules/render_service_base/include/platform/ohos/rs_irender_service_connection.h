@@ -421,7 +421,10 @@ public:
 
     virtual ErrCode SetWindowContainer(NodeId nodeId, bool value) = 0;
 
-    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
+    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
+    
+    virtual int32_t UnRegisterSelfDrawingNodeRectChangeCallback() = 0;
 
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 

@@ -809,7 +809,12 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
-    const SelfDrawingNodeRectChangeCallback& callback)
+    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
 {
     return {};
 }

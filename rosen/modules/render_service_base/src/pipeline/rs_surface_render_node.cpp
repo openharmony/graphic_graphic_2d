@@ -3035,8 +3035,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     if (monitor.IsListeningEnabled() && IsSelfDrawingType()) {
         if (onTree) {
             auto rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-            std::string nodeName = GetName();
-            monitor.InsertCurRectMap(GetId(), nodeName, rect);
+            monitor.InsertCurRectMap(GetId(), rect);
         } else {
             monitor.EraseCurRectMap(GetId());
         }

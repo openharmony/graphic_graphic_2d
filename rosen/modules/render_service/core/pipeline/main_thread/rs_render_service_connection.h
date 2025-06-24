@@ -404,7 +404,10 @@ private:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;

@@ -48,14 +48,14 @@ HWTEST_F(RSSelfDrawingNodeRectDataTest, MarshallingTest, TestSize.Level1)
     RSSelfDrawingNodeRectData SelfDrawingNodeRectData;
     auto& rectData = SelfDrawingNodeRectData.rectData_;
     NodeId id = 1;
-    rectData.insert(std::make_pair(id, std::make_pair<std::string, RectI>("test", RectI(0, 0, 1, 1))));
+    rectData.insert(std::make_pair(id, RectI(0, 0, 1, 1)));
     
     SelfDrawingNodeRectData.Marshalling(parcel);
     auto result = RSSelfDrawingNodeRectData::Unmarshalling(parcel);
     auto resultData = result->GetRectData();
 
     ASSERT_EQ(rectData.size(), resultData.size());
-    ASSERT_EQ(rectData[id].first, resultData[id].first);
+    ASSERT_EQ(rectData[id], resultData[id]);
 }
 } // namespace Rosen
 } // namespace OHOS

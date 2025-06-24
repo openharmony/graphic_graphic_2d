@@ -384,7 +384,10 @@ public:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 

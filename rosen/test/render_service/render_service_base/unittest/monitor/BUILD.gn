@@ -31,6 +31,7 @@ ohos_unittest("SelfDrawingNodeMonitorTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/graphic/graphic_2d/rosen/include",
     "$graphic_2d_root/graphic/graphic_2d/rosen/test/include",
   ]
@@ -43,6 +44,7 @@ ohos_unittest("SelfDrawingNodeMonitorTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "hilog:libhilog",
   ]
 }
 

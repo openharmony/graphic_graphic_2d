@@ -3434,8 +3434,7 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
         return;
     }
     auto rect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    std::string nodeName = node.GetName();
-    monitor.InsertCurRectMap(node.GetId(), nodeName, rect);
+    monitor.InsertCurRectMap(node.GetId(), rect);
 }
 
 void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)

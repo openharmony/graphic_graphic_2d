@@ -2494,7 +2494,21 @@ HWTEST_F(RSInterfacesTest, RegisterSelfDrawingNodeRectChangeCallbackTest, Functi
     ASSERT_NE(rsInterfaces, nullptr);
     SelfDrawingNodeRectChangeCallback callback =
         [](std::shared_ptr<RSSelfDrawingNodeRectData> SelfDrawingNodeRectData) {};
-    ASSERT_EQ(rsInterfaces->RegisterSelfDrawingNodeRectChangeCallback(callback), SUCCESS);
+    RectFilter filter;
+    filter.pids = { 0 };
+    ASSERT_EQ(rsInterfaces->RegisterSelfDrawingNodeRectChangeCallback(filter, callback), SUCCESS);
+}
+
+/*
+ * @tc.name: UnRegisterSelfDrawingNodeRectChangeCallbackTest
+ * @tc.desc: Test UnRegisterSelfDrawingNodeRectChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterSelfDrawingNodeRectChangeCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    ASSERT_EQ(rsInterfaces->UnRegisterSelfDrawingNodeRectChangeCallback(), SUCCESS);
 }
 
 /*

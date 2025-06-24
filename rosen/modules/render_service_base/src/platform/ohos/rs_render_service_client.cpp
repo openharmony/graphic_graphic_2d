@@ -2299,7 +2299,7 @@ private:
 };
 
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
-    const SelfDrawingNodeRectChangeCallback& callback)
+    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -2312,7 +2312,17 @@ int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
         cb = new CustomSelfDrawingNodeRectChangeCallback(callback);
     }
 
-    return renderService->RegisterSelfDrawingNodeRectChangeCallback(cb);
+    return renderService->RegisterSelfDrawingNodeRectChangeCallback(filter, cb);
+}
+
+int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback renderService == nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->UnRegisterSelfDrawingNodeRectChangeCallback();
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

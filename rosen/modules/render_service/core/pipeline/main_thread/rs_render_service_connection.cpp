@@ -256,10 +256,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
                     return;
                 }
                 auto &monitor = SelfDrawingNodeMonitor::GetInstance();
-                if (connection->remotePid_ == monitor.GetCallingPid()) {
-                    monitor.ClearRectMap();
-                    monitor.UnRegisterRectChangeCallback(connection->remotePid_);
-                }
+                monitor.UnRegisterRectChangeCallback(connection->remotePid_);
             }).wait();
     }
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
@@ -3273,7 +3270,7 @@ ErrCode RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
-    sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -3285,9 +3282,21 @@ int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    auto task = [pid = remotePid_, callback]() {
-        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, callback);
+    auto task = [pid = remotePid_, filter, callback]() {
+        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, filter, callback);
     };
+    mainThread_->PostTask(task);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!mainThread_) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto task = [pid = remotePid_]() { SelfDrawingNodeMonitor::GetInstance().UnRegisterRectChangeCallback(pid); };
     mainThread_->PostTask(task);
     return StatusCode::SUCCESS;
 }

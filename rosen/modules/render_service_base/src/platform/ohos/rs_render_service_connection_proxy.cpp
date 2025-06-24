@@ -5328,7 +5328,7 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool v
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
-    sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     if (!callback) {
         ROSEN_LOGE("%{public}s callback is nullptr", __func__);
@@ -5340,9 +5340,27 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
+        return WRITE_PARCEL_ERR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
+
+    uint32_t size = filter.pids.size();
+    if (!data.WriteUint32(size)) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write size err.");
+        return WRITE_PARCEL_ERR;
+    }
+    for (int32_t pid : filter.pids) {
+        if (!data.WriteInt32(pid)) {
+            ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write pid err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    if (!data.WriteInt32(filter.range.lowLimit.width) || !data.WriteInt32(filter.range.lowLimit.height) ||
+        !data.WriteInt32(filter.range.highLimit.width) || !data.WriteInt32(filter.range.highLimit.height)) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write rectRange err.");
+        return WRITE_PARCEL_ERR;
+    }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteRemoteObject callback->AsObject() err.");
         return WRITE_PARCEL_ERR;
@@ -5357,6 +5375,33 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
     int32_t result{0};
     if (!reply.ReadInt32(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: Send request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCallback Read result failed");
         return READ_PARCEL_ERR;
     }
     return result;

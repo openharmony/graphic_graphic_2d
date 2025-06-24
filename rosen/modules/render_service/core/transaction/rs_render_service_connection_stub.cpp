@@ -197,6 +197,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
@@ -3536,6 +3537,31 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
+            uint32_t size;
+            if (!data.ReadUint32(size)) {
+                ROSEN_LOGE(
+                    "RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read size failed");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            RectFilter filter;
+            for (uint32_t i = 0; i < size; ++i) {
+                pid_t pid;
+                if (!data.ReadInt32(pid)) {
+                    ROSEN_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
+                               "pid failed");
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
+                filter.pids.insert(pid);
+            }
+            if (!data.ReadInt32(filter.range.lowLimit.width) || !data.ReadInt32(filter.range.lowLimit.height) ||
+                !data.ReadInt32(filter.range.highLimit.width) || !data.ReadInt32(filter.range.highLimit.height)) {
+                ROSEN_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
+                           "rectRange failed");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 RS_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
@@ -3549,13 +3575,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            int32_t status = RegisterSelfDrawingNodeRectChangeCallback(callback);
+            int32_t status = RegisterSelfDrawingNodeRectChangeCallback(filter, callback);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Write status "
                         "failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
+        }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
+            int32_t status = UnRegisterSelfDrawingNodeRectChangeCallback();
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
         }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK): {

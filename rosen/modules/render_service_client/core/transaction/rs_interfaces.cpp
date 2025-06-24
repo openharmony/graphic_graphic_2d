@@ -1179,10 +1179,19 @@ void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
     renderServiceClient_->SetWindowContainer(nodeId, value);
 }
 
-int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback)
+int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(
+    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
 {
-    RS_TRACE_NAME("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback");
-    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(callback);
+    RS_LOGD("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback lowLimit_width: %{public}d lowLimit_height: "
+            "%{public}d highLimit_width: %{public}d highLimit_height: %{public}d",
+            filter.range.lowLimit.width, filter.range.lowLimit.height, filter.range.highLimit.width,
+            filter.range.highLimit.height);
+    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(filter, callback);
+}
+
+int32_t RSInterfaces::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    return renderServiceClient_->UnRegisterSelfDrawingNodeRectChangeCallback();
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
