@@ -35,7 +35,6 @@
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_skia_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
-#include "hpae_base/rs_hpae_base_data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -152,7 +151,7 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
         return false;
     }
     RS_OPTIONAL_TRACE_FUNC();
-    ROSEN_LOGD("RSFilterCacheManager::DrawFilterWithoutSnapshot");
+
     /* Reuse code from RSPropertiesPainter::DrawFilter() when cache manager is not available */
     auto clipIBounds = dst;
     Drawing::AutoCanvasRestore acr(canvas, true);
@@ -174,26 +173,26 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
 }
 
 bool RSFilterCacheManager::DrawFilterUsingHpae(RSPaintFilterCanvas& paintFilterCanvas, const std::shared_ptr<RSFilter>& filter,
-    const std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager, NodeId nodeId)
+    const std::shared_ptr<RSHpaeFilterCacheManager>& hpaeCacheManager, NodeId nodeId)
 {
     if(!hpaeCacheManager) {
         return false;
     }
-    if(nodeId != RSBaseData::GetInstance().GetBlurNodeId()) {
+    if(nodeId != RSHpaeBaseData::GetInstance().GetBlurNodeId()) {
         return false;
     }
-    hpaeCacheManager->ResetFilterCache(GetCachedSnapshot(), GetCachedFilteredSnapshot(),GetSnapshotRegion());
-    if (0 != hpaeCacheManager->DrawFilter(paintFilterCanvas, filter,ClearCacheAfterDrawing())) {
+    hpaeCacheManager->ResetFilterCache(GetCachedSnapshot(), 
+        GetCachedFilteredSnapshot(),GetSnapshotRegion());
+    if (0 == hpaeCacheManager->DrawFilter(paintFilterCanvas, filter,ClearCacheAfterDrawing())) {
         ResetFilterCache(hpaeCacheManager->GetCachedSnapshot(),
             hpaeCacheManager->GetCachedFilteredSnapshot(), hpaeCacheManager->GetSnapshotRegion(),true);
             RSHpaeBaseData::GetInstance().SetBlurContentChanged(hpaeCacheManager->GetBlurContentChanged()));
             return true;
-        } else {
+    } else {
             hpaeCacheManager->InvalidateFilterCache(FilterCacheType::BOTH);
-        }
     }
-    return false;
 
+    return false;
  }
 
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
@@ -205,7 +204,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     if(nodeId !=0 && DrawFilterUsingHpae(canvas,filter,hpaeCacheManager_, nodeId)) {
         return;
     }
-    ROSEN_LOGD("RSFilterCacheManager::DrawFilter");
+
     if (canvas.GetDeviceClipBounds().IsEmpty()) {
         return;
     }
@@ -215,7 +214,6 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
 
     RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState());
-    ROSEN_LOGD("RSFilterCacheManager::DrawFilter status: %{public}s", GetCacheState());
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     }
@@ -235,7 +233,6 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect)
 {
     RS_OPTIONAL_TRACE_FUNC();
-    ROSEN_LOGD("RSFilterCacheManager::GeneratedCachedEffectData");
     if (canvas.GetDeviceClipBounds().IsEmpty()) {
         return nullptr;
     }
@@ -244,12 +241,11 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
         return nullptr;
     }
     RS_TRACE_NAME_FMT("RSFilterCacheManager::GeneratedCachedEffectData status: %s", GetCacheState());
-    ROSEN_LOGD("RSFilterCacheManager::GeneratedCachedEffectData status: %{public}s", GetCacheState());
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     } else if (snapshotNeedUpdate_) {
         if (canvas.GetSurface()) {
-            RS_TRACE_NAME_FMT("ForceTaskSnapshot: %s", src.ToString().c_str());
+            RS_TRACE_NAME_FMT("ForceTakeSnapshot: %s", src.ToString().c_str());
             auto snapshot = canvas.GetSurface()->GetImageSnapshot(src, false);
             filter->PreProcess(snapshot);
             cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), src);
@@ -263,8 +259,6 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
         GenerateFilteredSnapshot(canvas, filter, dst);
     }
     // Keep a reference to the cached image, since CompactCache may invalidate it.
-    snapshotNeedUpdate_ = RSHpaeBaseData::GetInstance().GetBlurContentChanged() &&
-        (!forceUseCache_) && (filterType_ != RSFilter::AIBAR);
     auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
     return cachedFilteredSnapshot;
 }
@@ -276,8 +270,8 @@ void RSFilterCacheManager::TakeSnapshot(
     if (drawingSurface == nullptr) {
         return;
     }
-    RS_TRACE_FUNC();
-    RS_LOGD("RSFilterCacheManager::TakeSnapshot");
+    RS_OPTIONAL_TRACE_FUNC();
+
     // shrink the srcRect by 1px to avoid edge artifacts.
     Drawing::RectI snapshotIBounds = srcRect;
 
@@ -320,7 +314,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     }
     // The cache type has been validated, so filterRegion_ and cachedImage_ should be valid. There is no need to check
     // them again.
-    RS_TRACE_FUNC();
+    RS_OPTIONAL_TRACE_FUNC();
     ROSEN_LOGD("RSFilterCacheManager::GenerateFilteredSnapshot");
     // Create an offscreen canvas with the same size as the filter region.
     auto offscreenRect = dstRect;
@@ -369,7 +363,6 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
         return;
     }
     RS_OPTIONAL_TRACE_FUNC();
-    RS_LOGD("RSFilterCacheManager::DrawCachedFilteredSnapshot");
     // Draw in device coordinates.
     Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
@@ -385,7 +378,6 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
     }
     src.Offset(-cachedFilteredSnapshot_->cachedRect_.GetLeft(), -cachedFilteredSnapshot_->cachedRect_.GetTop());
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedFilteredSnapshot cachedRect_:%s, src:%s, dst:%s",
-
     cachedFilteredSnapshot_->cachedRect_.ToString().c_str(), src.ToString().c_str(), dst.ToString().c_str());
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
@@ -405,19 +397,15 @@ void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
         cachedSnapshot_.reset();
         cachedFilteredSnapshot_.reset();
         RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::InvalidateFilterCache BOTH");
-        ROSEN_LOGD("RSFilterCacheManager::InvalidateFilterCache BOTH");
         return;
     }
     if (clearType == FilterCacheType::SNAPSHOT) {
         cachedSnapshot_.reset();
         RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::InvalidateFilterCache SNAPSHOT");
-        ROSEN_LOGD("RSFilterCacheManager::InvalidateFilterCache SNAPSHOT");
         return;
     }
     if (clearType == FilterCacheType::FILTERED_SNAPSHOT) {
         cachedFilteredSnapshot_.reset();
-        RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::InvalidateFilterCache FILTERED_SNAPSHOT");
-        ROSEN_LOGD("RSFilterCacheManager::InvalidateFilterCache FILTERED_SNAPSHOT");
     }
 }
 
@@ -556,6 +544,8 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     cacheManager->filterType_ = filterType_;
     cacheManager->stagingIsOccluded_ = stagingIsOccluded_;
     cacheManager->ClearFilterCache();
+    cacheManager->forceUseCache_ = stagingForceUseCache_;
+    cacheManager->belowDirty_ = stagingFilterInteractWithDirty_;
 
     // renderParams to stagingParams
     lastCacheType_ = cacheManager->lastCacheType_;
@@ -856,24 +846,24 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
 
 void RSFilterCacheManager::ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion,
-    bool isHpaeCachedFilteredSnapshot)
-    {
+    bool isHpaeCachedFilteredSnapshot) {
   
-            if (cachedSnapshot && cachedSnapshot->cachedImage_) {
-                cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedSnapshot->cachedImage_,
-                    cachedSnapshot->cachedRect_);
-            } else {
-                cachedSnapshot_.reset();
-            }
-            if (cachedFilteredSnapshot && cachedFilteredSnapshot->cachedImage_) {
-                cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
-                    cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
-                    isHpaeCachedFilterSnapshot_ = isHpaeCachedFilterSnapshot;
-            } else {
-                cachedFilteredSnapshot.reset();
-                isHpaeCachedFilterSnapshot_ =false;
-            }
-            snapshotRegion_ = snapshotRegion;   
+        RS_TRACE_NAME_FMT("ResetFilterCache:[%p,%p]", cachedSnapshot.get(),cachedFilteredSnapshot.get());
+        if (cachedSnapshot && cachedSnapshot->cachedImage_) {
+            cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedSnapshot->cachedImage_,
+                cachedSnapshot->cachedRect_);
+        } else {
+            cachedSnapshot_.reset();
+        }
+        if (cachedFilteredSnapshot && cachedFilteredSnapshot->cachedImage_) {
+            cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
+                cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
+                isHpaeCachedFilteredSnapshot_ = isHpaeCachedFilteredSnapshot;
+        } else {
+            cachedFilteredSnapshot.reset();
+            isHpaeCachedFilteredSnapshot_ =false;
+        }
+        snapshotRegion_ = snapshotRegion;   
 }
 bool RSFilterCacheManager::ForceUpadateCacheByHpae()
 {
@@ -888,12 +878,12 @@ bool RSFilterCacheManager::ForceUpadateCacheByHpae()
 
 void RSFilterCacheManager::CompactFilterCache()
 {
-    if (RSBaseData::GetInstance().GetBlurContentChanged() && (!forceUseCache_) && (filterType_ != RSFilter::AIBAR)) {
+    if (ForceUpadateCacheByHpae()) {
         RS_TRACE_NAME("blur content changed");
         renderClearFilteredCacheAfterDrawing_ = true;
+    }
     InvalidateFilterCache(renderClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::SNAPSHOT);
-    }
 }
 } // namespace Rosen
 } // namespace OHOS
