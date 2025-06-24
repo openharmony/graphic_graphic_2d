@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-#include "hpae_base/rs_hpae_hianimation.h"
 #if defined(ROSEN_OHOS)
 #include <dlfcn.h>
+#if defined(ASYNC_BUILD_TASK)
 #include "cpp/ffrt_dynamic_graph.h"
 #endif
-
-#include "hpae_base/rs_hpae_log.h"
-#include "hpae_base/rs_hpae_perf_thread.h"
+#endif
 
 namespace OHOS::Rosen {
 using namespace std::chrono_literals;
@@ -70,7 +68,7 @@ void HianimationManager::NotifyHpaeDone()
 
 void HianimationManager::OpenDeviceAsync()
 {
-#if defined(ROSEN_OHOS)
+#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
     ffrt::submit_h([this]() {
         this->OpenDevice();
         }, {}, {});
@@ -81,7 +79,7 @@ void HianimationManager::OpenDeviceAsync()
 
 void HianimationManager::AlgoInitAsync(uint32_t imgWidth, uint32_t imgHeight, float maxSigma, uint32_t format)
 {
-#if defined(ROSEN_OHOS)
+#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
     {
         std::unique_lock<std::mutex> lock(algoInitMutex_);
         algoInitDone_ = false;
@@ -112,7 +110,7 @@ void HianimationManager::WaitAlgoInit()
 
 void HianimationManager::AlgoDeInitAsync()
 {
-#if defined(ROSEN_OHOS)
+#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
     ffrt::submit_h([this]() {
         this->HianimationAlgoDeInit();
         }, {}, {});

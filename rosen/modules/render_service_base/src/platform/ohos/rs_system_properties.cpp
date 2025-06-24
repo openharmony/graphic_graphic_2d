@@ -838,15 +838,6 @@ bool RSSystemProperties::GetCacheOptimizeRotateEnable()
     return debugEnable;
 }
 
-// 开机panic问题解决后，可删除
-bool RSSystemProperties::GetHeterogComputingSkiaDemoEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.heterog.computing.skiademo.enabled", "0");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
-}
-
 CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffScreenStatus()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.crossnode.offscreen.render.enabled", "1");

@@ -105,19 +105,21 @@ bool RSHpaeFfrtPatternManager::MHCDlOpen()
             return false;
         }
     }
+
     g_getGPInstance = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_get"));
     g_GPInit = reinterpret_cast<GPInstanceInitFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_init"));
     g_GPDestroy = reinterpret_cast<GPInstanceDestroyFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_destroy"));
-    g_GPRequestEGraph = reinterpret_cast<GPRequstEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_request_eg"));
-    g_GPReleaseEGraph = reinterpret_cast<GPReleaseEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_release_eg"));
-    g_GPReleaseAll = reinterpret_cast<GPReleaseAllEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_relsease_all"));
+    g_GPRequestEGraph = reinterpret_cast<GPRequestEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_request_eg"));
+    g_GPReleaseEGraph = reinterpret_cast<GPReleaseEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_eg"));
+    g_GPReleaseAll = reinterpret_cast<GPReleaseAllEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_relsease_all"));
     g_GPWait = reinterpret_cast<GPWaitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_wait"));
-    g_GPGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_wait_event"));
-    g_GPGetVulkanNotifyEvent = reinterpret_cast<GPGetGPUNotifyEventFunc>(dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_notify_event"));
+    g_GPGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(
+        dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_wait_event"));
+    g_GPGetVulkanNotifyEvent = reinterpret_cast<GPGetGPUNotifyEventFunc>(
+        dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_notify_event"));
     g_GPTaskSubmit = reinterpret_cast<GPGPTaskSubmitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_submit"));
-    if (!g_getGPInstance || !g_GPInit || !g_GPDestroy\
-        || !g_GPRequestEGraph || !g_GPReleaseEGraph || !g_GPWait\
-        || !g_GPGetVulkanWaitEvent || !g_GPGetVulkanNotifyEvent || !g_GPTaskSubmit|| !g_GPReleaseAll ) {
+    if (!g_getGPInstance || !g_GPInit || !g_GPDestroy || !g_GPRequestEGraph || !g_GPReleaseEGraph || !g_GPWait\
+        || !g_GPGetVulkanWaitEvent || !g_GPGetVulkanNotifyEvent || !g_GPTaskSubmit || !g_GPReleaseAll) {
         HPAE_LOGE("mhc_so dlsym error\n");
         dlclose(g_mhcHandle);
         g_mhcHandle = nullptr;

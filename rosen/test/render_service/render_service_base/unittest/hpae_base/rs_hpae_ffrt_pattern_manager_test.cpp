@@ -35,14 +35,16 @@ public:
     static inline std::string hpaeAaeSwitch;
 };
 
-void RSHpaeFfrtPatternManagerTest::SetUpTestCase() {
-    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.enabled",0);
-    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled",0);
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",1);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",1);
+void RSHpaeFfrtPatternManagerTest::SetUpTestCase()
+{
+    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
+    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1");
 }
-void RSHpaeFfrtPatternManagerTest::TearDownTestCase() {
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",hpaeSwitch);
+void RSHpaeFfrtPatternManagerTest::TearDownTestCase()
+{
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled",hpaeSwitch);
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",hpaeAaeSwitch);
 }
 void RSHpaeFfrtPatternManagerTest::SetUp() {}
@@ -65,6 +67,23 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, UpdatedTest, TestSize.Level1)
     ffrtManager.ResetUpdatedFlag();
     updated = ffrtManager.IsUpdated();
     EXPECT_FALSE(updated);
+}
+
+/**
+ * @tc.name: MHCRequestEGraphTest
+ * @tc.desc: Verify function MHCRequestEGraph
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
+{
+    RSHpaeFfrtPatternManager ffrtManager;
+    bool ret = ffrtManager.MHCRequestEGraph(0);
+    EXPECT_TRUE(ret);
+
+    ffrtManager.g_instance = nullptr;
+    ret = ffrtManager.MHCRequestEGraph(0);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -127,7 +146,7 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCReleaseEGraphTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
-    uint64_t ret = ffrtManager.MHCReleaseEGraph(0);
+    bool ret = ffrtManager.MHCReleaseEGraph(0);
     EXPECT_TRUE(ret);
 
     ffrtManager.g_instance = nullptr;

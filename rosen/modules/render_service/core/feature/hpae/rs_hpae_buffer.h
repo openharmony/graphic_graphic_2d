@@ -43,13 +43,14 @@ public:
     }
 
     void* GetBufferHandle();
-    std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const { return surfaceHandle_; }
+    std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const { return surfaceHandler_; }
 
 private:
 #if defined(ROSEN_OHOS)
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
 #endif
-    std::shared_ptr<RSSurfaceHandler> surfaceHandle_;
+
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
     bool surfaceCreated_ = false;
     std::string layerName_;
     std::shared_ptr<Drawing::GPUContext> grContext_;

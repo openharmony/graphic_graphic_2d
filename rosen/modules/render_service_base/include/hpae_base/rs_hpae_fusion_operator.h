@@ -19,8 +19,8 @@
 #include "hpae_base/rs_hpae_base_types.h"
 #include "hpae_base/rs_hpae_hianimation_types.h"
 
-#include "utils/rect.h"
 #include "render/rs_drawing_filter.h"
+#include "utils/rect.h"
 
 namespace OHOS::Rosen {
 
@@ -32,7 +32,7 @@ public:
     static void GetColorMatrixCoef(const std::shared_ptr<RSDrawingFilter> &filter,
         float (&colorMatrix)[HAE_COLOR_MATRIX_COEF_COUNT]);
 
-    static HaePixel GetHpaePixel(const std::shared_ptr<RSDrawingFilter> &filter);
+    static HaePixel GetHaePixel(const std::shared_ptr<RSDrawingFilter> &filter);
 
     static Drawing::Matrix GetShaderTransform(const Drawing::Rect& blurRect, float scaleW, float scaleH);
 };

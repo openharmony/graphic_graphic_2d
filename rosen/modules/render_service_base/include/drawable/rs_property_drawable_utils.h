@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSHpaeFilterCacheManager;
 class RSPropertyDrawableUtils {
 public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);

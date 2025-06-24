@@ -43,15 +43,17 @@ public:
     static inline std::string hpaeAaeSwitch;
 };
 
-void RSHpaeBaseDataTest::SetUpTestCase() {
-    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.enabled",0);
-    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled",0);
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",1);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",1);
+void RSHpaeBaseDataTest::SetUpTestCase()
+{
+    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
+    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1");
 
 }
-void RSHpaeBaseDataTest::TearDownTestCase() {
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",hpaeSwitch);
+void RSHpaeBaseDataTest::TearDownTestCase()
+{
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled",hpaeSwitch);
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",hpaeAaeSwitch);
 }
 void RSHpaeBaseDataTest::SetUp() {}
@@ -102,7 +104,7 @@ HWTEST_F(RSHpaeBaseDataTest, SetHpaeOutputBufferTest, TestSize.Level1)
 {
     RSHpaeBaseData hpaeBaseData;
     HpaeBufferInfo outputBuffer;
-    hpaeBaseData.SetHpaeInputBuffer(outputBuffer);
+    hpaeBaseData.SetHpaeOutputBuffer(outputBuffer);
     EXPECT_EQ(hpaeBaseData.outputBufferQueue_.size(), 1);
 }
 
@@ -163,7 +165,7 @@ HWTEST_F(RSHpaeBaseDataTest, SyncHpaeStatusTest, TestSize.Level1)
     status.saturation = 5.0f;
 
     hpaeBaseData.SyncHpaeStatus(status);
-    EXPECT_TRUE(hpaeBaseData.hpaeStatus_hpaeBlurEnabled);
+    EXPECT_TRUE(hpaeBaseData.hpaeStatus_.hpaeBlurEnabled);
 
     bool gotHpaeBlurNode = hpaeBaseData.GetHasHpaeBlurNode();
     EXPECT_TRUE(gotHpaeBlurNode);
@@ -175,7 +177,7 @@ HWTEST_F(RSHpaeBaseDataTest, SyncHpaeStatusTest, TestSize.Level1)
     EXPECT_TRUE(FloatEqual(blurRadius, 3.0f));
     float brightness  = hpaeBaseData.GetBrightness();
     EXPECT_TRUE(FloatEqual(brightness, 4.0f));
-    int saturation = hpaeBaseData.GetSaturation();
+    float saturation = hpaeBaseData.GetSaturation();
     EXPECT_TRUE(FloatEqual(saturation, 5.0f));
 }
 

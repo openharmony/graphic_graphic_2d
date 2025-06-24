@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_LOG_H
 #define RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_LOG_H
 
-#if defined(ROSEN_OHOS)&& defined(ENABLE_HPAE_BLUR)
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
 
 #include "rs_trace.h"
 #include <hilog/log.h>

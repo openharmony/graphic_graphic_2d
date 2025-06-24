@@ -60,8 +60,8 @@ void RSHpaeManager::OnUniRenderStart()
     stagingHpaeStatus_.hpaeBlurEnabled =
         (!HianimationManager::GetInstance().HianimationInvalid()) && RSSystemParameters::GetHpaeBlurEnabled();
 #endif
-        stagingHpaeStatus_.gotHpaeBlurNode = false;
-        stagingHpaeStatus_.blurNodeId = INVALID_BLUR_NODE_ID;
+    stagingHpaeStatus_.gotHpaeBlurNode = false;
+    stagingHpaeStatus_.blurNodeId = INVALID_BLUR_NODE_ID;
 }
 
 void RSHpaeManager::WaitPreviousReleaseAll()
@@ -104,7 +104,7 @@ void RSHpaeManager::UpdateHpaeState()
 void RSHpaeManager::HandleHpaeStateChange()
 {
     UpdateHpaeState();
-    int format = GRAPHIC_PIXEL_FMT_RGBA_8888; // only support RGBA8888 now
+    int format = GRAPHIC_PIXEL_FMT_RGBA_8888; // only support RGBA888 now
     // note: hpaeBufferWidth_/hpaeBufferHeight_ is done after prepare with IsHpaeBlurNode()
     switch (hpaeFrameState_) {
         case HpaeFrameState::ACTIVE: {

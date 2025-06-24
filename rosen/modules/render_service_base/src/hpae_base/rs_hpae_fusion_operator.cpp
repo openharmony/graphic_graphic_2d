@@ -99,13 +99,13 @@ std::shared_ptr<Drawing::ShaderEffect> MakeGreyShader(
     // parameter check: near zero
     constexpr static float EPS = 1e-5f;
     if (ROSEN_EQ(greyLow, 0.f, EPS) && ROSEN_EQ(greyHigh, 0.f, EPS)) {
-        HPAE_LOGI("MakeGreyShader: grey value is zero!");
+        HPAE_LOGI("MakeGreyShader: grey value is zero");
         return imageShader;
     }
     MakeGreyShaderEffect();
 
     if (g_greyShaderEffect_ == nullptr) {
-        HPAE_LOGE("MakeGreyShader: blurEffect create failed");
+        HPAE_LOGE("MakeGreyShader: blurEffect create failed!");
         return imageShader;
     }
 
@@ -117,7 +117,7 @@ std::shared_ptr<Drawing::ShaderEffect> MakeGreyShader(
     return builder->MakeShader(nullptr, false);
 }
 
-HaePixel RSHpaeFusionOperator::GetHpaePixel(const std::shared_ptr<RSDrawingFilter> &filter)
+HaePixel RSHpaeFusionOperator::GetHaePixel(const std::shared_ptr<RSDrawingFilter> &filter)
 {
     HaePixel haePixel;
     if (filter) {
@@ -158,10 +158,10 @@ int RSHpaeFusionOperator::ProcessGreyAndStretch(const Drawing::RectI& clipBounds
     BuildShaderMatrix(shaderMatrix, src, greyScaleRatio, stretchOffset);
 
     auto tileMode = static_cast<Drawing::TileMode>(RSHpaeBaseData::GetInstance().GetTileMode());
-    /*HPAE_TRACE_NAME_FMT("ProcessGreyAndStretch. offset:[%f, %f, %f, %f],
+    HPAE_TRACE_NAME_FMT("ProcessGreyAndStretch. offset:[%f, %f, %f, %f],
         tileMode:%d, image:[%dx%d]",
         pixelStretch.x_, pixelStretch.y_, pixelStretch.z_, pixelStretch.w_, tileMode,
-        image->GetWidth(), image->GetHeight());*/
+        image->GetWidth(), image->GetHeight());
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, tileMode, tileMode, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), shaderMatrix);
     auto greyCoef = RSHpaeBaseData::GetInstance().GetGreyCoef();

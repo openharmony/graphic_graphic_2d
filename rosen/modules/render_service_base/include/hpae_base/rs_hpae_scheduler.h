@@ -15,11 +15,11 @@
 #ifndef RENDER_SERVICE_BASE_RS_HPAE_SCHEDULER_H
 #define RENDER_SERVICE_BASE_RS_HPAE_SCHEDULER_H
 
+#include <condition_variable>
+#include <deque>
 #include <map>
 #include <mutex>
 #include <vector>
-#include <deque>
-#include <condition_variable>
 #include "hpae_base/rs_hpae_base_types.h"
 
 namespace OHOS::Rosen {

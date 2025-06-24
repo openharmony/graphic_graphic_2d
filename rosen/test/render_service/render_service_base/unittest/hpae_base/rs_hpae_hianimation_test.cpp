@@ -82,16 +82,16 @@ void RSHpaeHianimationTest::SetUpTestCase()
     mockHianimationDevice_->hianimationSyncProcess = MockHianimationSyncProcess;
     mockHianimationDevice_->hianimationDestroyTask = MockHianimationDestroyTask;
 
-    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.enabled",0);
-    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled",0);
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",1);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",1);
+    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
+    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1");
 }
 void RSHpaeHianimationTest::TearDownTestCase()
 {
     delete mockHianimationDevice_;
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",hpaeSwitch);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",hpaeAaeSwitch);
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
 void RSHpaeHianimationTest::SetUp() {}
 void RSHpaeHianimationTest::TearDown() {}

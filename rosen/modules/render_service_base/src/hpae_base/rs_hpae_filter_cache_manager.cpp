@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
+
 #if defined(ASYNC_BUILD_TASK)&& defined(ROSEN_OHOS)
 #include "cpp/ffrt_dynamic_graph.h"
 #endif
@@ -23,6 +25,7 @@
 #include "hpae_base/rs_hpae_hianimation.h"
 #include "hpae_base/rs_hpae_log.h"
 #include "hpae_base/rs_hpae_scheduler.h"
+
 #include "unistd.h"
 #include "common/rs_background_thread.h"
 #include "platform/common/rs_log.h"
@@ -41,7 +44,6 @@ static bool FloatEqual(float a, float b)
     return std::fabs(a - b) < EPSILON_F;
 }
 
-// Reference: RSFilterCacheManager::DrawFilter
 int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter,
     bool shouldClearFilteredCache, const std::optional<Drawing::RectI>& srcRect,
     const std::optional<Drawing::RectI>& dstRect)
@@ -74,7 +76,7 @@ int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std:
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
 
-    int32_t radiusI =(int)RSHpaeBaseData::GetInstance().GetBlurRadius();
+    int32_t radiusI = (int)RSHpaeBaseData::GetInstance().GetBlurRadius();
     curRadius_ = radiusI; // use int radius
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
@@ -100,7 +102,7 @@ bool RSHpaeFilterCacheManager::CheckIfUsingGpu()
     }
 
     // wait here, before using previous blur result
-    if (usingGpu == false && !HianimationManager::GetInstance().WaitPreviousTask()) {
+    if (usingGpu == false && !HianimatiionManager::GetInstance().WaitPreviousTask()) {
         HPAE_LOGW("Hianimation resource not enough");
         usingGpu = true;
     }
@@ -150,7 +152,7 @@ void RSHpaeFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
 void RSHpaeFilterCacheManager::ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion)
 {
-    HPAE_TRACE_NAME_FMT("HPAE::ResetFilterCache:[%p %p]", cachedSnapshot.get(), cachedFilteredSnapshot.get());
+    HPAE_TRACE_NAME_FMT("HPAE::ResetFilterCache:[%p, %p]", cachedSnapshot.get(), cachedFilteredSnapshot.get());
     // Updated cachedSnapshot and cachedFilteredSnapshot for RSFilterCacheManager
     // Use the cache even if it's null because this function is called before DrawFilter()
     if (cachedSnapshot) {
@@ -180,7 +182,7 @@ void RSHpaeFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
 
     HPAE_TRACE_NAME("RSHpaeFilterCacheManager::TakeSnapshot");
     Drawing::RectI snapshotIBounds = srcRect;
-    // Task a screenshot
+    // Take a screenshot
     std::shared_ptr<Drawing::Image> snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     filter->PreProcess(snapshot);
 
@@ -525,7 +527,7 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
 static bool CanDiscardCanvas(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect)
 {
     /* Check that drawing will be in full canvas and no issues with clip */
-    return (RSSystemProperities::GetDiscardCanvasBeforeFilterEnabled() && canvas.IsClipRect() &&
+    return (RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled() && canvas.IsClipRect() &&
         canvas.GetDeviceClipBounds() == dstRect && canvas.GetWidth() == dstRect.GetWidth() &&
         canvas.GetHeight() == dstRect.GetHeight() && dstRect.GetLeft() ==0 && dstRect.GetTop() == 0 &&
         canvas.GetAlpha() == 1.0 && !canvas.HasOffscreenLayer());

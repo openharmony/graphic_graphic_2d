@@ -62,18 +62,6 @@ public:
     void SetUpHpaeSurface(GraphicPixelFormat pixelFormat, GraphicColorGamut colorSpace, bool isHebc);
 
     bool IsFirstFrame();
-    bool  GetInTargetSurface()
-    {
-        return false;//TODO
-    }
-    void SetInTargetSurface(bool oldStatus)
-    {
-        return;//TODO
-    }
-    void CheckInTargetSurface(const std::string& name)
-    {
-        return; //todo
-    }
 
 private:
     RSHpaeManager();

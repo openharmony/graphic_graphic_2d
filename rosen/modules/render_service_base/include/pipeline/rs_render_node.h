@@ -67,6 +67,8 @@ class VulkanCleanupHelper;
 }
 namespace ModifierNG {
 class RSRenderModifier;
+class RSForegroundFilterRenderModifier;
+class RSBackgroundFilterRenderModifier;
 enum class RSModifierType : uint16_t;
 }
 struct SharedTransitionParam;
@@ -88,6 +90,7 @@ public:
     std::atomic<int32_t> cacheCnt_ = -1;
     virtual RSRenderNodeType GetType() const
     {
+        std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
         return Type;
     }
     std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
@@ -1203,6 +1206,7 @@ private:
 
     std::array<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>, ModifierNG::MODIFIER_TYPE_COUNT>
         modifiersNG_;
+    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     DrawCmdIndex stagingDrawCmdIndex_;
@@ -1306,6 +1310,8 @@ private:
     friend class DrawableV2::RSChildrenDrawable;
     friend class DrawableV2::RSRenderNodeShadowDrawable;
     friend class ModifierNG::RSRenderModifier;
+    friend class ModifierNG::RSForegroundFilterRenderModifier;
+    friend class ModifierNG::RSBackgroundFilterRenderModifier;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

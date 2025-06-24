@@ -269,7 +269,6 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
-    static bool GetHeterogComputingSkiaDemoEnabled(); // gpu常上电问题解决后，需移除
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();

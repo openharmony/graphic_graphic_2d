@@ -25,23 +25,27 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class RSHpaeSchedulerTest : testing::Test {
+class RSHpaeSchedulerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static inline std::string hpaeSwitch;
+    static inline std::string hpaeAaeSwitch;
 };
 
-void RSHpaeSchedulerTest::SetUpTestCase() {
-    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.enabled",0);
-    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled",0);
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",1);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",1); 
+void RSHpaeSchedulerTest::SetUpTestCase()
+{
+    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
+    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1"); 
 }
 void RSHpaeSchedulerTest::TearDownTestCase() {
-    OHOS::system::SetParameter("debug.graphic.hpae.enabled",hpaeSwitch);
-    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled",hpaeAaeSwitch);
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
 void RSHpaeSchedulerTest::SetUp() {}
 void RSHpaeSchedulerTest::TearDown() {}
@@ -81,7 +85,7 @@ HWTEST_F(RSHpaeSchedulerTest, CacheHpaeItemTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSHpaeSchedulerTest, GetCacheHpaeItemTest, TestSize.Level1)
+HWTEST_F(RSHpaeSchedulerTest, GetCachedHpaeItemTest, TestSize.Level1)
 {
     RSHpaeScheduler hpaeScheduler;
     HpaeBackgroundCacheItem item;
@@ -101,7 +105,7 @@ HWTEST_F(RSHpaeSchedulerTest, SetHpaeFrameIdTest, TestSize.Level1)
 {
     RSHpaeScheduler hpaeScheduler;
     hpaeScheduler.SetHpaeFrameId(1);
-    EXPECT_EQ(hpaeScheduler.hpaeFrameId, 1);
+    EXPECT_EQ(hpaeScheduler.hpaeFrameId_, 1);
 }
 
 /**

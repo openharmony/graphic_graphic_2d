@@ -29,7 +29,6 @@ namespace OHOS::Rosen {
 class RSRenderNode;
 class RSFilter;
 class RSFilterCacheManager;
-class RSHpaeFilterCacheManger;
 class ExtendRecordingCanvas;
 
 namespace DrawableV2 {
@@ -110,7 +109,7 @@ public:
 private:
 };
 
-class RSB_EXPORT RSFilterDrawable : public RSDrawable {
+class RSFilterDrawable : public RSDrawable {
 public:
     RSFilterDrawable();
     ~RSFilterDrawable() override = default;
@@ -175,7 +174,6 @@ protected:
     std::shared_ptr<RSFilter> stagingFilter_;
     std::unique_ptr<RSFilterCacheManager> stagingCacheManager_;
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
-    std::shared_ptr<RSHpaeFilterCacheManger> hpaeCacheManager_;
     RectI drawBehindWindowRegion_;
     RectI stagingDrawBehindWindowRegion_;
 };

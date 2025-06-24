@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
 #include "hpae_base/rs_hpae_perf_thread.h"
+
+#include <unistd.h>
 #include "hpae_base/rs_hpae_log.h"
 
 namespace OHOS::Rosen {

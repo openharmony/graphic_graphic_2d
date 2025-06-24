@@ -264,6 +264,9 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_properties_painter.cpp",
     "src/property/rs_property_trace.cpp",
 
+    #effect
+    "src/effect/rs_render_filter_base.cpp",
+
     #hpae
     "src/hpae_base/rs_hpae_base_data.cpp",
     "src/hpae_base/rs_hpae_hianimation.cpp",

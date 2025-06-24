@@ -29,7 +29,6 @@
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
-#include "hpae_base/rs_hpae_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -180,6 +179,7 @@ RSFilterDrawable::RSFilterDrawable()
         stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
+    hpaeCacheManager_ = std::make_shared<RSHpaeFilterCacheManager>();
 }
 
 void RSFilterDrawable::OnSync()

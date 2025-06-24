@@ -397,8 +397,8 @@ Drawing::RecordingCanvas::DrawFunc RSPixelStretchDrawable::CreateDrawFunc() cons
         RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
             RSTagTracker::SOURCETYPE::SOURCE_RSPIXELSTRETCHDRAWABLE);
 #endif
-        RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->renderNodeId_, ptr->pixelStretch_, ptr->boundsRect_,
-            ptr->boundsGeoValid, static_cast<Drawing::TileMode>(ptr->pixelStretchTileMode_));
+        RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->pixelStretch_, ptr->boundsRect_, ptr->boundsGeoValid_,
+            static_cast<Drawing::TileMode>(ptr->pixelStretchTileMode_));
     };
 }
 

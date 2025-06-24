@@ -50,11 +50,11 @@ void* MockGPWait(void* instance, uint64_t frameId, MHC_PatternTaskName taskName)
 {
     return reinterpret_cast<void*>(0x1234);
 }
-uint64_t MockGPGetVulkanWaitEvent(void* instance, uint64_t frameId, MHC_PatternTaskName taskName)
+uint16_t MockGPGetVulkanWaitEvent(void* instance, uint64_t frameId, MHC_PatternTaskName taskName)
 {
     return 1;
 }
-uint64_t MockGPGetVulkanNotifyEvent(void* instance, uint64_t frameId, MHC_PatternTaskName taskName)
+uint16_t MockGPGetVulkanNotifyEvent(void* instance, uint64_t frameId, MHC_PatternTaskName taskName)
 {
     return 2;
 }
@@ -115,34 +115,37 @@ hianimation_algo_device_t* MockGetHianimationDeviceFunc()
 
 extern "C" void* dlsym(void* handle, const char* symbol) {
     if (strcmp(symbol, "mhc_graph_pattern_get") == 0) {
-        return reinterpret_cast<void*>(MockgetGPInstance);
+        return reinterpret_cast<void *>(MockgetGPInstance);
     }
     if (strcmp(symbol, "mhc_graph_pattern_init") == 0) {
-        return reinterpret_cast<void*>(MockGPInit);
+        return reinterpret_cast<void *>(MockGPInit);
     }
     if (strcmp(symbol, "mhc_graph_pattern_destroy") == 0) {
-        return reinterpret_cast<void*>(MockGPDestroy);
+        return reinterpret_cast<void *>(MockGPDestroy);
     }
     if (strcmp(symbol, "mhc_graph_pattern_request_eg") == 0) {
-        return reinterpret_cast<void*>(MockGPRequestEGraph);
+        return reinterpret_cast<void *>(MockGPRequestEGraph);
     }
     if (strcmp(symbol, "mhc_graph_pattern_release_eg") == 0) {
-        return reinterpret_cast<void*>(MockGPReleaseEGraph);
+        return reinterpret_cast<void *>(MockGPReleaseEGraph);
     }
     if (strcmp(symbol, "mhc_graph_pattern_release_all") == 0) {
-        return reinterpret_cast<void*>(MockGPReleaseAll);
+        return reinterpret_cast<void *>(MockGPReleaseAll);
+    }
+    if (strcmp(symbol, "mhc_gp_task_wait") ==0) {
+        return reinterpret_cast<void *>(MockGPWait);
     }
     if (strcmp(symbol, "mhc_gp_vulkan_task_get_wait_event") == 0) {
-        return reinterpret_cast<void*>(MockGPGetVulkanWaitEvent);
+        return reinterpret_cast<void *>(MockGPGetVulkanWaitEvent);
     }
     if (strcmp(symbol, "mhc_gp_vulkan_task_get_notify_event") == 0) {
-        return reinterpret_cast<void*>(MockGPGetVulkanNotifyEvent);
+        return reinterpret_cast<void *>(MockGPGetVulkanNotifyEvent);
     }
     if (strcmp(symbol, "mhc_gp_task_submit") == 0) {
-        return reinterpret_cast<void*>(MockGPTaskSubmit);
+        return reinterpret_cast<void *>(MockGPTaskSubmit);
     }
     if (strcmp(symbol, "GetHianimationDevice") == 0) {
-        return reinterpret_cast<void*>(MockGetHianimationDeviceFunc);
+        return reinterpret_cast<void *>(MockGetHianimationDeviceFunc);
     }
     return NULL;
 }
@@ -150,10 +153,10 @@ extern "C" void* dlsym(void* handle, const char* symbol) {
 extern "C" void* dlopen(const char *filename, int flags)
 {
     if (strcmp(filename, "/vendor/lib64/libmhc_framework.so") == 0) {
-        return reinterpret_cast<void*>(0x1234);
+        return reinterpret_cast<void *>(0x1234);
     }
     if (strcmp(filename, "libanimation.z.so") == 0) {
-        return reinterpret_cast<void*>(0x1234);
+        return reinterpret_cast<void *>(0x1234);
     }
     return NULL;
 }
