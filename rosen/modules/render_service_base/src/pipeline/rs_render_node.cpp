@@ -1421,7 +1421,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 
 bool RSRenderNode::HasHpaeBackgroundFilter() const
 {
-    return hasHpae_;
+    return true;// to be fixed
 }
 
 void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
