@@ -24,12 +24,6 @@ namespace OHOS {
 namespace Rosen {
 class AniColorPicker {
 public:
-    AniColorPicker()
-        : nativeColorPicker_(nullptr),
-          srcPixelMap_(nullptr),
-          coordinatesBuffer_{0, 0, 0, 0}
-    {}
-
     static ani_status Init(ani_env* env);
 
     static ani_object CreateColorPickerNormal(ani_env* env, ani_object pixelmap);
@@ -42,9 +36,9 @@ public:
     static ani_object GetAverageColor(ani_env* env, ani_object obj);
     static ani_boolean IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_double colorValue);
 
-    std::shared_ptr<ColorPicker> nativeColorPicker_ = {nullptr};
+    std::shared_ptr<ColorPicker> nativeColorPicker_ = nullptr;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
-    double coordinatesBuffer_[4];
+    double coordinatesBuffer_[4] = {0.0, 0.0, 0.0, 0.0};
 
 private:
     static thread_local std::shared_ptr<ColorPicker> sColorPicker_;

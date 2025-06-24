@@ -86,17 +86,15 @@ ohos_shared_library("effectKit_ani") {
 ## Build effectKit_ani.so
 
 generate_static_abc("effectKit") {
-  base_url = "./ets"  # base_url需配置到导出接口文件的所在目录
-  files = [
-    "./ets/@ohos.effectKit.ets",
-  ]
+  base_url = "./ets"
+  files = [ "./ets/@ohos.effectKit.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/effectKit.abc"
 }
 
 generate_static_abc("effectKit_entry") {
   base_url = "./ets"
-  files = [ "./ets/effectKit_entry.ets"]
+  files = [ "./ets/effectKit_entry.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/effectKit_entry.abc"
 }

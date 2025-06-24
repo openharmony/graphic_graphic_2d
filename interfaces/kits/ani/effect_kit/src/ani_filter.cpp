@@ -13,19 +13,21 @@
  * limitations under the License.
  */
 
-#include "ani_filter.h"
 #include "ani_effect_kit_utils.h"
+#include "ani_filter.h"
+
 #include <atomic>
 #include <cstddef>
-#include "effect/shader_effect.h"
+#include <mutex>
+#include <shared_mutex>
+#include <unordered_map>
+
 #include "effect_errors.h"
 #include "effect_utils.h"
-#include <mutex>
+#include "effect/shader_effect.h"
 #include "pixel_map.h"
-#include <shared_mutex>
 #include "sk_image_chain.h"
 #include "sk_image_filter_factory.h"
-#include <unordered_map>
 
 namespace OHOS {
 namespace Rosen {

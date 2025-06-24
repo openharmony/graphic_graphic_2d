@@ -46,8 +46,6 @@ struct AniColorPickerAsyncContext {
           rColorPicker(nullptr) {}
 };
 
-static ani_object BuildColor(ani_env *env, const ColorManager::Color &color);
-
 static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
 {
     ani_object result{};
@@ -152,7 +150,7 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
     uint32_t arrLen = std::max(1u, static_cast<uint32_t>(colors.size()));
     ani_array_ref arrayValue = nullptr;
     ani_ref nullRef = nullptr;
-    if (ANI_OK != env->GetUndefined(&nullRef)) {
+    if (env->GetUndefined(&nullRef) != ANI_OK) {
         EFFECT_LOG_E("GetUndefined failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }

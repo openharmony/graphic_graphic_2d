@@ -288,7 +288,6 @@ namespace effectKit {
     private nativeObj: long = 0;
 
     constructor(context:long) {
-      console.log(`[EFFECT_KIT_DEBUG] ColorPickerInternal.constructor called, context: 0x${context.toString(16)}`);
       this.nativeObj = context;
     }
 
@@ -325,7 +324,6 @@ namespace effectKit {
       return this.getHighestSaturationColorNative();
     }
     public getAverageColor(): Color {
-      console.log(`[EFFECT_KIT_DEBUG] getAverageColor called, nativeObj: 0x${this.nativeObj.toString(16)}`);
       return this.getAverageColorNative();
     }
     public isBlackOrWhiteOrGrayColor(color: number): boolean {
@@ -337,14 +335,11 @@ namespace effectKit {
   native function createColorPickerWithRegion(source: image.PixelMap, region: Array<number>): ColorPicker
 
   export function createColorPicker(source: image.PixelMap): Promise<ColorPicker> {
-    console.log(`[EFFECT_KIT_DEBUG] createColorPicker called`);
     return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
       let cb = (): ColorPicker => {
-        console.log(`[EFFECT_KIT_DEBUG] createColorPickerNormal native call`);
         return createColorPickerNormal(source)
       };
       taskpool.execute(cb).then((ret: NullishType): void => {
-        console.log(`[EFFECT_KIT_DEBUG] createColorPickerNormal returned:`, ret);
         if (ret === null || ret === undefined) {
           let ret1: BusinessError<string> = {
             code: -1,
