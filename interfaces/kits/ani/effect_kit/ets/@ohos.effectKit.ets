@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// 导入完整异步请求包
+// Import the complete async request package
 import { AsyncCallback, Callback, BusinessError } from '@ohos.base';
 import image from '@ohos.multimedia.image';
 
@@ -22,7 +22,6 @@ type RejectString = (e: BusinessError<string>) => void;
 namespace effectKit {
   loadLibrary('effectKit_ani')
 
-  // 增加TileMode枚举，后续方法中需要使用
   export enum TileMode {
     CLAMP,
     REPEAT,
@@ -45,19 +44,18 @@ namespace effectKit {
    * @since 12
    */
 
-  //新增Color接口
   export interface Color {
-    alpha: number;
-    blue: number;
-    green: number;
     red: number;
+    green: number;
+    blue: number;
+    alpha: number;
   }
 
   export class ColorInternal implements Color {
-    alpha: number;
-    blue: number;
-    green: number;
     red: number;
+    green: number;
+    blue: number;
+    alpha: number;
   }
   
   export interface Filter {
@@ -119,7 +117,6 @@ namespace effectKit {
     */
     getEffectPixelMap(): Promise<image.PixelMap>;
     
-    // 增加五个方法
     /**
      * Adds the blur effect to the filter linked list, and returns the head node of the linked list.
      * @param { number } radius - Blur radius, in pixels. The blur effect is proportional to the configured value.
@@ -211,7 +208,6 @@ namespace effectKit {
 
   }
 
-  // 删除重复colorpicker接口声明与实现
 
   export class FilterInternal implements Filter {
     private nativeObj: long = 0;
@@ -226,11 +222,14 @@ namespace effectKit {
 
     public native getEffectPixelMapNative(): image.PixelMap;
 
-    // 增加五种方法native函数
     public native blurNative(radius: number, tileMode: TileMode): Filter;
+
     public native brightnessNative(bright: number): Filter;
+
     public native invertNative(): Filter;
+
     public native setColorMatrixNative(colorMatrix: Array<number>): Filter;
+
     public native getPixelMapNative(): image.PixelMap;
 
     public blur(radius: number): Filter {
@@ -255,7 +254,6 @@ namespace effectKit {
       });
     }
 
-    // 封装五种方法
     public blur(radius: number, tileMode: TileMode): Filter {
       return this.blurNative(radius, tileMode);
     }
@@ -294,7 +292,6 @@ namespace effectKit {
       this.nativeObj = context;
     }
 
-    public native getMainColorNative(): Promise<Color>;
     public native getMainColorSyncNative(): Color;
     public native getLargestProportionColorNative(): Color;
     public native getTopProportionColorsNative(colorCount: number): Array<Color | null>;
@@ -336,7 +333,6 @@ namespace effectKit {
     }
   }
 
-  // 修改namespace下重载函数写法
   native function createColorPicker1(source: image.PixelMap): ColorPicker
   native function createColorPicker2(source: image.PixelMap, region: Array<number>): ColorPicker
 

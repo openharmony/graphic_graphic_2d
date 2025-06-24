@@ -14,20 +14,19 @@
  */
 
 #include "ani_filter.h"
-
+#include "ani_effect_kit_utils.h"
 #include <atomic>
 #include <cstddef>
-#include <mutex>
-#include <shared_mutex>
-#include <unordered_map>
-
-#include "ani_effect_kit_utils.h"
+#include "effect/shader_effect.h"
 #include "effect_errors.h"
 #include "effect_utils.h"
+#include <mutex>
 #include "pixel_map.h"
+#include <shared_mutex>
 #include "sk_image_chain.h"
 #include "sk_image_filter_factory.h"
-#include "effect/shader_effect.h"
+#include <unordered_map>
+
 
 
 namespace OHOS {
@@ -83,10 +82,8 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
     auto blur = Rosen::SKImageFilterFactory::Blur(radius, static_cast<SkTileMode>(tileMode));
     aniFilter->AddNextFilter(blur);
 
-    static const char* className = ANI_CLASS_FILTER.c_str();
-    const char* methodSig = "J:V";
     return AniEffectKitUtils::CreateAniObject(
-        env, className, methodSig, reinterpret_cast<ani_long>(aniFilter));
+        env, ANI_CLASS_FILTER.c_str(), "J:V", reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::Grayscale(ani_env* env, ani_object obj)
@@ -99,9 +96,8 @@ ani_object AniFilter::Grayscale(ani_env* env, ani_object obj)
     auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
     aniFilter->AddNextFilter(grayscale);
 
-    static const char* className = ANI_CLASS_FILTER.c_str();
     return AniEffectKitUtils::CreateAniObject(
-        env, className, nullptr, reinterpret_cast<ani_long>(aniFilter));
+        env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
@@ -130,13 +126,10 @@ ani_object AniFilter::CreateEffect(ani_env* env, ani_object para)
     }
     aniFilter->srcPixelMap_ = pixelMap;
 
-    static const char *className = ANI_CLASS_FILTER.c_str(); // Class name in ETS
-    const char *methodSig = "J:V"; // Constructor signature
     return AniEffectKitUtils::CreateAniObject(
-        env, className, methodSig, reinterpret_cast<ani_long>(aniFilter.release()));
+        env, ANI_CLASS_FILTER.c_str(), "J:V", reinterpret_cast<ani_long>(aniFilter.release()));
 }
 
-// 增加五种方法实现
 ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param, ani_enum_item enumItem)
 {
     AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
@@ -157,9 +150,7 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param, ani_e
     auto blur = Rosen::SKImageFilterFactory::Blur(radius, static_cast<SkTileMode>(tileMode));
     aniFilter->AddNextFilter(blur);
     
-    static const char* className = ANI_CLASS_FILTER.c_str();
-    return AniEffectKitUtils::CreateAniObject(
-        env, className, nullptr, reinterpret_cast<ani_long>(aniFilter));
+    return AniEffectKitUtils::CreateAniObject(env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::Brightness(ani_env* env, ani_object obj, ani_double param)
@@ -171,16 +162,15 @@ ani_object AniFilter::Brightness(ani_env* env, ani_object obj, ani_double param)
     }
     
     float bright = 0.0f;
-    if (param >= 0 && param <= 1) {
+    if (param >= 0.0 && param <= 1.0) {
         bright = static_cast<float>(param);
     }
     
     auto brightness = Rosen::SKImageFilterFactory::Brightness(bright);
     aniFilter->AddNextFilter(brightness);
     
-    static const char* className = ANI_CLASS_FILTER.c_str();
     return AniEffectKitUtils::CreateAniObject(
-        env, className, nullptr, reinterpret_cast<ani_long>(aniFilter));
+        env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::Invert(ani_env* env, ani_object obj)
@@ -194,9 +184,8 @@ ani_object AniFilter::Invert(ani_env* env, ani_object obj)
     auto invert = Rosen::SKImageFilterFactory::Invert();
     aniFilter->AddNextFilter(invert);
     
-    static const char* className = ANI_CLASS_FILTER.c_str();
     return AniEffectKitUtils::CreateAniObject(
-        env, className, nullptr, reinterpret_cast<ani_long>(aniFilter));
+        env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object arrayObj)
@@ -227,9 +216,8 @@ ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object ar
     auto applyColorMatrix = Rosen::SKImageFilterFactory::ApplyColorMatrix(colormatrix);
     aniFilter->AddNextFilter(applyColorMatrix);
     
-    static const char* className = ANI_CLASS_FILTER.c_str();
     return AniEffectKitUtils::CreateAniObject(
-        env, className, nullptr, reinterpret_cast<ani_long>(aniFilter));
+        env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::GetPixelMap(ani_env* env, ani_object obj)
@@ -264,7 +252,6 @@ ani_status AniFilter::Init(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Grayscale) },
         ani_native_function { "getEffectPixelMapNative", ":L@ohos/multimedia/image/image/PixelMap;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) },
-        // 增加五种方法绑定
         ani_native_function { "blurNative", "DL@ohos/effectKit/effectKit/TileMode;:L@ohos/effectKit/effectKit/Filter;",
             reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_double, ani_enum_item)>
             (&OHOS::Rosen::AniFilter::Blur)) },

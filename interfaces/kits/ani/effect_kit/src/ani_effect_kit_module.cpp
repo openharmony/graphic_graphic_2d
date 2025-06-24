@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-#include "ani_effect_kit_module.h"
 #include "ani_color_picker.h"
+#include "ani_effect_kit_module.h"
 #include "ani_filter.h"
-
 #include "effect_utils.h"
 
 extern "C" {
@@ -36,10 +35,10 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     }
     std::array staticMethods = {
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniFilter::CreateEffect) },
-        ani_native_function { "createColorPicker1", nullptr,
-            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::createColorPicker1) },
-        ani_native_function { "createColorPicker2", nullptr,
-            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::createColorPicker2) },
+        ani_native_function { "CreateColorPickerNormal", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::CreateColorPickerNormal) },
+        ani_native_function { "CreateColorPickerWithRegion", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::CreateColorPickerWithRegion) },
     };
     if (env->Namespace_BindNativeFunctions(effectKitNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
         EFFECT_LOG_I("[ANI_Constructor] Namespace_BindNativeFunctions failed");

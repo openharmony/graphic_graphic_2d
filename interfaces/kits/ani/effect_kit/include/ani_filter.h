@@ -17,13 +17,13 @@
 #define OHOS_ANI_FILTER_H
 
 #include <ani.h>
+#include "effect/shader_effect.h"
+#include "include/core/SkImageFilter.h"
 #include <memory>
 #include <mutex>
+#include "pixel_map_taihe_ani.h"
 #include <vector>
 
-#include "include/core/SkImageFilter.h"
-#include "pixel_map_taihe_ani.h"
-#include "effect/shader_effect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,7 +42,7 @@ public:
 
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
-    // 增加五种方法声明
+    
     static ani_object Blur(ani_env* env, ani_object obj, ani_double param,  ani_enum_item enumItem);
     static ani_object Brightness(ani_env* env, ani_object obj, ani_double param);
     static ani_object Invert(ani_env* env, ani_object obj);

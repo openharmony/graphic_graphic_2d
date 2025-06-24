@@ -17,10 +17,10 @@
 #define OHOS_ANI_EFFECT_KIT_UTILS_H
 
 #include "ani.h"
-#include "pixel_map.h"
-#include "ani_filter.h"
 #include "ani_color_picker.h"
+#include "ani_filter.h"
 #include "effect_utils.h"
+#include "pixel_map.h"
 
 
 namespace OHOS {

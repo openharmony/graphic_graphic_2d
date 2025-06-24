@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#include "ani_color_picker.h"
 #include <string>
+#include "ani_color_picker.h"
 #include "ani_effect_kit_utils.h"
-#include "effect_errors.h"
-#include "color_picker.h"
 #include "color.h"
-#include "pixel_map_taihe_ani.h"
-#include "hilog/log.h"
+#include "color_picker.h"
+#include "effect_errors.h"
 #include "effect_utils.h"
+#include "hilog/log.h"
+#include "pixel_map_taihe_ani.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,96 +38,15 @@ struct AniColorPickerAsyncContext {
     ani_resolver resolver;
     ani_ref callback;
     ani_object thisObj;
-    std::shared_ptr<ColorPicker> rColorPicker = {nullptr};
+    std::shared_ptr<ColorPicker> rColorPicker;
+
+    AniColorPickerAsyncContext()
+        : colorPicker(nullptr), color(0u), status(0),
+          errorMsg(nullptr), resolver(nullptr), callback(nullptr), thisObj(nullptr),
+          rColorPicker(nullptr) {}
 };
 
-// 统一声明所有static函数，便于维护
-static void GetMainColorExecute(ani_env *env, ani_status status, void *data);
-static void GetMainColorComplete(ani_env *env, ani_status status, void *data);
-static void CommonCallbackRoutine(ani_env *env,
-    AniColorPickerAsyncContext *&asyncContext, const ani_object &valueParam);
 static ani_object BuildColor(ani_env *env, const ColorManager::Color &color);
-
-static void GetMainColorExecute(ani_env *env, ani_status status, void *data)
-{
-    AniColorPickerAsyncContext *context = static_cast<AniColorPickerAsyncContext *>(data);
-    if (context->errorMsg != nullptr) {
-        context->status = ERROR;
-        EFFECT_LOG_E("GetMainColorExecute mismatch args");
-        return;
-    }
-    if (context->colorPicker == nullptr || context->rColorPicker == nullptr) {
-        context->status = ERROR;
-        EFFECT_LOG_E("GetMainColorExecute colorPicker or rColorPicker is nullptr");
-        return;
-    }
-    uint32_t errorCode = context->rColorPicker->GetMainColor(context->color);
-    context->status = errorCode == SUCCESS ? SUCCESS : ERROR;
-}
-
-static void GetMainColorComplete(ani_env *env, ani_status status, void *data)
-{
-    ani_object res{};
-    ani_ref ref;
-    env->GetUndefined(&ref);
-    res = static_cast<ani_object>(ref);
-    AniColorPickerAsyncContext *context = static_cast<AniColorPickerAsyncContext *>(data);
-    if (context->errorMsg != nullptr) {
-        context->status = ERROR;
-        EFFECT_LOG_E("GetMainColorComplete mismatch args");
-        return;
-    }
-    if (context->status == SUCCESS) {
-        res = BuildColor(env, context->color);
-    }
-    CommonCallbackRoutine(env, context, res);
-}
-
-static void CommonCallbackRoutine(ani_env *env, AniColorPickerAsyncContext *&asyncContext, const ani_object &valueParam)
-{
-    ani_object result[2] = {nullptr, nullptr};
-    ani_ref retVal = nullptr;
-
-    {
-        ani_ref ref0;
-        env->GetUndefined(&ref0);
-        result[0] = static_cast<ani_object>(ref0);
-    }
-    {
-        ani_ref ref1;
-        env->GetUndefined(&ref1);
-        result[1] = static_cast<ani_object>(ref1);
-    }
-
-    if (asyncContext->status == SUCCESS) {
-        result[1] = valueParam;
-    } else if (asyncContext->errorMsg != nullptr) {
-        ani_string str;
-        env->String_NewUTF8("Internal error", 14U, &str);
-        result[0] = static_cast<ani_object>(str);
-    }
-
-    if (asyncContext->resolver != nullptr) {
-        if (asyncContext->status == SUCCESS) {
-            env->PromiseResolver_Resolve(asyncContext->resolver, result[1]);
-        } else {
-            env->PromiseResolver_Reject(asyncContext->resolver, reinterpret_cast<ani_error>(result[0]));
-        }
-    } else {
-        ani_wref wref;
-        env->WeakReference_Create(asyncContext->callback, &wref);
-        ani_boolean was_released = 0;
-        ani_ref callbackRef = nullptr;
-        env->WeakReference_GetReference(wref, &was_released, &callbackRef);
-        ani_class cls;
-        env->FindClass(ANI_CLASS_COLOR_PICKER.c_str(), &cls);
-        const int num = 2;
-        env->Class_CallStaticMethod_Ref(cls, nullptr, &retVal, callbackRef, num, result);
-    }
-
-    delete asyncContext;
-    asyncContext = nullptr;
-}
 
 static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
 {
@@ -138,7 +57,7 @@ static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
     ani_object clrAlpha{};
 
     static const char *className = ANI_CLASS_COLOR.c_str();
-    // 这里不能用this，需传递nullptr或实际对象指针，若无对象可用nullptr
+    
     result = AniEffectKitUtils::CreateAniObject(env, className, nullptr, reinterpret_cast<ani_long>(nullptr));
 
     ani_int colorRed = static_cast<ani_int>(color.r * 255.0f);
@@ -165,42 +84,9 @@ static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
     return result;
 }
 
-ani_object AniColorPicker::GetMainColor(ani_env *env, ani_object info)
-{
-    ani_object result{};
-    ani_object thisVar = info;
-    std::unique_ptr<AniColorPickerAsyncContext> asyncContext = std::make_unique<AniColorPickerAsyncContext>();
-    // 获取 nativeColorPicker 指针
-    asyncContext->colorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, thisVar);
-    // 设置 rColorPicker 指向实际的 ColorPicker 实例
-    if (asyncContext->colorPicker != nullptr) {
-        asyncContext->rColorPicker = asyncContext->colorPicker->nativeColorPicker_;
-    }
-
-    // ANI 不支持 CreateAsyncWork，直接同步执行
-    GetMainColorExecute(env, ANI_OK, asyncContext.get());
-    GetMainColorComplete(env, ANI_OK, asyncContext.get());
-
-    if (asyncContext->status != SUCCESS) {
-        // 错误处理
-        if (asyncContext->callback != nullptr) {
-            env->GlobalReference_Delete(asyncContext->callback);
-        }
-        if (asyncContext->resolver != nullptr) {
-            ani_string errorStr;
-            const int num = 22;
-            env->String_NewUTF8("fail to get main color", num, &errorStr);
-            ani_error error = reinterpret_cast<ani_error>(errorStr);
-            env->PromiseResolver_Reject(asyncContext->resolver, error);
-        }
-    }
-    asyncContext.release();
-    return result;
-}
 
 ani_object AniColorPicker::GetMainColorSync(ani_env *env, ani_object obj)
 {
-    // 从 ANI 对象中获取 C++ 实例指针
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
         EFFECT_LOG_E("[GetMainColorSync] Error1, failed to retrieve ColorPicker wrapper");
@@ -210,21 +96,18 @@ ani_object AniColorPicker::GetMainColorSync(ani_env *env, ani_object obj)
         EFFECT_LOG_E("[GetMainColorSync] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    // 调用原生方法获取主色
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     ColorManager::Color color;
     errorCode = thisColorPicker->nativeColorPicker_->GetMainColor(color);
-    // 根据结果返回对应值
     if (errorCode != SUCCESS) {
         EFFECT_LOG_E("[GetMainColorSync] Error3, failed to get main color (error code: %u)", errorCode);
-        return AniEffectKitUtils::CreateAniUndefined(env); // 失败时返回 undefined
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    return BuildColor(env, color); // 创建并返回 Color 对象
+    return BuildColor(env, color);
 }
 
 ani_object AniColorPicker::GetLargestProportionColor(ani_env *env, ani_object obj)
 {
-    // 从 ANI 对象中获取 C++ 实例指针
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
         EFFECT_LOG_E("[GetLargestProportionColor] Error1, failed to retrieve ColorPicker wrapper");
@@ -234,22 +117,19 @@ ani_object AniColorPicker::GetLargestProportionColor(ani_env *env, ani_object ob
         EFFECT_LOG_E("[GetLargestProportionColor] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    // 调用原生方法获取占比最大的颜色
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     ColorManager::Color color;
     errorCode = thisColorPicker->nativeColorPicker_->GetLargestProportionColor(color);
-    // 根据结果返回对应值
     if (errorCode != SUCCESS) {
         EFFECT_LOG_E("[GetLargestProportionColor] Error3, "
             "failed to get largest proportion color (error code: %u)", errorCode);
-        return AniEffectKitUtils::CreateAniUndefined(env); // 失败时返回 undefined
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    return BuildColor(env, color); // 创建并返回 Color 对象
+    return BuildColor(env, color);
 }
 
 ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, ani_double param)
 {
-    // 获取实例
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
         EFFECT_LOG_E("[GetTopProportionColors] Error1, failed to retrieve ColorPicker wrapper");
@@ -259,10 +139,8 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
         EFFECT_LOG_E("[GetTopProportionColors] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    // 处理颜色数量（限制范围）
     constexpr double PROPORTION_COLORS_NUM_LIMIT = 256.0;
     unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0.0, PROPORTION_COLORS_NUM_LIMIT));
-    // 获取颜色列表 - 修正方法调用
     std::vector<ColorManager::Color> colors;
     colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
     ani_class cls;
@@ -274,12 +152,14 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
     uint32_t arrLen = std::max(1u, static_cast<uint32_t>(colors.size()));
     ani_array_ref arrayValue = nullptr;
     ani_ref nullRef = nullptr;
-    env->GetUndefined(&nullRef);
+    if (ANI_OK != env->GetUndefined(&nullRef)) {
+        EFFECT_LOG_E("GetUndefined failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
     if (env->Array_New_Ref(cls, arrLen, nullRef, &arrayValue) != ANI_OK) {
         EFFECT_LOG_E("[GetTopProportionColors] Error4, failed to create array");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    // 填充数组
     for (uint32_t i = 0; i < arrLen; ++i) {
         ani_object colorValue;
         if (i < colors.size()) {
@@ -298,7 +178,6 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
 
 ani_object AniColorPicker::GetHighestSaturationColor(ani_env *env, ani_object obj)
 {
-    // 从 ANI 对象中获取 C++ 实例指针
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
         EFFECT_LOG_E("[GetHighestSaturationColor] Error1, failed to retrieve ColorPicker wrapper.");
@@ -308,17 +187,15 @@ ani_object AniColorPicker::GetHighestSaturationColor(ani_env *env, ani_object ob
         EFFECT_LOG_E("[GetHighestSaturationColor] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    // 调用原生方法获取饱和度最高的颜色
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     ColorManager::Color color;
     errorCode = thisColorPicker->nativeColorPicker_->GetHighestSaturationColor(color);
-    // 根据结果返回对应值
     if (errorCode != SUCCESS) {
         EFFECT_LOG_E("[GetHighestSaturationColor] Error3, "
             "failed to get highest saturation color (error code: %u)", errorCode);
-        return AniEffectKitUtils::CreateAniUndefined(env); // 失败时返回 undefined
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    return BuildColor(env, color); // 创建并返回 Color 对象
+    return BuildColor(env, color);
 }
 
 ani_object AniColorPicker::GetAverageColor(ani_env *env, ani_object obj)
@@ -333,7 +210,6 @@ ani_object AniColorPicker::GetAverageColor(ani_env *env, ani_object obj)
         EFFECT_LOG_E("[GetAverageColor] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    // 调用原生方法计算平均颜色
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     ColorManager::Color color;
     errorCode = thisColorPicker->nativeColorPicker_->GetAverageColor(color);
@@ -362,41 +238,38 @@ ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object o
     return rst;
 }
 
-ani_object AniColorPicker::createColorPicker1(ani_env *env, ani_object para)
+ani_object AniColorPicker::CreateColorPickerNormal(ani_env *env, ani_object para)
 {
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] createColorPicker1 called");
+    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] CreateColorPickerNormal called");
     auto colorPicker = std::make_unique<AniColorPicker>();
 
     auto pixelMap = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, para);
     if (!pixelMap) {
         EFFECT_LOG_E("AniColorPicker: pixelMap is null");
-        return AniEffectKitUtils::CreateAniUndefined(env); // 返回 undefined 给 ETS 层
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     colorPicker->srcPixelMap_ = pixelMap;
-    // 创建底层的 ColorPicker 实例
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     colorPicker->nativeColorPicker_ = ColorPicker::CreateColorPicker(pixelMap, errorCode);
-    
-    // 检查 ColorPicker 创建是否成功
     if (colorPicker->nativeColorPicker_ == nullptr || errorCode != SUCCESS) {
         EFFECT_LOG_E("AniColorPicker: Failed to create ColorPicker, errorCode: %u", errorCode);
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
 
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] createColorPicker1: pixelMap pointer");
+    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] CreateColorPickerNormal: pixelMap pointer");
 
-    static const char *className = ANI_CLASS_COLOR_PICKER.c_str(); // 根据 ETS 层 className 填写
+    static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
     const char *methodSig = "J:V";
     return AniEffectKitUtils::CreateAniObject(
         env, className, methodSig, reinterpret_cast<ani_long>(colorPicker.release()));
 }
 
-ani_object AniColorPicker::createColorPicker2(ani_env* env, ani_object para, ani_object region)
+ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object para, ani_object region)
 {
     auto colorPicker = std::make_unique<AniColorPicker>();
     auto pixelMap = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, para);
     if (!pixelMap) {
-        EFFECT_LOG_E("AniColorPicker::createColorPicker2: pixelMap is null");
+        EFFECT_LOG_E("AniColorPicker::CreateColorPickerWithRegion: pixelMap is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     colorPicker->srcPixelMap_ = pixelMap;
@@ -419,24 +292,23 @@ ani_object AniColorPicker::createColorPicker2(ani_env* env, ani_object para, ani
                 EFFECT_LOG_E("[CreateColorPicker] region Object_CallMethodByName_Double failed at i=%d", i);
                 return AniEffectKitUtils::CreateAniUndefined(env);
             }
-            colorPicker->coordinatesBuffer[i] = std::clamp<double>(doubleValue, 0.0, 1.0);
+            colorPicker->coordinatesBuffer_[i] = std::clamp<double>(doubleValue, 0.0, 1.0);
         }
     }
 
     bool coordinatesValid =
-        (colorPicker->coordinatesBuffer[2] > colorPicker->coordinatesBuffer[0]) &&
-        (colorPicker->coordinatesBuffer[3] > colorPicker->coordinatesBuffer[1]);
+        (colorPicker->coordinatesBuffer_[2] > colorPicker->coordinatesBuffer_[0]) &&
+        (colorPicker->coordinatesBuffer_[3] > colorPicker->coordinatesBuffer_[1]);
     if (!coordinatesValid) {
-        EFFECT_LOG_E("AniColorPicker::createColorPicker2: region must satisfy right > left && bottom > top");
+        EFFECT_LOG_E("AniColorPicker::CreateColorPickerWithRegion: region must satisfy right > left && bottom > top");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
 
-    // 新增：直接创建底层 ColorPicker 实例
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     colorPicker->nativeColorPicker_ = ColorPicker::CreateColorPicker(
-        pixelMap, colorPicker->coordinatesBuffer, errorCode);
+        pixelMap, colorPicker->coordinatesBuffer_, errorCode);
     if (colorPicker->nativeColorPicker_ == nullptr || errorCode != SUCCESS) {
-        EFFECT_LOG_E("AniColorPicker::createColorPicker2: Failed to create ColorPicker, errorCode: %u", errorCode);
+        EFFECT_LOG_E("AniColorPicker::CreateColorPickerWithRegion: Failed to create ColorPicker, errorCode: %u", errorCode);
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
 
@@ -456,8 +328,6 @@ ani_status AniColorPicker::Init(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function{"getMainColorNative", nullptr,
-                            reinterpret_cast<void *>(OHOS::Rosen::AniColorPicker::GetMainColor)},
         ani_native_function{"getMainColorSyncNative", nullptr,
                             reinterpret_cast<void *>(OHOS::Rosen::AniColorPicker::GetMainColorSync)},
         ani_native_function{"getLargestProportionColorNative", nullptr,

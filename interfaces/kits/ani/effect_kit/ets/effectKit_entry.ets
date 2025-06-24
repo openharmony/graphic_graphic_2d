@@ -24,8 +24,6 @@ function main() {
     pixelFormat: image.PixelMapFormat.RGBA_8888,
   };
 
-  // 使用同步方法创建一个空白的 PixelMap.
-  // 注意：ColorPicker 相关的测试很可能会因为 PixelMap 为空而失败。
   let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
   if (pixelMap == undefined) {
     console.println('Create image.createPixelMapSync failed');
@@ -54,7 +52,6 @@ function main() {
         console.println('Simple Test: getAverageColor returned undefined or null.');
       }
 
-      // 新增 getMainColor 测试
       console.println('Testing getMainColor');
       let mainColor = colorPicker.getMainColor();
       if (mainColor !== undefined && mainColor !== null) {
@@ -64,7 +61,6 @@ function main() {
         console.println('Simple Test: getMainColor returned undefined or null.');
       }
 
-      // 新增 GetMainColorSync 测试
       console.println('Testing getMainColorSync');
       let mainColorSync = colorPicker.getMainColorSync();
       if (mainColorSync !== undefined && mainColorSync !== null) {

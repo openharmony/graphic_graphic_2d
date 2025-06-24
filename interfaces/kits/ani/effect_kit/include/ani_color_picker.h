@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,33 +17,38 @@
 #define OHOS_ANI_COLOR_PICKER_H
 
 #include <ani.h>
-#include "effect_type.h"
 #include "color_picker.h"
+#include "effect_type.h"
 
 namespace OHOS {
-    namespace Rosen {
-        class AniColorPicker {
-        public:
-            static ani_status Init(ani_env* env);
+namespace Rosen {
+class AniColorPicker {
+public:
+    AniColorPicker()
+        : nativeColorPicker_(nullptr),
+          srcPixelMap_(nullptr),
+          coordinatesBuffer_{0, 0, 0, 0}
+    {}
 
-            static ani_object createColorPicker1(ani_env* env, ani_object pixelmap);
-            static ani_object createColorPicker2(ani_env* env, ani_object pixelmap, ani_object region);
+    static ani_status Init(ani_env* env);
 
-            static ani_object GetMainColor(ani_env* env, ani_object obj);
-            static ani_object GetMainColorSync(ani_env* env, ani_object obj);
-            static ani_object GetLargestProportionColor(ani_env* env, ani_object obj);
-            static ani_object GetTopProportionColors(ani_env* env, ani_object obj, ani_double color_count);
-            static ani_object GetHighestSaturationColor(ani_env* env, ani_object obj);
-            static ani_object GetAverageColor(ani_env* env, ani_object obj);
-            static ani_boolean IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_double color_value);
+    static ani_object CreateColorPickerNormal(ani_env* env, ani_object pixelmap);
+    static ani_object CreateColorPickerWithRegion(ani_env* env, ani_object pixelmap, ani_object region);
 
-            std::shared_ptr<ColorPicker> nativeColorPicker_ = {nullptr};
-            std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
-            double coordinatesBuffer[4];
+    static ani_object GetMainColorSync(ani_env* env, ani_object obj);
+    static ani_object GetLargestProportionColor(ani_env* env, ani_object obj);
+    static ani_object GetTopProportionColors(ani_env* env, ani_object obj, ani_double colorCount);
+    static ani_object GetHighestSaturationColor(ani_env* env, ani_object obj);
+    static ani_object GetAverageColor(ani_env* env, ani_object obj);
+    static ani_boolean IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_double colorValue);
 
-        private:
-            static thread_local std::shared_ptr<ColorPicker> sColorPicker_;
-        };
-    } // namespace Rosen
+    std::shared_ptr<ColorPicker> nativeColorPicker_ = {nullptr};
+    std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
+    double coordinatesBuffer_[4];
+
+private:
+    static thread_local std::shared_ptr<ColorPicker> sColorPicker_;
+    };
+} // namespace Rosen
 } // namespace OHOS
 #endif // OHOS_ANI_COLOR_PICKER_H

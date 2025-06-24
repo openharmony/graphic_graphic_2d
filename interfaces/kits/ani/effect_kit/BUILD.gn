@@ -99,7 +99,6 @@ generate_static_abc("effectKit_entry") {
   files = [ "./ets/effectKit_entry.ets"]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/effectKit_entry.abc"
-
 }
 
 ohos_prebuilt_etc("effectKit_etc") {

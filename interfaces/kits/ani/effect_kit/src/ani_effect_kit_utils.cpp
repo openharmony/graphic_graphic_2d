@@ -22,7 +22,6 @@ namespace Rosen {
 ani_object AniEffectKitUtils::CreateAniObject(
     ani_env* env, const char* className, const char* methodSig, ani_long object)
 {
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] CreateAniObject: Start");
     ani_class cls;
     if (env->FindClass(className, &cls) != ANI_OK) {
         EFFECT_LOG_E("Not found class");
@@ -38,7 +37,6 @@ ani_object AniEffectKitUtils::CreateAniObject(
         EFFECT_LOG_E("New Context Failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] CreateAniObject: End");
     return aniValue;
 }
 
@@ -67,21 +65,13 @@ AniFilter* AniEffectKitUtils::GetFilterFromEnv([[maybe_unused]] ani_env* env, [[
 
 AniColorPicker* AniEffectKitUtils::GetColorPickerFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
 {
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] GetColorPickerFromEnv Start");
     ani_status ret;
     ani_long nativeObj {};
-    // 从 JS 对象中获取 nativeObj 字段（存储 C++ 对象指针）
     if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
         EFFECT_LOG_E("Object_GetField_Long fetch failed, %{public}d", ret);
         return nullptr;
     }
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] GetColorPickerFromEnv: nativePtr value");
-    // 将指针转换为 AniColorPicker 类型
     AniColorPicker* colorPicker = reinterpret_cast<AniColorPicker*>(nativeObj);
-    if (!colorPicker) {
-        EFFECT_LOG_E("AniColorPicker instance is null");
-        return nullptr;
-    }
     return colorPicker;
 }
 } // namespace Rosen
