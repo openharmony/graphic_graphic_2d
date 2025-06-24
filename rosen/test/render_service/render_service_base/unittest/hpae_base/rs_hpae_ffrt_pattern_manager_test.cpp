@@ -73,7 +73,7 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, UpdatedTest, TestSize.Level1)
  * @tc.name: MHCRequestEGraphTest
  * @tc.desc: Verify function MHCRequestEGraph
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
 {
