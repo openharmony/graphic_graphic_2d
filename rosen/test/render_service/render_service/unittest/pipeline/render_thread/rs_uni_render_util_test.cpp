@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <parameters.h>
 
 #include "gtest/gtest.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
@@ -36,6 +37,10 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr NodeId DEFAULT_RENDER_NODE_ID = 10;
+}
 class RSUniRenderUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -2479,5 +2484,102 @@ HWTEST_F(RSUniRenderUtilTest, GetCurrentFrameVisibleDirty001, TestSize.Level1)
     auto rects = RSUniRenderUtil::GetCurrentFrameVisibleDirty(*displayDrawable, screenInfo, *params);
     EXPECT_EQ(rects.empty(), true);
     displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: UpdateVirtualExpandDisplayAccumulatedParams001
+ * @tc.desc: UpdateVirtualExpandDisplayAccumulatedParams can update params
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniRenderUtilTest, UpdateVirtualExpandDisplayAccumulatedParams001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->SetMainAndLeashSurfaceDirty(true);
+    RSUniRenderUtil::UpdateVirtualExpandDisplayAccumulatedParams(*params, *displayDrawable);
+    ASSERT_TRUE(params->GetAccumulatedDirty());
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip001
+ * @tc.desc: CheckVirtualExpandDisplaySkip return true when no accumulate status
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckVirtualExpandDisplaySkip001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->SetAccumulatedDirty(false);
+    bool result = RSUniRenderUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip002
+ * @tc.desc: CheckVirtualExpandDisplaySkip return false when skip enabled is false
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckVirtualExpandDisplaySkip002, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto type = system::GetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", "0");
+    bool result = RSUniRenderUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_FALSE(result);
+    system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", type);
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip003
+ * @tc.desc: CheckVirtualExpandDisplaySkip return false when has special layer
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckVirtualExpandDisplaySkip003, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->specialLayerManager_.AddIds(SpecialLayerType::SKIP, DEFAULT_RENDER_NODE_ID);
+    bool result = RSUniRenderUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip004
+ * @tc.desc: CheckVirtualExpandDisplaySkip return false when has accumulate dirty
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckVirtualExpandDisplaySkip004, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->SetAccumulatedDirty(true);
+    bool result = RSUniRenderUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_FALSE(result);
 }
 } // namespace OHOS::Rosen

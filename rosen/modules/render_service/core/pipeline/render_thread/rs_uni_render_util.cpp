@@ -34,6 +34,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -75,6 +76,7 @@ constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
 constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
+constexpr int32_t NO_SPECIAL_LAYER = 0;
 void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
@@ -575,6 +577,30 @@ GraphicIRect RSUniRenderUtil::IntersectRect(const GraphicIRect& first, const Gra
     } else {
         return GraphicIRect { left, top, width, height };
     }
+}
+
+void RSUniRenderUtil::UpdateVirtualExpandDisplayAccumulatedParams(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // All other factors that may prevent skipping virtual expand display need to be considered
+    // update accumulated dirty region
+    params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
+        (displayDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+}
+
+bool RSUniRenderUtil::CheckVirtualExpandDisplaySkip(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // Regardless of whether the current frame is skipped, the state needs to be accumulated
+    if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
+        return false;
+    }
+    if (displayDrawable.GetSpecialLayerType(params) != NO_SPECIAL_LAYER) {
+        RS_TRACE_NAME("CheckVirtualExpandDisplaySkip has special layer can not skip");
+        return false;
+    }
+    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d", params.GetAccumulatedDirty());
+    return !params.GetAccumulatedDirty();
 }
 
 void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,

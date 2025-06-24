@@ -79,6 +79,10 @@ public:
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
+    static void UpdateVirtualExpandDisplayAccumulatedParams(
+        RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    static bool CheckVirtualExpandDisplaySkip(
+        RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     // This is used for calculate matrix from buffer coordinate to window's relative coordinate
     static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
     static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,

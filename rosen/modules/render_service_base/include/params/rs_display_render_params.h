@@ -183,6 +183,22 @@ public:
         return hasSecLayerInVisibleRectChanged_;
     }
 
+        // Only used in virtual expand screen to record accumulate frame status
+    void SetAccumulatedDirty(bool isAccumulatedDirty)
+    {
+        isAccumulatedDirty_ = isAccumulatedDirty;
+    }
+
+    bool GetAccumulatedDirty() const
+    {
+        return isAccumulatedDirty_;
+    }
+
+    void ResetVirtualExpandAccumulatedParams()
+    {
+        isAccumulatedDirty_ = false;
+    }
+
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetRoundCornerDrawables()
     {
         return roundCornerSurfaceDrawables_;
@@ -230,6 +246,8 @@ private:
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     bool virtualScreenMuteStatus_ = false;
+    // Only used in virtual expand screen to record accumulate frame status
+    bool isAccumulatedDirty_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
