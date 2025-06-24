@@ -286,19 +286,20 @@ void RSNodeCommandHelper::ModifierNGAttachProperty(RSContext& context, NodeId no
     modifier->AttachProperty(propertyType, prop);
 }
 
-void RSNodeCommandHelper::UpdateModifierNGDrawCmdList(RSContext& context, NodeId nodeId, ModifierId modifierId,
-    ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType, Drawing::DrawCmdListPtr value)
+void RSNodeCommandHelper::UpdateModifierNGDrawCmdList(
+    RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId propertyId)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (!node) {
         return;
     }
-    auto modifier = node->GetModifierNG(modifierType, modifierId);
-    if (!modifier) {
+    auto baseProperty = node->GetProperty(propertyId);
+    if (!baseProperty) {
         return;
     }
-    modifier->Setter<Drawing::DrawCmdListPtr>(propertyType, value);
+    auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(baseProperty);
+    property->Set(value);
     if (value) {
         value->UpdateNodeIdToPicture(nodeId);
     }

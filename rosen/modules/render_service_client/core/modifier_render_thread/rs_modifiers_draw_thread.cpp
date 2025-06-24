@@ -213,14 +213,19 @@ bool RSModifiersDrawThread::TargetCommand(
 #ifdef ACCESSIBILITY_ENABLE
     if (RSModifiersDrawThread::Instance().GetHighContrast() &&
         hybridRenderType == Drawing::DrawCmdList::HybridRenderType::TEXT) {
-            return false;
-        }
+        return false;
+    }
 #endif
     bool targetCmd = false;
     switch (type) {
         case RSCommandType::RS_NODE:
+#if defined(MODIFIER_NG)
+            if (subType == OHOS::Rosen::RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST_NG ||
+                subType == OHOS::Rosen::RSNodeCommandType::ADD_MODIFIER_NG) {
+#else
             if (subType == OHOS::Rosen::RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST ||
                 subType == OHOS::Rosen::RSNodeCommandType::ADD_MODIFIER) {
+#endif
                 targetCmd = true;
             }
             break;
