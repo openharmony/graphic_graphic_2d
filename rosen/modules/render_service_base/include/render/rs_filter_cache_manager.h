@@ -210,6 +210,7 @@ private:
     bool stagingIsSkipFrame_  = false;
     RSFilter::FilterType filterType_ = RSFilter::NONE;
     bool forceUseCache_ = false;
+    bool belowDirty_ = false;
 
     // Cache age, used to determine if we can delay the cache update.
     int cacheUpdateInterval_ = 0;
