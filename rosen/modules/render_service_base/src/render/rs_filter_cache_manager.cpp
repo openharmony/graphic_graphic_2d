@@ -174,19 +174,19 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
 }
 
 bool RSFilterCacheManager::DrawFilterUsingHpae(RSPaintFilterCanvas& paintFilterCanvas, const std::shared_ptr<RSFilter>& filter,
-    const std::shard_ptr<RSHpaeFilterCacheManager> hpaeCacheManager, NodeId nodeId)
+    const std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager, NodeId nodeId)
 {
     if(!hpaeCacheManager) {
         return false;
     }
-    if(nodeI != RSBaseData::GetInstance().GetBlurNodeId()) {
+    if(nodeId != RSBaseData::GetInstance().GetBlurNodeId()) {
         return false;
     }
     hpaeCacheManager->ResetFilterCache(GetCachedSnapshot(), GetCachedFilteredSnapshot(),GetSnapshotRegion());
     if (0 != hpaeCacheManager->DrawFilter(paintFilterCanvas, filter,ClearCacheAfterDrawing())) {
         ResetFilterCache(hpaeCacheManager->GetCachedSnapshot(),
-        hpaeCacheManager->GetCachedFilteredSnapshot(), hpaeCacheManager->GetSnapshotRegion(),
-        RSHpaeBaseData::GetInstance().GetBlurContentChangerd()){
+            hpaeCacheManager->GetCachedFilteredSnapshot(), hpaeCacheManager->GetSnapshotRegion(),true);
+            RSHpaeBaseData::GetInstance().SetBlurContentChanged(hpaeCacheManager->GetBlurContentChanged()));
             return true;
         } else {
             hpaeCacheManager->InvalidateFilterCache(FilterCacheType::BOTH);
@@ -202,7 +202,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     const std::optional<Drawing::RectI>& dstRect)
 {
     RS_OPTIONAL_TRACE_FUNC();
-    if(nodeId !=0 && DrawingFilterUsingHpae(canvas,filter,hpaeCacheManager_, nodeId)) {
+    if(nodeId !=0 && DrawFilterUsingHpae(canvas,filter,hpaeCacheManager_, nodeId)) {
         return;
     }
     ROSEN_LOGD("RSFilterCacheManager::DrawFilter");
@@ -250,10 +250,10 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     } else if (snapshotNeedUpdate_) {
         if (canvas.GetSurface()) {
             RS_TRACE_NAME_FMT("ForceTaskSnapshot: %s", src.ToString().c_str());
-            auto snapshot = anvas.GetSurface()->GetImageSnapshot(src, false);
+            auto snapshot = canvas.GetSurface()->GetImageSnapshot(src, false);
             filter->PreProcess(snapshot);
-            cachedSnapshot_ = std::make_shared<RSPainFilterCanvas::CachedEffectData>(std::move(snapshot), src);
-            cacheFilteredSnapshot_.reset();
+            cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), src);
+            cachedFilteredSnapshot_.reset();
         }
     }
     snapshotNeedUpdate_ = RSHpaeBaseData::GetInstance().GetBlurContentChanged() && 
@@ -263,8 +263,8 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
         GenerateFilteredSnapshot(canvas, filter, dst);
     }
     // Keep a reference to the cached image, since CompactCache may invalidate it.
-    snapshotNeedUpdate_ = RSHpaeBaseData:GetInstance().GetBlurContentChanged() &&
-        (!forceUseCache_) && (filterType_ != RSFilter::AIBAR)
+    snapshotNeedUpdate_ = RSHpaeBaseData::GetInstance().GetBlurContentChanged() &&
+        (!forceUseCache_) && (filterType_ != RSFilter::AIBAR);
     auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
     return cachedFilteredSnapshot;
 }
@@ -859,19 +859,19 @@ void RSFilterCacheManager::ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas:
     bool isHpaeCachedFilteredSnapshot)
     {
   
-            if (cachedSnapshot && cachedSnapshot->cacheImage_) {
+            if (cachedSnapshot && cachedSnapshot->cachedImage_) {
                 cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedSnapshot->cachedImage_,
                     cachedSnapshot->cachedRect_);
             } else {
                 cachedSnapshot_.reset();
             }
-            if (cachedFilteredSnapshot && cachedFilteredSnapshot->cacheImage_) {
+            if (cachedFilteredSnapshot && cachedFilteredSnapshot->cachedImage_) {
                 cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
                     cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
-                    isHpaeCacheFilterSnapshot_ = isHpaeCacheFilterSnapshot;
+                    isHpaeCachedFilterSnapshot_ = isHpaeCachedFilterSnapshot;
             } else {
                 cachedFilteredSnapshot.reset();
-                isHpaeCacheFilterSnapshot_ =false;
+                isHpaeCachedFilterSnapshot_ =false;
             }
             snapshotRegion_ = snapshotRegion;   
 }
@@ -883,7 +883,7 @@ bool RSFilterCacheManager::ForceUpadateCacheByHpae()
     if(forceUseCache_ || filterType_ == RSFilter::AIBAR){
         return false;
     }
-    return RSHpaeBaseData::GetInstance().GetBlurContentChangerd();
+    return RSHpaeBaseData::GetInstance().GetBlurContentChanged();
 }
 
 void RSFilterCacheManager::CompactFilterCache()
