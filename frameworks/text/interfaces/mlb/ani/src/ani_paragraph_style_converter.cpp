@@ -91,7 +91,7 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     if (AniTextUtils::ReadOptionalField(env, obj, "fontFamilies", aniFontFamilies) == ANI_OK
         && aniFontFamilies != nullptr) {
         std::vector<std::string> fontFamilies;
-        ParseFontFamiliesToNative(env, reinterpret_cast<ani_array_ref>(aniFontFamilies), fontFamilies);
+        ParseFontFamiliesToNative(env, reinterpret_cast<ani_array>(aniFontFamilies), fontFamilies);
         paragraphStyle->lineStyleFontFamilies = fontFamilies;
     }
 }
@@ -105,13 +105,13 @@ void AniParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object o
 }
 
 void AniParagraphStyleConverter::ParseFontFamiliesToNative(
-    ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies)
+    ani_env* env, ani_array obj, std::vector<std::string>& fontFamilies)
 {
     ani_size arrayLength = 0;
     env->Array_GetLength(obj, &arrayLength);
     for (size_t i = 0; i < arrayLength; i++) {
         ani_ref tempString = nullptr;
-        env->Array_Get_Ref(obj, i, &tempString);
+        env->Array_Get(obj, i, &tempString);
         ani_string aniTempString = reinterpret_cast<ani_string>(tempString);
         std::string fontFamiliesString;
         ani_status ret = AniTextUtils::AniToStdStringUtf8(env, aniTempString, fontFamiliesString);

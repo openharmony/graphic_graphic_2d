@@ -140,14 +140,19 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
     env->Object_GetPropertyByName_Double(para_obj, "fraction", &fractionAni);
     env->Object_GetPropertyByName_Ref(para_obj, "positiveCoefficient", &positiveCoefficientAni);
     env->Object_GetPropertyByName_Ref(para_obj, "negativeCoefficient", &negativeCoefficientAni);
-    const auto positiveCoefficientAniArray = reinterpret_cast<ani_array_double>(positiveCoefficientAni);
-    const auto negativeCoefficientAniArray = reinterpret_cast<ani_array_double>(negativeCoefficientAni);
+    const auto positiveCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(positiveCoefficientAni);
+    const auto negativeCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(negativeCoefficientAni);
     ani_double posCoefNativeBuffer[3U] = { 0.0 };
     ani_double negCoefNativeBuffer[3U] = { 0.0 };
-    const ani_size offset3 = 0;
-    const ani_size len3 = 5;
-    env->Array_GetRegion_Double(positiveCoefficientAniArray, offset3, len3, posCoefNativeBuffer);
-    env->Array_GetRegion_Double(negativeCoefficientAniArray, offset3, len3, negCoefNativeBuffer);
+    const ani_size len3 = 3;
+    for (ani_size idx = 0; idx < len3; ++idx) {
+        if (env->TupleValue_GetItem_Double(positiveCoefficientAniTuple, idx, &posCoefNativeBuffer[idx]) != ANI_OK) {
+            UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double pos error");
+        }
+        if (env->TupleValue_GetItem_Double(negativeCoefficientAniTuple, idx, &negCoefNativeBuffer[idx]) != ANI_OK) {
+            UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double neg error");
+        }
+    }
     const int xIndex = 0;
     const int yIndex = 1;
     const int zIndex = 2;
