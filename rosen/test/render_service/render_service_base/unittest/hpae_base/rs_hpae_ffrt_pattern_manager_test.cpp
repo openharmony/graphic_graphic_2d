@@ -90,7 +90,7 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
  * @tc.name: MHCWaitTest
  * @tc.desc: Verify function MHCWait
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCWaitTest, TestSize.Level1)
 {
@@ -181,8 +181,10 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCSubmitTaskTest, TestSize.Level1)
 {
     RSHpaeFfrtPatternManager ffrtManager;
     auto preFunc = [=]() {
+        return;
     };
     auto afterFunc = [=]() {
+        return;
     };
 
     bool ret = ffrtManager.MHCSubmitTask(0, MHC_PatternTaskName::BLUR_GPU0, preFunc, nullptr, 0, afterFunc);
