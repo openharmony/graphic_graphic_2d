@@ -26,9 +26,10 @@ RSScreenManagerMock::~RSScreenManagerMock() = default;
 
 sptr<RSScreenManagerMock> RSScreenManagerMock::GetInstance()
 {
-    std::call_once(createFlag_ []() {
+    std::call_once(createFlag_, []() {
         instance_ = new RSScreenManagerMock();
-    })
+    });
+
     return instance_;
 }
 
