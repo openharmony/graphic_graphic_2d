@@ -84,7 +84,7 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(
         int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate, shouldSetRefreshRate);
         if (retryIter != setRateRetryMap_.end()) {
             retryIter->second.first = false;
-            retryIter->second.first = shouldSetRefreshRate ? 0 : retryIter->second.second;
+            retryIter->second.second = shouldSetRefreshRate ? 0 : retryIter->second.second;
         }
         if (status < EXEC_SUCCESS) {
             RS_LOGD("HgmContext: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "",
