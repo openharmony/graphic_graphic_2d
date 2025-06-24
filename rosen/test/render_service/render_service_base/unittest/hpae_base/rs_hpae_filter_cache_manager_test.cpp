@@ -61,7 +61,7 @@ void RSHpaeFilterCacheManagerTest::TearDown() {}
  * @tc.name: IsCacheVaildTest
  * @tc.desc: Verify function IsCacheVaild
  * @tc.type:FUNC
- * @tc.require:  
+ * @tc.require:
 */
 HWTEST_F(RSHpaeFilterCacheManagerTest, IsCacheValidTest, TestSize.Level1)
 {
