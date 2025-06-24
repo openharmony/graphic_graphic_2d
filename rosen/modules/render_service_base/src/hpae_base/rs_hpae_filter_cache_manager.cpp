@@ -553,7 +553,7 @@ int RSHpaeFilterCacheManager::DrawBackgroundToCanvas(RSPaintFilterCanvas& canvas
     }
 
     backgroundRadius_ = hpaeBlurItem.radius_;
-    if (FloatEqual(backgroundRadius_,curRadius_)) {
+    if (FloatEqual(backgroundRadius_, curRadius_)) {
         blurContentChanged_ = false;
     } else {
         blurContentChanged_ = true;
