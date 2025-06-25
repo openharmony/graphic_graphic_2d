@@ -89,7 +89,7 @@ private:
     void CheckAndHandleTimeoutEvent(std::weak_ptr<ProcessOfflineStatus> statusWeakPtr);
     // so handler
     bool loadSuccess_ = false;
-    void *proProcessHandle_ = nullptr;
+    void *preProcessHandle_ = nullptr;
     ProcessOfflineFunc preProcessFunc_ = nullptr;
     GetOfflineConfigFunc getConfigFunc_ = nullptr;
     RSHpaeOfflineProcessSync offlineResultSync_;
