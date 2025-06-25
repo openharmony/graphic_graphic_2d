@@ -54,9 +54,9 @@ public:
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
 
-    // offline 
+    // offline
     LayerInfoPtr CreateOfflineLayer(RSSurfaceRenderNode& node, ProcessOfflineResult &processOfflineResult) const;
-    LayerInfoPtr CreateOfflineLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, 
+    LayerInfoPtr CreateOfflineLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
         ProcessOfflineResult &processOfflineResult) const;
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
