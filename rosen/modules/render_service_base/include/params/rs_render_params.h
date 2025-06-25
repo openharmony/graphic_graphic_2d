@@ -378,6 +378,9 @@ public:
     bool HasUnobscuredUEC() const;
     void SetHasUnobscuredUEC(bool flag);
 
+    void SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info);
+    const std::unordered_map<ScreenId, bool>& GetVirtualScreenWhiteListInfo() const;
+
     // [Attention] Only used in PC window resize scene now
     void EnableWindowKeyFrame(bool enable);
     bool IsWindowKeyFrameEnabled() const;
@@ -456,6 +459,8 @@ private:
 
     // used for DFX
     bool isOnTheTree_ = false;
+
+    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

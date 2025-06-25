@@ -2836,12 +2836,12 @@ HWTEST_F(RSScreenManagerTest, GetAllBlackList001, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetAllWhiteList001
- * @tc.desc: Test GetAllWhiteList
+ * @tc.name: GetWhiteList001
+ * @tc.desc: Test GetWhiteList
  * @tc.type: FUNC
  * @tc.require: issueIBR5DD
  */
-HWTEST_F(RSScreenManagerTest, GetAllWhiteList001, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetWhiteList001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -2857,6 +2857,9 @@ HWTEST_F(RSScreenManagerTest, GetAllWhiteList001, TestSize.Level1)
     for (const auto nodeId : whiteList) {
         EXPECT_EQ(allWhiteList.count(nodeId), 1);
     }
+
+    auto screenWhiteList = screenManagerImpl.GetScreenWhiteList();
+    ASSERT_NE(screenWhiteList.empty(), true);
 }
 
 /*

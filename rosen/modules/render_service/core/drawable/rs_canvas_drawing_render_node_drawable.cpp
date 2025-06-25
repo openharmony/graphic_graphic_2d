@@ -217,6 +217,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     OnDraw(canvas);
 }
 

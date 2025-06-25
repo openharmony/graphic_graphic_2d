@@ -151,6 +151,9 @@ void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (stopDrawForRangeCapture) {
         return;
     }
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     RSEffectRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen::DrawableV2

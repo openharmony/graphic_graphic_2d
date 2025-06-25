@@ -1002,6 +1002,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     // avoid cross node subtree visited twice or more
     UpdateSpecialLayersRecord(node);
     UpdateBlackListRecord(node);
+    node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
     if (CheckSkipAndPrepareForCrossNode(node)) {
         return;
     }
@@ -1746,6 +1747,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     screenManager_->SetScreenHasProtectedLayer(currentVisitDisplay_, false);
     allBlackList_ = screenManager_->GetAllBlackList();
     allWhiteList_ = screenManager_->GetAllWhiteList();
+    screenWhiteList_ = screenManager_->GetScreenWhiteList();
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
@@ -2829,6 +2831,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     node.UpdateAbsDrawRect();
     node.ResetChangeState();
     node.SetHasUnobscuredUEC();
+    if (curSurfaceNode_ == nullptr) {
+        node.UpdateVirtualScreenWhiteListInfo();
+    }
     if (isDrawingCacheEnabled_) {
         bool isInBlackList = false;
         if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {

@@ -85,6 +85,29 @@ HWTEST(RSEffectRenderNodeDrawableTest, CreateEffectRenderNodeDrawable, TestSize.
     auto drawable = RSEffectRenderNodeDrawable::OnGenerate(effectNode);
     ASSERT_NE(drawable, nullptr);
 }
+
+/**
+ * @tc.name: OnCaptureTest
+ * @tc.desc: Test If OnCapture Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+}
+
 /**
  * @tc.name: OnDraw
  * @tc.desc: Test OnDraw
