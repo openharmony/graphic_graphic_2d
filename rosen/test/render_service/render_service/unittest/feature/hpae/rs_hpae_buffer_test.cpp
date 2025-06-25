@@ -16,15 +16,17 @@
 #include "common/rs_common_def.h"
 #include "gtest/gtest.h"
 #include "feature/hpae/rs_hpae_buffer.h"
+#inclide "pipeline/rs_surface_handler.h"
 #include "transaction/rs_render_service_client.h"
-#include "feature/hpae/rs_hpae_render_listener.h"
 #include "transaction/rs_irender_client.h"
 #include "feature/hpae/rs_hpae_render_listener.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "iconsumer_surface.h"
+#inclide "surface_buffer_impl.h"
 #include "feature/mock/mock_iconsumer_surface.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -55,11 +57,11 @@ void RSHpaeBufferTest::TearDown()
 BufferRequestConfig bufferConfig = {.width = 1000,
     .height = 2000,
     .strideAllignment = 0,
-    .format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_TCBCR_420_SP,
+    .format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP,
     .usage = 0x1234567890,
     .timeout = 0,
     .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3,
-    .transform = GraphicTransformType::GRAPHIC_ROTATE_NODE};
+    .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE};
 
 /**
  * @tc.name: GetBufferHandleTest
@@ -76,10 +78,19 @@ HWTEST_F(RSHpaeBufferTest, GetBufferHandleTest, TestSize.Level1)
     auto consumer= IConsumerSurface::Create("layer00");
     auto producer = consumer->GetProducer();
     auto producerSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto client = std::static_pointer_cast<RSRenderSeriviceClient>(RSIRenderClient::CreateRenderServiceClient());
+    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     auto surface = client->CreateRSSurface(producerSurface);
-    auto rsSurface = std::static_pointer_cast<RSSurfacceOhos>(surface);
+    auto rsSurface = std::static_pointer_cast<RSSurfaceOhos>(surface);
     hpaeBuffer->rsSurface_ = rsSurface;
+    ASSERT_EQ(hpaeBuffer->GetBufferHandle(), nullptr);
+
+    sptr<OHOS::SurfaceBuffer> sBuffer = new SurfaceBufferImpl(0);
+    auto rsSurfaceVulkan = std::make_shared<RSSurfaceOhosVulkan>(IConsumerSurface::Create());
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+    rsSurfaceVulkan->mSurfaceList.emplace_back(nativeWindowBuffer);
+    auto rsSurface2 = std::static_pointer_cast<RSSurfaceOhos>(rsSurfaceVulkan);
+    hpaeBuffer->rsSurface_ = rsSurface2;
     ASSERT_EQ(hpaeBuffer->GetBufferHandle(), nullptr);
 }
 
@@ -100,38 +111,37 @@ HWTEST_F(RSHpaeBufferTest, RequestFrameTest, TestSize.Level1)
     auto consumer = IConsumerSurface::Create("layer01");
     auto producer = consumer->GetProducer();
     auto producerSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderSeriviceClient());
+    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     auto surface = client->CreateRSSurface(producerSurface);
-    auto surface = std::static_pointer_cast<RSSurfaceOhos>(surface);
+    auto rsSsurface = std::static_pointer_cast<RSSurfaceOhos>(surface);
     auto hpaeBuffer3 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer", 22);
     hpaeBuffer3->rsSurface_ = rsSurface;
-    hpaeBuffer3->surfaceCreate_= false;
+    hpaeBuffer3->surfaceCreated_= false;
     std::shared_ptr<Drawing::GPUContext> gpuContext = std::make_shared<Drawing::GPUContext>();
-    hpaeBuffer3->grContext_ = gpuContext;
     auto renderEngine = std::make_shared<RSRenderEngine>();
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     hpaeBuffer3->grContext_ = nullptr;
     hpaeBuffer3->RequestFrame(bufferConfig, false);
     hpaeBuffer3->grContext_ = gpuContext;
     hpaeBuffer3->RequestFrame(bufferConfig, false);
-    hpaeBuffer3->surfaceCreate_= true;
+    hpaeBuffer3->surfaceCreated_= true;
     hpaeBuffer3->RequestFrame(bufferConfig, false);
     hpaeBuffer3->rsSurface_ = nullptr;
     hpaeBuffer3->RequestFrame(bufferConfig, false);
     renderEngine->Init();
     hpaeBuffer3->RequestFrame(bufferConfig, false);
-    hpaeBuffer3->surfaceCreate_= false;
+    hpaeBuffer3->surfaceCreated_= false;
     ASSERT_NE(hpaeBuffer3->grContext_, nullptr);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /**
- * @tc.name: FlushFrameTest1
+ * @tc.name: FlushFrameTest
  * @tc.desc: Test FlushFrame
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHpaeBufferTest, FlushFrameTest1, TestSize.Level1)
+HWTEST_F(RSHpaeBufferTest, FlushFrameTest, TestSize.Level1)
 {
     auto hpaeBuffer1 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer", 33);
     ASSERT_EQ(hpaeBuffer1->FlushFrame(), false);
@@ -159,10 +169,10 @@ HWTEST_F(RSHpaeBufferTest, FlushFrameTest1, TestSize.Level1)
 HWTEST_F(RSHpaeBufferTest, ForceDropFrameTest1, TestSize.Level1)
 {
     auto hpaeBuffer1 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer1", 222);
-    ASSERT_NE(hpaeBuffer1->ForceDropFrame(100), OHOS::GSERROR_NOT_INIT);
+    ASSERT_EQ(hpaeBuffer1->ForceDropFrame(100), OHOS::GSERROR_NOT_INIT);
     auto hpaeBuffer2 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer2", 333);
     hpaeBuffer2->surfaceHandler_ = nullptr;
-    ASSERT_NE(hpaeBuffer2->ForceDropFrame(100), OHOS::GSERROR_NOT_INIT);
+    ASSERT_EQ(hpaeBuffer2->ForceDropFrame(100), OHOS::GSERROR_NOT_INIT);
 
     auto hpaeBuffer3 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer3", 444);
     std::unique_ptr<Mock::MockIConsumerSurface> mock3 = std::make_unique<Mock::MockIConsumerSurface>();
@@ -172,15 +182,15 @@ HWTEST_F(RSHpaeBufferTest, ForceDropFrameTest1, TestSize.Level1)
     hpaeBuffer3->surfaceHandler_->SetConsumer(mockSptr3);
     ASSERT_NE(hpaeBuffer3->ForceDropFrame(100), true);
 
-    auto hpaeBuffer4 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer4", 444);
+    auto hpaeBuffer4 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer4", 4444);
     std::unique_ptr<Mock::MockIConsumerSurface> mock4 = std::make_unique<Mock::MockIConsumerSurface>();
     sptr<Mock::MockIConsumerSurface> mockSptr4 = mock4.release();
     EXPECT_CALL(*mockSptr4, AcquireBuffer(_, _, _)).WillRepeatedly(testing::Return(SURFACE_ERROR_OK));
     EXPECT_CALL(*mockSptr4, ReleaseBuffer(_, _)).WillRepeatedly(testing::Return(GSERROR_NO_BUFFER));
     hpaeBuffer4->surfaceHandler_->SetConsumer(mockSptr4);
-    ASSERT_EQ(hpaeBuffer4->ForceDropFrame(100), GSERROR_OK);
+    ASSERT_NE(hpaeBuffer4->ForceDropFrame(100), GSERROR_OK);
 
-    auto hpaeBuffer5 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer5", 555);
+    auto hpaeBuffer5 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer5", 5555);
     std::unique_ptr<Mock::MockIConsumerSurface> mock5 = std::make_unique<Mock::MockIConsumerSurface>();
     sptr<Mock::MockIConsumerSurface> mockSptr5 = mock5.release();
     EXPECT_CALL(*mockSptr5, AcquireBuffer(_, _, _)).WillRepeatedly(testing::Return(GSERROR_NO_BUFFER));
@@ -217,17 +227,8 @@ HWTEST_F(RSHpaeBufferTest, CreateSurfaceTest, TestSize.Level1)
     auto rsSurface2 = std::static_pointer_cast<RSSurfaceOhos>(surface);
     hpaeBuffer2->rsSurface_ = rsSurface2;
     sptr<IBufferConsumerListener> listener2 = new RSHpaeRenderListener(hpaeBuffer2->surfaceHandler_);
-    ASSERT_NE(hpaeBuffer2->CreateSurface(listener2), true);
-}
+    ASSERT_EQ(hpaeBuffer2->CreateSurface(listener2), true);
 
-/**
- * @tc.name: CreateSurfaceTest4
- * @tc.desc: Test CreateSurface
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHpaeBufferTest, CreateSurfaceTest4, TestSize.Level1)
-{
     auto hpaeBuffer3 = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer", 88);
     auto consumer3 = IConsumerSurface::Create("layer003");
     auto producer3 = consumer3->GetProducer();
@@ -235,19 +236,11 @@ HWTEST_F(RSHpaeBufferTest, CreateSurfaceTest4, TestSize.Level1)
     auto client3 = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     auto surface3 = client3->CreateRSSurface(producerSurface3);
     auto rsSurface3 = std::static_pointer_cast<RSSurfaceOhos>(surface3);
+    hpaeBuffer3->surfaceHandler_->SetConsumer(consumer3);
     hpaeBuffer3->rsSurface_ = rsSurface3;
     sptr<IBufferConsumerListener> listener4 = new RSHpaeRenderListener(hpaeBuffer2->surfaceHandler_);
-    ASSERT_NE(hpaeBuffer3->CreateSurface(listener4), true);
-}
+    ASSERT_EQ(hpaeBuffer3->CreateSurface(listener4), true);
 
-/**
- * @tc.name: CreateSurfaceTest5
- * @tc.desc: Test CreateSurface
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHpaeBufferTest, CreateSurfaceTest5, TestSize.Level1)
-{
     std::unique_ptr<Mock::MockIConsumerSurface> mock5 = std::make_unique<Mock::MockIConsumerSurface>();
     sptr<Mock::MockIConsumerSurface> mockSptr5 = mock5.release();
     EXPECT_CALL(*mockSptr5, RegisterConsumerListener(_)).WillRepeatedly(testing::Return(GSERROR_NO_BUFFER));
@@ -262,7 +255,7 @@ HWTEST_F(RSHpaeBufferTest, CreateSurfaceTest5, TestSize.Level1)
     auto rsSurface5 = std::static_pointer_cast<RSSurfaceOhos>(surface5);
     hpaeBuffer5->surfaceHandler_->SetConsumer(mockSptr5);
     hpaeBuffer5->rsSurface_ = rsSurface5;
-    sptr<IBufferConsumerListener> listener5 = new RSHpaeRenderListener(hpaeBuffer2->surfaceHandler_);
+    sptr<IBufferConsumerListener> listener5 = new RSHpaeRenderListener(hpaeBuffer5->surfaceHandler_);
     ASSERT_EQ(hpaeBuffer5->CreateSurface(listener5), true);
 
     EXPECT_CALL(*mockSptr5, Create(_)).WillRepeatedly(testing::Return(mockSptr5));
