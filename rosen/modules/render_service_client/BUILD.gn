@@ -143,6 +143,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/custom/rs_transition_style_modifier.cpp",
       "core/modifier_ng/foreground/rs_env_foreground_color_modifier.cpp",
       "core/modifier_ng/foreground/rs_foreground_color_modifier.cpp",
+      "core/modifier_ng/foreground/rs_foreground_shader_modifier.cpp",
       "core/modifier_ng/geometry/rs_bounds_clip_modifier.cpp",
       "core/modifier_ng/geometry/rs_bounds_modifier.cpp",
       "core/modifier_ng/geometry/rs_frame_clip_modifier.cpp",

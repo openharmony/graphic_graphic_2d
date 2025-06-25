@@ -226,6 +226,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::NODE_MODIFIER,                RSDrawableSlot::INVALID },
     { ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR,         RSDrawableSlot::ENV_FOREGROUND_COLOR },
     { ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER,         RSDrawableSlot::BACKGROUND_FILTER },
+    { ModifierNG::RSModifierType::FOREGROUND_SHADER,            RSDrawableSlot::FOREGROUND_SHADER },
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
 
@@ -283,6 +284,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSDynamicDimDrawable::OnGenerate,        // DYNAMIC_DIM,
     RSCompositingFilterDrawable::OnGenerate, // COMPOSITING_FILTER,
     RSForegroundColorDrawable::OnGenerate,   // FOREGROUND_COLOR,
+    RSForegroundShaderDrawable::OnGenerate,  // FOREGROUND_SHADER,
     nullptr,                                 // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)

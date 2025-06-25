@@ -70,10 +70,12 @@
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
 #include "modifier_ng/background/rs_background_image_modifier.h"
+#include "modifier_ng/background/rs_background_ng_shader_modifier.h"
 #include "modifier_ng/background/rs_background_shader_modifier.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "modifier_ng/foreground/rs_env_foreground_color_modifier.h"
 #include "modifier_ng/foreground/rs_foreground_color_modifier.h"
+#include "modifier_ng/foreground/rs_foreground_shader_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
 #include "modifier_ng/geometry/rs_frame_clip_modifier.h"
@@ -2776,15 +2778,37 @@ void RSNode::SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgr
     if (!backgroundShader) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
+        auto& modifier =
+            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER)) {
             return;
         }
         modifier->DetachProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER);
         return;
-    }   
+    }
     SetPropertyNG<ModifierNG::RSBackgroundNGShaderModifier,
         &ModifierNG::RSBackgroundNGShaderModifier::SetBackgroundNGShader>(backgroundShader);
+#else
+    // origin
+#endif
+}
+
+void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader)
+{
+#if defined(MODIFIER_NG)
+    if (!foregroundShader) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto& modifier =
+            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FOREGROUND_SHADER)];
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::FOREGROUND_SHADER)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::FOREGROUND_SHADER);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSForegroundShaderModifier,
+        &ModifierNG::RSForegroundShaderModifier::SetForegroundShader>(foregroundShader);
 #else
     // origin
 #endif

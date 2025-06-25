@@ -1174,6 +1174,13 @@ public:
     void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
 
     /**
+     * @brief Sets the foreground shader.
+     *
+     * @param foregroundShader Indicates the foreground shader to be applied.
+     */
+    void SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader);
+
+    /**
      * @brief Sets the filter.
      *
      * @param filter Indicates the filter to be applied.

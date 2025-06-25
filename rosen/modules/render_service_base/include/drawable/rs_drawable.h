@@ -77,6 +77,7 @@ enum class RSDrawableSlot : int8_t {
     DYNAMIC_DIM,
     COMPOSITING_FILTER,
     FOREGROUND_COLOR,
+    FOREGROUND_SHADER,
     FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)

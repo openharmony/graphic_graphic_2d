@@ -142,6 +142,7 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/background/rs_background_shader_render_modifier.cpp",
     "src/modifier_ng/foreground/rs_env_foreground_color_render_modifier.cpp",
     "src/modifier_ng/foreground/rs_foreground_color_render_modifier.cpp",
+    "src/modifier_ng/foreground/rs_foreground_shader_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_bounds_clip_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_bounds_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_frame_clip_render_modifier.cpp",
