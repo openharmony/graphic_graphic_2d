@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 #include <memory>
+#include <parameter.h>
+#include <parameters.h>
+#include <unistd.h>
 #include "common/rs_common_def.h"
 #include "gtest/gtest.h"
 #include "feature/hpae/rs_hpae_manager.h"
@@ -21,6 +24,7 @@
 #include "render/rs_render_filter_base.h"
 #include "drawable/rs_property_drawable.h"
 #include "hpae_base/rs_hpae_base_data.h"
+#include "param/sys_param.h"
 
 
 using namespace testing;
@@ -50,12 +54,24 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static inline std::string hpaeSwitch;
+    static inline std::string hpaeAaeSwitch;
 };
 
-void RSHpaeManagerTest::SetUpTestCase() {}
-void RSHpaeManagerTest::TearDownTestCase() {}
+void RSHpaeManagerTest::SetUpTestCase()
+ {
+    hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
+    hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", "1");
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", "1");
+}
+void RSHpaeManagerTest::TearDownTestCase() 
+{
+    OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
+    OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
+}
 void RSHpaeManagerTest::SetUp() {}
-void RSHpaeManagerTest::TearDown()
+void RSHpaeManagerTest::TearDown() {}
 
 static inline std::weak_ptr<RSContext> context = {};
 
@@ -85,7 +101,7 @@ HWTEST_F(RSHpaeManagerTest, OnSyncTest, TestSize.Level1)
     ASSERT_EQ(RSHpaeManager::GetInstance().HasHpaeBlurNode(), false);
 
     RSHpaeManager::GetInstance().OnUniRenderStart();
-    RSHpaeManager::GetInstance().Onsync(true);
+    RSHpaeManager::GetInstance().OnSync(true);
     ASSERT_EQ(RSHpaeManager::GetInstance().HasHpaeBlurNode(), false);
 }
 
