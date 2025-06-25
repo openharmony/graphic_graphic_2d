@@ -52,11 +52,6 @@ void RSHpaeBaseData::SetHpaeOutputBuffer(HpaeBufferInfo& outputBuffer)
     outputBufferQueue_.push_back(outputBuffer);
 }
 
-// on process
-// 从inputBufferCache返回一块1/4 ion buffer,用于作为GreyAndStretch的输出和AAEBlur的输入
-// inputBufferCache数据来源于render_service.so
-// 可考虑Buffer的轮转
-// 考虑好Buffer的释放
 HpaeBufferInfo RSHpaeBaseData::RequestHpaeInputBuffer()
 {
     HpaeBufferInfo result;
@@ -68,10 +63,6 @@ HpaeBufferInfo RSHpaeBaseData::RequestHpaeInputBuffer()
     return result;
 }
 
-// 从outputBufferCache返回一块1/4 ion buffer, 用于作为AEEBlur的输出
-// outputBufferCache数据来源于render_service.so
-// 可考虑Buffer的轮转
-// 考虑好Buffer的释放
 HpaeBufferInfo RSHpaeBaseData::RequestHpaeOutputBuffer()
 {
     HpaeBufferInfo result;
