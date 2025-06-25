@@ -102,11 +102,11 @@ ohos_shared_library("ani_color_space_object_convertor") {
   ]
 
   sources = [
+    "./src/ani_color_space_manager.cpp",
     "./src/color_space_object_convertor/ani_color_space_object_convertor.cpp",
   ]
 
   deps = [
-    ":colorspacemanager_ani",
     "$graphic_2d_root/utils/color_manager:color_manager",
   ]
 
