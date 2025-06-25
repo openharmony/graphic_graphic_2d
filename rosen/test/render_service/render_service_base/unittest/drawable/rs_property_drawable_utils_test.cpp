@@ -214,9 +214,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawFilterTest002, testing::ext::TestSize.
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
     rsFilterTest->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
-    EXPECT_NE(rsFilter, nullptr);
-    rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     EXPECT_NE(rsFilterTest, nullptr);
+    rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
+    EXPECT_NE(rsFilter, nullptr);
     rsFilter->type_ = RSFilter::BLUR;
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     EXPECT_NE(rsFilter->imageFilter_, nullptr);
