@@ -133,7 +133,7 @@ HWTEST_F(RSDrawFrameTest, SyncTest002, TestSize.Level1)
     auto param2 = std::unique_ptr<RSRenderThreadParams>();
     param2.reset(new RSRenderThreadParams());
     ASSERT_NE(param2, nullptr);
-    param2->HasDisplayHdrOn_ = true;
+    param2->hasDisplayHdrOn_ = true;
     drawFrame_.SetRenderThreadParams(param2);
     drawFrame_.Sync();
 }
