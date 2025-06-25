@@ -198,7 +198,6 @@ ani_object AniColorPicker::GetHighestSaturationColor(ani_env *env, ani_object ob
 
 ani_object AniColorPicker::GetAverageColor(ani_env *env, ani_object obj)
 {
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] GetAverageColor called");
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
         EFFECT_LOG_E("[GetAverageColor] Error1, failed to retrieve ColorPicker wrapper.");
@@ -238,7 +237,6 @@ ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object o
 
 ani_object AniColorPicker::CreateColorPickerNormal(ani_env *env, ani_object para)
 {
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] CreateColorPickerNormal called");
     auto colorPicker = std::make_unique<AniColorPicker>();
 
     auto pixelMap = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, para);
@@ -253,8 +251,6 @@ ani_object AniColorPicker::CreateColorPickerNormal(ani_env *env, ani_object para
         EFFECT_LOG_E("AniColorPicker: Failed to create ColorPicker, errorCode: %u", errorCode);
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-
-    EFFECT_LOG_E("[EFFECT_KIT_DEBUG] CreateColorPickerNormal: pixelMap pointer");
 
     static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
     const char *methodSig = "J:V";
