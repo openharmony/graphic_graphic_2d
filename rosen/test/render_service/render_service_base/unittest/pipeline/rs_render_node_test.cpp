@@ -3263,7 +3263,7 @@ HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
     renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
     ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
 }
-
+/*
  * @tc.name: UpdateVirtualScreenWhiteListInfo
  * @tc.desc: Test function UpdateVirtualScreenWhiteListInfo
  * @tc.type: FUNC
