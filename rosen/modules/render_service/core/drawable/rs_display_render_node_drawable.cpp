@@ -512,6 +512,17 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             screenManager->SetEqualVsyncPeriod(paramScreenId, isEqualVsyncPeriod);
         }
     }
+
+    bool isVirtualExpandComposite =
+        params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    if (isVirtualExpandComposite) {
+        RSUniRenderUtil::UpdateVirtualExpandDisplayAccumulatedParams(*params, *this);
+        if (RSUniRenderUtil::CheckVirtualExpandDisplaySkip(*params, *this)) {
+            RS_TRACE_NAME("VirtualExpandDisplayNode skip");
+            return;
+        }
+    }
+    
     if (SkipFrame(activeScreenRefreshRate, curScreenInfo)) {
         SetDrawSkipType(DrawSkipType::SKIP_FRAME);
         RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u", paramScreenId,
@@ -593,6 +604,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
             DrawExpandScreen(*expandProcessor);
+            params->ResetVirtualExpandAccumulatedParams();
             if (curCanvas_) {
                 rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
             }

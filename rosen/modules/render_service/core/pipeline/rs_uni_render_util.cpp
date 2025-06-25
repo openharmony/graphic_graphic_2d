@@ -37,6 +37,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 #include "render/rs_drawing_filter.h"
@@ -56,6 +57,7 @@ namespace Rosen {
 namespace {
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
+constexpr int32_t NO_SPECIAL_LAYER = 0;
 }
 
 std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
@@ -390,6 +392,30 @@ std::vector<RectI> RSUniRenderUtil::FilpRects(const std::vector<RectI>& srcRects
             rect.width_, rect.height_));
     }
     return retRects;
+}
+
+void RSUniRenderUtil::UpdateVirtualExpandDisplayAccumulatedParams(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // All other factors that may prevent skipping virtual expand display need to be considered
+    // update accumulated dirty region
+    params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
+        (displayDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+}
+
+bool RSUniRenderUtil::CheckVirtualExpandDisplaySkip(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // Regardless of whether the current frame is skipped, the state needs to be accumulated
+    if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
+        return false;
+    }
+    if (displayDrawable.GetSpecialLayerType(params) != NO_SPECIAL_LAYER) {
+        RS_TRACE_NAME("CheckVirtualExpandDisplaySkip has special layer can not skip");
+        return false;
+    }
+    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d", params.GetAccumulatedDirty());
+    return !params.GetAccumulatedDirty();
 }
 
 void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
