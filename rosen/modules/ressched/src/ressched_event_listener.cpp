@@ -224,7 +224,7 @@ bool ResschedEventListener::GetFfrtQueue()
         return true;
     }
     if (ffrtQueue_ == nullptr) {
-        std::lock_guard<std::mutex> lock(ffrtGetMutex_);
+        std::lock_guard<std::mutex> lock(ffrtGetQueueMutex_);
         if (ffrtQueue_ == nullptr) {
             ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_LISTENER_QUEUE.c_str(),
                 ffrt::queue_attr().qos(ffrt::qos_default));
@@ -244,7 +244,7 @@ bool ResschedEventListener::GetFfrtHighPriorityQueue()
         return true;
     }
     if (ffrtHighPriorityQueue_ == nullptr) {
-        std::lock_guard<std::mutex> lock(ffrtGetQueueMutex_);
+        std::lock_guard<std::mutex> lock(ffrtGetHighFrequenceQueueMutex_);
         if (ffrtHighPriorityQueue_ == nullptr) {
             ffrtHighPriorityQueue_ = std::make_shared<ffrt::queue>(
                 RS_RESSCHED_LISTENER_QUEUE_HIGH_PRIOTITY.c_str(), ffrt::queue_attr().qos(ffrt::qos_user_interactive));
