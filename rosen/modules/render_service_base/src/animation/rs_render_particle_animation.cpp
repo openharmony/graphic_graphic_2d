@@ -145,7 +145,8 @@ void RSRenderParticleAnimation::OnAttach()
         for (const auto& pair : particleAnimations) {
 #if defined(MODIFIER_NG)
             auto property = target->GetProperty(pair.first);
-            if (auto modifierNG = property->GetModifierNG().lock()) {
+            auto modifierNG = property != nullptr ? property->GetModifierNG().lock() : nullptr;
+            if (modifierNG != nullptr) {
                 target->RemoveModifierNG(modifierNG->GetId());
             }
 #else

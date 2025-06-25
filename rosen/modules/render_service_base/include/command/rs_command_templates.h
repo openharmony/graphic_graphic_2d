@@ -79,9 +79,14 @@ public:
     {
         if constexpr (std::tuple_size<decltype(params_)>::value > 1) {
             using ptrType = typename std::tuple_element<1, decltype(params_)>::type;
+#if defined(MODIFIER_NG)
+            using RenderModifier = ModifierNG::RSRenderModifier;
+#else
+            using RenderModifier = RSRenderModifier;
+#endif
             if constexpr (std::is_same<std::shared_ptr<Drawing::DrawCmdList>, ptrType>::value) {
                 return std::get<1>(params_);
-            } else if constexpr (std::is_same<std::shared_ptr<RSRenderModifier>, ptrType>::value) {
+            } else if constexpr (std::is_same<std::shared_ptr<RenderModifier>, ptrType>::value) {
                 auto& modifier = std::get<1>(params_);
                 if (modifier) {
                     return modifier->GetPropertyDrawCmdList();
