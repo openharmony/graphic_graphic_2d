@@ -297,7 +297,7 @@ private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
-    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = true);
+    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance);
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
