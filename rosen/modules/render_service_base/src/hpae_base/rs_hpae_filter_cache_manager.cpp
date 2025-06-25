@@ -164,8 +164,6 @@ void RSHpaeFilterCacheManager::ResetFilterCache(std::shared_ptr<RSPaintFilterCan
 void RSHpaeFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
     const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& srcRect)
 {
-    // 通过GetImageSnapshot获取清晰背景
-    // 注意缓存的是EffectData而非只有Drawing::Image
     auto drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {
         return;
@@ -342,9 +340,6 @@ int RSHpaeFilterCacheManager::ProcessHpaeBlur(const Drawing::RectI& clipBounds,
     return result;
 }
 
-// 使用1/4 ion buffer进行的kawasBlur兜底
-// HpaeBufferInfo中提供了GPU绘制需要的surface/canvas/context
-// inputBuffer: 提供了灰阶和边缘像素后的结果
 int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
     const HpaeBufferInfo &outputBuffer, const std::shared_ptr<RSDrawingFilter>& filter, float radius)
 {
@@ -397,7 +392,6 @@ int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
     return -1;
 }
 
-// 注意该函数不要产生对canvas的GPU操作
 HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo &inputBuffer,
     const HpaeBufferInfo &outputBuffer, float radius, const std::shared_ptr<RSDrawingFilter>& filter)
 {
@@ -460,13 +454,12 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
     return resultTask;
 }
 
-// 将模糊输出的1/4 ion buffer存入队列
 void RSHpaeFilterCacheManager::SetBlurOutput(HpaeBackgroundCacheItem& hpaeOutputItem)
 {
     std::unique_lock<std::mutex> lock(blurOutMutex_);
     if (hpaeOutputItem.surface_) {
         auto outBounds = Drawing::RectI(0, 0, hpaeOutputItem.surface_->Width(), hpaeOutputItem.surface_->Height());
-        hpaeOutputItem.radius_ = curRadius_; // 后续需移出到绘制函数中
+        hpaeOutputItem.radius_ = curRadius_;
 
         if (cachedFilteredSnapshot_) {
             cachedFilteredSnapshot_->cachedRect_ = outBounds;
@@ -476,7 +469,6 @@ void RSHpaeFilterCacheManager::SetBlurOutput(HpaeBackgroundCacheItem& hpaeOutput
     hpaeBlurOutputQueue_.push_back(hpaeOutputItem);
 }
 
-// 前景绘制通过该函数取背景图层的模糊结果，可以使用之前帧的缓存
 HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
 {
     HpaeBackgroundCacheItem result;
@@ -538,8 +530,6 @@ static void ClipVisibleRect(RSPaintFilterCanvas& canvas)
 
 int RSHpaeFilterCacheManager::DrawBackgroundToCanvas(RSPaintFilterCanvas& canvas)
 {
-    // 实现将1/4 buffer采样到前景canvas，考虑跨Context/线程的资源访问问题
-    // 这里交给GPU绘制，需要保证ion buffer在绘制完后才释放，通过FFTS给GPU任务添加aaeTask依赖完成
     auto hpaeBlurItem = GetBlurOutput();
     auto hpaeOutSnapshot = hpaeBlurItem.blurImage_;
 
