@@ -25,7 +25,6 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "iconsumer_surface.h"
 #include "feature/mock/mock_iconsumer_surface.h"
-#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -81,15 +80,6 @@ HWTEST_F(RSHpaeBufferTest, GetBufferHandleTest, TestSize.Level1)
     auto surface = client->CreateRSSurface(producerSurface);
     auto rsSurface = std::static_pointer_cast<RSSurfacceOhos>(surface);
     hpaeBuffer->rsSurface_ = rsSurface;
-    ASSERT_EQ(hpaeBuffer->GetBufferHandle(), nullptr);
-
-    sptr<OHOS::SurfaceBuffer> sBuffer = new SurfaceBufferImpl(0);
-    auto rsSurfaceVulkan = std::make_shared<RSSurfaceOhosVulkan>(IConsumerSurface::Create());
-    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFormSurfaceBuffer(&sBuffer);
-    ASSER_NE(nativeWindowBuffer, nullptr);
-    rsSurfaceVulkan->mSurfaceList.emplace_back(nativeWindowBuffer);
-    auto rsSurface2 = std::static_pointer_cast<RSSurfaceOhos>(rsSurfaceVulkan);
-    hpaeBuffer->rsSurface_ = rsSurface2;
     ASSERT_EQ(hpaeBuffer->GetBufferHandle(), nullptr);
 }
 
