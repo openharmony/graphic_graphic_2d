@@ -51,7 +51,7 @@ enum MATERIAL_BLUR_STYLE : int {
 struct MaterialParam {
     float radius = 0.f;
     float saturation = 0.f;
-    float brightness = 0.f;
+    float brightness = 1.f;
     RSColor maskColor = {};
     bool disableSystemAdaptation = false;
 };
