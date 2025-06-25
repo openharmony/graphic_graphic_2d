@@ -49,7 +49,7 @@ HWTEST_F(RSHpaeRenderListenerTest, OnBufferAvailableTest, TestSize.Level1)
 
     std::shared_ptr<RSSurfaceHandler> surfaceHandler2 = std::make_shared<RSSurfaceHandler>(0);
     auto rSHpaeRenderListener2 = RSHpaeRenderListener(surfaceHandler2);
-    rSHpaeRenderListener2.OnBufferAvaliable();
+    rSHpaeRenderListener2.OnBufferAvailable();
     ASSERT_TRUE(surfaceHandler2->GetAvailableBufferCount() == 1);
 }
 
