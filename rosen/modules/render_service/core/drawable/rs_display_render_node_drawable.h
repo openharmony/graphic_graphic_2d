@@ -209,6 +209,8 @@ private:
 
     void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 
+    void CheckHpaeBlurRun(bool isHdrOn);
+
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;

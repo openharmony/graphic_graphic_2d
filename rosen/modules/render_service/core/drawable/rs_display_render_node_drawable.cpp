@@ -2656,4 +2656,16 @@ void RSDisplayRenderNodeDrawable::MirrorRedrawDFX(bool mirrorRedraw, ScreenId sc
             " drawing path changed, mirrorRedraw_: %{public}d", __func__, screenId, mirrorRedraw_);
     }
 }
+
+void RSDisplayRenderNodeDrawable::CheckHpaeBlurRun(bool isHdron)
+{
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    if (!isHdrOn && RSHpaeManager::GetInstance().HasHpaeBlurNode()) {
+        bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AnCoHebcStatus::NOT_USE_HEBC);
+        GraphicPixelFormat pixelFormat = params->GetNewPixelFormat();
+        GraphicColorGamut colorSpace = params->GetNewColorSpace();
+        RSHpaeManager::GetInstance().SetUpHpaeSurface(pixelFormat, colorSpace, isHebc);
+    }
+#endif
+}
 } // namespace OHOS::Rosen::DrawableV2

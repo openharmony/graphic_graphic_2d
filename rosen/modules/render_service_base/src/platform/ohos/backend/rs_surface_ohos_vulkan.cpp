@@ -282,7 +282,6 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
     
     uint16_t eventId[FFRTEVENTLEN] = {0};
     int ret = -1;
-    // 需绑定tid,考虑uifirst flush场景，跑在其他线程
     eventId[0] = RSHpaeFfrtPatternManager::Instance().MHCGetVulkanTaskWaitEvent(
         taskName, frameId);
     eventId[1] = RSHpaeFfrtPatternManager::Instance().MHCGetVulkanTaskNotifyEvent(
@@ -398,7 +397,7 @@ void RSSurfaceOhosVulkan::SubmitGPGpuAndHpaeTask(const uint64_t& preFrameId, con
         }
     }
     RSHpaeScheduler::GetInstance().Reset();
-    RSHpaeFfrtPatternManager::Instance().ResetUpdateFlag();  // 避免gpu投屏场景二次进入
+    RSHpaeFfrtPatternManager::Instance().ResetUpdateFlag();
 }
 
 void SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& curFrameId, const uint64_t& curFrameId,
