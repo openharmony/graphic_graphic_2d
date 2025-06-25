@@ -28,7 +28,6 @@
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
-#include "feature/capture/rs_capture_pixelmap_manager.h"
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS

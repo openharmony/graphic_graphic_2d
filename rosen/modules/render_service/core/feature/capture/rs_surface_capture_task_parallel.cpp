@@ -112,11 +112,6 @@ void RSSurfaceCaptureTaskParallel::Capture(
         return;
     }
 
-    if (rsCapturePixelMap == nullptr) {
-            RS_LOGE(
-            "RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", captureParam.id);
-        return;
-    }
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(captureParam.id, captureParam.config);
     if (!captureHandle->CreateResources()) {
@@ -150,24 +145,6 @@ void RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(NodeId id)
     }
 }
 
-std::shared_ptr<RSSurfaceRenderNode> RSSurfaceCaptureTaskParallel::GetCaptureSurfaceNode(
-    const std::shared_ptr<RSRenderNode>& node)
-{
-    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNode == nullptr) {
-        return nullptr;
-    }
-    surfaceNode_ = surfaceNode;
-    auto curNode = surfaceNode;
-    // if parentNode is LeashWindow and shoulPaint, ponit parent Node
-    if (!captureConfig_.useCurWindow) {
-        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
-        if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint()) {
-            curNode = parentNode;
-        }
-    }
-    return curNode;
-}
 
 bool RSSurfaceCaptureTaskParallel::CreateResources()
 {
@@ -180,13 +157,6 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
         return false;
     }
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
-    if (node == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: Invalid nodeId:[%{public}" PRIu64 "]",
-            nodeId_);
-        return false;
-    }
-
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: Invalid nodeId:[%{public}" PRIu64 "]",

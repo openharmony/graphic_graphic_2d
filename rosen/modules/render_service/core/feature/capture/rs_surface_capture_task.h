@@ -30,7 +30,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
 #include "visitor/rs_node_visitor.h"
-#include "feature/capture/rs_capture_pixelmap_manager.h"
 namespace OHOS {
 namespace Rosen {
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap,
