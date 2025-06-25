@@ -16,7 +16,7 @@
 #include "common/rs_common_def.h"
 #include "gtest/gtest.h"
 #include "feature/hpae/rs_hpae_render_listener.h"
-#include "pipeline/rs_surface_handle.h"
+#include "pipeline/rs_surface_handler.h"
 
 using namespace testing;
 using namespace testing::ext;
