@@ -2157,10 +2157,35 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         auto mainHeight = static_cast<float>(screenInfo.height);
 
         // in certain cases (such as fold screen), the width and height must be swapped to fix the screen rotation.
-        int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas.GetTotalMatrix());
-        if (angle == RS_ROTATION_90 || angle == RS_ROTATION_270) {
+        canvas.Save();
+        canvas.ResetMatrix();
+        auto rotation = params.GetScreenRotation();
+        auto screenId = params.GetScreenId();
+        auto screenCorrection = screenManager->GetScreenCorrection(screenId);
+        if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
+            screenCorrection != ScreenRotation::ROTATION_0) {
+            // Recaculate rotation if mirrored screen has additional rotation angle
+            rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + SCREEN_ROTATION_NUM
+                - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
+        }
+
+        if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(mainWidth, mainHeight);
         }
+
+        if (rotation != ScreenRotation::ROTATION_0) {
+            if (rotation == ScreenRotation::ROTATION_90) {
+                canvas.Rotate(-(RS_ROTATION_90), 0, 0); // 90 degree
+                canvas.Translate(-(static_cast<float>(mainWidth)), 0);
+            } else if (rotation == ScreenRotation::ROTATION_180) {
+                canvas.Rotate(-(RS_ROTATION_180), static_cast<float>(mainWidth) / 2, // 2 half of screen width
+                    static_cast<float>(mainHeight) / 2); // 2 half of screen height
+            } else if (rotation == ScreenRotation::ROTATION_270) {
+                canvas.Rotate(-(RS_ROTATION_270), 0, 0); // 270 degree
+                canvas.Translate(0, -(static_cast<float>(mainHeight)));
+            }
+        }
+
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
         auto dstRect = Drawing::Rect(0, 0, mainWidth, mainHeight);
         Drawing::Brush rectBrush;
@@ -2168,6 +2193,7 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas.DetachBrush();
+        canvas.Restore();
     }
 }
 
