@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 #include "surface_buffer_impl.h"
 #include "surface_type.h"
  
@@ -23,7 +23,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_meta_data_helper.h"
+#include "pipeline/mock/mock_meta_data_helper.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -35,6 +35,9 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
+#if defined(MODIFIER_NG)
+#include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
+#endif
  
 using namespace testing;
 using namespace testing::ext;
@@ -1378,12 +1381,18 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_002, Function |
 {
     NodeId id = 0;
     RSRenderNode node(id);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
+    auto property = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
+    property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
+#if defined(MODIFIER_NG)
+    std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
+    modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
+    node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR)].emplace_back(modifier);
+#else
+    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSEnvForegroundColorStrategyRenderModifier>(
+        property) };
     node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
-
+#endif
     auto result = RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node);
     EXPECT_TRUE(result);
 }

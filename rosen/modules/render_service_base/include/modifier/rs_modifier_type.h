@@ -66,6 +66,7 @@ enum class RSModifierType : uint16_t {
     BG_IMAGE_HEIGHT = 29,
     BG_IMAGE_POSITION_X = 30,
     BG_IMAGE_POSITION_Y = 31,
+    // 32 deleted, do not use this value never.
     BORDER_COLOR = 33,
     BORDER_WIDTH = 34,
     BORDER_STYLE = 35,

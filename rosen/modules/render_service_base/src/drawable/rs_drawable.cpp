@@ -645,6 +645,7 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME))) {
         dirtySlots.emplace(RSDrawableSlot::CUSTOM_CLIP_TO_FRAME);
         dirtySlots.emplace(RSDrawableSlot::FRAME_OFFSET);
+        // CONTENT_STYLE and FOREGROUND_STYLE are used to adapt to FRAME_GRAVITY
         dirtySlots.emplace(RSDrawableSlot::CONTENT_STYLE);
         dirtySlots.emplace(RSDrawableSlot::FOREGROUND_STYLE);
     }
