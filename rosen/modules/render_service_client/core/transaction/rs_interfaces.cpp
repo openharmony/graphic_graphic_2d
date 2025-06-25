@@ -223,15 +223,7 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    auto bounds = node->GetStagingProperties().GetBounds();
-    Drawing::Rect nodeRect = {0, 0, bounds.z_, bounds.w_};
-    auto clientCapturePixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(nodeRect,
-        captureConfig, RSUniRenderJudgement::GetUniRenderEnabledType());
-    if (clientCapturePixelMap != nullptr) {
-        captureConfig.isClientPixelMap = true;
-    }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(),
-        callback, captureConfig, std::move(clientCapturePixelMap));
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
@@ -248,17 +240,7 @@ bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> nod
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = blurRadius;
-
-    auto bounds = node->GetStagingProperties().GetBounds();
-    Drawing::Rect nodeRect = {0, 0, bounds.z_, bounds.w_};
-    auto clientCapturePixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(nodeRect,
-        captureConfig, RSUniRenderJudgement::GetUniRenderEnabledType());
-    if (clientCapturePixelMap != nullptr) {
-        captureConfig.isClientPixelMap = true;
-    }
-
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback,
-        captureConfig, std::move(clientCapturePixelMap), blurParam);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
 }
 
 bool RSInterfaces::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
@@ -402,16 +384,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        auto bounds = node->GetStagingProperties().GetBounds();
-        RSSurfaceCaptureBlurParam blurParam = {};
-        Drawing::Rect nodeRect = {0, 0, bounds.z_, bounds.w_};
-        auto clientCapturePixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(nodeRect,
-            captureConfig, RSUniRenderJudgement::GetUniRenderEnabledType(), specifiedAreaRect);
-        if (clientCapturePixelMap != nullptr) {
-            captureConfig.isClientPixelMap = true;
-        }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig,
-            std::move(clientCapturePixelMap), blurParam, specifiedAreaRect);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }

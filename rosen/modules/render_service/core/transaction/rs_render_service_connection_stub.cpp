@@ -1287,15 +1287,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            std::unique_ptr<Media::PixelMap> clientPixelMap;
-            if (captureConfig.isClientPixelMap) {
-                clientPixelMap = std::unique_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-                if (clientPixelMap == nullptr) {
-                    ret = ERR_INVALID_DATA;
-                    RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read clientPixelMap failed");
-                    break;
-                }
-            }
             RSSurfaceCapturePermissions permissions;
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
@@ -1304,8 +1295,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // we temporarily add a white list to avoid abnormal functionality or abnormal display.
             // The white list will be removed after GetCallingPid interface can return real PID.
             permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
-            TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect,
-                std::move(clientPixelMap), permissions);
+            TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO): {
@@ -3652,7 +3642,6 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
-        !data.ReadBool(captureConfig.isClientPixelMap) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||

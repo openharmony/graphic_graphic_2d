@@ -1261,13 +1261,13 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 namespace {
 void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    const Drawing::Rect& specifiedAreaRect, std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap)
+    const Drawing::Rect& specifiedAreaRect)
 {
 #ifdef RS_ENABLE_GPU
     RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
         captureConfig.isSync ? "true" : "false");
-    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect, rsCapturePixelMap]() {
-        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect, rsCapturePixelMap);
+    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
+        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
     };
     auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
@@ -1321,22 +1321,16 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect, std::unique_ptr<Media::PixelMap> clientPixelMap,
-    RSSurfaceCapturePermissions permissions)
+    const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
 
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    if (captureConfig.isClientPixelMap && rsCapturePixelMap != nullptr) {
-        rsCapturePixelMap->SetCapturePixelMap(std::move(clientPixelMap));
-    }
     std::function<void()> captureTask = [id, callback, captureConfig, blurParam, specifiedAreaRect,
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
-        rsCapturePixelMap,
         selfCapture = permissions.selfCapture]() -> void {
         RS_TRACE_NAME_FMT("RSRenderServiceConnection::TakeSurfaceCapture captureTask nodeId:[%" PRIu64 "]", id);
         RS_LOGI("TakeSurfaceCapture captureTask begin nodeId:[%{public}" PRIu64 "]", id);
@@ -1353,7 +1347,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
-                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect, rsCapturePixelMap);
+                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect);
             } else {
                 TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
             }
@@ -1391,7 +1385,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             captureParam.isSystemCalling = isSystemCalling;
             captureParam.blurParam = blurParam;
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, rsCapturePixelMap);
+            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 #endif
         }
     };
@@ -1446,9 +1440,8 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
         captureParam.config = captureConfig;
         captureParam.isSystemCalling = isSystemCalling;
         captureParam.isSelfCapture = true;
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
         RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, rsCapturePixelMap);
+        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
     };
     mainThread_->PostTask(selfCaptureTask);
 }
@@ -1481,9 +1474,8 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
             captureParam.isSystemCalling = isSystemCalling;
             captureParam.isFreeze = isFreeze;
             captureParam.blurParam = blurParam;
-            auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, rsCapturePixelMap);
+            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
         } else {
             RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(id);
         }
@@ -1495,8 +1487,7 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
 void RSRenderServiceConnection::TakeUICaptureInRange(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {}, rsCapturePixelMap);
+    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
 }
 
 ErrCode RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,

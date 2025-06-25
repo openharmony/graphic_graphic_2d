@@ -19,14 +19,10 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "drawable/rs_render_node_drawable.h"
-
+#include "feature/capture/rs_surface_capture_task.h"
 #include "pixel_map.h"
 #include "system/rs_system_parameters.h"
-#include "draw/surface.h"
-#include "draw/color.h"
-#include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_effect_render_node.h"
-#include "common/rs_common_def.h"
+
 #include "system/rs_system_parameters.h"
 
 namespace OHOS {
@@ -43,9 +39,6 @@ public:
         NodeId id, const RSSurfaceCaptureConfig& captureConfig);
     bool CreateResources();
     bool Run();
-    static bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
-        const std::unique_ptr<Media::PixelMap>& pixelMap,
-        std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr);
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap>& pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,

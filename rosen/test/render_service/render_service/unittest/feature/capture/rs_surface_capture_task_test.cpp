@@ -933,12 +933,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
 #if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
-    // Test Invaild Scale
-    captureConfig.scaleX = 0;
-    blurRadius = 1000;
-    ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
-    // code
-    EXPECT_EQ(ret, true);
 }
 
 /*

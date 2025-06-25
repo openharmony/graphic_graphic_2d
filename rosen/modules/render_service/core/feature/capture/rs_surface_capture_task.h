@@ -34,7 +34,6 @@
 namespace OHOS {
 namespace Rosen {
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap,
-    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType,
     std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr);
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:

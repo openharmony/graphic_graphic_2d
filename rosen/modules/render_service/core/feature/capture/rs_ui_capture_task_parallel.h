@@ -27,14 +27,12 @@ namespace OHOS {
 namespace Rosen {
 class RSUiCaptureTaskParallel {
 public:
-    explicit RSUiCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap)
-        : nodeId_(nodeId), captureConfig_(captureConfig), rsCapturePixelMap_(rsCapturePixelMap) {}
+    explicit RSUiCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig)
+        : nodeId_(nodeId), captureConfig_(captureConfig) {}
     ~RSUiCaptureTaskParallel() = default;
 
     static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect,
-        std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap);
+        const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect);
 
     bool CreateResources(const Drawing::Rect& specifiedAreaRect);
     bool Run(sptr<RSISurfaceCaptureCallback> callback, const Drawing::Rect& specifiedAreaRect);
@@ -61,7 +59,6 @@ private:
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
     NodeId nodeId_ = INVALID_NODEID;
     RSSurfaceCaptureConfig captureConfig_ = {};
-    std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap_ = nullptr;
     static inline std::atomic<int32_t> captureCount_ = 0;
 };
 } // namespace Rosen
