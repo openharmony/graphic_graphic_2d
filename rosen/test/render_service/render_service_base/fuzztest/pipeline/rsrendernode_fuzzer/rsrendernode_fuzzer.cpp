@@ -559,6 +559,17 @@ bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
     surfaceHandler->ConsumeAndUpdateBuffer(buffer);
     surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
 
+    sptr<IConsumerSurface> consumerSurfacePtr_;
+    sptr<IBufferProducer> bufferProducerPtr_;
+    sptr<Surface> surfacePtr_;
+    consumerSurfacePtr_ = IConsumerSurface::Create();
+    consumerSurfacePtr_->RegisterConsumerListener(this);
+    bufferProducerPtr_ = consumerSurfacePtr_->GetProducer();
+    surfacePtr_ = Surface::CreateSurfaceAsProducer(bufferProducerPtr_);
+    surfaceHandler->SetConsumer(consumerSurfacePtr_);
+    surfaceHandler->SetBuffer(surfacePtr_, nullptr, nullptr, nullptr);
+    surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
+
     return true;
 }
 

@@ -115,24 +115,9 @@ bool UpdateBufferInfo(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    /* Run your code on data */
-    if (!OHOS::Rosen::Init(data, size)) {
-        return -1;
-    }
-    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
-    switch (tarPos) {
-        case OHOS::Rosen::DO_RSTEXTURE_EXPORT:
-            OHOS::Rosen::DoRSTextureExport();
-            break;
-        case OHOS::Rosen::DO_DOTEXTURE_EXPORT:
-            OHOS::Rosen::DoDoTextureExport();
-            break;
-        case OHOS::Rosen::DO_STOPTEXTURE_EXPORT:
-            OHOS::Rosen::DoStopTextureExport();
-            break;
-        default:
-            return -1;
-    }
+    OHOS::Rosen::DoRSTextureExport();
+    OHOS::Rosen::DoDoTextureExport();
+    OHOS::Rosen::DoStopTextureExport();
+
     return 0;
 }
-

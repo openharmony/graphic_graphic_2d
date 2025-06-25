@@ -180,22 +180,7 @@ bool DoPrepareLight(const uint8_t* data, size_t size)
     instance->PrepareLight(nodeMap, dirtyList, isLightSourceDirty);
     return true;
 }
-bool DoCalculateLightPosForIlluminated(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    RSLightSource lightSourcePtr;
-    RectI illuminatedAbsRect;
-    instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedAbsRect);
-    return true;
-}
 bool DoSetScreenRotation(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -209,6 +194,10 @@ bool DoSetScreenRotation(const uint8_t* data, size_t size)
     uint32_t value = GetData<uint32_t>();
     ScreenRotation screenRotation = (ScreenRotation)value;
     instance->SetScreenRotation(screenRotation);
+
+    RSLightSource lightSourcePtr;
+    RectI illuminatedAbsRect;
+    instance->CalculateLightPosForIlluminated(lightSourcePtr, illuminatedAbsRect);
     return true;
 }
 
@@ -226,6 +215,28 @@ bool DoCheckIlluminated(const uint8_t* data, size_t size)
     auto lightSourcePtr = std::make_shared<RSRenderNode>(id);
     auto illuminatedGeoPtr = std::make_shared<RSRenderNode>(id);
     instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
+
+    auto properties = illuminatedGeoPtr->GetRenderProperties();
+    RSProperties* parent = &properties;
+    std::optional<Drawing::Point> offset;
+    properties.sandbox_ = std::make_unique<Sandbox>();
+    properties.SetFramePositionY(1.0f);
+    properties.lightSourcePtr_ = std::make_shared<RSLightSource>();
+    properties.lightSourcePtr_->intensity_ = 1.f;
+    properties.illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::BLOOM_BORDER;
+    properties.UpdateGeometry(parent, true, offset);
+    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
+
+    Vector4f lightPosition = {1.f, 1.f, 1.f, 1.f};
+    lightSourcePtr->GetRenderProperties().SetLightPosition(parent, true, offset);
+    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
+    
+    uint32_t rotation = GetData<uint32_t>();
+    ScreenRotation screenRotation = (ScreenRotation)value;
+    instance->SetScreenRotation(rotation);
+    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
+
     return true;
 }
 } // namespace Rosen
@@ -242,7 +253,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoAddDirtyLightSource(data, size);             // AddDirtyLightSource
     OHOS::Rosen::DoAddDirtyIlluminated(data, size);             // AddDirtyIlluminated
     OHOS::Rosen::DoPrepareLight(data, size);                    // PrepareLight
-    OHOS::Rosen::DoCalculateLightPosForIlluminated(data, size); // CalculateLightPosForIlluminated
     OHOS::Rosen::DoSetScreenRotation(data, size);               // SetScreenRotation
     OHOS::Rosen::DoCheckIlluminated(data, size);                // CheckIlluminated
     return 0;
