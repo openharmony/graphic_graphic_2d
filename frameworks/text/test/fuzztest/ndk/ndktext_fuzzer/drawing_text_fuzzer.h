@@ -16,6 +16,6 @@
 #ifndef TEST_FUZZTEST_DRAWING_FUZZER_H
 #define TEST_FUZZTEST_DRAWING_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "drawing_fuzzer"
+#define FUZZ_PROJECT_NAME "ndktext_fuzzer"
 
 #endif // TEST_FUZZTEST_DRAWING_FUZZER_H

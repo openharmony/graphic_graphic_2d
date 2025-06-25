@@ -24,6 +24,6 @@
 #include "drawing_text_typography.h"
 #include "get_object.h"
 
-#define FUZZ_PROJECT_NAME "drawing_add_text_fuzzer"
+#define FUZZ_PROJECT_NAME "ndkaddtext_fuzzer"
 
 #endif // TEST_FUZZTEST_DRAWING_ADD_TEXT_FUZZER_H
