@@ -13,41 +13,99 @@
  * limitations under the License.
  */
 
-import effectKit from '@ohos.effectKit';
+import effectKit from './@ohos.effectKit';
 import image from '@ohos.multimedia.image';
 
-
 function main() {
-  console.log('Test effectKit start');
+  console.println('Test effectKit start');
   const opts: image.InitializationOptions = {
-    size: { width: 480, height: 360 },
+    size: { width: 10, height: 10 },
     editable: true,
-    pixelFormat: image.PixelMapFormat.BGRA_8888,
+    pixelFormat: image.PixelMapFormat.RGBA_8888,
   };
+
   let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
   if (pixelMap == undefined) {
-    console.log('Create image.createPixelMapSync failed');
+    console.println('Create image.createPixelMapSync failed');
+    console.println('Test effectKit end');
     return;
   }
-  console.log('Create image.createPixelMapSync success');
+  console.println('Create image.createPixelMapSync success');
+
   let headFilter: effectKit.Filter = effectKit.createEffect(pixelMap);
   if (headFilter == undefined) {
-      console.log('Test createEffect failed');
-      return;
+    console.println('Test createEffect failed');
+  } else {
+    console.println('Test createEffect success');
   }
-  console.log('Test createEffect success');
-  let blurFilter: effectKit.Filter = headFilter.blur(10);
-  if (blurFilter == undefined) {
-    console.log('Test blur failed');
-    return;
-  }
-  console.log('Test blur success');
-  blurFilter.getEffectPixelMap().then((pixelMap: image.PixelMap) => {
-    if (pixelMap != undefined) {
-      console.log('Test getEffectPixelMap success, getPixelBytesNumber = ', pixelMap.getPixelBytesNumber());
+
+  effectKit.createColorPicker(pixelMap).then((colorPicker: effectKit.ColorPicker) => {
+    if (colorPicker != undefined) {
+      console.println(`Test createColorPicker (Promise) success`);
+      
+      console.println('Testing getAverageColor');
+      let avgColor = colorPicker.getAverageColor();
+      if (avgColor !== undefined && avgColor !== null) {
+        console.println(`Simple Test: getAverageColor success. Color: ${JSON.stringify(avgColor)}`);
+      } else {
+        console.error('Simple Test: getAverageColor returned undefined or null.');
+        console.println('Simple Test: getAverageColor returned undefined or null.');
+      }
+
+      console.println('Testing getMainColor');
+      let mainColor = colorPicker.getMainColor();
+      if (mainColor !== undefined && mainColor !== null) {
+        console.println(`Simple Test: getMainColor success. Color: ${JSON.stringify(mainColor)}`);
+      } else {
+        console.error('Simple Test: getMainColor returned undefined or null.');
+        console.println('Simple Test: getMainColor returned undefined or null.');
+      }
+
+      console.println('Testing getMainColorSync');
+      let mainColorSync = colorPicker.getMainColorSync();
+      if (mainColorSync !== undefined && mainColorSync !== null) {
+        console.println(`Simple Test: getMainColorSync success. Color: ${JSON.stringify(mainColorSync)}`);
+      } else {
+        console.error('Simple Test: getMainColorSync returned undefined or null.');
+        console.println('Simple Test: getMainColorSync returned undefined or null.');
+      }
+      
     }
   }).catch((ex: Object | null | undefined) => {
-    console.error('Test getEffectPixelMap failed');
+    console.error('Test createColorPicker (Promise) failed');
+    console.println('Test createColorPicker (Promise) failed');
   });
-  console.log('Test effectKit end');
+  
+  effectKit.createColorPicker(pixelMap, [0, 0, 5, 5]).then((colorPicker: effectKit.ColorPicker) => {
+    if (colorPicker != undefined) {
+      console.println(`Test createColorPicker (Promise, region) success`);
+    }
+  }).catch((ex: Object | null | undefined) => {
+    console.error('Test createColorPicker (Promise, region) failed');
+    console.println('Test createColorPicker (Promise, region) failed');
+  });
+  
+  effectKit.createColorPicker(pixelMap, (error, colorPicker: effectKit.ColorPicker | undefined) => {
+    if (error && error.code != 0) {
+      console.error('Test createColorPicker (Callback) failed');
+      console.println('Test createColorPicker (Callback) failed');
+    } else if (colorPicker != undefined) {
+      console.println('Test createColorPicker (Callback) success');
+    } else {
+      console.println('Test createColorPicker (Callback) failed (colorPicker = undefined)');
+    }
+  });
+
+  effectKit.createColorPicker(pixelMap, [0, 0, 5, 5], (error, colorPicker: effectKit.ColorPicker | undefined) => {
+    if (error && error.code != 0) {
+      console.error('Test createColorPicker (Callback, region) failed');
+      console.println('Test createColorPicker (Callback, region) failed');
+    } else if (colorPicker != undefined) {
+      console.println('Test createColorPicker (Callback, region) success');
+    } else {
+      console.println('Test createColorPicker (Callback, region) failed (colorPicker = undefined)');
+    }
+  });
+  
+  console.println('Test effectKit end');
 }

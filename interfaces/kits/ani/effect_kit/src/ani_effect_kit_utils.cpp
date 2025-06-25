@@ -14,7 +14,6 @@
  */
 
 #include "ani_effect_kit_utils.h"
-
 #include "effect_utils.h"
 
 namespace OHOS {
@@ -64,20 +63,16 @@ AniFilter* AniEffectKitUtils::GetFilterFromEnv([[maybe_unused]] ani_env* env, [[
     return aniFilter;
 }
 
-Media::PixelMap* AniEffectKitUtils::GetPixelMapFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
+AniColorPicker* AniEffectKitUtils::GetColorPickerFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
 {
     ani_status ret;
     ani_long nativeObj {};
     if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
-        EFFECT_LOG_E("Object_GetField_Long fetch failed");
+        EFFECT_LOG_E("Object_GetField_Long fetch failed, %{public}d", ret);
         return nullptr;
     }
-    Media::PixelMapAni* pixelMapAni = reinterpret_cast<Media::PixelMapAni*>(nativeObj);
-    if (!pixelMapAni) {
-        EFFECT_LOG_E("pixelMapAni is null");
-        return nullptr;
-    }
-    return (pixelMapAni->nativePixelMap_).get();
+    AniColorPicker* colorPicker = reinterpret_cast<AniColorPicker*>(nativeObj);
+    return colorPicker;
 }
 } // namespace Rosen
 } // namespace OHOS
