@@ -37,7 +37,7 @@ public:
     bool FlushFrame();
     GSError ForceDropFrame(uint64_t presentWhen = 0);
 
-    std::shared_ptr<Drawing::GPUContext> GetSkContext() const // 如果不调用flush，暂时可以不需要
+    std::shared_ptr<Drawing::GPUContext> GetSkContext() const
     {
         return grContext_;
     }
