@@ -19,6 +19,7 @@ group("ani_drawing") {
   deps = [
     ":drawing_ani",
     ":drawing_ets",
+    ":drawing_ani_core",
   ]
 }
 
@@ -57,7 +58,7 @@ config("graphic_ani_drawing_config") {
   }
 }
 
-ohos_shared_library("drawing_ani") {
+ohos_shared_library("drawing_ani_core") {
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -76,27 +77,11 @@ ohos_shared_library("drawing_ani") {
     ":graphic_ani_drawing_config",
   ]
 
-  sources = [
-    "ani_drawing_module.cpp",
-    "ani_drawing_utils.cpp",
-    "lattice_ani/ani_lattice.cpp",
-    "matrix_ani/ani_matrix.cpp",
-    "path_iterator_ani/ani_path_iterator.cpp",
-    "path_ani/ani_path.cpp",
-    "region_ani/ani_region.cpp",
-    "round_rect_ani/ani_round_rect.cpp",
-    "brush_ani/ani_brush.cpp",
-    "canvas_ani/ani_canvas.cpp",
-    "color_filter_ani/ani_color_filter.cpp",
-    "font_ani/ani_font.cpp",
-    "pen_ani/ani_pen.cpp",
-    "sampling_options_ani/ani_sampling_options.cpp",
-    "typeface_ani/ani_typeface.cpp",
-    "typeface_arguments_ani/ani_typeface_arguments.cpp",
-  ]
+  sources = [ "ani_drawing_module.cpp" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    ":drawing_ani",
   ]
 
   external_deps = [
@@ -143,4 +128,61 @@ ohos_prebuilt_etc("drawing_ets") {
   deps = [
     ":drawing",
   ]
+}
+
+ohos_shared_library("drawing_ani") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [
+    ":drawing_ani_config",
+    "$graphic_2d_root/rosen/modules/2d_graphics:export_config",
+  ]
+
+  configs = [
+    ":graphic_ani_drawing_config",
+  ]
+  sources = [
+    "ani_drawing_utils.cpp",
+    "lattice_ani/ani_lattice.cpp",
+    "matrix_ani/ani_matrix.cpp",
+    "path_iterator_ani/ani_path_iterator.cpp",
+    "path_ani/ani_path.cpp",
+    "region_ani/ani_region.cpp",
+    "round_rect_ani/ani_round_rect.cpp",
+    "brush_ani/ani_brush.cpp",
+    "canvas_ani/ani_canvas.cpp",
+    "color_filter_ani/ani_color_filter.cpp",
+    "font_ani/ani_font.cpp",
+    "pen_ani/ani_pen.cpp",
+    "sampling_options_ani/ani_sampling_options.cpp",
+    "typeface_ani/ani_typeface.cpp",
+    "typeface_arguments_ani/ani_typeface_arguments.cpp",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image_taihe",
+    "runtime_core:ani",
+    "runtime_core:libarkruntime",
+  ]
+
+  public_external_deps = [
+    "image_framework:image",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  output_extension = "so"
 }
