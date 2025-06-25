@@ -64,6 +64,7 @@ public:
         return Type;
     }
     static std::shared_ptr<RSHpaeOfflineProcessor> GetOfflineProcessor();
+    ~RSHpaeOfflineProcessor();
     
     bool PostProcessOfflineTask(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, uint64_t taskId);
     bool PostProcessOfflineTask(RSSurfaceRenderNode& node, uint64_t taskId);
@@ -78,7 +79,6 @@ private:
     RSHpaeOfflineProcessor(const RSHpaeOfflineProcessor&&) = delete;
     RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&) = delete;
     RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&&) = delete;
-    ~RSHpaeOfflineProcessor();
     bool LoadPreProcessHandle();
     bool InitForOfflineProcess();
     void CheckAndPostPreAllocBuffersTask();
