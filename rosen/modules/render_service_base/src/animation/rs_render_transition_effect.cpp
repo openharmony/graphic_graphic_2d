@@ -20,6 +20,8 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_value_estimator.h"
 #include "modifier/rs_render_modifier.h"
+#include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -52,10 +54,27 @@ const std::shared_ptr<RSRenderModifier>& RSRenderTransitionEffect::GetModifier()
     return modifier_;
 }
 
+const std::shared_ptr<ModifierNG::RSRenderModifier>& RSRenderTransitionEffect::GetModifierNG()
+{
+    if (modifierNG_ == nullptr) {
+        modifierNG_ = CreateModifierNG();
+    }
+    return modifierNG_;
+}
+
 const std::shared_ptr<RSRenderModifier> RSTransitionFade::CreateModifier()
 {
     property_ = std::make_shared<RSRenderAnimatableProperty<float>>(0, GenerateTransitionPropertyId());
     return std::make_shared<RSAlphaRenderModifier>(property_);
+}
+
+const std::shared_ptr<ModifierNG::RSRenderModifier> RSTransitionFade::CreateModifierNG()
+{
+    auto id = GenerateTransitionPropertyId();
+    property_ = std::make_shared<RSRenderAnimatableProperty<float>>(0, id);
+    auto alphaRenderModifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>(static_cast<ModifierId>(id));
+    alphaRenderModifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property_);
+    return alphaRenderModifier;
 }
 
 void RSTransitionFade::UpdateFraction(float fraction) const
@@ -76,6 +95,15 @@ const std::shared_ptr<RSRenderModifier> RSTransitionScale::CreateModifier()
     return std::make_shared<RSScaleRenderModifier>(property_);
 }
 
+const std::shared_ptr<ModifierNG::RSRenderModifier> RSTransitionScale::CreateModifierNG()
+{
+    auto id = GenerateTransitionPropertyId();
+    property_ = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f { 0, 0 }, id);
+    auto scaleRenderModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>(static_cast<ModifierId>(id));
+    scaleRenderModifier->AttachProperty(ModifierNG::RSPropertyType::SCALE, property_);
+    return scaleRenderModifier;
+}
+
 void RSTransitionScale::UpdateFraction(float fraction) const
 {
     if (property_ == nullptr) {
@@ -94,6 +122,15 @@ const std::shared_ptr<RSRenderModifier> RSTransitionTranslate::CreateModifier()
     return std::make_shared<RSTranslateRenderModifier>(property_);
 }
 
+const std::shared_ptr<ModifierNG::RSRenderModifier> RSTransitionTranslate::CreateModifierNG()
+{
+    auto id = GenerateTransitionPropertyId();
+    property_ = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f { 0, 0 }, id);
+    auto translateRenderModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>(static_cast<ModifierId>(id));
+    translateRenderModifier->AttachProperty(ModifierNG::RSPropertyType::TRANSLATE, property_);
+    return translateRenderModifier;
+}
+
 void RSTransitionTranslate::UpdateFraction(float fraction) const
 {
     if (property_ == nullptr) {
@@ -109,6 +146,15 @@ const std::shared_ptr<RSRenderModifier> RSTransitionRotate::CreateModifier()
 {
     property_ = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion {}, GenerateTransitionPropertyId());
     return std::make_shared<RSQuaternionRenderModifier>(property_);
+}
+
+const std::shared_ptr<ModifierNG::RSRenderModifier> RSTransitionRotate::CreateModifierNG()
+{
+    auto id = GenerateTransitionPropertyId();
+    property_ = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(Quaternion {}, id);
+    auto rotateRenderModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>(static_cast<ModifierId>(id));
+    rotateRenderModifier->AttachProperty(ModifierNG::RSPropertyType::QUATERNION, property_);
+    return rotateRenderModifier;
 }
 
 void RSTransitionRotate::UpdateFraction(float fraction) const

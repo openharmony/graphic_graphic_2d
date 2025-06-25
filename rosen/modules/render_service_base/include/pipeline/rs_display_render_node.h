@@ -427,7 +427,29 @@ public:
         return pixelFormat_;
     }
 
+    void SetEnabledHDRCast(bool isEnabledHDRCast)
+    {
+        isEnabledHDRCast_ = isEnabledHDRCast;
+    }
+
+    bool GetEnabledHDRCast() const
+    {
+        return isEnabledHDRCast_;
+    }
+
+    bool IsFirstFrameOfInit() const
+    {
+        return isFirstFrameOfInit_;
+    }
+
+    void SetFirstFrameOfInit(bool isFirstFrameOfInit)
+    {
+        isFirstFrameOfInit_ = isFirstFrameOfInit;
+    }
+
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
+    void UpdateColorSpace(const GraphicColorGamut& newColorSpace);
+    void SelectBestGamut(const std::vector<ScreenColorGamut>& mode);
     GraphicColorGamut GetColorSpace() const;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
@@ -640,6 +662,8 @@ private:
     bool hasMirroredDisplayChanged_ = false;
     bool isSecurityDisplay_ = false;
     bool isForceCloseHdr_ = false;
+    bool isFirstFrameOfInit_ = true;
+    bool isEnabledHDRCast_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
     bool preRotationStatus_ = false;

@@ -116,7 +116,7 @@ void RSRenderKeyframeAnimationFuzzerTest2()
     Parcel parcel;
     parcel.WriteFloat(fraction);
     parcel.WriteFloat(fraction);
-    RSRenderPropertyBase::Marshalling(parcel, property);
+    RSMarshallingHelper::Marshalling(parcel, property);
     interpolator->Marshalling(parcel);
     animation->ParseDurationKeyframesParam(parcel, 1);
     animation->OnAnimate(fraction);

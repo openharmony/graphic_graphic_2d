@@ -299,6 +299,9 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
     if (skPathImpl1 != nullptr && skPathImpl2 != nullptr) {
         SkPath interp;
         isSuccess = path_.interpolate(skPathImpl1->GetPath(), weight, &interp);
+        if (!isSuccess) {
+            return isSuccess;
+        }
         skPathImpl2->SetPath(interp);
         isChanged_ = true;
     }
@@ -546,7 +549,7 @@ bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathM
 std::shared_ptr<Data> SkiaPath::Serialize() const
 {
     if (path_.isEmpty()) {
-        LOGE("SkiaPath::Serialize, path is empty!");
+        LOGD("SkiaPath::Serialize, path is empty!");
     }
 #ifdef USE_M133_SKIA
     SkBinaryWriteBuffer writer({});

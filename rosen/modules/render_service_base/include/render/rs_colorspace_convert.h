@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_COLORSPACE_CONVERT_H
-#define RENDER_SERVICE_CLIENT_CORE_UI_RS_COLORSPACE_CONVERT_H
+#ifndef RENDER_SERVICE_BASE_RENDER_UI_RS_COLORSPACE_CONVERT_H
+#define RENDER_SERVICE_BASE_RENDER_UI_RS_COLORSPACE_CONVERT_H
 
 #include "colorspace_converter_display.h"
+#include "color_space.h"
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "image/image.h"
@@ -54,7 +55,8 @@ public:
 
     bool ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> inputShader,
         const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
-        ScreenId screenId, uint32_t dynamicRangeMode, float hdrBrightness);
+        ScreenId screenId, uint32_t dynamicRangeMode,
+        const RSPaintFilterCanvas::HDRProperties& hdrProperties = RSPaintFilterCanvas::HDRProperties{});
     void GetHDRStaticMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
         std::vector<uint8_t>& hdrStaticMetadata, GSError& ret);
     void GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
@@ -63,8 +65,10 @@ public:
     void GetVideoDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
         std::vector<uint8_t>& videoDynamicMetadata, GSError& ret);
     bool SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer, VPEParameter& parameter,
-        GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode, float hdrBrightness);
+        GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode,
+        const RSPaintFilterCanvas::HDRProperties& hdrProperties = RSPaintFilterCanvas::HDRProperties{});
     bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceInfo& colorSpaceInfo);
+    static GraphicColorGamut ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name);
 
 private:
     RSColorSpaceConvert();
@@ -79,4 +83,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_COLORSPACE_CONVERT_H
+#endif // RENDER_SERVICE_BASE_RENDER_UI_RS_COLORSPACE_CONVERT_H

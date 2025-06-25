@@ -18,6 +18,7 @@
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_motion_path_option.h"
+#include <thread>
 #include "ui/rs_canvas_node.h"
 #include "modifier/rs_property_modifier.h"
 
@@ -143,6 +144,7 @@ HWTEST_F(RSImplicitAnimatorTest, EndImplicitPathAnimation001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest EndImplicitPathAnimation001 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CancelImplicitAnimation001
  * @tc.desc: Verify the CancelImplicitAnimation
@@ -189,6 +191,7 @@ HWTEST_F(RSImplicitAnimatorTest, CancelImplicitAnimation001, TestSize.Level1)
     EXPECT_TRUE(implicitAnimator != nullptr);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CancelImplicitAnimation001 end";
 }
+#endif
 
 /**
  * @tc.name: CreateImplicitAnimationWithInitialVelocity001
@@ -222,6 +225,7 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationWithInitialVelocity001, 
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CreateImplicitAnimationWithInitialVelocity001 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CreateImplicitAnimationWithInitialVelocity002
  * @tc.desc: Verify the CreateImplicitAnimationWithInitialVelocity
@@ -266,6 +270,7 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationWithInitialVelocity002, 
     EXPECT_TRUE(implicitAnimator != nullptr);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CreateImplicitAnimationWithInitialVelocity002 end";
 }
+#endif
 
 /**
  * @tc.name: ProcessEmptyAnimationTest001
@@ -421,6 +426,33 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
 
     EXPECT_TRUE(implicitAnimator != nullptr);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest RSImplicitAnimationParamTest001 end";
+}
+
+/**
+ * @tc.name: GetRSImplicitAnimator
+ * @tc.desc: Verify the GetRSImplicitAnimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
+{
+    auto rsUIContext = std::make_shared<RSUIContext>();
+    // repeat count
+    int count = 10;
+    // thread count
+    int threadCount = 2;
+    std::thread t1([rsUIContext, count] {
+        for (int i = 0; i < count; i++) {
+            rsUIContext->GetRSImplicitAnimator();
+        }
+    });
+    std::thread t2([rsUIContext, count] {
+        for (int i = 0; i < count; i++) {
+            rsUIContext->GetRSImplicitAnimator();
+        }
+    });
+    t1.join();
+    t2.join();
+    EXPECT_EQ(rsUIContext->rsImplicitAnimators_.size(), threadCount);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -24,6 +24,13 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t SAMPLER_NUMBER = 6;
+
+static int64_t SystemTime()
+{
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
+}
 }
 class VSyncSamplerTest : public testing::Test {
 public:
@@ -441,6 +448,39 @@ HWTEST_F(VSyncSamplerTest, RollbackHardwareVSyncStatusTest, Function | MediumTes
     ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->displayVSyncStatus_, false);
     vsyncSampler->RollbackHardwareVSyncStatus();
     ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_, false);
+}
+
+/*
+* Function: SetAdaptive
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetAdaptive
+ */
+HWTEST_F(VSyncSamplerTest, SetAdaptive, Function | MediumTest| Level3)
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = false;
+    vsyncSampler->SetAdaptive(false);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), false);
+    vsyncSampler->SetAdaptive(true);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), true);
+}
+ 
+/*
+* Function: AddSample003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddSample
+ */
+HWTEST_F(VSyncSamplerTest, AddSample003, Function | MediumTest| Level3)
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = SystemTime();
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(0), true);
+    Reset();
 }
 } // namespace
 } // namespace Rosen

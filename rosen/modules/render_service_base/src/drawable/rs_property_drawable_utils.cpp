@@ -30,7 +30,11 @@
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
-
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -414,6 +418,12 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
     }
     auto rsdrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     if (rsdrawingFilter != nullptr && (rsFilter->GetFilterType() == RSFilter::BEZIER_WARP)) {
+        rsdrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
+            imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+        return;
+    }
+
+    if (rsdrawingFilter != nullptr && (rsFilter->GetFilterType() == RSFilter::CONTENT_LIGHT)) {
         rsdrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
             imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
         return;
@@ -1428,11 +1438,6 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
             filter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         filter = filter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-#ifdef USE_M133_SKIA
-        const auto hashFunc = SkChecksum::Hash32;
-#else
-        const auto hashFunc = SkOpts::hash;
-#endif
         hash = hashFunc(&saturation, sizeof(saturation), hash);
         hash = hashFunc(&brightness, sizeof(brightness), hash);
         filter = filter?

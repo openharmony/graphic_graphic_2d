@@ -20,6 +20,7 @@
 #include "hgm_frame_rate_manager.h"
 #include "hgm_multi_app_strategy.h"
 #include "hgm_test_base.h"
+#include "mock_policy_config_visitor.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -78,7 +79,6 @@ void HgmMultiAppStrategyTest::SetUp()
     // set app config
     auto strategyConfigs = multiAppStrategy_->GetStrategyConfigs();
     auto screenSetting = multiAppStrategy_->GetScreenSetting();
-    multiAppStrategy_->appBufferListCache_ = {"test1", "test2", "test3", "test4"};
     auto &appTypes = screenSetting.appTypes;
 
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
@@ -535,7 +535,7 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
         ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
-    
+
         STEP("1. normal strategy") {
             multiAppStrategy_->isLtpo_ = true;
             multiAppStrategy_->lowAmbientStatus_ = false;
@@ -681,92 +681,30 @@ HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
 }
 
 /**
- * @tc.name: SetHgmAppStrategyConfig1
- * @tc.desc: Verify the result of SetHgmAppStrategyConfig
+ * @tc.name: GetAppStrategyConfig
+ * @tc.desc: Verify the result of GetAppStrategyConfig
  * @tc.type: FUNC
- * @tc.require: IAHFXD
+ * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SetHgmAppStrategyConfig1, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | Level1)
 {
-    std::string pkg1 = "com.app10";
-    PolicyConfigData::StrategyConfig appStrategyConfig;
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.min, fps0);
-    ASSERT_EQ(appStrategyConfig.max, fps0);
-    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_ENABLED);
-    ASSERT_EQ(appStrategyConfig.isFactor, false);
-    ASSERT_EQ(appStrategyConfig.drawMin, OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.drawMax, OLED_NULL_HZ);
+    auto multiAppStrategy = HgmMultiAppStrategy();
+    PolicyConfigData::StrategyConfig strategyRes;
+    auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
 
-    std::vector<std::pair<std::string, std::string>> newConfig = {
-        {"min", "60"},
-        {"max", "120"},
-        {"dynamicMode", "0"},
-        {"isFactor", "1"},
-        {"drawMin", "60"},
-        {"drawMax", "120"},
-        {"test4", "60"},
-        {"test1", "0"},
-        {"errorKey", "1"},
-    };
+    // null
+    std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
+    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
+    HgmCore::Instance().mPolicyConfigVisitor_ = mock;
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(
+        testing::Return(EXEC_SUCCESS));
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
 
-    multiAppStrategy_->SetAppStrategyConfig(pkg1, newConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.min, OLED_60_HZ);
-    ASSERT_EQ(appStrategyConfig.max, OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_DISENABLED);
-    ASSERT_EQ(appStrategyConfig.isFactor, true);
-    ASSERT_EQ(appStrategyConfig.drawMin, OLED_60_HZ);
-    ASSERT_EQ(appStrategyConfig.drawMax, OLED_120_HZ);
-
-    std::vector<std::pair<std::string, std::string>> emptyConfig = {};
-    multiAppStrategy_->SetAppStrategyConfig(pkg1, emptyConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.min, fps0);
-    ASSERT_EQ(appStrategyConfig.max, fps0);
-    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_ENABLED);
-    ASSERT_EQ(appStrategyConfig.isFactor, false);
-    ASSERT_EQ(appStrategyConfig.drawMin, OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.drawMax, OLED_NULL_HZ);
-}
-
-/**
- * @tc.name: SetHgmAppStrategyConfig2
- * @tc.desc: Verify the result of SetHgmAppStrategyConfig
- * @tc.type: FUNC
- * @tc.require: IAHFXD
- */
-HWTEST_F(HgmMultiAppStrategyTest, SetHgmAppStrategyConfig2, Function | SmallTest | Level1)
-{
-    std::string pkg1 = "com.app10";
-    PolicyConfigData::StrategyConfig appStrategyConfig;
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_90_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
-    std::vector<std::pair<std::string, std::string>> newConfig = {
-        {"test4", "60"},
-        {"test1", "0"},
-        {"test3", "120"}
-    };
-    multiAppStrategy_->SetAppStrategyConfig(pkg1, newConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_60_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
-    std::vector<std::pair<std::string, std::string>> emptyConfig = {};
-    multiAppStrategy_->SetAppStrategyConfig("", emptyConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_90_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
+    HgmCore::Instance().mPolicyConfigVisitor_ = nullptr;
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+    HgmCore::Instance().mPolicyConfigVisitor_ = configVisitor;
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

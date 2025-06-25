@@ -30,7 +30,7 @@ class OHHmSymbolTxtTest : public testing::Test {};
  * @tc.desc: test for font isSymbolGlyph
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, IsSymbolGlyph001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, IsSymbolGlyph001, TestSize.Level0)
 {
     TextStyle style;
     SPText::TextStyle textStyle;
@@ -44,7 +44,7 @@ HWTEST_F(OHHmSymbolTxtTest, IsSymbolGlyph001, TestSize.Level1)
  * @tc.desc: test SetRenderMode with single
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetRenderMode001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetRenderMode001, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -59,7 +59,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetRenderMode001, TestSize.Level1)
  * @tc.desc: test SetRenderMode with multiple color
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetRenderMode002, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetRenderMode002, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -75,7 +75,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetRenderMode002, TestSize.Level1)
  * @tc.desc: test SetRenderMode with multi opacity
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetRenderMode003, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetRenderMode003, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -91,7 +91,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetRenderMode003, TestSize.Level1)
  * @tc.desc: test SetRenderMode with invalid value
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetRenderMode004, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetRenderMode004, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -111,7 +111,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetRenderMode004, TestSize.Level1)
  * @tc.desc: test for symbol GetSymbolLayers
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, GetSymbolLayers001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, GetSymbolLayers001, TestSize.Level0)
 {
     uint16_t glyphId = 0;
     SPText::TextStyle textStyle;
@@ -132,7 +132,7 @@ HWTEST_F(OHHmSymbolTxtTest, GetSymbolLayers001, TestSize.Level1)
  * @tc.desc: test for symbol SetRenderColor
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetRenderColor001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetRenderColor001, TestSize.Level0)
 {
     HMSymbolTxt symbol;
     Drawing::Color color1 = Drawing::Color::COLOR_BLUE;
@@ -164,7 +164,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetRenderColor001, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for None animaiton
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy001, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -180,7 +180,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy001, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for scale animaiton
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy002, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy002, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -196,7 +196,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy002, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for variable color animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy003, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy003, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -212,7 +212,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy003, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for appear animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy004, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy004, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -228,7 +228,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy004, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for disappear animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy005, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy005, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -244,7 +244,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy005, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for bounce animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy006, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy006, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -260,7 +260,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy006, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for pulse animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy007, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy007, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -276,7 +276,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy007, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for replace_appear animation
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy008, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy008, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -292,7 +292,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy008, TestSize.Level1)
  * @tc.desc: test SetEffectStrategy for invalid value
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy009, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy009, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -304,11 +304,27 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy009, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetEffectStrategy0010
+ * @tc.desc: test SetEffectStrategy for replace_appear animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy0010, TestSize.Level0)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    SPText::TextStyle textStyle;
+
+    style.symbol.SetSymbolEffect(9); // this 9 is quick_replace_appear animation
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetEffectStrategy(), Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+}
+
+/*
  * @tc.name: SetAnimationMode001
  * @tc.desc: test for SetAnimationMode with cumulative effect
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode001, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -323,7 +339,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode001, TestSize.Level1)
  * @tc.desc: test for SetAnimationMode with iteratuve effect
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode002, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode002, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -339,7 +355,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode002, TestSize.Level1)
  * @tc.desc: test for SetAnimationMode with invalid value
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode003, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode003, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -356,7 +372,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetAnimationMode003, TestSize.Level1)
  * @tc.desc: test for symbol SetRepeatCount
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetRepeatCount001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetRepeatCount001, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -372,7 +388,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetRepeatCount001, TestSize.Level1)
  * @tc.desc: test SetAnimationStart with true
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetAnimationStart001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetAnimationStart001, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -387,7 +403,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetAnimationStart001, TestSize.Level1)
  * @tc.desc: test SetAnimationStart with false
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetAnimationStart002, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetAnimationStart002, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -402,7 +418,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetAnimationStart002, TestSize.Level1)
  * @tc.desc: test SetVisualMode with VISUAL_SMALL
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetVisualMode001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetVisualMode001, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -417,7 +433,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetVisualMode001, TestSize.Level1)
  * @tc.desc: test SetVisualMode with VISUAL_LARGER
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetVisualMode002, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetVisualMode002, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -433,7 +449,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetVisualMode002, TestSize.Level1)
  * @tc.desc: test SetVisualMode with VISUAL_MEDIUM
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetVisualMode003, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetVisualMode003, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -449,7 +465,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetVisualMode003, TestSize.Level1)
  * @tc.desc: test SetCommonSubType with DOWN
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetCommonSubType001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetCommonSubType001, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -465,7 +481,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetCommonSubType001, TestSize.Level1)
  * @tc.desc: test SetCommonSubType with UP
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SetCommonSubType002, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SetCommonSubType002, TestSize.Level0)
 {
     TextStyle style;
     style.isSymbolGlyph = true;
@@ -481,7 +497,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetCommonSubType002, TestSize.Level1)
  * @tc.desc: test for symbol HMSymbolTxt::operator==
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, HMSymbolTxtOperator001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, HMSymbolTxtOperator001, TestSize.Level0)
 {
     RSSColor color1 = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
     RSSColor color2 = {1.0, 0, 0, 0}; // the 1.0 is alpha, 0, 0, 0 is RGB
@@ -532,11 +548,37 @@ HWTEST_F(OHHmSymbolTxtTest, HMSymbolTxtOperator001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: HMSymbolTxtOperator002
+ * @tc.desc: test for symbol HMSymbolTxt::operator==
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, HMSymbolTxtOperator002, TestSize.Level0)
+{
+    auto color1 = std::make_shared<SymbolGradient>();
+    color1->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    auto color2 = std::make_shared<SymbolGradient>();
+    color2->SetColors({0XFF0000FF}); // 0XFF0000FF is ARGB
+    OHOS::Rosen::SymbolColor symbolColor = {SymbolColorType::COLOR_TYPE, {color1, color2}};
+
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolColor(symbolColor);
+    SPText::HMSymbolTxt symbolTxt1;
+    symbolTxt1.SetSymbolColor(symbolTxt.GetSymbolColor());
+    EXPECT_TRUE(symbolTxt == symbolTxt1);
+
+    auto gradients = symbolTxt.GetGradients();
+    ASSERT_FALSE(gradients.empty());
+    gradients[0] = nullptr;
+    symbolTxt.symbolColor_.gradients = gradients;
+    EXPECT_FALSE(symbolTxt == symbolTxt1);
+}
+
+/*
  * @tc.name: SymbolUid001
  * @tc.desc: test GetSymbolUid and SetSymbolUid
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SymbolUid001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SymbolUid001, TestSize.Level0)
 {
     SPText::HMSymbolTxt symbolTxt;
     EXPECT_EQ(symbolTxt.GetSymbolUid(), 0);
@@ -549,7 +591,7 @@ HWTEST_F(OHHmSymbolTxtTest, SymbolUid001, TestSize.Level1)
  * @tc.desc: test GetSymbolBitmap and SetSymbolBitmap
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolTxtTest, SymbolBitmap001, TestSize.Level1)
+HWTEST_F(OHHmSymbolTxtTest, SymbolBitmap001, TestSize.Level0)
 {
     SPText::HMSymbolTxt symbolTxt;
     // test get method
@@ -562,6 +604,42 @@ HWTEST_F(OHHmSymbolTxtTest, SymbolBitmap001, TestSize.Level1)
     symbolTxt.SetSymbolBitmap(symbolBitmap);
     int symbolAttrLen = static_cast<int>(RelayoutSymbolStyleAttribute::SYMBOL_ATTRIBUTE_BUTT);
     EXPECT_EQ(symbolTxt.GetSymbolBitmap().size(), symbolAttrLen);
+}
+
+/*
+ * @tc.name: GetRenderColor001
+ * @tc.desc: test GetRenderColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GetRenderColor001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    auto color1 = std::make_shared<SymbolGradient>();
+    color1->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    auto color2 = nullptr;
+    OHOS::Rosen::SymbolColor symbolColor = {SymbolColorType::COLOR_TYPE, {color1, color2}};
+    symbolTxt.SetSymbolColor(symbolColor);
+    auto colors = symbolTxt.GetRenderColor();
+    EXPECT_FALSE(colors.empty());
+}
+
+/*
+ * @tc.name: GradientColorTest001
+ * @tc.desc: test for gradient colors
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GradientColorTest001, TestSize.Level1)
+{
+    OHOS::Rosen::HMSymbolTxt symbolTxt;
+    auto gradient1 = std::make_shared<SymbolGradient>();
+    gradient1->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    auto gradient2 = nullptr;
+    OHOS::Rosen::SymbolColor symbolColor = {SymbolColorType::GRADIENT_TYPE, {gradient1, gradient2}};
+    symbolTxt.SetSymbolColor(symbolColor);
+    auto localSymbolColor = symbolTxt.GetSymbolColor();
+    EXPECT_FALSE(localSymbolColor.gradients.empty());
+    EXPECT_EQ(localSymbolColor.colorType, SymbolColorType::GRADIENT_TYPE); // 2 is colors size
+    EXPECT_EQ(localSymbolColor.gradients.size(), 2); // 2 is colors size
 }
 } // namespace Rosen
 } // namespace OHOS

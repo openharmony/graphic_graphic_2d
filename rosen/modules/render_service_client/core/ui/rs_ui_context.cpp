@@ -17,6 +17,7 @@
 
 #include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
+#include "ui/rs_ui_context_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,11 +34,19 @@ RSUIContext::~RSUIContext() {}
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
 {
-    if (rsImplicitAnimator_ == nullptr) {
-        rsImplicitAnimator_ = std::make_shared<RSImplicitAnimator>();
-        rsImplicitAnimator_->SetRSUIContext(weak_from_this());
+    std::lock_guard<std::mutex> lock(implicitAnimatorMutex_);
+    auto it = rsImplicitAnimators_.find(gettid());
+    if (it != rsImplicitAnimators_.end()) {
+        return it->second;
+    } else {
+        if (rsImplicitAnimators_.size() > 0) {
+            RS_LOGI_LIMIT("Too many threads are using the same animator");
+        }
+        auto rsImplicitAnimator = std::make_shared<RSImplicitAnimator>();
+        rsImplicitAnimator->SetRSUIContext(weak_from_this());
+        rsImplicitAnimators_.emplace(gettid(), rsImplicitAnimator);
+        return rsImplicitAnimator;
     }
-    return rsImplicitAnimator_;
 }
 
 const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
@@ -113,8 +122,14 @@ void RSUIContext::PostTask(const std::function<void()>& task)
 void RSUIContext::PostDelayTask(const std::function<void()>& task, uint32_t delay)
 {
     if (taskRunner_ == nullptr) {
-        ROSEN_LOGD(
+        ROSEN_LOGW(
             "multi-instance RSUIContext::PostDelayTask failed, taskRunner is empty, token=%{public}" PRIu64, token_);
+        auto ctx = RSUIContextManager::Instance().GetRandomUITaskRunnerCtx();
+        if (ctx == nullptr) {
+            ROSEN_LOGE("multi-instance RSUIContext::PostDelayTask, no taskRunner exists");
+            return;
+        }
+        ctx->PostDelayTask(task, delay);
         return;
     }
     taskRunner_(task, delay);

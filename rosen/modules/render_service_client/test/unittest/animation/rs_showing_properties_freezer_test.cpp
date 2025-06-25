@@ -296,9 +296,6 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetColorTest, TestSize.Level1)
     auto result2 = canvasNode->GetShowingProperties().GetBackgroundColor();
     ASSERT_TRUE(result2.has_value());
     EXPECT_TRUE(result2.value().GetRed() == SHOWING_COLOR_NUM);
-
-    auto result3 = canvasNode->GetShowingProperties().GetSurfaceBgColor();
-    EXPECT_TRUE(!result3.has_value());
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorTest end";
 }
 

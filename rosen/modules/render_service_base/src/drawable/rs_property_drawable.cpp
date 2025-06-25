@@ -184,6 +184,9 @@ void RSFilterDrawable::OnSync()
 {
     if (needSync_) {
         filter_ = std::move(stagingFilter_);
+        if (filter_) {
+            filter_->OnSync();
+        }
         needSync_ = false;
     }
     renderNodeId_ = stagingNodeId_;
@@ -459,14 +462,6 @@ bool RSFilterDrawable::NeedPendingPurge() const
         return false;
     }
     return stagingCacheManager_->NeedPendingPurge();
-}
-
-bool RSFilterDrawable::IsPendingPurge() const
-{
-    if (stagingCacheManager_ == nullptr) {
-        return false;
-    }
-    return stagingCacheManager_->IsPendingPurge();
 }
 
 void RSFilterDrawable::MarkEffectNode()

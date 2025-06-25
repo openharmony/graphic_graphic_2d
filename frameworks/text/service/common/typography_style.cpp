@@ -19,17 +19,17 @@ namespace OHOS {
 namespace Rosen {
 TextStyle TypographyStyle::GetTextStyle() const
 {
-    TextStyle style = {
-        .fontWeight = fontWeight,
-        .fontStyle = fontStyle,
-        .fontFamilies = { fontFamily },
-        .fontSize = fontSize,
-        .heightScale = heightScale,
-        .halfLeading = halfLeading,
-        .heightOnly = heightOnly,
-        .locale = locale,
-        .textStyleUid = defaultTextStyleUid,
-    };
+    TextStyle style;
+    style.fontWeight = fontWeight;
+    style.fontStyle = fontStyle;
+    style.fontFamilies = { fontFamily };
+    style.fontSize = fontSize;
+    style.heightScale = heightScale;
+    style.halfLeading = halfLeading;
+    style.heightOnly = heightOnly;
+    style.locale = locale;
+    style.textStyleUid = defaultTextStyleUid;
+
     if (fontSize >= 0) {
         style.fontSize = fontSize;
     }

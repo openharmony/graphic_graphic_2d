@@ -53,6 +53,8 @@ public:
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
+    void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+        std::vector<RectI>& hwcRects);
     void UpdateHardwareStateByBoundNEDstRectInApps(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         std::vector<RectI>& abovedBounds);
     // Use in updating hwcnode hardware state with background alpha
@@ -98,10 +100,13 @@ private:
     RSUniRenderVisitor& uniRenderVisitor_;
 
     // Functions
-    bool FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
-        const RSRenderNode& rootNode);
-    void UpdateHwcNodeClipRect(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
-        const RSRenderNode& rootNode, RectI& clipRect);
+    bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
+    void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
+        Drawing::Rect& childRectMapped);
+    void UpdateHwcNodeMatrix(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
+        Drawing::Matrix& accumulatedMatrix);
+    void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+        const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

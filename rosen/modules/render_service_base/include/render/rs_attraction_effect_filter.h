@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_ATTRACTION_EFFECT_FILTER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_ATTRACTION_EFFECT_FILTER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_ATTRACTION_EFFECT_FILTER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_ATTRACTION_EFFECT_FILTER_H
 
 #include <memory>
 
@@ -77,6 +77,7 @@ public:
 
 private:
     float attractionFraction_ = 0.0f;
+    int location_ = 0;
     Drawing::Point windowStatusPoints_[12] = {
         {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f},
         {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}
@@ -91,4 +92,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_ATTRACTION_EFFECT_FILTER_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_ATTRACTION_EFFECT_FILTER_H

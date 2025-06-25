@@ -18,9 +18,11 @@
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node_allocator.h"
 #include "platform/common/rs_log.h"
 #include "utils/rect.h"
 #include "utils/region.h"
@@ -36,7 +38,14 @@ RSCanvasRenderNodeDrawable::RSCanvasRenderNodeDrawable(std::shared_ptr<const RSR
 
 RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return new RSCanvasRenderNodeDrawable(std::move(node));
+    auto generator = [] (std::shared_ptr<const RSRenderNode> node,
+        RSRenderNodeAllocator::DrawablePtr front) -> RSRenderNodeAllocator::DrawablePtr {
+            if (front != nullptr) {
+                return new (front)RSCanvasRenderNodeDrawable(std::move(node));
+            }
+            return new RSCanvasRenderNodeDrawable(std::move(node));
+    };
+    return RSRenderNodeAllocator::Instance().CreateRSRenderNodeDrawable(node, generator);
 }
 
 /*
@@ -125,12 +134,9 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-    auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
-        captureParam.endNodeId_ == GetId() &&
-        captureParam.endNodeId_ != INVALID_NODEID);
-    if (captureParam.isSoloNodeUiCapture_ || stopDrawForRangeCapture) {
-        RSRenderNodeDrawable::OnDraw(canvas);
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*params, false)) {
+        SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
+        RS_LOGE("RSCanvasRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
         return;
     }
     RSRenderNodeSingleDrawableLocker singleLocker(this);
@@ -140,6 +146,17 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
             return;
         }
+    }
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (captureParam.isSoloNodeUiCapture_ || stopDrawForRangeCapture) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
     }
     if (LIKELY(isDrawingCacheEnabled_)) {
         if (canvas.GetUICapture() && !drawBlurForCache_) {

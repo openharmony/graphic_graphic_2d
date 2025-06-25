@@ -552,7 +552,7 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
         "lastCacheType:%{public}hhu, cacheUpdateInterval_:%{public}d, canSkip:%{public}d, isLargeArea:%{public}d,"
         "filterType_:%{public}d, pendingPurge_:%{public}d,"
         "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d,"
-        "offscreenCanvasNodeId:%{public}" PRIu64 "",
+        "offscreenCanvasNodeId:%{public}" PRIu64,
         stagingForceUseCache_, stagingForceClearCache_,
         stagingFilterHashChanged_, stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
@@ -599,11 +599,6 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
 bool RSFilterCacheManager::NeedPendingPurge() const
 {
     return !stagingFilterInteractWithDirty_ && pendingPurge_;
-}
-
-bool RSFilterCacheManager::IsPendingPurge() const
-{
-    return pendingPurge_;
 }
 
 void RSFilterCacheManager::ClearFilterCache()

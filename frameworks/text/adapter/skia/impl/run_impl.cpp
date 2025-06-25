@@ -105,6 +105,7 @@ TextDirection RunImpl::GetTextDirection() const
     if (runBase_ == nullptr) {
         return TextDirection::LTR;
     }
+
     if (runBase_->getTextDirection() == skia::textlayout::TextDirection::kRtl) {
         return TextDirection::RTL;
     } else {

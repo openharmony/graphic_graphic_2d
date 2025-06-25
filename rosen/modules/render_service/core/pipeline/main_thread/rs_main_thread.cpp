@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -658,13 +658,8 @@ void RSMainThread::Init()
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#if defined (RS_ENABLE_VK)
-    RS_LOGI("RSMagicPointerRenderManager init");
-    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetVkImageManager());
-#endif
-
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetEglImageManager());
+#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
+    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetImageManager());
 #endif
 #endif
 
@@ -1082,21 +1077,21 @@ void RSMainThread::PrintCurrentStatus()
 {
 #ifdef RS_ENABLE_GPU
     std::string gpuType = "";
-    switch (OHOS::Rosen::RSSystemProperties::GetGpuApiType()) {
-        case OHOS::Rosen::GpuApiType::OPENGL:
+    switch (RSSystemProperties::GetGpuApiType()) {
+        case GpuApiType::OPENGL:
             gpuType = "opengl";
             break;
-        case OHOS::Rosen::GpuApiType::VULKAN:
+        case GpuApiType::VULKAN:
             gpuType = "vulkan";
             break;
-        case OHOS::Rosen::GpuApiType::DDGR:
+        case GpuApiType::DDGR:
             gpuType = "ddgr";
             break;
         default:
             break;
     }
     RS_LOGI("[Drawing] Version: Non-released");
-    RS_LOGE("PrintCurrentStatus:  drawing is opened, gpu type is %{public}s", gpuType.c_str());
+    RS_LOGE("PrintCurrentStatus: drawing is opened, gpu type is %{public}s", gpuType.c_str());
 #endif
 }
 
@@ -1579,6 +1574,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 RS_LOGD("SubThread is processing %{public}s, skip acquire buffer", surfaceNode->GetName().c_str());
                 return;
             }
+            if (surfaceNode->IsForceRefresh()) {
+                isForceRefresh_ = true;
+            }
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetAvailableBufferCount() > 0) {
                 if (rsVSyncDistributor_ != nullptr) {
@@ -1681,7 +1679,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
         };
     }
+    RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
+    RSJankStats::GetInstance().AvcodecVideoCollectFinish();
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (requestNextVsyncTime_ != -1) {
         RequestNextVSync("unknown", 0, requestNextVsyncTime_);
@@ -1867,10 +1867,6 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode == nullptr) {
-        RS_LOGE("CheckIfHardwareForcedDisabled rootNode is nullptr");
-        return;
-    }
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
     MultiDisplayChange(isMultiDisplay);
 
@@ -1956,7 +1952,7 @@ uint32_t RSMainThread::GetRefreshRate() const
         RS_LOGE("GetRefreshRate screenManager is nullptr");
         return STANDARD_REFRESH_RATE;
     }
-    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(
         screenManager->GetDefaultScreenId());
     if (refreshRate == 0) {
         RS_LOGE("GetRefreshRate refreshRate is invalid");
@@ -1967,7 +1963,7 @@ uint32_t RSMainThread::GetRefreshRate() const
 
 uint32_t RSMainThread::GetDynamicRefreshRate() const
 {
-    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
     if (refreshRate == 0) {
         RS_LOGE("GetDynamicRefreshRate refreshRate is invalid");
         return STANDARD_REFRESH_RATE;
@@ -2270,7 +2266,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RS_LOGD("UniRender AccessibilityConfig has Changed");
     }
     RSUifirstManager::Instance().RefreshUIFirstParam();
-    UpdateRogSizeIfNeeded();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
     int64_t rsPeriod = 0;
@@ -2505,8 +2500,11 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetRogWidthRatio(1.0f);
             }
             processor->CreateLayer(*surfaceNode, *params);
-            // buffer is synced to directComposition
-            params->SetBufferSynced(true);
+            // Set buffer to synced state in directComposition only when buffer is consumed.
+            // If buffer is not consumed, it should keep buffer sync state until next buffer consumed.
+            if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
+                params->SetBufferSynced(true);
+            }
         }
     }
     RSLuminanceControl::Get().SetHdrStatus(screenId,
@@ -2593,7 +2591,7 @@ void RSMainThread::Render()
     }
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
-        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+        auto& hgmCore = HgmCore::Instance();
         renderThreadParams_->SetTimestamp(hgmCore.GetCurrentTimestamp());
         renderThreadParams_->SetActualTimestamp(hgmCore.GetActualTimestamp());
         renderThreadParams_->SetVsyncId(hgmCore.GetVsyncId());
@@ -2670,6 +2668,7 @@ void RSMainThread::Render()
 
 void RSMainThread::OnUniRenderDraw()
 {
+#ifndef SCREENLESS_DEVICE
     if (!isUniRender_) {
         RsFrameReport::GetInstance().RenderEnd();
         return;
@@ -2697,6 +2696,7 @@ void RSMainThread::OnUniRenderDraw()
 
     UpdateDisplayNodeScreenId();
     RsFrameReport::GetInstance().RenderEnd();
+#endif
 #endif
 }
 
@@ -3399,7 +3399,7 @@ void RSMainThread::SetVsyncInfo(uint64_t timestamp)
             context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     }
     OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
-    RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld,"
+    RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld, "
         "period = %{public}lld, allowFramerateChange = %{public}d",
         static_cast<long long>(timestamp), static_cast<long long>(curTime_),
         static_cast<long long>(vsyncPeriod), allowFramerateChange);
@@ -5176,11 +5176,11 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
 {
     // use the same function as vsync to get current time
     int64_t currentTimestamp = SystemTime();
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto &hgmCore = HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
 
-    auto &frameDeadline = OHOS::Rosen::RsFrameDeadlinePredict::GetInstance();
+    auto &frameDeadline = RsFrameDeadlinePredict::GetInstance();
     frameDeadline.ReportRsFrameDeadline(hgmCore, forceRefreshFlag);
 }
 
@@ -5208,6 +5208,11 @@ void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t 
     int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent)
 {
     rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, isUrgent);
+}
+
+void RSMainThread::SetTaskEndWithTime(int64_t time)
+{
+    rsVSyncDistributor_->SetTaskEndWithTime(time);
 }
 
 void RSMainThread::OnFmtTraceSwitchCallback(const char *key, const char *value, void *context)

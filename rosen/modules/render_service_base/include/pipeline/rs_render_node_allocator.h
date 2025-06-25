@@ -25,12 +25,16 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSRenderNodeAllocator {
 public:
+    using DrawablePtr = DrawableV2::RSRenderNodeDrawableAdapter::Ptr;
     static RSRenderNodeAllocator& Instance();
 
     bool AddNodeToAllocator(RSRenderNode* ptr);
+    bool AddDrawableToAllocator(DrawablePtr ptr);
 
     std::shared_ptr<RSCanvasRenderNode> CreateRSCanvasRenderNode(NodeId id,
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
+    DrawablePtr CreateRSRenderNodeDrawable(std::shared_ptr<const RSRenderNode> node,
+        std::function<DrawablePtr(std::shared_ptr<const RSRenderNode> node, DrawablePtr front)> generator);
 
 private:
     class Spinlock {
@@ -51,6 +55,9 @@ private:
 
     std::queue<RSRenderNode*> nodeAllocator_;
     Spinlock nodeAllocatorSpinlock_;
+
+    std::queue<DrawablePtr> drawableAllocator_;
+    Spinlock drawableAllocatorSpinlock_;
 };
 
 } // namespace Rosen

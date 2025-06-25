@@ -21,6 +21,21 @@ ohos_unittest("text_ndk_test") {
   defines = []
   sources = [
     "add_text_test.cpp",
+    "font_collection_test.cpp",
+    "font_mgr_test.cpp",
+    "font_test.cpp",
+    "register_font_test.cpp",
+    "text_font_descriptor_test.cpp",
+    "text_global_test.cpp",
+    "text_lineTypography_test.cpp",
+    "text_line_test.cpp",
+    "text_run_test.cpp",
+    "text_style_copy_test.cpp",
+    "text_typography_alignment_test.cpp",
+    "text_typography_paint_attribute_test.cpp",
+    "text_typography_strut_style_test.cpp",
+    "text_typography_style_test.cpp",
+    "text_typography_test.cpp",
     "undefined_glyph_display_test.cpp",
   ]
 
@@ -40,12 +55,13 @@ ohos_unittest("text_ndk_test") {
   include_dirs += [
     "$rosen_text_root/interface/export",
     "$rosen_text_root/adapter/skia",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$rosen_text_root/service/texgine/src",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
+    "$rosen_text_root:rosen_text",
   ]
 
   subsystem_name = "graphic"

@@ -64,19 +64,13 @@ bool GLESRenderBackend::SetUpGrContext()
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     // fix svg antialiasing bug
     options.fGpuPathRenderers &= ~GpuPathRenderers::kAtlas;
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
+
     sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");
         return false;
     }
-#else
-    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
-    if (grContext == nullptr) {
-        LOGE("SetUpGrContext grContext is null");
-        return false;
-    }
-#endif
+
     grContext_ = std::move(grContext);
     LOGI("SetUpGrContext done");
     return true;
@@ -179,11 +173,7 @@ SkCanvas* GLESRenderBackend::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& fram
     const int stencilBufferSize = 8;
 
     GrBackendRenderTarget backendRenderTarget(width, height, 0, stencilBufferSize, framebufferInfo);
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
-#else
-    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-#endif
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
         GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, nullptr, &surfaceProps);
     if (skSurface_ == nullptr) {

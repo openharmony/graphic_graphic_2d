@@ -16,6 +16,7 @@
 #include "draw/path_iterator.h"
 
 #include "impl_factory.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,6 +30,10 @@ scalar PathIterator::ConicWeight() const
 
 PathVerb PathIterator::Next(Point* points)
 {
+    if (points == nullptr) {
+        LOGE("PathIterator::Next, points is nullptr");
+        return PathVerb::DONE;
+    }
     return impl_->Next(points);
 }
 
@@ -49,6 +54,10 @@ scalar PathIter::ConicWeight() const
 
 PathVerb PathIter::Next(Point* points)
 {
+    if (points == nullptr) {
+        LOGE("PathIter::Next, points is nullptr");
+        return PathVerb::DONE;
+    }
     return impl_->Next(points);
 }
 

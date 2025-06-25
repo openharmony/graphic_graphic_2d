@@ -68,7 +68,7 @@ void TextLineBaseTest::TearDown()
  * @tc.desc: test for GetGlyphCount and GetGlyphRuns
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest001, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest001, TestSize.Level0)
 {
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
@@ -81,7 +81,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest001, TestSize.Level1)
  * @tc.desc: test for GetTextRange
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest002, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest002, TestSize.Level0)
 {
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
@@ -94,7 +94,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest002, TestSize.Level1)
  * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest003, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest003, TestSize.Level0)
 {
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
@@ -107,7 +107,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest003, TestSize.Level1)
  * @tc.desc: test for nullptr, only for the branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest004, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest004, TestSize.Level0)
 {
     std::vector<PaintRecord> paints;
     std::unique_ptr<skia::textlayout::TextLineBase> textLineBase = nullptr;
@@ -125,7 +125,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest004, TestSize.Level1)
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level0)
 {
     std::string ellipsisStr;
     std::unique_ptr<SPText::TextLineBase> line
@@ -154,7 +154,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level1)
  * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest006, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest006, TestSize.Level0)
 {
     std::vector<PaintRecord> paints;
     std::unique_ptr<SPText::TextLineBase> textLineBase = std::make_unique<SPText::TextLineImpl>(nullptr, paints);
@@ -183,7 +183,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest006, TestSize.Level1)
  *  exceeds the size of the fUTF16IndexForUTF8Index, the point is to the right of the ellipsisRun's rect
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest007, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest007, TestSize.Level0)
 {
     ParagraphStyle paragraphStyle;
     paragraphStyle.maxLines = 1;
@@ -206,7 +206,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest007, TestSize.Level1)
  *  exceeds the size of the fUTF16IndexForUTF8Index, the point is inside the ellipsisRun's rect
  * @tc.type: FUNC
  */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest008, TestSize.Level1)
+HWTEST_F(TextLineBaseTest, TextLineBaseTest008, TestSize.Level0)
 {
     ParagraphStyle paragraphStyle;
     paragraphStyle.maxLines = 1;

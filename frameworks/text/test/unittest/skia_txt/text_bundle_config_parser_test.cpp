@@ -44,7 +44,7 @@ void TextBundleConfigParserTest::TearDownTestCase() {}
  * @tc.desc: test for GetAdapterTextHeight
  * @tc.type: FUNC
  */
-HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
+HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level0)
 {
     EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsAdapterTextHeightEnabled());
 }
@@ -55,7 +55,7 @@ HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
  * @tc.desc: test for IsTargetApiVersion
  * @tc.type: FUNC
  */
-HWTEST_F(TextBundleConfigParserTest, IsTargetApiVersionText001, TestSize.Level1)
+HWTEST_F(TextBundleConfigParserTest, IsTargetApiVersionText001, TestSize.Level0)
 {
     TextBundleConfigParser::GetInstance().initStatus_ = true;
     TextBundleConfigParser::GetInstance().bundleApiVersion_ = SINCE_API18_VERSION;

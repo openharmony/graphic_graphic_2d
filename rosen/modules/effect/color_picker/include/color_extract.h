@@ -60,16 +60,33 @@ public:
     std::vector<uint32_t> hist_;
     int distinctColorCount_ = 0;
     std::vector<uint32_t> colors_;
+    Media::PixelFormat format_ = Media::PixelFormat::RGBA_8888;
 
     static constexpr uint8_t ARGB_MASK = 0xFF;
     static constexpr uint8_t ARGB_A_SHIFT = 24;
     static constexpr uint8_t ARGB_R_SHIFT = 16;
     static constexpr uint8_t ARGB_G_SHIFT = 8;
     static constexpr uint8_t ARGB_B_SHIFT = 0;
+
+    static constexpr uint32_t RGBA1010102_RGB_MASK = 0x3FF; // Mask corresponding to the 10-bit color value
+    static constexpr uint32_t RGBA1010102_ALPHA_MASK = 0x03; // Mask corresponding to the 2-bit alpha value
+    static constexpr uint32_t RGBA1010102_A_SHIFT = 30; // 1010102 format alpha shift number
+    static constexpr uint32_t RGBA1010102_R_SHIFT = 0; // 1010102 format red shift number
+    static constexpr uint32_t RGBA1010102_G_SHIFT = 10; // 1010102 format green shift number
+    static constexpr uint32_t RGBA1010102_B_SHIFT = 20; // 1010102 format blue shift number
+
+    static constexpr uint8_t RGB888_COLOR_MAX = 255; // Maximum value corresponding to 8-bit color
+    static constexpr uint8_t RGB101010_ALPHA_MAX = 3; // Maximum value corresponding to 2-bit alpha
+    static constexpr uint32_t RGB101010_COLOR_MAX = 1023; // Maximum value corresponding to 10-bit color
+
     static uint8_t GetARGB32ColorA(unsigned int color);
     static uint8_t GetARGB32ColorR(unsigned int color);
     static uint8_t GetARGB32ColorG(unsigned int color);
     static uint8_t GetARGB32ColorB(unsigned int color);
+    static uint32_t GetRGBA1010102ColorA(unsigned int color);
+    static uint32_t GetRGBA1010102ColorR(unsigned int color);
+    static uint32_t GetRGBA1010102ColorG(unsigned int color);
+    static uint32_t GetRGBA1010102ColorB(unsigned int color);
     NATIVEEXPORT void SetFeatureColorNum(int N);
     void GetNFeatureColors(int colorNum);
 
@@ -88,7 +105,8 @@ private:
     static uint32_t QuantizedGreen(uint32_t color);
     static uint32_t QuantizedBlue(uint32_t color);
     static uint32_t QuantizeFromRGB888(uint32_t color);
-    static uint32_t ModifyWordWidth(uint8_t color, int inWidth, int outWidth);
+    static uint32_t QuantizeFromRGB101010(uint32_t color);
+    static uint32_t ModifyWordWidth(uint32_t color, int inWidth, int outWidth);
     static uint32_t ApproximateToRGB888(uint32_t r, uint32_t g, uint32_t b);
     static uint32_t ApproximateToRGB888(uint32_t color);
     static bool cmp(std::pair<uint32_t, uint32_t >& a, std::pair<uint32_t, uint32_t >& b);
@@ -312,10 +330,14 @@ private:
     static constexpr double RED_LUMINACE_RATIO = 0.2126;
     static constexpr double GREEN_LUMINACE_RATIO = 0.7152;
     static constexpr double BLUE_LUMINACE_RATIO = 0.0722;
-    static uint8_t Rgb2Gray(uint32_t color);
+    void InitColorValBy1010102Color(std::shared_ptr<Media::PixelMap> pixmap, uint32_t left, uint32_t top,
+        uint32_t right, uint32_t bottom);
+    void InitColorValBy8888Color(std::shared_ptr<Media::PixelMap> pixmap, uint32_t left, uint32_t top,
+        uint32_t right, uint32_t bottom);
+    static uint8_t Rgb2Gray(uint32_t color, Media::PixelFormat format = Media::PixelFormat::RGBA_8888);
     uint32_t CalcGrayMsd() const;
-    static float NormalizeRgb(uint32_t val);
-    static float CalcRelativeLum(uint32_t color);
+    static float NormalizeRgb(uint32_t val, const uint32_t& colorMax = RGB888_COLOR_MAX);
+    static float CalcRelativeLum(uint32_t color, Media::PixelFormat format = Media::PixelFormat::RGBA_8888);
     float CalcContrastToWhite() const;
     std::vector<std::pair<uint32_t, uint32_t>> QuantizePixels(int colorNum);
     void SplitBoxes(std::priority_queue<VBox, std::vector<VBox>, std::less<VBox> > &queue, int maxSize);

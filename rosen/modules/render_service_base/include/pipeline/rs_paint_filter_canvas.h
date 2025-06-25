@@ -16,17 +16,17 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 
+#include <limits>
 #include <optional>
 #include <stack>
 #include <vector>
-
-#include "surface_type.h"
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "screen_manager/screen_types.h"
+#include "surface_type.h"
 #include "utils/region.h"
 
 namespace OHOS {
@@ -192,6 +192,12 @@ public:
         int alphaSaveCount = -1;
         int envSaveCount = -1;
     };
+
+    struct HDRProperties {
+        bool isHDREnabledVirtualScreen = false;
+        float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
+    };
+
     enum SaveType : uint8_t {
         kNone           = 0x0,
         kCanvas         = 0x1,
@@ -311,6 +317,9 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool GetHDREnabledVirtualScreen() const;
+    void SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen);
+    const HDRProperties& GetHDRProperties() const;
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
     bool GetIsDrawingCache() const;
@@ -405,9 +414,9 @@ private:
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
-    float hdrBrightness_ = 1.0f; // Default 1.0f means max available headroom
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
+    HDRProperties hdrProperties;
     Drawing::Surface* surface_ = nullptr;
     Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
     Drawing::Rect visibleRect_ = Drawing::Rect();

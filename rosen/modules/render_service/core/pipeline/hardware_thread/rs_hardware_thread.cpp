@@ -74,6 +74,10 @@
 #include "ressched_event_listener.h"
 #endif
 
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
+
 #undef LOG_TAG
 #define LOG_TAG "RSHardwareThread"
 
@@ -141,12 +145,8 @@ void RSHardwareThread::Start()
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
                 uniRenderEngine_->Init();
-#ifdef RS_ENABLE_VK
                 // posttask for multithread safely release surface and image
-                if (RSSystemProperties::IsUseVulkan()) {
-                    ContextRegisterPostTask();
-                }
-#endif
+                ContextRegisterPostTask();
                 hardwareTid_ = gettid();
             }).wait();
     }
@@ -281,10 +281,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu,%s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
             GetSurfaceNameInLayersForTrace(layers).c_str());
-        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers rate:%{public}u, " \
-            "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
-            currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
-
+        RS_LOGI("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
+            size:%{public}zu, %{public}s", currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
+            GetSurfaceNameInLayersForTrace(layers).c_str());
         bool isScreenPoweringOff = false;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager) {
@@ -292,7 +291,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
-        if (!isScreenPoweringOff) {
+        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(output);
+        if (!shouldDropFrame) {
             hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, param.rate);
             hgmHardwareUtils_.PerformSetActiveMode(
                 output, param.frameTimestamp, param.constraintRelativeTime);
@@ -306,7 +306,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         } else {
             output->SetLayerInfo(layers);
         }
-        bool doRepaint = output->IsDeviceValid() && !isScreenPoweringOff && !IsDropDirtyFrame(output);
+        bool doRepaint = output->IsDeviceValid() && !shouldDropFrame;
         if (doRepaint) {
             hdiBackend_->Repaint(output);
             RecordTimestamp(layers);
@@ -327,6 +327,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
         }
+        RSMainThread::Instance()->SetTaskEndWithTime(SystemTime() - lastActualTime_);
+        lastActualTime_ = param.actualTimestamp;
         int64_t endTime = GetCurTimeCount();
         uint64_t frameTime = endTime - startTime;
         uint32_t missedFrames = frameTime / REFRESH_PERIOD;
@@ -423,6 +425,7 @@ void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr
         solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
         GraphicIRect dstRect = {maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_};
         solidColorLayer->SetLayerSize(dstRect);
+        solidColorLayer->SetIsMaskLayer(true);
         solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
         bool debugFlag = (system::GetParameter("debug.foldscreen.shaft.color", "0") == "1");
         if (debugFlag) {
@@ -475,11 +478,15 @@ std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfo
 std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<LayerInfoPtr>& layers)
 {
     uint32_t count = layers.size();
+    uint32_t max = 0;
     for (const auto& layer : layers) {
         if (layer == nullptr || layer->GetSurface() == nullptr) {
             continue;
         }
         count += layer->GetSurface()->GetName().length();
+        if (max < layer->GetZorder()) {
+            max = layer->GetZorder();
+        }
     }
     bool exceedLimit = count > MAX_TOTAL_SURFACE_NAME_LENGTH;
     std::string surfaceName = "Names:";
@@ -489,7 +496,14 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
         }
         surfaceName += (exceedLimit ? layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH) :
                                       layer->GetSurface()->GetName()) + ",";
+        surfaceName.append("zorder: ");
+        surfaceName.append(std::to_string(layer->GetZorder()));
+        surfaceName.append(",");
+        if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR && layer->GetZorder() < max) {
+            RS_LOGE("RSHardcursor is not on the top, hardcursor zorder:%{public}d", layer->GetZorder());
+        }
     }
+
     return surfaceName;
 }
 
@@ -610,10 +624,7 @@ void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, ui
         }
     }
     auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("screenManager is NULL");
-        return;
-    }
+    auto screenInfo = screenManager->QueryScreenInfo(screenId);
     auto output = screenManager->GetOutput(ToScreenPhysicalId(screenId));
     if (output == nullptr) {
         RS_LOGE("output is NULL");
@@ -650,7 +661,6 @@ void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, ui
     auto usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB | BUFFER_USAGE_PROTECTED |
         BUFFER_USAGE_DRM_REDRAW;
     rsSurface->SetSurfaceBufferUsage(usage);
-    auto screenInfo = screenManager->QueryScreenInfo(screenId);
     auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo.phyWidth, screenInfo.phyHeight);
     output->SetProtectedFrameBufferState(ret);
 #endif
@@ -748,8 +758,11 @@ bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
         return false;
     }
     for (const auto& info : layerInfos) {
+        if (info == nullptr) {
+            continue;
+        }
         auto layerSize = info->GetLayerSize();
-        if (info->GetDisplayNodeFlag() && !(activeRect == layerSize)) {
+        if (info->GetUniRenderFlag() && !(activeRect == layerSize)) {
             RS_LOGI("%{publkic}s: Drop dirty frame cause activeRect:[%{public}d, %{public}d, %{public}d, %{public}d]" \
                 "layerSize:[%{public}d, %{public}d, %{public}d, %{public}d]", __func__, activeRect.x, activeRect.y,
                 activeRect.w, activeRect.h, layerSize.x, layerSize.y, layerSize.w, layerSize.h);
@@ -963,6 +976,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
 #endif
     RedrawScreenRCD(*canvas, layers);
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    auto rsSurface = renderFrame->GetSurface();
+    RSTvMetadataManager::Instance().CopyFromLayersToSurface(layers, rsSurface);
+#endif
     renderFrame->Flush();
     RS_LOGD("RsDebug Redraw flush frame buffer end");
 }
@@ -1109,20 +1126,22 @@ bool RSHardwareThread::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 }
 #endif
 
-#ifdef RS_ENABLE_VK
 void RSHardwareThread::ContextRegisterPostTask()
 {
-    RsVulkanContext::GetSingleton().SetIsProtected(true);
-    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
-    if (context) {
-        context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+#if defined(RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
+    if (RSSystemProperties::IsUseVulkan()) {
+        RsVulkanContext::GetSingleton().SetIsProtected(true);
+        auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+        if (context) {
+            context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+        }
+        RsVulkanContext::GetSingleton().SetIsProtected(false);
+        if (context) {
+            context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+        }
     }
-    RsVulkanContext::GetSingleton().SetIsProtected(false);
-    if (context) {
-        context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
-    }
-}
 #endif
+}
 }
 
 namespace OHOS {

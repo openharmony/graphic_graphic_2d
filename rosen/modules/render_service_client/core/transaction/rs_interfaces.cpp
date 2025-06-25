@@ -564,6 +564,11 @@ bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvas
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSInterfaces::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    return renderServiceClient_->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 bool RSInterfaces::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     return renderServiceClient_->SetVirtualMirrorScreenScaleMode(id, scaleMode);
@@ -862,7 +867,7 @@ void RSInterfaces::SetAppWindowNum(uint32_t num)
  * @brief Display safe Watermark
  * @param watermarkImg, The image width and height are less than twice the screen size
  * @param isShow, flag indicating whether to display the watermark identifier(true) or hide it(false)
-*/
+ */
 void RSInterfaces::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
     if (watermarkImg == nullptr) {
@@ -1114,9 +1119,19 @@ bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
     return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 
+void RSInterfaces::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+{
+    renderServiceClient_->SetLayerTopForHWC(nodeIdStr, isTop, zOrder);
+}
+
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
+
+void RSInterfaces::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    renderServiceClient_->SetForceRefresh(nodeIdStr, isForceRefresh);
 }
 
 void RSInterfaces::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
@@ -1159,6 +1174,13 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
             packageName.c_str(), pageName.c_str(), isEnter);
         renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
     }
+}
+
+int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    ROSEN_LOGD("RSInterfaces::GetpidGpuMemoryInMB called!");
+    return ret;
 }
 
 bool RSInterfaces::GetHighContrastTextState()

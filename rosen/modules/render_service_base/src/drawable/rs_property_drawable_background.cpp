@@ -28,6 +28,7 @@
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -551,10 +552,17 @@ std::shared_ptr<RSFilter> RSBackgroundFilterDrawable::GetBehindWindowFilter(cons
     float saturation = 1.f;
     float brightness = 1.f;
     RSColor maskColor = {};
+#if defined(MODIFIER_NG)
+    if (GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS, radius) &&
+        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION, saturation) &&
+        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS, brightness) &&
+        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR, maskColor)) {
+#else
     if (GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, saturation) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, brightness) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, maskColor)) {
+#endif
         return RSPropertyDrawableUtils::GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
     }
     return nullptr;
@@ -563,7 +571,7 @@ std::shared_ptr<RSFilter> RSBackgroundFilterDrawable::GetBehindWindowFilter(cons
 template <typename T>
 bool RSBackgroundFilterDrawable::GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property)
 {
-    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(node.GetDrawCmdModifiers());
     auto iter = drawCmdModifiers.find(type);
     if (iter == drawCmdModifiers.end() || iter->second.empty()) {
         RS_LOGE("RSBackgroundFilterDrawable::GetModifierProperty fail to get, modifierType = %{public}hd.", type);
@@ -571,6 +579,18 @@ bool RSBackgroundFilterDrawable::GetModifierProperty(const RSRenderNode& node, R
     }
     auto& modifier = iter->second.back();
     property = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(modifier->GetProperty())->Get();
+    return true;
+}
+
+template<typename T>
+bool RSBackgroundFilterDrawable::GetBehindWindowFilterProperty(
+    const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property)
+{
+    const auto modifier = node.GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
+    if (!modifier) {
+        return false;
+    }
+    property = modifier->Getter<T>(type, T());
     return true;
 }
 

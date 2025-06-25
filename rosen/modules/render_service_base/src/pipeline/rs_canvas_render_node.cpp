@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include "modifier/rs_modifier_type.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_common_def.h"
@@ -30,17 +31,20 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#endif
 #include "render/rs_light_up_effect_filter.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "visitor/rs_node_visitor.h"
-#include "property/rs_property_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
-}
+constexpr ModifierId ANONYMOUS_MODIFIER_NG_ID = 0;
+} // namespace
 
 RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSRenderNode(id, context, isTextureExportNode)
@@ -60,8 +64,8 @@ RSCanvasRenderNode::~RSCanvasRenderNode()
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
-void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
-    RSModifierType type, bool isSingleFrameComposer)
+void RSCanvasRenderNode::UpdateRecording(
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type, bool isSingleFrameComposer)
 {
     if (!drawCmds || drawCmds->IsEmpty()) {
         return;
@@ -72,9 +76,26 @@ void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> d
     AddModifier(renderModifier, isSingleFrameComposer);
 }
 
+void RSCanvasRenderNode::UpdateRecordingNG(
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds, ModifierNG::RSModifierType type, bool isSingleFrameComposer)
+{
+    if (!drawCmds || drawCmds->IsEmpty()) {
+        return;
+    }
+    auto renderProperty =
+        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_NG_ID);
+    auto renderModifier =
+        ModifierNG::RSRenderModifier::MakeRenderModifier<Drawing::DrawCmdListPtr>(type, renderProperty);
+    AddModifier(renderModifier, isSingleFrameComposer);
+}
+
 void RSCanvasRenderNode::ClearRecording()
 {
+#if defined(MODIFIER_NG)
+    RemoveModifierNG(ANONYMOUS_MODIFIER_NG_ID);
+#else
     RemoveModifier(ANONYMOUS_MODIFIER_ID);
+#endif
 }
 
 void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -109,10 +130,8 @@ void RSCanvasRenderNode::OnTreeStateChanged()
     }
     RSRenderNode::OnTreeStateChanged();
 
-    // When the P3 canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
-    if (GetIsWideColorGamut()) {
-        ModifyWideWindowColorGamutNum(IsOnTheTree());
-    }
+    // When the canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
+    ModifyWindowWideColorGamutNum(IsOnTheTree(), graphicColorGamut_);
 }
 
 bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
@@ -124,10 +143,11 @@ bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
         property.NeedFilter() ||
         property.GetUseEffect() ||
         property.GetColorBlend().has_value() ||
-        (IsSelfDrawingNode() && GetOpincCache().OpincGetRootFlag())) {
+        (GetOpincCache().IsSuggestOpincNode() &&
+            (ChildHasVisibleFilter() || ChildHasVisibleEffect() || IsSelfDrawingNode()))) {
         return false;
     }
-    return true && RSRenderNode::OpincGetNodeSupportFlag();
+    return true && GetOpincCache().OpincGetSupportFlag();
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -141,21 +161,26 @@ void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSCanvasRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
+    DrawPropertyDrawableRange(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::MASK, canvas);
 }
 
 void RSCanvasRenderNode::ProcessShadowBatching(RSPaintFilterCanvas& canvas)
 {
     RSAutoCanvasRestore acr(&canvas);
-    DrawPropertyDrawableRange(RSPropertyDrawableSlot::BOUNDS_MATRIX, RSPropertyDrawableSlot::TRANSITION, canvas);
-    DrawPropertyDrawable(RSPropertyDrawableSlot::SHADOW, canvas);
+    ApplyAlphaAndBoundsGeometry(canvas);
+    DrawPropertyDrawableRange(RSDrawableSlot::MASK, RSDrawableSlot::TRANSITION, canvas);
+    DrawPropertyDrawable(RSDrawableSlot::SHADOW, canvas);
 }
 
 void RSCanvasRenderNode::DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas)
 {
+#if defined(MODIFIER_NG)
+    ApplyDrawCmdModifier(context, ModifierNG::RSModifierType::TRANSITION_STYLE);
+    ApplyDrawCmdModifier(context, ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR);
+#else
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
-
+#endif
     auto parent = GetParent().lock();
     if (!(parent && parent->GetRenderProperties().GetUseShadowBatching())) {
         RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
@@ -166,26 +191,20 @@ void RSCanvasRenderNode::DrawShadow(RSModifierContext& context, RSPaintFilterCan
 void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty)
 {
     auto parent = GetParent().lock();
-    if (parent &&
-        parent->GetRenderProperties().GetUseShadowBatching()) {
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
+    if (parent && parent->GetRenderProperties().GetUseShadowBatching()) {
+        DrawPropertyDrawableRange(RSDrawableSlot::TRANSITION, RSDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         if (includeProperty) {
             // Just need to skip RSPropertyDrawableSlot::SHADOW
-            DrawPropertyDrawableRange(
-                RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+            DrawPropertyDrawableRange(RSDrawableSlot::FOREGROUND_FILTER, RSDrawableSlot::CLIP_TO_FRAME, canvas);
         } else {
-            DrawPropertyDrawableRange(
-                RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+            DrawPropertyDrawableRange(RSDrawableSlot::SAVE_FRAME, RSDrawableSlot::CLIP_TO_FRAME, canvas);
         }
     } else {
         if (includeProperty) {
-            DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::CLIP_TO_FRAME,
-                canvas);
+            DrawPropertyDrawableRange(RSDrawableSlot::TRANSITION, RSDrawableSlot::CLIP_TO_FRAME, canvas);
         } else {
-            DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::OUTLINE, canvas);
-            DrawPropertyDrawableRange(
-                RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+            DrawPropertyDrawableRange(RSDrawableSlot::TRANSITION, RSDrawableSlot::OUTLINE, canvas);
+            DrawPropertyDrawableRange(RSDrawableSlot::SAVE_FRAME, RSDrawableSlot::CLIP_TO_FRAME, canvas);
         }
     }
 }
@@ -197,45 +216,65 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 
 void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawable(RSPropertyDrawableSlot::CONTENT_STYLE, canvas);
+    DrawPropertyDrawable(RSDrawableSlot::CONTENT_STYLE, canvas);
 }
 
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     auto parent = GetParent().lock();
-    if (parent &&
-        parent->GetRenderProperties().GetUseShadowBatching()) {
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
+    if (parent && parent->GetRenderProperties().GetUseShadowBatching()) {
+        DrawPropertyDrawableRange(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         // Just need to skip RSPropertyDrawableSlot::SHADOW
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
+        DrawPropertyDrawableRange(RSDrawableSlot::FOREGROUND_FILTER, RSDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
     } else {
-        DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
+        DrawPropertyDrawableRange(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
     }
 }
 
 void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawableRange(
-        RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::PARTICLE_EFFECT, canvas);
+    DrawPropertyDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::PARTICLE_EFFECT, canvas);
 }
 
 void RSCanvasRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawableRange(RSPropertyDrawableSlot::PIXEL_STRETCH, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+    DrawPropertyDrawableRange(RSDrawableSlot::PIXEL_STRETCH, RSDrawableSlot::RESTORE_ALL, canvas);
 }
 
 void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawableRange(RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+    DrawPropertyDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::RESTORE_ALL, canvas);
+}
+
+void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, ModifierNG::RSModifierType type)
+{
+    const auto& modifiers = GetModifiersNG(type);
+    if (modifiers.empty()) {
+        return;
+    }
+    if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        bool needSkip = false;
+        if (GetNodeIsSingleFrameComposer() && singleFrameComposer_ != nullptr) {
+            auto& modifierList = const_cast<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>&>(modifiers);
+            needSkip = singleFrameComposer_->SingleFrameModifierAddToListNG(type, modifierList);
+        }
+        for (const auto& modifier : modifiers) {
+            if (singleFrameComposer_ != nullptr && singleFrameComposer_->SingleFrameIsNeedSkipNG(needSkip, modifier)) {
+                continue;
+            }
+            modifier->Apply(context.canvas_, context.properties_);
+        }
+    } else {
+        for (const auto& modifier : modifiers) {
+            modifier->Apply(context.canvas_, context.properties_);
+        }
+    }
 }
 
 void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type)
 {
     // temporary workaround, PLANNING: refactor single frame compose without modifing draw cmd list
-    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(GetDrawCmdModifiers());
+    auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(GetDrawCmdModifiers());
     auto itr = drawCmdModifiers.find(type);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return;
@@ -264,9 +303,9 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
 
     if (needApplyMatrix) {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CONTENT_STYLE, canvas);
+        DrawPropertyDrawableRange(RSDrawableSlot::SAVE_ALL, RSDrawableSlot::CONTENT_STYLE, canvas);
     } else {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::OUTLINE, RSPropertyDrawableSlot::CONTENT_STYLE, canvas);
+        DrawPropertyDrawableRange(RSDrawableSlot::OUTLINE, RSDrawableSlot::CONTENT_STYLE, canvas);
     }
 
     for (auto& child : *GetSortedChildren()) {
@@ -276,11 +315,9 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
     }
 
     if (needApplyMatrix) {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::RESTORE_ALL,
-            canvas);
+        DrawPropertyDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::RESTORE_ALL, canvas);
     } else {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::PIXEL_STRETCH,
-            canvas);
+        DrawPropertyDrawableRange(RSDrawableSlot::FOREGROUND_STYLE, RSDrawableSlot::PIXEL_STRETCH, canvas);
     }
 }
 
@@ -322,34 +359,40 @@ bool RSCanvasRenderNode::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
-void RSCanvasRenderNode::SetIsWideColorGamut(bool isWideColorGamut)
+void RSCanvasRenderNode::SetColorGamut(uint32_t gamut)
 {
-    if (isWideColorGamut_ == isWideColorGamut) {
+    if (colorGamut_ == gamut) {
         return;
     }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GraphicColorGamut nowGamut = graphicColorGamut_;
+    graphicColorGamut_ = RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(
+        static_cast<OHOS::ColorManager::ColorSpaceName>(gamut));
     if (IsOnTheTree()) {
-        ModifyWideWindowColorGamutNum(isWideColorGamut_);
+        ModifyWindowWideColorGamutNum(false, nowGamut);
+        ModifyWindowWideColorGamutNum(true, graphicColorGamut_);
     }
-    isWideColorGamut_ = isWideColorGamut;
+#endif
+    colorGamut_ = gamut;
 }
 
-bool RSCanvasRenderNode::GetIsWideColorGamut() const
+uint32_t RSCanvasRenderNode::GetColorGamut()
 {
-    return isWideColorGamut_;
+    return colorGamut_;
 }
 
-void RSCanvasRenderNode::ModifyWideWindowColorGamutNum(bool flag)
+void RSCanvasRenderNode::ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut gamut)
 {
     auto parentInstance = GetInstanceRootNode();
     if (!parentInstance) {
-        RS_LOGE("RSCanvasRenderNode::ModifyWideWindowColorGamutNum get instanceRootNode failed.");
+        RS_LOGE("RSCanvasRenderNode::ModifyWindowWideColorGamutNum get instanceRootNode failed.");
         return;
     }
     if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-        if (flag) {
-            parentSurface->IncreaseWideColorGamutNum();
+        if (isOnTree) {
+            parentSurface->IncreaseCanvasGamutNum(gamut);
         } else {
-            parentSurface->ReduceWideColorGamutNum();
+            parentSurface->ReduceCanvasGamutNum(gamut);
         }
     }
 }

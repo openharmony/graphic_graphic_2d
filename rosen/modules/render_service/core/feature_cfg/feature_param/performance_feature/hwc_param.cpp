@@ -43,7 +43,7 @@ bool HWCParam::IsDisableHwcOnExpandScreen()
 void HWCParam::MoveDataToHgmCore()
 {
     HgmCore& hgmCore = HgmCore::Instance();
-    if (!hgmCore.mPolicyConfigData_) {
+    if (hgmCore.mPolicyConfigData_ != nullptr) {
         hgmCore.mPolicyConfigData_->hwcSourceTuningConfig_ = std::move(sourceTuningMap_);
         hgmCore.mPolicyConfigData_->hwcSolidLayerConfig_ = std::move(solidColorLayerMap_);
     }

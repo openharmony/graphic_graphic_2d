@@ -137,12 +137,8 @@ RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return RectI();
     }
-#ifdef USE_M133_SKIA
-    return RectI();
-#else
     auto iRect = skCanvas_->getRoundInDeviceClipBounds();
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
-#endif
 }
 
 #ifdef RS_ENABLE_GPU
@@ -492,13 +488,8 @@ void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, co
     SkColor color2 = spotColor.CastToColorQuad();
     SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
     if (skPathImpl != nullptr) {
-#ifndef USE_M133_SKIA
         SkShadowUtils::DrawShadowStyle(
             skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags, isLimitElevation);
-#else
-        SkShadowUtils::DrawShadow(
-            skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags);
-#endif
     }
 }
 
@@ -976,7 +967,7 @@ void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, con
         return;
     }
 
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     HMSymbolData skSymbol;
     if (!ConvertToHMSymbolData(symbol, skSymbol)) {
         LOGD("ConvertToHMSymbolData failed, return on line %{public}d", __LINE__);
@@ -1201,12 +1192,12 @@ void SkiaCanvas::Flush()
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
     }
-#ifndef USE_M133_SKIA
-    skCanvas_->flush();
-#else
+#ifdef USE_M133_SKIA
     if (auto dContext = GrAsDirectContext(skCanvas_->recordingContext())) {
         dContext->flushAndSubmit();
     }
+#else
+    skCanvas_->flush();
 #endif
 }
 

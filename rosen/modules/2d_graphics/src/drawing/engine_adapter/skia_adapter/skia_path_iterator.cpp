@@ -68,6 +68,10 @@ scalar SkiaPathIterator::ConicWeight() const
 
 PathVerb SkiaPathIterator::Next(Point* points)
 {
+    if (points == nullptr) {
+        LOGE("SkiaPathIterator::Next, points is nullptr");
+        return PathVerb::DONE;
+    }
     SkPoint* skPoints = reinterpret_cast<SkPoint*>(points);
     SkPath::Verb verb = static_cast<SkPath::Verb>(skPathIterator_.next(skPoints));
     return ConvertToPathVerb(verb);

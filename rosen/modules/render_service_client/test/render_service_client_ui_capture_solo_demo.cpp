@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,32 +18,32 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
-#include "display_type.h"
+#include "accesstoken_kit.h"
+#include "dm/display_manager.h"
 #include "draw/canvas.h"
 #include "draw/color.h"
 #include "graphic_common.h"
 #include "image/bitmap.h"
+#include "image_source.h"
 #include "include/core/SkColor.h"
+#include "nativetoken_kit.h"
 #include "pixel_map.h"
 #include "png.h"
 #include "render_context/render_context.h"
 #include "surface_type.h"
+#include "token_setproc.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction.h"
-#include "ui/rs_display_node.h"
-#include "ui/rs_ui_context.h"
-#include "ui/rs_ui_director.h"
-#include "ui/rs_root_node.h"
-#include "ui/rs_surface_node.h"
-#include "ui/rs_effect_node.h"
-#include "ui/rs_canvas_node.h"
 #include "ui/rs_canvas_drawing_node.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_effect_node.h"
+#include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
-#include "dm/display_manager.h"
-#include "securec.h"
-#include "accesstoken_kit.h"
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_texture_export.h"
+#include "ui/rs_ui_director.h"
+#include "window.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -138,7 +138,11 @@ void RenderContextInit()
 
 void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
 {
-    SkRect surfaceGeometry = SkRect::MakeXYWH(100, 50, 300, 600);
+    int surfaceX = 100;
+    int surfaceY = 50;
+    int surfaceWidth = 300;
+    int surfaceHeight = 600;
+    SkRect surfaceGeometry = SkRect::MakeXYWH(surfaceX, surfaceY, surfaceWidth, surfaceHeight);
     auto x = surfaceGeometry.x();
     auto y = surfaceGeometry.y();
     auto width = surfaceGeometry.width();
@@ -172,13 +176,14 @@ void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
     brush.SetColor(SK_ColorGREEN);
     brush.SetAntiAlias(true);
 
-    string scaleInfo = "Hello World";
     Font font = Font();
     font.SetSize(16); // text size 16
-    std::shared_ptr<TextBlob> scaleInfoTextBlob = TextBlob::MakeFromString(scaleInfo.c_str(),
+    std::shared_ptr<TextBlob> scaleInfoTextBlob = TextBlob::MakeFromString("Hello World",
         font, TextEncoding::UTF8);
     canvas->AttachBrush(brush);
-    canvas->DrawTextBlob(scaleInfoTextBlob.get(), 20, 50); // start point is (20, 50)
+    int startpointX = 20;
+    int startpointY = 50;
+    canvas->DrawTextBlob(scaleInfoTextBlob.get(), startpointX, startpointY); // start point is (20, 50)
     canvas->DetachBrush();
     framePtr->SetDamageRegion(0, 0, width, height);
     rsSurface->FlushFrame(framePtr);
@@ -196,15 +201,83 @@ bool WriteToPngWithPixelMap(const string &fileName, Media::PixelMap &pixelMap)
     return WriteToPng(fileName, param);
 }
 
+shared_ptr<Media::PixelMap> DecodePixelMap(const string& pathName, const Media::AllocatorType& allocatorType)
+{
+    cout << "decode start: ------------ " << pathName << endl;
+    cout << "decode 1: CreateImageSource" << endl;
+    uint32_t errCode = 0;
+    std::unique_ptr<Media::ImageSource> imageSource =
+        Media::ImageSource::CreateImageSource(pathName, Media::SourceOptions(), errCode);
+    if (imageSource == nullptr || errCode != 0) {
+        cout << "imageSource : " << (imageSource != nullptr) << ", err:" << errCode << std::endl;
+        return nullptr;
+    }
+
+    cout << "decode 2: CreatePixelMap" << endl;
+    Media::DecodeOptions decodeOpt;
+    decodeOpt.allocatorType = allocatorType;
+    shared_ptr<Media::PixelMap> pixelmap = imageSource->CreatePixelMap(decodeOpt, errCode);
+    if (pixelmap == nullptr || errCode != 0) {
+        cout << "pixelmap == nullptr, err:" << errCode << endl;
+        return nullptr;
+    }
+
+    cout << "w x h: " << pixelmap->GetWidth() << "x" << pixelmap->GetHeight() << endl;
+    cout << "AllocatorType: " << (int)pixelmap->GetAllocatorType() << endl;
+    cout << "fd: " << (!pixelmap->GetFd() ? "null" : to_string(*(int*)pixelmap->GetFd())) << endl;
+    cout << "decode success: ------------ " << endl;
+    return pixelmap;
+}
+
+class MySurfaceCaptureCallback : public SurfaceCaptureCallback {
+public:
+    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+    {
+        static int32_t count = 0;
+        if (pixelmap == nullptr) {
+            cout << "RSUIDirector::LocalCapture failed to get pixelmap, return nullptr!" << endl;
+            return;
+        }
+        cout << "rs local surface demo drawPNG" << endl;
+        string filename = "/data/local/test_" + to_string(count++) + ".jpg";
+        int ret = WriteToPngWithPixelMap(filename, *pixelmap);
+        if (!ret) {
+            cout << "pixelmap write to png failed" << endl;
+        }
+        cout << "pixelmap write to png sucess" << endl;
+    }
+};
+
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "rs_uni_render_pixelmap_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
 void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 {
     cout << "rs local capture solo demo Init Rosen Backend!" << endl;
 
     rootNode = RSRootNode::Create();
-    rootNode->SetBounds(0, 0, 800, 1100);
-    rootNode->SetFrame(0, 0, 800, 1100);
+    rootNode->SetBounds(0, 0, width, height);
+    rootNode->SetFrame(0, 0, width, height);
     rootNode->SetBackgroundColor(SK_ColorRED);
 
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(10, 10, 600, 1000);
     canvasNode->SetFrame(10, 10, 600, 1000);
@@ -240,70 +313,97 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     canvasDrawingNode->SetFrame(5, 5, 100, 300);
     canvasDrawingNode->SetBackgroundColor(SK_ColorGREEN);
     myLittleRootNode->AddChild(canvasDrawingNode, -1);
-
-    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
-    rsUiDirector->SendMessages();
 }
 
-void InitNativeTokenInfo()
-{
-    uint64_t tokenId;
-    const char *perms[1];
-    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
-    NativeTokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 1,
-        .aclsNum = 0,
-        .dcaps = NULL,
-        .perms = perms,
-        .acls = NULL,
-        .processName = "rs_uni_render_pixelmap_demo",
-        .aplStr = "system_basic",
-    };
-    tokenId = GetAccessTokenId(&infoInstance);
-    SetSelfTokenID(tokenId);
-    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-}
+class MyOffscreenRenderCallback : public SurfaceCaptureCallback {
+public:
+    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+    {
+        if (pixelmap == nullptr) {
+            cout << "RSUIDirector::LocalCapture failed to get pixelmap, return nullptr!" << endl;
+            return;
+        }
+        cout << "rs local surface demo drawPNG" << endl;
+        int ret = WriteToPngWithPixelMap("/data/local/test.jpg", *pixelmap);
+        if (!ret) {
+            cout << "pixelmap write to png failed" << endl;
+        }
+        cout << "pixelmap write to png success" << endl;
+    }
+};
 
 int main()
 {
     InitNativeTokenInfo();
 
     cout << "rs local capture solo demo" << endl;
-    struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "capture_solo_demo"};
-    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
-    sleep(2);
-    while (!surfaceNode) {
-        surfaceNode = nullptr;
-        cout << "rs local capture solo demo create surfaceNode failed, retrying..." << endl;
-        surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
-        sleep(2);
+    DisplayId displayId = DisplayManager::GetInstance().GetDefaultDisplayId();
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    surfaceNodeConfig.SurfaceNodeName = "capture_solo_demo";
+    RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    cout << "RSSurfaceNode:: Create" << endl;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
+    if (!surfaceNode) {
+        return -1;
     }
-
-    surfaceNode->SetBounds(0, 0, 680, 1100);
-    surfaceNode->SetFrame(0, 0, 680, 1100);
-    surfaceNode->SetBackgroundColor(SK_ColorGREEN);
+    surfaceNode->SetBounds(0, 0, 1260, 2720);
+    surfaceNode->SetFrame(0, 0, 1260, 2720);
     surfaceNode->SetPositionZ(RSSurfaceNode::POINTER_WINDOW_POSITION_Z);
-    surfaceNode->SetVisible(true);
+    cout << "GetDisplayId: " << endl;
+    screenId = DisplayManager::GetInstance().GetDisplayById(displayId)->GetId();
+    cout << "ScreenId: " << screenId << endl;
+    surfaceNode->AttachToDisplay(screenId);
 
-    auto properties = surfaceNode->GetStagingProperties();
     auto rsUiDirector = RSUIDirector::Create();
     rsUiDirector->Init();
+    RSTransaction::FlushImplicitTransaction();
     cout << "rs local capture solo demo init" << endl;
     rsUiDirector->SetRSSurfaceNode(surfaceNode);
-    RSTransaction::FlushImplicitTransaction();
 
-    auto bounds = properties.GetBounds();
-    Init(rsUiDirector, bounds.z_, bounds.w_);
-    surfaceNode->AttachToDisplay(screenId);
-    rsUiDirector->SendMessages();
+    Init(rsUiDirector, 1260, 2720);
+    RSTransaction::FlushImplicitTransaction();
     sleep(4);
 
+    cout << "rs local capture solo demo createPixelmap" << endl;
+    std::shared_ptr<MySurfaceCaptureCallback> mySurfaceCaptureCallback =
+        std::make_shared<MySurfaceCaptureCallback>();
     cout << "rootNode id is " << rootNode->GetId() << endl;
+
+    // add and remove from tree
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
     pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
     sleep(2);
 
+    cout << "vector size is " << pixelMapIdPairVector.size() << endl;
+    for (auto pixPair : pixelMapIdPairVector) {
+        cout << "nodeId: " << pixPair.first << endl;
+        auto pixMap = pixPair.second;
+        if (pixMap) {
+            cout << "nodeBoundsWidth is " << pixMap->GetWidth() << endl;
+        }
+    }
+
+    cout << "removing from tree... " << endl;
+    surfaceNode1->RemoveChild(myLittleRootNode);
+    RSTransaction::FlushImplicitTransaction();
+    sleep(2);
+    pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
+    sleep(2);
+    cout << "vector size is " << pixelMapIdPairVector.size() << endl;
+    for (auto pixPair : pixelMapIdPairVector) {
+        cout << "nodeId: " << pixPair.first << endl;
+        auto pixMap = pixPair.second;
+        if (pixMap) {
+            cout << "nodeBoundsWidth is " << pixMap->GetWidth() << endl;
+        }
+    }
+
+    cout << "adding to tree... " << endl;
+    surfaceNode1->AddChild(myLittleRootNode, -1);
+    RSTransaction::FlushImplicitTransaction();
+    sleep(2);
+    pixelMapIdPairVector = RSInterfaces::GetInstance().TakeSurfaceCaptureSoloNodeList(rootNode);
+    sleep(2);
     cout << "vector size is " << pixelMapIdPairVector.size() << endl;
     for (auto pixPair : pixelMapIdPairVector) {
         cout << "nodeId: " << pixPair.first << endl;

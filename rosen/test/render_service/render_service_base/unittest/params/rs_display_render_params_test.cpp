@@ -298,13 +298,10 @@ HWTEST_F(RSDisplayRenderParamsTest, ResetVirtualExpandAccumulatedParams, TestSiz
     RSDisplayRenderParams params(id);
     params.SetAccumulatedDirty(true);
     ASSERT_TRUE(params.GetAccumulatedDirty());
-    params.SetAccumulatedUifirstForceUpdate(true);
-    ASSERT_TRUE(params.GetAccumulatedUifirstForceUpdate());
     params.SetAccumulatedHdrStatusChanged(true);
     ASSERT_TRUE(params.GetAccumulatedHdrStatusChanged());
     params.ResetVirtualExpandAccumulatedParams();
     ASSERT_FALSE(params.GetAccumulatedDirty());
-    ASSERT_FALSE(params.GetAccumulatedUifirstForceUpdate());
     ASSERT_FALSE(params.GetAccumulatedHdrStatusChanged());
 }
 

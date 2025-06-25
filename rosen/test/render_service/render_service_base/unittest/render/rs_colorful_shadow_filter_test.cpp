@@ -138,5 +138,63 @@ HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest003, TestSize.Level1)
     EXPECT_TRUE(shadowFilter.IsValid());
 }
 
+/**
+ * @tc.name: DrawImageRectTest004
+ * @tc.desc: test DrawImageRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest004, TestSize.Level1)
+{
+    float blurRadius = 10.0f; // 10.0f is radius
+    float offsetX = 10.0f; // 10.0f offset x
+    float offsetY = 10.0f; // 10.0f offset y
+    Drawing::Path path;
+    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, true);
+
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Color color;
+    shadowFilter.SetShadowColorMask(color);
+    shadowFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(shadowFilter.IsValid());
+}
+
+/**
+ * @tc.name: DrawImageRectWithColorTest001
+ * @tc.desc: test DrawImageRectWithColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectWithColorTest001, TestSize.Level1)
+{
+    float blurRadius = 10.0f; // 10.0f is radius
+    float offsetX = 10.0f; // 10.0f offset x
+    float offsetY = 10.0f; // 10.0f offset y
+    Drawing::Path path;
+    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, true);
+
+    Drawing::Canvas canvas;
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(50, 50, format); // 50, 50 bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    std::shared_ptr<Drawing::Image> image = bmp.MakeImage();
+    Color color;
+    shadowFilter.SetShadowColorMask(color);
+    EXPECT_TRUE(shadowFilter.isColorMask_);
+
+    auto result = shadowFilter.DrawImageRectWithColor(canvas, nullptr);
+    EXPECT_EQ(result, nullptr);
+
+    result = shadowFilter.DrawImageRectWithColor(canvas, image);
+    EXPECT_EQ(result, nullptr);
+
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    result = shadowFilter.DrawImageRectWithColor(canvas, image);
+    EXPECT_EQ(result, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

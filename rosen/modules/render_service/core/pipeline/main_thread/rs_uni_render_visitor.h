@@ -142,6 +142,7 @@ public:
     void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
 
     void UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node);
+
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
@@ -177,7 +178,6 @@ private:
     bool NeedPrepareChindrenInReverseOrder(RSRenderNode& node) const;
     bool IsLeashAndHasMainSubNode(RSRenderNode& node) const;
     bool AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
-    void UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
     // should be removed due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
@@ -207,14 +207,14 @@ private:
 
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
     void UpdateAncoPrepareClip(RSSurfaceRenderNode& node);
-    void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
+    void ProcessAncoNode(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode, std::vector<RectI>& hwcRects);
-    bool CheckIfRoundCornerIntersectDRM(const float& ratio, std::vector<float>& ratioVector,
+    bool CheckIfRoundCornerIntersectDRM(const float ratio, std::vector<float>& ratioVector,
         const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect);
     void UpdateIfHwcNodesHaveVisibleRegion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces);
     void UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
@@ -259,7 +259,7 @@ private:
     void ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
-    void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicColorGamut& newColorSpace);
+    void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
     void UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
@@ -357,6 +357,9 @@ private:
     RectI screenRect_;
     std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
     std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
+    // The info of whitelist contains screenId
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
+
     Occlusion::Region accumulatedOcclusionRegion_;
     Occlusion::Region accumulatedOcclusionRegionBehindWindow_; // Accumulate transparent area
     Occlusion::Region occlusionRegionWithoutSkipLayer_;

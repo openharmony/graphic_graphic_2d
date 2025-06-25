@@ -93,4 +93,18 @@ HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
     RsCommonHook::Instance().SetAdaptiveColorGamutEnable(false);
     ASSERT_EQ(RsCommonHook::Instance().IsAdaptiveColorGamutEnabled(), false);
 }
+
+/**
+ * @tc.name: SetAndGetBundleNameTest
+ * @tc.desc: test results of SetTvPlayerBundleName and GetTvPlayerBundleName
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsCommonHookTest, SetAndGetBundleNameTest, TestSize.Level1)
+{
+    const std::string testBundleName = "com.example.tvplayer";
+    RsCommonHook::Instance().SetTvPlayerBundleName(testBundleName);
+    auto result = RsCommonHook::Instance().GetTvPlayerBundleName();
+    EXPECT_EQ(result, testBundleName);
+}
 } // namespace OHOS::Rosen

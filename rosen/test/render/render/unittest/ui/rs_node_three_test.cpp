@@ -1342,7 +1342,7 @@ HWTEST_F(RSNodeOneTest, SetProperty, TestSize.Level1)
     auto rsnode = RSCanvasNode::Create();
     rsnode->SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, 1.f);
 
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     RSModifierType modifierType = RSModifierType::ALPHA;
     std::shared_ptr<RSModifier> modifier = std::make_shared<RSBackgroundShaderModifier>(property);
     modifier->property_ = nullptr;

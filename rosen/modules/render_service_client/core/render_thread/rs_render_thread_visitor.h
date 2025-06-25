@@ -78,7 +78,6 @@ private:
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
 
-    bool UpdateAnimatePropertyCacheSurface(RSRenderNode& node);
     void ProcessShadowFirst(RSRenderNode& node);
 
     std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;

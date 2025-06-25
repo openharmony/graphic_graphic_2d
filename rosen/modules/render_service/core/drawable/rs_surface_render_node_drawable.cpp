@@ -308,7 +308,7 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
     RSSurfaceRenderParams& surfaceParams, RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const
 {
     Drawing::Region resultRegion;
-    if (!surfaceParams.IsMainWindowType()) {
+    if (!surfaceParams.IsMainWindowType() && !surfaceParams.IsLeashWindow()) {
         return resultRegion;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,11 @@
 #include "pipeline/sk_resource_manager.h"
 #include "rs_magic_pointer_render_manager.h"
 #include "rs_trace.h"
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
 #include "src/gpu/gl/GrGLDefines.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -42,17 +46,10 @@ RSMagicPointerRenderManager& RSMagicPointerRenderManager::GetInstance()
     return *g_pointerRenderManagerInstance;
 }
 
-#if defined (RS_ENABLE_VK)
-void RSMagicPointerRenderManager::InitInstance(const std::shared_ptr<RSVkImageManager>& vkImageManager)
+#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
+void RSMagicPointerRenderManager::InitInstance(const std::shared_ptr<RSImageManager>& imageManager)
 {
-    g_pointerRenderManagerInstance->vkImageManager_ = vkImageManager;
-}
-#endif
-
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-void RSMagicPointerRenderManager::InitInstance(const std::shared_ptr<RSEglImageManager>& eglImageManager)
-{
-    g_pointerRenderManagerInstance->eglImageManager_ = eglImageManager;
+    g_pointerRenderManagerInstance->imageManager_ = imageManager;
 }
 #endif
 
@@ -415,104 +412,12 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageBy
         ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageByLayer param buffer is nullptr");
         return nullptr;
     }
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN
-        || RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return GetIntersectImageFromVK(imgCutRect, context, param);
-        }
-#endif
-#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        return GetIntersectImageFromGL(imgCutRect, context, param);
-    }
+#if (defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)) || defined(RS_ENABLE_VK)
+    return imageManager_->GetIntersectImage(imgCutRect, context,
+        param.buffer, param.acquireFence, param.threadIndex);
 #endif
 #endif
     return nullptr;
 }
-
-#ifdef RS_ENABLE_VK
-std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromVK(Drawing::RectI& imgCutRect,
-    const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
-{
-    if (vkImageManager_ == nullptr) {
-        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK vkImageManager_ == nullptr");
-        return nullptr;
-    }
-    auto imageCache = vkImageManager_->CreateImageCacheFromBuffer(param.buffer, param.acquireFence);
-    if (imageCache == nullptr) {
-        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK imageCache == nullptr!");
-        return nullptr;
-    }
-    auto& backendTexture = imageCache->GetBackendTexture();
-    Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(param.buffer);
-
-    std::shared_ptr<Drawing::Image> layerImage = std::make_shared<Drawing::Image>();
-    if (!layerImage->BuildFromTexture(*context, backendTexture.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
-        NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
-        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK image BuildFromTexture failed.");
-        return nullptr;
-    }
-
-    std::shared_ptr<Drawing::Image> cutDownImage = std::make_shared<Drawing::Image>();
-    cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
-    return cutDownImage;
-}
-#endif
-
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromGL(Drawing::RectI& imgCutRect,
-    const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
-{
-    if (eglImageManager_ == nullptr) {
-        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL eglImageManager_ == nullptr");
-        return nullptr;
-    }
-    auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(param.buffer,
-        param.acquireFence, param.threadIndex);
-    if (eglTextureId == 0) {
-        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL invalid texture ID");
-        return nullptr;
-    }
-
-    Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(param.buffer);
-    Drawing::TextureInfo externalTextureInfo;
-    externalTextureInfo.SetWidth(param.buffer->GetSurfaceBufferWidth());
-    externalTextureInfo.SetHeight(param.buffer->GetSurfaceBufferHeight());
-    externalTextureInfo.SetIsMipMapped(false);
-    externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
-    externalTextureInfo.SetID(eglTextureId);
-    auto glType = GR_GL_RGBA8;
-    auto pixelFmt = param.buffer->GetFormat();
-    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-        glType = GR_GL_BGRA8;
-    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-        glType = GL_RGB10_A2;
-    }
-    externalTextureInfo.SetFormat(glType);
-
-    std::shared_ptr<Drawing::Image> layerImage = std::make_shared<Drawing::Image>();
-    if (!layerImage->BuildFromTexture(*context, externalTextureInfo,
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
-        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL image BuildFromTexture failed");
-        return nullptr;
-    }
-
-    std::shared_ptr<Drawing::Image> cutDownImage = std::make_shared<Drawing::Image>();
-    cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
-    Drawing::ImageInfo info = Drawing::ImageInfo(imgCutRect.GetWidth(), imgCutRect.GetHeight(),
-        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
-
-    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(context.get(), false, info);
-    if (surface == nullptr) {
-        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL MakeRenderTarget failed.");
-        return nullptr;
-    }
-    auto drawCanvas = std::make_shared<RSPaintFilterCanvas>(surface.get());
-    drawCanvas->DrawImage(*cutDownImage, 0.f, 0.f, Drawing::SamplingOptions());
-    surface->FlushAndSubmit(true);
-    return surface.get()->GetImageSnapshot();
-}
-#endif
 } // namespace Rosen
 } // namespace OHOS

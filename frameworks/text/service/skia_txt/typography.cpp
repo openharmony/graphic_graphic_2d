@@ -326,6 +326,15 @@ void Typography::SetAnimation(
     }
 }
 
+std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> Typography::GetAnimation()
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return nullptr;
+    }
+    return paragraph_->GetAnimation();
+}
+
 void Typography::SetParagraghId(uint32_t id)
 {
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
@@ -533,22 +542,22 @@ std::vector<TextBlobRecordInfo> Typography::GetTextBlobRecordInfo() const
     return paragraph_->GetTextBlobRecordInfo();
 }
 
-bool Typography::HasEnabledTextEffect() const
+bool Typography::HasSkipTextBlobDrawing() const
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (paragraph_ == nullptr) {
         return false;
     }
-    return paragraph_->HasEnabledTextEffect();
+    return paragraph_->HasSkipTextBlobDrawing();
 }
 
-void Typography::SetTextEffectState(bool state)
+void Typography::SetSkipTextBlobDrawing(bool state)
 {
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (paragraph_ == nullptr) {
         return;
     }
-    paragraph_->SetTextEffectState(state);
+    paragraph_->SetSkipTextBlobDrawing(state);
 }
 
 } // namespace AdapterTxt

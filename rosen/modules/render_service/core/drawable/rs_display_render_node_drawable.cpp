@@ -18,6 +18,7 @@
 #include <memory>
 #include <parameters.h>
 #include <string>
+#include <v1_0/cm_color_space.h>
 
 #include "graphic_feature_param_manager.h"
 #include "rs_trace.h"
@@ -66,6 +67,10 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
 #include "property/rs_point_light_manager.h"
+#ifdef USER_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#include "v2_1/cm_color_space.h"
+#endif
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "static_factory.h"
@@ -867,7 +872,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 ScaleCanvasIfNeeded(screenInfo);
                 auto rect = curCanvas_->GetDeviceClipBounds();
                 PrepareOffscreenRender(*this, !screenInfo.isSamplingOn, !screenInfo.isSamplingOn);
-                if (params->GetHDRPresent() || isScRGBEnable) {
+                if (!params->GetNeedOffscreen() && !screenInfo.isSamplingOn &&
+                    (params->GetHDRPresent() || isScRGBEnable)) {
                     curCanvas_->ClipRect(rect);
                 }
             }
@@ -1227,7 +1233,13 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         return;
     }
     // for HDR
-    curCanvas_->SetOnMultipleScreen(true);
+    if (params.GetHDRPresent()) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::DrawMirror HDRCast isHDREnabledVirtualScreen true");
+        curCanvas_->SetHDREnabledVirtualScreen(true);
+        curCanvas_->SetHdrOn(true);
+    } else {
+        curCanvas_->SetOnMultipleScreen(true);
+    }
     curCanvas_->SetDisableFilterCache(true);
     auto hasSecSurface = static_cast<RSDisplayRenderParams*>
         (mirroredParams.get())->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
@@ -1379,10 +1391,22 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-    RSRenderNodeDrawable::OnCapture(*curCanvas_);
-    RSUniRenderThread::ResetCaptureParam();
-    // for HDR
-    curCanvas_->SetOnMultipleScreen(true);
+    if (params.GetHDRPresent()) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::DrawExpandScreen HDRCast isHDREnabledVirtualScreen true");
+        curCanvas_->SetHDREnabledVirtualScreen(true);
+        curCanvas_->SetHdrOn(true);
+        auto& screenInfo = params.GetScreenInfo();
+        PrepareOffscreenRender(*this, false, false);
+        RSRenderNodeDrawable::OnCapture(*curCanvas_);
+        RSUniRenderThread::ResetCaptureParam();
+        FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE),
+            screenInfo.isSamplingOn);
+    } else {
+        RSRenderNodeDrawable::OnCapture(*curCanvas_);
+        RSUniRenderThread::ResetCaptureParam();
+        // for HDR
+        curCanvas_->SetOnMultipleScreen(true);
+    }
     auto targetSurfaceRenderNodeDrawable =
         std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(params.GetTargetSurfaceRenderNodeDrawable().lock());
     if ((targetSurfaceRenderNodeDrawable || params.HasMirrorDisplay()) && curCanvas_->GetSurface()) {
@@ -2133,10 +2157,35 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         auto mainHeight = static_cast<float>(screenInfo.height);
 
         // in certain cases (such as fold screen), the width and height must be swapped to fix the screen rotation.
-        int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas.GetTotalMatrix());
-        if (angle == RS_ROTATION_90 || angle == RS_ROTATION_270) {
+        canvas.Save();
+        canvas.ResetMatrix();
+        auto rotation = params.GetScreenRotation();
+        auto screenId = params.GetScreenId();
+        auto screenCorrection = screenManager->GetScreenCorrection(screenId);
+        if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
+            screenCorrection != ScreenRotation::ROTATION_0) {
+            // Recaculate rotation if mirrored screen has additional rotation angle
+            rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + SCREEN_ROTATION_NUM
+                - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
+        }
+
+        if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(mainWidth, mainHeight);
         }
+
+        if (rotation != ScreenRotation::ROTATION_0) {
+            if (rotation == ScreenRotation::ROTATION_90) {
+                canvas.Rotate(-(RS_ROTATION_90), 0, 0); // 90 degree
+                canvas.Translate(-(static_cast<float>(mainWidth)), 0);
+            } else if (rotation == ScreenRotation::ROTATION_180) {
+                canvas.Rotate(-(RS_ROTATION_180), static_cast<float>(mainWidth) / 2, // 2 half of screen width
+                    static_cast<float>(mainHeight) / 2); // 2 half of screen height
+            } else if (rotation == ScreenRotation::ROTATION_270) {
+                canvas.Rotate(-(RS_ROTATION_270), 0, 0); // 270 degree
+                canvas.Translate(0, -(static_cast<float>(mainHeight)));
+            }
+        }
+
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
         auto dstRect = Drawing::Rect(0, 0, mainWidth, mainHeight);
         Drawing::Brush rectBrush;
@@ -2144,6 +2193,7 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas.DetachBrush();
+        canvas.Restore();
     }
 }
 
@@ -2382,14 +2432,22 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
         RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, offscreenSurface_ is nullptr");
         return;
     }
-    auto image = offscreenSurface_->GetImageSnapshot();
-    if (image == nullptr) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
-        return;
-    }
+    std::shared_ptr<Drawing::Image> image = nullptr;
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     bool isUseCustomShader = false;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (canvasBackup_->GetHDREnabledVirtualScreen()) {
+        isUseCustomShader = HDRCastProcess(image, paint, sampling);
+    }
+#endif
+    if (!isUseCustomShader) {
+        image = offscreenSurface_->GetImageSnapshot();
+    }
+    if (image == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, image is nullptr");
+        return;
+    }
     if (ROSEN_LNE(hdrBrightnessRatio, 1.0f)) {
         auto shader = MakeBrightnessAdjustmentShader(image, sampling, hdrBrightnessRatio);
         if (shader) {
@@ -2430,6 +2488,76 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
     }
     curCanvas_ = std::move(canvasBackup_);
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+bool RSDisplayRenderNodeDrawable::HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
+    const Drawing::SamplingOptions& sampling) const
+{
+    auto gpuContext = canvasBackup_->GetGPUContext();
+    if (!gpuContext) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::HDRCastProcess gpuContext nullptr");
+        return false;
+    }
+    auto colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::HLG,
+        Drawing::CMSMatrixType::REC2020);
+    image = std::make_shared<Drawing::Image>();
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
+    Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL };
+    image->BuildFromTexture(*gpuContext, offscreenSurface_->GetBackendTexture().GetTextureInfo(),
+        origin, info, colorSpace);
+    return SetHDRCastShader(image, paint, sampling);
+}
+
+bool RSDisplayRenderNodeDrawable::SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
+    const Drawing::SamplingOptions& sampling) const
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    if (!image) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::SetHDRCastShader image is nullptr.");
+        return false;
+    }
+    auto inputShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, sampling, Drawing::Matrix());
+    parameter.inputColorSpace.colorSpaceInfo = {
+        .primaries = COLORPRIMARIES_SRGB,
+        .transfunc = TRANSFUNC_SRGB,
+        .matrix = MATRIX_BT601_N,
+        .range = RANGE_FULL,
+    };
+    parameter.inputColorSpace.metadataType = CM_VIDEO_HDR_VIVID;
+    parameter.outputColorSpace.colorSpaceInfo = {
+        .primaries = COLORPRIMARIES_BT2020,
+        .transfunc = TRANSFUNC_HLG,
+        .matrix = MATRIX_BT2020,
+        .range = RANGE_FULL,
+    };
+    parameter.outputColorSpace.metadataType = CM_VIDEO_HDR_VIVID;
+    parameter.tmoNits = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
+    parameter.currentDisplayNits = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
+    parameter.sdrNits = RSLuminanceConst::DEFAULT_CAST_SDR_NITS;
+    parameter.disableHdrFloatHeadRoom = true; // no need to apply headroom for virtual screen
+
+    std::shared_ptr<Drawing::ShaderEffect> outputShader;
+    auto colorSpaceConverterDisplay = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
+    if (!colorSpaceConverterDisplay) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::SetHDRCastShader VPE create failed");
+        return false;
+    }
+    auto convRet = colorSpaceConverterDisplay->Process(inputShader, outputShader, parameter);
+    if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::SetHDRCastShader failed with %{public}u.", convRet);
+        return false;
+    }
+    if (outputShader == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::SetHDRCastShader outputShader is null.");
+        return false;
+    }
+    paint.SetShaderEffect(outputShader);
+    RS_LOGD("RSDisplayRenderNodeDrawable::SetHDRCastShader succeed to set output shader.");
+    return true;
+}
+#endif
 
 void RSDisplayRenderNodeDrawable::UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
     RSDisplayRenderParams* params)

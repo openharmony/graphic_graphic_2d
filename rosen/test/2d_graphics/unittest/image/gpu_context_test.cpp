@@ -203,7 +203,11 @@ HWTEST_F(GpuContextTest, BuildFromVKTest001, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
+#ifdef USE_M133_SKIA
+    skgpu::VulkanBackendContext grVkBackendContext;
+#else
     GrVkBackendContext grVkBackendContext;
+#endif
     ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext));
 }
 
@@ -217,7 +221,11 @@ HWTEST_F(GpuContextTest, BuildFromVKTest002, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
+#ifdef USE_M133_SKIA
+    skgpu::VulkanBackendContext grVkBackendContext;
+#else
     GrVkBackendContext grVkBackendContext;
+#endif
     GPUContextOptions options;
     options.SetAllowPathMaskCaching(true);
     ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext, options));

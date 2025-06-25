@@ -18,6 +18,7 @@
 #include "command/rs_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
+#include "recording/draw_cmd.h"
 #include "render_context/shader_cache.h"
 
 #ifdef RS_ENABLE_VK
@@ -189,6 +190,7 @@ HWTEST_F(RSModifiersDrawThreadTest, TargetCommand002, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
 {
+    auto& modifiersDrawThread = RSModifiersDrawThread::Instance();
     NodeId nodeId = 1;
     auto mType = RSModifierType::CONTENT_STYLE;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -196,8 +198,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    RSModifiersDrawThread::Instance().PostSyncTask(
-        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
+    modifiersDrawThread.PostSyncTask([&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
     ASSERT_NE(transactionData, nullptr);
 }
 
@@ -215,6 +216,112 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
     cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
+    transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
+    ASSERT_NE(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: ConvertTransactionTest003
+ * @tc.desc: test results of ConvertTransaction of 15 text op
+ * @tc.type: FUNC
+ * @tc.require: issueICEFNX
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest003, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    uint16_t propertyId = 1;
+    const int opCnt = 15;
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
+    auto cType = PropertyUpdateType::UPDATE_TYPE_OVERWRITE;
+    auto transactionData = std::make_unique<RSTransactionData>();
+    Drawing::Brush brush;
+    Drawing::BrushHandle brushHandle;
+    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
+    ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
+    ASSERT_FALSE(cmdList->IsEmpty());
+    for (int i = 0; i < opCnt; i++) {
+        auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(nodeId, cmdList, propertyId, cType);
+        transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
+        nodeId++;
+        propertyId++;
+    }
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
+    ASSERT_NE(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: ConvertTransactionTest004
+ * @tc.desc: test results of ConvertTransaction of drawCmdList = nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICEFNX
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    uint16_t propertyId = 1;
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
+    auto cType = PropertyUpdateType::UPDATE_TYPE_OVERWRITE;
+    auto transactionData = std::make_unique<RSTransactionData>();
+    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(nodeId, nullptr, propertyId, cType);
+    transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
+    ASSERT_NE(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: ConvertTransactionTest005
+ * @tc.desc: test results of ConvertTransaction of Canvas & MAX Width/Height
+ * @tc.type: FUNC
+ * @tc.require: issueICEFNX
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    uint16_t propertyId = 1;
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetWidth(INT_MAX);
+    cmdList->SetHeight(INT_MAX);
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::CANVAS);
+    auto cType = PropertyUpdateType::UPDATE_TYPE_OVERWRITE;
+    auto transactionData = std::make_unique<RSTransactionData>();
+    Drawing::Brush brush;
+    Drawing::BrushHandle brushHandle;
+    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
+    ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
+    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(nodeId, cmdList, propertyId, cType);
+    transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
+    ASSERT_NE(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: ConvertTransactionTest006
+ * @tc.desc: test results of ConvertTransaction of Text & MAX Width/Height
+ * @tc.type: FUNC
+ * @tc.require: issueICEFNX
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    uint16_t propertyId = 1;
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetWidth(INT_MAX);
+    cmdList->SetHeight(INT_MAX);
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
+    auto cType = PropertyUpdateType::UPDATE_TYPE_OVERWRITE;
+    auto transactionData = std::make_unique<RSTransactionData>();
+    Drawing::Brush brush;
+    Drawing::BrushHandle brushHandle;
+    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
+    ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
+    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(nodeId, cmdList, propertyId, cType);
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });

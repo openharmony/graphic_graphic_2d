@@ -38,6 +38,7 @@ group("unittest") {
     ":RSRenderServiceUnitTest",
     ":RSRenderServiceVisitorTest",
     ":RSRoundCornerDisplayTest",
+    ":RSSLRScaleTest",
     ":RSUniHwcVisitorTest",
     ":RSUniRenderComposerAdapterTest",
     ":RSUniRenderEngineTest",
@@ -766,6 +767,25 @@ ohos_unittest("RSFeatureVkQueuePriorityTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+}
+
+## Build RSSLRScaleTest
+ohos_unittest("RSSLRScaleTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_slr_scale_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

@@ -14,7 +14,9 @@
  */
 #include "gtest/gtest.h"
 
+#include "command/rs_animation_command.h"
 #include "transaction/rs_transaction.h"
+#include "transaction/rs_transaction_proxy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,6 +47,21 @@ HWTEST_F(RSTransactionTest, FlushImplicitTransaction001, TestSize.Level1)
     // RSRenderThreadClient cannot be created,
     //      which constructor is privated.
     //      Only use its static function.
+    RSTransaction::FlushImplicitTransaction();
+    EXPECT_NE(RSTransaction::FlushImplicitTransaction, nullptr);
+}
+
+/**
+ * @tc.name: FlushImplicitTransaction002
+ * @tc.desc: test results of FlushImplicitTransaction
+ * @tc.type: FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSTransactionTest, FlushImplicitTransaction002, TestSize.Level1)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransaction::FlushImplicitTransaction();
     EXPECT_NE(RSTransaction::FlushImplicitTransaction, nullptr);
 }

@@ -37,6 +37,42 @@ constexpr RSUIFilterType DISPERSION_FILTER_TYPE[] = {
     RSUIFilterType::DISPERSION_BLUE_OFFSET,
 };
 
+void RSRenderDispersionFilterPara::CalculateHash()
+{
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+    hash_ = hashFunc(&opacity_, sizeof(opacity_), hash_);
+    hash_ = hashFunc(&redOffsetX_, sizeof(redOffsetX_), hash_);
+    hash_ = hashFunc(&redOffsetY_, sizeof(redOffsetY_), hash_);
+    hash_ = hashFunc(&greenOffsetX_, sizeof(greenOffsetX_), hash_);
+    hash_ = hashFunc(&greenOffsetY_, sizeof(greenOffsetY_), hash_);
+    hash_ = hashFunc(&blueOffsetX_, sizeof(blueOffsetX_), hash_);
+    hash_ = hashFunc(&blueOffsetY_, sizeof(blueOffsetY_), hash_);
+}
+
+std::shared_ptr<RSRenderFilterParaBase> RSRenderDispersionFilterPara::DeepCopy() const
+{
+    auto copyFilter = std::make_shared<RSRenderDispersionFilterPara>(id_);
+    copyFilter->type_ = type_;
+    copyFilter->opacity_ = opacity_;
+    copyFilter->redOffsetX_ = redOffsetX_;
+    copyFilter->redOffsetY_ = redOffsetY_;
+    copyFilter->greenOffsetX_ = greenOffsetX_;
+    copyFilter->greenOffsetY_ = greenOffsetY_;
+    copyFilter->blueOffsetX_ = blueOffsetX_;
+    copyFilter->blueOffsetY_ = blueOffsetY_;
+    copyFilter->mask_ = mask_;
+    copyFilter->CalculateHash();
+    return copyFilter;
+}
+
 void RSRenderDispersionFilterPara::GetDescription(std::string& out) const
 {
     out += "RSRenderDispersionFilterPara::[maskType_:" + std::to_string(static_cast<int>(maskType_)) + "]";
@@ -57,7 +93,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderDispersionFilterPara::CreateRender
             return std::make_shared<RSRenderAnimatableProperty<Vector2f>>();
         }
         default: {
-            ROSEN_LOGD("RSRenderDispersionFilterPara::CreateRenderPropert nullptr");
+            ROSEN_LOGD("RSRenderDispersionFilterPara::CreateRenderProperty nullptr");
             return nullptr;
         }
     }
@@ -73,7 +109,7 @@ bool RSRenderDispersionFilterPara::WriteToParcel(Parcel& parcel)
         return false;
     }
 
-    auto maskProperty = GetRenderPropert(maskType_);
+    auto maskProperty = GetRenderProperty(maskType_);
     if (maskProperty == nullptr) {
         ROSEN_LOGE("RSRenderDispersionFilterPara::WriteToParcel empty mask");
         return false;
@@ -85,13 +121,13 @@ bool RSRenderDispersionFilterPara::WriteToParcel(Parcel& parcel)
     }
 
     for (auto type : DISPERSION_FILTER_TYPE) {
-        auto property = GetRenderPropert(type);
+        auto property = GetRenderProperty(type);
         if (property == nullptr) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::WriteToParcel empty type: %{public}d", static_cast<int>(type));
             return false;
         }
         if (!RSMarshallingHelper::Marshalling(parcel, type) ||
-            !RSRenderPropertyBase::Marshalling(parcel, property)) {
+            !RSMarshallingHelper::Marshalling(parcel, property)) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::WriteToParcel write error: %{public}d", static_cast<int>(type));
             return false;
         }
@@ -134,7 +170,7 @@ bool RSRenderDispersionFilterPara::ReadFromParcel(Parcel& parcel)
             return false;
         }
         auto property = CreateRenderProperty(type);
-        if (type != realType || !RSRenderPropertyBase::Unmarshalling(parcel, property)) {
+        if (type != realType || !RSMarshallingHelper::Unmarshalling(parcel, property)) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::ReadFromParcel read error: %{public}d", static_cast<int>(type));
             return false;
         }
@@ -148,7 +184,7 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderDispersionFilterPara:
 {
     std::vector<std::shared_ptr<RSRenderPropertyBase>> out;
     if (maskType_ != RSUIFilterType::NONE) {
-        auto mask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        auto mask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderProperty(maskType_));
         if (mask == nullptr) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::GetLeafRenderProperties mask not found, maskType: %{public}d",
                 static_cast<int>(maskType_));
@@ -157,7 +193,7 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderDispersionFilterPara:
         out = mask->GetLeafRenderProperties();
     }
     for (const auto& filterType : DISPERSION_FILTER_TYPE) {
-        auto value = GetRenderPropert(filterType);
+        auto value = GetRenderProperty(filterType);
         if (value == nullptr) {
             continue;
         }
@@ -168,7 +204,7 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderDispersionFilterPara:
 
 std::shared_ptr<RSRenderMaskPara> RSRenderDispersionFilterPara::GetRenderMask()
 {
-    auto property = GetRenderPropert(maskType_);
+    auto property = GetRenderProperty(maskType_);
     if (property == nullptr) {
         return nullptr;
     }
@@ -177,19 +213,19 @@ std::shared_ptr<RSRenderMaskPara> RSRenderDispersionFilterPara::GetRenderMask()
 
 bool RSRenderDispersionFilterPara::ParseFilterValues()
 {
-    auto dispersionMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+    auto dispersionMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderProperty(maskType_));
     auto dispersionOpacity =
-        std::static_pointer_cast<RSRenderProperty<float>>(GetRenderPropert(RSUIFilterType::DISPERSION_OPACITY));
+        std::static_pointer_cast<RSRenderProperty<float>>(GetRenderProperty(RSUIFilterType::DISPERSION_OPACITY));
     auto dispersionRedOffset =
-        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderPropert(RSUIFilterType::DISPERSION_RED_OFFSET));
-    auto dispersionGreenOffset =
-        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderPropert(RSUIFilterType::DISPERSION_GREEN_OFFSET));
+        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderProperty(RSUIFilterType::DISPERSION_RED_OFFSET));
+    auto dispersionGreenOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
+        GetRenderProperty(RSUIFilterType::DISPERSION_GREEN_OFFSET));
     auto dispersionBlueOffset =
-        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderPropert(RSUIFilterType::DISPERSION_BLUE_OFFSET));
+        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderProperty(RSUIFilterType::DISPERSION_BLUE_OFFSET));
 
     bool hasNull = !dispersionOpacity || !dispersionRedOffset || !dispersionGreenOffset || !dispersionBlueOffset;
     if (hasNull) {
-        ROSEN_LOGE("RSRenderDispersionFilterPara::ParseFilterValues GetRenderPropert has some nullptr.");
+        ROSEN_LOGE("RSRenderDispersionFilterPara::ParseFilterValues GetRenderProperty has some nullptr.");
         return false;
     }
     opacity_ = dispersionOpacity->Get();
@@ -202,23 +238,7 @@ bool RSRenderDispersionFilterPara::ParseFilterValues()
     auto blueOffset = dispersionBlueOffset->Get();
     blueOffsetX_ = blueOffset[0];
     blueOffsetY_ = blueOffset[1];
-#ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
-#else
-    const auto hashFunc = SkOpts::hash;
-#endif
-    mask_ = mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
-    if (mask_) {
-        auto maskHash = mask_->Hash();
-        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
-    }
-    hash_ = hashFunc(&opacity_, sizeof(opacity_), hash_);
-    hash_ = hashFunc(&redOffsetX_, sizeof(redOffsetX_), hash_);
-    hash_ = hashFunc(&redOffsetY_, sizeof(redOffsetY_), hash_);
-    hash_ = hashFunc(&greenOffsetX_, sizeof(greenOffsetX_), hash_);
-    hash_ = hashFunc(&greenOffsetY_, sizeof(greenOffsetY_), hash_);
-    hash_ = hashFunc(&blueOffsetX_, sizeof(blueOffsetX_), hash_);
-    hash_ = hashFunc(&blueOffsetY_, sizeof(blueOffsetY_), hash_);
+    mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
     return true;
 }
 

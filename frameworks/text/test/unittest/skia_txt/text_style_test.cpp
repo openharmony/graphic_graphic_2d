@@ -43,7 +43,7 @@ void TextStyleTest::TearDown() {}
  * @tc.desc: test for Equal
  * @tc.type: FUNC
  */
-HWTEST_F(TextStyleTest, TextStyleTest001, TestSize.Level1)
+HWTEST_F(TextStyleTest, TextStyleTest001, TestSize.Level0)
 {
     TextStyle textStyleCompare;
     EXPECT_EQ((*textStyle_), textStyleCompare);
@@ -54,7 +54,7 @@ HWTEST_F(TextStyleTest, TextStyleTest001, TestSize.Level1)
  * @tc.desc: test for change fontFeatures
  * @tc.type: FUNC
  */
-HWTEST_F(TextStyleTest, TextStyleTest002, TestSize.Level1)
+HWTEST_F(TextStyleTest, TextStyleTest002, TestSize.Level0)
 {
     FontFeatures fontFeatures;
     fontFeatures.SetFeature("tag", 0);
@@ -70,7 +70,7 @@ HWTEST_F(TextStyleTest, TextStyleTest002, TestSize.Level1)
  * @tc.desc: test for change fontVariations
  * @tc.type: FUNC
  */
-HWTEST_F(TextStyleTest, TextStyleTest003, TestSize.Level1)
+HWTEST_F(TextStyleTest, TextStyleTest003, TestSize.Level0)
 {
     FontVariations fontVariations;
     fontVariations.SetAxisValue("tag", 0.0);
@@ -84,7 +84,7 @@ HWTEST_F(TextStyleTest, TextStyleTest003, TestSize.Level1)
  * @tc.desc: test for change textShadows
  * @tc.type: FUNC
  */
-HWTEST_F(TextStyleTest, TextStyleTest004, TestSize.Level1)
+HWTEST_F(TextStyleTest, TextStyleTest004, TestSize.Level0)
 {
     TextShadow textShadowDefault;
     SkColor color = 255; // 255 just fot test
@@ -105,7 +105,7 @@ HWTEST_F(TextStyleTest, TextStyleTest004, TestSize.Level1)
  * @tc.desc: test for change backgroundRect
  * @tc.type: FUNC
  */
-HWTEST_F(TextStyleTest, TextStyleTest005, TestSize.Level1)
+HWTEST_F(TextStyleTest, TextStyleTest005, TestSize.Level0)
 {
     RectStyle backgroundRect = { 0, 1.0f, 0.0f, 0.0f, 0.0f };
     EXPECT_NE(textStyle_->backgroundRect, backgroundRect);
@@ -118,7 +118,7 @@ HWTEST_F(TextStyleTest, TextStyleTest005, TestSize.Level1)
  * @tc.desc: test font features' GetFeatureSettings
  * @tc.type: FUNC
  */
-HWTEST_F(TextStyleTest, TextStyleTest006, TestSize.Level1)
+HWTEST_F(TextStyleTest, TextStyleTest006, TestSize.Level0)
 {
     FontFeatures fontFeatures;
     EXPECT_TRUE(fontFeatures.GetFeatureSettings().empty());
@@ -132,7 +132,7 @@ HWTEST_F(TextStyleTest, TextStyleTest006, TestSize.Level1)
  * @tc.desc: text shadow equal test
  * @tc.type: FUNC
  */
-HWTEST_F(TextStyleTest, TextStyleTest007, TestSize.Level1)
+HWTEST_F(TextStyleTest, TextStyleTest007, TestSize.Level0)
 {
     TextShadow shadowA;
     TextShadow shadowB;

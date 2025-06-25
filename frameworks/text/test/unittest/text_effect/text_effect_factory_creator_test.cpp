@@ -44,7 +44,7 @@ public:
         return 0;
     }
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override {}
-    void StopEffect(Drawing::Canvas* canvas, double x, double y) override {}
+    void StopEffect() override {}
 };
 
 
@@ -53,7 +53,7 @@ public:
  * @tc.desc: Test for RegisterFactory action
  * @tc.type: FUNC
  */
-HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest001, TestSize.Level1)
+HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest001, TestSize.Level0)
 {
     REGISTER_TEXT_EFFECT_FACTORY_IMPL(Test, TextEffectStrategy::STRATEGY_BUTT);
     TextEffectFactoryCreator& creator = TextEffectFactoryCreator::GetInstance();
@@ -72,7 +72,7 @@ HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest001, TestSize
  * @tc.desc: Test for CreateTextEffect action
  * @tc.type: FUNC
  */
-HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest002, TestSize.Level1)
+HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest002, TestSize.Level0)
 {
     TextEffectFactoryCreator& creator = TextEffectFactoryCreator::GetInstance();
     std::shared_ptr<TextEffect> effect = creator.CreateTextEffect(TextEffectStrategy::STRATEGY_BUTT);

@@ -124,7 +124,7 @@ bool OHHmSymbolNodeBuildTest::SetSymbolAnimationTwo(
  * @tc.desc: test SymbolNodeBuild with simulation data
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SymbolNodeBuild001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SymbolNodeBuild001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSAnimationSetting animationSetting;
@@ -139,7 +139,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SymbolNodeBuild001, TestSize.Level1)
  * @tc.desc: test DecomposeSymbolAndDraw with animation SCALE and wholeSymbol effect
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
@@ -174,7 +174,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw001, TestSize.Level1)
  * @tc.desc: test DecomposeSymbolAndDraw with animation SCALE and byLayer effect
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw002, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw002, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
@@ -199,7 +199,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw002, TestSize.Level1)
  * @tc.desc: test DecomposeSymbolAndDraw with animation BOUNCE, wholeSymbol effect and maskLayer
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw003, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw003, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
@@ -224,7 +224,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw003, TestSize.Level1)
  * @tc.desc: test DecomposeSymbolAndDraw with animation VARIABLE_COLOR and iteratuve effect
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw004, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw004, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
@@ -249,7 +249,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw004, TestSize.Level1)
  * @tc.desc: test DecomposeSymbolAndDraw with animation BOUNCE, byLayer effect and has maskLayers
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw005, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw005, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
@@ -273,7 +273,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw005, TestSize.Level1)
  * @tc.desc: test DecomposeSymbolAndDraw with animation VARIABLE_COLOR, cumulative effect and maskIndexes
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw006, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw006, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
@@ -312,7 +312,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw006, TestSize.Level1)
  * @tc.desc: test DecomposeSymbolAndDraw with animation VARIABLE_COLOR, two rendergroups and only one animationGroup
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw007, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw007, TestSize.Level0)
 {
     std::pair<double, double> offset = {100, 100}; // 100, 100 is the offset
     RSPath path;
@@ -335,7 +335,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw007, TestSize.Level1)
  * @tc.desc: test ClearAnimation with animation VARIABLE_COLOR, cumulative effect and maskIndexes
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, ClearAnimation001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, ClearAnimation001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -352,7 +352,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, ClearAnimation001, TestSize.Level1)
  * @tc.desc: test SetAnimation function
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolId001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolId001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -369,7 +369,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolId001, TestSize.Level1)
  * @tc.desc: test SetAnimationMode with hierarchical
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -386,7 +386,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode001, TestSize.Level1)
  * @tc.desc: test SetAnimationMode with whole
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode002, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode002, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -403,7 +403,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode002, TestSize.Level1)
  * @tc.desc: test SetAnimationMode with boundary value
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode003, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode003, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -420,7 +420,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode003, TestSize.Level1)
  * @tc.desc: test SetRepeatCount function
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetRepeatCount001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetRepeatCount001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -437,7 +437,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetRepeatCount001, TestSize.Level1)
  * @tc.desc: test SetAnimationStart function
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationStart001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationStart001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -454,7 +454,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationStart001, TestSize.Level1)
  * @tc.desc: test SetCurrentAnimationHasPlayed function
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetCurrentAnimationHasPlayed001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetCurrentAnimationHasPlayed001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -471,7 +471,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetCurrentAnimationHasPlayed001, TestSize.Leve
  * @tc.desc: test SetCommonSubType with commonSubType::DOWN
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -488,7 +488,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType001, TestSize.Level1)
  * @tc.desc: test SetCommonSubType with commonSubType::UP
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType002, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType002, TestSize.Level0)
 {
     std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
     RSHMSymbolData symbol;
@@ -505,7 +505,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType002, TestSize.Level1)
  * @tc.desc: test AddHierarchicalAnimation with animation DISABLE
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, AddHierarchicalAnimation001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, AddHierarchicalAnimation001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
     RSPath path;
@@ -526,11 +526,16 @@ HWTEST_F(OHHmSymbolNodeBuildTest, AddHierarchicalAnimation001, TestSize.Level1)
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
     symbolNode.SetAnimation(&SetSymbolAnimationTwo);
     symbolNode.SetAnimationMode(0); // 0 is byLayer effect
-    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     Vector4f nodeBounds = {10.0f, 10.0f, 15.0f, 15.0f}; // 10.0f 10.0f: first offset, 15.0f 15.0f: width height
 
+    std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig = nullptr;
     symbolNode.AddHierarchicalAnimation(symbol, nodeBounds, animationSetting.groupSettings, symbolAnimationConfig);
     bool result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_FALSE(result);
+
+    symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolNode.AddHierarchicalAnimation(symbol, nodeBounds, animationSetting.groupSettings, symbolAnimationConfig);
+    result = symbolNode.DecomposeSymbolAndDraw();
     EXPECT_FALSE(result);
 }
 
@@ -539,7 +544,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, AddHierarchicalAnimation001, TestSize.Level1)
  * @tc.desc: test SetSymbolNodeColors
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolNodeColors001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolNodeColors001, TestSize.Level0)
 {
     std::pair<float, float> offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
     RSHMSymbolData symbol;
@@ -552,11 +557,100 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolNodeColors001, TestSize.Level1)
     TextEngine::SymbolNode symbolNode;
     symbolNode.pathsInfo.push_back(layerInfo);
     TextEngine::SymbolNode symbolNode1 = symbolNode;
+    auto color = std::make_shared<SymbolGradient>();
+    color->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    symbolNode.pathsInfo[0].color = color;
+    auto color1 = std::make_shared<SymbolGradient>();
+    color1->SetColors({0XFF0000FF}); // 0XFFFF0000 is ARGB
+    symbolNode1.pathsInfo[0].color = color1;
 
     symbolNodeBuild.SetSymbolNodeColors(symbolNode, symbolNode1);
-    symbolNode1.pathsInfo[0].color.a = 0.0f;
+    symbolNode1.pathsInfo[0].color = nullptr;
     symbolNodeBuild.SetSymbolNodeColors(symbolNode, symbolNode1);
-    EXPECT_EQ(symbolNode.pathsInfo[0].color.a, symbolNode1.pathsInfo[0].color.a);
+    EXPECT_NE(symbolNode1.pathsInfo[0].color, nullptr);
+
+    auto slashColor = std::make_shared<SymbolGradient>();
+    slashColor->SetColors({0XFF0000FF}); // 0XFF0000FF is ARGB
+    symbolNodeBuild.SetDisableSlashColor(slashColor);
+    symbolNode1.pathsInfo[0].color = nullptr;
+    symbolNodeBuild.SetSymbolNodeColors(symbolNode, symbolNode1);
+    EXPECT_NE(symbolNode1.pathsInfo[0].color, nullptr);
+}
+
+/*
+ * @tc.name: UpdateGradient001
+ * @tc.desc: test UpdateGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, UpdateGradient001, TestSize.Level0)
+{
+    std::pair<float, float> offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
+    RSHMSymbolData symbol;
+    RSEffectStrategy effectMode = RSEffectStrategy::DISABLE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    RSRenderGroup group;
+    group.groupInfos = animationSettingOne_.groupSettings[0].groupInfos;
+    std::vector<RSRenderGroup> groups = {};
+    std::vector<RSPath> pathLayers;
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f); // 100.0f x, 100.0f y, 50.0f radius
+    pathLayers.push_back(path);
+    pathLayers.push_back(path);
+
+    // test renderMode is SINGLE
+    symbolNode.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+    std::vector<std::shared_ptr<SymbolGradient>> gradients = {nullptr};
+    symbolNode.SetGradients(gradients);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
+    EXPECT_TRUE(symbolNode.gradients_.empty());
+
+    // test renderMode is MULTIPLE_COLOR
+    groups = {group};
+    symbolNode.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
+    EXPECT_TRUE(symbolNode.gradients_.empty());
+
+    // test gradients not is empty()
+    gradients = {};
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    symbolNode.SetGradients(gradients);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
+    EXPECT_FALSE(symbolNode.gradients_.empty());
+
+    // test gradient is nullptr
+    gradients[0] = nullptr;
+    symbolNode.SetGradients(gradients);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
+    EXPECT_TRUE(symbolNode.gradients_.empty());
+}
+
+/*
+ * @tc.name: CreateGradient001
+ * @tc.desc: test CreateGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, CreateGradient001, TestSize.Level0)
+{
+    // test input nullptr
+    auto result = SymbolNodeBuild::CreateGradient(nullptr);
+    EXPECT_EQ(result, nullptr);
+
+    // test input base color
+    auto gradient1 = std::make_shared<SymbolGradient>();
+    result = SymbolNodeBuild::CreateGradient(gradient1);
+    EXPECT_NE(result, nullptr);
+
+    // test input line gradient
+    auto gradient2 = std::make_shared<SymbolLineGradient>(45.0f); // 45.0f is angle of lineGradient
+    result = SymbolNodeBuild::CreateGradient(gradient2);
+    EXPECT_NE(result, nullptr);
+
+    // test input radial gradient
+    Drawing::Point centerPt = Drawing::Point(0.5f, 0.5f); // 0.5f: x, 0.5f: y
+    float radiusRatio = 0.6f; // 0.6f is radius
+    auto gradient3 = std::make_shared<SymbolRadialGradient>(centerPt, radiusRatio);
+    result = SymbolNodeBuild::CreateGradient(gradient3);
+    EXPECT_NE(result, nullptr);
 }
 } // namespace SPText
 } // namespace Rosen

@@ -160,20 +160,9 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-        if (curVoteInfo.voterName == "VOTER_VIDEO") {
-            std::string voterPkgName = "";
-            auto foregroundPidApp = multiAppStrategy_.GetForegroundPidApp();
-            if (foregroundPidApp.find(curVoteInfo.pid) != foregroundPidApp.end()) {
-                voterPkgName = foregroundPidApp[curVoteInfo.pid].second;
-            } else if (auto pkgs = multiAppStrategy_.GetPackages(); !pkgs.empty()) { // Get the current package name
-                voterPkgName = std::get<0>(HgmMultiAppStrategy::AnalyzePkgParam(pkgs.front()));
-            }
-            auto configData = HgmCore::Instance().GetPolicyConfigData();
-            if (configData != nullptr &&
-                configData->videoFrameRateList_.find(voterPkgName) == configData->videoFrameRateList_.end()) {
-                ProcessVoteLog(curVoteInfo, true);
-                continue;
-            }
+        if (checkVote_ != nullptr && !checkVote_(*voterIter, curVoteInfo)) {
+            ProcessVoteLog(curVoteInfo, true);
+            continue;
         }
         if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
             continue;
@@ -192,26 +181,6 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
         mergeSuccess = true;
     }
     return mergeSuccess;
-}
-
-void HgmFrameVoter::CheckAncoVoter(const std::string& voter, VoteInfo& curVoteInfo)
-{
-    if (voter == "VOTER_ANCO" && !ancoScenes_.empty()) {
-        // Multiple scene are not considered at this time
-        auto configData = HgmCore::Instance().GetPolicyConfigData();
-        auto screenSetting = multiAppStrategy_.GetScreenSetting();
-        auto ancoSceneIt = screenSetting.ancoSceneList.find(*ancoScenes_.begin());
-        uint32_t min = OLED_60_HZ;
-        uint32_t max = OLED_90_HZ;
-        if (configData != nullptr && ancoSceneIt != screenSetting.ancoSceneList.end() &&
-            configData->strategyConfigs_.find(ancoSceneIt->second.strategy) != configData->strategyConfigs_.end()) {
-            min = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second.strategy].min);
-            max = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second.strategy].max);
-        }
-        min = std::max(min, curVoteInfo.min);
-        max = std::max(min, max);
-        curVoteInfo.SetRange(min, max);
-    }
 }
 
 bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
@@ -246,14 +215,13 @@ bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIte
         return false;
     }
     auto curVoteInfo = *firstValidVoteInfoIter;
+    if (checkVote_ != nullptr && !checkVote_(voter, curVoteInfo)) {
+        ProcessVoteLog(curVoteInfo, true);
+        return false;
+    }
     if (voter == "VOTER_GAMES") {
-        if (!gameScenes_.empty() || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid, true)) {
-            ProcessVoteLog(curVoteInfo, true);
-            return false;
-        }
         voterGamesEffective = true;
     }
-    CheckAncoVoter(voter, curVoteInfo);
     ProcessVoteLog(curVoteInfo, false);
     auto [mergeVoteRange, mergeVoteInfo] =
         HgmVoter::MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
@@ -266,93 +234,13 @@ bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIte
     return false;
 }
 
-
-void HgmFrameVoter::ChangePriority(uint32_t curScenePriority)
-{
-    // restore
-    voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
-    switch (curScenePriority) {
-        case VOTER_SCENE_PRIORITY_BEFORE_PACKAGES: {
-            auto scenePos1 = find(voters_.begin(), voters_.end(), "VOTER_SCENE");
-            voters_.erase(scenePos1);
-            auto packagesPos1 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
-            voters_.insert(packagesPos1, "VOTER_SCENE");
-            break;
-        }
-        case VOTER_LTPO_PRIORITY_BEFORE_PACKAGES: {
-            auto scenePos2 = find(voters_.begin(), voters_.end(), "VOTER_SCENE");
-            voters_.erase(scenePos2);
-            auto packagesPos2 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
-            voters_.insert(packagesPos2, "VOTER_SCENE");
-            auto ltpoPos2 = find(voters_.begin(), voters_.end(), "VOTER_LTPO");
-            voters_.erase(ltpoPos2);
-            auto packagesPos3 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
-            voters_.insert(packagesPos3, "VOTER_LTPO");
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-void HgmFrameVoter::UpdateVoteRule(const std::string& curScreenStrategyId, int32_t curRefreshRateMode)
-{
-    // restore
-    ChangePriority(DEFAULT_PRIORITY);
-    multiAppStrategy_.SetDisableSafeVoteValue(false);
-    // dynamic priority for scene
-    if (sceneStack_.empty()) {
-        // no active scene
-        DeliverVote({"VOTER_SCENE"}, REMOVE_VOTE);
-        return;
-    }
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData == nullptr) {
-        return;
-    }
-    if (configData->screenConfigs_.count(curScreenStrategyId) == 0 ||
-        configData->screenConfigs_[curScreenStrategyId].count(std::to_string(curRefreshRateMode)) == 0) {
-        return;
-    }
-    auto curScreenSceneList =
-        configData->screenConfigs_[curScreenStrategyId][std::to_string(curRefreshRateMode)].sceneList;
-    if (curScreenSceneList.empty()) {
-        // no scene configed in cur screen
-        return;
-    }
-
-    std::string lastScene;
-    auto scenePos = sceneStack_.rbegin();
-    for (; scenePos != sceneStack_.rend(); scenePos++) {
-        lastScene = (*scenePos).first;
-        if (curScreenSceneList.count(lastScene) != 0) {
-            break;
-        }
-    }
-    if (scenePos == sceneStack_.rend()) {
-        // no valid scene
-        DeliverVote({"VOTER_SCENE"}, REMOVE_VOTE);
-        return;
-    }
-    auto curSceneConfig = curScreenSceneList[lastScene];
-    if (!XMLParser::IsNumber(curSceneConfig.priority) ||
-        configData->strategyConfigs_.find(curSceneConfig.strategy) == configData->strategyConfigs_.end()) {
-        return;
-    }
-    uint32_t curScenePriority = static_cast<uint32_t>(std::stoi(curSceneConfig.priority));
-    uint32_t min = static_cast<uint32_t>(configData->strategyConfigs_[curSceneConfig.strategy].min);
-    uint32_t max = static_cast<uint32_t>(configData->strategyConfigs_[curSceneConfig.strategy].max);
-    HGM_LOGD("UpdateVoteRule: SceneName:%{public}s", lastScene.c_str());
-    DeliverVote({"VOTER_SCENE", min, max, (*scenePos).second, lastScene}, ADD_VOTE);
-
-    ChangePriority(curScenePriority);
-    multiAppStrategy_.SetDisableSafeVoteValue(curSceneConfig.disableSafeVote);
-}
-
 std::pair<VoteInfo, VoteRange> HgmFrameVoter::ProcessVote(const std::string& curScreenStrategyId,
     ScreenId curScreenId, int32_t curRefreshRateMode)
 {
-    UpdateVoteRule(curScreenStrategyId, curRefreshRateMode);
+    if (updateVoteRule_ != nullptr) {
+        voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
+        updateVoteRule_(voters_);
+    }
 
     VoteInfo resultVoteInfo;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };

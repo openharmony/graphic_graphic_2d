@@ -16,6 +16,7 @@
 #define RENDER_BEZIER_WARP_FILTER_RENDER_PROPERTY_H
 
 #include "render/rs_render_filter_base.h"
+
 namespace OHOS {
 namespace Rosen {
 constexpr size_t BEZIER_WARP_POINT_NUM = 12; // 12 anchor points of a patch
@@ -27,6 +28,8 @@ public:
     }
 
     virtual ~RSRenderBezierWarpFilterPara() = default;
+
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
 
     void GetDescription(std::string& out) const override;
 
@@ -43,6 +46,8 @@ public:
     const std::array<Drawing::Point, BEZIER_WARP_POINT_NUM>& GetBezierWarpPoints() const;
 
 private:
+    void CalculateHash();
+
     std::array<Drawing::Point, BEZIER_WARP_POINT_NUM> destinationPatch_;
 };
 } // namespace Rosen

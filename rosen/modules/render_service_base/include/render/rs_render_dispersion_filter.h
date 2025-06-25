@@ -35,6 +35,8 @@ public:
 
     virtual ~RSRenderDispersionFilterPara() = default;
 
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
+
     void GetDescription(std::string& out) const override;
 
     bool WriteToParcel(Parcel& parcel) override;
@@ -56,6 +58,9 @@ public:
     const std::shared_ptr<Rosen::RSShaderMask>& GetMask() const;
 
 private:
+    static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
+    void CalculateHash();
+
     std::shared_ptr<RSShaderMask> mask_;
     float opacity_;
     float redOffsetX_;
@@ -64,8 +69,6 @@ private:
     float greenOffsetY_;
     float blueOffsetX_;
     float blueOffsetY_;
-    static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
-
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
 };
 } // namespace Rosen

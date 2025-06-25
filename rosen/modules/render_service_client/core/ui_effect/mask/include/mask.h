@@ -29,7 +29,7 @@ public:
         para_ = para;
     }
 
-    const MaskPara::Type& GetMaskType() const
+    MaskPara::Type GetMaskType() const
     {
         return para_ ? para_->GetMaskParaType() : MaskPara::Type::NONE;
     }

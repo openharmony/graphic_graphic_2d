@@ -14,6 +14,7 @@
  */
 
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
+#include "ui_effect/property/include/rs_ui_radial_gradient_mask.h"
 #include "ui_effect/property/include/rs_ui_pixel_map_mask.h"
 #include "platform/common/rs_log.h"
 
@@ -54,6 +55,17 @@ void RSUIEdgeLightFilterPara::Dump(std::string& out) const
         }
     }
 
+    out += "bloom:";
+    iter = properties_.find(RSUIFilterType::EDGE_LIGHT_BLOOM);
+    if (iter != properties_.end()) {
+        auto bloom = std::static_pointer_cast<RSProperty<bool>>(iter->second);
+        if (bloom != nullptr) {
+            out += std::to_string(bloom->Get()) + ", ";
+        } else {
+            out += "nullptr, ";
+        }
+    }
+
     out += "ColorRGBA:(";
     iter = properties_.find(RSUIFilterType::EDGE_LIGHT_COLOR);
     if (iter != properties_.end()) {
@@ -78,6 +90,7 @@ void RSUIEdgeLightFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBa
             other == nullptr ? -1 : static_cast<int>(other->GetType()));
         return;
     }
+    SetStagingEnableHdrEffect(other->GetEnableHdrEffect());
 
     auto edgeLightProperty = std::static_pointer_cast<RSUIEdgeLightFilterPara>(other);
     auto alpha = edgeLightProperty->GetPropertyWithFilterType<RSAnimatableProperty<float>>(
@@ -87,6 +100,14 @@ void RSUIEdgeLightFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBa
         return;
     }
     SetAlpha(alpha->Get());
+
+    auto bloom = edgeLightProperty->GetPropertyWithFilterType<RSProperty<bool>>(
+        RSUIFilterType::EDGE_LIGHT_BLOOM);
+    if (bloom == nullptr) {
+        ROSEN_LOGW("RSUIEdgeLightFilterPara::SetProperty bloom is null NG!");
+        return;
+    }
+    SetBloom(bloom->Get());
 
     auto color = edgeLightProperty->GetPropertyWithFilterType<RSAnimatableProperty<Vector4f>>(
         RSUIFilterType::EDGE_LIGHT_COLOR);
@@ -116,6 +137,7 @@ void RSUIEdgeLightFilterPara::SetEdgeLight(const std::shared_ptr<EdgeLightPara>&
     }
 
     SetAlpha(edgeLight->GetAlpha());
+    SetBloom(edgeLight->GetBloom());
 
     auto colorPara = edgeLight->GetColor();
     if (colorPara.has_value()) {
@@ -144,6 +166,11 @@ void RSUIEdgeLightFilterPara::SetAlpha(float alpha)
     Setter<RSAnimatableProperty<float>>(RSUIFilterType::EDGE_LIGHT_ALPHA, alpha);
 }
 
+void RSUIEdgeLightFilterPara::SetBloom(bool bloom)
+{
+    Setter<RSProperty<bool>>(RSUIFilterType::EDGE_LIGHT_BLOOM, bloom);
+}
+
 void RSUIEdgeLightFilterPara::SetColor(const Vector4f& color)
 {
     Setter<RSAnimatableProperty<Vector4f>>(RSUIFilterType::EDGE_LIGHT_COLOR, color);
@@ -166,8 +193,24 @@ bool RSUIEdgeLightFilterPara::CreateRSRenderFilterAlpha(
     }
 
     auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(
-        alpha->Get(), alpha->GetId(), RSPropertyType::FLOAT);
+        alpha->Get(), alpha->GetId());
     frProperty->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
+    return true;
+}
+
+bool RSUIEdgeLightFilterPara::CreateRSRenderFilterBloom(
+    const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty)
+{
+    // para:EDGE_LIGHT_BLOOM
+    auto bloom = std::static_pointer_cast<RSProperty<bool>>(
+        GetRSProperty(RSUIFilterType::EDGE_LIGHT_BLOOM));
+    if (bloom == nullptr) {
+        ROSEN_LOGE("RSUIEdgeLightFilterPara::CreateRSRenderFilterBloom not found EDGE_LIGHT_BLOOM");
+        return false;
+    }
+
+    auto renderBloom = std::make_shared<RSRenderProperty<bool>>(bloom->Get(), bloom->GetId());
+    frProperty->Setter(RSUIFilterType::EDGE_LIGHT_BLOOM, renderBloom);
     return true;
 }
 
@@ -182,7 +225,7 @@ bool RSUIEdgeLightFilterPara::CreateRSRenderFilterColor(
     }
 
     auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-        color->Get(), color->GetId(), RSPropertyType::VECTOR4F);
+        color->Get(), color->GetId());
     frProperty->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
     return true;
 }
@@ -213,6 +256,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIEdgeLightFilterPara::CreateRSRenderF
 {
     auto frProperty = std::make_shared<RSRenderEdgeLightFilterPara>(id_, maskType_);
     if (!CreateRSRenderFilterAlpha(frProperty) ||
+        !CreateRSRenderFilterBloom(frProperty) ||
         !CreateRSRenderFilterColor(frProperty) ||
         !CreateRSRenderFilterMask(frProperty)) {
         ROSEN_LOGE("RSUIEdgeLightFilterPara::CreateRSRenderFilter create render filter failed, "
@@ -246,6 +290,20 @@ std::vector<std::shared_ptr<RSPropertyBase>> RSUIEdgeLightFilterPara::GetLeafPro
     return out;
 }
 
+bool RSUIEdgeLightFilterPara::CheckEnableHdrEffect()
+{
+    auto color = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        GetRSProperty(RSUIFilterType::EDGE_LIGHT_COLOR));
+    if (color == nullptr) {
+        return false;
+    }
+
+    Vector4f c = color->Get();
+    enableHdrEffect_ =
+        ROSEN_GNE(c.x_, 1.0f) || ROSEN_GNE(c.y_, 1.0f) || ROSEN_GNE(c.z_, 1.0f) || ROSEN_GNE(c.w_, 1.0f);
+    return enableHdrEffect_ || stagingEnableHdrEffect_;
+}
+
 std::shared_ptr<RSUIMaskPara> RSUIEdgeLightFilterPara::CreateMask(RSUIFilterType type)
 {
     switch (type) {
@@ -254,6 +312,9 @@ std::shared_ptr<RSUIMaskPara> RSUIEdgeLightFilterPara::CreateMask(RSUIFilterType
         }
         case RSUIFilterType::PIXEL_MAP_MASK: {
             return std::make_shared<RSUIPixelMapMaskPara>();
+        }
+        case RSUIFilterType::RADIAL_GRADIENT_MASK: {
+            return std::make_shared<RSUIRadialGradientMaskPara>();
         }
         default:
             return nullptr;

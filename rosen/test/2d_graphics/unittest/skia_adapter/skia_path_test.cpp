@@ -73,7 +73,10 @@ HWTEST_F(SkiaPathTest, SkiaPath001, TestSize.Level1)
     skiaPath.AddPath(path, matrix, PathAddMode::APPEND_PATH_ADD_MODE);
     skiaPath.SetFillStyle(PathFillType::WINDING);
     Path path2;
+    path2.MoveTo(0, 0);
+    path2.LineTo(100, 100); // 100: x, y
     skiaPath.Interpolate(path, 2, path2); // 2: weight
+    EXPECT_FALSE(path2.IsEmpty());
     skiaPath.Transform(matrix);
     std::string svgString = skiaPath.ConvertToSVGString();
     SkiaPath skiaPath2;

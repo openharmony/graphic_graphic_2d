@@ -293,7 +293,7 @@ int32_t HdiLayer::SetLayerBuffer()
         sptr<SurfaceBuffer> prevBuffer = prevLayerInfo_->GetBuffer();
         sptr<SyncFence> prevAcquireFence = prevLayerInfo_->GetAcquireFence();
         if (currBuffer_ == prevBuffer && currAcquireFence == prevAcquireFence) {
-            if (!alreadyClearBuffer_) {
+            if (!bufferCleared_) {
                 return GRAPHIC_DISPLAY_SUCCESS;
             }
             HLOGW("layerid=%{public}u: force set same buffer(bufferId=%{public}u)", layerId_, currBuffer_->GetSeqNum());
@@ -321,7 +321,7 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = currBuffer_->GetBufferHandle();
     }
 
-    alreadyClearBuffer_ = false;
+    bufferCleared_ = false;
     return device_->SetLayerBuffer(screenId_, layerId_, layerBuffer);
 }
 
@@ -943,7 +943,7 @@ void HdiLayer::ClearBufferCache()
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
     CheckRet(ret, "ClearLayerBuffer");
     bufferCache_.clear();
-    alreadyClearBuffer_ = true;
+    bufferCleared_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

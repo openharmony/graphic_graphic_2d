@@ -46,7 +46,7 @@ public:
 class RSUniFilterDirtyComputeUtil {
 public:
     static FilterDirtyRegionInfo GenerateFilterDirtyRegionInfo(
-        RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty);
+        RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty, bool isSurface);
     // Entry for filter dirty region process
     static void DealWithFilterDirtyRegion(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, const std::optional<Drawing::Matrix>& matrix,

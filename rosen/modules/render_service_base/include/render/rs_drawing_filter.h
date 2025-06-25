@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_DRAWING_RS_DRAWING_FILTER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_DRAWING_RS_DRAWING_FILTER_H
 
 #include "common/rs_color.h"
 #include "draw/brush.h"
@@ -65,7 +65,7 @@ public:
         }
         return nullptr;
     }
-
+    void OnSync() override;
     uint32_t Hash() const override;
     uint32_t ShaderHash() const;
     uint32_t ImageHash() const;
@@ -119,6 +119,7 @@ private:
     std::string GetFilterTypeString() const;
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters_;
+    std::shared_ptr<RSNGRenderFilterBase> renderFilter_ = nullptr;
     uint32_t imageFilterHash_ = 0;
     bool canSkipFrame_ = false;
     bool canSkipMaskColor_ = false;
@@ -129,4 +130,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_DRAWING_RS_DRAWING_FILTER_H

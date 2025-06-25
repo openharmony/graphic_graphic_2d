@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "parcel.h"
 #include "rs_profiler.h"
 
 using namespace testing;
@@ -27,6 +28,19 @@ public:
     void SetUp() override {};
     void TearDown() override {};
 };
+
+/*
+* @tc.name: IsPlaybackParcel
+* @tc.desc: Test IsPlaybackParcel
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSProfilerBaseTest, IsPlaybackParcel, Level1)
+{
+    RSProfiler::SetMode(Mode::READ_EMUL);
+    Parcel parcel;
+    EXPECT_FALSE(RSProfiler::IsPlaybackParcel(parcel));
+}
 
 /*
 * @tc.name: Interface Test

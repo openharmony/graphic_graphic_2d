@@ -557,7 +557,11 @@ void SkiaSurface::FlushAndSubmit(bool syncCpu)
     }
 
 #ifdef USE_M133_SKIA
-    skgpu::ganesh::FlushAndSubmit(skSurface_);
+    GrSyncCpu syncCpuEnum = syncCpu ? GrSyncCpu::kYes : GrSyncCpu::kNo;
+    auto rContext = GrAsDirectContext(skSurface_->recordingContext());
+    if (rContext) {
+        rContext->flushAndSubmit(syncCpuEnum);
+    }
 #else
     skSurface_->flushAndSubmit(syncCpu);
 #endif
@@ -590,11 +594,10 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         flushInfo.fSubmittedProc = drawingflushInfo->submittedProc;
         flushInfo.fSubmittedContext = static_cast<GrGpuSubmittedContext>(drawingflushInfo->submittedContext);
 #ifdef USE_M133_SKIA
-        auto rContext = skSurface_->recordingContext();
-        if (!rContext) {
-            LOGD("rContext is nullptr");
+        auto rContext = GrAsDirectContext(skSurface_->recordingContext());
+        if (rContext) {
+            rContext->flush(flushInfo);
         }
-        rContext->asDirectContext()->flush(flushInfo);
 #else
         skSurface_->flush(drawingflushInfo->backendSurfaceAccess == false ?
             SkSurface::BackendSurfaceAccess::kNoAccess : SkSurface::BackendSurfaceAccess::kPresent, flushInfo);
@@ -604,11 +607,10 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 #endif
 
 #ifdef USE_M133_SKIA
-    auto rContext = skSurface_->recordingContext();
-    if (!rContext) {
-        LOGD("rContext is nullptr");
+    auto rContext = GrAsDirectContext(skSurface_->recordingContext());
+    if (rContext) {
+        rContext->flush();
     }
-    rContext->asDirectContext()->flush();
 #else
     skSurface_->flush();
 #endif
@@ -633,7 +635,7 @@ void SkiaSurface::Wait(const std::vector<GrGLsync>& syncs)
     } else {
         std::vector<GrBackendSemaphore> semaphores;
         semaphores.reserve(count);
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
         for (auto& sync : syncs) {
             GrBackendSemaphore backendSemaphore;
             backendSemaphore.initGL(sync);

@@ -185,19 +185,13 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
         return nullptr;
     } else {
         auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
-#ifdef USE_M133_SKIA
-        auto typeface = skFontMgr_->makeFromStream(std::move(stream));
-#else
         auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-#endif
         if (!typeface) {
             return nullptr;
         } else {
             dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
-#ifndef USE_M133_SKIA
             typeface->setIsCustomTypeface(true);
             typeface->setIsThemeTypeface(true);
-#endif
             std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
             return new Typeface(typefaceImpl);
         }

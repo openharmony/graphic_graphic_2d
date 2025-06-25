@@ -167,14 +167,14 @@ void RSUIDirector::InitHybridRender()
                         if (instanceId == INSTANCE_ID_UNDEFINED) {
                             NodeId realId = id == 0 ? cmd->GetNodeId() : id;
                             instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
-                            instanceId == INSTANCE_ID_UNDEFINED ?
-                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId;
+                            instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
+                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
                         }
                     }
                     auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
-                    std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                    std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
                     auto task = [dataHolder]() {
-                        std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                        std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
                         (void) dataHolder;
                     };
                     rsUICtx == nullptr ? RSUIDirector::PostTask(task, instanceId) : rsUICtx->PostTask(task);
@@ -253,7 +253,7 @@ void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
     auto nowTime = std::chrono::system_clock::now().time_since_epoch();
     int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
     auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr && nowMs - lastUiSkipTimestamp_ > 1000) { // 1000 ms
+    if (transactionProxy != nullptr) {
         transactionProxy->ReportUiSkipEvent(abilityName, nowMs, lastUiSkipTimestamp_);
     }
 }
@@ -540,7 +540,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         if (callback != nullptr) {
-            static const int32_t pid = static_cast<uint32_t>(getpid());
+            static const int32_t pid = static_cast<int32_t>(getpid());
             RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
                 PRIu64 " pid: %{public}d", timeStamp_, pid);
             RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
@@ -579,6 +579,7 @@ void RSUIDirector::RecvMessages()
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance)
 {
     if (cmds == nullptr || cmds->IsEmpty()) {
+        ROSEN_LOGD("RSUIDirector::RecvMessages cmd empty");
         return;
     }
     ROSEN_LOGD("ProcessMessages begin");
@@ -653,7 +654,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
             return;
         }
         rsUICtx->PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
-                              counter, msgId, tempToken = token, &rsUICtx] {
+                              counter, msgId, tempToken = token, rsUICtx] {
             RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Process messageId:%lu", msgId);
             ROSEN_LOGI("Process messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, msgId,
                 static_cast<unsigned long>(cmds->size()), tempToken);
@@ -666,7 +667,10 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
                 if (requestVsyncCallback_ != nullptr) {
                     requestVsyncCallback_();
                 } else {
-                    rsUICtx->GetRSTransaction()->FlushImplicitTransaction();
+                    auto rsTransaction = rsUICtx->GetRSTransaction();
+                    if (rsTransaction != nullptr) {
+                        rsTransaction->FlushImplicitTransaction();
+                    }
                 }
                 ROSEN_LOGD("ProcessMessages end");
             }

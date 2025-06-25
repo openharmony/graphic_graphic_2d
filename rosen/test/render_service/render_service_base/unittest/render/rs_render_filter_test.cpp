@@ -87,6 +87,9 @@ HWTEST_F(RSRenderFilterTest, CreateRenderFilterPara001, TestSize.Level1)
 
     auto dispersionPara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::DISPERSION);
     EXPECT_NE(dispersionPara, nullptr);
+
+    auto contentLightPara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::CONTENT_LIGHT);
+    EXPECT_NE(contentLightPara, nullptr);
 }
 
 /**

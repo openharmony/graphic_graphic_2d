@@ -35,6 +35,7 @@
 #include "hgm_pointer_manager.h"
 #include "hgm_voter.h"
 #include "hgm_vsync_generator_controller.h"
+#include "hgm_user_define.h"
 #include "vsync_distributor.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
@@ -163,8 +164,6 @@ public:
     // only called by RSMainThread
     bool HandleGameNode(const RSRenderNodeMap& nodeMap);
 
-    void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
-        const std::vector<std::pair<std::string, std::string>>& newConfig);
     HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; };
     void SetChangeDssRefreshRateCb(ChangeDssRefreshRateCbType changeDssRefreshRateCb)
     {
@@ -177,7 +176,13 @@ public:
     // called by OS_IPC thread
     bool SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
     HgmSoftVSyncManager& SoftVSyncMgrRef() { return softVSyncManager_; };
+    void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
+    HgmFrameVoter& FrameVoterRef() { return frameVoter_; }
 private:
+    friend class HgmUserDefineImpl;
+
+    void InitConfig();
     void Reset();
     void UpdateAppSupportedState();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
@@ -288,6 +293,7 @@ private:
     HgmPointerManager pointerManager_;
     HgmSoftVSyncManager softVSyncManager_;
     HgmFrameVoter frameVoter_;
+    HgmUserDefine userDefine_;
     std::atomic<bool> voterTouchEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
     std::atomic<bool> startCheck_ = false;

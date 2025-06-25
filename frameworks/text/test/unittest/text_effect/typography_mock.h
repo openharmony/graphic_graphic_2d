@@ -57,6 +57,8 @@ public:
     MOCK_METHOD(double, GetLineWidth, (int lineNumber), (override));
     MOCK_METHOD(void, SetAnimation,
         (std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc), (override));
+    MOCK_METHOD(std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>,
+        GetAnimation, (), (override));
     MOCK_METHOD(void, SetParagraghId, (uint32_t id), (override));
     MOCK_METHOD(Drawing::FontMetrics, MeasureText, (), (override));
     MOCK_METHOD(bool, GetLineInfo,
@@ -75,8 +77,8 @@ public:
     MOCK_METHOD(void, Relayout,
         (double width, const TypographyStyle& typograhyStyle, const std::vector<TextStyle>& textStyles), (override));
     MOCK_METHOD(void, UpdateAllTextStyles, (const TextStyle& textStyleTemplate), (override));
-    MOCK_METHOD(void, SetTextEffectState, (bool state), (override));
-    MOCK_METHOD(bool, HasEnabledTextEffect, (), (const, override));
+    MOCK_METHOD(void, SetSkipTextBlobDrawing, (bool state), (override));
+    MOCK_METHOD(bool, HasSkipTextBlobDrawing, (), (const, override));
     MOCK_METHOD(void, SetTextEffectAssociation, (bool association), (override));
     MOCK_METHOD(bool, GetTextEffectAssociation, (), (const, override));
     MOCK_METHOD(std::vector<TextBlobRecordInfo>, GetTextBlobRecordInfo, (), (const, override));

@@ -14,11 +14,12 @@
  */
 
 #include "transaction/rs_transaction_proxy.h"
+#include <mutex>
 #include <stdlib.h>
 
 #ifdef ROSEN_OHOS
-#include "mem_mgr_client.h"
 #include "hisysevent.h"
+#include "mem_mgr_client.h"
 #endif
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -71,6 +72,7 @@ void RSTransactionProxy::SetRenderServiceClient(const std::shared_ptr<RSIRenderC
 void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
                                     FollowType followType, NodeId nodeId)
 {
+#ifndef SCREENLESS_DEVICE
     if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
         RS_LOGE("RSTransactionProxy::add command fail, (renderServiceClient_ and renderThreadClient_ is nullptr)"
             " or command is nullptr");
@@ -103,6 +105,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     }
     ROSEN_LOGE("RSTransactionProxy::AddCommand failed, isRenderServiceCommand:%{public}d %{public}s",
         isRenderServiceCommand, command->PrintType().c_str());
+#endif
 }
 
 void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
@@ -167,6 +170,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
             " transactionData empty:%{public}d]",
             renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
+        RS_TRACE_NAME("UI skip");
         uiSkipCount_++;
         return;
     }
@@ -188,8 +192,9 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
 
 void RSTransactionProxy::ReportUiSkipEvent(const std::string& ability, int64_t nowMs, int64_t lastTimestamp)
 {
-    static uint32_t lastCount = 0;
+    static std::atomic<uint32_t> lastCount_ = 0;
     uint32_t nowCount = uiSkipCount_;
+    uint32_t lastCount = lastCount_.exchange(nowCount);
     int64_t duration = (nowMs > lastTimestamp) ? nowMs - lastTimestamp : 0;
     if (duration > 60 * 1000 && nowCount > lastCount && nowCount - lastCount > 100) { // 60 * 1000 ms, gt 100 frame
         int32_t count = static_cast<int32_t>(nowCount - lastCount);
@@ -200,7 +205,6 @@ void RSTransactionProxy::ReportUiSkipEvent(const std::string& ability, int64_t n
             HiSysEvent::EventType::STATISTIC, "ABILITY", ability, "COUNT", count, "DURATION", duration);
 #endif
     }
-    lastCount = nowCount;
 }
 
 uint32_t RSTransactionProxy::GetTransactionDataIndex() const

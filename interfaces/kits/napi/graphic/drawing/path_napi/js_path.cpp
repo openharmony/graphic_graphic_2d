@@ -1329,7 +1329,7 @@ napi_value JsPath::OnApproximate(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ZERO, acceptableError);
     if (acceptableError < 0.0) {
         ROSEN_LOGE("JsPath::OnApproximate acceptableError is invalid");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "acceptableError is invalid.");
     }
     std::vector<scalar> points;
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
@@ -1368,7 +1368,7 @@ napi_value JsPath::OnInterpolate(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ONE, weight);
     if (weight < 0.0 || weight > 1.0) {
         ROSEN_LOGE("JsPath::OnInterpolate weight is invalid");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "weight is invalid.");
     }
     JsPath* interpolatedPath = nullptr;
     GET_UNWRAP_PARAM(ARGC_TWO, interpolatedPath);

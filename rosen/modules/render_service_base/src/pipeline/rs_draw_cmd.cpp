@@ -1082,6 +1082,10 @@ DrawFuncOpItem::DrawFuncOpItem(RecordingCanvas::DrawFunc&& drawFunc) : DrawOpIte
 
 std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
+    if (handle == nullptr) {
+        LOGE("Unmarshalling handle is nullptr!");
+        return nullptr;
+    }
     return std::make_shared<DrawFuncOpItem>(cmdList, static_cast<DrawFuncOpItem::ConstructorHandle*>(handle));
 }
 

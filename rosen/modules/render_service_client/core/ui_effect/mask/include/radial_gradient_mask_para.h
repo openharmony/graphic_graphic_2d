@@ -59,21 +59,32 @@ public:
         return radiusY_;
     }
 
-    void SetValues(std::vector<Vector2f>& values)
+    void SetColors(std::vector<float>& colors)
     {
-        values_ = values;
+        colors_ = colors;
     }
 
-    const std::vector<Vector2f>& GetValues() const
+    const std::vector<float>& GetColors() const
     {
-        return values_;
+        return colors_;
+    }
+
+    void SetPositions(std::vector<float>& positions)
+    {
+        positions_ = positions;
+    }
+
+    const std::vector<float>& GetPositions() const
+    {
+        return positions_;
     }
 
 private:
     Vector2f center_ = { 0.0f, 0.0f };
     float radiusX_ = 0.0f;
     float radiusY_ = 0.0f;
-    std::vector<Vector2f> values_;
+    std::vector<float> colors_;
+    std::vector<float> positions_;
 };
 } // namespace Rosen
 } // namespace OHOS

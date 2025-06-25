@@ -44,9 +44,9 @@ public:
 
     /**
      * @brief   there are two mode for DrawCmdList to add new op
-     * @param   IMMEDIATE   add op to continouns buffer immediately, overload will benefit from this
+     * @param   IMMEDIATE   add op to continuous buffer immediately, overload will benefit from this
      * @param   DEFERRED    add op to vector and then add to contiguous buffer if needed
-     * @detail  playback can get all op from continouns buffer in IMMEDIATE mode or vector int DEFERRED mode
+     * @detail  playback can get all op from continuous buffer in IMMEDIATE mode or vector int DEFERRED mode
      */
     enum class UnmarshalMode {
         IMMEDIATE,
@@ -244,6 +244,11 @@ public:
      */
     void GetBounds(Rect& rect);
 
+    void SetIsReplayMode(bool mode)
+    {
+        isReplayMode = mode;
+    }
+
     /**
      * @brief Check whether enable hybrid render.
      */
@@ -278,6 +283,7 @@ private:
     uint32_t performanceCaculateOpType_ = 0;
     bool isNeedUnmarshalOnDestruct_ = false;
     bool noNeedUICaptured_ = false;
+    bool isReplayMode = false;
     bool isCanvasDrawingOpLimitEnabled_ = false;
 
     DrawCmdList::HybridRenderType hybridRenderType_ = DrawCmdList::HybridRenderType::NONE;

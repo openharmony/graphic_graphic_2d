@@ -35,6 +35,307 @@ public:
     }
 };
 
+/* SetAlpha: foreground color and alpha < 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Foreground_Color_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(-1.0f); // == SetAlpha(0.0f)
+    testNode->SetBounds({ 100, 100, 300, 300 });
+    testNode->SetForegroundColor(0xffff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: foreground color and alpha = 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Foreground_Color_Test_2)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(0.0f);
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetForegroundColor(0xffff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: foreground color and alpha > 0 < 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Foreground_Color_Test_3)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(0.5f);
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetForegroundColor(0xffff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: foreground color and alpha = 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Foreground_Color_Test_4)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(1.0f);
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetForegroundColor(0xffff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: foreground color and alpha > 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Foreground_Color_Test_5)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(2.0f); // == SetAlpha(1.0f)
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetForegroundColor(0xffff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+
+/* SetAlpha: background color and alpha < 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Background_Color_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(-1.0f); // == SetAlpha(0.0f)
+    testNode->SetBounds({ 100, 100, 300, 300 });
+    testNode->SetForegroundColor(0x80ff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: background color and alpha = 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Background_Color_Test_2)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(0.0f);
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetBackgroundColor(0x80ff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: background color and alpha > 0 < 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Background_Color_Test_3)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(0.5f);
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetBackgroundColor(0x80ff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: background color and alpha = 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Background_Color_Test_4)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(1.0f);
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetBackgroundColor(0x80ff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: background color and alpha > 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Background_Color_Test_5)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetAlpha(2.0f); // == SetAlpha(1.0f)
+    testNode->SetBounds({ 200, 200, 500, 500 });
+    testNode->SetBackgroundColor(0x80ff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: bgImage and alpha < 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BgImage_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetAlpha(-1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: bgImage and alpha = 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BgImage_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { 300, 300, 300, 300 });
+    testNode->SetAlpha(0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: bgImage and alpha > 0 < 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BgImage_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { 500, 500, 300, 300 });
+    testNode->SetAlpha(0.5f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: bgImage and alpha = 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BgImage_Test_4)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { 100, 100, 700, 700 });
+    testNode->SetAlpha(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: bgImage and alpha > 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BgImage_Test_5)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { 700, 700, 300, 300 });
+    testNode->SetAlpha(2.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: pixelMap and alpha < 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PixelMap_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 300, 300 });
+    testNode->SetAlpha(-1.0f);
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(300);
+    imageModifier->SetHeight(300);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNode->AddModifier(imageModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: pixelMap and alpha = 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PixelMap_Test_2)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 500, 500 });
+    testNode->SetAlpha(0.0f);
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(400);
+    imageModifier->SetHeight(400);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNode->AddModifier(imageModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: pixelMap and alpha > 0 < 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PixelMap_Test_3)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 600, 600 });
+    testNode->SetAlpha(0.5f);
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(450);
+    imageModifier->SetHeight(450);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNode->AddModifier(imageModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: pixelMap and alpha = 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PixelMap_Test_4)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 300, 300 });
+    testNode->SetAlpha(1.0f);
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(300);
+    imageModifier->SetHeight(300);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNode->AddModifier(imageModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: pixelMap and alpha > 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PixelMap_Test_5)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 300, 300 });
+    testNode->SetAlpha(2.0f);
+    auto imageModifier = std::make_shared<ImageCustomModifier>();
+    imageModifier->SetWidth(300);
+    imageModifier->SetHeight(300);
+    imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
+    testNode->AddModifier(imageModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: ContentText and alpha < 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ContentText_Test_1)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 500, 500 });
+    testNode->SetAlpha(-1.0f);
+    auto textModifier = std::make_shared<TextCustomModifier>();
+    textModifier->SetFontSize(300);
+    textModifier->SetText("TEST TEXT ALPHA");
+    testNode->AddModifier(textModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: ContentText and alpha = 0 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ContentText_Test_2)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 500, 500 });
+    testNode->SetAlpha(0.0f);
+    auto textModifier = std::make_shared<TextCustomModifier>();
+    textModifier->SetFontSize(400);
+    textModifier->SetText("TEST TEXT ALPHA");
+    testNode->AddModifier(textModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: ContentText and alpha > 0 < 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ContentText_Test_3)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 600, 500 });
+    testNode->SetAlpha(0.5f);
+    auto textModifier = std::make_shared<TextCustomModifier>();
+    textModifier->SetFontSize(200);
+    textModifier->SetText("TEST TEXT ALPHA");
+    testNode->AddModifier(textModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: ContentText and alpha = 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ContentText_Test_4)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 600, 500 });
+    testNode->SetAlpha(1.0f);
+    auto textModifier = std::make_shared<TextCustomModifier>();
+    textModifier->SetFontSize(300);
+    textModifier->SetText("TEST TEXT ALPHA");
+    testNode->AddModifier(textModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetAlpha: ContentText and alpha > 1 */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ContentText_Test_5)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 300, 300, 600, 500 });
+    testNode->SetAlpha(2.0f);
+    auto textModifier = std::make_shared<TextCustomModifier>();
+    textModifier->SetFontSize(100);
+    textModifier->SetText("TEST TEXT ALPHA");
+    testNode->AddModifier(textModifier);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
 // foreground background color, background img alpha
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_1)
 {
@@ -51,12 +352,12 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_1)
         for (int j = 0; j < rowCount; j++) {
             int x = (j % rowCount) * (nodeWidth + nodeGap);
             int y = i * (nodeHeight + nodeGap);
-            auto testNodeFg = RSCanvasNode::Create();
-            testNodeFg->SetAlpha(alphaList[j]);
-            testNodeFg->SetBounds({ x, y, nodeWidth, nodeHeight });
-            testNodeFg->SetForegroundColor(colorList[i]);
-            GetRootNode()->AddChild(testNodeFg);
-            RegisterNode(testNodeFg);
+            auto testNode = RSCanvasNode::Create();
+            testNode->SetAlpha(alphaList[j]);
+            testNode->SetBounds({ x, y, nodeWidth, nodeHeight });
+            testNode->SetForegroundColor(colorList[i]);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
         }
     }
 
@@ -134,7 +435,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_2)
 }
 
 // offscreen
-GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Offscreen_Test_1)
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_3)
 {
     uint32_t colorList[] = { 0xff0000ff, 0xffff0000 };
     float alphaList[] = { 0, 0.8, 1 };

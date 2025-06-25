@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,7 +87,7 @@ void RSCapturePixelMapManager::LoadSetMemFunc()
 }
 
 bool RSCapturePixelMapManager::SetCapturePixelMapMem(const std::unique_ptr<Media::PixelMap>& pixelmap,
-    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType &uniRenderEnabledType)
+    const SurfaceCaptureType& captureType, const UniRenderEnabledType& uniRenderEnabledType, bool useDma)
 {
     if (pixelmap == nullptr) {
         return false;
@@ -99,17 +99,17 @@ bool RSCapturePixelMapManager::SetCapturePixelMapMem(const std::unique_ptr<Media
         RSCapturePixelMapManager::LoadSetMemFunc();
     });
 
-    auto tempCaptureType = static_cast<uint32_t>(captureConfig.captureType);
+    auto tempCaptureType = static_cast<uint32_t>(captureType);
     auto tmpUniRenderType = static_cast<uint32_t>(uniRenderEnabledType);
     auto iter = funcHandle_.find(tmpUniRenderType);
     if (iter != funcHandle_.end() && iter->second.find(tempCaptureType) != iter->second.end()) {
-        return funcHandle_[tmpUniRenderType][tempCaptureType](pixelmap, captureConfig.useDma);
+        return funcHandle_[tmpUniRenderType][tempCaptureType](pixelmap, useDma);
     }
     return false;
 }
 
 bool RSCapturePixelMapManager::CheckCaptureConfig(const Drawing::Rect& areaRect,
-    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType &uniRenderEnabledType)
+    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType)
 {
     if (ROSEN_EQ(captureConfig.scaleX, 0.f) || ROSEN_EQ(captureConfig.scaleY, 0.f) ||
         captureConfig.scaleX < 0.f || captureConfig.scaleY < 0.f) {
@@ -188,7 +188,7 @@ Drawing::Rect RSCapturePixelMapManager::GetCaptureAreaRect(const Drawing::Rect& 
 }
 
 std::unique_ptr<Media::PixelMap> RSCapturePixelMapManager::GetClientCapturePixelMap(const Drawing::Rect& nodeAreaRect,
-    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType &uniRenderEnabledType,
+    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType,
     const Drawing::Rect& specifiedAreaRect)
 {
     if (uniRenderEnabledType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
@@ -200,7 +200,7 @@ std::unique_ptr<Media::PixelMap> RSCapturePixelMapManager::GetClientCapturePixel
     if (pixelMap == nullptr) {
         return nullptr;
     }
-    if (!SetCapturePixelMapMem(pixelMap, captureConfig, uniRenderEnabledType)) {
+    if (!SetCapturePixelMapMem(pixelMap, captureConfig.captureType, uniRenderEnabledType, captureConfig.useDma)) {
         RS_LOGE("RSCapturePixelMapManager::GetClientCapturePixelMap SetCapturePixelMapMem failed");
         return nullptr;
     }
@@ -208,7 +208,7 @@ std::unique_ptr<Media::PixelMap> RSCapturePixelMapManager::GetClientCapturePixel
 }
 
 std::unique_ptr<Media::PixelMap> RSCapturePixelMapManager::GetCapturePixelMap(const Drawing::Rect& areaRect,
-    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType &uniRenderEnabledType)
+    const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType)
 {
     // Init Policy Function
     static std::once_flag LoadCheckFunFlag;
@@ -243,8 +243,8 @@ std::unique_ptr<Media::PixelMap> RSCapturePixelMapManager::CreatePixelMap(const 
 bool RSCapturePixelMapManager::AttachUniCommMem(const std::unique_ptr<Media::PixelMap>& pixelMap, bool isUsedDma)
 {
 #if defined (RS_ENABLE_UNI_RENDER) && defined (ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR && isUsedDma) {
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && isUsedDma) {
         return RSCapturePixelMapManager::AttachDmaMem(pixelMap);
     }
 #endif
@@ -288,7 +288,7 @@ bool RSCapturePixelMapManager::AttachShareMem(const std::unique_ptr<Media::Pixel
         ::close(fd);
         return false;
     }
-    void* fdPtr = new (std::nothrow) int32_t();
+    void* fdPtr = new int32_t();
     if (fdPtr == nullptr) {
         ::munmap(ptr, size);
         ::close(fd);
@@ -314,7 +314,7 @@ bool RSCapturePixelMapManager::AttachHeapMem(const std::unique_ptr<Media::PixelM
         return false;
     }
     pixelMap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
-    RS_LOGD("RSCapturePixelMapManager::AttachHeapMem Success");
+    RS_LOGI("RSCapturePixelMapManager::AttachHeapMem Success");
     return true;
 #else
     RS_LOGE("RSCapturePixelMapManager::AttachHeapMem Unsupport AttachHeapMem");
@@ -329,7 +329,7 @@ bool RSCapturePixelMapManager::AttachDmaMem(const std::unique_ptr<Media::PixelMa
     RS_LOGE("RSCapturePixelMapManager::AttachDmaMem Unsupport dma mem alloc");
     return false;
 #elif defined (RS_ENABLE_UNI_RENDER) && defined (ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (pixelmap == nullptr) {
+    if (pixelMap == nullptr) {
         RS_LOGE("RSCapturePixelMapManager::AttachDmaMem: pixelmap is nullptr");
         return false;
     }
@@ -339,8 +339,8 @@ bool RSCapturePixelMapManager::AttachDmaMem(const std::unique_ptr<Media::PixelMa
         return false;
     }
     BufferRequestConfig requestConfig = {
-        .width = dstInfo.GetWidth(),
-        .height = dstInfo.GetHeight(),
+        .width = pixelMap->GetWidth(),
+        .height = pixelMap->GetHeight(),
         .strideAlignment = 0x8, // set 0x8 as default value to alloc SurfaceBufferImpl
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888, // PixelFormat
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE |
@@ -358,10 +358,11 @@ bool RSCapturePixelMapManager::AttachDmaMem(const std::unique_ptr<Media::PixelMa
     void* nativeBuffer = surfaceBuffer.GetRefPtr();
     OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(nativeBuffer);
     ref->IncStrongRef(ref);
-    int32_t bufferSize = pixelmap->GetByteCount();
-    pixelmap->SetPixelsAddr(surfaceBuffer->GetVirAddr(), nativeBuffer, bufferSize,
+    int32_t bufferSize = pixelMap->GetByteCount();
+    pixelMap->SetPixelsAddr(surfaceBuffer->GetVirAddr(), nativeBuffer, bufferSize,
         Media::AllocatorType::DMA_ALLOC, nullptr);
-    return false;
+    RS_LOGI("RSCapturePixelMapManager::AttachDmaMem Success");
+    return true;
 #else
     RS_LOGE("RSCapturePixelMapManager::AttachDmaMem Unsupport AttachDmaMem");
     return false;

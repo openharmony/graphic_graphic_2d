@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_PIXEL_MAP_MASK_H
-#define RENDER_PIXEL_MAP_MASK_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_PIXEL_MAP_MASK_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_PIXEL_MAP_MASK_H
 
 #include "pixel_map.h"
 #include "ui_effect/mask/include/mask_para.h"
@@ -45,13 +45,13 @@ public:
 
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetAnimatableRenderProperty(
-        const RSUIFilterType type, const RSPropertyType proType)
+        const RSUIFilterType type)
     {
         auto proX = std::static_pointer_cast<RSAnimatableProperty<T>>(GetRSProperty(type));
         if (proX == nullptr) {
             return nullptr;
         }
-        return std::make_shared<RSRenderAnimatableProperty<T>>(proX->Get(), proX->GetId(), proType);
+        return std::make_shared<RSRenderAnimatableProperty<T>>(proX->Get(), proX->GetId());
     }
 
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter() override;
@@ -61,4 +61,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_PIXEL_MAP_MASK_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_PIXEL_MAP_MASK_H

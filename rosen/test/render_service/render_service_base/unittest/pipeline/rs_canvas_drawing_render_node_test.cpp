@@ -108,7 +108,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     std::function<void(std::shared_ptr<Drawing::Surface>)> callbackFunc = [](std::shared_ptr<Drawing::Surface>) {
         printf("ProcessRenderContentsTest callbackFunc\n");
     };
@@ -201,7 +201,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 
@@ -254,7 +254,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest003, Test
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 /**
@@ -490,7 +490,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     auto modifier2 = std::make_shared<RSDrawCmdListRenderModifier>(property2);
     listModifier.emplace_back(modifier2);
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(type, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(type, listModifier);
     std::list<Drawing::DrawCmdListPtr> listDrawCmd;
     auto listDrawCmdMax = 20;
     for (int i = 0; i < listDrawCmdMax; ++i) {
@@ -696,5 +696,30 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest, TestSize.Lev
     node->isNeverOnTree_ = false;
     node->isTextureExportNode_ = true;
     node->ContentStyleSlotUpdate();
+}
+
+/**
+ * @tc.name: GetDrawCmdListsTest
+ * @tc.desc: Test GetDrawCmdLists
+ * @tc.type: FUNC
+ * @tc.require: ICETEZ
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawCmdListsTest, TestSize.Level1)
+{
+    NodeId nodeId = 8;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    auto type = RSModifierType::CONTENT_STYLE;
+    std::list<Drawing::DrawCmdListPtr> cmdLists;
+    auto cmd = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    Drawing::Brush brush;
+    cmd->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    cmdLists.push_back(cmd);
+    node->drawCmdLists_.emplace(type, cmdLists);
+
+    auto lists = node->GetDrawCmdLists();
+    EXPECT_FALSE(lists.empty());
+    node->ClearResource();
+    auto lists2 = node->GetDrawCmdLists();
+    EXPECT_TRUE(lists2.empty());
 }
 } // namespace OHOS::Rosen

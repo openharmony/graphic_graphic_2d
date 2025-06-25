@@ -276,9 +276,57 @@ HWTEST_F(RSModifiersDrawTest, CreateSurfaceBuffer002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: InsertForegroundRoot001
+ * @tc.desc: test InsertForegroundRoot while modifiers draw thread stop
+ * @tc.type: FUNC
+ * @tc.require:issuesICG9R2
+*/
+HWTEST_F(RSModifiersDrawTest, InsertForegroundRoot001, TestSize.Level2)
+{
+    RSModifiersDrawThread::Instance().isStarted_ = false;
+    RSModifiersDraw::InsertForegroundRoot(0);
+    ASSERT_FALSE(RSModifiersDraw::offTreeNodesChange_);
+}
+
+/**
+ * @tc.name: InsertForegroundRoot002
+ * @tc.desc: test InsertForegroundRoot while surfaceEntryMap_ can't find nodeId
+ * @tc.type: FUNC
+ * @tc.require:issuesICG9R2
+*/
+HWTEST_F(RSModifiersDrawTest, InsertForegroundRoot002, TestSize.Level2)
+{
+    RSModifiersDrawThread::Instance().isStarted_ = true;
+    RSModifiersDraw::surfaceEntryMap_.clear();
+    RSModifiersDraw::InsertForegroundRoot(0);
+    ASSERT_FALSE(RSModifiersDraw::offTreeNodesChange_);
+
+    // restore
+    RSModifiersDrawThread::Instance().isStarted_ = false;
+}
+
+/**
+ * @tc.name: InsertForegroundRoot003
+ * @tc.desc: test InsertForegroundRoot while surfaceEntryMap_ find nodeId
+ * @tc.type: FUNC
+ * @tc.require:issuesICG9R2
+*/
+HWTEST_F(RSModifiersDrawTest, InsertForegroundRoot003, TestSize.Level2)
+{
+    RSModifiersDrawThread::Instance().isStarted_ = true;
+    RSModifiersDraw::SurfaceEntry surfaceEntry {};
+    RSModifiersDraw::surfaceEntryMap_.emplace(0, surfaceEntry);
+    RSModifiersDraw::InsertForegroundRoot(0);
+    ASSERT_FALSE(RSModifiersDraw::offTreeNodesChange_);
+
+    // restore
+    RSModifiersDrawThread::Instance().isStarted_ = false;
+}
+
+/**
  * @tc.name: EraseForegroundRoot
  * @tc.desc: GetHybridRenderSwitch Test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:issuesIC3UZH
 */
 HWTEST_F(RSModifiersDrawTest, EraseForegroundRoot, TestSize.Level1)

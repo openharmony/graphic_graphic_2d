@@ -55,7 +55,8 @@ HWTEST_F(RSUIEdgeLightFilterTest, Equal001, TestSize.Level1)
  */
 HWTEST_F(RSUIEdgeLightFilterTest, Dump001, TestSize.Level1)
 {
-    std::string temp = "RSUIEdgeLightFilterPara:[alpha:0.500000, ColorRGBA:(0.500000, 0.500000, 0.500000, 0.500000)]";
+    std::string temp =
+        "RSUIEdgeLightFilterPara:[alpha:0.500000, bloom:1, ColorRGBA:(0.500000, 0.500000, 0.500000, 0.500000)]";
 
     auto edgeLightPara = std::make_shared<EdgeLightPara>();
 
@@ -63,6 +64,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, Dump001, TestSize.Level1)
     maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
     edgeLightPara->SetMask(maskPara);
     edgeLightPara->SetAlpha(0.5f);
+    edgeLightPara->SetBloom(true);
     Vector4f color = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara->SetColor(color);
 
@@ -72,6 +74,13 @@ HWTEST_F(RSUIEdgeLightFilterTest, Dump001, TestSize.Level1)
     std::string out;
     rsUIEdgeLightFilterPara->Dump(out);
     EXPECT_EQ(temp, out);
+
+    rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_ALPHA] = nullptr;
+    rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_BLOOM] = nullptr;
+    rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_COLOR] = nullptr;
+
+    rsUIEdgeLightFilterPara->Dump(out);
+    EXPECT_NE(temp, out);
 }
 
 /**
@@ -85,6 +94,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, SetProperty001, TestSize.Level1)
     auto maskPara1 = std::make_shared<MaskPara>();
     edgeLightPara1->SetMask(maskPara1);
     edgeLightPara1->SetAlpha(0.5f);
+    edgeLightPara1->SetBloom(true);
     Vector4f color1 = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara1->SetColor(color1);
 
@@ -92,6 +102,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, SetProperty001, TestSize.Level1)
     auto maskPara2 = std::make_shared<MaskPara>();
     edgeLightPara2->SetMask(maskPara2);
     edgeLightPara2->SetAlpha(0.5f);
+    edgeLightPara2->SetBloom(true);
     Vector4f color2 = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara2->SetColor(color2);
 
@@ -110,6 +121,31 @@ HWTEST_F(RSUIEdgeLightFilterTest, SetProperty001, TestSize.Level1)
     auto property = std::static_pointer_cast<RSAnimatableProperty<float>>(iter->second);
     ASSERT_NE(property, nullptr);
     EXPECT_EQ(property->Get(), 0.5f);
+}
+
+/**
+ * @tc.name: SetProperty002
+ * @tc.desc: Test SetProperty with abnormally input
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEdgeLightFilterTest, SetProperty002, TestSize.Level1)
+{
+    auto edgeLightPara = std::make_shared<EdgeLightPara>();
+    auto maskPara = std::make_shared<MaskPara>();
+    edgeLightPara->SetMask(maskPara);
+    edgeLightPara->SetAlpha(0.5f);
+    edgeLightPara->SetBloom(true);
+    Vector4f color = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
+    edgeLightPara->SetColor(color);
+
+    auto rsUIEdgeLightFilterPara = std::make_shared<RSUIEdgeLightFilterPara>();
+    rsUIEdgeLightFilterPara->SetEdgeLight(edgeLightPara);
+    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIEdgeLightFilterPara);
+    rsUIFilterParaBase->properties_[RSUIFilterType::EDGE_LIGHT_BLOOM] = nullptr;
+    rsUIEdgeLightFilterPara->SetProperty(rsUIFilterParaBase);
+
+    auto iter = rsUIEdgeLightFilterPara->properties_.find(RSUIFilterType::EDGE_LIGHT_BLOOM);
+    EXPECT_NE(iter, rsUIEdgeLightFilterPara->properties_.end());
 }
 
 /**
@@ -177,6 +213,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, CreateRSRenderFilter001, TestSize.Level1)
     maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
     edgeLightPara->SetMask(maskPara);
     edgeLightPara->SetAlpha(0.5f);
+    edgeLightPara->SetBloom(true);
     Vector4f color = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara->SetColor(color);
 
@@ -185,6 +222,23 @@ HWTEST_F(RSUIEdgeLightFilterTest, CreateRSRenderFilter001, TestSize.Level1)
 
     auto rsRenderFilterParaBase = rsUIEdgeLightFilterPara->CreateRSRenderFilter();
     EXPECT_NE(rsRenderFilterParaBase, nullptr);
+}
+
+/**
+ * @tc.name: CreateRSRenderFilterBloom001
+ * @tc.desc: Test CreateRSRenderFilterBloom func of RSUIEdgeLightFilterPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEdgeLightFilterTest, CreateRSRenderFilterBloom001, TestSize.Level1)
+{
+    auto rsUIEdgeLightFilterPara = std::make_shared<RSUIEdgeLightFilterPara>();
+    rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_BLOOM] = nullptr;
+
+    auto frProperty = std::make_shared<RSRenderEdgeLightFilterPara>(0, RSUIFilterType::PIXEL_MAP_MASK);
+    EXPECT_FALSE(rsUIEdgeLightFilterPara->CreateRSRenderFilterBloom(frProperty));
+
+    rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_BLOOM] = std::make_shared<RSProperty<bool>>(true);
+    EXPECT_TRUE(rsUIEdgeLightFilterPara->CreateRSRenderFilterBloom(frProperty));
 }
 
 /**
@@ -200,6 +254,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, GetLeafProperties001, TestSize.Level1)
     maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
     edgeLightPara->SetMask(maskPara);
     edgeLightPara->SetAlpha(0.5f);
+    edgeLightPara->SetBloom(true);
     Vector4f color = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara->SetColor(color);
 
@@ -208,5 +263,28 @@ HWTEST_F(RSUIEdgeLightFilterTest, GetLeafProperties001, TestSize.Level1)
 
     auto rsPropertyBaseVector = rsUIEdgeLightFilterPara->GetLeafProperties();
     EXPECT_NE(rsPropertyBaseVector.size(), 0);
+}
+
+/**
+ * @tc.name: CheckEnableHdrEffect001
+ * @tc.desc: test func CheckEnableHdrEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEdgeLightFilterTest, CheckEnableHdrEffect001, TestSize.Level1)
+{
+    auto edgeLightPara = std::make_shared<EdgeLightPara>();
+;
+    auto maskPara = std::make_shared<MaskPara>();
+    maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
+    edgeLightPara->SetMask(maskPara);
+    edgeLightPara->SetAlpha(0.5f);
+    edgeLightPara->SetBloom(true);
+    Vector4f color = Vector4f(1.5f, 1.5f, 1.5f, 0.5f);
+    edgeLightPara->SetColor(color);
+
+    auto rsUIEdgeLightFilterPara = std::make_shared<RSUIEdgeLightFilterPara>();
+    EXPECT_FALSE(rsUIEdgeLightFilterPara->CheckEnableHdrEffect());
+    rsUIEdgeLightFilterPara->SetEdgeLight(edgeLightPara);
+    EXPECT_TRUE(rsUIEdgeLightFilterPara->CheckEnableHdrEffect());
 }
 } // namespace OHOS::Rosen

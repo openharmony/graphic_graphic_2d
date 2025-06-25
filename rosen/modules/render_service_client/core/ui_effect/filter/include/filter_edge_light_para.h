@@ -52,6 +52,16 @@ public:
         return alpha_;
     }
 
+    void SetBloom(bool bloom)
+    {
+        bloom_ = bloom;
+    }
+
+    bool GetBloom() const
+    {
+        return bloom_;
+    }
+
     // color: red, green, blue, alpha
     void SetColor(const std::optional<Vector4f>& color)
     {
@@ -68,6 +78,7 @@ private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
     std::optional<Vector4f> color_ = std::nullopt;
     float alpha_ = 0.f;
+    bool bloom_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -27,6 +27,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_filter_cache_manager.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "rs_frame_report.h"
 #include "rs_uni_render_thread.h"
 
@@ -244,6 +245,7 @@ void RSDrawFrame::Sync()
         }
     }
     pendingSyncNodes.clear();
+    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 }

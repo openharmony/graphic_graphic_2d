@@ -259,6 +259,23 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Unmarshalling006
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: ICDP3G
+ */
+HWTEST_F(RSDrawCmdTest, Unmarshalling006, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    uint32_t funcObjectId = 1;
+    Drawing::DrawFuncOpItem::ConstructorHandle constructorHandle(funcObjectId);
+    auto funcOpItem = Drawing::DrawFuncOpItem::Unmarshalling(list, nullptr);
+    ASSERT_EQ(funcOpItem, nullptr);
+    auto funcOpItemObj = Drawing::DrawFuncOpItem::Unmarshalling(list, &constructorHandle);
+    ASSERT_NE(funcOpItemObj, nullptr);
+}
+
+/**
  * @tc.name: Playback003
  * @tc.desc: test results of Playback
  * @tc.type:FUNC

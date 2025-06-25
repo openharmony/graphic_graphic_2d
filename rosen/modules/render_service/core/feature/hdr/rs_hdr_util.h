@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSScreenManager;
 
 class RSHdrUtil {
 public:
@@ -37,6 +38,7 @@ public:
     static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSDisplayRenderNode& displayNode);
     static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void SetHDRParam(RSSurfaceRenderNode& node, bool flag);
+    static void HandleVirtualScreenHDRStatus(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
 };
 
 } // namespace Rosen

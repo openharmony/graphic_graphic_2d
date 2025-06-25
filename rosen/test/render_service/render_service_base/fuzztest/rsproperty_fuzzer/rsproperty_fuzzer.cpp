@@ -330,7 +330,6 @@ bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
     RSPropertiesPainter::Clip(tmpCanvas, rect);
     RSPropertiesPainter::DrawBorder(properties, tmpCanvas);
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties);
-    RSPropertiesPainter::DrawForegroundColor(properties, tmpCanvas);
     RSPropertiesPainter::DrawMask(properties, tmpCanvas);
     RSPropertiesPainter::DrawMask(properties, tmpCanvas, maskBounds);
     RSPropertiesPainter::GetGravityMatrix(gravity, rect, fW, fH, mat);

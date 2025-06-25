@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+* Copyright (c) 2025 Huawei Device Co., Ltd.
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ public:
     RSCapturePixelMapManager(){};
     ~RSCapturePixelMapManager(){};
     static bool SetCapturePixelMapMem(const std::unique_ptr<Media::PixelMap>& pixelmap,
-        const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType &uniRenderEnabledType);
+        const SurfaceCaptureType& captureType, const UniRenderEnabledType& uniRenderEnabledType, bool useDma);
     static std::unique_ptr<Media::PixelMap> CreatePixelMap(const Drawing::Rect& areaRect,
         const RSSurfaceCaptureConfig& captureConfig);
     // this func only use service
@@ -41,7 +41,7 @@ public:
     static bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
         const std::unique_ptr<Media::PixelMap>& pixelmap);
     static std::unique_ptr<Media::PixelMap> GetClientCapturePixelMap(const Drawing::Rect& nodeAreaRect,
-        const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType &uniRenderEnabledType,
+        const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType,
         const Drawing::Rect& specifiedAreaRect = {0.f, 0.f, 0.f, 0.f});
 
 private:
@@ -52,11 +52,11 @@ private:
     static bool AttachHeapMem(const std::unique_ptr<Media::PixelMap>& pixelMap);
     static bool AttachUniCommMem(const std::unique_ptr<Media::PixelMap>& pixelMap, bool isUsedDma = false);
     static bool CheckCaptureConfig(const Drawing::Rect& areaRect, const RSSurfaceCaptureConfig& captureConfig,
-        const UniRenderEnabledType &uniRenderEnabledType);
+        const UniRenderEnabledType& uniRenderEnabledType);
     static void LoadCheckFunc();
     static void LoadSetMemFunc();
     static std::unique_ptr<Media::PixelMap> GetCapturePixelMap(const Drawing::Rect& areaRect,
-        const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType &uniRenderEnabledType);
+        const RSSurfaceCaptureConfig& captureConfig, const UniRenderEnabledType& uniRenderEnabledType);
 
     static Drawing::Rect GetCaptureAreaRect(const Drawing::Rect& nodeAreaRect,
         const Drawing::Rect& specifiedAreaRect = {0.f, 0.f, 0.f, 0.f},
@@ -77,11 +77,11 @@ public:
     RSCapturePixelMap(){};
     ~RSCapturePixelMap(){};
     inline void SetCapturePixelMap(std::unique_ptr<Media::PixelMap> pixelmap) {
-        pixelmap_ = std::move(pixelmap);
+        pixelMap_ = std::move(pixelmap);
     }
-    std::unique_ptr<Media::PixelMap> pixelmap_ = nullptr;
+    std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     const std::unique_ptr<Media::PixelMap>& GetPixelMap() {
-        return pixelmap_;
+        return pixelMap_;
     }
 };
 

@@ -140,6 +140,10 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             HLOGE("current layerInfo is null");
             continue;
         }
+        if (layerInfo->IsMaskLayer()) {
+            DirtyRegions(solidLayerCount, layerInfo);
+            continue;
+        }
         if (layerInfo->GetSurface() == nullptr) {
             if (layerInfo->GetCompositionType() != GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
                 continue;
@@ -173,6 +177,21 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
     ResetLayerStatusLocked();
 }
 
+void HdiOutput::DirtyRegions(uint32_t solidLayerCount, const LayerInfoPtr &layerInfo)
+{
+    std::vector<GraphicIRect> dirtyRegions;
+    if (maskLayer_) {
+        dirtyRegions.emplace_back(GraphicIRect {0, 0, 0, 0});
+        layerInfo->SetDirtyRegions(dirtyRegions);
+        maskLayer_->UpdateLayerInfo(layerInfo);
+    } else {
+        auto laysize = layerInfo->GetLayerSize();
+        dirtyRegions.emplace_back(laysize);
+        layerInfo->SetDirtyRegions(dirtyRegions);
+        CreateLayerLocked(solidLayerCount++, layerInfo);
+    }
+}
+
 void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -189,6 +208,9 @@ void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 
 void HdiOutput::DeletePrevLayersLocked()
 {
+    if (maskLayer_ && !maskLayer_->GetLayerStatus()) {
+        maskLayer_ = nullptr;
+    }
     auto solidSurfaceIter = solidSurfaceIdMap_.begin();
     while (solidSurfaceIter != solidSurfaceIdMap_.end()) {
         const LayerPtr& layer = solidSurfaceIter->second;
@@ -224,6 +246,9 @@ void HdiOutput::ResetLayerStatusLocked()
 {
     for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
         iter->second->SetLayerStatus(false);
+    }
+    if (maskLayer_) {
+        maskLayer_->SetLayerStatus(false);
     }
 }
 
@@ -261,6 +286,10 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
 
     layer->UpdateLayerInfo(layerInfo);
     uint32_t layerId = layer->GetLayerId();
+
+    if (layerInfo->IsMaskLayer()) {
+        maskLayer_ = layer;
+    }
 
     layerIdMap_[layerId] = layer;
 

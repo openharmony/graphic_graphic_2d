@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,9 @@
 #include "screen_manager/rs_screen.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 using namespace testing;
 using namespace testing::ext;
 
@@ -40,7 +43,6 @@ namespace {
 };
 
 namespace OHOS::Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 class RSRenderServiceConnectionStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -138,15 +140,15 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     NodeId id = surfaceNode_->GetId();
-    // Test0 abnormal
+    // Test0 Abnormal condition, isClientPixelMap = true, but no clientPixelMap
     RSSurfaceCaptureConfig captureConfig;
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
     g_WriteSurfaceCaptureConfigMock(captureConfig, data);
-    // Write Blur Parm
+    // Write BlurParm
     data.WriteBool(false);
     data.WriteFloat(0);
-    // write AreaRect;
+    // write Area Rect;
     data.WriteFloat(0);
     data.WriteFloat(0);
     data.WriteFloat(0);
@@ -160,22 +162,22 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
 
     MessageParcel data2;
     RSSurfaceCaptureConfig captureConfig2;
-    captureConfig.isClientPixelMap = true;
+    captureConfig2.isClientPixelMap = true;
     data2.WriteUint64(id);
     data2.WriteRemoteObject(callback->AsObject());
-    g_WriteSurfaceCaptureConfigMock(captureConfig, data2);
-    // Write Blur Parm
+    g_WriteSurfaceCaptureConfigMock(captureConfig2, data2);
+    // Write BlurParm
     data2.WriteBool(false);
     data2.WriteFloat(0);
-    // write AreaRect;
+    // write Area Rect;
     data2.WriteFloat(0);
     data2.WriteFloat(0);
     data2.WriteFloat(0);
     data2.WriteFloat(0);
 
-    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
 
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
     constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 1000000;
     usleep(TIME_OF_CAPTURE_TASK_REMAIN);
     nodeMap.UnregisterRenderNode(id);
@@ -320,6 +322,8 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub003
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS)),
@@ -350,7 +354,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_DATA);
 #else
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_REPLY);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_DATA);
 #endif
 }
 
@@ -395,6 +399,8 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005
     EXPECT_EQ(OnRemoteRequestTest(
                   static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST)),
         ERR_INVALID_DATA);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH)), ERR_INVALID_STATE);
 }
 
 /**
@@ -915,6 +921,25 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub026
 }
 
 /**
+ * @tc.name: TestRSRenderServiceConnectionStub030
+ * @tc.desc: Test ForceRefresh
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub030, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH);
+    data.WriteString("surface01");
+    data.WriteBool(true);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
  * @tc.name: NotifyWindowExpectedByWindowIDTest001
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -994,35 +1019,22 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByVsyncNameTest0
     ASSERT_EQ(res, ERR_NONE);
 }
 
-HWTEST_F(RSRenderServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level1)
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest001
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:issuesICE0QR
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
 {
-    auto newPid = getpid();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB);
+    data.WriteUint32(1001);
+    MessageParcel reply;
     MessageOption option;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option), ERR_INVALID_DATA);
-}
-
-HWTEST_F(RSRenderServiceConnectionStubTest, CreateVirtualScreenTest, TestSize.Level1)
-{
-    auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto mainThread = RSMainThread::Instance();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option), ERR_INVALID_DATA);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen

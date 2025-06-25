@@ -92,9 +92,14 @@ void RSAnimation::CallFinishCallback()
     state_ = AnimationState::FINISHED;
     OnCallFinishCallback();
     auto target = target_.lock();
-    if (target != nullptr) {
-        RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(target->GetId(), id_, GetModifierType(), true);
+    if (target == nullptr) {
+        return;
     }
+#if defined(MODIFIER_NG)
+    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(target->GetId(), id_, GetPropertyType(), true);
+#else
+    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(target->GetId(), id_, GetModifierType(), true);
+#endif
 }
 
 void RSAnimation::CallRepeatCallback()

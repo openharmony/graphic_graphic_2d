@@ -27,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 RSEdgeLightShaderFilter::RSEdgeLightShaderFilter(const EdgeLightShaderFilterParams& param)
     : alpha_(param.alpha),
+    bloom_(param.bloom),
     color_(param.color),
     mask_(param.mask)
 {
@@ -37,6 +38,7 @@ RSEdgeLightShaderFilter::RSEdgeLightShaderFilter(const EdgeLightShaderFilterPara
     const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
+    hash_ = hashFunc(&bloom_, sizeof(bloom_), hash_);
     hash_ = hashFunc(&color_, sizeof(color_), hash_);
     if (mask_) {
         auto maskHash = mask_->Hash();
@@ -61,6 +63,7 @@ void RSEdgeLightShaderFilter::GenerateGEVisualEffect(
     auto edgeLightShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
         Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_ALPHA, alpha_);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_BLOOM, bloom_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_R, color.x_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_G, color.y_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_B, color.z_);

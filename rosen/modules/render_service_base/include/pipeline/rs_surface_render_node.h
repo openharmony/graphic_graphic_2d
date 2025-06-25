@@ -45,7 +45,6 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
-#include "params/rs_surface_render_params.h"
 #endif
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
@@ -193,6 +192,13 @@ public:
     bool IsLayerTop() const
     {
         return isLayerTop_;
+    }
+
+    void SetForceRefresh(bool isForceRefresh);
+
+    bool IsForceRefresh() const
+    {
+        return isForceRefresh_;
     }
 
     void SetHardwareEnableHint(bool enable)
@@ -400,7 +406,8 @@ public:
         }
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
-        if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isHardwareEnableHint_) && IsOnTheTree()) {
+        // isForcedClipHole: for tv product, force clip hole in tvplayer
+        if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isForcedClipHole()) && IsOnTheTree()) {
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
@@ -614,6 +621,8 @@ public:
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
     void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
+    void UpdateVirtualScreenWhiteListInfo(
+        const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
@@ -683,10 +692,6 @@ public:
     uint32_t GetAncoFlags() const;
     // Set the buffer srcRect of the anco node. Only used on anco nodes.
     void SetAncoSrcCrop(const Rect& srcCrop);
-#ifndef ROSEN_CROSS_PLATFORM
-    // When updating the hwcLayer information of anco node, SrcCrop takes effect.
-    void UpdateLayerSrcRectForAnco(RSLayerInfo& layer, const RSSurfaceRenderParams& surfaceParams);
-#endif
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -694,10 +699,10 @@ public:
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
 
-    bool GetIsWideColorGamut() const;
+    void IncreaseCanvasGamutNum(GraphicColorGamut gamut);
+    void ReduceCanvasGamutNum(GraphicColorGamut gamut);
 
-    void IncreaseWideColorGamutNum();
-    void ReduceWideColorGamutNum();
+    bool IsHdrEffectColorGamut() const;
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
@@ -856,22 +861,6 @@ public:
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);
 
-    void SetLeashWindowVisibleRegionEmpty(bool isLeashWindowVisibleRegionEmpty)
-    {
-        if (!IsLeashWindow()) {
-            return;
-        }
-        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
-        SetLeashWindowVisibleRegionEmptyParam();
-    }
-
-    bool GetLeashWindowVisibleRegionEmpty() const
-    {
-        return isLeashWindowVisibleRegionEmpty_;
-    }
-
-    void SetLeashWindowVisibleRegionEmptyParam();
-
     void SetExtraDirtyRegionAfterAlignment(const Occlusion::Region& region)
     {
         extraDirtyRegionAfterAlignment_ = region;
@@ -905,8 +894,8 @@ public:
     GraphicColorGamut GetColorSpace() const;
     // Only call this if the node is first level node.
     GraphicColorGamut GetFirstLevelNodeColorGamut() const;
-    void SetFirstLevelNodeColorGamutByResource(bool changeToP3);
-    void SetFirstLevelNodeColorGamutByWindow(bool changeToP3);
+    void SetFirstLevelNodeColorGamutByResource(bool isOnTree, GraphicColorGamut gamut);
+    void SetFirstLevelNodeColorGamutByWindow(bool isOnTree, GraphicColorGamut gamut);
 
     // Only call this if the node is self-drawing surface node.
     void UpdateColorSpaceWithMetadata();
@@ -1476,12 +1465,13 @@ public:
         return surfaceHandler_;
     }
 
-    void CheckContainerDirtyStatusAndUpdateDirty(bool containerDirty)
+    void CheckContainerDirtyStatusAndUpdateDirty(bool& containerDirty)
     {
-        if (!IsLeashOrMainWindow()) {
+        if (!containerDirty || !IsLeashOrMainWindow()) {
             return;
         }
-        dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
+        dirtyStatus_ = NodeDirty::DIRTY;
+        containerDirty = false;
     }
 
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
@@ -1553,6 +1543,16 @@ public:
         hdrVideoSurface_ = hasHdrVideoSurface;
     }
 
+    float GetHDRBrightnessFactor() const
+    {
+        return hdrBrightnessFactor_;
+    }
+
+    void SetHDRBrightnessFactor(float hdrBrightnessFactor)
+    {
+        hdrBrightnessFactor_ = hdrBrightnessFactor;
+    }
+
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
     {
@@ -1598,6 +1598,13 @@ public:
         return appWindowZOrder_;
     }
 
+    void SetTopLayerZOrder(uint32_t zOrder);
+
+    uint32_t GetTopLayerZOrder() const
+    {
+        return topLayerZOrder_;
+    }
+
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
@@ -1640,6 +1647,9 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
+
+    bool isForcedClipHole() const;
+
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
     void SendSurfaceNodeTreeStatus(bool onTree);
     void SendSurfaceNodeBoundChange();
@@ -1661,7 +1671,9 @@ private:
     bool qosPidCal_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    uint32_t topLayerZOrder_ = 0;
     bool isLayerTop_ = false;
+    bool isForceRefresh_ = false; // the self-drawing node need force refresh
     // Specifying hardware enable is only a 'hint' to RS that
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
@@ -1670,7 +1682,6 @@ private:
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     bool isNotifyRTBufferAvailablePre_ = false;
     bool isRefresh_ = false;
-    bool isLeashWindowVisibleRegionEmpty_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
     bool isOcclusionInSpecificScenes_ = false;
@@ -1764,6 +1775,13 @@ private:
     int hdrPhotoNum_ = 0;
     // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
     int hdrUIComponentNum_ = 0;
+    int hdrEffectNum_ = 0;
+    int bt2020Num_ = 0;
+    int p3Num_ = 0;
+    int firstLevelNodeBt2020WindowNum_ = 0;
+    int firstLevelNodeP3WindowNum_ = 0;
+    int firstLevelNodeBt2020ResourceNum_ = 0;
+    int firstLevelNodeP3ResourceNum_ = 0;
     int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
@@ -1779,6 +1797,7 @@ private:
     // hdr
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
+    float hdrBrightnessFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
     uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;

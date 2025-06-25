@@ -252,24 +252,6 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback02, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterTransactionDataCallback03
- * @tc.desc: RegisterTransactionDataCallback Test renderService is null
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientTest, RegisterTransactionDataCallback03, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    std::function<void()> callback = []() {};
-    int32_t pid = 123;
-    uint64_t timeStamp = 456;
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    connHub->Destroy();
-    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
-    EXPECT_FALSE(ret);
-}
-
-/**
  * @tc.name: RegisterTransactionDataCallback04
  * @tc.desc: RegisterTransactionDataCallback Test callback already exists
  * @tc.type:FUNC
@@ -1096,6 +1078,33 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenCanvasRotation001, TestSize.Level1)
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
 }
 
+/**
+ * @tc.name: SetVirtualScreenAutoRotationTest
+ * @tc.desc: SetVirtualScreenAutoRotation Test
+ * @tc.type:FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSClientTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 1344;
+    uint32_t defaultHeight = 2772;
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
+        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::SUCCESS);
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, false), StatusCode::SUCCESS);
+
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::SUCCESS);
+}
+
 /*
  * @tc.name: SetVirtualMirrorScreenScaleMode Test
  * @tc.desc: SetVirtualMirrorScreenScaleMode Test
@@ -1183,6 +1192,20 @@ HWTEST_F(RSClientTest, SetLayerTop001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetForceRefresh001 Test
+ * @tc.desc: SetForceRefresh001, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSClientTest, SetForceRefresh001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    const std::string nodeIdStr = "123456";
+    rsClient->SetForceRefresh(nodeIdStr, true);
+    rsClient->SetForceRefresh(nodeIdStr, false);
+}
+
+/**
  * @tc.name: SetWindowContainer Test
  * @tc.desc: SetWindowContainer, input true
  * @tc.type:FUNC
@@ -1235,6 +1258,21 @@ HWTEST_F(RSClientTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
     auto enabled = false;
     auto res = rsClient->GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest
+ * @tc.desc: GetPidGpuMemoryInMBTest
+ * @tc.type:FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    int32_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    auto res = rsClient->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 } // namespace Rosen
 } // namespace OHOS

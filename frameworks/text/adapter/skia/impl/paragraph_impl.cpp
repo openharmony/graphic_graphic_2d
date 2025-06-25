@@ -32,10 +32,6 @@
 #include "utils/text_log.h"
 #include "utils/text_trace.h"
 
-#ifdef USE_M133_SKIA
-#include "include/private/base/SkTArray.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
@@ -519,9 +515,6 @@ std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
         return {};
     }
     std::vector<TextBlobRecordInfo> textBlobRecordInfos;
-#ifdef TODO_M133_SKIA
-    return {};
-#else
     std::vector<skt::TextBlobRecordInfo> infos = paragraph_->getTextBlobRecordInfo();
     for (auto& info : infos) {
         TextBlobRecordInfo recordInfo;
@@ -534,33 +527,24 @@ std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
         textBlobRecordInfos.emplace_back(recordInfo);
     }
     return textBlobRecordInfos;
-#endif
 }
 
-bool ParagraphImpl::HasEnabledTextEffect() const
+bool ParagraphImpl::HasSkipTextBlobDrawing() const
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return false;
     }
-#ifdef TODO_M133_SKIA
-    return false;
-#else
-    return paragraph_->hasEnabledTextEffect();
-#endif
+    return paragraph_->hasSkipTextBlobDrawing();
 }
 
-void ParagraphImpl::SetTextEffectState(bool state)
+void ParagraphImpl::SetSkipTextBlobDrawing(bool state)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
-#ifdef TODO_M133_SKIA
-    (void)state;
-#else
-    paragraph_->setTextEffectState(state);
-#endif
+    paragraph_->setSkipTextBlobDrawing(state);
 }
 
 void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const

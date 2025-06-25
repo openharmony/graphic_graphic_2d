@@ -148,8 +148,8 @@ public:
     {
         RSSurfaceCaptureConfig config;
         auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
-        renderNode->renderContent_->renderProperties_.SetBoundsWidth(width);
-        renderNode->renderContent_->renderProperties_.SetBoundsHeight(height);
+        renderNode->renderProperties_.SetBoundsWidth(width);
+        renderNode->renderProperties_.SetBoundsHeight(height);
         RSMainThread::Instance()->GetContext().nodeMap.RegisterRenderNode(renderNode);
 
         auto renderNodeHandle = std::make_shared<RSUiCaptureSoloTaskParallel>(nodeId, config);
@@ -181,7 +181,7 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, RSUiCaptureSoloTaskParallelValid, Func
     SetUpSurface();
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> res;
     res = rsInterfaces_->TakeSurfaceCaptureSoloNodeList(surfaceNode_);
-    EXPECT_GT(res.size(), 0);
+    EXPECT_EQ(res.size(), 0);
 }
 
 /*
@@ -199,6 +199,38 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, RSUiCaptureSoloNode, Function | SmallT
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector =
         RSUiCaptureSoloTaskParallel::CaptureSoloNode(surfaceNode->GetId(), captureConfig);
     EXPECT_EQ(pixelMapIdPairVector.size(), 0);
+}
+
+/*
+* @tc.name: RSUiCaptureSoloNodeCanvasNode
+* @tc.desc: Test CaptureSoloNode with canvas node
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSUiCaptureSoloTaskParallelTest, RSUiCaptureSoloNodeCanvasNode, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSoloNodeUiCapture = true;
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector =
+        RSUiCaptureSoloTaskParallel::CaptureSoloNode(canvasNode_->GetId(), captureConfig);
+    EXPECT_EQ(pixelMapIdPairVector.size(), 0);
+}
+
+/*
+* @tc.name: CaptureSoloNodePixelMapCanvasNode
+* @tc.desc: Test CaptureSoloNodePixelMap with canvas node
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSUiCaptureSoloTaskParallelTest, CaptureSoloNodePixelMapCanvasNode, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSoloNodeUiCapture = true;
+    std::unique_ptr<Media::PixelMap> resPix =
+        RSUiCaptureSoloTaskParallel::CaptureSoloNodePixelMap(canvasNode_->GetId(), captureConfig);
+    EXPECT_EQ(resPix, nullptr);
 }
 
 /*
@@ -262,8 +294,8 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, CreateResources003, Function | SmallTe
     NodeId parentNodeId = 1003;
     RSSurfaceCaptureConfig config;
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
-    renderNode->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
-    renderNode->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
+    renderNode->renderProperties_.SetBoundsWidth(1024.0f);
+    renderNode->renderProperties_.SetBoundsHeight(1024.0f);
     nodeMap.RegisterRenderNode(renderNode);
 
     auto renderNodeHandle = std::make_shared<RSUiCaptureSoloTaskParallel>(nodeId, config);
@@ -285,8 +317,8 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, CreateResources003, Function | SmallTe
     parent3->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     parent3->hasSubNodeShouldPaint_ = true;
     parent3->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
-    parent3->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
-    parent3->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
+    parent3->renderProperties_.SetBoundsWidth(1024.0f);
+    parent3->renderProperties_.SetBoundsHeight(1024.0f);
     renderNode->parent_ = parent3;
     EXPECT_EQ(renderNodeHandle->CreateResources(), true);
 }

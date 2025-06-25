@@ -55,9 +55,6 @@ public:
     void Init();
     int GetEnable();
     void ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload);
-#ifdef RS_ENABLE_VK
-    void ModifierReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload);
-#endif
     void SendCommandsStart();
     void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
     void RenderStart(uint64_t timestamp, int skipFirstFrame = 0);

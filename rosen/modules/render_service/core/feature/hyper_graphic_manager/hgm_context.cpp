@@ -34,10 +34,6 @@ void HgmContext::InitHgmTaskHandleThread(
     sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appVSyncDistributor) const
 {
     RS_LOGI("HgmTaskHandleThread init");
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread == nullptr) {
-        return;
-    }
     auto forceUpdateTask = [this](bool idleTimerExpired, bool forceUpdate) {
         RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
             RS_TRACE_NAME_FMT("HgmContext::TimerExpiredCallback Run idleTimerExpiredFlag: %s forceUpdateFlag: %s",

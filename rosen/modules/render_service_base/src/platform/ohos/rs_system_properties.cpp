@@ -111,6 +111,13 @@ int RSSystemProperties::GetSceneJankFrameThreshold()
     return sceneJankFrameThreshold;
 }
 
+bool RSSystemProperties::GetProfilerPixelCheckMode()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.profiler.pixelcheck", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
 int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
@@ -118,7 +125,6 @@ int RSSystemProperties::GetRecordingEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
-
 
 void RSSystemProperties::SetRecordingDisenabled()
 {
@@ -1414,7 +1420,7 @@ bool RSSystemProperties::GetHybridRenderEnabled()
 
 int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
 {
-    static int32_t hybridRenderCcmEnabled =
+    static int32_t hybridRenderCcmEnabled = Drawing::SystemProperties::IsUseVulkan() &&
         std::atoi((system::GetParameter("const.graphics.hybridrenderenable", "0")).c_str());
     return hybridRenderCcmEnabled;
 }
@@ -1501,8 +1507,9 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
         ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
         return 0;
     }
+    char* endPtr = nullptr;
     static uint32_t hybridRenderFeatureSwitch =
-        std::stoul((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
+        std::strtoul(system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00").c_str(), &endPtr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
     if (bitSeq >= ComponentEnableSwitch::SWITCH_MAX) {
@@ -1561,6 +1568,13 @@ int RSSystemProperties::GetSubThreadDropFrameInterval()
     static bool dropFrameInterval =
         system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
     return dropFrameInterval;
+}
+
+bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    static bool compositeLayerEnable =
+        system::GetBoolParameter("rosen.graphic.composite.layer", false);
+    return compositeLayerEnable;
 }
 } // namespace Rosen
 } // namespace OHOS

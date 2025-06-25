@@ -17,6 +17,7 @@
 
 #include "ge_pixel_map_shader_mask.h"
 #include "ge_ripple_shader_mask.h"
+#include "ge_radial_gradient_shader_mask.h"
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
@@ -26,17 +27,20 @@
 #include "common/rs_vector4.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_render_pixel_map_mask.h"
+#include "render/rs_render_radial_gradient_mask.h"
 #include "render/rs_render_ripple_mask.h"
 #include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
 
-RSShaderMask::RSShaderMask(const std::shared_ptr<RSRenderMaskPara>& renderMask) : renderMask_(renderMask)
+RSShaderMask::RSShaderMask(const std::shared_ptr<RSRenderMaskPara>& renderMask)
 {
+    renderMask_ = (renderMask != nullptr ? renderMask->LimitedDeepCopy() : nullptr);
     CalHash();
 }
 
+// mask generator
 std::shared_ptr<Drawing::GEShaderMask> RSShaderMask::GenerateGEShaderMask() const
 {
     if (renderMask_ == nullptr) {
@@ -78,6 +82,30 @@ std::shared_ptr<Drawing::GEShaderMask> RSShaderMask::GenerateGEShaderMask() cons
             Drawing::GEPixelMapMaskParams maskParam { image, srcRect, dstRect, fillColorProp->Get() };
             return std::make_shared<Drawing::GEPixelMapShaderMask>(maskParam);
         }
+        case RSUIFilterType::RADIAL_GRADIENT_MASK: {
+            auto radialGradientMask = std::static_pointer_cast<RSRenderRadialGradientMaskPara>(renderMask_);
+            if (!radialGradientMask) {
+                ROSEN_LOGE("RSShaderMask::GenerateGEShaderMask radialGradientMask null");
+                return nullptr;
+            }
+            auto center = radialGradientMask->GetAnimatRenderProperty<Vector2f>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_CENTER);
+            auto radiusX = radialGradientMask->GetAnimatRenderProperty<float>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSX);
+            auto radiusY = radialGradientMask->GetAnimatRenderProperty<float>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSY);
+            auto colors = radialGradientMask->GetAnimatRenderProperty<std::vector<float>>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_COLORS);
+            auto positions = radialGradientMask->GetAnimatRenderProperty<std::vector<float>>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_POSITIONS);
+            if (!center || !radiusX || !radiusY || !colors || !positions) {
+                ROSEN_LOGE("RSShaderMask::GenerateGEShaderMask radialGradientMask property null");
+                return nullptr;
+            }
+            Drawing::GERadialGradientShaderMaskParams maskParam { std::make_pair(center->Get().x_, center->Get().y_),
+                radiusX->Get(), radiusY->Get(), colors->Get(), positions->Get() };
+            return std::make_shared<Drawing::GERadialGradientShaderMask>(maskParam);
+        }
         default: {
             return nullptr;
         }
@@ -118,23 +146,37 @@ void RSShaderMask::CalHash()
         }
         case RSUIFilterType::PIXEL_MAP_MASK: {
             auto pixelMapMask = std::static_pointer_cast<RSRenderPixelMapMaskPara>(renderMask_);
-            auto image = pixelMapMask->GetImage();
-            auto srcProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_SRC);
-            auto dstProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_DST);
-            auto fillColorProp =
-                pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR);
-            if (image == nullptr || srcProp == nullptr || dstProp == nullptr || fillColorProp == nullptr) {
-                ROSEN_LOGE("RSShaderMask::CalHash pixel map mask some property not found");
+            auto pixelMapMaskHash = pixelMapMask->CalcHash();
+            hash_ = hashFunc(&pixelMapMaskHash, sizeof(pixelMapMaskHash), hash_);
+            break;
+        }
+        case RSUIFilterType::RADIAL_GRADIENT_MASK: {
+            auto radialGradientMask = std::static_pointer_cast<RSRenderRadialGradientMaskPara>(renderMask_);
+            if (!radialGradientMask) {
                 return;
             }
-            auto imageUniqueID = image->GetUniqueID();
-            auto src = srcProp->Get();
-            auto dst = dstProp->Get();
-            auto fillColor = fillColorProp->Get();
-            hash_ = hashFunc(&imageUniqueID, sizeof(imageUniqueID), hash_);
-            hash_ = hashFunc(&src, sizeof(src), hash_);
-            hash_ = hashFunc(&dst, sizeof(dst), hash_);
-            hash_ = hashFunc(&fillColor, sizeof(fillColor), hash_);
+            auto centerProp = radialGradientMask->GetAnimatRenderProperty<Vector2f>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_CENTER);
+            auto radiusXProp = radialGradientMask->GetAnimatRenderProperty<float>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSX);
+            auto radiusYProp = radialGradientMask->GetAnimatRenderProperty<float>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_RADIUSY);
+            auto colorsProp = radialGradientMask->GetAnimatRenderProperty<std::vector<float>>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_COLORS);
+            auto positionsProp = radialGradientMask->GetAnimatRenderProperty<std::vector<float>>(
+                RSUIFilterType::RADIAL_GRADIENT_MASK_POSITIONS);
+            if (centerProp && radiusXProp && radiusYProp && colorsProp && positionsProp) {
+                auto center = centerProp->Get();
+                auto radiusX = radiusXProp->Get();
+                auto radiusY = radiusYProp->Get();
+                auto colors = colorsProp->Get();
+                auto positions = positionsProp->Get();
+                hash_ = hashFunc(&center, sizeof(center), hash_);
+                hash_ = hashFunc(&radiusX, sizeof(radiusX), hash_);
+                hash_ = hashFunc(&radiusY, sizeof(radiusY), hash_);
+                hash_ = hashFunc(&colors, sizeof(colors), hash_);
+                hash_ = hashFunc(&positions, sizeof(positions), hash_);
+            }
             break;
         }
         default: {

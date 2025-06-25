@@ -35,13 +35,23 @@ public:
     void AddAnimationNameTrace(const std::string& str) const;
     void AddAnimationFinishTrace(
         const std::string info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const;
+
     void AddAnimationCallFinishTrace(
         const uint64_t nodeId, const uint64_t animationId, RSModifierType type, bool isAddLogInfo) const;
+    void AddAnimationCallFinishTrace(const uint64_t nodeId, const uint64_t animationId,
+        ModifierNG::RSPropertyType propertyType, bool isAddLogInfo) const;
+
     void AddAnimationCreateTrace(const uint64_t nodeId, const std::string& nodeName, const uint64_t propertyId,
         const uint64_t animationId, const ImplicitAnimationParamType animationType, const RSModifierType propertyType,
         const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
         const int animationDelay, const int animationDur, const int repeat, const std::string& interfaceName,
         const int32_t frameNodeId, const std::string& frameNodeTag, RSUINodeType nodeType) const;
+    void AddAnimationCreateTrace(const uint64_t nodeId, const std::string& nodeName, const uint64_t propertyId,
+        const uint64_t animationId, const ImplicitAnimationParamType animationType,
+        const ModifierNG::RSPropertyType propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
+        const std::shared_ptr<RSRenderPropertyBase>& endValue, const int animationDelay, const int animationDur,
+        const int repeat, const std::string& interfaceName, const int32_t frameNodeId, const std::string& frameNodeTag,
+        RSUINodeType nodeType) const;
 
     void AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t animationId, const uint64_t propertyId,
         const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur,
@@ -51,8 +61,7 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,
         const std::shared_ptr<RSRenderPropertyBase>& value) const;
 
-    std::string ParseRenderPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value,
-        const RSPropertyType type = RSPropertyType::INVALID) const;
+    std::string ParseRenderPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value) const;
 
     void AddAnimationCancelTrace(const uint64_t nodeId, const uint64_t propertyId) const;
     void AddChangeAnimationValueTrace(
@@ -64,8 +73,7 @@ private:
     RSAnimationTraceUtils(const RSAnimationTraceUtils&) = delete;
     RSAnimationTraceUtils& operator=(const RSAnimationTraceUtils&) = delete;
 
-    std::string ParseRenderPropertyValueInner(const std::shared_ptr<RSRenderPropertyBase>& value,
-        const RSPropertyType type = RSPropertyType::INVALID) const;
+    std::string ParseRenderPropertyValueInner(const std::shared_ptr<RSRenderPropertyBase>& value) const;
 
     std::string GetColorString(const Color& value) const;
 

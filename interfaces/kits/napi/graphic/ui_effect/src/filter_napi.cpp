@@ -169,6 +169,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("bezierWarp", SetBezierWarp),
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
+        DECLARE_NAPI_FUNCTION("contentLight", SetContentLight)
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -357,6 +358,69 @@ napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
+static bool GetContentLight(napi_env env, napi_value* param, std::shared_ptr<ContentLightPara>& para)
+{
+    Vector3f lightPosition = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector4f lightColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+
+    if (!ParseJsVector3f(env, param[NUM_0], lightPosition)) {
+        FILTER_LOG_E("FilterNapi GetContentLight parse lightPosition fail");
+        return false;
+    }
+    para->SetLightPosition(lightPosition);
+
+    if (!ParseJsRGBAColor(env, param[NUM_1], lightColor)) {
+        FILTER_LOG_E("FilterNapi GetContentColor parse lightColor fail");
+        return false;
+    }
+    para->SetLightColor(lightColor);
+    return true;
+}
+
+napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetContentLight failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi contentLight failed, is not system app");
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_4] = {0};
+    size_t argCount = NUM_4;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetContentLight parsing input fail"));
+
+    std::shared_ptr<ContentLightPara> para = std::make_shared<ContentLightPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetContentLight para is nullptr"));
+
+    if (argCount != NUM_4) {
+        FILTER_LOG_E("Args number less than 4");
+        return thisVar;
+    }
+
+    UIEFFECT_NAPI_CHECK_RET_D(GetContentLight(env, argValue, para), nullptr,
+        FILTER_LOG_E("FilterNapi GetContentLight fail"));
+
+    float lightIntensity = 0.f;
+    lightIntensity = GetSpecialValue(env, argValue[NUM_2]);
+    para->SetLightIntensity(lightIntensity);
+    
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetContentLight napi_unwrap fail"));
+    filterObj->AddPara(para);
+
+    return thisVar;
+}
+
 GradientDirection FilterNapi::ParserGradientDirection(napi_env env, napi_value argv)
 {
     if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
@@ -483,6 +547,16 @@ uint32_t FilterNapi::GetSpecialIntValue(napi_env env, napi_value argValue)
     uint32_t tmp = 0;
     if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
         napi_get_value_uint32(env, argValue, &tmp) == napi_ok) {
+            return tmp;
+    }
+    return tmp;
+}
+
+bool FilterNapi::GetSpecialBoolValue(napi_env env, napi_value argValue, bool defaultValue)
+{
+    bool tmp = defaultValue;
+    if (UIEffectNapiUtils::GetType(env, argValue) == napi_boolean &&
+        napi_get_value_bool(env, argValue, &tmp) == napi_ok) {
             return tmp;
     }
     return tmp;
@@ -765,7 +839,7 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
             "FilterNapi SetEdgeLight failed, is not system app");
         return nullptr;
     }
-    static const size_t maxArgc = NUM_3;
+    static const size_t maxArgc = NUM_4;
     static const size_t minArgc = NUM_1;
     size_t realArgc = maxArgc;
     napi_value result = nullptr;
@@ -790,6 +864,11 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
     if (realArgc >= NUM_3 &&
         napi_unwrap(env, argv[NUM_2], reinterpret_cast<void**>(&mask)) == napi_ok) {
         para->SetMask(mask->GetMaskPara());
+    }
+
+    if (realArgc >= NUM_4) {
+        bool bloom = GetSpecialBoolValue(env, argv[NUM_3], true);
+        para->SetBloom(bloom);
     }
 
     Filter* filterObj = nullptr;

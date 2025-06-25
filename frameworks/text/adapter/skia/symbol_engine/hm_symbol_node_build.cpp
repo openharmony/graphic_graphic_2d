@@ -82,10 +82,11 @@ static void MergeMaskPath(const std::vector<size_t>& maskIndexes, std::vector<RS
  */
 static void MergePathByLayerColor(const std::vector<RSGroupInfo>& groupInfos,
     std::vector<RSPath>& pathLayers, const std::vector<size_t>& groupIndexes,
-    std::vector<TextEngine::NodeLayerInfo>& pathsColor, const std::vector<RSRenderGroup>& colorGroups)
+    std::vector<TextEngine::NodeLayerInfo>& pathsColor,
+    std::vector<std::shared_ptr<SymbolGradient>>& colorGroups)
 {
     size_t pathsColorIndex = 0;
-    RSSColor color = {0, 0, 0, 0}; // default color with 0 alpha
+    std::shared_ptr<SymbolGradient> color = nullptr;
     for (const auto& groupInfo : groupInfos) {
         TextEngine::NodeLayerInfo tempLayer;
         size_t currentIndex = 0; // the current layerindex, that effective index of tempLayer
@@ -96,18 +97,18 @@ static void MergePathByLayerColor(const std::vector<RSGroupInfo>& groupInfos,
             }
             if (isFirst) { // initialize tempLayer
                 auto groupIndex = groupIndexes[layerIndex];
-                tempLayer.color = groupIndex < colorGroups.size() ? colorGroups[groupIndex].color : color;
+                tempLayer.color = groupIndex < colorGroups.size() ? colorGroups[groupIndex] : color;
                 tempLayer.path.AddPath(pathLayers[layerIndex]);
                 currentIndex = layerIndex;
                 isFirst = false;
                 continue;
             }
-            // If the groupIndex of two paths is different, updata pathsColor and tempLayer
+            // If the groupIndex of two paths is different, update pathsColor and tempLayer
             if (groupIndexes[currentIndex] != groupIndexes[layerIndex]) {
                 pathsColor.push_back(tempLayer);
                 tempLayer.path.Reset();
                 auto groupIndex = groupIndexes[layerIndex];
-                tempLayer.color = groupIndex < colorGroups.size() ? colorGroups[groupIndex].color : color;
+                tempLayer.color = groupIndex < colorGroups.size() ? colorGroups[groupIndex] : color;
                 currentIndex = layerIndex;
             }
             tempLayer.path.AddPath(pathLayers[layerIndex]);
@@ -188,13 +189,17 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
+    UpdateGradient(groups, pathLayers, symbolData.path_);
     TEXT_LOGD("Render group size %{public}zu", groups.size());
-    for (const auto& group : groups) {
+    for (size_t i = 0; i < groups.size(); i++) {
         RSPath multPath;
-        MergeDrawingPath(multPath, group, pathLayers);
+        MergeDrawingPath(multPath, groups[i], pathLayers);
         TextEngine::NodeLayerInfo pathInfo;
         pathInfo.path = multPath;
-        pathInfo.color = group.color;
+        bool isvalid = i < gradients_.size() && gradients_[i] != nullptr;
+        if (isvalid) {
+            pathInfo.color = gradients_[i];
+        }
         symbolNode.pathsInfo.push_back(pathInfo);
     }
 
@@ -206,25 +211,35 @@ void SymbolNodeBuild::SetSymbolNodeColors(const TextEngine::SymbolNode& symbolNo
     TextEngine::SymbolNode& outSymbolNode)
 {
     bool isNoNeed = symbolNode.pathsInfo.empty() || outSymbolNode.pathsInfo.empty() ||
-        ROSEN_GNE(outSymbolNode.pathsInfo[0].color.a, 0.0f); // If color.a > 0.0 is no need to set
+        outSymbolNode.pathsInfo[0].color; // If color != nullptr is no need to set
     if (isNoNeed) {
         return;
     }
 
-    const auto& color = symbolNode.pathsInfo[0].color;
+    std::shared_ptr<SymbolGradient> color;
+    if (disableSlashColor_ != nullptr) {
+        disableSlashColor_->Make(outSymbolNode.pathsInfo[0].path.GetBounds());
+        color = disableSlashColor_;
+    } else {
+        color = symbolNode.pathsInfo[0].color;
+    }
     for (auto& pathInfo: outSymbolNode.pathsInfo) {
         pathInfo.color = color;
     }
 }
 
-void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
+void SymbolNodeBuild::AddHierarchicalAnimation(const RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
     const std::vector<RSGroupSetting> &groupSettings,
     std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
 {
+    if (symbolAnimationConfig == nullptr) {
+        symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    }
     std::vector<RSPath> paths;
     RSHMSymbol::PathOutlineDecompose(symbolData.path_, paths);
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
+    UpdateGradient(symbolData.symbolInfo_.renderGroups, pathLayers, symbolData.path_);
 
     // Obtain the group id of layer
     std::vector<size_t> groupIds(pathLayers.size(), pathLayers.size());
@@ -239,7 +254,7 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
         bool isMask = IsMaskLayer(maskPath.path, groupSetting.groupInfos, pathLayers);
         if (!isMask) {
             MergePathByLayerColor(groupSetting.groupInfos, pathLayers, groupIds, symbolNode.pathsInfo,
-                symbolData.symbolInfo_.renderGroups);
+                gradients_);
         } else {
             symbolNode.pathsInfo.push_back(maskPath);
         }
@@ -249,14 +264,75 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
         symbolNode.isMask = isMask;
         symbolAnimationConfig->symbolNodes.push_back(symbolNode);
     }
-    bool isDisableType = effectStrategy_ == RSEffectStrategy::DISABLE &&
-        symbolAnimationConfig->symbolNodes.size() > 2; // 2: disableType symbol nodes size must be greater than 2
+    bool isDisableType = (effectStrategy_ == RSEffectStrategy::DISABLE) && (
+        symbolAnimationConfig->symbolNodes.size() > 2); // 2: disableType symbol nodes size must be greater than 2
     if (isDisableType) {
         uint32_t last = symbolAnimationConfig->symbolNodes.size() - 1; // the last
-        uint32_t last3 = symbolAnimationConfig->symbolNodes.size() - 3; // 3: the third form the bottom
+        uint32_t last3 = symbolAnimationConfig->symbolNodes.size() - 3; // 3: the third from the bottom
         SetSymbolNodeColors(symbolAnimationConfig->symbolNodes[last3], symbolAnimationConfig->symbolNodes[last]);
     }
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
+}
+
+std::shared_ptr<SymbolGradient> SymbolNodeBuild::CreateGradient(
+    const std::shared_ptr<SymbolGradient>& gradient)
+{
+    if (gradient == nullptr) {
+        return nullptr;
+    }
+
+    std::shared_ptr<SymbolGradient> outGradient = nullptr;
+    if (gradient->GetGradientType() == GradientType::LINE_GRADIENT) {
+        auto lineGradient = std::static_pointer_cast<SymbolLineGradient>(gradient);
+        outGradient = std::make_shared<SymbolLineGradient>(lineGradient->GetAngle());
+    }
+
+    if (gradient->GetGradientType() == GradientType::RADIAL_GRADIENT) {
+        auto radiaGradient = std::static_pointer_cast<SymbolRadialGradient>(gradient);
+        outGradient = std::make_shared<SymbolRadialGradient>(radiaGradient->GetCenterPoint(),
+            radiaGradient->GetRadiusRatio());
+    }
+
+    if (outGradient == nullptr) {
+        outGradient = std::make_shared<SymbolGradient>();
+    }
+
+    outGradient->SetTileMode(gradient->GetTileMode());
+    outGradient->SetColors(gradient->GetColors());
+    outGradient->SetPositions(gradient->GetPositions());
+
+    return outGradient;
+}
+
+void SymbolNodeBuild::UpdateGradient(const std::vector<RSRenderGroup>& groups,
+    std::vector<RSPath>& pathLayers, const RSPath& path)
+{
+    if (gradients_.empty()) {
+        return;
+    }
+
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    if (renderMode_ == RSSymbolRenderingStrategy::SINGLE) {
+        if (gradients_[0] != nullptr) {
+            gradients_[0]->Make(path.GetBounds());
+        }
+        for (size_t i = 0; i < groups.size(); i++) {
+            gradients.push_back(gradients_[0]);
+        }
+        gradients_ = gradients;
+        return;
+    }
+
+    for (size_t i = 0; i < groups.size() && i < gradients_.size(); i++) {
+        RSPath multPath;
+        MergeDrawingPath(multPath, groups[i], pathLayers);
+        auto gradient = gradients_[i];
+        if (gradient != nullptr) {
+            gradient->Make(multPath.GetBounds());
+            gradients.push_back(gradient);
+        }
+    }
+    gradients_ = gradients;
 }
 
 void SymbolNodeBuild::ClearAnimation()
@@ -306,6 +382,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->commonSubType = commonSubType_;
     symbolAnimationConfig->currentAnimationHasPlayed = currentAnimationHasPlayed_;
     symbolAnimationConfig->slope = slope_;
+    symbolAnimationConfig->symbolShadow = symbolShadow_;
     return animationFunc_(symbolAnimationConfig);
 }
 }

@@ -365,7 +365,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run003, TestSize.Level2)
 
 /*
  * @tc.name: Run004
- * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run while surfaceNodeDrawable_ and displayNodeDrawable_ is nullptr
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run004, TEST CreateResources
  * @tc.type: FUNC
  * @tc.require: issueIAIT5Z
 */

@@ -121,12 +121,6 @@ bool RSRenderNodeDrawable::SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             return true;
         }
-        if (paintFilterCanvas->GetCulledNodes().count(id) > 0) {
-            RS_OPTIONAL_TRACE_NAME_FMT("%s, id: %" PRIu64 " culled success", __func__, id);
-            SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
-            DrawChildren(canvas, bounds);
-            return true;
-        }
     }
     return false;
 }
@@ -286,6 +280,27 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     isOpDropped_ = isOpDropped;
     drawBlurForCache_ = false;
     curDrawingCacheRoot_ = root;
+}
+
+bool RSRenderNodeDrawable::DealWithWhiteListNodes(Drawing::Canvas& canvas)
+{
+    auto captureParam = RSUniRenderThread::GetCaptureParam();
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    if (!captureParam.isMirror_ || whiteList.empty() || captureParam.rootIdInWhiteList_ != INVALID_NODEID) {
+        return false;
+    }
+    
+    const auto& params = GetRenderParams();
+    if (!params) {
+        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture params is nullptr");
+        return true;
+    }
+    auto info = params->GetVirtualScreenWhiteListInfo();
+    if (info.find(captureParam.virtualScreenId_) != info.end()) {
+        DrawChildren(canvas, params->GetFrameRect());
+    }
+    return true;
 }
 
 CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(

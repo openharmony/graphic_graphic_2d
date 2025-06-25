@@ -52,6 +52,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSCompositeLayerUtils;
 /**
  * @struct RSSurfaceNodeConfig
  * @brief Configuration structure for creating or managing a surface node.
@@ -209,6 +210,13 @@ public:
     void DetachToDisplay(uint64_t screenId);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
         bool dynamicHardwareEnable = true);
+
+    /**
+     * @brief Enable Camera Rotation Unchanged
+     *
+     * @param flag If flag is set to true, the camera fix rotation is enabled.
+     * @return void
+     */
     void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
@@ -295,6 +303,10 @@ public:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
+
+    bool IsSelfDrawingNode() const;
+    bool SetCompositeLayer(TopLayerZOrder zOrder);
+    std::shared_ptr<RSCompositeLayerUtils> GetCompositeLayerUtils() const;
     
     /**
      * @brief Sets the API compatible version for the surface node.
@@ -353,6 +365,8 @@ private:
     bool isGlobalPositionEnabled_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
+    RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
+    std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

@@ -952,10 +952,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest001, Function | Sma
 
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
-#if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-#endif
 }
 
 /*
@@ -1065,5 +1061,21 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateClientPixelMap, Function | SmallTest | 
     EXPECT_EQ(pixelMap == nullptr, true);
 }
 
+/*
+ * @tc.name: TakeSurfaceCaptureTest
+ * @tc.desc: Test TakeSurfaceCapture under normal conditions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureTest, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.useCurWindow = true;
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

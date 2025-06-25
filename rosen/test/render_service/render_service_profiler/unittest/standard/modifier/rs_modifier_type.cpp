@@ -70,7 +70,7 @@ HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest001, Level1 | Standard)
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BG_IMAGE_HEIGHT), value++);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BG_IMAGE_POSITION_X), value++);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BG_IMAGE_POSITION_Y), value++);
-    EXPECT_EQ(static_cast<int16_t>(RSModifierType::SURFACE_BG_COLOR), value++);
+    value++;
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BORDER_COLOR), value++);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BORDER_WIDTH), value++);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BORDER_STYLE), value++);

@@ -217,6 +217,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     OnDraw(canvas);
 }
 
@@ -300,7 +303,7 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
         }
         RS_OPTIONAL_TRACE_NAME_FMT("PostPlaybackInCorrespondThread NodeId[%llu]", nodeId);
-        RS_LOGI("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", nodeId);
+        RS_LOGI_LIMIT("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", nodeId);
         auto rect = GetRenderParams()->GetBounds();
         DrawContent(*canvas_, rect);
         SetNeedDraw(false);

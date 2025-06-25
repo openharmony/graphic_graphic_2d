@@ -1332,7 +1332,6 @@ void RSPaintFilterCanvas::PushDirtyRegion(Drawing::Region& resultRegion)
 void RSPaintFilterCanvas::PopDirtyRegion()
 {
     if (dirtyRegionStack_.empty()) {
-        RS_LOGW("PopDirtyRegion dirtyRegionStack_ is empty");
         return;
     }
     dirtyRegionStack_.pop();
@@ -1354,7 +1353,8 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
     isHdrOn_ = other.isHdrOn_;
-    hdrBrightness_ = other.hdrBrightness_;
+    hdrProperties.hdrBrightness = other.hdrProperties.hdrBrightness;
+    hdrProperties.isHDREnabledVirtualScreen = other.hdrProperties.isHDREnabledVirtualScreen;
 }
 
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
@@ -1592,6 +1592,16 @@ void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
     screenId_ = screenId;
 }
 
+bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
+{
+    return hdrProperties.isHDREnabledVirtualScreen;
+}
+
+void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen)
+{
+    hdrProperties.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
+}
+
 bool RSPaintFilterCanvas::GetHdrOn() const
 {
     return isHdrOn_;
@@ -1604,12 +1614,17 @@ void RSPaintFilterCanvas::SetHdrOn(bool isHdrOn)
 
 float RSPaintFilterCanvas::GetHDRBrightness() const
 {
-    return hdrBrightness_;
+    return hdrProperties.hdrBrightness;
 }
 
 void RSPaintFilterCanvas::SetHDRBrightness(float hdrBrightness)
 {
-    hdrBrightness_ = hdrBrightness;
+    hdrProperties.hdrBrightness = hdrBrightness;
+}
+
+const RSPaintFilterCanvas::HDRProperties& RSPaintFilterCanvas::GetHDRProperties() const
+{
+    return hdrProperties;
 }
 
 GraphicColorGamut RSPaintFilterCanvas::GetTargetColorGamut() const

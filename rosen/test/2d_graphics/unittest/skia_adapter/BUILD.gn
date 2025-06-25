@@ -35,7 +35,6 @@ if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
       "skia_font_test.cpp",
       "skia_gpu_context_test.cpp",
       "skia_helper_test.cpp",
-      "skia_hm_symbol_config_ohos_test.cpp",
       "skia_hm_symbol_test.cpp",
       "skia_image_filter_test.cpp",
       "skia_image_info_test.cpp",
@@ -70,7 +69,7 @@ if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
     ]
-
+    defines = []
     deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
     external_deps = [
@@ -80,9 +79,12 @@ if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
       "jsoncpp:jsoncpp",
       "skia:skia_canvaskit",
     ]
+    if (graphic_2d_feature_upgrade_skia) {
+      defines += [ "USE_M133_SKIA" ]
+    }
 
     if (rs_enable_gpu) {
-      defines = [ "RS_ENABLE_GPU" ]
+      defines += [ "RS_ENABLE_GPU" ]
     }
 
     cflags = [

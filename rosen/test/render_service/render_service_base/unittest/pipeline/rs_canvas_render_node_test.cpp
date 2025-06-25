@@ -306,46 +306,31 @@ HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetIsWideColorGamut001
- * @tc.desc: test true of SetIsWideColorGamut
+ * @tc.name: SetColorGamut001
+ * @tc.desc: test true of SetColorGamut
  * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
+ * @tc.require: issueICGKPE
  */
-HWTEST_F(RSCanvasRenderNodeTest, SetIsWideColorGamut001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, SetColorGamut001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetIsWideColorGamut(true);
-    EXPECT_TRUE(rsCanvasRenderNode.GetIsWideColorGamut());
+    rsCanvasRenderNode.SetColorGamut(3); // 3 is DISPLAY_P3
+    EXPECT_EQ(rsCanvasRenderNode.GetColorGamut(), 3); // 3 is DISPLAY_P3
 }
 
 /**
- * @tc.name: SetIsWideColorGamut002
- * @tc.desc: test false of SetIsWideColorGamut
+ * @tc.name: ModifyWindowWideColorGamutNum001
+ * @tc.desc: test ModifyWindowWideColorGamutNum
  * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
+ * @tc.require: issueICGKPE
  */
-HWTEST_F(RSCanvasRenderNodeTest, SetIsWideColorGamut002, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetIsWideColorGamut(false);
-    EXPECT_FALSE(rsCanvasRenderNode.GetIsWideColorGamut());
-}
-
-/**
- * @tc.name: ModifyWideWindowColorGamutNum001
- * @tc.desc: test ModifyWideWindowColorGamutNum
- * @tc.type: FUNC
- * @tc.require: issueIBF3VR
- */
-HWTEST_F(RSCanvasRenderNodeTest, ModifyWideWindowColorGamutNum001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, ModifyWindowWideColorGamutNum001, TestSize.Level1)
 {
     NodeId testId = 0;
     std::shared_ptr<RSCanvasRenderNode> testNode = std::make_shared<RSCanvasRenderNode>(testId);
-    testNode->ModifyWideWindowColorGamutNum(false);
+    testNode->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     EXPECT_TRUE(testNode->GetContext().lock() == nullptr);
 
     NodeId nodeId = 1;
@@ -358,10 +343,15 @@ HWTEST_F(RSCanvasRenderNodeTest, ModifyWideWindowColorGamutNum001, TestSize.Leve
     auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
     node->instanceRootNodeId_ = surfaceNodeId;
     
-    node->ModifyWideWindowColorGamutNum(true);
-    ASSERT_EQ(surfaceNode->wideColorGamutNum_, 1);
-    node->ModifyWideWindowColorGamutNum(false);
-    ASSERT_EQ(surfaceNode->wideColorGamutNum_, 0);
+    node->ModifyWindowWideColorGamutNum(true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(surfaceNode->p3Num_, 1);
+    node->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(surfaceNode->p3Num_, 0);
+
+    node->ModifyWindowWideColorGamutNum(true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
+    ASSERT_EQ(surfaceNode->bt2020Num_, 1);
+    node->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
+    ASSERT_EQ(surfaceNode->bt2020Num_, 0);
 }
 
 /**
@@ -439,7 +429,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
     RSModifierContext modifierContext(property);
     RSModifierType type = RSModifierType::INVALID;
     rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
-    EXPECT_TRUE(rsCanvasRenderNode.renderContent_->drawCmdModifiers_.empty());
+    EXPECT_TRUE(rsCanvasRenderNode.drawCmdModifiers_.empty());
 
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     drawCmdList->SetWidth(2024);
@@ -449,7 +439,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         propertyTwo) };
     type = RSModifierType::FOREGROUND_STYLE;
-    rsCanvasRenderNode.renderContent_->drawCmdModifiers_.emplace(type, listModifier);
+    rsCanvasRenderNode.drawCmdModifiers_.emplace(type, listModifier);
     EXPECT_FALSE(RSSystemProperties::GetSingleFrameComposerEnabled());
     rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
 }
@@ -508,6 +498,30 @@ HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
     NodeId nodeId = 2;
     auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
 
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = true;
+
+    rsCanvasRenderNode->childHasVisibleFilter_ = true;
+    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleFilter_ = false;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    rsCanvasRenderNode->childHasVisibleEffect_ = true;
+    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleEffect_ = false;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = false;
+
+    rsCanvasRenderNode->childHasVisibleFilter_ = true;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleFilter_ = false;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+
+    rsCanvasRenderNode->childHasVisibleEffect_ = true;
+    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    rsCanvasRenderNode->childHasVisibleEffect_ = false;
     EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
 
     auto& property = rsCanvasRenderNode->GetMutableRenderProperties();

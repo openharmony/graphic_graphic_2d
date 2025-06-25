@@ -50,7 +50,7 @@ std::shared_ptr<RSRenderPropertyBase> RSUIFilter::CreateRenderProperty(const Pro
     }
     std::shared_ptr<RSRenderPropertyBase> renderProperty =
         std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
-            rsRenderFilter, id, RSPropertyType::UI_FILTER);
+            rsRenderFilter, id);
     return renderProperty;
 }
 
@@ -97,6 +97,9 @@ bool RSUIFilter::IsStructureSame(const std::shared_ptr<RSUIFilter>& other) const
                 static_cast<int>(oldFilter == nullptr), static_cast<int>(newFilter == nullptr));
             return false;
         }
+        if (oldFilter != nullptr && newFilter != nullptr) {
+            oldFilter->SetStagingEnableHdrEffect(newFilter->GetStagingEnableHdrEffect());
+        }
     }
     return true;
 }
@@ -118,6 +121,20 @@ void RSUIFilter::SetValue(const std::shared_ptr<RSUIFilter>& other)
                 static_cast<int>(oldFilter == nullptr), static_cast<int>(newFilter == nullptr));
         }
     }
+}
+
+bool RSUIFilter::GetHdrEffectEnable() const
+{
+    for (auto type : propertyTypes_) {
+        auto it = paras_.find(type);
+        if (it != paras_.end()) {
+            auto property = it->second;
+            if (property != nullptr && property->CheckEnableHdrEffect()) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 std::shared_ptr<RSUIFilterParaBase> RSUIFilter::GetUIFilterPara(RSUIFilterType type) const

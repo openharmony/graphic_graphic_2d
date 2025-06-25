@@ -52,6 +52,10 @@ public:
     bool IsSubTreeIgnored() const {
         return isSubTreeIgnored_;
     }
+    bool IsValid(const float value)
+    {
+        return !std::isinf(value) && !std::isnan(value);
+    }
     void ForwardOrderInsert(std::shared_ptr<OcclusionNode> newNode);
     bool RemoveChild(const std::shared_ptr<OcclusionNode>& child);
     void RemoveSubTree(std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes);

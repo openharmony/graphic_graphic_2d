@@ -115,6 +115,11 @@ public:
 
     void ANCOTransactionOnComplete(const LayerInfoPtr& layerInfo, const sptr<SyncFence>& previousReleaseFence);
 
+    void SetMaskLayer(LayerPtr maskLayer)
+    {
+        maskLayer_ = maskLayer;
+    }
+    
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
@@ -158,6 +163,8 @@ private:
     bool isMergeFenceSkipped_ = false;
     bool isMergeFenceSkippedDfx_ = true;
 
+    LayerPtr maskLayer_ = nullptr;
+
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();
     void ResetLayerStatusLocked();
@@ -178,6 +185,7 @@ private:
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
 
     bool isActiveRectSwitching_ = false;
+    void DirtyRegions(uint32_t solidLayerCount, const LayerInfoPtr &layerInfo);
 };
 } // namespace Rosen
 } // namespace OHOS

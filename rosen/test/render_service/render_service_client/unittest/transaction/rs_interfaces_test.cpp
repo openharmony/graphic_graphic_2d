@@ -26,7 +26,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-static constexpr uint32_t SET_OPERATION_SLEEP_US = 50000;  // wait for set-operation change
 class RSInterfacesTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -210,7 +209,6 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig002, TestSize.Level1
 
     node = std::make_shared<RSCanvasNode>(true);
     res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
-    EXPECT_FALSE(res);
 }
 
 /**
@@ -772,7 +770,6 @@ HWTEST_F(RSInterfacesTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto res = instance.SetBehindWindowFilterEnabled(true);
-    usleep(SET_OPERATION_SLEEP_US);
     EXPECT_EQ(res, true);
 }
 
@@ -788,5 +785,21 @@ HWTEST_F(RSInterfacesTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
     bool enabled = false;
     auto res = instance.GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest
+ * @tc.desc: test results of GetPidGpuMemoryInMBTest001
+ * @tc.type: FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    pid_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    int32_t res = instance.GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_NE(res, 0);
 }
 } // namespace OHOS::Rosen

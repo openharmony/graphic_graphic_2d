@@ -60,10 +60,10 @@ void GenerateFullChildrenListForAll(const RSContext& context)
         [](const std::shared_ptr<RSRenderNode>& node) { node->GenerateFullChildrenList(); });
 }
 
-std::vector<RSRenderContent::DrawCmdContainer> GetBufferOfDrawCmdModifiersFromTree(
+std::vector<RSRenderNode::DrawCmdContainer> GetBufferOfDrawCmdModifiersFromTree(
     const std::vector<std::shared_ptr<RSRenderNode>>& tree)
 {
-    std::vector<RSRenderContent::DrawCmdContainer> bufferOfDrawCmdModifiers;
+    std::vector<RSRenderNode::DrawCmdContainer> bufferOfDrawCmdModifiers;
     bufferOfDrawCmdModifiers.reserve(tree.size());
 
     for (const auto& node : tree) {
@@ -117,7 +117,7 @@ bool CheckDescsInLists(
 }
 
 bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std::shared_ptr<RSRenderNode>>& tree,
-    const std::vector<RSRenderContent::DrawCmdContainer>& bufferOfDrawCmdModifiers)
+    const std::vector<RSRenderNode::DrawCmdContainer>& bufferOfDrawCmdModifiers)
 {
     bool isDrawCmdModifiersEqual = true;
 

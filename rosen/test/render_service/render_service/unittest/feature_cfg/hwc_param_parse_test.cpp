@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <memory>
+
 #include <gtest/gtest.h>
 #include <test_header.h>
 
@@ -20,6 +22,29 @@
 
 using namespace testing;
 using namespace testing::ext;
+
+namespace {
+const xmlChar NODE_NAME_SINGLE_PARAM[] = "FeatureSingleParam";
+
+const xmlChar ATTRIBUTE_NAME[] = "name";
+const xmlChar ATTRIBUTE_VALUE[] = "value";
+
+const xmlChar TV_PLAYER_BUNDLE_NAME_KEY[] = "TvPlayerBundleName";
+const xmlChar TV_PLAYER_BUNDLE_NAME_VALUE[] = "com.example.tvplayer";
+
+const xmlChar ATTRIBUTE_OTHERS[] = "Others";
+
+xmlAttribute CreateXmlAttribute(const xmlChar* key, const xmlChar* value, xmlAttributePtr next)
+{
+    xmlAttribute attribute;
+    attribute.type = XML_ATTRIBUTE_DECL;
+    attribute.name = key;
+    attribute.defaultValue = value;
+    attribute.next = reinterpret_cast<xmlNodePtr>(next);
+    return attribute;
+}
+}
+
 namespace OHOS {
 namespace Rosen {
 class HwcParamParseTest : public testing::Test {
@@ -49,6 +74,54 @@ HWTEST_F(HwcParamParseTest, ParseFeatureMultiParamForApp001, Function | SmallTes
     std::string name;
     int32_t result = hwcParamParse.ParseFeatureMultiParamForApp(node, name);
     EXPECT_EQ(result, PARSE_GET_CHILD_FAIL);
+}
+
+/**
+ * @tc.name: TestParseHwcInternal001
+ * @tc.desc: Verify the ParseHwcInternal function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseHwcInternal001, TestSize.Level1)
+{
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    node.name = NODE_NAME_SINGLE_PARAM;
+    node.type = XML_ELEMENT_NODE;
+
+    xmlAttribute attrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, TV_PLAYER_BUNDLE_NAME_VALUE, nullptr);
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, TV_PLAYER_BUNDLE_NAME_KEY, &attrVal);
+    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
+
+    FeatureParamMapType featureParam;
+    featureParam["HwcConfig"] = std::make_shared<HWCParam>();
+    HWCParamParse hwcParamParse;
+    int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: TestParseHwcInternal002
+ * @tc.desc: Verify the ParseHwcInternal function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamParseTest, TestParseHwcInternal002, TestSize.Level1)
+{
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    node.name = NODE_NAME_SINGLE_PARAM;
+    node.type = XML_ELEMENT_NODE;
+
+    xmlAttribute attrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, TV_PLAYER_BUNDLE_NAME_VALUE, nullptr);
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, ATTRIBUTE_OTHERS, &attrVal);
+    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
+
+    FeatureParamMapType featureParam;
+    featureParam["HwcConfig"] = std::make_shared<HWCParam>();
+    HWCParamParse hwcParamParse;
+    int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
+    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
 }
 }
 }

@@ -64,7 +64,7 @@ void TextCustomModifier::SetText(std::string text)
     }
 }
 
-void TextCustomModifier::Draw(RSDrawingContext& context) const
+void TextCustomModifier::Draw(DrawingContext& context) const
 {
     if (text_ == nullptr)
         return;

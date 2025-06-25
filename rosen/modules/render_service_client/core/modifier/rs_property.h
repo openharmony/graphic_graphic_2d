@@ -47,13 +47,6 @@
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_node_map.h"
-#include "property/rs_properties_def.h"
-#include "render/rs_border.h"
-#include "render/rs_filter.h"
-#include "render/rs_image.h"
-#include "render/rs_mask.h"
-#include "render/rs_path.h"
-#include "render/rs_shader.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 #include "ui/rs_ui_context.h"
@@ -75,13 +68,23 @@
 
 namespace OHOS {
 namespace Rosen {
-
-/**
- * @class RSUIFilter
- *
- * @brief The class for UI filter.
- */
+namespace ModifierNG {
+class RSModifier;
+class RSForegroundFilterModifier;
+class RSBackgroundFilterModifier;
+}
+class RSFilter;
+class RSImage;
+class RSMask;
+class RSPath;
+class RSNGFilterBase;
+class RSLinearGradientBlurPara;
+class MotionBlurParam;
+class RSMagnifierParams;
+class ParticleNoiseFields;
+class RSShader;
 class RSUIFilter;
+class RSUIFilterUtils;
 
 /**
  * @brief Defines different types of thresholds for spring animation.
@@ -104,29 +107,6 @@ enum class ThresholdType {
     /** 0.0f for noanimatable property */
     ZERO,
 };
-
-
-template<class...>
-struct make_void { using type = void; };
-template<class... T>
-using void_t = typename make_void<T...>::type;
-
-template<class T, class = void>
-struct supports_arithmetic : std::false_type {};
-template<class T>
-struct supports_arithmetic<T,
-    void_t<decltype(std::declval<T>() == std::declval<T>())>>
-        : std::true_type {};
-
-template<class T, class = void>
-struct supports_animatable_arithmetic : std::false_type {};
-template<class T>
-struct supports_animatable_arithmetic<T,
-    void_t<decltype(std::declval<T>() + std::declval<T>()),
-        decltype(std::declval<T>() - std::declval<T>()),
-        decltype(std::declval<T>() * std::declval<float>()),
-        decltype(std::declval<T>() == std::declval<T>())>>
-    : std::true_type {};
 
 /**
  * @class RSPropertyBase
@@ -179,42 +159,29 @@ public:
      *
      * @param rsRenderPropertyBase A shared pointer to the RSRenderPropertyBase object.
      */
-    virtual void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) {};
+    virtual void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) {}
 
-    virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
+    virtual ModifierNG::RSPropertyType GetPropertyTypeNG() const
     {
-        return std::make_shared<RSRenderPropertyBase>(id_);
+        return ModifierNG::RSPropertyType::INVALID;
     }
+
+    virtual void SetPropertyTypeNG(const ModifierNG::RSPropertyType type) {}
 
 protected:
-    virtual void SetIsCustom(bool isCustom) {}
-
-    virtual bool GetIsCustom() const
-    {
-        return false;
-    }
-
-    virtual void SetValue(const std::shared_ptr<RSPropertyBase>& value) {}
-
-    virtual std::shared_ptr<RSPropertyBase> Clone() const
-    {
-        return std::make_shared<RSPropertyBase>();
-    }
-
+    virtual void SetIsCustom(bool isCustom) = 0;
+    virtual bool GetIsCustom() const = 0;
+    virtual void SetValue(const std::shared_ptr<RSPropertyBase>& value) = 0;
+    virtual std::shared_ptr<RSPropertyBase> Clone() const = 0;
     virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) {}
 
-    virtual RSPropertyType GetPropertyType() const
-    {
-        return RSPropertyType::INVALID;
-    }
+    virtual RSPropertyType GetPropertyType() const = 0;
 
     float GetThresholdByModifierType() const;
 
     virtual void UpdateOnAllAnimationFinish() {}
     virtual void UpdateCustomAnimation() {}
-
     virtual void AddPathAnimation() {}
-
     virtual void RemovePathAnimation() {}
 
     virtual void UpdateShowingValue(const std::shared_ptr<const RSRenderPropertyBase>& property) {}
@@ -224,11 +191,41 @@ protected:
         modifier_ = modifier;
     }
 
+    void Attach(const std::shared_ptr<RSNode>& node)
+    {
+        target_ = node;
+        if (node) {
+            node->RegisterProperty(shared_from_this());
+        }
+        OnAttach(node);
+    }
+
+    virtual void OnAttach(const std::shared_ptr<RSNode>& node) {}
+
+    void Detach()
+    {
+        if (auto node = target_.lock()) {
+            node->UnregisterProperty(GetId());
+            OnDetach(node);
+        }
+        target_.reset();
+    }
+
+    virtual void OnDetach(const std::shared_ptr<RSNode>& node) {}
+
+    void AttachModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+    {
+        modifierNG_ = modifier;
+    }
+
     void MarkModifierDirty();
 
     void MarkNodeDirty();
 
     void UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node);
+    bool NeedUpdateExtendModifierForGeometry(const Vector4f& oldValue, const Vector4f& newValue);
+
+    virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() = 0;
 
     virtual bool GetShowingValueAndCancelAnimation()
     {
@@ -241,6 +238,7 @@ protected:
     RSModifierType type_ { RSModifierType::INVALID };
     std::weak_ptr<RSNode> target_;
     std::weak_ptr<RSModifier> modifier_;
+    std::weak_ptr<ModifierNG::RSModifier> modifierNG_;
 
 private:
     virtual std::shared_ptr<RSPropertyBase> Add(const std::shared_ptr<const RSPropertyBase>& value)
@@ -283,6 +281,8 @@ private:
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class RSModifier;
+    friend class ModifierNG::RSModifier;
+    friend class RSNode;
     friend class RSBackgroundUIFilterModifier;
     friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
@@ -298,10 +298,14 @@ private:
     friend class RSExtendedModifier;
     friend class RSCustomTransitionEffect;
     friend class RSCurveAnimation;
-    template<typename T1>
+    friend class RSUIFilterParaBase;
+    friend class ModifierNG::RSForegroundFilterModifier;
+    friend class ModifierNG::RSBackgroundFilterModifier;
+    template<typename T>
     friend class RSAnimatableProperty;
     template<uint16_t commandType, uint16_t commandSubType>
     friend class RSGetShowingValueAndCancelAnimationTask;
+    friend class RSUIFilterUtils;
 };
 
 /**
@@ -332,7 +336,11 @@ public:
     /**
      * @brief Destructor for RSProperty.
      */
-    virtual ~RSProperty() = default;
+    ~RSProperty() override = default;
+
+    using ValueType = T;
+
+    using RenderPropertyType = RSRenderProperty<T>;
 
     virtual void Set(const T& value)
     {
@@ -365,7 +373,19 @@ public:
         return stagingValue_;
     }
 
+    ModifierNG::RSPropertyType GetPropertyTypeNG() const override
+    {
+        return typeNG_;
+    }
+
+    void SetPropertyTypeNG(const ModifierNG::RSPropertyType type) override
+    {
+        typeNG_ = type;
+    }
+
 protected:
+    RSPropertyType GetPropertyType() const override { return type_; }
+
     void UpdateToRender(const T& value, PropertyUpdateType type) const
     {}
 
@@ -381,6 +401,10 @@ protected:
     {
         return std::make_shared<RSProperty<T>>(stagingValue_);
     }
+
+    void OnAttach(const std::shared_ptr<RSNode>& node) override {}
+
+    void OnDetach(const std::shared_ptr<RSNode>& node) override {}
 
     bool IsValid(const T& value)
     {
@@ -402,6 +426,9 @@ protected:
         return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
     }
 
+    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
+    ModifierNG::RSPropertyType typeNG_ = ModifierNG::RSPropertyType::INVALID;
+
     T stagingValue_ {};
     bool isCustom_ { false };
 
@@ -409,6 +436,7 @@ protected:
     friend class RSImplicitAnimator;
     friend class RSExtendedModifier;
     friend class RSModifier;
+    friend class RSUIFilterUtils;
 };
 
 /**
@@ -418,13 +446,11 @@ protected:
  */
 template<typename T>
 class RSAnimatableProperty : public RSProperty<T> {
-    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<Color, T> ||
-                  std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> ||
-                  std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
-                  std::is_same_v<Quaternion, T> ||
-                  std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
-                  supports_animatable_arithmetic<T>::value || std::is_same_v<RRect, T> ||
-                  std::is_same_v<std::vector<float>, T>);
+    static_assert(std::is_floating_point_v<T> || std::is_same_v<Color, T> || std::is_same_v<Matrix3f, T> ||
+                  std::is_same_v<Vector2f, T> || std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
+                  std::is_same_v<Quaternion, T> || std::is_same_v<Vector4<Color>, T> ||
+                  supports_animatable_arithmetic<T>::value || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
+                  std::is_same_v<RRect, T>);
 
 public:
     /**
@@ -447,6 +473,10 @@ public:
      */
     virtual ~RSAnimatableProperty() = default;
 
+    using ValueType = T;
+
+    using RenderPropertyType = RSRenderAnimatableProperty<T>;
+
     void Set(const T& value) override
     {
         if (ROSEN_EQ(value, RSProperty<T>::stagingValue_) || !RSProperty<T>::IsValid(value)) {
@@ -460,7 +490,19 @@ public:
         }
 
         RSProperty<T>::MarkNodeDirty();
-        RSProperty<T>::UpdateExtendModifierForGeometry(node);
+#if defined(MODIFIER_NG)
+        if (RSProperty<T>::GetPropertyTypeNG() == ModifierNG::RSPropertyType::BOUNDS ||
+            RSProperty<T>::GetPropertyTypeNG() == ModifierNG::RSPropertyType::FRAME) {
+#else
+        if (RSProperty<T>::GetPropertyType() == RSModifierType::BOUNDS ||
+            RSProperty<T>::GetPropertyType() == RSModifierType::FRAME) {
+#endif
+            if constexpr (std::is_same_v<Vector4f, T>) {
+                if (RSProperty<T>::NeedUpdateExtendModifierForGeometry(RSProperty<T>::stagingValue_, value)) {
+                    node->MarkAllExtendModifierDirty();
+                }
+            }
+        }
         auto rsUIContext = node->GetRSUIContext();
         auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
             RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
@@ -683,29 +725,6 @@ public:
         propertyUnit_ = unit;
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() override
-    {
-        if (!RSProperty<T>::isCustom_) {
-            return std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
-        }
-
-        if (renderProperty_ == nullptr) {
-            renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
-            auto weak = RSProperty<T>::weak_from_this();
-            renderProperty_->SetUpdateUIPropertyFunc(
-                [weak](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
-                    auto property = weak.lock();
-                    if (property == nullptr) {
-                        return;
-                    }
-                    property->UpdateShowingValue(renderProperty);
-                });
-        }
-        return renderProperty_;
-    }
-
 protected:
     void UpdateOnAllAnimationFinish() override
     {
@@ -759,7 +778,7 @@ protected:
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
     {
         auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(value);
-        if (property != nullptr && property->GetPropertyType() == GetPropertyType()) {
+        if (property != nullptr && property->GetPropertyType() == RSProperty<T>::GetPropertyType()) {
             RSProperty<T>::stagingValue_ = property->stagingValue_;
         }
     }
@@ -772,6 +791,29 @@ protected:
     void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) override
     {
         motionPathOption_ = motionPathOption;
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() override
+    {
+        if (!RSProperty<T>::isCustom_) {
+            return std::make_shared<RSRenderAnimatableProperty<T>>(
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, propertyUnit_);
+        }
+
+        if (renderProperty_ == nullptr) {
+            renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, propertyUnit_);
+            auto weak = RSProperty<T>::weak_from_this();
+            renderProperty_->SetUpdateUIPropertyFunc(
+                [weak](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
+                    auto property = weak.lock();
+                    if (property == nullptr) {
+                        return;
+                    }
+                    property->UpdateShowingValue(renderProperty);
+                });
+        }
+        return renderProperty_;
     }
 
     void NotifyPropertyChange()
@@ -800,11 +842,6 @@ protected:
     RSPropertyUnit propertyUnit_ { RSPropertyUnit::UNKNOWN };
 
 private:
-    RSPropertyType GetPropertyType() const override
-    {
-        return RSPropertyType::INVALID;
-    }
-
     std::shared_ptr<RSPropertyBase> Add(const std::shared_ptr<const RSPropertyBase>& value) override
     {
         auto animatableProperty = std::static_pointer_cast<const RSAnimatableProperty<T>>(value);
@@ -842,7 +879,17 @@ private:
     friend class RSPathAnimation;
     friend class RSExtendedModifier;
     friend class RSModifier;
+    friend class RSUIFilterUtils;
 };
+
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(const std::shared_ptr<RSNode>& node);
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach(const std::shared_ptr<RSNode>& node);
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value);
+template<>
+RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty();
 
 template<>
 RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const;
@@ -870,9 +917,6 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSMask>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
     const std::shared_ptr<RSPath>& value, PropertyUpdateType type) const;
-template<>
-RSC_EXPORT void RSProperty<RSDynamicBrightnessPara>::UpdateToRender(
-    const RSDynamicBrightnessPara& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<RSWaterRipplePara>::UpdateToRender(
     const RSWaterRipplePara& value, PropertyUpdateType type) const;
@@ -914,6 +958,9 @@ RSC_EXPORT void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUp
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
     const std::shared_ptr<RSUIFilter>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const;
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);
@@ -922,26 +969,16 @@ RSC_EXPORT bool RSProperty<Vector2f>::IsValid(const Vector2f& value);
 template<>
 RSC_EXPORT bool RSProperty<Vector4f>::IsValid(const Vector4f& value);
 
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<float>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<Color>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<Quaternion>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const;
+#define DECLARE_PROPERTY(T, TYPE_ENUM) \
+template<>                             \
+inline const RSPropertyType RSProperty<T>::type_ = RSPropertyType::TYPE_ENUM
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) DECLARE_PROPERTY(T, TYPE_ENUM)
+
+#include "modifier/rs_property_def.in"
+
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
+
 } // namespace Rosen
 } // namespace OHOS
 

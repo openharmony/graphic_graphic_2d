@@ -283,38 +283,80 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, CreateTest, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager;
+    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
 #ifdef RS_ENABLE_VK
-    imageManager = RSImageManager::Create();
+    imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
 #endif // RS_ENABLE_VK
 #ifdef RS_ENABLE_GL
-    imageManager = RSImageManager::Create();
+    imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
 #endif // RS_ENABLE_GL
 }
 
 /**
- * @tc.name: CreateImageResourceTest
- * @tc.desc: CreateImageResourceTest
+ * @tc.name: CreateImageFromBufferTest
+ * @tc.desc: CreateImageFromBuffer
  * @tc.type: FUNC
  * @tc.require: issueI6QHNP
  */
-HWTEST_F(RSVKImageManagerTest, CreateImageResourceTest, TestSize.Level1)
+HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
 {
-    std::shared_ptr<ImageResource> imageResource;
-#ifdef RS_ENABLE_VK
-    NativeWindowBuffer* nativeWindowBuffer = nullptr;
-    Drawing::BackendTexture backendTexture = Drawing::BackendTexture();
-    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper = nullptr;
-    imageResource = ImageResource::VkCreate(nativeWindowBuffer, backendTexture, vulkanCleanupHelper);
-    ASSERT_NE(imageResource, nullptr);
-#endif // RS_ENABLE_VK
-#ifdef RS_ENABLE_GL
-    EGLDisplay eglDisplay = EGL_NO_DISPLAY;
-    EGLImageKHR eglImage = EGL_NO_IMAGE_KHR;
-    EGLClientBuffer eglClientBuffer = nullptr;
-    imageResource = ImageResource::EglCreate(eglDisplay, eglImage, eglClientBuffer);
-    ASSERT_NE(imageResource, nullptr);
-#endif // RS_ENABLE_GL
+    int canvasHeight = 10;
+    int canvasWidth = 10;
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    uint32_t threadIndex = 0;
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
+    EXPECT_EQ(res, nullptr);
+
+    buffer = SurfaceBuffer::Create();
+    res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: GetIntersectImageTest
+ * @tc.desc: GetIntersectImage
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVKImageManagerTest, GetIntersectImageTest, TestSize.Level1)
+{
+    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
+    std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
+    sptr<OHOS::SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    pid_t threadIndex = 0;
+    buffer = SurfaceBuffer::Create();
+    auto res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+    EXPECT_EQ(res, nullptr);
+}
+
+/**
+ * @tc.name: NewImageCacheFromBufferTest
+ * @tc.desc: NewImageCacheFromBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVkImageManagerTest, NewImageCacheFromBufferTest, TestSize.Level1)
+{
+    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    sptr<OHOS::SurfaceBuffer> buffer = nullptr;
+    pid_t threadIndex = 0;
+    bool isProtectedCondition = true;
+    auto res = imageManager->newImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
+    EXPECT_EQ(res, nullptr);
+    buffer = SurfaceBuffer::Create();
+    res = imageManager->newImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
+    EXPECT_NE(res, nullptr);
+    isProtectedCondition = false;
+    res = imageManager->newImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
+    EXPECT_NE(res, nullptr);
 }
 } // namespace OHOS::Rosen

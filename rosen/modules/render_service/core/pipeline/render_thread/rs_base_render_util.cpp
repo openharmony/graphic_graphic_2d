@@ -35,6 +35,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/rs_jank_stats.h"
 #include "png.h"
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
@@ -1054,6 +1055,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
         return false;
     }
+    RSJankStats::GetInstance().AvcodecVideoCollect(consumer->GetUniqueId(), surfaceBuffer->buffer->GetSeqNum());
     surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
         consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);

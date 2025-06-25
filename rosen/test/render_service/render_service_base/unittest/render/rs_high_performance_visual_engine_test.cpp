@@ -98,8 +98,16 @@ HWTEST_F(RSHveFilterTest, SampleLayerTest, TestSize.Level1)
     HveFilter filter;
     auto canvas = std::make_unique<Drawing::Canvas>();
     RSPaintFilterCanvas paintFilterCanvas(canvas.get());
+    EXPECT_EQ(paintFilterCanvas.GetSurface(), nullptr);
     const Drawing::RectI srcRect = Drawing::RectI(0, 0, 350, 20);
     auto outImage = filter.SampleLayer(paintFilterCanvas, srcRect);
+    EXPECT_EQ(outImage, nullptr);
+
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    std::shared_ptr<RSPaintFilterCanvas> canvasPtr = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    EXPECT_EQ(paintFilterCanvas.GetSurface(), surfacePtr.get());
+    outImage = filter.SampleLayer(paintFilterCanvas, srcRect);
     EXPECT_EQ(outImage, nullptr);
 }
 

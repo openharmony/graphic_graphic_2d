@@ -23,10 +23,12 @@
 #include "drawing.h"
 #include "rosen_text/symbol_constants.h"
 #include "rosen_text/hm_symbol_txt.h"
+#include "symbol_gradient.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+
 class HMSymbolTxt {
 public:
     HMSymbolTxt() {}
@@ -58,6 +60,14 @@ public:
 
     bool operator ==(HMSymbolTxt const &symbol) const;
 
+    void SetGradients(const std::vector<std::shared_ptr<SymbolGradient>>& gradients);
+
+    std::vector<std::shared_ptr<SymbolGradient>> GetGradients() const;
+
+    void SetSymbolColor(const SymbolColor& symbolColor);
+
+    SymbolColor GetSymbolColor() const;
+
     std::vector<RSSColor> GetRenderColor() const;
 
     RSSymbolRenderingStrategy GetRenderMode() const;
@@ -78,10 +88,14 @@ public:
 
     const SymbolBitmapType& GetSymbolBitmap() const;
 
+    void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
+
+    const std::optional<SymbolShadow>& GetSymbolShadow() const;
+
     std::string familyName_;
 
 private:
-    std::vector<RSSColor> colorList_;
+    SymbolColor symbolColor_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
     size_t symbolUid_ = 0;
@@ -91,6 +105,7 @@ private:
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
     SymbolType symbolType_{SymbolType::SYSTEM};
     SymbolBitmapType relayoutChangeBitmap_;
+    std::optional<SymbolShadow> symbolShadow_;
 };
 }
 }

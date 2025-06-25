@@ -95,6 +95,7 @@ private:
     std::shared_ptr<RSAnimatableProperty<float>> alpha_;
 };
 
+#ifndef MODIFIER_NG
 /*
  * @tc.name: CustomTransitionEffectTest001
  * @tc.desc: Verify the custom transition effect of TransitionTest
@@ -460,6 +461,7 @@ HWTEST_F(RSTransitionTest, CombinedTransitionEffectTest003, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSTransitionTest CombinedTransitionEffectTest003 end";
 }
+#endif
 
 /**
  * @tc.name: SetTransitionEffectTest001

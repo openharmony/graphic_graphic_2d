@@ -37,7 +37,7 @@ public:
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetRenderAnimatableProperty(const RSUIFilterType type)
     {
-        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(GetRenderPropert(type));
+        return std::static_pointer_cast<RSRenderAnimatableProperty<T>>(GetRenderProperty(type));
     }
 
     void GetDescription(std::string& out) const override;
@@ -49,6 +49,10 @@ public:
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 
     const std::shared_ptr<Drawing::Image> GetImage() const;
+
+    uint32_t CalcHash();
+
+    std::shared_ptr<RSRenderMaskPara> LimitedDeepCopy() const override;
 
 private:
     std::shared_ptr<Drawing::Image> cacheImage_ = nullptr;

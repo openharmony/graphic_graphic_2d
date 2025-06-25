@@ -214,5 +214,8 @@ HWTEST_F(RSRenderDispersionFilterTest, ParseFilterValuesTest001, TestSize.Level1
     auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK);
     filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
+
+    auto filterCopy = filter->DeepCopy();
+    EXPECT_NE(filterCopy, nullptr);
 }
 } // namespace OHOS::Rosen

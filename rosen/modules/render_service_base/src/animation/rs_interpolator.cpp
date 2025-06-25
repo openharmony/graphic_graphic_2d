@@ -86,15 +86,15 @@ void RSCustomInterpolator::Convert(int duration)
         return;
     }
     constexpr uint64_t frameInterval = 16666667;
-    int numAnim = static_cast<int>(std::ceil(static_cast<double>(duration * MS_TO_NS) / frameInterval));
+    auto numAnim = static_cast<size_t>(std::ceil(static_cast<double>(duration * MS_TO_NS) / frameInterval));
     numAnim = std::clamp(numAnim, MIN_SAMPLE_POINTS, MAX_SAMPLE_POINTS);
     float lastAnimFrame = numAnim - 1;
     if (lastAnimFrame <= 0.0f) {
         ROSEN_LOGE("RSCustomInterpolator::Convert, lastAnimFrame is invalid.");
         return;
     }
-    for (int i = 0; i < numAnim; i++) {
-        float time = i / lastAnimFrame;
+    for (size_t i = 0; i < numAnim; i++) {
+        float time = static_cast<float>(i) / lastAnimFrame;
         float value = interpolateFunc_(time);
         times_.push_back(time);
         values_.push_back(value);

@@ -31,6 +31,8 @@
 
 #ifdef USE_M133_SKIA
 #include "include/private/base/SkTArray.h"
+#else
+#include "include/private/SkTArray.h"
 #endif
 
 namespace OHOS {
@@ -114,6 +116,10 @@ public:
             animationFunc_ = animationFunc;
         }
     }
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> GetAnimation() override
+    {
+        return animationFunc_;
+    }
 
     void SetParagraghId(uint32_t id) override
     {
@@ -145,9 +151,11 @@ public:
 
     std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
 
-    bool HasEnabledTextEffect() const override;
+    bool HasSkipTextBlobDrawing() const override;
 
-    void SetTextEffectState(bool state) override;
+    void SetSkipTextBlobDrawing(bool state) override;
+
+    bool isRunCombinated() { return paragraph_->isRunCombinated(); }
 
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,

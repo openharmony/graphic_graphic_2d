@@ -592,7 +592,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, AccumulateOcclusionRegion, TestSize.Level1)
     testNode->GetMutableRenderProperties().SetCornerRadius(Vector4f(15.0f));
     testNode->AccumulateOcclusionRegion(
         accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender, filterCacheOcclusionEnabled);
-    testNode->renderContent_->renderProperties_.frameGravity_ = Gravity::RESIZE;
+    testNode->renderProperties_.frameGravity_ = Gravity::RESIZE;
     testNode->AccumulateOcclusionRegion(
         accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender, filterCacheOcclusionEnabled);
     testNode->name_ = "hisearch";
@@ -679,7 +679,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateFilterCacheStatusIfNodeStatic, TestSi
     node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), true);
     std::shared_ptr<RSRenderNode> mockNode = std::make_shared<RSRenderNode>(id);
     mockNode->isOnTheTree_ = true;
-    mockNode->renderContent_->renderProperties_.needFilter_ = true;
+    mockNode->renderProperties_.needFilter_ = true;
     node->filterNodes_.emplace_back(mockNode);
     node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
     ASSERT_NE(node->filterNodes_.size(), 0);

@@ -61,6 +61,29 @@ HWTEST_F(SkiaPathIteratorTest, SkiaPathIterNext001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkiaPathIteratorNext001
+ * @tc.desc: Test Next
+ * @tc.type: FUNC
+ * @tc.require: ICDWVQ
+ */
+HWTEST_F(SkiaPathIteratorTest, SkiaPathIteratorNext001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(0, 0);
+    path.LineTo(10, 10); // 10: x, y
+    SkiaPathIterator skiaPathIterator(path);
+    Point points[4] = {}; // 4 is the max points count
+    PathVerb verb = skiaPathIterator.Next(points);
+    EXPECT_EQ(verb, PathVerb::MOVE);
+    verb = skiaPathIterator.Next(points);
+    EXPECT_EQ(verb, PathVerb::LINE);
+    verb = skiaPathIterator.Next(points);
+    EXPECT_EQ(verb, PathVerb::DONE);
+    verb = skiaPathIterator.Next(nullptr);
+    EXPECT_EQ(verb, PathVerb::DONE);
+}
+
+/**
  * @tc.name: SkiaPathIterConicWeight001
  * @tc.desc: Test ConicWeight
  * @tc.type: FUNC

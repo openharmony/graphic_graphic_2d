@@ -472,8 +472,6 @@ RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 void RSDirtyRegionManager::MergeAdvancedDirtyHistory(unsigned int age)
 {
     if (age == 0 || age > historySize_) {
-        RS_LOGW("RSDirtyRegionManager::MergeAdvancedDirtyHistory unvalid age : %{public}d"
-            "historySize : %{public}d", age, historySize_);
         advancedDirtyRegion_ = {surfaceRect_};
         return;
     }

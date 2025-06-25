@@ -17,13 +17,15 @@
 
 #include <memory>
 
-#include "animation/rs_render_interactive_implict_animator_map.h"
 #include "animation/rs_render_interactive_implict_animator.h"
+#include "animation/rs_render_interactive_implict_animator_map.h"
 #include "animation/rs_render_particle.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "modifier/rs_render_modifier.h"
 #include "modifier/rs_render_property.h"
+#include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -111,6 +113,31 @@ void AnimationCommandHelper::CreateParticleAnimation(
     animation->AttachRenderProperty(property);
     auto currentTime = context.GetCurrentTimestamp();
     animation->SetStartTime(currentTime);
+    animation->Attach(node.get());
+    // register node as animating node
+    context.RegisterAnimatingRenderNode(node);
+}
+
+void AnimationCommandHelper::CreateParticleAnimationNG(RSContext& context, NodeId targetId, ModifierId modifierId,
+    const std::shared_ptr<RSRenderParticleAnimation>& animation)
+{
+    if (animation == nullptr) {
+        RS_LOGE("AnimationCommandHelper::CreateParticleAnimationNG, animation is nullptr");
+        return;
+    }
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
+        return;
+    }
+    RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
+    node->GetAnimationManager().AddAnimation(animation);
+    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
+        animation->GetRenderParticle(), animation->GetPropertyId());
+    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier<RSRenderParticleVector>(
+        ModifierNG::RSModifierType::PARTICLE_EFFECT, property, modifierId, ModifierNG::RSPropertyType::PARTICLE);
+    node->AddModifier(modifier);
+    animation->AttachRenderProperty(property);
+    animation->SetStartTime(context.GetCurrentTimestamp());
     animation->Attach(node.get());
     // register node as animating node
     context.RegisterAnimatingRenderNode(node);

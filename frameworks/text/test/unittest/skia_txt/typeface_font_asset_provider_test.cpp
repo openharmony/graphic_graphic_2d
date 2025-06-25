@@ -46,7 +46,7 @@ void TypefaceFontAssetProviderTest::TearDown()
  * @tc.desc: test for RegisterTypeface and getFamily
  * @tc.type: FUNC
  */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest001, TestSize.Level1)
+HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest001, TestSize.Level0)
 {
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
     ASSERT_NE(skTypeface, nullptr);
@@ -66,7 +66,7 @@ HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest001, TestSi
  * @tc.desc: test for TypefaceFontStyleSet
  * @tc.type: FUNC
  */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest004, TestSize.Level1)
+HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest004, TestSize.Level0)
 {
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
     ASSERT_NE(skTypeface, nullptr);
@@ -95,7 +95,7 @@ HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest004, TestSi
  * @tc.desc: test for RegisterTypefaces with empty familyNameAlias
  * @tc.type: FUNC
  */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest009, TestSize.Level1)
+HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest009, TestSize.Level0)
 {
     auto fontProvider = std::make_unique<TypefaceFontAssetProvider>();
     std::string familyName("test");

@@ -110,6 +110,7 @@ private:
     bool isMultiInstanceOpen_ = false;
 
     friend class RSUIDirector;
+    friend class RSUIContext;
 };
 } // namespace Rosen
 } // namespace OHOS

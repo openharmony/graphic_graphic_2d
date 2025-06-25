@@ -28,6 +28,7 @@ namespace OHOS {
 namespace Rosen {
 struct EdgeLightShaderFilterParams {
     float alpha{ 0.f };
+    bool bloom{ true };
     std::optional<Vector4f> color{ std::nullopt };
     std::shared_ptr<RSShaderMask> mask{ nullptr };
 };
@@ -42,6 +43,7 @@ public:
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 private:
     float alpha_{ 0.f };
+    bool bloom_{ true };
     std::optional<Vector4f> color_{ std::nullopt };
     std::shared_ptr<RSShaderMask> mask_{ nullptr };
 };

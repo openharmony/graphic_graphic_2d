@@ -340,6 +340,20 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsReplayMode
+ * @tc.desc: Test SetIsReplayMode
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdListTest, SetIsReplayMode, Level1)
+{
+    auto drawCmdList = new DrawCmdList();
+    drawCmdList->SetIsReplayMode(true);
+    EXPECT_TRUE(drawCmdList->isReplayMode);
+    drawCmdList->SetIsReplayMode(false);
+    EXPECT_FALSE(drawCmdList->isReplayMode);
+}
+
+/**
  * @tc.name: Dump003
  * @tc.desc: Test the Dump function.
  * @tc.type: UnmarshallingDrawOpsSimple

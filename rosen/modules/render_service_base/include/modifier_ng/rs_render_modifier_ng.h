@@ -64,6 +64,11 @@ public:
         return false;
     }
 
+    virtual Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const
+    {
+        return nullptr;
+    }
+
     void Dump(std::string& out, const std::string& splitStr) const
     {
         for (auto& [type, property] : properties_) {
@@ -96,11 +101,20 @@ public:
         }
     }
 
-    virtual ModifierNG::RSModifierType GetType() const = 0;
+    virtual RSModifierType GetType() const = 0;
 
     ModifierId GetId() const
     {
         return id_;
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetProperty(RSPropertyType type)
+    {
+        auto it = properties_.find(type);
+        if (it == properties_.end()) {
+            return nullptr;
+        }
+        return it->second;
     }
 
     bool Marshalling(Parcel& parcel) const;
@@ -113,7 +127,7 @@ public:
 
     size_t GetPropertySize()
     {
-        auto size = 0;
+        size_t size = 0;
         for (auto& [type, property] : properties_) {
             if (property != nullptr) {
                 size += property->GetSize();
@@ -123,10 +137,11 @@ public:
     }
 
     template<typename T>
-    static std::shared_ptr<RSRenderModifier> MakeRenderModifier(
-        const RSModifierType type, const std::shared_ptr<RSRenderProperty<T>>& property)
+    static std::shared_ptr<RSRenderModifier> MakeRenderModifier(RSModifierType modifierType,
+        const std::shared_ptr<RSRenderProperty<T>>& property, ModifierId id = 0,
+        RSPropertyType propertyType = RSPropertyType::INVALID)
     {
-        const auto& constructor = RSRenderModifier::ConstructorLUT_[static_cast<uint8_t>(type)];
+        const auto& constructor = RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(modifierType)];
         if (constructor == nullptr) {
             return nullptr;
         }
@@ -135,8 +150,14 @@ public:
             return nullptr;
         }
         std::shared_ptr<RSRenderModifier> renderModifier(rawPointer);
-        auto propertyType = ModifierTypeConvertor::GetPropertyType(type);
-        renderModifier->properties_.emplace(propertyType, property);
+        if (propertyType == RSPropertyType::INVALID) {
+            renderModifier->properties_.emplace(ModifierTypeConvertor::GetPropertyType(modifierType), property);
+        } else {
+            renderModifier->properties_.emplace(propertyType, property);
+        }
+        if (id > 0) {
+            renderModifier->id_ = id;
+        }
         return renderModifier;
     }
 
@@ -151,6 +172,13 @@ protected:
 
     // sub-class should not directly access properties_, use GetPropertyValue instead
     std::map<RSPropertyType, std::shared_ptr<RSRenderPropertyBase>> properties_;
+
+    virtual void AttachRenderFilterProperty(
+        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type)
+    {}
+    virtual void DetachRenderFilterProperty(
+        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type)
+    {}
 
     template<typename T, auto Setter>
     static void PropertyApplyHelper(RSProperties& properties, RSRenderPropertyBase& property)
@@ -180,7 +208,7 @@ protected:
     virtual void OnSetDirty();
 
     using LegacyPropertyApplier = std::function<void(RSProperties& context, RSRenderPropertyBase&)>;
-    using LegacyPropertyApplierMap = std::unordered_map<ModifierNG::RSPropertyType, LegacyPropertyApplier>;
+    using LegacyPropertyApplierMap = std::unordered_map<RSPropertyType, LegacyPropertyApplier>;
 
     static const LegacyPropertyApplierMap emptyLegacyPropertyApplierMap_;
 
@@ -191,7 +219,7 @@ protected:
 
 private:
     using Constructor = std::function<RSRenderModifier*()>;
-    static std::array<Constructor, ModifierNG::MODIFIER_TYPE_COUNT> ConstructorLUT_;
+    static std::array<Constructor, MODIFIER_TYPE_COUNT> ConstructorLUT_;
 
     template<typename T>
     static T Add(const T& a, const T& b)
@@ -256,7 +284,7 @@ public:
 
     static inline constexpr auto Type = type;
 
-    ModifierNG::RSModifierType GetType() const override
+    RSModifierType GetType() const override
     {
         return Type;
     };
@@ -274,6 +302,11 @@ public:
     bool GetSingleFrameModifier() const override
     {
         return isSingleFrameModifier_;
+    }
+
+    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
+    {
+        return Getter<Drawing::DrawCmdListPtr>(ModifierTypeConvertor::GetPropertyType(GetType()), nullptr);
     }
 
     void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) override;

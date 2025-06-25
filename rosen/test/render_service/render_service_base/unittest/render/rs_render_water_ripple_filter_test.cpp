@@ -37,11 +37,11 @@ void RSWaterRippleShaderFilterTest::SetUp() {}
 void RSWaterRippleShaderFilterTest::TearDown() {}
 
 /**
- * @tc.name: GetProgressTest
- * @tc.desc: Verify function GetProgress
+ * @tc.name: GetWaterRipplePropertyTest
+ * @tc.desc: Verify the functions that get properties of waterRipple
  * @tc.type:FUNC
  */
-HWTEST_F(RSWaterRippleShaderFilterTest, GetProgressTest, TestSize.Level1)
+HWTEST_F(RSWaterRippleShaderFilterTest, GetWaterRipplePropertyTest, TestSize.Level1)
 {
     float progress = 0.1f;
     uint32_t waveCount = 2;
@@ -52,77 +52,9 @@ HWTEST_F(RSWaterRippleShaderFilterTest, GetProgressTest, TestSize.Level1)
     auto rsWaterRippleShaderFilter = std::make_shared<RSWaterRippleShaderFilter>(progress, waveCount, rippleCenterX,
                                                                                 rippleCenterY, rippleMode);
     EXPECT_EQ(rsWaterRippleShaderFilter->GetProgress(), 0.1f);
-}
-
-/**
- * @tc.name: GetWaveCountTest
- * @tc.desc: Verify function GetWaveCount
- * @tc.type:FUNC
- */
-HWTEST_F(RSWaterRippleShaderFilterTest, GetWaveCountTest, TestSize.Level1)
-{
-    float progress = 0.1f;
-    uint32_t waveCount = 2;
-    float rippleCenterX = 0.3f;
-    float rippleCenterY = 0.5f;
-    uint32_t rippleMode = 1;
-
-    auto rsWaterRippleShaderFilter = std::make_shared<RSWaterRippleShaderFilter>(progress, waveCount, rippleCenterX,
-                                                                                rippleCenterY, rippleMode);
     EXPECT_EQ(rsWaterRippleShaderFilter->GetWaveCount(), 2);
-}
-
-/**
- * @tc.name: GetRippleCenterXTest
- * @tc.desc: Verify function GetRippleCenterX
- * @tc.type:FUNC
- */
-HWTEST_F(RSWaterRippleShaderFilterTest, GetRippleCenterXTest, TestSize.Level1)
-{
-    float progress = 0.1f;
-    uint32_t waveCount = 2;
-    float rippleCenterX = 0.3f;
-    float rippleCenterY = 0.5f;
-    uint32_t rippleMode = 1;
-
-    auto rsWaterRippleShaderFilter = std::make_shared<RSWaterRippleShaderFilter>(progress, waveCount, rippleCenterX,
-                                                                                rippleCenterY, rippleMode);
     EXPECT_EQ(rsWaterRippleShaderFilter->GetRippleCenterX(), 0.3f);
-}
-
-/**
- * @tc.name: GetRippleCenterYTest
- * @tc.desc: Verify function GetRippleCenterY
- * @tc.type:FUNC
- */
-HWTEST_F(RSWaterRippleShaderFilterTest, GetRippleCenterYTest, TestSize.Level1)
-{
-    float progress = 0.1f;
-    uint32_t waveCount = 2;
-    float rippleCenterX = 0.3f;
-    float rippleCenterY = 0.5f;
-    uint32_t rippleMode = 1;
-
-    auto rsWaterRippleShaderFilter = std::make_shared<RSWaterRippleShaderFilter>(progress, waveCount, rippleCenterX,
-                                                                                rippleCenterY, rippleMode);
     EXPECT_EQ(rsWaterRippleShaderFilter->GetRippleCenterY(), 0.5f);
-}
-
-/**
- * @tc.name: GetRippleModeTest
- * @tc.desc: Verify function GetRippleMode
- * @tc.type:FUNC
- */
-HWTEST_F(RSWaterRippleShaderFilterTest, GetRippleModeTest, TestSize.Level1)
-{
-    float progress = 0.1f;
-    uint32_t waveCount = 2;
-    float rippleCenterX = 0.3f;
-    float rippleCenterY = 0.5f;
-    uint32_t rippleMode = 1;
-
-    auto rsWaterRippleShaderFilter = std::make_shared<RSWaterRippleShaderFilter>(progress, waveCount, rippleCenterX,
-                                                                                rippleCenterY, rippleMode);
     EXPECT_EQ(rsWaterRippleShaderFilter->GetRippleMode(), 1);
 }
 

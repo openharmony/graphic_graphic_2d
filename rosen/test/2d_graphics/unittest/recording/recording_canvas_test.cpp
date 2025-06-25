@@ -809,6 +809,21 @@ HWTEST_F(RecordingCanvasTest, DrawImageRect002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageLatticeTest001
+ * @tc.desc: Test the DrawImageLattice function.
+ * @tc.type: FUNC
+ * @tc.require: ICDWVQ
+ */
+HWTEST_F(RecordingCanvasTest, DrawImageLatticeTest001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    Rect dst(0.0f, 0.0f, CANAS_WIDTH, CANAS_HEIGHT);
+    Lattice lattice;
+    recordingCanvas->DrawImageLattice(nullptr, lattice, dst, FilterMode::NEAREST);
+}
+
+/**
  * @tc.name: DrawPicture001
  * @tc.desc: Test the playback of the DrawPicture function.
  * @tc.type: FUNC
@@ -1353,6 +1368,30 @@ HWTEST_F(RecordingCanvasTest, ResetHybridRenderSize003, TestSize.Level1)
     Rect bounds;
     drawCmdList->GetBounds(bounds);
     EXPECT_EQ(bounds, rect);
+}
+
+/**
+ * @tc.name: DrawImageNineTest001
+ * @tc.desc: Test the DrawImageNine function.
+ * @tc.type: FUNC
+ * @tc.require: ICDP3G
+ */
+HWTEST_F(RecordingCanvasTest, DrawImageNineTest001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    Drawing::RectI center = Drawing::RectI(0, 0, CANAS_WIDTH, CANAS_HEIGHT);
+    Drawing::Rect dst = Drawing::Rect(0.0, 0.0, CANAS_WIDTH, CANAS_HEIGHT);
+    Brush brush;
+    recordingCanvas->DrawImageNine(nullptr, center, dst, FilterMode::LINEAR, &brush);
+
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bitmap.Build(CANAS_WIDTH, CANAS_WIDTH, bitmapFormat);
+    Image image;
+    image.BuildFromBitmap(bitmap);
+    recordingCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, &brush);
+    recordingCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

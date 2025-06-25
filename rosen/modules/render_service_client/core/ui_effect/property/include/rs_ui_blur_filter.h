@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_BLUR_UI_FILTER_H
-#define RENDER_BLUR_UI_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_BLUR_UI_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_BLUR_UI_FILTER_H
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
 
 #include "common/rs_vector2.h"
@@ -43,4 +43,4 @@ public:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_BLUR_UI_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_BLUR_UI_FILTER_H

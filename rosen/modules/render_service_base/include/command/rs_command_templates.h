@@ -79,9 +79,14 @@ public:
     {
         if constexpr (std::tuple_size<decltype(params_)>::value > 1) {
             using ptrType = typename std::tuple_element<1, decltype(params_)>::type;
+#if defined(MODIFIER_NG)
+            using RenderModifier = ModifierNG::RSRenderModifier;
+#else
+            using RenderModifier = RSRenderModifier;
+#endif
             if constexpr (std::is_same<std::shared_ptr<Drawing::DrawCmdList>, ptrType>::value) {
                 return std::get<1>(params_);
-            } else if constexpr (std::is_same<std::shared_ptr<RSRenderModifier>, ptrType>::value) {
+            } else if constexpr (std::is_same<std::shared_ptr<RenderModifier>, ptrType>::value) {
                 auto& modifier = std::get<1>(params_);
                 if (modifier) {
                     return modifier->GetPropertyDrawCmdList();
@@ -102,11 +107,14 @@ public:
 
     uint64_t GetToken() const override
     {
+        if (GetType() != RSCommandType::ANIMATION) {
+            return 0;
+        }
         if constexpr (std::tuple_size<decltype(params_)>::value > 3) {                 // 3:For RSAnimationCallback
             using aniIdType = typename std::tuple_element<1, decltype(params_)>::type; // 1:animationId
             using tokenType = typename std::tuple_element<2, decltype(params_)>::type; // 2:token
             if (std::is_same<AnimationId, aniIdType>::value && std::is_same<uint64_t, tokenType>::value) {
-                return std::get<2>(params_);                                           // 2:return token
+                return static_cast<uint64_t>(std::get<2>(params_));                    // 2:return token
             }
         }
         return 0; // invalidId

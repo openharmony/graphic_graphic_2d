@@ -120,12 +120,27 @@ public:
         isFirstTimeToProcessor_ = false;
     }
 
+    ScreenRotation GetFirstBufferRotation() const
+    {
+        return firstBufferRotation_;
+    }
+
+    void SetFirstBufferRotation(const ScreenRotation bufferRotation)
+    {
+        firstBufferRotation_ = bufferRotation;
+    }
+
     ScreenRotation GetOriginScreenRotation() const
     {
         return originScreenRotation_;
     }
     bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisivleRect = true);
+
+    RSRenderNodeDrawableType GetDrawableType() const override
+    {
+        return RSRenderNodeDrawableType::DISPLAY_NODE_DRAWABLE;
+    }
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -174,6 +189,10 @@ private:
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
     void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
     void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
+    bool HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
+        const Drawing::SamplingOptions& sampling) const;
+    bool SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
+        const Drawing::SamplingOptions& sampling) const;
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
@@ -216,6 +235,7 @@ private:
     bool resetRotate_ = false;
     bool isFirstTimeToProcessor_ = true;
     ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    ScreenRotation firstBufferRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
     std::vector<RectI> dirtyRects_;

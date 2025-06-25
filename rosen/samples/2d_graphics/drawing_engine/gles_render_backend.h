@@ -23,10 +23,10 @@
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrContextOptions.h"
 
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
-#include "include/gpu/GrDirectContext.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
 #else
-#include "include/gpu/GrContext.h"
+#include "include/gpu/GrDirectContext.h"
 #endif
 
 #include "interface_render_backend.h"
@@ -45,17 +45,10 @@ public:
     void SwapBuffers() override;
     void* CreateSurface(void* window) override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     GrDirectContext* GetGrContext() const
     {
         return grContext_.get();
     }
-#else
-    GrContext* GetGrContext() const
-    {
-        return grContext_.get();
-    }
-#endif
     bool SetUpGrContext();
     bool SetUpDrContext();
     void Destroy() override;
@@ -64,11 +57,7 @@ public:
     Drawing::Canvas* AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
 private:
     EGLManager* eglManager_ = nullptr;
-#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
     sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
-#endif
     sk_sp<SkSurface> skSurface_ = nullptr;
     SkSurface* pSkSurface_ = nullptr;
 

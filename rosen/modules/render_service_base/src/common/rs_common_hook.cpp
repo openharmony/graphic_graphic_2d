@@ -98,4 +98,14 @@ void RsCommonHook::GetComponentPowerFps(FrameRateRange& range)
     }
 }
 
+void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
+{
+    tvPlayerBundleName_ = bundleName;
+}
+
+std::string RsCommonHook::GetTvPlayerBundleName() const
+{
+    return tvPlayerBundleName_;
+}
+
 } // namespace OHOS::Rosen

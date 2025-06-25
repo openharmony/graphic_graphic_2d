@@ -17,10 +17,12 @@
 
 #include <memory>
 
-#include "common/rs_optional_trace.h"
-#include "draw/blend_mode.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
+
+#include "common/rs_optional_trace.h"
+#include "draw/blend_mode.h"
+#include "effect/rs_render_filter_base.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -28,9 +30,10 @@
 #include "render/rs_render_grey_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_light_blur_filter.h"
-#include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
+#include "render/rs_render_mesa_blur_filter.h"
+
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
@@ -108,6 +111,9 @@ std::string RSDrawingFilter::GetDescription()
 {
     std::string filterString = GetFilterTypeString();
     for (const auto& shaderFilter : shaderFilters_) {
+        if (shaderFilter == nullptr) {
+            continue;
+        }
         switch (shaderFilter->GetType()) {
             case RSUIFilterType::KAWASE: {
                 auto filter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(shaderFilter);
@@ -213,6 +219,13 @@ bool RSDrawingFilter::CanSkipFrame(float radius)
 {
     constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
     return radius > HEAVY_BLUR_THRESHOLD;
+}
+
+void RSDrawingFilter::OnSync()
+{
+    if (renderFilter_) {
+        renderFilter_->OnSync();
+    }
 }
 
 uint32_t RSDrawingFilter::Hash() const
@@ -485,6 +498,7 @@ void RSDrawingFilter::DrawImageRectInternal(Drawing::Canvas& canvas, const std::
         }
         filter->GenerateGEVisualEffect(visualEffectContainer);
     }
+    RSUIFilterHelper::UpdateToGEContainer(renderFilter_, visualEffectContainer);
     auto brush = GetBrush(attr.brushAlpha);
     if (attr.discardCanvas && kawaseHpsFilter && ROSEN_EQ(brush.GetColor().GetAlphaF(), 1.0f)) {
         canvas.Discard();

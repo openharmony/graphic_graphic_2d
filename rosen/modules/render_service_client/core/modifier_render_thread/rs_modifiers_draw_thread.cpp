@@ -28,16 +28,17 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "qos.h"
 #include "render_context/shader_cache.h"
-#include "rs_frame_report.h"
+#include "concurrent_task_client.h"
 
 namespace OHOS {
 namespace Rosen {
 std::atomic<bool> RSModifiersDrawThread::isStarted_ = false;
-std::mutex RSModifiersDrawThread::transactionDataMutex_;
+std::recursive_mutex RSModifiersDrawThread::transactionDataMutex_;
 
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr uint32_t HYBRID_MAX_PIXELMAP_WIDTH = 8192;  // max width value from PhysicalDeviceProperties
 constexpr uint32_t HYBRID_MAX_PIXELMAP_HEIGHT = 8192;  // max height value from PhysicalDeviceProperties
+constexpr uint32_t HYBRID_MAX_ENABLE_OP_CNT = 12; // max value for enable hybrid op
 RSModifiersDrawThread::RSModifiersDrawThread()
 {
     ::atexit(&RSModifiersDrawThread::Destroy);
@@ -70,8 +71,6 @@ void RSModifiersDrawThread::Destroy()
         RSModifiersDrawThread::Instance().ClearEventResource();
     };
     RSModifiersDrawThread::Instance().PostSyncTask(task);
-    auto& instancePtr = RSModifiersDrawThread::InstancePtr();
-    instancePtr.reset();
 }
 
 void RSModifiersDrawThread::ClearEventResource()
@@ -90,12 +89,6 @@ RSModifiersDrawThread& RSModifiersDrawThread::Instance()
 {
     static RSModifiersDrawThread instance;
     return instance;
-}
-
-std::unique_ptr<RSModifiersDrawThread>& RSModifiersDrawThread::InstancePtr()
-{
-    static std::unique_ptr<RSModifiersDrawThread> instancePtr = std::make_unique<RSModifiersDrawThread>();
-    return instancePtr;
 }
 
 void RSModifiersDrawThread::SetCacheDir(const std::string& path)
@@ -167,7 +160,10 @@ void RSModifiersDrawThread::Start()
 #endif
     RSModifiersDrawThread::isStarted_ = true;
     PostTask([] {
-        RsFrameReport::GetInstance().ModifierReportSchedEvent(FrameSchedEvent::RS_MODIFIER_INFO, {});
+        OHOS::ConcurrentTask::IntervalReply reply;
+        reply.tid = gettid();
+        OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().QueryInterval(
+            OHOS::ConcurrentTask::QUERY_MODIFIER_DRAW, reply);
         SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
         // Init shader cache
         std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
@@ -217,14 +213,19 @@ bool RSModifiersDrawThread::TargetCommand(
 #ifdef ACCESSIBILITY_ENABLE
     if (RSModifiersDrawThread::Instance().GetHighContrast() &&
         hybridRenderType == Drawing::DrawCmdList::HybridRenderType::TEXT) {
-            return false;
-        }
+        return false;
+    }
 #endif
     bool targetCmd = false;
     switch (type) {
         case RSCommandType::RS_NODE:
+#if defined(MODIFIER_NG)
+            if (subType == OHOS::Rosen::RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST_NG ||
+                subType == OHOS::Rosen::RSNodeCommandType::ADD_MODIFIER_NG) {
+#else
             if (subType == OHOS::Rosen::RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST ||
                 subType == OHOS::Rosen::RSNodeCommandType::ADD_MODIFIER) {
+#endif
                 targetCmd = true;
             }
             break;
@@ -239,9 +240,34 @@ bool RSModifiersDrawThread::TargetCommand(
     return targetCmd;
 }
 
+bool RSModifiersDrawThread::LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData)
+{
+    int enableHybridOpCnt = 0;
+    for (const auto& [nodeId, followType, command] : transactionData->GetPayload()) {
+        auto drawCmdList = command == nullptr ? nullptr : command->GetDrawCmdList();
+        if (drawCmdList == nullptr) {
+            continue;
+        }
+        auto hybridRenderType = drawCmdList->GetHybridRenderType();
+        // CanvasDrawingNode does not use FFRT, so exclude it
+        bool enableType = hybridRenderType >= Drawing::DrawCmdList::HybridRenderType::TEXT &&
+            hybridRenderType <= Drawing::DrawCmdList::HybridRenderType::HMSYMBOL;
+        if (!enableType ||
+            !TargetCommand(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty()) ||
+            !drawCmdList->IsHybridRenderEnabled(HYBRID_MAX_PIXELMAP_WIDTH, HYBRID_MAX_PIXELMAP_HEIGHT)) {
+            continue;
+        }
+        enableHybridOpCnt++;
+    }
+    return enableHybridOpCnt <= HYBRID_MAX_ENABLE_OP_CNT;
+}
+
 std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
     std::unique_ptr<RSTransactionData>& transactionData)
 {
+    if (!LimitEnableHybridOpCnt(transactionData)) {
+        return transactionData;
+    }
     static std::unique_ptr<ffrt::queue> queue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "ModifiersDraw",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM));
     std::vector<ffrt::task_handle> handles;

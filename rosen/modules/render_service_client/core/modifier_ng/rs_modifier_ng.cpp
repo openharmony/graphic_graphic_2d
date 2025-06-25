@@ -22,11 +22,12 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_node.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
 
 namespace OHOS::Rosen::ModifierNG {
 constexpr int PID_SHIFT = 32;
 
-static const std::unordered_map<ModifierNG::RSPropertyType, ThresholdType> g_propertyTypeToThresholdTypeMap = {
+static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToThresholdTypeMap = {
     { RSPropertyType::INVALID, ThresholdType::DEFAULT },
     { RSPropertyType::BOUNDS, ThresholdType::LAYOUT },
     { RSPropertyType::FRAME, ThresholdType::LAYOUT },
@@ -60,13 +61,11 @@ static const std::unordered_map<ModifierNG::RSPropertyType, ThresholdType> g_pro
     { RSPropertyType::BG_IMAGE_POSITION_X, ThresholdType::LAYOUT },
     { RSPropertyType::BG_IMAGE_POSITION_Y, ThresholdType::LAYOUT },
     { RSPropertyType::BG_IMAGE_RECT, ThresholdType::DEFAULT },
-    { RSPropertyType::SURFACE_BG_COLOR, ThresholdType::DEFAULT },
     { RSPropertyType::BORDER_COLOR, ThresholdType::COLOR },
     { RSPropertyType::BORDER_WIDTH, ThresholdType::LAYOUT },
     { RSPropertyType::BORDER_STYLE, ThresholdType::ZERO },
     { RSPropertyType::BORDER_DASH_WIDTH, ThresholdType::ZERO },
     { RSPropertyType::BORDER_DASH_GAP, ThresholdType::ZERO },
-    { RSPropertyType::FILTER, ThresholdType::DEFAULT },
     { RSPropertyType::BACKGROUND_FILTER, ThresholdType::DEFAULT },
     { RSPropertyType::LINEAR_GRADIENT_BLUR_PARA, ThresholdType::ZERO },
     { RSPropertyType::DYNAMIC_LIGHT_UP_RATE, ThresholdType::COARSE },
@@ -172,9 +171,12 @@ static const std::unordered_map<ModifierNG::RSPropertyType, ThresholdType> g_pro
     { RSPropertyType::NODE_MODIFIER, ThresholdType::DEFAULT },
     { RSPropertyType::ENV_FOREGROUND_COLOR, ThresholdType::DEFAULT },
     { RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, ThresholdType::DEFAULT },
-    { RSPropertyType::GEOMETRYTRANS, ThresholdType::DEFAULT },
     { RSPropertyType::CUSTOM_CLIP_TO_FRAME, ThresholdType::DEFAULT },
     { RSPropertyType::HDR_BRIGHTNESS, ThresholdType::DEFAULT },
+    { RSPropertyType::HDR_UI_BRIGHTNESS, ThresholdType::COARSE },
+    { RSPropertyType::HDR_BRIGHTNESS_FACTOR, ThresholdType::COARSE },
+    { RSPropertyType::BACKGROUND_UI_FILTER, ThresholdType::DEFAULT },
+    { RSPropertyType::FOREGROUND_UI_FILTER, ThresholdType::DEFAULT },
     { RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS, ThresholdType::COARSE },
     { RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION, ThresholdType::COARSE },
     { RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS, ThresholdType::COARSE },
@@ -205,12 +207,29 @@ void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
     }
 }
 
-void RSModifier::AttachProperty(ModifierNG::RSPropertyType type, std::shared_ptr<RSPropertyBase> property)
+void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyBase> property)
 {
     if (property == nullptr) {
         RS_LOGE("Failed to attach property with type %{public}d, property is null!", static_cast<int32_t>(type));
         return;
     }
+
+    std::shared_ptr<RSRenderPropertyBase> renderProperty = nullptr;
+    bool isUIFilter = (type == RSPropertyType::FOREGROUND_UI_FILTER || type == RSPropertyType::BACKGROUND_UI_FILTER);
+    if (isUIFilter) {
+        auto id = property->GetId();
+        auto filterProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(property);
+        if (filterProperty) {
+            auto uiFilter = filterProperty->Get();
+            renderProperty = uiFilter->CreateRenderProperty(id);
+            if (!renderProperty) {
+                return;
+            }
+        }
+    } else {
+        renderProperty = property->GetRenderProperty();
+    }
+
     property->SetPropertyTypeNG(type);
     // replace existing property if any
     properties_[type] = property;
@@ -226,12 +245,17 @@ void RSModifier::AttachProperty(ModifierNG::RSPropertyType type, std::shared_ptr
     property->target_ = node_;
     node->AttachProperty(property);
     MarkNodeDirty();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSModifierNGAttachProperty>(
-        node->GetId(), id_, GetType(), type, property->GetRenderProperty());
-    node->AddCommand(command, node->IsRenderServiceNode());
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSModifierNGAttachProperty>(node->GetId(), id_, GetType(), type, renderProperty);
+    node->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
+    if (node->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> cmdForRemote =
+            std::make_unique<RSModifierNGAttachProperty>(node->GetId(), id_, GetType(), type, renderProperty);
+        node->AddCommand(cmdForRemote, true, node->GetFollowType(), node->GetId());
+    }
 }
 
-void RSModifier::DetachProperty(ModifierNG::RSPropertyType type)
+void RSModifier::DetachProperty(RSPropertyType type)
 {
     auto it = properties_.find(type);
     if (it == properties_.end()) {
@@ -252,10 +276,10 @@ void RSModifier::DetachProperty(ModifierNG::RSPropertyType type)
     node->AddCommand(command, node->IsRenderServiceNode());
 }
 
-void RSModifier::SetPropertyThresholdType(ModifierNG::RSPropertyType type, std::shared_ptr<RSPropertyBase> property)
+void RSModifier::SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property)
 {
     if (!g_propertyTypeToThresholdTypeMap.count(type)) {
-        RS_LOGE("ModifierNG::RSPropertyType is not exist! type: %{public}d", static_cast<int32_t>(type));
+        RS_LOGE("RSPropertyType is not exist! type: %{public}d", static_cast<int32_t>(type));
         return;
     }
     if (g_propertyTypeToThresholdTypeMap.at(type) != ThresholdType::DEFAULT) {
@@ -285,6 +309,7 @@ void RSModifier::OnDetach()
 
 void RSModifier::SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager)
 {
+#if defined(MODIFIER_NG)
     if (isDirty_ == isDirty) {
         // not changed
         return;
@@ -301,11 +326,12 @@ void RSModifier::SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>
         return;
     }
     modifierManager->AddModifier(shared_from_this());
+#endif
 }
 
 std::shared_ptr<RSRenderModifier> RSModifier::CreateRenderModifier()
 {
-    const auto& constructor = RSRenderModifier::ConstructorLUT_[static_cast<uint8_t>(GetType())];
+    const auto& constructor = RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(GetType())];
     if (constructor == nullptr) {
         return nullptr;
     }

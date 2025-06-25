@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_HPS_BLUR_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_HPS_BLUR_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_HPS_BLUR_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_HPS_BLUR_H
 
 #include "common/rs_color_palette.h"
 #include "draw/canvas.h"
@@ -49,4 +49,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_HPS_BLUR_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_HPS_BLUR_H

@@ -261,12 +261,12 @@ FontCollection::FontCallbackGuard::FontCallbackGuard(
     const FontCollection* fc, const std::string& familyName, const FontCallback& begin, const FontCallback& end)
     : fc_(fc), familyName_(familyName), begin_(begin), end_(end)
 {
-    begin_.ExcuteCallback(fc_, familyName_);
+    begin_.ExecuteCallback(fc_, familyName_);
 }
 
 FontCollection::FontCallbackGuard::~FontCallbackGuard()
 {
-    end_.ExcuteCallback(fc_, familyName_);
+    end_.ExecuteCallback(fc_, familyName_);
 }
 
 TypefaceWithAlias::TypefaceWithAlias(const std::string& alias, const std::shared_ptr<Drawing::Typeface>& typeface)
@@ -340,7 +340,7 @@ void FontCollection::FontCallback::AddCallback(FontCallbackType cb)
     }
 }
 
-void FontCollection::FontCallback::ExcuteCallback(const FontCollection* fc, const std::string& family) const
+void FontCollection::FontCallback::ExecuteCallback(const FontCollection* fc, const std::string& family) const
 {
     std::lock_guard lock(mutex_);
     for (auto& cb : callback_) {

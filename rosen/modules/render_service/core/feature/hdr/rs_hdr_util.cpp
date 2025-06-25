@@ -162,6 +162,13 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         return;
     }
     float brightnessFactor = displayNode->GetRenderProperties().GetHDRBrightnessFactor();
+    if (ROSEN_NE(surfaceNode.GetHDRBrightnessFactor(), brightnessFactor)) {
+        RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit GetHDRBrightnessFactor: %{public}f, "
+            "displayNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
+            surfaceNode.GetHDRBrightnessFactor(), brightnessFactor, surfaceNode.GetId());
+        surfaceNode.SetHDRBrightnessFactor(brightnessFactor);
+        surfaceNode.SetContentDirty();
+    }
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
         scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
@@ -276,8 +283,8 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
         if (displayNode.GetIsLuminanceStatusChange()) {
             surfaceNode.SetContentDirty();
         }
-        displayNode.SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
-        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode HDRService pixelformat is set to 1010102");
+        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode HDRService surfaceNode %{public}s is HDR",
+            surfaceNode.GetName().c_str());
     }
 }
 
@@ -288,6 +295,50 @@ void RSHdrUtil::SetHDRParam(RSSurfaceRenderNode& node, bool flag)
         firstLevelNode->SetHDRPresent(flag);
     }
     node.SetHDRPresent(flag);
+}
+
+void RSHdrUtil::HandleVirtualScreenHDRStatus(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
+{
+    if (node.GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE) {
+        ScreenColorGamut screenColorGamut;
+        if (screenManager->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+            RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus get screen color gamut failed.");
+            return;
+        }
+        std::shared_ptr<RSDisplayRenderNode> mirrorNode = node.GetMirrorSource().lock();
+        if (!mirrorNode) {
+            RS_LOGE("RSHdrUtil::HandleVirtualScreenHDRStatus get mirror source failed.");
+            return;
+        }
+        bool mirrorNodeIsHdrOn = RSLuminanceControl::Get().IsHdrOn(mirrorNode->GetScreenId()) &&
+            mirrorNode->GetDisplayHdrStatus() != HdrStatus::NO_HDR;
+        bool isNeedHDRCast = (node.IsFirstFrameOfInit() || node.GetEnabledHDRCast()) && mirrorNodeIsHdrOn &&
+            static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
+        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast mirrorNodeIsHdrOn: %{public}d, "
+            "ColorGamut: %{public}d, IsFirstFrameOfInit: %{public}d, GetEnabledHDRCast: %{public}d",
+            mirrorNodeIsHdrOn, screenColorGamut, node.IsFirstFrameOfInit(), node.GetEnabledHDRCast());
+        if (isNeedHDRCast) {
+            node.SetHDRPresent(true);
+            node.SetEnabledHDRCast(true);
+        }
+        node.SetFirstFrameOfInit(false);
+    } else if (node.GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+        ScreenColorGamut screenColorGamut;
+        if (screenManager->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+            RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus get screen color gamut failed.");
+            return;
+        }
+        bool isNeedHDRCast = (node.IsFirstFrameOfInit() || node.GetEnabledHDRCast()) &&
+            static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
+        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast ColorGamut: %{public}d, "
+            "IsFirstFrameOfInit: %{public}d, GetEnabledHDRCast: %{public}d",
+            screenColorGamut, node.IsFirstFrameOfInit(), node.GetEnabledHDRCast());
+        if (isNeedHDRCast) {
+            node.SetHDRPresent(true);
+            node.SetEnabledHDRCast(true);
+        }
+        node.SetFirstFrameOfInit(false);
+    }
 }
 
 } // namespace Rosen

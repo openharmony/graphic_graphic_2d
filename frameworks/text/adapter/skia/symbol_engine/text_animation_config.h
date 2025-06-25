@@ -47,6 +47,10 @@ public:
         const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc);
 
+    void AnimationUnchange(bool isUnchange);
+
+    void ClearAllTextAnimation();
+
 private:
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;

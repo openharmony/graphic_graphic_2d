@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
 
 #include "include/effects/SkRuntimeEffect.h"
 #include "common/rs_color.h"
@@ -49,11 +49,11 @@ enum MATERIAL_BLUR_STYLE : int {
 };
 // material blur style params
 struct MaterialParam {
-    float radius;
-    float saturation;
-    float brightness;
-    RSColor maskColor;
-    bool disableSystemAdaptation;
+    float radius = 0.f;
+    float saturation = 0.f;
+    float brightness = 1.f;
+    RSColor maskColor = {};
+    bool disableSystemAdaptation = false;
 };
 class RSB_EXPORT RSMaterialFilter : public RSDrawingFilterOriginal {
 public:
@@ -104,4 +104,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_BLUR_FILTER_H

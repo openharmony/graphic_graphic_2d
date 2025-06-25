@@ -72,6 +72,23 @@ HWTEST_F(PathIteratorTest, NextTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NextTest002
+ * @tc.desc: test for next func.
+ * @tc.type: FUNC
+ * @tc.require: ICDWVQ
+ */
+HWTEST_F(PathIteratorTest, NextTest002, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    std::unique_ptr<PathIterator> iter = std::make_unique<PathIterator>(*path);
+    ASSERT_TRUE(iter != nullptr);
+    // nullptr for test
+    auto verb = iter->Next(nullptr);
+    ASSERT_TRUE(verb == PathVerb::DONE);
+}
+
+/**
  * @tc.name: PeekTest001
  * @tc.desc: test for peek func.
  * @tc.type: FUNC

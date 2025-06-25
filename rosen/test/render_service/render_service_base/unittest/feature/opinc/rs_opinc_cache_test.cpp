@@ -155,7 +155,7 @@ HWTEST_F(RSOpincCacheTest, OpincQuickMarkStableNode002, TestSize.Level1)
     EXPECT_TRUE(renderNode.isSubTreeDirty_);
 
     opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
-    EXPECT_TRUE(opincCache.isReseted_);
+    EXPECT_TRUE(opincCache.isOpincSupportFlag_);
 }
 
 /**
@@ -233,16 +233,16 @@ HWTEST_F(RSOpincCacheTest, OpincForcePrepareSubTree001, TestSize.Level1)
     auto& opincCache = renderNode.GetOpincCache();
     bool autoCacheEnable = true;
     bool res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), renderNode.OpincGetNodeSupportFlag());
+        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), opincCache.OpincGetSupportFlag());
     EXPECT_TRUE(!res);
 
     opincCache.isSuggestOpincNode_ = true;
     res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), renderNode.OpincGetNodeSupportFlag());
+        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), opincCache.OpincGetSupportFlag());
     EXPECT_TRUE(res);
     autoCacheEnable = false;
     res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), renderNode.OpincGetNodeSupportFlag());
+        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), opincCache.OpincGetSupportFlag());
     EXPECT_FALSE(res);
 }
 

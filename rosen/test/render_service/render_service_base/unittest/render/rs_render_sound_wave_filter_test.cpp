@@ -228,5 +228,8 @@ HWTEST_F(RSRenderSoundWaveFilterTest, ParseFilterValuesTest001, TestSize.Level1)
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     filter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    auto filterCopy = filter->DeepCopy();
+    EXPECT_NE(filterCopy, nullptr);
 }
 } // namespace OHOS::Rosen

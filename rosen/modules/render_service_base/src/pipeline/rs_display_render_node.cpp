@@ -29,6 +29,23 @@ namespace OHOS {
 namespace Rosen {
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 
+namespace {
+GraphicColorGamut SelectBigGamut(GraphicColorGamut oldGamut, GraphicColorGamut newGamut)
+{
+    if (oldGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        return oldGamut;
+    }
+    if (oldGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        if (newGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+            return newGamut;
+        } else {
+            return oldGamut;
+        }
+    }
+    return newGamut;
+}
+}
+
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(id, context), isMirroredDisplay_(config.isMirrored), offsetX_(0), offsetY_(0),
@@ -546,6 +563,57 @@ void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
     }
     colorSpace_ = colorSpace;
 #endif
+}
+
+void RSDisplayRenderNode::UpdateColorSpace(const GraphicColorGamut& colorSpace)
+{
+    GraphicColorGamut newColorSpace = SelectBigGamut(colorSpace_, colorSpace);
+    if (colorSpace_ == newColorSpace) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetNewColorSpace(newColorSpace);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    colorSpace_ = newColorSpace;
+}
+
+void RSDisplayRenderNode::SelectBestGamut(const std::vector<ScreenColorGamut>& mode)
+{
+    if (mode.empty()) {
+        SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+        return;
+    }
+    bool isSupportBt2020 = false;
+    bool isSupportP3 = false;
+    for (const auto& gamut : mode) {
+        auto temp = static_cast<GraphicColorGamut>(gamut);
+        if (colorSpace_ == temp) {
+            return;
+        }
+        if (temp == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+            isSupportBt2020 = true;
+            continue;
+        }
+        if (temp == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+            isSupportP3 = true;
+            continue;
+        }
+    }
+    GraphicColorGamut finalGamut;
+    if (colorSpace_ == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        finalGamut = isSupportP3 ? GRAPHIC_COLOR_GAMUT_DISPLAY_P3 :
+            GRAPHIC_COLOR_GAMUT_SRGB;
+    } else {
+        finalGamut = isSupportBt2020 ? GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020 :
+            GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+    SetColorSpace(finalGamut);
 }
 
 GraphicColorGamut RSDisplayRenderNode::GetColorSpace() const

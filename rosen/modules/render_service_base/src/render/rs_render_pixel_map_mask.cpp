@@ -14,7 +14,6 @@
  */
 
 #include "render/rs_render_pixel_map_mask.h"
-#include <memory>
 #include "common/rs_vector4.h"
 #include "image/image.h"
 #include "modifier/rs_render_property.h"
@@ -36,7 +35,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderPixelMapMaskPara::CreateRenderProp
         case RSUIFilterType::PIXEL_MAP_MASK_DST:
         case RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR: {
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-                Vector4f(), 0, RSPropertyType::VECTOR4F);
+                Vector4f(), 0);
         }
         default:
             ROSEN_LOGE("RSRenderPixelMapMaskPara::CreateRenderProperty mask nullptr");
@@ -67,7 +66,7 @@ bool RSRenderPixelMapMaskPara::WriteToParcel(Parcel& parcel)
         return false;
     }
 
-    auto property = GetRenderPropert(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP);
+    auto property = GetRenderProperty(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP);
     if (property == nullptr) {
         ROSEN_LOGE("RSRenderPixelMapMaskPara::WriteToParcel pixel map not found");
         return false;
@@ -166,6 +165,71 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderPixelMapMaskPara::Get
 const std::shared_ptr<Drawing::Image> RSRenderPixelMapMaskPara::GetImage() const
 {
     return cacheImage_;
+}
+
+uint32_t RSRenderPixelMapMaskPara::CalcHash()
+{
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    auto image = GetImage();
+    auto srcProp = GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_SRC);
+    auto dstProp = GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_DST);
+    auto fillColorProp = GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR);
+    if (image == nullptr || srcProp == nullptr || dstProp == nullptr || fillColorProp == nullptr) {
+        ROSEN_LOGE("RSRenderPixelMapMaskPara::CalcHash some property not found");
+        return 0;
+    }
+    auto imageUniqueID = image->GetUniqueID();
+    auto src = srcProp->Get();
+    auto dst = dstProp->Get();
+    auto fillColor = fillColorProp->Get();
+    uint32_t hash = 0;
+    hash = hashFunc(&imageUniqueID, sizeof(imageUniqueID), hash);
+    hash = hashFunc(&src, sizeof(src), hash);
+    hash = hashFunc(&dst, sizeof(dst), hash);
+    hash = hashFunc(&fillColor, sizeof(fillColor), hash);
+    return hash;
+}
+
+std::shared_ptr<RSRenderMaskPara> RSRenderPixelMapMaskPara::LimitedDeepCopy() const
+{
+    auto newRenderPixelMapMaskPara = std::make_shared<RSRenderPixelMapMaskPara>(id_);
+    newRenderPixelMapMaskPara->type_ = type_;
+    newRenderPixelMapMaskPara->modifierType_ = modifierType_;
+    for (auto [filterType, property] : properties_) {
+        if (property == nullptr) {
+            ROSEN_LOGW("RSRenderPixelMapMaskPara::DeepCopy, filterType: %{public}d, property is nullptr",
+                static_cast<int>(filterType));
+            continue;
+        }
+        std::shared_ptr<RSRenderPropertyBase> newProperty = nullptr;
+        switch (filterType) {
+            case RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP: {
+                auto prop = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<Media::PixelMap>>>(property);
+                newProperty = std::make_shared<RSRenderProperty<std::shared_ptr<Media::PixelMap>>>(
+                    prop->Get(), prop->GetId());
+                break;
+            }
+            case RSUIFilterType::PIXEL_MAP_MASK_SRC:
+            case RSUIFilterType::PIXEL_MAP_MASK_DST:
+            case RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR: {
+                auto prop = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property);
+                newProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(prop->Get(), prop->GetId());
+                break;
+            }
+            default: {
+                ROSEN_LOGW("RSRenderPixelMapMaskPara::DeepCopy, pixel map mask invalid filterType: %{public}d",
+                    static_cast<int>(filterType));
+                continue;
+            }
+        }
+        newRenderPixelMapMaskPara->Setter(filterType, newProperty);
+    }
+    newRenderPixelMapMaskPara->cacheImage_ = cacheImage_;
+    return newRenderPixelMapMaskPara;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -372,27 +372,6 @@ void StaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vecto
     return EngineStaticFactory::GetDrawingPointsForTextBlob(blob, points);
 }
 
-DrawingSymbolLayersGroups StaticFactory::GetSymbolLayersGroups(uint16_t glyphId)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::GetSymbolLayersGroups(glyphId);
-    }
-#endif
-    return EngineStaticFactory::GetSymbolLayersGroups(glyphId);
-}
-
-std::vector<std::vector<DrawingPiecewiseParameter>> StaticFactory::GetGroupParameters(
-    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-    }
-#endif
-    return EngineStaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-}
-
 std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

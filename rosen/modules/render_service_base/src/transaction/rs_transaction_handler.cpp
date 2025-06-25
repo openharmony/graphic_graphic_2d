@@ -44,6 +44,7 @@ void RSTransactionHandler::SetRenderServiceClient(const std::shared_ptr<RSIRende
 void RSTransactionHandler::AddCommand(
     std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand, FollowType followType, NodeId nodeId)
 {
+#ifndef SCREENLESS_DEVICE
     if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
         RS_LOGE("RSTransactionHandler::add command fail, (renderServiceClient_ and renderThreadClient_ is nullptr)"
                 " or command is nullptr");
@@ -67,6 +68,7 @@ void RSTransactionHandler::AddCommand(
     }
     ROSEN_LOGE("RSTransactionHandler::AddCommand failed, isRenderServiceCommand:%{public}d %{public}s",
         isRenderServiceCommand, command->PrintType().c_str());
+#endif
 }
 
 void RSTransactionHandler::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)

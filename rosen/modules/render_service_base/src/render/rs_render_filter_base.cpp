@@ -13,10 +13,18 @@
  * limitations under the License.
  */
 
-#include "render/rs_render_filter_base.h"
+#include "effect/rs_render_filter_base.h"
+
+#include <unordered_map>
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+#include "platform/common/rs_log.h"
+#include "render/rs_render_color_gradient_filter.h"
 
 namespace OHOS {
 namespace Rosen {
+
     RSUIFilterType RSRenderFilterParaBase::GetType() const
     {
         return type_;
@@ -56,7 +64,7 @@ namespace Rosen {
         return true;
     }
 
-    std::shared_ptr<RSRenderPropertyBase> RSRenderFilterParaBase::GetRenderPropert(RSUIFilterType type) const
+    std::shared_ptr<RSRenderPropertyBase> RSRenderFilterParaBase::GetRenderProperty(RSUIFilterType type) const
     {
         auto it = properties_.find(type);
         if (it != properties_.end()) {
