@@ -416,8 +416,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> nod
             node->SetTakeSurfaceForUIFlag();
         }
         RSSurfaceCaptureBlurParam blurParam = {};
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig,
-            nullptr, blurParam, specifiedAreaRect);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
