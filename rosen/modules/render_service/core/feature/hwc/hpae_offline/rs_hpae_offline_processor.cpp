@@ -64,7 +64,8 @@ RSHpaeOfflineProcessor::~RSHpaeOfflineProcessor()
 
 std::shared_ptr<RSHpaeOfflineProcessor> RSHpaeOfflineProcessor::GetOfflineProcessor()
 {
-    static std::shared_ptr<RSHpaeOfflineProcessor> processor = std::make_shared<new RSHpaeOfflineProcessor>();
+    static std::shared_ptr<RSHpaeOfflineProcessor> processor = 
+        std::shared_ptr<RSHpaeOfflineProcessor>(new RSHpaeOfflineProcessor());
     return processor;
 }
 

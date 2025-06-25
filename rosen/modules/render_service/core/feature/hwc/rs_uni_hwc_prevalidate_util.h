@@ -22,6 +22,7 @@
 
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_common.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -29,13 +30,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
-struct RequestRect {
-    uint32_t x = 0;
-    uint32_t y = 0;
-    uint32_t w = 0;
-    uint32_t h = 0;
-};
 
 typedef struct RequestLayerInfo {
     uint64_t id;                          /**< Layer ID */
