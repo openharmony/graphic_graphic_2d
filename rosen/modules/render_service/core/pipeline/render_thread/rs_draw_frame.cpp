@@ -31,6 +31,7 @@
 #include "rs_uni_render_thread.h"
 
 #include "rs_profiler.h"
+#include "render/rs_high_performance_visual_engine.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -199,6 +200,7 @@ void RSDrawFrame::Sync()
         }
     }
     pendingSyncNodes.clear();
+    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 }
