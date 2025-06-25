@@ -93,8 +93,8 @@ void RSCustomInterpolator::Convert(int duration)
         ROSEN_LOGE("RSCustomInterpolator::Convert, lastAnimFrame is invalid.");
         return;
     }
-    for (int i = 0; i < numAnim; i++) {
-        float time = i / lastAnimFrame;
+    for (size_t i = 0; i < numAnim; i++) {
+        float time = static_cast<float>(i) / lastAnimFrame;
         float value = interpolateFunc_(time);
         times_.push_back(time);
         values_.push_back(value);
