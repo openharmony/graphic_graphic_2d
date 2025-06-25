@@ -4555,14 +4555,14 @@ HWTEST_F(NdkTypographyTest, ParagraphTestGlyphPositionAtCoordinateWithCluster001
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     OH_Drawing_TypographyLayout(typography, maxWidth3);
 
-    float x_coords[] = { 0, 20, 30, 45, 60, 75, 100 };
-    int expected_positions[] = { 0, 1, 1, 2, 2, 3, 3 };
-    int expected_affinities[] = { 1, 0, 1, 0, 1, 0, 1 };
+    float xCoords[] = { 0, 20, 30, 45, 60, 75, 100 };
+    int expectedPositions[] = { 0, 1, 1, 2, 2, 3, 3 };
+    int expectedAffinities[] = { 1, 0, 1, 0, 1, 0, 1 };
     OH_Drawing_PositionAndAffinity* results[7];
     for (int i = 0; i < 7; i++) {
-        results[i] = OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, x_coords[i], 0);
-        EXPECT_EQ(OH_Drawing_GetPositionFromPositionAndAffinity(results[i]), expected_positions[i]);
-        EXPECT_EQ(OH_Drawing_GetAffinityFromPositionAndAffinity(results[i]), expected_affinities[i]);
+        results[i] = OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, xCoords[i], 0);
+        EXPECT_EQ(OH_Drawing_GetPositionFromPositionAndAffinity(results[i]), expectedPositions[i]);
+        EXPECT_EQ(OH_Drawing_GetAffinityFromPositionAndAffinity(results[i]), expectedAffinities[i]);
     }
 
     OH_Drawing_DestroyTypography(typography);
