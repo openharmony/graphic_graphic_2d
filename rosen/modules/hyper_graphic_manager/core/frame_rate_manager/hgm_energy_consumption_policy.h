@@ -53,6 +53,7 @@ public:
     bool GetVideoCallVsyncChange();
     bool GetVideoCallFrameRate(pid_t pid, const std::string &vsyncName, FrameRateRange &finalRange);
     void SetCurrentPkgName(const std::vector<std::string> &pkgs);
+    void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
 
 private:
     // <rateType, <isEnable, idleFps>>
@@ -81,6 +82,7 @@ private:
     mutable std::mutex videoCallLock_;
     std::string videoCallLayerName_ = "";
     // concurrency protection <<<
+    std::atomic<bool> aceComponentEnable_ = { true };
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

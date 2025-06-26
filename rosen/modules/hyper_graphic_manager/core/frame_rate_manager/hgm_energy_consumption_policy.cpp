@@ -122,6 +122,13 @@ void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
     }
 }
 
+void HgmEnergyConsumptionPolicy::SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo)
+{
+    if (eventInfo.description == "DRAG_SCENE") {
+        aceComponentEnable_.store(eventInfo.eventStatus);
+    }
+}
+
 void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
     if (!isAnimationEnergyAssuranceEnable_ ||
@@ -202,7 +209,11 @@ bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
     if (!isTouchIdle_) {
         return false;
     }
-    auto it = uiEnergyAssuranceMap_.find(rsRange.type_ & ~ANIMATION_STATE_FIRST_FRAME);
+    auto type = rsRange.type_ & ~ANIMATION_STATE_FIRST_FRAME;
+    if (type == DRAG_SCENE_FRAME_RATE_TYPE && !aceComponentEnable_.load()) {
+        return false;
+    }
+    auto it = uiEnergyAssuranceMap_.find(type);
     if (it == uiEnergyAssuranceMap_.end()) {
         HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}d is invalid", rsRange.type_);
         return false;
