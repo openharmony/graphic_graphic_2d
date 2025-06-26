@@ -103,11 +103,10 @@ public:
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false)
         : RSSurfaceRenderNode(id, context, isTextureExportNode) {}
     ~MockRSSurfaceRenderNode() override {}
-    MOCK_CONST_METHOD0(CheckParticipateInOcclusion, bool());
+    MOCK_METHOD0(CheckParticipateInOcclusion, bool());
     MOCK_CONST_METHOD0(NeedDrawBehindWindow, bool());
     MOCK_CONST_METHOD0(GetFilterRect, RectI());
-    MOCK_CONST_METHOD0(CheckIfOcclusionChanged, bool());
-    MOCK_CONST_METHOD0(IsBehindWindowOcclusionChanged, bool());
+    MOCK_METHOD0(CheckIfOcclusionChanged, bool());
 };
 
 void RSUniRenderVisitorTest::SetUpTestCase()
@@ -4010,7 +4009,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion003, TestSize.Level2)
     rsUniRenderVisitor->curDisplayNode_->isFirstVisitCrossNodeDisplay_ = true;
     rsUniRenderVisitor->needRecalculateOcclusion_ = false;
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
-    EXPECT_CALL(*rsSurfaceRenderNode, IsBehindWindowOcclusionChanged()).WillRepeatedly(testing::Return(true));
+    rsSurfaceRenderNode->behindWindowOcclusionChanged_ = true;
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
     rsSurfaceRenderNode->absDrawRect_ = DEFAULT_RECT;
     rsSurfaceRenderNode->isFirstLevelCrossNode_ = true;
@@ -4038,7 +4037,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion004, TestSize.Level2)
     rsUniRenderVisitor->curDisplayNode_->isFirstVisitCrossNodeDisplay_ = true;
     rsUniRenderVisitor->needRecalculateOcclusion_ = false;
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
-    EXPECT_CALL(*rsSurfaceRenderNode, IsBehindWindowOcclusionChanged()).WillRepeatedly(testing::Return(false));
+    rsSurfaceRenderNode->behindWindowOcclusionChanged_ = false;
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
     rsSurfaceRenderNode->absDrawRect_ = DEFAULT_RECT;
     rsSurfaceRenderNode->isFirstLevelCrossNode_ = true;
@@ -4119,11 +4118,21 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion005, TestSiz
  */
 HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSize.Level2)
 {
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
     RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
     auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(1, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->InitDisplayInfo(*rsDisplayRenderNode);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(true);
 
     auto regionFilter = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
     rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_ = regionFilter;
@@ -4146,11 +4155,21 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSiz
  */
 HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSize.Level2)
 {
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
     RSSurfaceRenderNodeConfig config;
+    RSDisplayNodeConfig displayConfig;
     auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(1, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->InitDisplayInfo(*rsDisplayRenderNode);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(true);
 
     auto regionFilter = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
     rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_ = regionFilter;
@@ -4159,6 +4178,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSiz
     rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
     EXPECT_CALL(*rsSurfaceRenderNode, CheckParticipateInOcclusion()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*rsSurfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*rsSurfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(DEFAULT_FILTER_RECT));
 
     rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
     ASSERT_TRUE(rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_.Sub(regionFilter).IsEmpty());
