@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,34 +13,34 @@
  * limitations under the License.
  */
 
-#include "system_properties_fuzzer.h"
+#include "performance_caculate_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
 
 #include "get_object.h"
-#include "utils/scalar.h"
-#include "utils/system_properties.h"
+#include "utils/performanceCaculate.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-void SystemPropertiesFuzzTest000(const uint8_t* data, size_t size)
+void PerformanceCaculateFuzzTest000(const uint8_t* data, size_t size)
 {
     // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
 
-    SystemProperties::GetGpuApiType();
-    SystemProperties::IsUseVulkan();
-    SystemProperties::GetHMSymbolEnable();
-    SystemProperties::GetSystemGraphicGpuType();
-    SystemProperties::IsUseGl();
-#ifdef ROSEN_OHOS
-    SystemProperties::IsVkImageDfxEnabled();
-#endif
+    bool addCount = GetObject<bool>();
+    PerformanceCaculate::GetUpTime(addCount);
+    PerformanceCaculate::SetCaculateSwitch(addCount);
+    PerformanceCaculate::GetDrawingTestJsEnabled();
+    PerformanceCaculate::GetDrawingTestNapiEnabled();
+    PerformanceCaculate::GetDrawingTestSkiaEnabled();
+    PerformanceCaculate::GetDrawingTestRecordingEnabled();
+    PerformanceCaculate::GetDrawingFlushPrint();
+    PerformanceCaculate::ResetCaculateTimeCount();
 }
 } // namespace Drawing
 } // namespace Rosen
@@ -50,7 +50,6 @@ void SystemPropertiesFuzzTest000(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::SystemPropertiesFuzzTest000(data, size);
-
+    OHOS::Rosen::Drawing::PerformanceCaculateFuzzTest000(data, size);
     return 0;
 }
