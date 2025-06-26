@@ -29,9 +29,9 @@ import image from '@ohos.multimedia.image';
  * @since 11
  */
 namespace drawing {
-  loadLibrary("drawing_ani");
+  loadLibrary("drawing_ani_core");
   class Cleaner {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private ptr: long = 0;
     private className: string;
     constructor(className: string, ptr: long) {
@@ -303,7 +303,7 @@ namespace drawing {
    * @since 12
    */
   export class SamplingOptions {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -340,7 +340,7 @@ namespace drawing {
   }
 
   export class Canvas {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -530,7 +530,7 @@ namespace drawing {
    * @since 11
    */
   export class ColorFilter {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -579,7 +579,7 @@ namespace drawing {
    * @since 11
    */
   export class Pen {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -670,7 +670,7 @@ namespace drawing {
    * @since 11
    */
   export class Brush {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -759,7 +759,7 @@ namespace drawing {
    * @since 11
    */
   export class Typeface {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -814,7 +814,7 @@ namespace drawing {
    * @since 11
    */
   export class Font {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -982,7 +982,7 @@ namespace drawing {
    * @since 12
    */
   export class Lattice {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -1028,7 +1028,7 @@ namespace drawing {
    * @since 12
    */
   export class Matrix {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -1102,7 +1102,7 @@ namespace drawing {
    * @since 18
    */
   export class PathIterator {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -1132,7 +1132,7 @@ namespace drawing {
    * @since 11
    */
   export class Path {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -1198,7 +1198,7 @@ namespace drawing {
    * @since 12
    */
   export class Region {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -1259,7 +1259,7 @@ namespace drawing {
    * @since 12
    */
   export class RoundRect {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -1307,7 +1307,7 @@ namespace drawing {
    * @since 20
    */
   export class TypefaceArguments {
-    static { loadLibrary("drawing_ani"); }
+    static { loadLibrary("drawing_ani_core"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
 
