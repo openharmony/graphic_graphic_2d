@@ -61,7 +61,6 @@ private:
     void ReportFrameRateToRSS(const std::unordered_map<std::string, std::string>& mapPayload);
     static bool GetFfrtQueue();
     static bool GetFfrtHighPriorityQueue();
-
 };
 } // namespace Rosen
 } // namespace OHOS
