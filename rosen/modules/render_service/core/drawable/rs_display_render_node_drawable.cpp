@@ -417,7 +417,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 
             if (drawable->GetRenderParams()->GetLayerInfo().useDeviceOffline &&
                 ProcessOfflineSurfaceDrawable(processor, *surfaceDrawable, false)) {
-                    continue;
+                continue;
             }
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
@@ -1014,7 +1014,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             if (drawable->GetRenderParams()->GetLayerInfo().useDeviceOffline &&
                 ProcessOfflineSurfaceDrawable(processor, *surfaceDrawable, true)) {
-                    continue;
+                continue;
             }
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
