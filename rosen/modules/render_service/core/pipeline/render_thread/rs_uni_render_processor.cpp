@@ -340,12 +340,12 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(
     ProcessOfflineResult processOfflineResult;
     uint64_t taskId = RSUniRenderThread::Instance().GetVsyncId();
     if (!async) {
-        if (!RSHpaeOfflineProcessor::GetOfflineProcessor()->PostProcessOfflineTask(surfaceDrawable, taskId)) {
+        if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(surfaceDrawable, taskId)) {
             RS_LOGW("RSUniRenderProcessor::ProcessOfflineLayer: post offline task failed, go redraw");
             return false;
         }
     }
-    bool waitSucc = RSHpaeOfflineProcessor::GetOfflineProcessor()->WaitForProcessOfflineResult(
+    bool waitSucc = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
         taskId, processOfflineResult);
     if (waitSucc && processOfflineResult.flag) {
         auto layer = uniComposerAdapter_->CreateOfflineLayer(surfaceDrawable, processOfflineResult);
@@ -367,11 +367,11 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(RSSurfaceRenderNode& node)
     RS_OFFLINE_LOGD("ProcessOfflineLayer(node)");
     ProcessOfflineResult processOfflineResult;
     uint64_t taskId = RSUniRenderThread::Instance().GetVsyncId();
-    if (!RSHpaeOfflineProcessor::GetOfflineProcessor()->PostProcessOfflineTask(node, taskId)) {
+    if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(node, taskId)) {
         RS_LOGW("RSUniRenderProcessor::ProcessOfflineLayer: post offline task failed, go redraw");
         return false;
     }
-    bool waitSucc = RSHpaeOfflineProcessor::GetOfflineProcessor()->WaitForProcessOfflineResult(
+    bool waitSucc = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
         taskId, processOfflineResult);
     if (waitSucc && processOfflineResult.flag) {
         auto layer = uniComposerAdapter_->CreateOfflineLayer(node, processOfflineResult);

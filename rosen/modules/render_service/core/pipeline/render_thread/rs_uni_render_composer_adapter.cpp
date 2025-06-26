@@ -1691,8 +1691,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildOfflineComposeInfo(RSSurfaceRenderN
         return info;
     }
 
-    auto surfaceHandler = node.GetRSSurfaceHandler();
-    const auto& dstRect = params->GetLayerInfo().dstRect;
+    const auto& dstRect = node.GetDstRect();
     info.srcRect = processOfflineResult.bufferRect;
     info.dstRect = GraphicIRect {
         static_cast<int32_t>(static_cast<float>(dstRect.left_) * screenInfo_.GetRogWidthRatio()),
