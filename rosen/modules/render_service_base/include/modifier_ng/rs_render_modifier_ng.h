@@ -64,11 +64,6 @@ public:
         return false;
     }
 
-    virtual Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const
-    {
-        return nullptr;
-    }
-
     void Dump(std::string& out, const std::string& splitStr) const
     {
         for (auto& [type, property] : properties_) {
@@ -127,7 +122,7 @@ public:
 
     size_t GetPropertySize()
     {
-        size_t size = 0;
+        auto size = 0;
         for (auto& [type, property] : properties_) {
             if (property != nullptr) {
                 size += property->GetSize();
@@ -302,11 +297,6 @@ public:
     bool GetSingleFrameModifier() const override
     {
         return isSingleFrameModifier_;
-    }
-
-    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
-    {
-        return Getter<Drawing::DrawCmdListPtr>(ModifierTypeConvertor::GetPropertyType(GetType()), nullptr);
     }
 
     void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) override;

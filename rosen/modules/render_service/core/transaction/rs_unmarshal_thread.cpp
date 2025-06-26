@@ -228,13 +228,8 @@ bool RSUnmarshalThread::IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) con
     bool haveCmdList = false;
     switch (cmd->GetType()) {
         case RSCommandType::RS_NODE:
-#if defined(MODIFIER_NG)
-            if (cmd->GetSubType() == RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST_NG ||
-                cmd->GetSubType() == RSNodeCommandType::ADD_MODIFIER_NG) {
-#else
             if (cmd->GetSubType() == RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST ||
                 cmd->GetSubType() == RSNodeCommandType::ADD_MODIFIER) {
-#endif
                 haveCmdList = true;
             }
             break;

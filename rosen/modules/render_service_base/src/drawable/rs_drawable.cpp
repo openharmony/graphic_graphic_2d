@@ -644,9 +644,6 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME))) {
         dirtySlots.emplace(RSDrawableSlot::CUSTOM_CLIP_TO_FRAME);
-        dirtySlots.emplace(RSDrawableSlot::FRAME_OFFSET);
-        dirtySlots.emplace(RSDrawableSlot::CONTENT_STYLE);
-        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_STYLE);
     }
 
     // if frame changed, mark affected drawables as dirty

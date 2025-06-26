@@ -147,8 +147,9 @@ public:
         }
     }
 
-    static void UpdateModifierNGDrawCmdList(
-        RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId propertyId);
+    static void UpdateModifierNGDrawCmdList(RSContext& context, NodeId nodeId, ModifierId modifierId,
+        ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType,
+        Drawing::DrawCmdListPtr value);
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
@@ -390,7 +391,7 @@ ADD_COMMAND(RSModifierNGAttachProperty,
         ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, std::shared_ptr<RSRenderPropertyBase>))
 ADD_COMMAND(RSUpdatePropertyDrawCmdListNG,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST_NG, RSNodeCommandHelper::UpdateModifierNGDrawCmdList,
-        NodeId, Drawing::DrawCmdListPtr, PropertyId))
+        NodeId, ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, Drawing::DrawCmdListPtr))
 ADD_COMMAND(RSModifierNGDetachProperty,
     ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_DETACH_PROPERTY, RSNodeCommandHelper::ModifierNGDetachProperty, NodeId,
         ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType))
