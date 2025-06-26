@@ -195,7 +195,7 @@ public:
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
     virtual const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const = 0;
     virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
-    virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
+    virtual std::unordered_set<uint64_t> GetAllWhiteList() = 0;
     virtual std::unordered_set<uint64_t> GetBlackListVirtualScreenByNode(uint64_t nodeId) = 0;
 
     virtual int32_t SetVirtualScreenSecurityExemptionList(
@@ -212,6 +212,8 @@ public:
     virtual int32_t GetVirtualScreenSecLayerOption(ScreenId id) const = 0;
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+
+    virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
 
     virtual void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) = 0;
 };
@@ -371,7 +373,7 @@ public:
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
     const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const override;
     std::unordered_set<uint64_t> GetAllBlackList() const override;
-    std::unordered_set<uint64_t> GetAllWhiteList() const override;
+    std::unordered_set<uint64_t> GetAllWhiteList() override;
     std::unordered_set<uint64_t> GetBlackListVirtualScreenByNode(uint64_t nodeId) override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
@@ -387,6 +389,9 @@ public:
     int32_t GetVirtualScreenSecLayerOption(ScreenId id) const override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
+
+    // Get all whiteList and their screenId
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
 
     void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) override;
 
@@ -517,6 +522,9 @@ private:
         bool isPowerOn;
     };
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
+
+    mutable std::mutex whiteListMutex_;
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
 
     LoadOptParamsForScreen loadOptParamsForScreen_ = {};
 };

@@ -81,7 +81,7 @@ bool RSRenderRadialGradientMaskPara::ReadFromParcel(Parcel& parcel)
 {
     int16_t type = 0;
     int16_t modifierType = 0;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, type) ||
         !RSMarshallingHelper::Unmarshalling(parcel, modifierType)) {
         ROSEN_LOGE("RSRenderRadialGradientMaskPara::ReadFromParcel type Error");

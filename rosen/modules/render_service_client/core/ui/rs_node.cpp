@@ -48,6 +48,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_vector4.h"
+#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
@@ -1036,6 +1037,12 @@ void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
 // Bounds
 void RSNode::SetBounds(const Vector4f& bounds)
 {
+    if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
+        auto compositeLayerUtils = surfaceNode->GetCompositeLayerUtils();
+        if (compositeLayerUtils) {
+            compositeLayerUtils->UpdateVirtualNodeBounds(bounds);
+        }
+    }
 #if defined(MODIFIER_NG)
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetBounds>(bounds);
 #else
@@ -3821,7 +3828,6 @@ bool RSNode::CheckMultiThreadAccess(const std::string& func) const
         return true;
     }
     auto rsContext = rsUIContext_.lock();
-    // Node toDo
     if (rsContext == nullptr) {
         return true;
     }
@@ -4432,6 +4438,9 @@ void RSNode::AddChild(SharedPtr child, int index)
         ROSEN_LOGE("RSNode::AddChild, child is nullptr");
         return;
     }
+    if (!IsTextureExportNode() && child->IsTextureExportNode() && AddCompositeNodeChild(child, index)) {
+        return;
+    }
     if (child->parent_.lock().get() == this) {
         ROSEN_LOGD("RSNode::AddChild, child already exist");
         return;
@@ -4476,6 +4485,27 @@ void RSNode::AddChild(SharedPtr child, int index)
             id_, childId, surfaceNode->GetName().c_str());
     }
     child->SetIsOnTheTree(isOnTheTree_);
+}
+
+bool RSNode::AddCompositeNodeChild(SharedPtr node, int index)
+{
+    if (!node) {
+        return false;
+    }
+    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceNode>();
+    if (!surfaceNode) {
+        return false;
+    }
+    auto compositeLayerUtils = surfaceNode->GetCompositeLayerUtils();
+    if (compositeLayerUtils) {
+        auto compositeNode = compositeLayerUtils->GetCompositeNode();
+        if (compositeNode) {
+            compositeNode->RemoveFromTree();
+            RSBaseNode::AddChild(compositeNode, index);
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSNode::MoveChild(SharedPtr child, int index)
@@ -4938,13 +4968,15 @@ void RSNode::SetDrawNodeChangeCallback(DrawNodeChangeCallback callback)
 #if defined(MODIFIER_NG)
 void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 {
-    if (modifier == nullptr || modifiersNG_.count(modifier->GetId())) {
-        RS_LOGE("RSNode::AddModifier: null modifier or modifier exist.");
+    if (modifier == nullptr) {
+        RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, GetId());
+        return;
+    }
+    if (modifiersNG_.count(modifier->GetId())) {
         return;
     }
     modifiersNG_.emplace(modifier->GetId(), modifier);
-    AttachModifierProperties(modifier);
-    modifier->OnAttach(*this);
+    modifier->OnAttach(*this); // Attach properties of modifier here
     if (modifier->GetType() == ModifierNG::RSModifierType::NODE_MODIFIER) {
         return;
     }
@@ -4970,10 +5002,9 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
         RS_LOGE("RSNode::RemoveModifier: null modifier or modifier not exist.");
         return;
     }
-    modifier->OnDetach();
+    modifier->OnDetach(); // Detach properties of modifier here
     modifiersNG_.erase(modifier->GetId());
     DetachUIFilterProperties(modifier);
-    DetachModifierProperties(modifier);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRemoveModifierNG>(GetId(), modifier->GetType(), modifier->GetId());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
@@ -5066,10 +5097,10 @@ void RSNode::AttachProperty(std::shared_ptr<RSPropertyBase> property)
     if (!property) {
         return;
     }
-    if (motionPathOption_ != nullptr && IsPathAnimatableProperty(property->GetPropertyTypeNG())) {
+    if (motionPathOption_ != nullptr && property->IsPathAnimatable()) {
         property->SetMotionPathOption(motionPathOption_);
     }
-    properties_.emplace(property->GetId(), property);
+    property->Attach(*this);
 #endif
 }
 

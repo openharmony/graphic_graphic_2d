@@ -129,6 +129,8 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
     drawable->isDrawingCacheEnabled_ = false;
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     ASSERT_TRUE(drawable->GetRenderParams());
@@ -146,6 +148,18 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
+    
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    ScreenId screenid = 1;
+    params.virtualScreenId_ = screenid;
+    std::unordered_map<ScreenId, bool> info;
+    info[screenid] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    RSUniRenderThread::SetCaptureParam(params);
+    drawable->OnCapture(canvas);
 }
 
 /**

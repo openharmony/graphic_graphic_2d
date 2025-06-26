@@ -39,11 +39,14 @@ public:
 
     // RSRenderProperty(s) to staging value
     virtual void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) {}
+    // Temporary solution, apply Modifier to RSProperties, used in legacy code
     void ApplyLegacyProperty(RSProperties& properties);
 
+    // For attaching/detaching RSRenderProperty to RSRenderModifier
     void AttachProperty(RSPropertyType type, const std::shared_ptr<RSRenderPropertyBase>& property);
     void DetachProperty(RSPropertyType type);
 
+    // For attaching/detaching RSRenderModifier to RSRenderNode
     bool IsAttached() const;
     void OnAttachModifier(RSRenderNode& node);
     void OnDetachModifier();
@@ -62,6 +65,11 @@ public:
     virtual bool IsCustom() const
     {
         return false;
+    }
+
+    virtual Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const
+    {
+        return nullptr;
     }
 
     void Dump(std::string& out, const std::string& splitStr) const
@@ -122,7 +130,7 @@ public:
 
     size_t GetPropertySize()
     {
-        auto size = 0;
+        size_t size = 0;
         for (auto& [type, property] : properties_) {
             if (property != nullptr) {
                 size += property->GetSize();
@@ -297,6 +305,11 @@ public:
     bool GetSingleFrameModifier() const override
     {
         return isSingleFrameModifier_;
+    }
+
+    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
+    {
+        return Getter<Drawing::DrawCmdListPtr>(ModifierTypeConvertor::GetPropertyType(GetType()), nullptr);
     }
 
     void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) override;

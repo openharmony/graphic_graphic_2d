@@ -30,6 +30,18 @@
 #include "rs_surface_frame_ohos_vulkan.h"
 #include <surface.h>
 
+typedef enum VkSemaphoreExtTypeHUAWEI {
+    VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
+    VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,
+} VkSemaphoreExtTypeHUAWEI;
+
+typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {
+    VkStructureTypeHUAWEI    sType;
+    const void*              pNext;
+    VkSemaphoreExtTypeHUAWEI semaphoreExtType;
+    uint32_t                 eventId;
+} VkSemaphoreExtTypeCreateInfoHUAWEI;
+
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceOhosVulkan : public RSSurfaceOhos {
@@ -69,6 +81,11 @@ public:
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,
         int& fenceFd, bool useAFBC, bool isProtected = false);
     bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    bool NeedSubmitWithFFTS();
+    void HcsSubmitGPGpuAndHpae(uint64_t preFrameId, int64_t curFrameId);
+#endif
+
 private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;

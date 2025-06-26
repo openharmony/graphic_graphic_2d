@@ -377,6 +377,49 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
 }
 
 /**
+ * @tc.name: SetScreenRefreshRate_002
+ * @tc.desc: Verify the result of SetScreenRefreshRate function
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate_002, Function | MediumTest | Level2)
+{
+    auto& instance = HgmCore::Instance();
+    ScreenId screenId = 7;
+    sptr<HgmScreen> screen = nullptr;
+    int32_t width = 1344;
+    int32_t height = 2772;
+    uint32_t rate = 120;
+    int32_t mode = 1;
+    int32_t width0 = 1344;
+    int32_t height0 = 2772;
+    uint32_t rate0 = 60;
+    int32_t mode0 = 0;
+    int32_t timestamp = 1704038400; // 2024-01-01 00:00:00
+
+    PART("CaseDescription") {
+        STEP("1. add a new screen") {
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
+            STEP_ASSERT_EQ(addScreen, 0);
+            auto addScreenProfile = instance.AddScreenInfo(screenId, width, height, rate, mode);
+            STEP_ASSERT_EQ(addScreenProfile, 0);
+            auto addScreenProfile0 = instance.AddScreenInfo(screenId, width0, height0, rate0, mode0);
+            STEP_ASSERT_EQ(addScreenProfile0, 0);
+            bool shouldSendCallback = false;
+            auto setRate120 = instance.SetScreenRefreshRate(screenId, 0, 120, shouldSendCallback);
+            if (setRate120 == -1) {
+                return;
+            }
+            STEP_ASSERT_NE(setRate120, -1);
+            screen = instance.GetScreen(screenId);
+            STEP_ASSERT_EQ(screen->GetActiveRefreshRate(), 120);
+            auto modeListToApply = instance.GetModesToApply();
+            STEP_ASSERT_NE(modeListToApply->size(), 0);
+        }
+    }
+}
+
+/**
  * @tc.name: SetRefreshRateMode
  * @tc.desc: Verify the result of SetRefreshRateMode function
  * @tc.type: FUNC

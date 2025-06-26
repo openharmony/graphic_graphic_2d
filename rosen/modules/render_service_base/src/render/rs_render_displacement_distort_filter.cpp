@@ -92,7 +92,7 @@ namespace Rosen {
     {
         ROSEN_LOGD("RSRenderDispDistortFilterPara::ReadFromParcel %{public}d %{public}d %{public}d",
             static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
-        if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
+        if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
             !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
             !RSMarshallingHelper::Unmarshalling(parcel, modifierType_)) {
             return false;

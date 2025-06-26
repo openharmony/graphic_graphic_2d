@@ -1398,17 +1398,28 @@ std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
     return allBlackList;
 }
 
-std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList() const
+std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList()
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
     std::unordered_set<uint64_t> allWhiteList;
-    for (const auto& [_, screen] : screens_) {
-        if (screen != nullptr) {
-            const auto& whiteList = screen->GetWhiteList();
+    for (const auto& [id, screen] : screens_) {
+        if (screen == nullptr) {
+            continue;
+        }
+        const auto& whiteList = screen->GetWhiteList();
+        if (!whiteList.empty()) {
             allWhiteList.insert(whiteList.begin(), whiteList.end());
+            std::lock_guard<std::mutex> lock(whiteListMutex_);
+            screenWhiteList_[id] = whiteList;
         }
     }
     return allWhiteList;
+}
+
+std::unordered_map<ScreenId, std::unordered_set<uint64_t>> RSScreenManager::GetScreenWhiteList() const
+{
+    std::lock_guard<std::mutex> lock(whiteListMutex_);
+    return screenWhiteList_;
 }
 
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)

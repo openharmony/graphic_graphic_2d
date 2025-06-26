@@ -718,7 +718,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
     uint32_t modifierNGCount = 0;
     for (auto& slot : node.modifiersNG_) {
         for (auto& modifierNG : slot) {
-            if (!modifierNG) {
+            if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT) {
                 continue;
             }
             modifierNGCount++;
@@ -727,7 +727,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
     data.write(reinterpret_cast<const char*>(&modifierNGCount), sizeof(modifierNGCount));
     for (auto& slot : node.modifiersNG_) {
         for (auto& modifierNG : slot) {
-            if (!modifierNG) {
+            if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT) {
                 continue;
             }
             if (modifierNG->IsCustom()) {

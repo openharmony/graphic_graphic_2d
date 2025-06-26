@@ -493,6 +493,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_DISPLAY_NODE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER): {
+            hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LAYER_TOP): {
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_LAYER_TOP");
             break;
@@ -519,6 +523,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_IDENTIFICATION_DATA): {

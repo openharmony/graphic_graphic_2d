@@ -360,6 +360,7 @@ bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     needSync_ = true;
+    stagingNodeId_ = node.GetId();
     stagingPixelStretch_ = pixelStretch;
     stagePixelStretchTileMode_ = node.GetRenderProperties().GetPixelStretchTileMode();
     const auto& boundsGeo = node.GetRenderProperties().GetBoundsGeometry();
@@ -378,6 +379,7 @@ void RSPixelStretchDrawable::OnSync()
     if (!needSync_) {
         return;
     }
+    renderNodeId_ = stagingNodeId_;
     pixelStretch_ = std::move(stagingPixelStretch_);
     pixelStretchTileMode_ = stagePixelStretchTileMode_;
     boundsGeoValid_ = stagingBoundsGeoValid_;

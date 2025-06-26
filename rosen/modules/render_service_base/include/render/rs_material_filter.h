@@ -49,11 +49,11 @@ enum MATERIAL_BLUR_STYLE : int {
 };
 // material blur style params
 struct MaterialParam {
-    float radius;
-    float saturation;
-    float brightness;
-    RSColor maskColor;
-    bool disableSystemAdaptation;
+    float radius = 0.f;
+    float saturation = 0.f;
+    float brightness = 1.f;
+    RSColor maskColor = {};
+    bool disableSystemAdaptation = false;
 };
 class RSB_EXPORT RSMaterialFilter : public RSDrawingFilterOriginal {
 public:

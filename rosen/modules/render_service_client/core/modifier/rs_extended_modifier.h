@@ -206,7 +206,6 @@ private:
     bool noNeedUICaptured_ = false;
 };
 
-
 /**
  * @class RSGeometryTransModifier
  *

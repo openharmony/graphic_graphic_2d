@@ -92,7 +92,6 @@ public:
     {
         return Type;
     }
-
     explicit RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     explicit RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
@@ -444,8 +443,9 @@ public:
     void CleanDirtyRegionUpdated();
     
     std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
-    void AddProperty(std::shared_ptr<RSRenderPropertyBase> property);
-    void RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property);
+    void RegisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property);
+    void UnregisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property);
+    void UnregisterProperty(PropertyId id);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
@@ -732,6 +732,8 @@ public:
         isTextureExportNode_ = isTextureExportNode;
     }
 
+    bool HasHpaeBackgroundFilter() const;
+
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
     void SetSubNodesCovered();
@@ -938,7 +940,16 @@ public:
         return opincCache_;
     }
 
+    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    {
+        hasVirtualScreenWhiteList_[screenId] |= hasWhiteListNode;
+    }
+
+    void UpdateVirtualScreenWhiteListInfo();
+
     bool IsForegroundFilterEnable();
+    void ResetPixelStretchSlot();
+    bool CanFuzePixelStretch();
 
 protected:
     void ResetDirtyStatus();
@@ -1233,6 +1244,8 @@ private:
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
+
+    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
 
     RSProperties renderProperties_;
     DrawCmdContainer drawCmdModifiers_;

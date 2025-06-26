@@ -235,6 +235,8 @@ public:
 
 private:
     bool needSync_ = false;
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    NodeId renderNodeId_ = INVALID_NODEID;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> stagingPixelStretch_;
     int pixelStretchTileMode_ = 0;

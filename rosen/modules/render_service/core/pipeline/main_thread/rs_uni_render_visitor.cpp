@@ -23,23 +23,23 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "common/rs_special_layer_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
-#include "feature/opinc/rs_opinc_manager.h"
-#include "feature/hdr/rs_hdr_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
-#include "feature/opinc/rs_opinc_cache.h"
-#include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/uifirst/rs_uifirst_manager.h"
-#include "monitor/self_drawing_node_monitor.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "common/rs_special_layer_manager.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/opinc/rs_opinc_cache.h"
+#include "feature/opinc/rs_opinc_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "memory/rs_tag_tracker.h"
+#include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_display_render_params.h"
-#include "params/rs_rcd_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
@@ -62,7 +62,6 @@
 #include <v1_0/cm_color_space.h>
 
 #include "feature_cfg/graphic_feature_param_manager.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
 
@@ -1002,6 +1001,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     // avoid cross node subtree visited twice or more
     UpdateSpecialLayersRecord(node);
     UpdateBlackListRecord(node);
+    node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
     if (CheckSkipAndPrepareForCrossNode(node)) {
         return;
     }
@@ -1661,6 +1661,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
     auto children = node.GetSortedChildren();
+
     if (NeedPrepareChindrenInReverseOrder(node)) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
         curFrameInfoDetail.curFrameReverseChildren = true;
@@ -1707,6 +1708,13 @@ inline void RSUniRenderVisitor::CollectNodeForOcclusion(RSRenderNode& node)
     }
 }
 
+void RSUniRenderVisitor::RegisterHpaeCallback(RSRenderNode& node)
+{
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node, screenInfo_.phyWidth, screenInfo_.phyHeight);
+#endif
+}
+
 bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
 {
     // 1 init curDisplay and curDisplayDirtyManager
@@ -1746,6 +1754,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     screenManager_->SetScreenHasProtectedLayer(currentVisitDisplay_, false);
     allBlackList_ = screenManager_->GetAllBlackList();
     allWhiteList_ = screenManager_->GetAllWhiteList();
+    screenWhiteList_ = screenManager_->GetScreenWhiteList();
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
@@ -2097,8 +2106,8 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     }
     std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = pointWindow->GetMutableRSSurfaceHandler();
     if (pointSurfaceHandler) {
-        // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
-        pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
+        // globalZOrder_ is displayNode layer, point window must be at the top.
+        pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
         if (!curDisplayNode_) {
             return;
         }
@@ -2126,7 +2135,11 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
     for (const auto& topLayer : topLayers) {
         std::shared_ptr<RSSurfaceHandler> topLayerSurfaceHandler = topLayer->GetMutableRSSurfaceHandler();
         if (topLayerSurfaceHandler) {
-            topLayerSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 1);
+            if (topLayer->GetTopLayerZOrder() == 0) {
+                topLayerSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 1);
+            } else {
+                topLayerSurfaceHandler->SetGlobalZOrder(static_cast<float>(topLayer->GetTopLayerZOrder()));
+            }
             topLayer->SetCalcRectInPrepare(false);
             bool hwcDisabled = !IsHardwareComposerEnabled() || !topLayer->ShouldPaint() ||
                 curDisplayNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty();
@@ -2825,6 +2838,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     node.UpdateAbsDrawRect();
     node.ResetChangeState();
     node.SetHasUnobscuredUEC();
+    if (curSurfaceNode_ == nullptr) {
+        node.UpdateVirtualScreenWhiteListInfo();
+    }
     if (isDrawingCacheEnabled_) {
         bool isInBlackList = false;
         if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
@@ -3430,8 +3446,7 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
         return;
     }
     auto rect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    std::string nodeName = node.GetName();
-    monitor.InsertCurRectMap(node.GetId(), nodeName, rect);
+    monitor.InsertCurRectMap(node.GetId(), rect);
 }
 
 void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)

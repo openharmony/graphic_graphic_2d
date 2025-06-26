@@ -1545,6 +1545,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextAlphaTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HDRBrightnessFactorTest
+ * @tc.desc: test results of SetHDRBrightnessFactor, GetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, HDRBrightnessFactorTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->SetHDRBrightnessFactor(1.0f);
+    EXPECT_EQ(testNode->GetHDRBrightnessFactor(), 1.0f);
+    testNode->SetHDRBrightnessFactor(0.5f);
+    EXPECT_EQ(testNode->GetHDRBrightnessFactor(), 0.5f);
+    testNode->SetHDRBrightnessFactor(0.0f);
+    EXPECT_EQ(testNode->GetHDRBrightnessFactor(), 0.0f);
+}
+
+/**
  * @tc.name: HdrVideoTest
  * @tc.desc: test results of SetVideoHdrStatus, GetVideoHdrStatus
  * @tc.type: FUNC
@@ -2686,6 +2703,37 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
 
     testNode->DealWithDrawBehindWindowTransparentRegion();
     ASSERT_FALSE(regionBeforeProcess.Sub(testNode->opaqueRegion_).IsEmpty());
+}
+
+/**
+ * @tc.name: UpdateVirtualScreenWhiteListInfo
+ * @tc.desc: test UpdateVirtualScreenWhiteListInfo.
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    std::shared_ptr<RSSurfaceRenderNode> parent = nullptr;
+    node->SetParent(parent);
+    node->SetLeashPersistentId(id + 1);
+    ASSERT_EQ(node->parent_.lock(), nullptr);
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> allWhiteListInfo;
+    ScreenId screenId = 1;
+    allWhiteListInfo[screenId] = {node->GetId()};
+    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+    parent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    node->SetParent(parent);
+    ASSERT_NE(node->parent_.lock(), nullptr);
+    allWhiteListInfo[screenId] = {node->GetLeashPersistentId()};
+    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->RSRenderNode::UpdateVirtualScreenWhiteListInfo();
+
+    parent->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    parent->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
 }
 
 /**

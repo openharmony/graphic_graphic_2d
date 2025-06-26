@@ -636,6 +636,7 @@ void RSBorder::DrawTopBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const R
     topBorder.LineTo(std::max(offsetX + width - RIGHTW2, offsetX + width - trRad.GetX() / 2.f), y + trRad.GetY());
     canvas.AttachPen(pen);
     canvas.DrawPath(topBorder);
+    canvas.DetachPen();
 }
 
 void RSBorder::DrawRightBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const RSBorderGeo& borderGeo) const

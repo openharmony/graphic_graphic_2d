@@ -185,7 +185,11 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     node->displayNodeId_ = displayRenderNodeId;
     auto displayNode = context->GetNodeMap().GetRenderNode<RSDisplayRenderNode>(node->GetDisplayNodeId());
     ASSERT_NE(displayNode, nullptr);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is nullptr
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is not nullptr
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // update surfaceNode HDRBrightnessFactor
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // not update surfaceNode HDRBrightnessFactor
+    EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
 }
 
 /**

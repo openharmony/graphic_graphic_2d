@@ -301,7 +301,7 @@ void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback&
     }
 }
 
-int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
+int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate, bool shouldSendCallback)
 {
     if (!IsEnabled()) {
         HGM_LOGD("HgmCore is not enabled");
@@ -335,7 +335,7 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     auto modeList = modeListToApply_.get();
     (*modeList)[id] = modeToSwitch;
 
-    if (refreshRateUpdateCallback_) {
+    if (refreshRateUpdateCallback_ && shouldSendCallback) {
         refreshRateUpdateCallback_(rate);
         HGM_LOGD("refresh rate changed, notify to app");
     }

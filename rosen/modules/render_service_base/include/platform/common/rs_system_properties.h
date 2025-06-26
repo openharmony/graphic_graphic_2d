@@ -348,6 +348,8 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
+    static bool GetHpaeBlurUsingAAE();
+
     static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
     static bool GetTimeVsyncDisabled();
@@ -373,6 +375,7 @@ public:
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();
     static int GetSubThreadDropFrameInterval();
+    static bool GetCompositeLayerEnabled();
 
 private:
     RSSystemProperties() = default;

@@ -162,6 +162,13 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         return;
     }
     float brightnessFactor = displayNode->GetRenderProperties().GetHDRBrightnessFactor();
+    if (ROSEN_NE(surfaceNode.GetHDRBrightnessFactor(), brightnessFactor)) {
+        RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit GetHDRBrightnessFactor: %{public}f, "
+            "displayNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
+            surfaceNode.GetHDRBrightnessFactor(), brightnessFactor, surfaceNode.GetId());
+        surfaceNode.SetHDRBrightnessFactor(brightnessFactor);
+        surfaceNode.SetContentDirty();
+    }
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
         scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
@@ -276,8 +283,8 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
         if (displayNode.GetIsLuminanceStatusChange()) {
             surfaceNode.SetContentDirty();
         }
-        displayNode.SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
-        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode HDRService pixelformat is set to 1010102");
+        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode HDRService surfaceNode %{public}s is HDR",
+            surfaceNode.GetName().c_str());
     }
 }
 

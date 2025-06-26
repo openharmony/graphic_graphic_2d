@@ -655,6 +655,7 @@ ohos_unittest("RSHardwareThreadTest") {
   sources = [
     "hardware_thread/rs_hardware_thread_test.cpp",
     "mock/mock_hdi_device.cpp",
+    "mock/mock_rs_screen_manager.cpp",
   ]
   deps = [
     ":rs_test_common",

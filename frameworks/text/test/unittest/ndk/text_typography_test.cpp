@@ -4533,6 +4533,48 @@ HWTEST_F(NdkTypographyTest, TypographyGetLineTextRangeTest002, TestSize.Level0)
 }
 
 /*
+ * @tc.name: ParagraphTestGlyphPositionAtCoordinate001
+ * @tc.desc: test for GlyphPositionAtCoordinate with dash
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, ParagraphTestGlyphPositionAtCoordinateWithCluster001, TestSize.Level0)
+{
+    std::string text3 = "————————";
+
+    double maxWidth3 = 1000.0;
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
+
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 30);
+    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+
+    OH_Drawing_TypographyHandlerAddText(handler, text3.c_str());
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, maxWidth3);
+
+    float xCoords[] = { 0, 20, 30, 45, 60, 75, 100 };
+    int expectedPositions[] = { 0, 1, 1, 2, 2, 3, 3 };
+    int expectedAffinities[] = { 1, 0, 1, 0, 1, 0, 1 };
+    OH_Drawing_PositionAndAffinity* results[7];
+    for (int i = 0; i < 7; i++) {
+        results[i] = OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, xCoords[i], 0);
+        EXPECT_EQ(OH_Drawing_GetPositionFromPositionAndAffinity(results[i]), expectedPositions[i]);
+        EXPECT_EQ(OH_Drawing_GetAffinityFromPositionAndAffinity(results[i]), expectedAffinities[i]);
+    }
+
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    for (int i = 0; i < 7; i++) {
+        free(results[i]);
+    }
+}
+
+/*
  * @tc.name: TypographyBadgeTypeTest001
  * @tc.desc: Test for text's super script
  * @tc.type: FUNC

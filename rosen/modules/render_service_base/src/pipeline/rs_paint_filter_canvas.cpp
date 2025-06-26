@@ -1523,6 +1523,11 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing:
     : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
 {}
 
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Drawing::Image>& image,
+    const Drawing::RectI& rect)
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+{}
+
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 {
     isParallelCanvas_ = isParallel;

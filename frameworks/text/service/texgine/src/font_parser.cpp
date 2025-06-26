@@ -380,11 +380,11 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
     fontConfigJson.ParseFontFileMap();
     std::shared_ptr<FontFileMap> fontFileMap = fontConfigJson.GetFontFileMap();
     if (fontFileMap == nullptr || (*fontFileMap).empty()) {
-        TEXT_LOGE("Empty font file map");
+        TEXT_LOGE_LIMIT3_MIN("Empty font file map");
         return nullptr;
     }
     if ((*fontFileMap).find(fontName) == (*fontFileMap).end()) {
-        TEXT_LOGE("Failed to find font name %{pubic}s", fontName.c_str());
+        TEXT_LOGE_LIMIT3_MIN("Failed to find font name %{pubic}s", fontName.c_str());
         return nullptr;
     }
     std::string path = SYSTEM_FONT_PATH + (*fontFileMap)[fontName];
@@ -393,7 +393,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
         path = SYS_PROD_FONT_PATH + (*fontFileMap)[fontName];
         typeface = Drawing::Typeface::MakeFromFile(path.c_str());
         if (typeface == nullptr) {
-            TEXT_LOGE("Failed to parse %{public}s", path.c_str());
+            TEXT_LOGE_LIMIT3_MIN("Failed to parse %{public}s", path.c_str());
             return nullptr;
         }
     }
@@ -408,7 +408,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
     fontDescriptor.width = fontStyle.GetWidth();
 
     if (!ParseTable(typeface, fontDescriptor)) {
-        TEXT_LOGE("Failed to parse table");
+        TEXT_LOGE_LIMIT3_MIN("Failed to parse table");
         return nullptr;
     }
     if (fontDescriptor.fullName == fontName) {

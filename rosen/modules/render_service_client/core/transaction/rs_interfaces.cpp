@@ -28,7 +28,6 @@
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
-#include "feature/capture/rs_capture_pixelmap_manager.h"
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -223,15 +222,7 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    auto bounds = node->GetStagingProperties().GetBounds();
-    Drawing::Rect nodeRect = {0, 0, bounds.z_, bounds.w_};
-    auto clientCapturePixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(nodeRect,
-        captureConfig, RSUniRenderJudgement::GetUniRenderEnabledType());
-    if (clientCapturePixelMap != nullptr) {
-        captureConfig.isClientPixelMap = true;
-    }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(),
-        callback, captureConfig, std::move(clientCapturePixelMap));
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
@@ -248,17 +239,7 @@ bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> nod
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = blurRadius;
-
-    auto bounds = node->GetStagingProperties().GetBounds();
-    Drawing::Rect nodeRect = {0, 0, bounds.z_, bounds.w_};
-    auto clientCapturePixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(nodeRect,
-        captureConfig, RSUniRenderJudgement::GetUniRenderEnabledType());
-    if (clientCapturePixelMap != nullptr) {
-        captureConfig.isClientPixelMap = true;
-    }
-
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback,
-        captureConfig, std::move(clientCapturePixelMap), blurParam);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
 }
 
 bool RSInterfaces::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
@@ -402,16 +383,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        auto bounds = node->GetStagingProperties().GetBounds();
-        RSSurfaceCaptureBlurParam blurParam = {};
-        Drawing::Rect nodeRect = {0, 0, bounds.z_, bounds.w_};
-        auto clientCapturePixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(nodeRect,
-            captureConfig, RSUniRenderJudgement::GetUniRenderEnabledType(), specifiedAreaRect);
-        if (clientCapturePixelMap != nullptr) {
-            captureConfig.isClientPixelMap = true;
-        }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig,
-            std::move(clientCapturePixelMap), blurParam, specifiedAreaRect);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
@@ -444,8 +416,8 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> nod
             node->SetTakeSurfaceForUIFlag();
         }
         RSSurfaceCaptureBlurParam blurParam = {};
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig,
-            nullptr, blurParam, specifiedAreaRect);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback,
+            captureConfig, blurParam, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
@@ -1147,6 +1119,11 @@ bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
     return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 
+void RSInterfaces::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+{
+    renderServiceClient_->SetLayerTopForHWC(nodeIdStr, isTop, zOrder);
+}
+
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
@@ -1174,10 +1151,19 @@ void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
     renderServiceClient_->SetWindowContainer(nodeId, value);
 }
 
-int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback)
+int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(
+    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
 {
-    RS_TRACE_NAME("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback");
-    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(callback);
+    RS_LOGD("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback lowLimit_width: %{public}d lowLimit_height: "
+            "%{public}d highLimit_width: %{public}d highLimit_height: %{public}d",
+            filter.range.lowLimit.width, filter.range.lowLimit.height, filter.range.highLimit.width,
+            filter.range.highLimit.height);
+    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(filter, callback);
+}
+
+int32_t RSInterfaces::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    return renderServiceClient_->UnRegisterSelfDrawingNodeRectChangeCallback();
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

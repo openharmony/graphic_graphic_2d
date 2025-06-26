@@ -103,12 +103,15 @@ protected:
         if (it == properties_.end()) {
             return;
         }
-        std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdListNG>(
-            node->GetId(), id_, GetType(), GetInnerPropertyType(), drawCmdList);
+        if (it->second == nullptr) {
+            return;
+        }
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, it->second->GetId());
         node->AddCommand(command, node->IsRenderServiceNode());
         if (node->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdListNG>(
-                node->GetId(), id_, GetType(), GetInnerPropertyType(), drawCmdList);
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, it->second->GetId());
             node->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
         }
     }

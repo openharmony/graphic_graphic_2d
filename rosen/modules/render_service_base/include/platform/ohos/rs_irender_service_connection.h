@@ -182,7 +182,6 @@ public:
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
-        std::unique_ptr<Media::PixelMap> clientPixelMap = nullptr,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
@@ -398,6 +397,8 @@ public:
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
 
+    virtual ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) = 0;
+
     virtual ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 
     virtual ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) = 0;
@@ -419,7 +420,10 @@ public:
 
     virtual ErrCode SetWindowContainer(NodeId nodeId, bool value) = 0;
 
-    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
+    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
+    
+    virtual int32_t UnRegisterSelfDrawingNodeRectChangeCallback() = 0;
 
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 

@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 
-using SelfDrawingNodeRectCallbackData = std::map<NodeId, std::pair<std::string, RectI>>;
+using SelfDrawingNodeRectCallbackData = std::map<NodeId, RectI>;
 class RSB_EXPORT RSSelfDrawingNodeRectData : public Parcelable {
 public:
     RSSelfDrawingNodeRectData() = default;

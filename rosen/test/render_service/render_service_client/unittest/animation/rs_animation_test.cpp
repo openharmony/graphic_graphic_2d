@@ -305,4 +305,15 @@ HWTEST_F(RSAnimationTest, PauseTest002, Level1)
     rsAnimation.Pause();
     ASSERT_NE(per, nullptr);
 }
+
+/**
+ * @tc.name: GetPropertyType
+ * @tc.desc: test results of GetPropertyType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, GetPropertyType, Level1)
+{
+    auto animation = std::make_shared<RSAnimation>();
+    EXPECT_EQ(animation->GetPropertyType(), ModifierNG::RSPropertyType::INVALID);
+}
 }

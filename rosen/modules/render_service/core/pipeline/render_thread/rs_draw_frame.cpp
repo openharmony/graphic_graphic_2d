@@ -27,6 +27,8 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_filter_cache_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "rs_frame_report.h"
 #include "rs_uni_render_thread.h"
 
@@ -224,6 +226,13 @@ void RSDrawFrame::Sync()
 {
     RS_TRACE_NAME_FMT("Sync");
     RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode()->Sync();
+    bool isHdrOn = false;
+    if (stagingRenderThreadParams_ && stagingRenderThreadParams_->HasDisplayHdrOn()) {
+        isHdrOn = true;
+    }
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    RSHpaeManager::GetInstance().OnSync(isHdrOn);
+#endif
 
     auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
     for (auto [id, weakPtr] : stagingSyncCanvasDrawingNodes_) {
@@ -244,6 +253,7 @@ void RSDrawFrame::Sync()
         }
     }
     pendingSyncNodes.clear();
+    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 }

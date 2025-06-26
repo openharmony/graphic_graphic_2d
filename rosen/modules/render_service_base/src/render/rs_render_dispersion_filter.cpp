@@ -140,7 +140,8 @@ bool RSRenderDispersionFilterPara::ReadFromParcel(Parcel& parcel)
 {
     ROSEN_LOGD("RSRenderDispersionFilterPara::ReadFromParcel %{public}d %{public}d %{public}d",
         static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
-    if (!RSMarshallingHelper::Unmarshalling(parcel, id_) || !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
+        !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, modifierType_)) {
         ROSEN_LOGE("RSRenderDispersionFilterPara::ReadFromParcel Error");
         return false;

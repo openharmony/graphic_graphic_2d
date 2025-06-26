@@ -219,6 +219,8 @@ bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMem
     if (!CopyImageData(image, memory.base, image->dmaSize)) {
         return false;
     }
+    // solve pink artefacts problem during replay (GPU reads texture when it's still not updated)
+    surfaceBuffer->FlushCache();
 
     memory.context = IncrementSurfaceBufferReference(surfaceBuffer);
     skipBytes = image->parcelSkipBytes;

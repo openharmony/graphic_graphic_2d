@@ -340,6 +340,26 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize
 }
 
 /**
+ * @tc.name: SetAceComponentEnableTest
+ * @tc.desc: test results of SetAceComponentEnableTest
+ * @tc.type: FUNC
+ * @tc.require: issuesICH496
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetAceComponentEnableTest, TestSize.Level1)
+{
+    SetConfigEnable("true");
+    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DRAG_SCENE_FRAME_RATE_TYPE };
+    EventInfo eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = false,
+        .description = "DRAG_SCENE" };
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
+    eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = true,
+        .description = "DRAG_SCENE" };
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
+}
+
+/**
  * @tc.name: GetCommponentFpsTest1
  * @tc.desc: test results of GetCommponentFpsTest1
  * @tc.type: FUNC
@@ -519,6 +539,5 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level1)
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "");
 }
-
 } // namespace Rosen
 } // namespace OHOS

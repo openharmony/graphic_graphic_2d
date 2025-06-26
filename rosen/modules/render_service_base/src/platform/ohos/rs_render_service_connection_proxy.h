@@ -154,7 +154,6 @@ public:
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
-        std::unique_ptr<Media::PixelMap> pixelMap = nullptr,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
@@ -175,9 +174,6 @@ public:
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
 
     bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
-
-    bool WriteClientSurfacePixelMap(const std::unique_ptr<Media::PixelMap>& pixelMap,
-        bool isUsedClientPixelMap, MessageParcel& data);
         
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
@@ -384,7 +380,10 @@ public:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
@@ -408,6 +407,8 @@ private:
     int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
+    
+    ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) override;
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 

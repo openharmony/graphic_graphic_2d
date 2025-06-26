@@ -81,7 +81,7 @@ void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
     auto pid = ExtractPid(GetId());
     // Try to insert pid with value 0 and we got an iterator to the inserted element or to the existing element.
     auto it = blurEffectCounter_.emplace(std::make_pair(pid, 0)).first;
-    if (deltaCount > 0 || (it->second > -deltaCount)) {
+    if (deltaCount > 0 || (static_cast<int>(it->second) > -deltaCount)) {
         it->second += deltaCount;
     } else {
         blurEffectCounter_.erase(it);
@@ -524,6 +524,16 @@ void RSRenderNode::ResetChildRelevantFlags()
     visibleEffectChild_.clear();
     childrenRect_.Clear();
     hasChildrenOutOfRect_ = false;
+}
+
+void RSRenderNode::ResetPixelStretchSlot()
+{
+    RSDrawable::ResetPixelStretchSlot(*this, drawableVec_);
+}
+
+bool RSRenderNode::CanFuzePixelStretch()
+{
+    return RSDrawable::CanFusePixelStretch(drawableVec_);
 }
 
 void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
@@ -1716,7 +1726,6 @@ bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geo
     }
     RSModifierContext context = { GetMutableRenderProperties() };
     for (auto& modifier : drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
-        // todo Concat matrix directly
         modifier->Apply(context);
     }
     return true;
@@ -1810,7 +1819,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
     }
     ValidateLightResources();
-    isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
+    isDirtyRegionUpdated_ = false;
     // Only when satisfy following conditions, absDirtyRegion should update:
     // 1.The node is dirty; 2.The clip absDrawRect change; 3.Parent clip property change or has GeoUpdateDelay dirty;
     // When the subtree is all dirty and the node should not paint, it also needs to add dirty region
@@ -2710,14 +2719,23 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderNode::GetProperty(PropertyId id)
     return it->second;
 }
 
-void RSRenderNode::AddProperty(std::shared_ptr<RSRenderPropertyBase> property)
+void RSRenderNode::RegisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property)
 {
-    properties_.emplace(property->GetId(), property);
+    if (property) {
+        properties_.emplace(property->GetId(), property);
+    }
 }
 
-void RSRenderNode::RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property)
+void RSRenderNode::UnregisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property)
 {
-    properties_.erase(property->GetId());
+    if (property) {
+        properties_.erase(property->GetId());
+    }
+}
+
+void RSRenderNode::UnregisterProperty(PropertyId id)
+{
+    properties_.erase(id);
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
@@ -2754,7 +2772,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
         modifier->SetSingleFrameModifier(false);
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
-    modifier->GetProperty()->Attach(shared_from_this());
+    modifier->GetProperty()->Attach(*this);
     ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode:add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
         GetId(), modifier->GetModifierTypeString().c_str());
 }
@@ -2780,7 +2798,7 @@ void RSRenderNode::AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& 
         }
         for (auto& prop : propGroup->GetLeafRenderProperties()) {
             if (prop) {
-                prop->Attach(shared_from_this());
+                prop->Attach(*this);
                 properties_.emplace(prop->GetId(), prop);
             }
         }
@@ -2819,6 +2837,9 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         }
         ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
+        if (auto property = it->second->GetProperty()) {
+            property->Detach();
+        }
         modifiers_.erase(it);
         auto propertyIt = properties_.find(id);
         if (propertyIt != properties_.end()) {
@@ -4266,6 +4287,11 @@ RectI RSRenderNode::GetRemovedChildrenRect() const
 {
     return removedChildrenRect_;
 }
+bool RSRenderNode::HasHpaeBackgroundFilter() const
+{
+    auto drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)];
+    return drawable != nullptr;
+}
 bool RSRenderNode::ChildHasVisibleFilter() const
 {
     return childHasVisibleFilter_;
@@ -4757,6 +4783,20 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
     return NodeGroupType::NONE;
 }
 
+void RSRenderNode::UpdateVirtualScreenWhiteListInfo()
+{
+    if (IsInstanceOf<RSSurfaceRenderNode>()) {
+        return;
+    }
+    auto nodeParent = GetParent().lock();
+    if (nodeParent == nullptr) {
+        return;
+    }
+    for (const auto& [screenId, ret] : hasVirtualScreenWhiteList_) {
+        nodeParent->SetHasWhiteListNode(screenId, ret);
+    }
+}
+
 void RSRenderNode::MarkNonGeometryChanged()
 {
     geometryChangeNotPerceived_ = true;
@@ -4822,6 +4862,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
     stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
+    stagingRenderParams_->SetVirtualScreenWhiteListInfo(hasVirtualScreenWhiteList_);
     auto cloneSourceNode = GetSourceCrossNode().lock();
     if (cloneSourceNode) {
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());

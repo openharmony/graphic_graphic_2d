@@ -1126,6 +1126,8 @@ public:
      */
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
+    void SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder);
+
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     /**
      * @brief Set selfdrawing component of stylus engine force use DSS.
@@ -1174,7 +1176,10 @@ public:
      * @param callback callback function.
      * @return return value == 0 success, return value == others, failed.
      */
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback);
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);

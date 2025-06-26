@@ -289,8 +289,8 @@ private:
 };
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, std::unique_ptr<Media::PixelMap> clientCapturePixelMap,
-    const RSSurfaceCaptureBlurParam& blurParam, const Drawing::Rect& specifiedAreaRect)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    const Drawing::Rect& specifiedAreaRect)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -316,8 +316,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig, blurParam,
-        specifiedAreaRect, std::move(clientCapturePixelMap));
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
     return true;
 }
 
@@ -2167,6 +2166,14 @@ void RSRenderServiceClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBuffer
     }
 }
 
+void RSRenderServiceClient::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTopForHWC(nodeIdStr, isTop, zOrder);
+    }
+}
+
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -2291,7 +2298,7 @@ private:
 };
 
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
-    const SelfDrawingNodeRectChangeCallback& callback)
+    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -2304,7 +2311,17 @@ int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
         cb = new CustomSelfDrawingNodeRectChangeCallback(callback);
     }
 
-    return renderService->RegisterSelfDrawingNodeRectChangeCallback(cb);
+    return renderService->RegisterSelfDrawingNodeRectChangeCallback(filter, cb);
+}
+
+int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback renderService == nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->UnRegisterSelfDrawingNodeRectChangeCallback();
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

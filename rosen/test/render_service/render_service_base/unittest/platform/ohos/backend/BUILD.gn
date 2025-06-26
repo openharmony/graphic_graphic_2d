@@ -73,6 +73,7 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "init:libbegetutil",
     "skia:skia_canvaskit",
     "vulkan-headers:vulkan_headers",
+    "ffrt:libffrt",
   ]
 
   subsystem_name = "graphic"

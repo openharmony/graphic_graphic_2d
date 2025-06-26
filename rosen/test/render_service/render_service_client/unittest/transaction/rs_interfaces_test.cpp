@@ -786,4 +786,20 @@ HWTEST_F(RSInterfacesTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
     auto res = instance.GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, true);
 }
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest
+ * @tc.desc: test results of GetPidGpuMemoryInMBTest001
+ * @tc.type: FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    pid_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    int32_t res = instance.GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_NE(res, 0);
+}
 } // namespace OHOS::Rosen

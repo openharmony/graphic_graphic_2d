@@ -705,11 +705,10 @@ void RSImage::SetDynamicRangeMode(uint32_t dynamicRangeMode)
 #ifdef ROSEN_OHOS
 static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& width, int& height)
 {
-    if (!RSMarshallingHelper::Unmarshalling(parcel, uniqueId)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, uniqueId)) {
         RS_LOGE("RSImage::Unmarshalling uniqueId fail");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, uniqueId);
     if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
         RS_LOGE("RSImage::Unmarshalling width fail");
         return false;
@@ -836,11 +835,10 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
         RS_LOGE("RSImage::Unmarshalling UnmarshallingIdAndSize fail");
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, nodeId)) {
         RS_LOGE("RSImage::Unmarshalling nodeId fail");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId);
     return true;
 }
 

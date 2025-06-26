@@ -70,6 +70,11 @@ rs_effect_feature_sources = [
   "rs_effect_feature/effect_linear_gradient_blur_test.cpp",
   "rs_effect_feature/effect_magnifier_test.cpp",
   "rs_effect_feature/effect_pixel_stretch_test.cpp",
+  "rs_effect_feature/effect_appearance_spherize_test.cpp",
+  "rs_effect_feature/effect_content_effectnode_test.cpp",
+  "rs_effect_feature/effect_background_blender_test.cpp",
+  "rs_effect_feature/effect_background_effect_test.cpp",
+  "rs_effect_feature/effect_fg_dynamiclightup_test.cpp",
 ]
 rs_framework_sources = []
 rs_func_feature_sources = [
@@ -80,6 +85,7 @@ rs_func_feature_sources = [
   "rs_func_feature/special_layer/security_layer_test.cpp",
   "rs_func_feature/special_layer/skip_layer_test.cpp",
   "rs_func_feature/special_layer/snapshot_skip_layer_test.cpp",
+  "rs_func_feature/accessibility/curtain_screen_test.cpp",
 ]
 rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",

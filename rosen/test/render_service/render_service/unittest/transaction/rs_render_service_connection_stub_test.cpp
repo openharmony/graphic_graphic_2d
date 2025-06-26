@@ -97,48 +97,6 @@ public:
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         Media::PixelMap* pixelmap) override {};
 };
-/**
- * @tc.name: NotifySurfaceCaptureTest001
- * @tc.desc: NotifySurfaceCaptureTest001.
- * @tc.type: FUNC
- * @tc.require: issueI60KUK
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureTest001, TestSize.Level1)
-{
-    auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto mainThread = RSMainThread::Instance();
-
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
-    ASSERT_EQ(connectionStub_ != nullptr, true);
-    NodeId nodeId = surfaceNode_->GetId();
-    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
-    ASSERT_EQ(callback != nullptr, true);
-
-    RSSurfaceCaptureConfig captureConfig;
-    RSSurfaceCaptureBlurParam blurParam;
-    Drawing::Rect specifiedAreaRect;
-
-    captureConfig.scaleX = 2;
-    captureConfig.scaleY = 2;
-    captureConfig.isClientPixelMap = true;
-    captureConfig.useCurWindow = true;
-    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap({0, 0, 50, 50}, captureConfig,
-        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-    connectionStub_->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam,
-        specifiedAreaRect, std::move(pixelMap));
-    
-    // for code coverage
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
-
-    captureConfig.isClientPixelMap = false;
-    captureConfig.scaleX = 2;
-    connectionStub_->TakeUICaptureInRange(nodeId, callback, captureConfig);
-    nodeMap.UnregisterRenderNode(nodeId);
-}
 
 void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
@@ -148,7 +106,6 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
     data.WriteBool(captureConfig.useCurWindow);
     data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data.WriteBool(captureConfig.isSync);
-    data.WriteBool(captureConfig.isClientPixelMap);
     data.WriteFloat(captureConfig.mainScreenRect.left_);
     data.WriteFloat(captureConfig.mainScreenRect.top_);
     data.WriteFloat(captureConfig.mainScreenRect.right_);
@@ -185,7 +142,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
     NodeId id = surfaceNode_->GetId();
     // Test0 Abnormal condition, isClientPixelMap = true, but no clientPixelMap
     RSSurfaceCaptureConfig captureConfig;
-    captureConfig.isClientPixelMap = true;
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
     g_WriteSurfaceCaptureConfigMock(captureConfig, data);
@@ -206,7 +162,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
 
     MessageParcel data2;
     RSSurfaceCaptureConfig captureConfig2;
-    captureConfig2.isClientPixelMap = true;
     data2.WriteUint64(id);
     data2.WriteRemoteObject(callback->AsObject());
     g_WriteSurfaceCaptureConfigMock(captureConfig2, data2);
@@ -218,10 +173,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, T
     data2.WriteFloat(0);
     data2.WriteFloat(0);
     data2.WriteFloat(0);
-    // Write pixelMap
-    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap({0, 0, 50, 50}, captureConfig,
-        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-    data2.WriteParcelable(pixelMap.get());
 
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
 
@@ -969,6 +920,25 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub026
 }
 
 /**
+ * @tc.name: TestRSRenderServiceConnectionStub030
+ * @tc.desc: Test ForceRefresh
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub030, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH);
+    data.WriteString("surface01");
+    data.WriteBool(true);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
  * @tc.name: NotifyWindowExpectedByWindowIDTest001
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -1046,5 +1016,24 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByVsyncNameTest0
     eventInfo.Serialize(data);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest001
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:issuesICE0QR
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB);
+    data.WriteUint32(1001);
+    MessageParcel reply;
+    MessageOption option;
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen

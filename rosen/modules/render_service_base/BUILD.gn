@@ -267,6 +267,15 @@ ohos_source_set("render_service_base_src") {
     #effect
     "src/effect/rs_render_filter_base.cpp",
 
+    #hpae
+    "src/hpae_base/rs_hpae_base_data.cpp",
+    "src/hpae_base/rs_hpae_hianimation.cpp",
+    "src/hpae_base/rs_hpae_ffrt_pattern_manager.cpp",
+    "src/hpae_base/rs_hpae_filter_cache_manager.cpp",
+    "src/hpae_base/rs_hpae_scheduler.cpp",
+    "src/hpae_base/rs_hpae_perf_thread.cpp",
+    "src/hpae_base/rs_hpae_fusion_operator.cpp",
+
     #render
     "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_bezier_warp_filter.cpp",
@@ -601,6 +610,7 @@ ohos_source_set("render_service_base_src") {
       "image_framework:image_native",
       "lz4:liblz4_shared",
       "init:libbegetutil",
+      "ffrt:libffrt",
     ]
   }
 

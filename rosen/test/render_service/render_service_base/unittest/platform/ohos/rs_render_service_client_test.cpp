@@ -1259,5 +1259,20 @@ HWTEST_F(RSClientTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
     auto res = rsClient->GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, true);
 }
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest
+ * @tc.desc: GetPidGpuMemoryInMBTest
+ * @tc.type:FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    int32_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    auto res = rsClient->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
 } // namespace Rosen
 } // namespace OHOS

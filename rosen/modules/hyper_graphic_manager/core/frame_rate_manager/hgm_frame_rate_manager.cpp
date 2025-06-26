@@ -840,6 +840,9 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     if (eventName == "VOTER_VIDEO_CALL") {
         HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
         return;
+    } else if (eventName == "ENERGY_CONSUMPTION_ASSURANCE") {
+        HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+        return;
     }
     auto voters = frameVoter_.GetVoters();
     auto event = std::find(voters.begin(), voters.end(), eventName);

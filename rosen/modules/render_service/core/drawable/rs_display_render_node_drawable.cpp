@@ -43,6 +43,7 @@
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -788,6 +789,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
+
+    CheckHpaeBlurRun(isHdrOn);
+
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
@@ -2157,10 +2161,35 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         auto mainHeight = static_cast<float>(screenInfo.height);
 
         // in certain cases (such as fold screen), the width and height must be swapped to fix the screen rotation.
-        int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas.GetTotalMatrix());
-        if (angle == RS_ROTATION_90 || angle == RS_ROTATION_270) {
+        canvas.Save();
+        canvas.ResetMatrix();
+        auto rotation = params.GetScreenRotation();
+        auto screenId = params.GetScreenId();
+        auto screenCorrection = screenManager->GetScreenCorrection(screenId);
+        if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
+            screenCorrection != ScreenRotation::ROTATION_0) {
+            // Recaculate rotation if mirrored screen has additional rotation angle
+            rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + SCREEN_ROTATION_NUM
+                - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
+        }
+
+        if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(mainWidth, mainHeight);
         }
+
+        if (rotation != ScreenRotation::ROTATION_0) {
+            if (rotation == ScreenRotation::ROTATION_90) {
+                canvas.Rotate(-(RS_ROTATION_90), 0, 0); // 90 degree
+                canvas.Translate(-(static_cast<float>(mainWidth)), 0);
+            } else if (rotation == ScreenRotation::ROTATION_180) {
+                canvas.Rotate(-(RS_ROTATION_180), static_cast<float>(mainWidth) / 2, // 2 half of screen width
+                    static_cast<float>(mainHeight) / 2); // 2 half of screen height
+            } else if (rotation == ScreenRotation::ROTATION_270) {
+                canvas.Rotate(-(RS_ROTATION_270), 0, 0); // 270 degree
+                canvas.Translate(0, -(static_cast<float>(mainHeight)));
+            }
+        }
+
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
         auto dstRect = Drawing::Rect(0, 0, mainWidth, mainHeight);
         Drawing::Brush rectBrush;
@@ -2168,6 +2197,7 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
         canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas.DetachBrush();
+        canvas.Restore();
     }
 }
 
@@ -2645,5 +2675,17 @@ void RSDisplayRenderNodeDrawable::MirrorRedrawDFX(bool mirrorRedraw, ScreenId sc
         RS_LOGI("RSDisplayRenderNodeDrawable::%{public}s mirror screenId: %{public}" PRIu64
             " drawing path changed, mirrorRedraw_: %{public}d", __func__, screenId, mirrorRedraw_);
     }
+}
+
+void RSDisplayRenderNodeDrawable::CheckHpaeBlurRun(bool isHdron)
+{
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    if (!isHdrOn && RSHpaeManager::GetInstance().HasHpaeBlurNode()) {
+        bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AnCoHebcStatus::NOT_USE_HEBC);
+        GraphicPixelFormat pixelFormat = params->GetNewPixelFormat();
+        GraphicColorGamut colorSpace = params->GetNewColorSpace();
+        RSHpaeManager::GetInstance().SetUpHpaeSurface(pixelFormat, colorSpace, isHebc);
+    }
+#endif
 }
 } // namespace OHOS::Rosen::DrawableV2

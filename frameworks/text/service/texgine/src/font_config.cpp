@@ -43,7 +43,7 @@ FontConfig::FontConfig(const char* fname)
 {
     int err = ParseConfig(fname);
     if (err != 0) {
-        TEXT_LOGE("Failed to parse config, ret %{public}d", err);
+        TEXT_LOGE_LIMIT3_MIN("Failed to parse config, ret %{public}d", err);
     }
 }
 
@@ -52,12 +52,12 @@ char* FontConfig::GetFileData(const char* fname, int& size)
     char realPath[PATH_MAX] = {0};
 #ifdef _WIN32
     if (fname == nullptr || _fullpath(realPath, fname, PATH_MAX) == nullptr) {
-        TEXT_LOGE("Path or realPath is nullptr");
+        TEXT_LOGE_LIMIT3_MIN("Path or realPath is nullptr");
         return nullptr;
     }
 #else
     if (fname == nullptr || realpath(fname, realPath) == nullptr) {
-        TEXT_LOGE("Path or realPath is nullptr");
+        TEXT_LOGE_LIMIT3_MIN("Path or realPath is nullptr");
         return nullptr;
     }
 #endif
@@ -77,7 +77,7 @@ char* FontConfig::GetFileData(const char* fname, int& size)
         }
 #ifdef BUILD_NON_SDK_VER
         if (memset_s(data, size, 0, size) != EOK) {
-            TEXT_LOGE("Failed to memset");
+            TEXT_LOGE_LIMIT3_MIN("Failed to memset");
             free(data);
             data = nullptr;
             fclose(fp);
@@ -99,7 +99,7 @@ cJSON* FontConfig::CheckConfigFile(const char* fname)
     int size = 0;
     char* data = GetFileData(fname, size);
     if (data == nullptr) {
-        TEXT_LOGE("Null data");
+        TEXT_LOGE_LIMIT3_MIN("Null data");
         return nullptr;
     }
     cJSON_Minify(data);
@@ -129,20 +129,20 @@ int FontConfig::ParseFont(const cJSON* root)
 int FontConfig::ParseConfig(const char* fname)
 {
     if (fname == nullptr) {
-        TEXT_LOGE("File name is null");
+        TEXT_LOGE_LIMIT3_MIN("File name is null");
         return FAILED;
     }
 
     std::string rootPath(fname);
     size_t idx = rootPath.rfind('/');
     if (idx == 0 || idx == std::string::npos) {
-        TEXT_LOGE("File name is illegal");
+        TEXT_LOGE_LIMIT3_MIN("File name is illegal");
         return FAILED;
     }
     rootPath_.assign(rootPath.substr(0, idx) + "/");
     cJSON* root = CheckConfigFile(fname);
     if (root == nullptr) {
-        TEXT_LOGE("Failed to check config file");
+        TEXT_LOGE_LIMIT3_MIN("Failed to check config file");
         return FAILED;
     }
     int result = ParseFont(root);
@@ -192,11 +192,11 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
         fname = FONT_FILE_MAP_CONFIG;
     }
 
-    TEXT_LOGI("File name: %{public}s", fname);
+    TEXT_LOGI_LIMIT3_MIN("File name: %{public}s", fname);
     fontFileMap = std::make_shared<FontFileMap>();
     int err = ParseConfigListPath(fname);
     if (err != 0) {
-        TEXT_LOGE("Failed to parse config path, ret %{public}d", err);
+        TEXT_LOGE_LIMIT3_MIN("Failed to parse config path, ret %{public}d", err);
         return err;
     }
     return SUCCESSED;

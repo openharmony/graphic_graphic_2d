@@ -17,8 +17,6 @@
 
 #include <memory>
 
-#include "rs_profiler.h"
-
 #include "animation/rs_value_estimator.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_optional_trace.h"
@@ -145,7 +143,8 @@ void RSRenderParticleAnimation::OnAttach()
         for (const auto& pair : particleAnimations) {
 #if defined(MODIFIER_NG)
             auto property = target->GetProperty(pair.first);
-            if (auto modifierNG = property->GetModifierNG().lock()) {
+            auto modifierNG = property != nullptr ? property->GetModifierNG().lock() : nullptr;
+            if (modifierNG != nullptr) {
                 target->RemoveModifierNG(modifierNG->GetId());
             }
 #else
@@ -206,17 +205,16 @@ RSRenderParticleAnimation* RSRenderParticleAnimation::Unmarshalling(Parcel& parc
 bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
 {
     AnimationId id = 0;
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id)) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling animationId failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, id);
     SetAnimationId(id);
-    if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
+    if (!(RSMarshallingHelper::UnmarshallingPidPlusId(parcel, propertyId_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
     return true;
 }

@@ -3245,5 +3245,44 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
     EXPECT_NE(compositingFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(compositingFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
 }
+
+/**
+ * @tc.name: HasHpaeBackgroundFilter
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: wzwz
+ */
+HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    ASSERT_FALSE(renderNode->HasHpaeBackgroundFilter());
+
+    auto drawableFilter = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
+    EXPECT_NE(drawableFilter, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
+    ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
+}
+/*
+ * @tc.name: UpdateVirtualScreenWhiteListInfo
+ * @tc.desc: Test function UpdateVirtualScreenWhiteListInfo
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSRenderNode> parent = nullptr;
+    node->SetParent(parent);
+    ASSERT_EQ(node->parent_.lock(), nullptr);
+    node->UpdateVirtualScreenWhiteListInfo();
+    parent = std::make_shared<RSRenderNode>(id + 1);
+    node->SetParent(parent);
+    ASSERT_NE(node->parent_.lock(), nullptr);
+    ScreenId screenId = 1;
+    node->hasVirtualScreenWhiteList_[screenId] = false;
+    node->UpdateVirtualScreenWhiteListInfo();
+}
 } // namespace Rosen
 } // namespace OHOS

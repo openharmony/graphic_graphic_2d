@@ -581,7 +581,7 @@ public:
     void SetHwcChildrenDisabledState();
 
     void SetContextBounds(const Vector4f bounds);
-    bool CheckParticipateInOcclusion();
+    virtual bool CheckParticipateInOcclusion();
 
     void OnApplyModifiers() override;
 
@@ -621,6 +621,8 @@ public:
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
     void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
+    void UpdateVirtualScreenWhiteListInfo(
+        const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
@@ -1541,6 +1543,16 @@ public:
         hdrVideoSurface_ = hasHdrVideoSurface;
     }
 
+    float GetHDRBrightnessFactor() const
+    {
+        return hdrBrightnessFactor_;
+    }
+
+    void SetHDRBrightnessFactor(float hdrBrightnessFactor)
+    {
+        hdrBrightnessFactor_ = hdrBrightnessFactor;
+    }
+
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
     {
@@ -1584,6 +1596,13 @@ public:
     int32_t GetAppWindowZOrder() const
     {
         return appWindowZOrder_;
+    }
+
+    void SetTopLayerZOrder(uint32_t zOrder);
+
+    uint32_t GetTopLayerZOrder() const
+    {
+        return topLayerZOrder_;
     }
 
     // Enable HWCompose
@@ -1652,6 +1671,7 @@ private:
     bool qosPidCal_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    uint32_t topLayerZOrder_ = 0;
     bool isLayerTop_ = false;
     bool isForceRefresh_ = false; // the self-drawing node need force refresh
     // Specifying hardware enable is only a 'hint' to RS that
@@ -1777,6 +1797,7 @@ private:
     // hdr
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
+    float hdrBrightnessFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
     uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;

@@ -176,7 +176,6 @@ private:
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
-        std::unique_ptr<Media::PixelMap> clientPixelMap = nullptr,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
@@ -385,6 +384,8 @@ private:
 
     void SetFreeMultiWindowStatus(bool enable) override;
 
+    ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) override;
+
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
@@ -402,7 +403,10 @@ private:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;

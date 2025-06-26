@@ -42,7 +42,8 @@ void RSTransactionDataCallbackManager::TriggerTransactionDataCallback(int32_t pi
             PRIu64 " pid: %{public}d", timeStamp, pid);
         callback->OnAfterProcess(pid, timeStamp);
     } else {
-        RS_LOGE("TriggerTransactionDataCallback trigger callback err");
+        RS_LOGD("RSTransactionDataCallbackManager trigger callback error, timeStamp: %{public}"
+            PRIu64 " pid: %{public}d", timeStamp, pid);
     }
 }
 

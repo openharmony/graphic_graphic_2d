@@ -168,6 +168,9 @@ VsyncError VSyncReceiver::RequestNextVSync(
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
     }
+    if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
+        looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
+    }
     return connection_->RequestNextVSync(fromWhom, lastVSyncTS, requestVsyncTime);
 }
 
@@ -183,6 +186,9 @@ VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callba
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    }
+    if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
+        looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
     }
     return connection_->RequestNextVSync();
 }

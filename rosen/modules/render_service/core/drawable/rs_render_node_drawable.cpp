@@ -282,6 +282,27 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     curDrawingCacheRoot_ = root;
 }
 
+bool RSRenderNodeDrawable::DealWithWhiteListNodes(Drawing::Canvas& canvas)
+{
+    auto captureParam = RSUniRenderThread::GetCaptureParam();
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    if (!captureParam.isMirror_ || whiteList.empty() || captureParam.rootIdInWhiteList_ != INVALID_NODEID) {
+        return false;
+    }
+    
+    const auto& params = GetRenderParams();
+    if (!params) {
+        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture params is nullptr");
+        return true;
+    }
+    auto info = params->GetVirtualScreenWhiteListInfo();
+    if (info.find(captureParam.virtualScreenId_) != info.end()) {
+        DrawChildren(canvas, params->GetFrameRect());
+    }
+    return true;
+}
+
 CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
@@ -860,7 +881,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
-    bool isHdrOn = false; // todo: temporary set false, fix in future
+    bool isHdrOn = false;
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrOn || isScRGBEnable;
