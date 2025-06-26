@@ -800,4 +800,18 @@ HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
         }
     }
 }
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest001
+ * @tc.desc: SetTypicalResidentProcess Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->SetTypicalResidentProcess(true);
+    EXPECT_EQ(RSSystemProperties::isTypicalResidentProcess_, true);
+}
 } // namespace OHOS::Rosen

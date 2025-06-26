@@ -1423,7 +1423,8 @@ bool RSSystemProperties::GetTextureExportDFXEnabled()
 
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
-    return GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled();
+    // isTypicalResidentProcess_ : currently typical resident process is not allowed to enable hybrid render.
+    return !isTypicalResidentProcess_ && (GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled());
 }
 
 int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
@@ -1506,6 +1507,11 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
     static bool hmsymbolEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_hmsymbol_enabled", false);
     return hmsymbolEnabled;
+}
+
+void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+    isTypicalResidentProcess_ = isTypicalResidentProcess;
 }
 
 int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)

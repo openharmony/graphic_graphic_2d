@@ -1130,5 +1130,30 @@ HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
     EXPECT_EQ(RSSystemProperties::GetBehindWindowFilterEnabled(), !enabled);
     RSSystemProperties::SetBehindWindowFilterEnabled(enabled);
 }
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest
+ * @tc.desc: set isTypicalResidentProcess_ to true
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
+{
+    RSSystemProperties::SetTypicalResidentProcess(true);
+    EXPECT_EQ(RSSystemProperties::isTypicalResidentProcess_, true);
+}
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest001
+ * @tc.desc: set isTypicalResidentProcess_ to true and GetHybridRenderEnabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Level1)
+{
+    RSSystemProperties::SetTypicalResidentProcess(true);
+    bool enbaled = RSSystemProperties::GetHybridRenderEnabled();
+    EXPECT_EQ(enbaled, false);
+}
 } // namespace Rosen
 } // namespace OHOS
