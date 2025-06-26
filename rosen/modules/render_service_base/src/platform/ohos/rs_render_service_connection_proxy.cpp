@@ -1938,7 +1938,8 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
         !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
         !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
-        !data.WriteUInt64Vector(captureConfig.blackList)) {
+        !data.WriteUInt64Vector(captureConfig.blackList) ||
+        !data.WriteUint32(captureConfig.backGroundColor)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }

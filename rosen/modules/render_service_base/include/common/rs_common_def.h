@@ -29,6 +29,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_anco_type.h"
+#include "draw/color.h"
 
 namespace OHOS {
 class Surface;
@@ -277,6 +278,7 @@ struct RSSurfaceCaptureConfig {
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
+    uint32_t backGroundColor = Drawing::Color::COLOR_TRANSPARENT;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect &&
