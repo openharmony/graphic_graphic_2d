@@ -92,7 +92,6 @@ public:
     {
         return Type;
     }
-
     explicit RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     explicit RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
@@ -732,6 +731,8 @@ public:
         isTextureExportNode_ = isTextureExportNode;
     }
 
+    bool HasHpaeBackgroundFilter() const;
+
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
     void SetSubNodesCovered();
@@ -946,6 +947,8 @@ public:
     void UpdateVirtualScreenWhiteListInfo();
 
     bool IsForegroundFilterEnable();
+    void ResetPixelStretchSlot();
+    bool CanFuzePixelStretch();
 
 protected:
     void ResetDirtyStatus();

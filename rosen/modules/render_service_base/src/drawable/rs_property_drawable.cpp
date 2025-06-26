@@ -20,6 +20,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -189,6 +190,7 @@ void RSFilterDrawable::OnSync()
         }
         needSync_ = false;
     }
+
     renderNodeId_ = stagingNodeId_;
     renderNodeName_ = stagingNodeName_;
     renderIntersectWithDRM_ = stagingIntersectWithDRM_;
@@ -289,7 +291,7 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             }
             int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
-                ptr->cacheManager_, ptr->IsForeground());
+                ptr->cacheManager_, ptr->renderNodeId_, ptr->IsForeground());
             int64_t blurDuration = Drawing::PerfmonitorReporter::GetCurrentTime() - startBlurTime;
             auto filterType = ptr->filter_->GetFilterType();
             RSPerfMonitorReporter::GetInstance().RecordBlurNode(ptr->renderNodeName_, blurDuration,

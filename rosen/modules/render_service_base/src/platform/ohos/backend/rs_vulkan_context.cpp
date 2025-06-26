@@ -81,7 +81,7 @@ std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfoCnt_ = 0;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_ = 0;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_ = 0;
 
-void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected)
+void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected, bool isHtsEnable)
 {
     acquiredMandatoryProcAddresses_ = false;
     memHandler_ = nullptr;
@@ -89,7 +89,7 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     interfaceType_ = vulkanInterfaceType;
     CreateInstance();
     SelectPhysicalDevice(isProtected);
-    CreateDevice(isProtected);
+    CreateDevice(isProtected, isHtsEnable);
     std::unique_lock<std::mutex> lock(vkMutex_);
     CreateSkiaBackendContext(&backendContext_, isProtected);
 }
@@ -278,7 +278,7 @@ void RsVulkanInterface::ConfigureExtensions()
     }
 }
 
-bool RsVulkanInterface::CreateDevice(bool isProtected)
+bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
 {
     if (!physicalDevice_) {
         return false;
@@ -314,9 +314,11 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
 
     vkGetPhysicalDeviceFeatures2(physicalDevice_, &physicalDeviceFeatures2_);
 
+    VkDeviceCreateFlags deviceCreateFlags = isHtsEnable ? VK_DEVICE_CREATE_HTS_ENABLE_BIT : 0;
     const VkDeviceCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, .pNext = &physicalDeviceFeatures2_,
-        .flags = 0, .queueCreateInfoCount = queueCreate.size(), .pQueueCreateInfos = queueCreate.data(),
+        .flags = deviceCreateFlags,
+        .queueCreateInfoCount = queueCreate.size(), .pQueueCreateInfos = queueCreate.data(),
         .enabledLayerCount = 0, .ppEnabledLayerNames = nullptr,
         .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions_.size()),
         .ppEnabledExtensionNames = deviceExtensions_.data(), .pEnabledFeatures = nullptr,
@@ -636,18 +638,18 @@ void RsVulkanContext::InitVulkanContextForUniRender(const std::string& cacheDir)
 {
     // create vulkan interface for render thread.
     auto uniRenderVulkanInterface = std::make_shared<RsVulkanInterface>();
-    uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false);
+    uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false, true);
     // init drawing context for RT thread bind to backendContext.
     uniRenderVulkanInterface->CreateDrawingContext(cacheDir);
     // create vulkan interface for hardware thread (unprotected).
     auto unprotectedReDrawVulkanInterface = std::make_shared<RsVulkanInterface>();
-    unprotectedReDrawVulkanInterface->Init(VulkanInterfaceType::UNPROTECTED_REDRAW, false);
+    unprotectedReDrawVulkanInterface->Init(VulkanInterfaceType::UNPROTECTED_REDRAW, false, false);
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(uniRenderVulkanInterface);
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::UNPROTECTED_REDRAW)] = std::move(unprotectedReDrawVulkanInterface);
 #ifdef IS_ENABLE_DRM
     isProtected_ = true;
     auto protectedReDrawVulkanInterface = std::make_shared<RsVulkanInterface>();
-    protectedReDrawVulkanInterface->Init(VulkanInterfaceType::PROTECTED_REDRAW, true);
+    protectedReDrawVulkanInterface->Init(VulkanInterfaceType::PROTECTED_REDRAW, true, false);
     // DRM needs to adapt vkQueue in the future.
     protectedReDrawVulkanInterface->CreateDrawingContext(cacheDir);
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::PROTECTED_REDRAW)] = std::move(protectedReDrawVulkanInterface);

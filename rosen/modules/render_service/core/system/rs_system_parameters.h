@@ -74,6 +74,7 @@ public:
     static bool GetSolidLayerHwcEnabled();
     static bool GetControlBufferConsumeEnabled();
     static bool GetHideNotchStatus();
+    static bool GetHpaeBlurEnabled();
     static bool GetTcacheEnabled();
     static bool GetDumpCanvasDrawingNodeEnabled();
     static bool IsNeedScRGBForP3(const GraphicColorGamut& currentGamut);

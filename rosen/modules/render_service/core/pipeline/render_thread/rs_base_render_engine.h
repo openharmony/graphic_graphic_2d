@@ -112,6 +112,13 @@ public:
                 CheckAndVerifyDamageRegion(rects, RectI(0, 0, surface->Width(), surface->Height())));
         }
     }
+    // some frame maynot need to call FlushFrame
+    void Reset()
+    {
+        targetSurface_ = nullptr;
+        surfaceFrame_ = nullptr;
+    }
+
 protected:
     std::vector<RectI> CheckAndVerifyDamageRegion(const std::vector<RectI>& rects,
         const RectI& surfaceRect) const;

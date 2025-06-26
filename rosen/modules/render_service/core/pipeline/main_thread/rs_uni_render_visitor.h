@@ -74,6 +74,8 @@ public:
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override {};
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {};
 
+    void RegisterHpaeCallback(RSRenderNode& node) override;
+
     void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
     {
         renderEngine_ = renderEngine;

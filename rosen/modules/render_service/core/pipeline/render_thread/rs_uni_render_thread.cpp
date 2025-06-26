@@ -39,6 +39,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
@@ -195,6 +196,10 @@ void RSUniRenderThread::InitGrContext()
             auto& schedClient = ResSchedClient::GetInstance();
             schedClient.ReportData(ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
         });
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    RSHpaeManager::GetInstance().InitIoBuffers();
+    RSHpaeManager::GetInstance().InitHpaeBlurResource();
+#endif
 }
 
 void RSUniRenderThread::Inittcache()

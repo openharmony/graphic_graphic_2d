@@ -158,6 +158,8 @@ public:
     static bool FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec);
     // Step 3, insert necessary Clip/Save/Restore into drawableVec
     static void UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus);
+    static void ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVec);
+    static bool CanFusePixelStretch(Vec &drawableVec);
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_H

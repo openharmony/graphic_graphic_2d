@@ -196,6 +196,14 @@ bool RSSystemParameters::GetHideNotchStatus()
     return (strcmp(enable, "2") == 0);
 }
 
+bool RSSystemParameters::GetHpaeBlurEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.hpae.blur.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemParameters::GetTcacheEnabled()
 {
     static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);

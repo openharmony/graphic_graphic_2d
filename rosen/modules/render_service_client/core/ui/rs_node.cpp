@@ -3828,7 +3828,6 @@ bool RSNode::CheckMultiThreadAccess(const std::string& func) const
         return true;
     }
     auto rsContext = rsUIContext_.lock();
-    // Node toDo
     if (rsContext == nullptr) {
         return true;
     }

@@ -41,7 +41,7 @@ public:
     static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-        const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isForegroundFilter);
+        const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter);
     static void DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager,
         Drawing::RectI& bounds, bool behindWindow = false);
