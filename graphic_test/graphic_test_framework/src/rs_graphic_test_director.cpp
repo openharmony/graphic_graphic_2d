@@ -51,6 +51,9 @@ public:
         }
     }
 
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+
     void Wait(int ms)
     {
         std::unique_lock lock(mutex_);

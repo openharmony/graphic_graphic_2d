@@ -119,6 +119,8 @@ public:
     SurfaceCaptureCallback() {}
     virtual ~SurfaceCaptureCallback() {}
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
+    virtual void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR) = 0;
 };
 
 class SurfaceBufferCallback {

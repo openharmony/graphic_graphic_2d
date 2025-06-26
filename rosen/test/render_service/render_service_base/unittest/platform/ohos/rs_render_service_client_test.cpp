@@ -92,6 +92,8 @@ public:
     void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
     {
     }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 };
 
 /**
