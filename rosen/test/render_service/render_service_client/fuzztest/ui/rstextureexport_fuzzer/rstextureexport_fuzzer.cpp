@@ -71,15 +71,6 @@ void DoRSTextureExport()
     RSTextureExport text(node, surfaceId);
 }
 
-void DoDoTextureExport()
-{
-    SurfaceId surfaceId = GetData<SurfaceId>();
-    bool isRenderServiceNode = GetData<bool>();
-    std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
-    RSTextureExport text(node, surfaceId);
-    text.DoTextureExport();
-}
-
 void DoStopTextureExport()
 {
     SurfaceId surfaceId = GetData<SurfaceId>();
@@ -101,10 +92,13 @@ bool UpdateBufferInfo(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    float x = 0.0f;
-    float y = 0.0f;
-    float width = 1.0f;
-    float height = 1.0f;
+    SurfaceId surfaceId = GetData<SurfaceId>();
+    bool isRenderServiceNode = GetData<bool>();
+    float x = GetData<float>;
+    float y = GetData<float>;
+    float width = GetData<float>;
+    float height = GetData<float>;
+    std::shared_ptr<RSRootNode> node = RSRootNode::Create(isRenderServiceNode);
     RSTextureExport text(node, surfaceId);
     text.UpdateBufferInfo(x, y, width, height);
     return true;
@@ -116,7 +110,7 @@ bool UpdateBufferInfo(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     OHOS::Rosen::DoRSTextureExport();
-    OHOS::Rosen::DoDoTextureExport();
+    OHOS::Rosen::UpdateBufferInfo();
     OHOS::Rosen::DoStopTextureExport();
 
     return 0;

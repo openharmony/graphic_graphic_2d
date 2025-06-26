@@ -214,29 +214,17 @@ bool DoCheckIlluminated(const uint8_t* data, size_t size)
     uint64_t id = GetData<uint64_t>();
     auto lightSourcePtr = std::make_shared<RSRenderNode>(id);
     auto illuminatedGeoPtr = std::make_shared<RSRenderNode>(id);
+    illuminatedGeoPtr->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    illuminatedGeoPtr->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
     instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
 
-    auto properties = illuminatedGeoPtr->GetRenderProperties();
-    RSProperties* parent = &properties;
-    std::optional<Drawing::Point> offset;
-    properties.sandbox_ = std::make_unique<Sandbox>();
-    properties.SetFramePositionY(1.0f);
-    properties.lightSourcePtr_ = std::make_shared<RSLightSource>();
-    properties.lightSourcePtr_->intensity_ = 1.f;
-    properties.illuminatedPtr_ = std::make_shared<RSIlluminated>();
-    properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::BLOOM_BORDER;
-    properties.UpdateGeometry(parent, true, offset);
+    lightSourcePtr->GetMutableRenderProperties().lightSourcePtr_ = std::make_shared<RSLightSource>();
     instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
 
-    Vector4f lightPosition = {1.f, 1.f, 1.f, 1.f};
-    lightSourcePtr->GetRenderProperties().SetLightPosition(parent, true, offset);
-    instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
-    
     uint32_t rotation = GetData<uint32_t>();
-    ScreenRotation screenRotation = (ScreenRotation)value;
+    ScreenRotation screenRotation = (ScreenRotation)rotation;
     instance->SetScreenRotation(rotation);
     instance->CheckIlluminated(lightSourcePtr, illuminatedGeoPtr);
-
     return true;
 }
 } // namespace Rosen

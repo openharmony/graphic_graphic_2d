@@ -559,17 +559,14 @@ bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
     surfaceHandler->ConsumeAndUpdateBuffer(buffer);
     surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
 
-    sptr<IConsumerSurface> consumerSurfacePtr_;
-    sptr<IBufferProducer> bufferProducerPtr_;
-    sptr<Surface> surfacePtr_;
-    consumerSurfacePtr_ = IConsumerSurface::Create();
-    consumerSurfacePtr_->RegisterConsumerListener(this);
-    bufferProducerPtr_ = consumerSurfacePtr_->GetProducer();
-    surfacePtr_ = Surface::CreateSurfaceAsProducer(bufferProducerPtr_);
-    surfaceHandler->SetConsumer(consumerSurfacePtr_);
-    surfaceHandler->SetBuffer(surfacePtr_, nullptr, nullptr, nullptr);
+    Rect damage = { 0, 0, 0, 0 };
+    int64_t timestamp = GetData<int64_t>();
+    sptr<SurfaceBuffer> surfaceBuffer;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID::FENCE;
+    buffer.buffer = surfaceBuffer;
+    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp);
     surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
-
+    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp);
     return true;
 }
 

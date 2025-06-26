@@ -65,7 +65,9 @@ bool DrawPropertyDrawable(const uint8_t* data, size_t size)
     RSRenderContent content;
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
     RSPaintFilterCanvas canvas(drawingCanvas.get());
-    content->DrawPropertyDrawable(RSPropertyDrawableSlot::INVALID, canvas);
+    uint8_t slotNum = GetData<uint8_t>();
+
+    content->DrawPropertyDrawable(RSPropertyDrawableSlot (slotNum), canvas);
 
     return true;
 }

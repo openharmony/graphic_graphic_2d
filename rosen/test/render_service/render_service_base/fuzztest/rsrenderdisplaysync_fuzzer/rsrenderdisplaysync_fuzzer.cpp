@@ -50,26 +50,6 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoOnFrameSkip(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint64_t id = GetData<uint64_t>();
-    uint64_t timestamp = GetData<uint64_t>();
-    int64_t period = GetData<int64_t>();
-    bool isDisplaySyncEnabled = GetData<bool>();
-
-    RSRenderDisplaySync rsRenderDisplaySync(id);
-    rsRenderDisplaySync.OnFrameSkip(timestamp, period, isDisplaySyncEnabled);
-    return true;
-}
 bool DoSetExpectedFrameRateRange(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -89,6 +69,14 @@ bool DoSetExpectedFrameRateRange(const uint8_t* data, size_t size)
     RSRenderDisplaySync rsRenderDisplaySync(id);
     rsRenderDisplaySync.SetExpectedFrameRateRange(range);
     rsRenderDisplaySync.GetExpectedFrameRange();
+
+    int32_t frameRate = GetData<int32_t>();
+    rsRenderDisplaySync.CalcSkipRateCount(frameRate);
+
+    uint64_t timestamp = GetData<uint64_t>();
+    int64_t period = GetData<int64_t>();
+    bool isDisplaySyncEnabled = GetData<bool>();
+    rsRenderDisplaySync.OnFrameSkip(timestamp, period, isDisplaySyncEnabled);
     return true;
 }
 bool DoSetAnimateResult(const uint8_t* data, size_t size)
@@ -113,23 +101,7 @@ bool DoSetAnimateResult(const uint8_t* data, size_t size)
     rsRenderDisplaySync.GetAnimateResult();
     return true;
 }
-bool DoCalcSkipRateCount(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint64_t id = GetData<uint64_t>();
-    int32_t frameRate = GetData<int32_t>();
-    RSRenderDisplaySync rsRenderDisplaySync(id);
-    rsRenderDisplaySync.CalcSkipRateCount(frameRate);
-    return true;
-}
 bool DoGetNearestFrameRate(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -157,10 +129,8 @@ bool DoGetNearestFrameRate(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoOnFrameSkip(data, size);
     OHOS::Rosen::DoSetExpectedFrameRateRange(data, size);
     OHOS::Rosen::DoSetAnimateResult(data, size);
-    OHOS::Rosen::DoCalcSkipRateCount(data, size);
     OHOS::Rosen::DoGetNearestFrameRate(data, size);
     return 0;
 }
