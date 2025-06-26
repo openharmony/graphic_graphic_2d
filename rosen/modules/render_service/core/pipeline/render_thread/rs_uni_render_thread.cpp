@@ -391,7 +391,7 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
             surfaceParams->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
         }
         if (curHardWareEnabled != lastHardWareEnabled && params->GetIsOnTheTree()) {
-            RS_LOGI("name:%{public}s id:%{public}" PRIu64 " hwcEnabled changed to:%{public}d needRelease:%{public}d",
+            RS_LOGD("name:%{public}s id:%{public}" PRIu64 " hwcEnabled changed to:%{public}d needRelease:%{public}d",
                 surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(), curHardWareEnabled, needRelease);
         }
         if (needRelease) {
