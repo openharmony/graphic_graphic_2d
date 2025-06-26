@@ -167,7 +167,6 @@ uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, co
     }
     std::string family(fontFamily);
     if (family.empty() || SPText::DefaultFamilyNameMgr::IsThemeFontFamily(family)) {
-        return ERROR_NULL_FONT_COLLECTION;
     }
 
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
