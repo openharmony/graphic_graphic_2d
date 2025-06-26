@@ -281,6 +281,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, true, captureParam.isSystemCalling,
             captureParam.isSelfCapture, captureParam.blurParam.isNeedBlur));
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
+        canvas.Clear(captureParam.config.backGroundColor);
         surfaceNodeDrawable_->OnCapture(canvas);
         RS_LOGI("RSSurfaceCaptureTaskParallel::Run: the number of total processedNodes: %{public}d",
             DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount());

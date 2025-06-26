@@ -3719,7 +3719,8 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadFloat(captureConfig.mainScreenRect.bottom_) ||
         !data.ReadUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
         !data.ReadBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
-        !data.ReadUInt64Vector(&captureConfig.blackList)) {
+        !data.ReadUInt64Vector(&captureConfig.blackList) ||
+        !data.ReadUint32(captureConfig.backGroundColor)) {
         RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureType failed!");
         return false;
     }
