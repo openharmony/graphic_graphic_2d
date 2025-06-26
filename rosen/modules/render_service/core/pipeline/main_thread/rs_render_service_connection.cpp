@@ -1455,7 +1455,10 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-    std::function<void()> setWindowFreezeTask = [id, isFreeze, callback, captureConfig, blurParam]() -> void {
+    bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::SET_WINDOW_FREEZE_IMMEDIATELY");
+    std::function<void()> setWindowFreezeTask =
+        [id, isFreeze, callback, captureConfig, blurParam, isSystemCalling]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("SetWindowFreezeImmediately failed, node is nullptr");
@@ -1466,9 +1469,6 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
         }
         node->SetStaticCached(isFreeze);
         if (isFreeze) {
-            bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
-                "::SET_WINDOW_FREEZE_IMMEDIATELY");
             RSSurfaceCaptureParam captureParam;
             captureParam.id = id;
             captureParam.config = captureConfig;
