@@ -45,9 +45,9 @@ public:
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
     bool ParserInstallFontsPathList(std::vector<std::string>& fontPathList);
-    bool ParserInstallFontsPathList(TextEngine::FullNameToPath& fontPathList);
+    static bool ParserInstallFontsPathList(TextEngine::FullNameToPath& fontPathList);
     bool ProcessSystemFontType(int32_t systemFontType, int32_t& fontType);
-    bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result);
+    bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result) const;
     std::unordered_set<std::string> GetInstallFontList();
     std::unordered_set<std::string> GetStylishFontList();
     std::unordered_set<std::string> GetGenericFontList();
@@ -60,7 +60,7 @@ private:
     bool FilterMonoSpaceCache(bool monoSpace, std::set<FontDescSharedPtr>& finishRet);
     bool FilterSymbolicCache(bool symbolic, std::set<FontDescSharedPtr>& finishRet);
     bool IsDefault(FontDescSharedPtr desc);
-    int32_t WeightAlignment(int32_t weight);
+    static int32_t WeightAlignment(int32_t weight);
     bool GetFontTypeFromParams(const std::string& fullName,
         int32_t systemFontType, int32_t& fontType);
     void ParserFontsByFontType(int32_t fontType);

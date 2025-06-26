@@ -242,7 +242,8 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
     }
 }
 
-bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result)
+bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(
+    const std::string& fullName, FontDescSharedPtr& result) const
 {
     TextEngine::FullNameToPath fullNameToPath;
     if (!ParserInstallFontsPathList(fullNameToPath)) {
