@@ -60,7 +60,7 @@ ohos_static_library("librender_backend") {
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
     ]
 
-    include_dirs += [ "//third_party/skia" ]
+    include_dirs += [ "$skia_root" ]
 
     public_deps += [
       "$graphic_2d_root:libvulkan",

@@ -129,6 +129,7 @@ template("skia_libtxt") {
         "$skia_root:skia_$platform",
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
+        "//third_party/skia:skia_$platform",
       ]
       if (graphic_2d_feature_upgrade_skia) {
         deps += [
@@ -188,6 +189,7 @@ ohos_static_library("font_asset") {
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
       "//third_party/jsoncpp:jsoncpp_static",
+      "//third_party/skia:skia_$platform",
     ]
   } else {
     external_deps = [
