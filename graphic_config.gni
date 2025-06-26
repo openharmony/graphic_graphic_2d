@@ -427,10 +427,6 @@ if (!ohos_indep_compiler_enable) {
   adapters = ["preview", "ohos"]
 }
 
-if (defined(use_clang_coverage) && use_clang_coverage) {
-  graphic_2d_feature_rs_enable_profiler = false
-}
-
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
   gpu_defines += [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
 }

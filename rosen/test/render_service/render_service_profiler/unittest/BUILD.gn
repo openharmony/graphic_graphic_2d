@@ -71,6 +71,7 @@ ohos_unittest("RSProfilerArchiveTest") {
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerBaseTest  ##################################
@@ -104,6 +105,7 @@ ohos_unittest("RSProfilerBaseTest") {
 
   use_exceptions = true
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerCaptureDataTest  ##################################
@@ -135,6 +137,7 @@ ohos_unittest("RSProfilerCaptureDataTest") {
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerNetworkTest  ##################################
@@ -166,6 +169,7 @@ ohos_unittest("RSProfilerNetworkTest") {
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerPacketTest  ##################################
@@ -197,6 +201,7 @@ ohos_unittest("RSProfilerPacketTest") {
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerSocketTest  ##################################
@@ -229,6 +234,7 @@ ohos_unittest("RSProfilerSocketTest") {
 
   use_exceptions = true
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerTest  ##################################
@@ -267,6 +273,7 @@ ohos_unittest("RSProfilerTest") {
 
   use_exceptions = true
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerUtilsTest  ##################################
@@ -293,6 +300,7 @@ ohos_unittest("RSProfilerUtilsTest") {
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerCommandTest  ##################################
@@ -319,4 +327,5 @@ ohos_unittest("RSProfilerCommandTest") {
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }

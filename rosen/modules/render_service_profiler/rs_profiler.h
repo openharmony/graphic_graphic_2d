@@ -531,7 +531,7 @@ private:
     // flag for enabling profiler beta recording feature
     RSB_EXPORT static bool betaRecordingEnabled_;
     // flag to start network thread
-    RSB_EXPORT static int8_t signalFlagChanged_;
+    RSB_EXPORT static std::atomic<int8_t> signalFlagChanged_;
 
     inline static const char SYS_KEY_ENABLED[] = "persist.graphic.profiler.enabled";
     inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
