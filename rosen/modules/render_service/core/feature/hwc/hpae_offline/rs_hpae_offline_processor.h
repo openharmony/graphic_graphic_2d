@@ -108,6 +108,6 @@ private:
     std::atomic<bool> isBusy_ = false;
     std::atomic<bool> timeout_ = false;
 };
-} // ROSEN
+} // Rosen
 } // OHOS
 #endif // RS_CORE_PIPELINE_HPAE_OFFLINE_PROCESSOR_H
