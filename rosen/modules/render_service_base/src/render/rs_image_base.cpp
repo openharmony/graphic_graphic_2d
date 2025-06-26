@@ -405,11 +405,10 @@ static bool UnmarshallingAndCachePixelMap(Parcel& parcel, std::shared_ptr<Media:
 
 static bool UnmarshallingIdAndRect(Parcel& parcel, uint64_t& uniqueId, RectF& srcRect, RectF& dstRect)
 {
-    if (!RSMarshallingHelper::Unmarshalling(parcel, uniqueId)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, uniqueId)) {
         RS_LOGE("RSImage::Unmarshalling uniqueId fail");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, uniqueId);
     if (!RSMarshallingHelper::Unmarshalling(parcel, srcRect)) {
         RS_LOGE("RSImage::Unmarshalling srcRect fail");
         return false;

@@ -265,7 +265,7 @@ bool RSRenderProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRend
         ROSEN_LOGE("%s Creating property failed", __PRETTY_FUNCTION__);
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, ret->id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->stagingValue_)) {
         ROSEN_LOGE("%s Unmarshalling failed", __PRETTY_FUNCTION__);
         delete ret;
@@ -283,7 +283,7 @@ bool RSRenderAnimatableProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_
         ROSEN_LOGE("%s Creating property failed", __PRETTY_FUNCTION__);
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, ret->id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->stagingValue_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->unit_)) {
         ROSEN_LOGE("%s Unmarshalling failed", __PRETTY_FUNCTION__);

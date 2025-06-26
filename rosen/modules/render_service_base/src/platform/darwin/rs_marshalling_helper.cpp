@@ -505,7 +505,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Modifier
     bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)     \
     {                                                                                              \
         PropertyId id = 0;                                                                         \
-        if (!parcel.ReadUint64(id)) {                                                              \
+        if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id)) {                            \
             ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadUint64 failed");                    \
             return false;                                                                          \
         }                                                                                          \
@@ -621,6 +621,14 @@ bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
     return true;
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
+{
+    return true;
+}
+bool RSMarshallingHelper::UnmarshallingPidPlusId(Parcel& parcel, uint64_t& val)
+{
+    return true;
+}
+bool RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(Parcel& parcel, uint64_t& val)
 {
     return true;
 }

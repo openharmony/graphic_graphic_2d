@@ -2807,7 +2807,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Modifier
     bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)     \
     {                                                                                              \
         PropertyId id = 0;                                                                         \
-        if (!parcel.ReadUint64(id)) {                                                              \
+        if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id)) {                            \
             ROSEN_LOGE("RSMarshallingHelper::Unmarshalling TEMPLATE<T> Read id failed");           \
             return false;                                                                          \
         }                                                                                          \
@@ -2815,7 +2815,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Modifier
         if (!Unmarshalling(parcel, value)) {                                                       \
             return false;                                                                          \
         }                                                                                          \
-        RS_PROFILER_PATCH_NODE_ID(parcel, id);                                                     \
         val.reset(new TEMPLATE<T>(value, id));                                                     \
         return val != nullptr;                                                                     \
     }
@@ -3059,6 +3058,26 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRe
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return RSRenderPropertyBase::Unmarshalling(parcel, val);
+}
+
+bool RSMarshallingHelper::UnmarshallingPidPlusId(Parcel& parcel, uint64_t& val)
+{
+    uint64_t retCode = 0;
+    retCode = RSMarshallingHelper::Unmarshalling(parcel, val);
+    if (retCode) {
+        val = RS_PROFILER_PATCH_NODE_ID(parcel, val);
+    }
+    return retCode;
+}
+
+bool RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(Parcel& parcel, uint64_t& val)
+{
+    uint64_t retCode = 0;
+    retCode = RSMarshallingHelper::Unmarshalling(parcel, val);
+    if (retCode && val) {
+        val = RS_PROFILER_PATCH_NODE_ID(parcel, val);
+    }
+    return retCode;
 }
 
 bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)

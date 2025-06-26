@@ -246,7 +246,7 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     RSRenderModifier* ret = constructor();
-    if (!RSMarshallingHelper::Unmarshalling(parcel, ret->id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->properties_)) {
         delete ret;
         return nullptr;
