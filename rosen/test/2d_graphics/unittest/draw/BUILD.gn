@@ -23,6 +23,7 @@ ohos_unittest("2d_graphics_draw_test") {
     "brush_test.cpp",
     "canvas_test.cpp",
     "color_test.cpp",
+    "paint_test.cpp",
     "path_iterator_test.cpp",
     "path_test.cpp",
     "pen_test.cpp",
