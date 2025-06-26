@@ -29,12 +29,12 @@ public:
     RSHpaeOfflineLayer(const std::string& name, NodeId layerId);
     ~RSHpaeOfflineLayer();
 
-    bool CreateSurface(sptr<IBufferConsumerListener> &listener);
-    void FlushSurfaceBuffer(sptr<SurfaceBuffer> &buffer, int32_t acquireFence,
-        BufferFlushConfig &flushConfig);
+    bool CreateSurface(sptr<IBufferConsumerListener>& listener);
+    void FlushSurfaceBuffer(sptr<SurfaceBuffer>& buffer, int32_t acquireFence,
+        BufferFlushConfig& flushConfig);
 
     bool PreAllocBuffers(const BufferRequestConfig& config);
-    sptr<SurfaceBuffer> RequestSurfaceBuffer(BufferRequestConfig& config, int32_t &releaseFence);
+    sptr<SurfaceBuffer> RequestSurfaceBuffer(BufferRequestConfig& config, int32_t& releaseFence);
     void CleanCache(bool cleanAll);
 
     std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandler() const
