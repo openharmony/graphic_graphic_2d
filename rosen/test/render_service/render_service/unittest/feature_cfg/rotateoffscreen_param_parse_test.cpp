@@ -55,14 +55,30 @@ HWTEST_F(RotateOffScreenParamParseTest, ParseFeatureParamTest, TestSize.Level1)
 
     xmlNode nextNode;
     nextNode.type = xmlElementType::XML_ELEMENT_NODE;
-    string name = "FeatureSwitch";
+    string name = "FeatureSingleParam";
     nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
     node.xmlChildrenNode->next = &nextNode;
     res = paramParse.ParseFeatureParam(paramMapType, node);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
-    name = "FeatureSingleParam";
+    name = "FeatureSwitch";
     nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    node.xmlChildrenNode->next = &nextNode;
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("RotateOffScreenDisplayNodeEnabled"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("RotateOffScreenSurfaceNodeEnabled"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("RotateOffScreenDowngradeEnabled"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
     res = paramParse.ParseFeatureParam(paramMapType, node);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
