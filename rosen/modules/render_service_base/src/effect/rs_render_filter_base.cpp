@@ -80,7 +80,7 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
         if (!current) {
             head = filter; // init head
         } else {
-            current->SetNextEffect(filter);
+            current->nextEffect_ = filter;
         }
         current = filter;
     }

@@ -136,15 +136,14 @@ public:
         return id_;
     }
 
-    // deprecated
-    void Attach(std::weak_ptr<RSRenderNode> node);
+    // Planning: move to protected
+    void Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier = {});
+    void Detach();
 
     void Attach(std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
     {
         modifier_ = modifier;
     }
-
-    void Detach(std::weak_ptr<RSRenderNode> node);
 
     // deprecated
     RSModifierType GetModifierType() const
@@ -174,7 +173,7 @@ protected:
 
     void OnChange() const;
 
-    virtual void OnAttach() {}
+    virtual void OnAttach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier) {}
     virtual void OnDetach() {}
     virtual void OnSetModifierType() {}
 
@@ -219,7 +218,8 @@ protected:
     }
 
     PropertyId id_;
-    // deprecated
+    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set, refactor this to
+    // remove the node_ member
     std::weak_ptr<RSRenderNode> node_;
     // deprecated
     RSModifierType modifierType_ { RSModifierType::INVALID };
@@ -342,7 +342,7 @@ protected:
     inline static const RSPropertyType type_ = RSPropertyType::INVALID;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
 
-    void OnAttach() override {}
+    void OnAttach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier) override {}
     void OnDetach() override {}
     void OnSetModifierType() override {}
 
@@ -614,9 +614,13 @@ template<>
 RSB_EXPORT size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
 
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach();
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnDetach();
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
+    const std::shared_ptr<RSNGRenderFilterBase>& value, PropertyUpdateType type);
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType();
 

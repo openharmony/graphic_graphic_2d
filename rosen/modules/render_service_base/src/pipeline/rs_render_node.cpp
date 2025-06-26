@@ -2719,14 +2719,23 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderNode::GetProperty(PropertyId id)
     return it->second;
 }
 
-void RSRenderNode::AddProperty(std::shared_ptr<RSRenderPropertyBase> property)
+void RSRenderNode::RegisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property)
 {
-    properties_.emplace(property->GetId(), property);
+    if (property) {
+        properties_.emplace(property->GetId(), property);
+    }
 }
 
-void RSRenderNode::RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property)
+void RSRenderNode::UnregisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property)
 {
-    properties_.erase(property->GetId());
+    if (property) {
+        properties_.erase(property->GetId());
+    }
+}
+
+void RSRenderNode::UnregisterProperty(PropertyId id)
+{
+    properties_.erase(id);
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
@@ -2763,7 +2772,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
         modifier->SetSingleFrameModifier(false);
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
-    modifier->GetProperty()->Attach(shared_from_this());
+    modifier->GetProperty()->Attach(*this);
     ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode:add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
         GetId(), modifier->GetModifierTypeString().c_str());
 }
@@ -2789,7 +2798,7 @@ void RSRenderNode::AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& 
         }
         for (auto& prop : propGroup->GetLeafRenderProperties()) {
             if (prop) {
-                prop->Attach(shared_from_this());
+                prop->Attach(*this);
                 properties_.emplace(prop->GetId(), prop);
             }
         }
@@ -2828,6 +2837,9 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         }
         ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
+        if (auto property = it->second->GetProperty()) {
+            property->Detach();
+        }
         modifiers_.erase(it);
         auto propertyIt = properties_.find(id);
         if (propertyIt != properties_.end()) {
