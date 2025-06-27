@@ -4996,7 +4996,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest002, TestSize.
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
 
     surfaceNode->isHwcGlobalPositionEnabled_ = false;
-    surfaceNode->IsCrossNode_ = false;
+    surfaceNode->IsHwcCrossNode_ = false;
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
     surfaceNode->SetLayerTop(false);
     NodeId id = 0;
