@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
-#define RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
+#ifndef RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_CONSTRAINT_H
+#define RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_CONSTRAINT_H
 
 #include <unordered_set>
 
@@ -30,11 +30,11 @@ struct RectSizeRange {
     RectSize highLimit = {};
 };
 
-struct RectFilter {
+struct RectConstraint {
     std::unordered_set<pid_t> pids = {};
     RectSizeRange range = {};
 };
 
 } // namespace Rosen
 } // namespace OHOS
-#endif //RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
+#endif //RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_CONSTRAINT_H

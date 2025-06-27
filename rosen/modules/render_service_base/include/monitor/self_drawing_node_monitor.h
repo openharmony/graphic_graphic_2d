@@ -19,7 +19,7 @@
 #include <map>
 #include "common/rs_macros.h"
 #include "common/rs_common_def.h"
-#include "common/rs_self_draw_rect_change_callback_filter.h"
+#include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "pipeline/rs_render_node.h"
 
@@ -44,17 +44,17 @@ public:
     void ClearRectMap();
 
     void RegisterRectChangeCallback(
-        pid_t pid, const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
+        pid_t pid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
     void UnRegisterRectChangeCallback(pid_t pid);
     void TriggerRectChangeCallback();
 
 private:
     SelfDrawingNodeMonitor() = default;
     ~SelfDrawingNodeMonitor() noexcept {};
-    bool CheckStatify(RectI& rect, RectFilter& filter) const;
-    bool ShouldTrigger(RectFilter& filter, SelfDrawingNodeRectCallbackData& callbackData);
+    bool CheckStatify(RectI& rect, RectConstraint& constraint) const;
+    bool ShouldTrigger(RectConstraint& constraint, SelfDrawingNodeRectCallbackData& callbackData);
     std::map<pid_t, sptr<RSISelfDrawingNodeRectChangeCallback>> rectChangeCallbackListenner_;
-    std::map<pid_t, RectFilter> rectChangeCallbackFilter_;
+    std::map<pid_t, RectConstraint> rectChangeCallbackConstraint_;
     SelfDrawingNodeRectCallbackData curRect_;
     SelfDrawingNodeRectCallbackData lastRect_;
 };

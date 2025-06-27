@@ -421,7 +421,7 @@ public:
     virtual ErrCode SetWindowContainer(NodeId nodeId, bool value) = 0;
 
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
+        const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
     
     virtual int32_t UnRegisterSelfDrawingNodeRectChangeCallback() = 0;
 

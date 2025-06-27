@@ -381,7 +381,7 @@ public:
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+        const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 

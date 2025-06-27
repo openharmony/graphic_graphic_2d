@@ -2298,7 +2298,7 @@ private:
 };
 
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
-    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
+    const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -2311,7 +2311,7 @@ int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
         cb = new CustomSelfDrawingNodeRectChangeCallback(callback);
     }
 
-    return renderService->RegisterSelfDrawingNodeRectChangeCallback(filter, cb);
+    return renderService->RegisterSelfDrawingNodeRectChangeCallback(constraint, cb);
 }
 
 int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()

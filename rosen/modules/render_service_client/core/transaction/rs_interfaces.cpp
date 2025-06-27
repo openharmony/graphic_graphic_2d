@@ -1152,13 +1152,13 @@ void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(
-    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
+    const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback)
 {
     RS_LOGD("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback lowLimit_width: %{public}d lowLimit_height: "
             "%{public}d highLimit_width: %{public}d highLimit_height: %{public}d",
-            filter.range.lowLimit.width, filter.range.lowLimit.height, filter.range.highLimit.width,
-            filter.range.highLimit.height);
-    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(filter, callback);
+            constraint.range.lowLimit.width, constraint.range.lowLimit.height, constraint.range.highLimit.width,
+            constraint.range.highLimit.height);
+    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(constraint, callback);
 }
 
 int32_t RSInterfaces::UnRegisterSelfDrawingNodeRectChangeCallback()
