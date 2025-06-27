@@ -331,7 +331,8 @@ void RSHpaeOfflineProcessor::OfflineTaskFunc(RSRenderParams* paramsPtr,
     isBusy_ = false;
 }
 
-bool RSHpaeOfflineProcessor::PostProcessOfflineTask(RSSurfaceRenderNode& node, uint64_t taskId)
+bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
+    std::shared_ptr<RSSurfaceRenderNode>& node, uint64_t taskId)
 {
     if (!loadSuccess_) {
         RS_OFFLINE_LOGW("hape so is not loaded.");
@@ -347,17 +348,16 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(RSSurfaceRenderNode& node, u
         RS_OFFLINE_LOGE("register post task failed!");
         return false;
     }
-    auto &renderParamSptr = node.GetStagingRenderParams();
-    offlineThreadManager_.PostTask([&renderParamSptr, &futurePtr, this]() mutable {
+    offlineThreadManager_.PostTask([&node, &futurePtr, this]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
         RS_OFFLINE_LOGD("start to proces offline surface (by node)");
-        OfflineTaskFunc(renderParamSptr.get(), futurePtr);
+        OfflineTaskFunc(node->GetStagingRenderParams().get(), futurePtr);
     });
     return true;
 }
 
 bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
-    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, uint64_t taskId)
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, uint64_t taskId)
 {
     if (!loadSuccess_) {
         RS_OFFLINE_LOGW("hape so is not loaded.");
@@ -369,11 +369,10 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
         RS_OFFLINE_LOGE("register post task failed!");
         return false;
     }
-    auto &renderParamSptr = surfaceDrawable.GetRenderParams();
-    offlineThreadManager_.PostTask([&renderParamSptr, &futurePtr, this]() mutable {
+    offlineThreadManager_.PostTask([&surfaceDrawable, &futurePtr, this]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
         RS_OFFLINE_LOGD("start to proces offline surface (by drawable)");
-        OfflineTaskFunc(renderParamSptr.get(), futurePtr);
+        OfflineTaskFunc(surfaceDrawable->GetRenderParams().get(), futurePtr);
     });
     return true;
 }
