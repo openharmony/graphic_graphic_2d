@@ -97,7 +97,8 @@
 #define RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets)
 #define RS_PROFILER_EXECUTE_COMMAND(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
-#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) Media::PixelMap::Unmarshalling(parcel, readSafeFdFunc)
+#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) \
+    Media::PixelMap::UnmarshallingWithIsDisplay(parcel, readSafeFdFunc, true)
 #define RS_PROFILER_SKIP_PIXELMAP(parcel) false
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)

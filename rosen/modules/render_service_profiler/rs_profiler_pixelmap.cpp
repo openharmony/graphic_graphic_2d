@@ -802,7 +802,7 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
 
     bool profilerEnabled = flags & PIXELMAP_FLAG_PROFILER;
     if (!profilerEnabled) {
-        return PixelMap::Unmarshalling(parcel, readSafeFdFunc);
+        return PixelMap::UnmarshallingWithIsDisplay(parcel, readSafeFdFunc, true);
     }
 
     bool pixelCheckEnabled = flags & PIXELMAP_FLAG_PIXEL_CHECK;
