@@ -112,7 +112,7 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
     node.SetDstRectWithoutRenderFit(dstRect);
 }
 
-void RSUniHwcVisitor::UpdateDstRectByScreenInfo(RSSurfaceRenderNode& node, RectI& dstRect, RectI& clipRect)
+void RSUniHwcVisitor::UpdateDstRectByScreenInfo(RSSurfaceRenderNode& node, RectI& dstRect, const RectI& clipRect)
 {
     if (!node.IsHardwareEnabledTopSurface() && !node.GetHwcGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle

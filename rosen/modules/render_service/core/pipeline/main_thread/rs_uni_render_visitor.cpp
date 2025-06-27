@@ -2341,7 +2341,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         auto region = surfaceNode->GetVisibleRegion();
         region.MakeBound();
         auto rectI = region.GetBound().ToRectI();
-        hwcVisitor_->UpdateDsrRectByScreenInfo(*hwcNodePtr, rectI, rectI);
+        hwcVisitor_->UpdateDstRectByScreenInfo(*hwcNodePtr, rectI, rectI);
         auto newRect = Occlusion::Rect(rectI, true);
         newRect.Expand(EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX);
         Occlusion::Rect dstRect(hwcNodePtr->GetDstRect());
