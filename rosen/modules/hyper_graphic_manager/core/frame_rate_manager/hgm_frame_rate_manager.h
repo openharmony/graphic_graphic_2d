@@ -318,6 +318,8 @@ private:
 
     uint32_t lastLTPORefreshRate_ = 0;
     long lastLTPOVoteTime_ = 0;
+
+    bool needForceUpdateUniRender_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

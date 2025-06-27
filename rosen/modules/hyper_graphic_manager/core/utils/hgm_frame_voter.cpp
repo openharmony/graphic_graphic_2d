@@ -55,6 +55,28 @@ HgmFrameVoter::HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy)
     }
 }
 
+void HgmFrameVoter::SetTouchUpLTPOFirst(bool isTouchUp)
+{
+    if (isTouchUpLTPOFirst_ == isTouchUp) {
+        return;
+    }
+
+    if (!isTouchUp) {
+        isTouchUpLTPOFirst_ = isTouchUp;
+        return;
+    }
+
+    PolicyConfigData::StrategyConfig strategyConfig;
+    HgmErrCode res = multiAppStrategy_.GetVoteRes(strategyConfig);
+    if (res != HgmErrCode::EXEC_SUCCESS) {
+        return;
+    }
+    if (strategyConfig.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST) {
+        isTouchUpLTPOFirst_ = isTouchUp;
+        return;
+    }
+}
+
 void HgmFrameVoter::CleanVote(pid_t pid)
 {
     if (pidRecord_.count(pid) == 0) {
@@ -165,8 +187,11 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-        if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
+        if ((isDragScene_ || NeedSkipVoterTouch()) && curVoteInfo.voterName == "VOTER_TOUCH") {
             continue;
+        }
+        if (curVoteInfo.voterName == "VOTER_LTPO") {
+            existVoterLTPO_ = true;
         }
         ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {
@@ -254,6 +279,7 @@ std::pair<VoteInfo, VoteRange> HgmFrameVoter::ProcessVote(const std::string& cur
             break;
         }
     }
+    existVoterLTPO_ = false;
     voterGamesEffective_ = voterGamesEffective;
     // update effective status
     if (voterIter != voters_.end()) {

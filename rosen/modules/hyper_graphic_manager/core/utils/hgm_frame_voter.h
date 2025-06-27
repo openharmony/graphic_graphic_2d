@@ -39,6 +39,7 @@ public:
 
     bool IsDragScene() const { return isDragScene_; }
     void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
+    void SetTouchUpLTPOFirst(bool isTouchUp);
 
     void CleanVote(pid_t pid);
     void DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
@@ -61,8 +62,17 @@ private:
             markVoteChange_(voter);
         }
     }
+    bool NeedSkipVoterTouch()
+    {
+        if (existVoterLTPO_ && isTouchUpLTPOFirst_) {
+            return true;
+        }
+        return false;
+    }
 
     bool isDragScene_ = false;
+    bool existVoterLTPO_ = false;
+    bool isTouchUpLTPOFirst_ = false;
     std::atomic<bool> voterGamesEffective_ = false;
     std::unordered_set<pid_t> pidRecord_;
     VoteRecord voteRecord_;

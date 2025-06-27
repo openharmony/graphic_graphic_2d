@@ -136,6 +136,30 @@ HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level1)
 }
 
 /**
+ * @tc.name: TestSetTouchUpLTPOFirst
+ * @tc.desc: Verify the result of SetTouchUpLTPOFirst function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, TestSetTouchUpLTPOFirst, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
+    hgmFrameVoter.SetTouchUpLTPOFirst(false);
+    EXPECT_EQ(hgmFrameVoter.isTouchUpLTPOFirst_, false);
+    hgmFrameVoter.SetTouchUpLTPOFirst(true);
+    EXPECT_EQ(hgmFrameVoter.isTouchUpLTPOFirst_, false);
+    hgmFrameVoter.multiAppStrategy_.voteRes_.first = HgmErrCode::EXEC_SUCCESS;
+    hgmFrameVoter.SetTouchUpLTPOFirst(true);
+    EXPECT_EQ(hgmFrameVoter.isTouchUpLTPOFirst_, false);
+    hgmFrameVoter.multiAppStrategy_.voteRes_.second.dynamicMode = DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST;
+    hgmFrameVoter.SetTouchUpLTPOFirst(true);
+    EXPECT_EQ(hgmFrameVoter.isTouchUpLTPOFirst_, true);
+    hgmFrameVoter.SetTouchUpLTPOFirst(true);
+    EXPECT_EQ(hgmFrameVoter.isTouchUpLTPOFirst_, true);
+}
+
+/**
  * @tc.name: TestCleanVote
  * @tc.desc: Verify the result of CleanVote function
  * @tc.type: FUNC
@@ -229,6 +253,11 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     EXPECT_EQ(range.first, OLED_60_HZ);
     EXPECT_EQ(info.voterName, "VOTER_VIDEO");
 
+    hgmFrameVoter.isTouchUpLTPOFirst_ = true;
+    hgmFrameVoter.existVoterLTPO_ = true;
+    hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
+    EXPECT_EQ(range.first, OLED_60_HZ);
+
     HgmCore::Instance().mPolicyConfigData_ = std::make_unique<PolicyConfigData>();
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
     range = {0, 0};
@@ -240,6 +269,8 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     HgmCore::Instance().mPolicyConfigData_->videoFrameRateList_["testPkg"] = "1";
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
     hgmFrameVoter.isDragScene_ = false;
+    hgmFrameVoter.isTouchUpLTPOFirst_ = false;
+    hgmFrameVoter.existVoterLTPO_ = false;
     hgmFrameVoter.DeliverVote({ "VOTER_POINTER", OLED_120_HZ, OLED_120_HZ, 4 }, true);
     hgmFrameVoter.multiAppStrategy_.backgroundPid_.Put(4);
     hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
@@ -253,6 +284,10 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_120_HZ);
     EXPECT_EQ(info.voterName, "VOTER_SCENE");
+    hgmFrameVoter.DeliverVote({"VOTER_LTPO", OLED_60_HZ, OLED_120_HZ, 3}, true);
+    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
+    hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
+    EXPECT_EQ(hgmFrameVoter.existVoterLTPO_, true);
 
     // checkVote
     hgmFrameVoter.SetCheckVoteCallback([](const std::string&, VoteInfo&) { return true; });

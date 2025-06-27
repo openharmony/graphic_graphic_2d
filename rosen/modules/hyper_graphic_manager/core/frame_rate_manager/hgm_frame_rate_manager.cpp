@@ -227,10 +227,10 @@ void HgmFrameRateManager::InitTouchManager()
         };
         touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
             [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
+                needForceUpdateUniRender_ = true;
                 updateTouchToMultiAppStrategy(newState);
                 startCheck_.store(false);
                 voterTouchEffective_.store(true);
-                forceUpdateCallback_(false, true);
             });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
             [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
@@ -242,7 +242,9 @@ void HgmFrameRateManager::InitTouchManager()
             });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
             [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
+                frameVoter_.SetTouchUpLTPOFirst(true);
                 HgmTaskHandleThread::Instance().PostEvent(UP_TIME_OUT_TASK_ID, [this]() {
+                    frameVoter_.SetTouchUpLTPOFirst(false);
                     startCheck_.store(true);
                     UpdateSoftVSync(false);
                 }, FIRST_FRAME_TIME_OUT);
@@ -250,6 +252,7 @@ void HgmFrameRateManager::InitTouchManager()
             });
         touchManager_.RegisterExitStateCallback(TouchState::UP_STATE,
             [this](TouchState lastState, TouchState newState) {
+                frameVoter_.SetTouchUpLTPOFirst(false);
                 HgmTaskHandleThread::Instance().RemoveEvent(UP_TIME_OUT_TASK_ID);
                 startCheck_.store(false);
             });
@@ -323,7 +326,8 @@ void HgmFrameRateManager::UpdateAppSupportedState()
 {
     PolicyConfigData::StrategyConfig config;
     if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS &&
-        config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
+        (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED ||
+         config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST)) {
         idleDetector_.SetAppSupportedState(true);
     } else {
         idleDetector_.SetAppSupportedState(false);
@@ -1224,6 +1228,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
     VoteInfo resultVoteInfo = ProcessRefreshRateVote();
     if (lastVoteInfo_ == resultVoteInfo) {
+        needForceUpdateUniRender_ = false;
         if (isAmbientStatus_ < LightFactorStatus::LOW_LEVEL && !voterTouchEffective_) {
             return;
         }
@@ -1231,6 +1236,13 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         lastVoteInfo_ = resultVoteInfo;
         HGM_LOGI("Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- %{public}s", curScreenStrategyId_.c_str(),
             static_cast<int>(curScreenId_.load()), curRefreshRateMode_, resultVoteInfo.ToSimpleString().c_str());
+    }
+
+    if (needForceUpdateUniRender_) {
+        needForceUpdateUniRender_ = false;
+        if (forceUpdateCallback_) {
+            forceUpdateCallback_(false, true);
+        }
     }
 
     // max used here
