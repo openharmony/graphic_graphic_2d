@@ -18,7 +18,7 @@
 #define RS_CORE_PIPELINE_HPAE_OFFLINE_PROCESSOR_H
 #include "feature/hwc/hpae_offline/rs_hpae_offline_layer.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_thread_manager.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_process_sync.h"
+#include "feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_result.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_common.h"
 
