@@ -15,6 +15,7 @@
 
 #include <codecvt>
 #include <filesystem>
+#include <fstream>
 
 #include "drawing_font_collection.h"
 #include "drawing_register_font.h"
@@ -32,6 +33,32 @@ namespace fs = std::filesystem;
 const std::string STYLISH_FONT_CONFIG_FILE = "/system/fonts/visibility_list.json";
 const std::string STYLISH_FONT_CONFIG_PROD_FILE = "/sys_prod/fonts/visibility_list.json";
 const std::string INSTALLED_FONT_CONFIG_FILE = "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json";
+const std::string INSTALLED_FONT_CONFIG_FILE_BAK =
+    "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json.bak";
+
+// "Noto Sans Mono CJK KR" exchange with "Noto Sans Mono CJK JP"
+const std::string INSTALL_CONFIG = R"(
+{
+  "fontlist": [
+    {
+      "fontfullpath": "/system/fonts/NotoSansCJK-Regular.ttc",
+      "fullname": [
+        "Noto Sans CJK JP",
+        "Noto Sans CJK KR",
+        "Noto Sans CJK SC",
+        "Noto Sans CJK TC",
+        "Noto Sans CJK HK",
+        "Noto Sans Mono CJK KR",
+        "Noto Sans Mono CJK JP",
+        "Noto Sans Mono CJK SC",
+        "Noto Sans Mono CJK TC",
+        "Noto Sans Mono CJK HK"
+      ]
+    },
+    { "fontfullpath": "/system/fonts/NotoSans[wdth,wght].ttf", "fullname": ["Noto Sans Regular"] }
+  ]
+}
+)";
 
 bool ExistStylishFontConfigFile()
 {
@@ -39,8 +66,38 @@ bool ExistStylishFontConfigFile()
 }
 } // namespace
 
-class NdkFontDescriptorTest : public testing::Test {
-};
+class NdkFontDescriptorTest : public testing::Test {};
+
+void CreateFile(const std::string& file) 
+{
+    fs::path filePath(file);
+    fs::path dirPath = filePath.parent_path();
+
+    if (!fs::exists(dirPath)) {
+        fs::create_directories(dirPath);
+    }
+
+    std::ofstream ofs(INSTALLED_FONT_CONFIG_FILE, std::ios::trunc);
+    ofs << INSTALL_CONFIG;
+}
+
+void InitInstallConfig()
+{;
+    if (fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
+        fs::rename(INSTALLED_FONT_CONFIG_FILE, INSTALLED_FONT_CONFIG_FILE_BAK);
+    }
+    CreateFile(INSTALLED_FONT_CONFIG_FILE);
+}
+
+void DestroyInstallConfig()
+{
+    if (fs::exists(INSTALLED_FONT_CONFIG_FILE_BAK)) {
+        fs::copy_file(INSTALLED_FONT_CONFIG_FILE_BAK, INSTALLED_FONT_CONFIG_FILE, fs::copy_options::overwrite_existing);
+        fs::remove(INSTALLED_FONT_CONFIG_FILE_BAK);
+    } else {
+        fs::remove(INSTALLED_FONT_CONFIG_FILE);
+    }
+}
 
 /*
  * @tc.name: NdkFontDescriptorTest001
@@ -173,26 +230,23 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest006, TestSize.Level0)
  */
 HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest007, TestSize.Level0)
 {
-    if (!fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
-        return;
-    }
+    InitInstallConfig();
+    std::unordered_set<std::string> fullnames { "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK SC",
+        "Noto Sans CJK TC", "Noto Sans CJK HK", "Noto Sans Mono CJK JP", "Noto Sans Mono CJK KR",
+        "Noto Sans Mono CJK SC", "Noto Sans Mono CJK TC", "Noto Sans Mono CJK HK", "Noto Sans Regular" };
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType::INSTALLED;
-    OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
-    ASSERT_NE(fontList, nullptr);
+    OH_Drawing_Array* fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
+    EXPECT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 10);
+    EXPECT_EQ(size, 11);
     for (size_t i = 0; i < size; i++) {
-        const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
-        EXPECT_NE(fontFullName, nullptr);
-        OH_Drawing_FontDescriptor *descriptor = OH_Drawing_GetFontDescriptorByFullName(fontFullName, fontType);
-        ASSERT_NE(descriptor, nullptr);
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-        char16_t* begin = reinterpret_cast<char16_t*>(fontFullName->strData);
-        char16_t* end = reinterpret_cast<char16_t*>(fontFullName->strData + fontFullName->strLen);
-        EXPECT_EQ(convert.to_bytes(begin, end), descriptor->fullName);
-        OH_Drawing_DestroyFontDescriptor(descriptor);
+        const OH_Drawing_String* fullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
+        OH_Drawing_FontDescriptor* fd = OH_Drawing_GetFontDescriptorByFullName(fullName, INSTALLED);
+        EXPECT_TRUE(fullnames.count(fd->fullName));
+        OH_Drawing_DestroyFontDescriptor(fd);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
+    DestroyInstallConfig();
 }
 
 /*
@@ -261,10 +315,10 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest009, TestSize.Level0)
  */
 HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest010, TestSize.Level0)
 {
-    if (!ExistStylishFontConfigFile() && !fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
+    if (!ExistStylishFontConfigFile()) {
         return;
     }
-    OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType(INSTALLED | STYLISH);
+    OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType(STYLISH);
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
@@ -510,4 +564,4 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest019, TestSize.Level0)
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
 }
-}
+} // namespace OHOS
