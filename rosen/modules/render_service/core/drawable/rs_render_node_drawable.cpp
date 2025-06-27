@@ -63,6 +63,7 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
 {
+    ClearDrawingCacheDataMap();
     ClearCachedSurface();
     ResetClearSurfaceFunc();
 }
