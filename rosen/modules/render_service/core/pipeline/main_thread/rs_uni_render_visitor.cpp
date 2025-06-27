@@ -80,6 +80,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
+constexpr int EXPEND_ONE_PIX = 1;
 constexpr int MAX_ALPHA = 255;
 constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
@@ -2324,8 +2325,26 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         if (hwcNodePtr->IsHardwareForcedDisabled()) {
             continue;
         }
+        if (surfaceNode->GetVisibleRegion().IsEmpty()) {
+            continue;
+        }
+
+        auto regionRects = surfaceNode->GetVisibleRegion().GetRegionRects();
+        if (hwcNodePtr->GetHwcGlobalPositionEnabled() || hwcNodePtr->IsCrossNode()
+            || surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)
+            || surfaceNode->IsLayerTop()) {
+                hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
+                hasVisibleHwcNodes = true;
+            }
+        
+        auto region = surfaceNode->GetVisibleRegion();
+        region.MakeBound();
+        auto rectI = region.GetBound().ToRectI();
+        hwcVisitor_->UpdateDsrRectByScreenInfo(*hwcNodePtr, rectI, rectI);
+        auto newRect = Occlusion::Rect(rectI, true);
+        newRect.Expand(EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX);
         Occlusion::Rect dstRect(hwcNodePtr->GetDstRect());
-        if (surfaceNode->GetVisibleRegion().IsIntersectWith(dstRect)) {
+        if (newRect.IsIntersectWith(dstRect)) {
             hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
             hasVisibleHwcNodes = true;
             if (hwcNodePtr->GetRSSurfaceHandler() == nullptr) {

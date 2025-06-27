@@ -94,6 +94,7 @@ public:
 
     void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
     size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
+    void UpdateDsrRectByScreenInfo(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
 
 private:
     friend class RSUniRenderVisitor;
