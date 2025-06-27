@@ -97,9 +97,9 @@ public:
     }
 
     // hpae offline
-    virtual bool ProcessOfflineLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+    virtual bool ProcessOfflineLayer(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         bool async) { return false; }
-    virtual bool ProcessOfflineLayer(RSSurfaceRenderNode& node) { return false; }
+    virtual bool ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNode>& node) { return false; }
 
 protected:
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
