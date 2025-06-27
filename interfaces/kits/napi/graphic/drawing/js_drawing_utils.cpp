@@ -308,7 +308,7 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
     return objValue;
 }
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace)
 {
     switch (colorSpace) {
