@@ -25,6 +25,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "common/rs_occlusion_region.h"
 #include "screen_manager/screen_types.h"
 #include "surface_type.h"
 #include "utils/region.h"
@@ -243,6 +244,8 @@ public:
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
+    void SetDrawnRegion(const Occlusion::Region& region);
+    const Occlusion::Region& GetDrawnRegion() const;
     // behind window cache relate
     void SetBehindWindowData(const std::shared_ptr<CachedEffectData>& behindWindowData);
     const std::shared_ptr<CachedEffectData>& GetBehindWindowData() const;
@@ -373,6 +376,8 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
+
+    Occlusion::Region drawnRegion_;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

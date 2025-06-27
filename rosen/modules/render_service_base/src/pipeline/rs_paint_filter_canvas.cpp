@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "common/rs_occlusion_region.h"
 #include "draw/canvas.h"
 
 #include "platform/common/rs_log.h"
@@ -1398,6 +1399,16 @@ std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawi
 void RSPaintFilterCanvas::SetEffectData(const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& effectData)
 {
     envStack_.top().effectData_ = effectData;
+}
+
+void RSPaintFilterCanvas::SetDrawnRegion(const Occlusion::Region& region)
+{
+    drawnRegion_ = region;
+}
+
+const Occlusion::Region& RSPaintFilterCanvas::GetDrawnRegion() const
+{
+    return drawnRegion_;
 }
 
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetEffectData() const
