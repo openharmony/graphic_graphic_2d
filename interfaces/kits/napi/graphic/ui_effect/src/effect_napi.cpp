@@ -257,7 +257,7 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, std::shared_ptr<BorderLightEffectPara>& para)
+bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, size_t length, std::shared_ptr<BorderLightEffectPara>& para)
 {
     if (length < NUM_2) {
         UIEFFECT_LOG_E("FilterNapi GetBorderLight array length is less than 2");
