@@ -63,6 +63,7 @@ namespace Rosen {
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
+static std::once_flag g_isResidentProcessFlag;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -105,7 +106,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance)
         RSRenderThread::Instance().Start();
     } else {
         // force fallback animaiions send to RS if no render thread
-        RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true; // ToDo
+        RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
 #ifdef RS_ENABLE_VK
         InitHybridRender();
 #endif
@@ -593,9 +594,9 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
     for (auto &[id, _, cmd] : cmds->GetPayload()) {
         NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
-        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId); // ToDo
+        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
         if (instanceId == INSTANCE_ID_UNDEFINED) {
-            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId); // ToDo
+            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
         }
         m[instanceId].push_back(std::move(cmd));
     }
@@ -701,7 +702,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
         return;
     }
     // if node not found, try fallback node
-    auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode(); // ToDo
+    auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
     if (fallbackNode && fallbackNode->AnimationCallback(animId, event)) {
         ROSEN_LOGD("RSUIDirector::AnimationCallbackProcessor, found animation %{public}" PRIu64 " on fallback node.",
             animId);
@@ -718,7 +719,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
 
     std::string out;
     // use for dump transactionFlags [pid,index] in client tree dump
-    int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId); // DFX ToDo
+    int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);
     {
         std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex_);
         for (const auto &[director, taskRunner] : uiTaskRunners_) {
@@ -730,7 +731,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
         }
     }
 
-    if (auto node = RSNodeMap::Instance().GetNode(nodeId)) { // DFX ToDo
+    if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {
         constexpr int TOP_LEVEL_DEPTH = 1;
         node->DumpTree(TOP_LEVEL_DEPTH, out);
     }
@@ -800,6 +801,17 @@ int32_t RSUIDirector::GetAnimateExpectedRate() const
         }
     }
     return animateRate;
+}
+
+void RSUIDirector::SetTypicalResidentProcessOnce(bool isTypicalResidentProcess)
+{
+    std::call_once(g_isResidentProcessFlag,
+        [isTypicalResidentProcess]() { RSSystemProperties::SetTypicalResidentProcess(isTypicalResidentProcess); });
+}
+
+void RSUIDirector::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+    SetTypicalResidentProcessOnce(isTypicalResidentProcess);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -37,9 +37,10 @@ public:
 
     std::shared_ptr<RSNGRenderFilterBase> GetRenderEffect() override;
 
-    bool SetValue(const std::shared_ptr<RSNGFilterBase>& other, std::shared_ptr<RSNode> node) override;
+    bool SetValue(const std::shared_ptr<RSNGFilterBase>& other, RSNode& node,
+        const std::weak_ptr<ModifierNG::RSModifier>& modifier) override;
 
-    void Attach(const std::shared_ptr<RSNode>& node) override;
+    void Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) override;
 
     void Detach() override;
 

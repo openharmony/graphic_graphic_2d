@@ -48,19 +48,19 @@ private:
     bool CheckSurfaceAndUi(OHSurfaceSource sourceType);
 
 private:
-    bool isSwitchOn_ {false};
-    pid_t lastVotedPid_ {DEFAULT_PID};
-    uint32_t lastVotedRate_ {OLED_NULL_HZ};
-    bool isVoted_ {false};
-    uint64_t lastSurfaceNodeId_ {0};
-    uint64_t currentUpdateTime_ {0};
+    bool isSwitchOn_{ false };
+    pid_t lastVotedPid_{ DEFAULT_PID };
+    uint32_t lastVotedRate_{ OLED_NULL_HZ };
+    bool isVoted_{ false };
+    uint64_t lastSurfaceNodeId_{ 0 };
+    uint64_t currentUpdateTime_{ 0 };
     std::string transactionFlags_ = "";
-    std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_ {};
-    std::unordered_map<uint64_t, uint32_t> surfaceVideoRate_ {};
+    std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_{};
+    std::unordered_map<uint64_t, uint32_t> surfaceVideoRate_{};
     std::mutex mutex_;
-    std::shared_ptr<ffrt::queue> ffrtQueue_ {nullptr};
+    std::shared_ptr<ffrt::queue> ffrtQueue_{ nullptr };
     ffrt::mutex ffrtMutex_;
-    ffrt::task_handle taskHandler_ {nullptr};
+    ffrt::task_handle taskHandler_{ nullptr };
 };
 } // namespace Rosen
 } // namespace OHOS

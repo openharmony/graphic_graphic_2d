@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "common/rs_optional_trace.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
+
+#include "common/rs_optional_trace.h"
 #include "parameters.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -25,8 +26,7 @@ namespace Rosen {
 HgmContext::HgmContext()
 {
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(
-        [] (const RSRenderFrameRateLinker& linker) { HgmCore::Instance().SetHgmTaskFlag(true); }
-    );
+        [](const RSRenderFrameRateLinker& linker) { HgmCore::Instance().SetHgmTaskFlag(true); });
 }
 
 void HgmContext::InitHgmTaskHandleThread(
@@ -44,15 +44,14 @@ void HgmContext::InitHgmTaskHandleThread(
     };
     HgmTaskHandleThread::Instance().PostSyncTask([
         forceUpdateTask, rsVSyncController,
-        appVSyncController, vsyncGenerator, appVSyncDistributor] () {
+        appVSyncController, vsyncGenerator, appVSyncDistributor]() {
             auto frameRateMgr = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
             if (frameRateMgr == nullptr) {
                 return;
             }
             frameRateMgr->SetForceUpdateCallback(forceUpdateTask);
             frameRateMgr->Init(rsVSyncController, appVSyncController, vsyncGenerator, appVSyncDistributor);
-        }
-    );
+        });
 }
 
 int32_t HgmContext::FrameRateGetFunc(
@@ -109,13 +108,12 @@ void HgmContext::ProcessHgmFrameRate(
     }
     HgmTaskHandleThread::Instance().PostTask([timestamp, rsFrameRateLinker = rsFrameRateLinker_,
         appFrameRateLinkers = RSMainThread::Instance()->GetContext().GetFrameRateLinkerMap().Get(),
-        linkers = rsVsyncRateReduceManager.GetVrateMap() ]() mutable {
+        linkers = rsVsyncRateReduceManager.GetVrateMap()]() mutable {
             RS_TRACE_NAME("ProcessHgmFrameRate");
             if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
                 frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
             }
-        }
-    );
+        });
 }
 } // namespace Rosen
 } // namespace OHOS

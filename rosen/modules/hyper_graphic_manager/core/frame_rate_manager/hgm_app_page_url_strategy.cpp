@@ -84,8 +84,8 @@ void HgmAppPageUrlStrategy::NotifyScreenSettingChange()
     }
 }
 
-void HgmAppPageUrlStrategy::NotifyPageName(pid_t pid, const std::string &packageName,
-    const std::string &pageName, bool isEnter)
+void HgmAppPageUrlStrategy::NotifyPageName(pid_t pid, const std::string& packageName,
+    const std::string& pageName, bool isEnter)
 {
     HGM_LOGD("HgmAppPageUrlStrategy: pid=%{public}d packageName=%{public}s pageName=%{public}s" \
         " isEnter=%{public}d", pid, packageName.c_str(), pageName.c_str(), isEnter);

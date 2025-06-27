@@ -31,24 +31,14 @@ public:
     virtual ~RSNGRenderEffectBase() = default;
     virtual RSNGEffectType GetType() const = 0;
     virtual bool Marshalling(Parcel& parcel) const = 0;
-    virtual void Attach(const std::shared_ptr<RSRenderNode>& node) = 0;
-    virtual void Detach(const std::shared_ptr<RSRenderNode>& node) = 0;
+    virtual void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
+    virtual void Detach() = 0;
     virtual void SetModifierType(RSModifierType inType) = 0;
 
 protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
     
     virtual void DumpProperty(std::string& out) const {}
-
-    inline const std::shared_ptr<Derived>& GetNextEffect() const
-    {
-        return nextEffect_;
-    }
-
-    inline void SetNextEffect(const std::shared_ptr<Derived>& nextEffect)
-    {
-        nextEffect_ = nextEffect;
-    }
 
     size_t GetEffectCount() const
     {
@@ -185,23 +175,26 @@ public:
             Dump<std::decay_t<decltype(tag)>>(out);
         };
         std::apply([&](const auto&... props) { (dumpFunc(out, props), ...); }, properties_);
-        
+
         out += endStr;
     }
 
-    void Attach(const std::shared_ptr<RSRenderNode>& node) override
+    void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
     {
-        std::apply([&node](const auto&... props) { (props.value_->Attach(node), ...); }, properties_);
+        std::apply([&node, &modifier](const auto&... props) {
+                (props.value_->Attach(node, modifier), ...);
+            },
+            properties_);
         if (Base::nextEffect_) {
-            Base::nextEffect_->Attach(node);
+            Base::nextEffect_->Attach(node, modifier);
         }
     }
 
-    void Detach(const std::shared_ptr<RSRenderNode>& node) override
+    void Detach() override
     {
-        std::apply([&node](const auto&... props) { (props.value_->Detach(node), ...); }, properties_);
+        std::apply([](const auto&... props) { (props.value_->Detach(), ...); }, properties_);
         if (Base::nextEffect_) {
-            Base::nextEffect_->Detach(node);
+            Base::nextEffect_->Detach();
         }
     }
 
@@ -223,7 +216,7 @@ protected:
     friend class RSNGEffectTemplate;
 };
 
-} // namespace OHOS
 } // namespace Rosen
+} // namespace OHOS
 
 #endif // RENDER_SERVICE_BASE_EFFECT_RS_RENDER_EFFECT_TEMPLATE_H

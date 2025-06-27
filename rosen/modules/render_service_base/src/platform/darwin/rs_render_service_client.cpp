@@ -134,8 +134,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, std::unique_ptr<Media::PixelMap> clientCapturePixelMap,
-    const RSSurfaceCaptureBlurParam& blurParam, const Drawing::Rect& specifiedAreaRect)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    const Drawing::Rect& specifiedAreaRect)
 {
     return false;
 }
@@ -809,7 +809,12 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
-    const SelfDrawingNodeRectChangeCallback& callback)
+    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
 {
     return {};
 }

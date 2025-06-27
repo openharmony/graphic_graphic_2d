@@ -3828,7 +3828,6 @@ bool RSNode::CheckMultiThreadAccess(const std::string& func) const
         return true;
     }
     auto rsContext = rsUIContext_.lock();
-    // Node toDo
     if (rsContext == nullptr) {
         return true;
     }
@@ -4977,8 +4976,7 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         return;
     }
     modifiersNG_.emplace(modifier->GetId(), modifier);
-    AttachModifierProperties(modifier);
-    modifier->OnAttach(*this);
+    modifier->OnAttach(*this); // Attach properties of modifier here
     if (modifier->GetType() == ModifierNG::RSModifierType::NODE_MODIFIER) {
         return;
     }
@@ -5004,10 +5002,9 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
         RS_LOGE("RSNode::RemoveModifier: null modifier or modifier not exist.");
         return;
     }
-    modifier->OnDetach();
+    modifier->OnDetach(); // Detach properties of modifier here
     modifiersNG_.erase(modifier->GetId());
     DetachUIFilterProperties(modifier);
-    DetachModifierProperties(modifier);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRemoveModifierNG>(GetId(), modifier->GetType(), modifier->GetId());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
@@ -5100,10 +5097,10 @@ void RSNode::AttachProperty(std::shared_ptr<RSPropertyBase> property)
     if (!property) {
         return;
     }
-    if (motionPathOption_ != nullptr && IsPathAnimatableProperty(property->GetPropertyTypeNG())) {
+    if (motionPathOption_ != nullptr && property->IsPathAnimatable()) {
         property->SetMotionPathOption(motionPathOption_);
     }
-    properties_.emplace(property->GetId(), property);
+    property->Attach(*this);
 #endif
 }
 

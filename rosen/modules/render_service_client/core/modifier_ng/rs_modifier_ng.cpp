@@ -233,8 +233,6 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
     property->SetPropertyTypeNG(type);
     // replace existing property if any
     properties_[type] = property;
-    // actually do the detach
-    property->AttachModifier(shared_from_this());
     SetPropertyThresholdType(type, property);
 
     auto node = node_.lock();
@@ -242,8 +240,10 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
         // not attached yet
         return;
     }
-    property->target_ = node_;
-    node->AttachProperty(property);
+    if (node->motionPathOption_ != nullptr && property->IsPathAnimatable()) {
+        property->SetMotionPathOption(node->motionPathOption_);
+    }
+    property->Attach(*node, weak_from_this());
     MarkNodeDirty();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSModifierNGAttachProperty>(node->GetId(), id_, GetType(), type, renderProperty);
@@ -263,14 +263,12 @@ void RSModifier::DetachProperty(RSPropertyType type)
     }
     auto property = it->second;
     properties_.erase(it);
-    // actually do the detach
-    property->target_.reset();
+    property->Detach();
     auto node = node_.lock();
     if (!node) {
         // not attached yet
         return;
     }
-    node->DettachProperty(property->GetId());
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSModifierNGDetachProperty>(node->GetId(), id_, GetType(), type);
     node->AddCommand(command, node->IsRenderServiceNode());
@@ -290,19 +288,24 @@ void RSModifier::SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<R
 void RSModifier::OnAttach(RSNode& node)
 {
     node_ = node.weak_from_this();
-    if (!properties_.empty()) {
-        for (auto& [_, property] : properties_) {
-            property->target_ = node_;
-        }
-        MarkNodeDirty();
+    if (properties_.empty()) {
+        return;
     }
+    auto weakPtr = weak_from_this();
+    for (auto& [_, property] : properties_) {
+        if (node.motionPathOption_ != nullptr && property->IsPathAnimatable()) {
+            property->SetMotionPathOption(node.motionPathOption_);
+        }
+        property->Attach(node, weakPtr);
+    }
+    MarkNodeDirty();
 }
 
 void RSModifier::OnDetach()
 {
     node_.reset();
     for (auto& [_, property] : properties_) {
-        property->target_.reset();
+        property->Detach();
     }
     MarkNodeDirty();
 }

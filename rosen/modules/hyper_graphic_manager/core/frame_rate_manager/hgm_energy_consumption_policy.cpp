@@ -26,20 +26,21 @@
 #include "common/rs_common_hook.h"
 
 namespace OHOS::Rosen {
-
-const static std::string RS_ENERGY_ASSURANCE_TASK_ID = "RS_ENERGY_ASSURANCE_TASK_ID";
-const static std::string DESCISION_VIDEO_CALL_TASK_ID = "DESCISION_VIDEO_CALL_TASK_ID";
-static const std::unordered_map<std::string, std::vector<uint32_t>> UI_RATE_TYPE_NAME_MAP = {
-    {"ui_animation", { UI_ANIMATION_FRAME_RATE_TYPE, DRAG_SCENE_FRAME_RATE_TYPE } },
-    {"display_sync", { DISPLAY_SYNC_FRAME_RATE_TYPE } },
-    {"ace_component", { ACE_COMPONENT_FRAME_RATE_TYPE } },
-    {"display_soloist", { DISPLAY_SOLOIST_FRAME_RATE_TYPE } },
+namespace {
+const std::string RS_ENERGY_ASSURANCE_TASK_ID = "RS_ENERGY_ASSURANCE_TASK_ID";
+const std::string DESCISION_VIDEO_CALL_TASK_ID = "DESCISION_VIDEO_CALL_TASK_ID";
+const std::unordered_map<std::string, std::vector<uint32_t>> UI_RATE_TYPE_NAME_MAP = {
+    { "ui_animation", { UI_ANIMATION_FRAME_RATE_TYPE, DRAG_SCENE_FRAME_RATE_TYPE } },
+    { "display_sync", { DISPLAY_SYNC_FRAME_RATE_TYPE } },
+    { "ace_component", { ACE_COMPONENT_FRAME_RATE_TYPE } },
+    { "display_soloist", { DISPLAY_SOLOIST_FRAME_RATE_TYPE } },
 };
 constexpr int DEFAULT_ENERGY_ASSURANCE_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
 constexpr int64_t DEFAULT_RS_ANIMATION_TOUCH_UP_TIME = 1000;
 constexpr int32_t UNKNOWN_IDLE_FPS = -1;
 constexpr int64_t DESCISION_VIDEO_CALL_TIME = 1000;
+}
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
@@ -122,6 +123,13 @@ void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
     }
 }
 
+void HgmEnergyConsumptionPolicy::SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo)
+{
+    if (eventInfo.description == "DRAG_SCENE") {
+        aceComponentEnable_.store(eventInfo.eventStatus);
+    }
+}
+
 void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
     if (!isAnimationEnergyAssuranceEnable_ ||
@@ -141,7 +149,7 @@ void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
     lastAnimationTimestamp_ = timestamp;
 }
 
-void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::string &componentName)
+void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::string& componentName)
 {
     auto idleFps = GetComponentEnergyConsumptionConfig(componentName);
     if (idleFps != UNKNOWN_IDLE_FPS) {
@@ -202,7 +210,11 @@ bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
     if (!isTouchIdle_) {
         return false;
     }
-    auto it = uiEnergyAssuranceMap_.find(rsRange.type_ & ~ANIMATION_STATE_FIRST_FRAME);
+    auto type = rsRange.type_ & ~ANIMATION_STATE_FIRST_FRAME;
+    if (type == DRAG_SCENE_FRAME_RATE_TYPE && !aceComponentEnable_.load()) {
+        return false;
+    }
+    auto it = uiEnergyAssuranceMap_.find(type);
     if (it == uiEnergyAssuranceMap_.end()) {
         HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}d is invalid", rsRange.type_);
         return false;
@@ -292,7 +304,7 @@ void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo &eventInf
     videoBufferCount_.store(0);
 }
 
-void HgmEnergyConsumptionPolicy::StatisticsVideoCallBufferCount(pid_t pid, const std::string &surfaceName)
+void HgmEnergyConsumptionPolicy::StatisticsVideoCallBufferCount(pid_t pid, const std::string& surfaceName)
 {
     if (!isEnableVideoCall_.load() || pid != videoCallPid_.load()) {
         return;
@@ -361,7 +373,7 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
         videoCallLayerName_ = "";
         return;
     }
-    for (const auto &pkg: pkgs) {
+    for (const auto& pkg: pkgs) {
         std::string pkgName = pkg.substr(0, pkg.find(":"));
         auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
         auto videoCallLayerName = videoCallLayerConfig.find(pkgName);

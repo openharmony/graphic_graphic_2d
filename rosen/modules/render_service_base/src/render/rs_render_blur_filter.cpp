@@ -51,7 +51,7 @@ namespace Rosen {
 
     bool RSRenderBlurFilterPara::ReadFromParcel(Parcel& parcel)
     {
-        if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
+        if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
             !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
             !RSMarshallingHelper::Unmarshalling(parcel, modifierType_)) {
             return false;

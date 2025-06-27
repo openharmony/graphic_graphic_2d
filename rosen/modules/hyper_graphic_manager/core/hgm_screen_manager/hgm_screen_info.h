@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 
-enum HgmScreenType {
+enum class HgmScreenType {
     LTPS = 0,
     LTPS1,
     LTPS2,
@@ -41,7 +41,7 @@ struct HgmPanelInfo {
 };
 
 using ConvertHandle = void*;
-using ConvertFuncGet = int (*)(std::string &);
+using ConvertFuncGet = int (*)(std::string&);
 
 class HgmScreenInfo {
 public:

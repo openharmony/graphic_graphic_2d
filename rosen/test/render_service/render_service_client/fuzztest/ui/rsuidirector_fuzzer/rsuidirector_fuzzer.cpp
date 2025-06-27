@@ -67,7 +67,8 @@ const uint8_t DO_HAS_UIRUNNING_ANIMATION = 32;
 const uint8_t DO_GET_INDEX = 33;
 const uint8_t DO_DUMP_NODE_TREE_PROCESSOR = 34;
 const uint8_t DO_POST_DELAY_TASK = 35;
-const uint8_t TARGET_SIZE = 36;
+const uint8_t DO_SET_TYPICAL_RESIDENT_PROCESS = 36;
+const uint8_t TARGET_SIZE = 37;
 
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
@@ -359,6 +360,13 @@ void DoPostDelayTask(const uint8_t* data, size_t size)
     director->PostDelayTask(task);
     director->PostDelayTask(task, delay, instanceId);
 }
+
+void DoSetTypicalResidentProcess(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    bool isTypicalResidentProcess = GetData<bool>();
+    director->SetTypicalResidentProcess(isTypicalResidentProcess);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -478,6 +486,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_POST_DELAY_TASK:
             OHOS::Rosen::DoPostDelayTask(data, size);
+            break;
+        case OHOS::Rosen::DO_SET_TYPICAL_RESIDENT_PROCESS:
+            OHOS::Rosen::DoSetTypicalResidentProcess(data, size);
             break;
         default:
             return -1;

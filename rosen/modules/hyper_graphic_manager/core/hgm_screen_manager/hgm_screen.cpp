@@ -24,7 +24,7 @@ HgmScreen::HgmScreen() {}
 
 HgmScreen::HgmScreen(ScreenId id, int32_t mode, ScreenSize& screenSize)
     : id_(id), activeModeId_(mode), width_(screenSize.width), height_(screenSize.height),
-    phyWidth_(screenSize.phyWidth), phyHeight_(screenSize.phyHeight)
+      phyWidth_(screenSize.phyWidth), phyHeight_(screenSize.phyHeight)
 {
     auto screenLength = sqrt(pow(screenSize.width, 2) + pow(screenSize.height, 2));
     auto phyScreenLength = sqrt(pow(screenSize.phyWidth, 2) + pow(screenSize.phyHeight, 2));

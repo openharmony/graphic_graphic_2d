@@ -26,12 +26,13 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t waitTaskFinishNs = 100000;
-    constexpr pid_t appPid = 0;
-    constexpr uint32_t touchCount = 1;
-    constexpr uint32_t delay_60Ms = 60;
-    constexpr uint32_t delay_110Ms = 110;
+constexpr int32_t waitTaskFinishNs = 100000;
+constexpr pid_t appPid = 0;
+constexpr uint32_t touchCount = 1;
+constexpr uint32_t delay_60Ms = 60;
+constexpr uint32_t delay_110Ms = 110;
 }
+
 class HgmPointerManagerTest : public HgmTestBase {
 public:
     static void SetUpTestCase()
@@ -121,7 +122,7 @@ HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level1)
         }
         STEP("ExecuteCallback") {
             pointerManager.ExecuteCallback(nullptr);
-            pointerManager.ExecuteCallback([] () { usleep(1); });
+            pointerManager.ExecuteCallback([]() { usleep(1); });
             pointerManager.ExecuteCallback(nullptr);
         }
     }

@@ -53,8 +53,12 @@ template("color_manager_source_set") {
     ]
 
     configs = [ ":color_manager_config" ]
-    public_configs = [ ":color_manager_public_config" ]
-
+    public_configs = [ 
+      ":color_manager_public_config",
+     ]
+    if (is_arkui_x) {
+      public_deps = [ "//third_party/skia:skia_$platform" ]
+    }
     external_deps = [ "skia:skia_canvaskit" ]
 
     cflags_cc = [
@@ -85,6 +89,7 @@ if (current_os == "ohos") {
 } else {
   if (is_arkui_x) {
     ohos_source_set("color_manager") {
+      public_configs = [ ":export" ]
       public_deps = [ ":color_manager_source" ]
       part_name = "graphic_2d"
       subsystem_name = "graphic"

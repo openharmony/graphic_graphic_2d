@@ -29,27 +29,27 @@ FontDescriptorMgr::~FontDescriptorMgr() {}
 
 void FontDescriptorMgr::ClearFontFileCache()
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
+    std::unique_lock guard(parserMtx_);
     descCache_.ClearFontFileCache();
 }
 
 void FontDescriptorMgr::MatchFontDescriptors(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& descs)
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
+    std::unique_lock guard(parserMtx_);
     descCache_.MatchFromFontDescriptor(desc, descs);
 }
 
 void FontDescriptorMgr::GetFontDescSharedPtrByFullName(const std::string& fullName,
     const int32_t& systemFontType, FontDescSharedPtr& result)
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
+    std::shared_lock guard(parserMtx_);
     descCache_.GetFontDescSharedPtrByFullName(fullName, systemFontType, result);
 }
 
 void FontDescriptorMgr::GetSystemFontFullNamesByType(
     const int32_t &systemFontType, std::unordered_set<std::string> &fontList)
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
+    std::unique_lock guard(parserMtx_);
     descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);
 }
 
@@ -58,13 +58,13 @@ void FontDescriptorMgr::CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> 
     if (typeface == nullptr) {
         return;
     }
-    std::unique_lock<std::mutex> guard(parserMtx_);
+    std::unique_lock guard(parserMtx_);
     descCache_.CacheDynamicTypeface(typeface, familyName);
 }
 
 void FontDescriptorMgr::DeleteDynamicTypefaceFromCache(const std::string &familyName)
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
+    std::unique_lock guard(parserMtx_);
     descCache_.DeleteDynamicTypefaceFromCache(familyName);
 }
 } // namespace OHOS::Rosen

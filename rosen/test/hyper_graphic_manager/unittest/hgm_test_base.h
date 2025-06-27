@@ -88,7 +88,16 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         </Category>
         <Category name="property_animation_dynamic_settings">
             <DynamicSettings name="aaa">
-            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
+                <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
+            </DynamicSettings>
+            <DynamicSettings name="invalid_preferred_fps">
+                <SpeedThresholds name="1" min="0" max="-1"/>
+            </DynamicSettings>
+            <DynamicSettings name="invalid_max">
+                <SpeedThresholds name="1" min="0"/>
+            </DynamicSettings>
+            <DynamicSettings name="invalid_min">
+                <SpeedThresholds name="1"/>
             </DynamicSettings>
         </Category>
         <Category name="ace_scene_dynamic_settings">
@@ -120,7 +129,9 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
             <App name="333" strategy="33" />
         </Category>
         <Category name="app_page_url_config">
-            <App name="aaa" strategy="12" />
+            <Package name="com.company.pkg0">
+                <Strategy name="pageName" strategy="5">
+            </Package>
         </Category>
         <Category name="performance_config">
             <Ltpo name="pluseNum" value="1" />
@@ -155,6 +166,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     <Params name="vrate_control_config">
         <Vrate name="aaa" value="1"/>
     </Params>
+    <InvalidParams/>
     </HgmConfig>)");
 
 inline xmlDoc* StringToXmlDoc(const std::string& xmlContent)

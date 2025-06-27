@@ -24,8 +24,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-}
 class RSVideoFrameRateVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase();

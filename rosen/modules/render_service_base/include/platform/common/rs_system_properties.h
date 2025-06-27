@@ -348,6 +348,8 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
+    static bool GetHpaeBlurUsingAAE();
+
     static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
     static bool GetTimeVsyncDisabled();
@@ -367,6 +369,7 @@ public:
     static bool GetHybridRenderTextBlobEnabled();
     static bool GetHybridRenderSvgEnabled();
     static bool GetHybridRenderHmsymbolEnabled();
+    static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
 
     static bool GetVKImageUseEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
@@ -384,6 +387,7 @@ private:
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;
+    static inline bool isTypicalResidentProcess_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

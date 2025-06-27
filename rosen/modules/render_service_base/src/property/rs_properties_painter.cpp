@@ -607,7 +607,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         }
         // RSFilterCacheManger has no more logic for evaluating filtered snapshot clearing
         // (see RSPropertyDrawableUtils::DrawFilter())
-        cacheManager->DrawFilter(canvas, filter, true, false);
+        cacheManager->DrawFilter(canvas, filter, 0, true, false);
         return;
     }
 #endif

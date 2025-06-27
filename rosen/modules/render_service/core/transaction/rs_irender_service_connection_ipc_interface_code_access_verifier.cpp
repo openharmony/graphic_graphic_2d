@@ -525,6 +525,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_IDENTIFICATION_DATA): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DISPLAY_IDENTIFICATION_DATA");
             break;

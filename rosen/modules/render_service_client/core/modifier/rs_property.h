@@ -84,7 +84,7 @@ class RSMagnifierParams;
 class ParticleNoiseFields;
 class RSShader;
 class RSUIFilter;
-class RSUIFilterUtils;
+class RSNGEffectUtils;
 
 /**
  * @brief Defines different types of thresholds for spring animation.
@@ -168,6 +168,13 @@ public:
 
     virtual void SetPropertyTypeNG(const ModifierNG::RSPropertyType type) {}
 
+    inline bool IsPathAnimatable() const
+    {
+        auto type = GetPropertyTypeNG();
+        return (type == ModifierNG::RSPropertyType::BOUNDS || type == ModifierNG::RSPropertyType::FRAME ||
+            type == ModifierNG::RSPropertyType::TRANSLATE);
+    }
+
 protected:
     virtual void SetIsCustom(bool isCustom) = 0;
     virtual bool GetIsCustom() const = 0;
@@ -191,27 +198,27 @@ protected:
         modifier_ = modifier;
     }
 
-    void Attach(const std::shared_ptr<RSNode>& node)
+    void Attach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier = {})
     {
-        target_ = node;
-        if (node) {
-            node->RegisterProperty(shared_from_this());
-        }
-        OnAttach(node);
+        target_ = node.weak_from_this();
+        modifierNG_ = modifier;
+        node.RegisterProperty(shared_from_this());
+        OnAttach(node, modifier);
     }
 
-    virtual void OnAttach(const std::shared_ptr<RSNode>& node) {}
+    virtual void OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier) {}
 
     void Detach()
     {
         if (auto node = target_.lock()) {
             node->UnregisterProperty(GetId());
-            OnDetach(node);
         }
+        OnDetach();
         target_.reset();
+        modifierNG_.reset();
     }
 
-    virtual void OnDetach(const std::shared_ptr<RSNode>& node) {}
+    virtual void OnDetach() {}
 
     void AttachModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
     {
@@ -305,7 +312,7 @@ private:
     friend class RSAnimatableProperty;
     template<uint16_t commandType, uint16_t commandSubType>
     friend class RSGetShowingValueAndCancelAnimationTask;
-    friend class RSUIFilterUtils;
+    friend class RSNGEffectUtils;
 };
 
 /**
@@ -402,9 +409,9 @@ protected:
         return std::make_shared<RSProperty<T>>(stagingValue_);
     }
 
-    void OnAttach(const std::shared_ptr<RSNode>& node) override {}
+    void OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier) override {}
 
-    void OnDetach(const std::shared_ptr<RSNode>& node) override {}
+    void OnDetach() override {}
 
     bool IsValid(const T& value)
     {
@@ -436,7 +443,7 @@ protected:
     friend class RSImplicitAnimator;
     friend class RSExtendedModifier;
     friend class RSModifier;
-    friend class RSUIFilterUtils;
+    friend class RSNGEffectUtils;
 };
 
 /**
@@ -879,13 +886,14 @@ private:
     friend class RSPathAnimation;
     friend class RSExtendedModifier;
     friend class RSModifier;
-    friend class RSUIFilterUtils;
+    friend class RSNGEffectUtils;
 };
 
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(const std::shared_ptr<RSNode>& node);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(RSNode& node,
+    std::weak_ptr<ModifierNG::RSModifier> modifier);
 template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach(const std::shared_ptr<RSNode>& node);
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach();
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value);
 template<>

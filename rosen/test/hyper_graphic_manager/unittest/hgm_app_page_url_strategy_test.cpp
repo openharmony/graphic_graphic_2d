@@ -27,13 +27,13 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t DEF_PID = 1000;
-    constexpr int32_t MIN_FPS = 60;
-    constexpr int32_t MAX_FPS = 90;
-    const std::string STRATEGY = "5";
-    const std::string PKG_NAME = "com.pkg.other";
-    const std::string PAGE_NAME = "other";
-    const std::string PAGE_NAME1 = "other1";
+constexpr int32_t DEF_PID = 1000;
+constexpr int32_t MIN_FPS = 60;
+constexpr int32_t MAX_FPS = 90;
+const std::string STRATEGY = "5";
+const std::string PKG_NAME = "com.pkg.other";
+const std::string PAGE_NAME = "other";
+const std::string PAGE_NAME1 = "other1";
 }
 
 class HgmAppPageUrlStrategyTest : public HgmTestBase {

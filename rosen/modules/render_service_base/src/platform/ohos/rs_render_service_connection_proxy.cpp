@@ -1750,8 +1750,7 @@ ErrCode RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, s
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect,
-    std::unique_ptr<Media::PixelMap> pixelMap, RSSurfaceCapturePermissions /* permissions */)
+    const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("%{public}s callback == nullptr", __func__);
@@ -1780,11 +1779,6 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
     if (!WriteSurfaceCaptureAreaRect(specifiedAreaRect, data)) {
         ROSEN_LOGE("%{public}s write specifiedAreaRect failed", __func__);
-        return;
-    }
-
-    if (!WriteClientSurfacePixelMap(pixelMap, captureConfig.isClientPixelMap, data)) {
-        ROSEN_LOGE("%{public}s write pixelMap failed", __func__);
         return;
     }
     
@@ -1938,14 +1932,14 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
-        !data.WriteBool(captureConfig.isClientPixelMap) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
         !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
         !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
-        !data.WriteUInt64Vector(captureConfig.blackList)) {
+        !data.WriteUInt64Vector(captureConfig.blackList) ||
+        !data.WriteUint32(captureConfig.backGroundColor)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }
@@ -1973,27 +1967,6 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureAreaRect(
     return true;
 }
 
-bool RSRenderServiceConnectionProxy::WriteClientSurfacePixelMap(
-    const std::unique_ptr<Media::PixelMap>& pixelMap, bool isUsedClientPixelMap, MessageParcel& data)
-{
-    // use service create pixelmap
-    if (!isUsedClientPixelMap) {
-        return true;
-    }
-
-    // vaild pixelMap and flag appear in pairs
-    if (pixelMap == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::WriteClientSurfacePixelMap pixelMap is nullptr");
-        return false;
-    }
-
-    if (!data.WriteParcelable(pixelMap.get())) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::WriteClientSurfacePixelMap WriteParcelable fail");
-        return false;
-    }
-
-    return true;
-}
 ErrCode RSRenderServiceConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
@@ -5328,7 +5301,7 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool v
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
-    sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     if (!callback) {
         ROSEN_LOGE("%{public}s callback is nullptr", __func__);
@@ -5340,9 +5313,27 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
+        return WRITE_PARCEL_ERR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
+
+    uint32_t size = filter.pids.size();
+    if (!data.WriteUint32(size)) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write size err.");
+        return WRITE_PARCEL_ERR;
+    }
+    for (int32_t pid : filter.pids) {
+        if (!data.WriteInt32(pid)) {
+            ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write pid err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    if (!data.WriteInt32(filter.range.lowLimit.width) || !data.WriteInt32(filter.range.lowLimit.height) ||
+        !data.WriteInt32(filter.range.highLimit.width) || !data.WriteInt32(filter.range.highLimit.height)) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write rectRange err.");
+        return WRITE_PARCEL_ERR;
+    }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteRemoteObject callback->AsObject() err.");
         return WRITE_PARCEL_ERR;
@@ -5357,6 +5348,33 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
     int32_t result{0};
     if (!reply.ReadInt32(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: Send request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCallback Read result failed");
         return READ_PARCEL_ERR;
     }
     return result;

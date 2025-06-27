@@ -20,6 +20,7 @@
 #include "screen_manager/rs_screen.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_hdi_device.h"
+#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -31,6 +32,7 @@ using namespace testing::ext;
 namespace {
     const int DEFAULT_WIDTH = 2160;
     const int DEFAULT_HEIGHT = 1080;
+    constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
 };
 
 namespace OHOS::Rosen {
@@ -53,6 +55,8 @@ public:
     float mirrorAdaptiveCoefficient = 1.0f;
 
     uint32_t screenId_ = 10;
+    uint32_t screenIdSec_ = 15;
+    uint32_t screenIdInvalid_ = 21;
 
     static inline BufferRequestConfig requestConfig = {
         .width = 0x100,
@@ -90,6 +94,8 @@ void RSHardwareThreadTest::TearDown()
     OHOS::Rosen::impl::RSScreenManager& screenManager =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager_);
     screenManager.screens_.erase(screenId_);
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_.clear();
 }
 void RSHardwareThreadTest::SetUp()
 {
@@ -492,9 +498,9 @@ HWTEST_F(RSHardwareThreadTest, ExecuteSwitchRefreshRate, TestSize.Level1)
     hgmCore.SetScreenRefreshRateImme(1);
     hardwareThread.hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, 0);
 
-    hardwareThread.hgmHardwareUtils_.needRetrySetRate_ = true;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_] = std::make_pair(true, 1);
     hardwareThread.hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, 0);
-    hardwareThread.hgmHardwareUtils_.needRetrySetRate_ = false;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_] = std::make_pair(false, 0);
     hardwareThread.hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, 0);
     hgmCore.GetFrameRateMgr()->curScreenId_.store(hgmCore.GetFrameRateMgr()->GetLastCurScreenId());
     hardwareThread.hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, 0);
@@ -529,7 +535,7 @@ HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
     auto &hgmCore = HgmCore::Instance();
     hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
     int32_t rate = 3;
-    hgmCore.modeListToApply_->insert({screenId_, rate});
+    hgmCore.modeListToApply_->try_emplace(screenId_, rate);
     hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
 
     uint64_t timestamp = 0;
@@ -546,6 +552,180 @@ HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
     hardwareThread.hgmHardwareUtils_.vblankIdleCorrector_.isVBlankIdle_ = true;
     hardwareThread.OnScreenVBlankIdleCallback(screenId_, timestamp);
     hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
+}
+
+/**
+ * @tc.name: PerformSetActiveMode
+ * @tc.desc: Test RSHardwareThreadTest.PerformSetActiveMode
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    sptr<Mock::RSScreenManagerMock> screenManagerMock = Mock::RSScreenManagerMock::GetInstance();
+    EXPECT_CALL(*screenManagerMock, SetScreenActiveMode(_, _))
+        .WillRepeatedly(testing::Return(StatusCode::SET_RATE_ERROR));
+
+    auto& hardwareThread = RSHardwareThread::Instance();
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(output, nullptr);
+    OutputPtr outputInvalid = HdiOutput::CreateHdiOutput(screenIdInvalid_);
+    ASSERT_NE(outputInvalid, nullptr);
+    hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_.erase(screenId_);
+    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManagerMock;
+    auto& hgmCore = HgmCore::Instance();
+    int32_t rate = 3;
+
+    if (hgmCore.modeListToApply_ == nullptr) {
+        hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
+    }
+    hgmCore.modeListToApply_->try_emplace(screenIdInvalid_, rate);
+    hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(outputInvalid, 0, 0);
+
+    // 1. The number of consecutive failed retries donsnot exceed MAX_SETRATE_RETRY_COUNT
+    for (int i = 0; i < MAX_SETRATE_RETRY_COUNT; ++i) {
+        if (hgmCore.modeListToApply_ == nullptr) {
+            hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
+        }
+        hgmCore.modeListToApply_->try_emplace(screenId_, rate);
+        hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
+        ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, true);
+        ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, i + 1);
+    }
+    // 2. Disable consecutive failure retry
+    for (int i = 0; i < MAX_SETRATE_RETRY_COUNT; ++i) {
+        if (hgmCore.modeListToApply_ == nullptr) {
+            hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
+        }
+        hgmCore.modeListToApply_->try_emplace(screenId_, rate);
+        hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
+        ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+        ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
+    }
+    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManager;
+}
+
+/**
+ * @tc.name: UpdateRetrySetRateStatus
+ * @tc.desc: Test RSHardwareThreadTest.UpdateRetrySetRateStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, UpdateRetrySetRateStatus, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_] = std::make_pair(false, 0);
+    int32_t modeId = 60;
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, true);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, 1);
+}
+
+/**
+ * @tc.name: UpdateRetrySetRateStatus
+ * @tc.desc: Test RSHardwareThreadTest.UpdateRetrySetRateStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, UpdateRetrySetRateStatus_002, TestSize.Level1)
+{
+    constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_] = std::make_pair(true, MAX_SETRATE_RETRY_COUNT);
+    int32_t modeId = 60;
+    // 1. disable retry
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
+}
+
+/**
+ * @tc.name: UpdateRetrySetRateStatus
+ * @tc.desc: Test RSHardwareThreadTest.UpdateRetrySetRateStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, UpdateRetrySetRateStatus_003, TestSize.Level1)
+{
+    constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_] = std::make_pair(true, MAX_SETRATE_RETRY_COUNT);
+    int32_t modeId = 60;
+    // 1. Disable retry
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
+    // 2. Re-enable retry
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SUCCESS);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, 0);
+    // 3. The number of consecutive failed retries donsnot exceed MAX_SETRATE_RETRY_COUNT
+    for (int i = 0; i < MAX_SETRATE_RETRY_COUNT; ++i) {
+        hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+        ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, true);
+        ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, i + 1);
+    }
+    // 4. Disable retry again
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
+}
+
+/**
+ * @tc.name: UpdateRetrySetRateStatus
+ * @tc.desc: Test RSHardwareThreadTest.UpdateRetrySetRateStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, UpdateRetrySetRateStatus_004, TestSize.Level1)
+{
+    constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_] = std::make_pair(true, MAX_SETRATE_RETRY_COUNT);
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenIdSec_] = std::make_pair(false, 0);
+    int32_t modeId = 60;
+    // 1. Disable retry
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
+    // 2. other screen interference
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenIdSec_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenIdSec_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenIdSec_].second, 0);
+    // 3. Still disable retry
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
+}
+
+/**
+ * @tc.name: UpdateRetrySetRateStatus
+ * @tc.desc: Test RSHardwareThreadTest.UpdateRetrySetRateStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, UpdateRetrySetRateStatus_005, TestSize.Level1)
+{
+    constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    int32_t modeId = 60;
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_.erase(screenIdInvalid_);
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenIdInvalid_, modeId, StatusCode::SET_RATE_ERROR);
+
+    hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_] = std::make_pair(true, MAX_SETRATE_RETRY_COUNT);
+    hardwareThread.hgmHardwareUtils_.UpdateRetrySetRateStatus(screenId_, modeId, StatusCode::SET_RATE_ERROR);
+    ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
 }
 
 /**

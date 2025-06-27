@@ -138,7 +138,7 @@ bool FontDescriptorCache::ParserInstallFontsPathList(std::vector<std::string>& f
     return ret == Drawing::FontCheckCode::SUCCESSED;
 }
 
-bool FontDescriptorCache::ParserInstallFontsPathList(std::unordered_map<std::string, std::string>& fontPathList)
+bool FontDescriptorCache::ParserInstallFontsPathList(TextEngine::FullNameToPath& fontPathList)
 {
     return TextEngine::FontConfigJson::ParseInstallConfig(INSTALL_FONT_CONFIG_FILE, fontPathList) == 0;
 }
@@ -146,7 +146,7 @@ bool FontDescriptorCache::ParserInstallFontsPathList(std::unordered_map<std::str
 std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
 {
     std::unordered_set<std::string> fullNameList;
-    TextEngine::FontFileMap fullNameToPath;
+    TextEngine::FullNameToPath fullNameToPath;
     if (!ParserInstallFontsPathList(fullNameToPath)) {
         TEXT_LOGE("Failed to parser install fonts path list");
         return fullNameList;
@@ -242,14 +242,26 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
     }
 }
 
-bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result)
+bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(
+    const std::string& fullName, FontDescSharedPtr& result) const
 {
-    TextEngine::FontFileMap fullNameToPath;
+    TextEngine::FullNameToPath fullNameToPath;
     if (!ParserInstallFontsPathList(fullNameToPath)) {
         TEXT_LOGE("Failed to parser install fonts path list");
         return false;
     }
-    std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(fullNameToPath[fullName]);
+    auto iter = fullNameToPath.find(fullName);
+    if (iter == fullNameToPath.end()) {
+        TEXT_LOGE("Failed to find font path by full name: %{public}s", fullName.c_str());
+        return false;
+    }
+    FontDescSharedPtr desc = parser_.ParserFontDescriptorFromPath(iter->second.second, iter->second.first);
+    if (desc && desc->fullName == fullName) {
+        desc->weight = WeightAlignment(desc->weight);
+        result = desc;
+        return true;
+    }
+    std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(iter->second.second);
     for (const auto& item : descriptors) {
         if (item->fullName == fullName) {
             item->weight = WeightAlignment(item->weight);

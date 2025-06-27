@@ -28,24 +28,24 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t nodeIdOffset = 32;
-    const std::string settingStrategyName = "99";
-    const std::string otherPkgName = "com.pkg.other";
-    const std::string defaultPidStr = "0";
+constexpr int32_t nodeIdOffset = 32;
+const std::string settingStrategyName = "99";
+const std::string otherPkgName = "com.pkg.other";
+const std::string defaultPidStr = "0";
 
-    constexpr int32_t fps0 = 10;
-    constexpr int32_t downFps0 = 90;
-    constexpr int32_t pid0 = 10010;
-    const std::string strategyName0 = "110";
-    const std::string pkgName0 = "com.app10";
-    constexpr int32_t appType0 = 20010;
+constexpr int32_t fps0 = 10;
+constexpr int32_t downFps0 = 90;
+constexpr int32_t pid0 = 10010;
+const std::string strategyName0 = "110";
+const std::string pkgName0 = "com.app10";
+constexpr int32_t appType0 = 20010;
 
-    constexpr int32_t fps1 = 15;
-    constexpr int32_t downFps1 = 120;
-    constexpr int32_t pid1 = 10015;
-    const std::string strategyName1 = "115";
-    const std::string pkgName1 = "com.app15";
-    constexpr int32_t appType1 = 20015;
+constexpr int32_t fps1 = 15;
+constexpr int32_t downFps1 = 120;
+constexpr int32_t pid1 = 10015;
+const std::string strategyName1 = "115";
+const std::string pkgName1 = "com.app15";
+constexpr int32_t appType1 = 20015;
 }
 
 struct PkgParam {
@@ -79,7 +79,7 @@ void HgmMultiAppStrategyTest::SetUp()
     // set app config
     auto strategyConfigs = multiAppStrategy_->GetStrategyConfigs();
     auto screenSetting = multiAppStrategy_->GetScreenSetting();
-    auto &appTypes = screenSetting.appTypes;
+    auto& appTypes = screenSetting.appTypes;
 
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
         .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = true };
@@ -87,8 +87,8 @@ void HgmMultiAppStrategyTest::SetUp()
 
     strategyConfigs[strategyName0] = { .min = fps0, .max = fps0, .dynamicMode = DynamicModeType::TOUCH_ENABLED,
         .drawMin = OLED_NULL_HZ, .drawMax = OLED_NULL_HZ, .down = downFps0,
-        .bufferFpsMap = {{"test2", OLED_NULL_HZ}, {"test4", OLED_NULL_HZ},
-            {"test3", OLED_120_HZ}, {"test1", OLED_90_HZ}},
+        .bufferFpsMap = {{ "test2", OLED_NULL_HZ }, { "test4", OLED_NULL_HZ },
+            { "test3", OLED_120_HZ }, { "test1", OLED_90_HZ }},
         };
     screenSetting.appList[pkgName0] = strategyName0;
     pkgParams_.push_back({ .pkgName = pkgName0, .fps = fps0, .pid = pid0,
@@ -100,7 +100,7 @@ void HgmMultiAppStrategyTest::SetUp()
     pkgParams_.push_back({ .pkgName = pkgName1, .fps = fps1, .pid = pid1,
         .linker = std::make_shared<RSRenderFrameRateLinker>(((NodeId)pid1) << nodeIdOffset) });
 
-    for (auto &pkgParam : pkgParams_) {
+    for (auto& pkgParam : pkgParams_) {
         pkgParam.linker->SetExpectedRange(FrameRateRange(OLED_NULL_HZ, RANGE_MAX_REFRESHRATE, OLED_NULL_HZ));
     }
 
@@ -122,7 +122,7 @@ void HgmMultiAppStrategyTest::SetMultiAppStrategy(
 std::vector<std::string> HgmMultiAppStrategyTest::CreateVotePkgs()
 {
     std::vector<std::string> pkgs;
-    for (auto &pkgParam : pkgParams_) {
+    for (auto& pkgParam : pkgParams_) {
         pkgs.push_back(pkgParam.pkgName + ":" + std::to_string(pkgParam.pid));
     }
     return pkgs;
@@ -155,7 +155,7 @@ HgmErrCode HgmMultiAppStrategyTest::GetTouchVoteInfo(VoteInfo& touchVoteInfo)
 HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Level1)
 {
     PART("CaseDescription") {
-        auto &pkgParam = pkgParams_[0]; // first pkg
+        auto& pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -208,7 +208,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
-        auto &pkgParam = pkgParams_[0]; // first pkg
+        auto& pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -256,7 +256,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
-        auto &pkgParam = pkgParams_[0]; // first pkg
+        auto& pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -634,7 +634,7 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
  */
 HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest | Level1)
 {
-    std::vector<std::string> pkgs = {"com.app10", "com.app15"};
+    std::vector<std::string> pkgs = { "com.app10", "com.app15" };
     multiAppStrategy_->CheckPackageInConfigList(pkgs);
     ASSERT_EQ(pkgs[0], "com.app10");
 }
@@ -647,8 +647,8 @@ HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest
  */
 HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
 {
-    std::vector<std::string> pkgs0 = {"com.app10", "com.app15"};
-    std::vector<std::string> pkgs1 = {"com.app10"};
+    std::vector<std::string> pkgs0 = { "com.app10", "com.app15" };
+    std::vector<std::string> pkgs1 = { "com.app10" };
     MultiAppStrategyType undefineType = static_cast<MultiAppStrategyType>(100);
     auto multiAppStrategy = std::make_shared<HgmMultiAppStrategy>();
 
@@ -674,7 +674,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
         ASSERT_EQ(pkgName, "com.app10");
     }
     STEP("OnStrategyChange") {
-        multiAppStrategy->RegisterStrategyChangeCallback([] (const PolicyConfigData::StrategyConfig&) {});
+        multiAppStrategy->RegisterStrategyChangeCallback([](const PolicyConfigData::StrategyConfig&) {});
         multiAppStrategy->RegisterStrategyChangeCallback(nullptr);
         multiAppStrategy->OnStrategyChange();
     }

@@ -1458,4 +1458,24 @@ HWTEST_F(RSUniRenderUtilTest, GetImageRegionsTest, TestSize.Level1)
     regions = RSUniRenderUtil::GetImageRegions(screenHeight, screenWidth, realImageHeight, realImageWidth);
     ASSERT_EQ(regions.GetHeight(), 100);
 }
+
+/**
+ * @tc.name: GetYawFromQuaternionTest
+ * @tc.desc: test GetYawFromQuaternion
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, GetYawFromQuaternionTest, TestSize.Level1)
+{
+    Quaternion q(0.f, 0.f, 0.f, 0.f);
+    ASSERT_TRUE(ROSEN_EQ(0.f, RSUniRenderUtil::GetYawFromQuaternion(q)));
+    q[2] = 0.7f;
+    q[3] = 0.7f;
+    ASSERT_TRUE(ROSEN_EQ(90.f, RSUniRenderUtil::GetYawFromQuaternion(q), 0.001f));
+    float angle = 45.f;
+    float yaw = angle * M_PI / 180.f;
+    q[2] = std::sin(yaw / 2.f);
+    q[3] = std::cos(yaw / 2.f);
+    ASSERT_TRUE(ROSEN_EQ(angle, RSUniRenderUtil::GetYawFromQuaternion(q), 0.001f));
+}
 } // namespace OHOS::Rosen

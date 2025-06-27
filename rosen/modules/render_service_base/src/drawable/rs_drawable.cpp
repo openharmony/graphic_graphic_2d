@@ -709,6 +709,35 @@ bool RSDrawable::UpdateDirtySlots(
     return drawableAddedOrRemoved;
 }
 
+void RSDrawable::ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVec)
+{
+    auto &stretchDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
+    if (stretchDrawable) {
+        auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(stretchDrawable);
+        pixelStretchDrawable->OnUpdate(node);
+        float INFTY = std::numeric_limits<float>::infinity();
+        pixelStretchDrawable->SetPixelStretch(Vector4f{INFTY, INFTY, INFTY, INFTY});
+    }
+}
+
+bool RSDrawable::CanFusePixelStretch(Vec &drawableVec)
+{
+    if (!drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] ||
+        !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
+            return false;
+    }
+
+    size_t start = static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
+    size_t end = static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH);
+    // we do not fuze if drawableSlots between BACKGROUND_FILTER and PIXEL_STRETCH exist
+    for (size_t ptr = start; ptr < end; ptr++) {
+        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(ptr)) && drawableVec[ptr]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
 {
     // fuze the pixel stretch with MESA blur

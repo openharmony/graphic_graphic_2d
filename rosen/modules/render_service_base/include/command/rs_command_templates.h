@@ -165,7 +165,7 @@ private:
     static void PatchParameter(PatchFunction function, T& value)
     {
         if (std::is_same<NodeId, T>::value || std::is_same<AnimationId, T>::value ||
-            std::is_same<PropertyId, T>::value) {
+            std::is_same<PropertyId, T>::value || std::is_same<ModifierId, T>::value) {
             auto& id = reinterpret_cast<NodeId&>(value);
             id = function(id);
         }

@@ -3247,6 +3247,23 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
 }
 
 /**
+ * @tc.name: HasHpaeBackgroundFilter
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: wzwz
+ */
+HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    ASSERT_FALSE(renderNode->HasHpaeBackgroundFilter());
+
+    auto drawableFilter = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
+    EXPECT_NE(drawableFilter, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
+    ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
+}
+/*
  * @tc.name: UpdateVirtualScreenWhiteListInfo
  * @tc.desc: Test function UpdateVirtualScreenWhiteListInfo
  * @tc.type: FUNC

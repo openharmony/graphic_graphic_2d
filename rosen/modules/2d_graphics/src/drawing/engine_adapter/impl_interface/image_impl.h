@@ -99,6 +99,9 @@ public:
     // using for recording, should to remove after using shared memory
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
+
+    virtual void SetSupportOpaqueOpt(bool supportOpaqueOpt) { return; }
+    virtual bool GetSupportOpaqueOpt() const { return false; }
 };
 } // namespace Drawing
 } // namespace Rosen

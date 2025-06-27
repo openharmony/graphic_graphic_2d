@@ -1384,6 +1384,14 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetHpaeBlurUsingAAE()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.hpae.blur.aee.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetWindowKeyFrameEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.windowkeyframe.enabled", "1");
@@ -1415,7 +1423,8 @@ bool RSSystemProperties::GetTextureExportDFXEnabled()
 
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
-    return GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled();
+    // isTypicalResidentProcess_ : currently typical resident process is not allowed to enable hybrid render.
+    return !isTypicalResidentProcess_ && (GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled());
 }
 
 int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
@@ -1498,6 +1507,11 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
     static bool hmsymbolEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_hmsymbol_enabled", false);
     return hmsymbolEnabled;
+}
+
+void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+    isTypicalResidentProcess_ = isTypicalResidentProcess;
 }
 
 int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)

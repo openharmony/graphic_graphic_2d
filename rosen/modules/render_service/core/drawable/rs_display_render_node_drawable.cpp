@@ -43,6 +43,7 @@
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -788,6 +789,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
+
+    CheckHpaeBlurRun(isHdrOn);
+
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
@@ -2671,5 +2675,17 @@ void RSDisplayRenderNodeDrawable::MirrorRedrawDFX(bool mirrorRedraw, ScreenId sc
         RS_LOGI("RSDisplayRenderNodeDrawable::%{public}s mirror screenId: %{public}" PRIu64
             " drawing path changed, mirrorRedraw_: %{public}d", __func__, screenId, mirrorRedraw_);
     }
+}
+
+void RSDisplayRenderNodeDrawable::CheckHpaeBlurRun(bool isHdron)
+{
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    if (!isHdrOn && RSHpaeManager::GetInstance().HasHpaeBlurNode()) {
+        bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AnCoHebcStatus::NOT_USE_HEBC);
+        GraphicPixelFormat pixelFormat = params->GetNewPixelFormat();
+        GraphicColorGamut colorSpace = params->GetNewColorSpace();
+        RSHpaeManager::GetInstance().SetUpHpaeSurface(pixelFormat, colorSpace, isHebc);
+    }
+#endif
 }
 } // namespace OHOS::Rosen::DrawableV2

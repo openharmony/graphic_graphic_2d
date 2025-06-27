@@ -567,6 +567,15 @@ inline void RSUniHwcComputeUtil::UpdateHwcNodeTotalMatrix(const std::shared_ptr<
     }
 }
 
+void RSUniHwcComputeUtil::UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx)
+{
+    if (!parent->GetRenderProperties().GetQuaternion().IsIdentity()) {
+        ctx.absRotation += RSUniRenderUtil::GetYawFromQuaternion(parent->GetRenderProperties().GetQuaternion());
+    } else {
+        ctx.absRotation += parent->GetRenderProperties().GetRotation();
+    }
+}
+
 void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     if (hwcNode == nullptr) {
@@ -577,19 +586,17 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
     bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
     const auto& hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
-    hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
     HwcPropertyContext ctx;
     ctx.alpha = hwcNode->GetRenderProperties().GetAlpha();
     ctx.totalMatrix = hwcNodeGeo->GetMatrix();
+    ctx.absRotation = hwcNode->GetRenderProperties().GetRotation();
     RSUniHwcComputeUtil::TraverseParentNodeAndReduce(
         hwcNode,
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeDrawingCache(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeBlendNeedChildNode(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAlpha(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeTotalMatrix(parent, ctx); },
-        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
-            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
-        },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAbsRotation(parent, ctx); },
         [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
             auto cornerRadius = parentProperty.GetCornerRadius();
@@ -653,6 +660,7 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
     }
     hwcNode->SetTotalMatrix(ctx.totalMatrix);
     hwcNode->SetGlobalAlpha(ctx.alpha);
+    hwcNode->SetAbsRotation(ctx.absRotation);
     hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
 }
 

@@ -18,7 +18,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-    const static PolicyConfigData::ScreenSetting NULL_SCREEN_SETTING{};
+const PolicyConfigData::ScreenSetting NULL_SCREEN_SETTING{};
 }
 
 PolicyConfigVisitorImpl::PolicyConfigVisitorImpl(const PolicyConfigData& configData)
@@ -54,7 +54,7 @@ void PolicyConfigVisitorImpl::SetXmlModeId(const std::string& xmlModeId)
 int32_t PolicyConfigVisitorImpl::GetRefreshRateModeName(int32_t refreshRateModeId) const
 {
     auto iter = std::find_if(configData_.refreshRateForSettings_.begin(), configData_.refreshRateForSettings_.end(),
-        [=] (auto nameModeId) {
+        [&](auto nameModeId) {
             return nameModeId.second == refreshRateModeId;
         });
     if (iter != configData_.refreshRateForSettings_.end()) {
@@ -152,7 +152,7 @@ std::string PolicyConfigVisitorImpl::SettingModeId2XmlModeId(int32_t settingMode
 int32_t PolicyConfigVisitorImpl::XmlModeId2SettingModeId(const std::string& xmlModeId) const
 {
     auto iter = std::find_if(configData_.refreshRateForSettings_.begin(), configData_.refreshRateForSettings_.end(),
-        [=] (auto nameModeId) {
+        [&](auto nameModeId) {
             return std::to_string(nameModeId.second) == xmlModeId;
         });
     if (iter != configData_.refreshRateForSettings_.end()) {

@@ -138,10 +138,10 @@ public:
 
     RsVulkanInterface() {};
     ~RsVulkanInterface();
-    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false);
+    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
-    bool CreateDevice(bool isProtected = false);
+    bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
 #ifdef USE_M133_SKIA
     bool CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected = false);
 #else

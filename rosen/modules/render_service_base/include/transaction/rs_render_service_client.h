@@ -28,6 +28,7 @@
 #include <utility>
 #endif
 
+#include "common/rs_self_draw_rect_change_callback_filter.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -157,7 +158,6 @@ public:
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig,
-        std::unique_ptr<Media::PixelMap> clientCapturePixelMap = nullptr,
         const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
@@ -472,7 +472,10 @@ public:
 
     void SetWindowContainer(NodeId nodeId, bool value);
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback);
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 

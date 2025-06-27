@@ -24,8 +24,10 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr int DEFAULT_MAX_FPS = 120;
 constexpr int IDLE_FPS = 60;
+}
 
 class HgmEnergyConsumptionPolicyTest : public HgmTestBase {
 public:
@@ -340,6 +342,26 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize
 }
 
 /**
+ * @tc.name: SetAceComponentEnableTest
+ * @tc.desc: test results of SetAceComponentEnableTest
+ * @tc.type: FUNC
+ * @tc.require: issuesICH496
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetAceComponentEnableTest, TestSize.Level1)
+{
+    SetConfigEnable("true");
+    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DRAG_SCENE_FRAME_RATE_TYPE };
+    EventInfo eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = false,
+        .description = "DRAG_SCENE" };
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
+    eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = true,
+        .description = "DRAG_SCENE" };
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
+}
+
+/**
  * @tc.name: GetCommponentFpsTest1
  * @tc.desc: test results of GetCommponentFpsTest1
  * @tc.type: FUNC
@@ -347,7 +369,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize
  */
 HWTEST_F(HgmEnergyConsumptionPolicyTest, GetCommponentFpsTest1, TestSize.Level1)
 {
-    auto &hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
     hgmEnergyConsumptionPolicy.isTouchIdle_ = true;
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DISPLAY_SOLOIST_FRAME_RATE_TYPE };
     hgmEnergyConsumptionPolicy.GetComponentFps(rsRange);
@@ -366,7 +388,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetRefreshRateTest, TestSize.Level1)
 {
     int32_t curRefreshRateMode = -1;
     std::string curScreenStragyId = "LTPO-DEFAULT";
-    auto &hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
     hgmEnergyConsumptionPolicy.SetRefreshRateMode(curRefreshRateMode, curScreenStragyId);
     ASSERT_EQ(hgmEnergyConsumptionPolicy.curScreenStrategyId_, curScreenStragyId);
 }
@@ -519,6 +541,5 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level1)
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "");
 }
-
 } // namespace Rosen
 } // namespace OHOS

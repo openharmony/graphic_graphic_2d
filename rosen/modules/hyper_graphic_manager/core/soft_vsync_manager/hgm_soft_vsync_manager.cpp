@@ -24,16 +24,16 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    const std::string VOTER_NAME[] = {
-        "VOTER_VRATE",
-        "VOTER_VIDEOCALL",
-        "VOTER_GAMEFRAMEINSERTION",
-        "VOTER_HIGH",
-        "VOTER_MID",
-        "VOTER_LOW",
-    };
-    constexpr uint32_t SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE = 6;
-    const std::string VRATE_CONTROL_MINIFPS = "minifps";
+const std::string VOTER_NAME[] = {
+    "VOTER_VRATE",
+    "VOTER_VIDEOCALL",
+    "VOTER_GAMEFRAMEINSERTION",
+    "VOTER_HIGH",
+    "VOTER_MID",
+    "VOTER_LOW",
+};
+constexpr uint32_t SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE = 6;
+const std::string VRATE_CONTROL_MINIFPS = "minifps";
 }
 
 HgmSoftVSyncManager::HgmSoftVSyncManager()
@@ -267,7 +267,7 @@ bool HgmSoftVSyncManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     // finalRange.preferred_ is 0 means that the appframerate want to be changed by self.
     if (appFrameRate != 0 && (finalRange.type_ != DRAG_SCENE_FRAME_RATE_TYPE ||
         (finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE && /* ArkUI Vote */
-        iter->second != std::numeric_limits<int>::max()))) { /*invisible window*/
+        iter->second != std::numeric_limits<int>::max()))) { /* invisible window */
         RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d return because "
             "appFrameRate[%d] changed by self, not arkui vote[%u], not invisble window", ExtractPid(linkerId),
             linkerId, iter->second, appFrameRate, finalRange.type_);

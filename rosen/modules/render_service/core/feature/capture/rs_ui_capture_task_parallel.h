@@ -27,9 +27,8 @@ namespace OHOS {
 namespace Rosen {
 class RSUiCaptureTaskParallel {
 public:
-    explicit RSUiCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap)
-        : nodeId_(nodeId), captureConfig_(captureConfig), rsCapturePixelMap_(rsCapturePixelMap) {}
+    explicit RSUiCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig)
+        : nodeId_(nodeId), captureConfig_(captureConfig) {}
     ~RSUiCaptureTaskParallel() = default;
 
     /**
@@ -41,8 +40,7 @@ public:
      * @param rsCapturePixelMap Indicates the pixelmap that user wants to use.
      */
     static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect,
-        std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap);
+        const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect);
 
     /**
      * @brief Create resources for capture.
@@ -85,9 +83,9 @@ private:
     std::unique_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
     std::unique_ptr<Media::PixelMap> CreatePixelMapByRect(const Drawing::Rect& specifiedAreaRect) const;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
+    std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     NodeId nodeId_ = INVALID_NODEID;
     RSSurfaceCaptureConfig captureConfig_ = {};
-    std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap_ = nullptr;
     static inline std::atomic<int32_t> captureCount_ = 0;
 };
 } // namespace Rosen

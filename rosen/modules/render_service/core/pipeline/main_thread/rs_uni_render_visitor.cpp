@@ -23,23 +23,23 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "common/rs_special_layer_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
-#include "feature/opinc/rs_opinc_manager.h"
-#include "feature/hdr/rs_hdr_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
-#include "feature/opinc/rs_opinc_cache.h"
-#include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/uifirst/rs_uifirst_manager.h"
-#include "monitor/self_drawing_node_monitor.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "common/rs_special_layer_manager.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/opinc/rs_opinc_cache.h"
+#include "feature/opinc/rs_opinc_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "memory/rs_tag_tracker.h"
+#include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_display_render_params.h"
-#include "params/rs_rcd_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
@@ -62,7 +62,6 @@
 #include <v1_0/cm_color_space.h>
 
 #include "feature_cfg/graphic_feature_param_manager.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
 
@@ -1662,6 +1661,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
     auto children = node.GetSortedChildren();
+
     if (NeedPrepareChindrenInReverseOrder(node)) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
         curFrameInfoDetail.curFrameReverseChildren = true;
@@ -1706,6 +1706,13 @@ inline void RSUniRenderVisitor::CollectNodeForOcclusion(RSRenderNode& node)
     if (curOcclusionHandler_) {
         curOcclusionHandler_->CollectNode(node);
     }
+}
+
+void RSUniRenderVisitor::RegisterHpaeCallback(RSRenderNode& node)
+{
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node, screenInfo_.phyWidth, screenInfo_.phyHeight);
+#endif
 }
 
 bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
@@ -3439,8 +3446,7 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
         return;
     }
     auto rect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    std::string nodeName = node.GetName();
-    monitor.InsertCurRectMap(node.GetId(), nodeName, rect);
+    monitor.InsertCurRectMap(node.GetId(), rect);
 }
 
 void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)

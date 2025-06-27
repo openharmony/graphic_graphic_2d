@@ -20,11 +20,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
-    constexpr uint64_t MAX_CACHED_VALID_SURFACE_NAME_COUNT = 60;
-    constexpr int32_t ANIMATOR_NO_EXPECTED_FRAME_RATE = 0;
-    const std::string ACE_ANIMATOR_NAME = "AceAnimato";
-    const std::string OTHER_SURFACE = "Other_SF";
+constexpr uint32_t ACE_ANIMATOR_OFFSET = 16;
+constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
+constexpr uint64_t MAX_CACHED_VALID_SURFACE_NAME_COUNT = 60;
+constexpr int32_t ANIMATOR_NO_EXPECTED_FRAME_RATE = 0;
+const std::string ACE_ANIMATOR_NAME = "AceAnimato";
+const std::string OTHER_SURFACE = "Other_SF";
 }
 
 void HgmIdleDetector::SetAppSupportedState(bool appSupported)

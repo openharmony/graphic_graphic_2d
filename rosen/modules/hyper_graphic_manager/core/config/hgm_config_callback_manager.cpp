@@ -63,7 +63,7 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
         for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
             for (auto& [animName, dynamicConfig] : dynamicSetting) {
                 data->AddAnimDynamicItem({
-                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
             }
         }
     }
@@ -149,7 +149,7 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
         return;
     }
     decltype(pendingAnimDynamicCfgCallbacks_) callbacks;
-    for (const auto &[pid, _] : pids) {
+    for (const auto& [pid, _] : pids) {
         if (pendingAnimDynamicCfgCallbacks_.find(pid) == pendingAnimDynamicCfgCallbacks_.end()) {
             continue;
         }
@@ -175,7 +175,7 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
         for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
             for (auto& [animName, dynamicConfig] : dynamicSetting) {
                 data->AddAnimDynamicItem({
-                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
             }
         }
     }
@@ -193,7 +193,7 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
         data->SetYDpi(screen->GetYDpi());
     }
 
-    for (auto &[pid, callback] : callbacks) {
+    for (auto& [pid, callback] : callbacks) {
         HGM_LOGD("pid:%{public}d", pid);
         callback->OnHgmConfigChanged(data);
     }
@@ -222,7 +222,7 @@ void HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback(
 {
     if (auto iter = xcomponentExpectedFrameRateCallbacks_.find(pid);
         iter != xcomponentExpectedFrameRateCallbacks_.end()) {
-        for (auto &[listenerPid, cb] : iter->second) {
+        for (auto& [listenerPid, cb] : iter->second) {
             if (cb == nullptr) {
                 continue;
             }
@@ -248,7 +248,7 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
         HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : remove a remote callback succeed.", __func__);
     }
 
-    for (auto &[_, listenerPidCb] : xcomponentExpectedFrameRateCallbacks_) {
+    for (auto& [_, listenerPidCb] : xcomponentExpectedFrameRateCallbacks_) {
         listenerPidCb.erase(pid);
     }
     SyncXComponentExpectedFrameRateCallback(pid, "", 0);

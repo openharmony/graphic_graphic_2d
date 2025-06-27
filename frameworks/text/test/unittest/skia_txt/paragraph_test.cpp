@@ -98,7 +98,7 @@ HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level0)
     EXPECT_EQ(paragraph_->GetMaxWidth(), layoutWidth_);
     EXPECT_EQ(paragraph_->GetHeight(), 19);
     EXPECT_EQ(static_cast<int>(paragraph_->GetLongestLine()), 44);
-    EXPECT_EQ(static_cast<int>(paragraph_->GetMinIntrinsicWidth()), 50);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetMinIntrinsicWidth()), 78);
     EXPECT_EQ(static_cast<int>(paragraph_->GetMaxIntrinsicWidth()), 78);
     EXPECT_EQ(static_cast<int>(paragraph_->GetAlphabeticBaseline()), 14);
     EXPECT_EQ(static_cast<int>(paragraph_->GetIdeographicBaseline()), 18);

@@ -29,33 +29,31 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t frameRateLinkerId1 = 1;
-    constexpr int32_t frameRateLinkerId2 = 2;
-    constexpr int32_t frameRateLinkerId3 = 3;
-    constexpr int32_t frameRateLinkerId4 = 4;
-    constexpr int32_t frameRateLinkerId5 = 5;
-    constexpr uint64_t windowId1 = 1;
-    constexpr uint64_t windowId2 = 2;
-    constexpr uint64_t windowId3 = 3;
-    constexpr uint64_t windowId4 = 4;
-    constexpr uint64_t windowId5 = 5;
-    const std::string vsyncName1 = "vsync1";
-    const std::string vsyncName2 = "vsync2";
-    const std::string vsyncName3 = "vsync3";
-    const std::string vsyncName4 = "vsync4";
-    const std::string vsyncName5 = "vsync5";
-    constexpr int32_t OLED_72_HZ = 72;
+constexpr int32_t frameRateLinkerId1 = 1;
+constexpr int32_t frameRateLinkerId2 = 2;
+constexpr int32_t frameRateLinkerId3 = 3;
+constexpr int32_t frameRateLinkerId4 = 4;
+constexpr int32_t frameRateLinkerId5 = 5;
+constexpr uint64_t windowId1 = 1;
+constexpr uint64_t windowId2 = 2;
+constexpr uint64_t windowId3 = 3;
+constexpr uint64_t windowId4 = 4;
+constexpr uint64_t windowId5 = 5;
+const std::string vsyncName1 = "vsync1";
+const std::string vsyncName2 = "vsync2";
+const std::string vsyncName3 = "vsync3";
+const std::string vsyncName4 = "vsync4";
+const std::string vsyncName5 = "vsync5";
+constexpr int32_t OLED_72_HZ = 72;
 }
 
 class HgmSoftVSyncManagerTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {
-        HgmTestBase::SetUpTestCase();
-    }
+    static void SetUpTestCase() { HgmTestBase::SetUpTestCase(); }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}
-    std::shared_ptr<HgmVSyncGeneratorController> InitController(HgmSoftVSyncManager &softVSyncMgr)
+    std::shared_ptr<HgmVSyncGeneratorController> InitController(HgmSoftVSyncManager& softVSyncMgr)
     {
         auto vsyncGenerator = CreateVSyncGenerator();
         sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, 0);
@@ -65,7 +63,7 @@ public:
         softVSyncMgr.appDistributor_ = appDistributor;
         return controller;
     }
-    void InitHgmSoftVSyncManager(HgmSoftVSyncManager &softVSyncMgr)
+    void InitHgmSoftVSyncManager(HgmSoftVSyncManager& softVSyncMgr)
     {
         InitController(softVSyncMgr);
 
@@ -139,8 +137,8 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
     EventInfo eventInfo5 =
         { .eventName = "VOTER_VIDEOCALL", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
     std::unordered_map<WindowId, EventInfo> voters = {
-        {windowId1, eventInfo1}, {windowId2, eventInfo2}, {windowId3, eventInfo3}, {windowId4, eventInfo4},
-        {windowId5, eventInfo5},
+        { windowId1, eventInfo1 }, { windowId2, eventInfo2 }, { windowId3, eventInfo3 }, { windowId4, eventInfo4 },
+        { windowId5, eventInfo5 },
     };
     InitHgmSoftVSyncManager(softVSyncManager);
     EXPECT_EQ(softVSyncManager.winLinkerMap_.size(), 5);
@@ -166,8 +164,8 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
     eventInfo5 =
         { .eventName = "VOTER_VRATE", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
     voters = {
-        {windowId1, eventInfo1}, {windowId2, eventInfo2}, {windowId3, eventInfo3}, {windowId4, eventInfo4},
-        {windowId5, eventInfo5},
+        { windowId1, eventInfo1 }, { windowId2, eventInfo2 }, { windowId3, eventInfo3 }, { windowId4, eventInfo4 },
+        { windowId5, eventInfo5 },
     };
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
@@ -191,27 +189,27 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window002, Functi
 
     EventInfo eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = -1, .maxRefreshRate = 150, .eventStatus = true };
-    std::unordered_map<WindowId, EventInfo> voters = { {windowId1, eventInfo} };
+    std::unordered_map<WindowId, EventInfo> voters = {{ windowId1, eventInfo }};
     InitHgmSoftVSyncManager(softVSyncManager);
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 0);
 
     eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = 60, .maxRefreshRate = 30, .eventStatus = true };
-    voters = { {windowId1, eventInfo} };
+    voters = {{ windowId1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 0);
 
     eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
-    voters = { {windowId1, eventInfo} };
+    voters = {{ windowId1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
 
     eventInfo =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
-    voters = { {windowId1, eventInfo} };
+    voters = {{ windowId1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
@@ -244,8 +242,8 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync
     EventInfo eventInfo5 =
         { .eventName = "VOTER_VIDEOCALL", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
     std::unordered_map<VsyncName, EventInfo> voters = {
-        {vsyncName1, eventInfo1}, {vsyncName2, eventInfo2}, {vsyncName3, eventInfo3}, {vsyncName4, eventInfo4},
-        {vsyncName5, eventInfo5},
+        { vsyncName1, eventInfo1 }, { vsyncName2, eventInfo2 }, { vsyncName3, eventInfo3 }, { vsyncName4, eventInfo4 },
+        { vsyncName5, eventInfo5 },
     };
     InitHgmSoftVSyncManager(softVSyncManager);
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
@@ -267,8 +265,8 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync
     eventInfo5 =
         { .eventName = "VOTER_VRATE", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
     voters = {
-        {vsyncName1, eventInfo1}, {vsyncName2, eventInfo2}, {vsyncName3, eventInfo3}, {vsyncName4, eventInfo4},
-        {vsyncName5, eventInfo5},
+        { vsyncName1, eventInfo1 }, { vsyncName2, eventInfo2 }, { vsyncName3, eventInfo3 }, { vsyncName4, eventInfo4 },
+        { vsyncName5, eventInfo5 },
     };
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
@@ -292,27 +290,27 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Functio
 
     EventInfo eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = -1, .maxRefreshRate = 150, .eventStatus = true };
-    std::unordered_map<VsyncName, EventInfo> voters = { {vsyncName1, eventInfo} };
+    std::unordered_map<VsyncName, EventInfo> voters = {{ vsyncName1, eventInfo }};
     InitHgmSoftVSyncManager(softVSyncManager);
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 0);
 
     eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = 60, .maxRefreshRate = 30, .eventStatus = true };
-    voters = { {vsyncName1, eventInfo} };
+    voters = {{ vsyncName1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 0);
 
     eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
-    voters = { {vsyncName1, eventInfo} };
+    voters = {{ vsyncName1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
 
     eventInfo =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
-    voters = { {vsyncName1, eventInfo} };
+    voters = {{ vsyncName1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
@@ -367,13 +365,13 @@ HWTEST_F(HgmSoftVSyncManagerTest, GetVRateMiniFPS, Function | SmallTest | Level2
 HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange01, Function | SmallTest | Level2)
 {
     HgmSoftVSyncManager mgr;
-    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
+    FrameRateRange finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
     mgr.vRatesMap_ = {
-        {0, 0},
-        {1, 1},
-        {2, 2},
-        {3, 3},
-        {4, std::numeric_limits<int>::max()}
+        { 0, 0 },
+        { 1, 1 },
+        { 2, 2 },
+        { 3, 3 },
+        { 4, std::numeric_limits<int>::max() }
     };
     uint64_t linkerId = 2;
     mgr.CollectVRateChange(linkerId, finalRange);
@@ -416,13 +414,13 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange01, Function | SmallTest | L
 HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange02, Function | SmallTest | Level2)
 {
     HgmSoftVSyncManager mgr;
-    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
+    FrameRateRange finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
     mgr.vRatesMap_ = {
-        {0, 0},
-        {1, 1},
-        {2, 2},
-        {3, 3},
-        {4, std::numeric_limits<int>::max()}
+        { 0, 0 },
+        { 1, 1 },
+        { 2, 2 },
+        { 3, 3 },
+        { 4, std::numeric_limits<int>::max() }
     };
 
     uint64_t linkerId = 2;
@@ -481,15 +479,15 @@ HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate01, Function | SmallTest | 
 HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate02, Function | SmallTest | Level2)
 {
     std::vector<std::pair<std::pair<uint32_t, FrameRateRange>, uint32_t>> inputAndOutput = {
-        {{0, {0, 120, 60}}, 0},
-        {{60, {0, 120, 0}}, 0},
-        {{60, {0, 90, 120}}, 60},
-        {{60, {0, 120, 120}}, 60},
-        {{90, {0, 120, 30}}, 30},
-        {{80, {0, 120, 30}}, 40},
-        {{70, {0, 120, 30}}, 35},
-        {{60, {0, 120, 30}}, 30},
-        {{50, {0, 120, 30}}, 50}
+        { { 0, { 0, 120, 60 } }, 0 },
+        { { 60, { 0, 120, 0 } }, 0 },
+        { { 60, { 0, 90, 120 } }, 60 },
+        { { 60, { 0, 120, 120 } }, 60 },
+        { { 90, { 0, 120, 30 } }, 30 },
+        { { 80, { 0, 120, 30 } }, 40 },
+        { { 70, { 0, 120, 30 } }, 35 },
+        { { 60, { 0, 120, 30 } }, 30 },
+        { { 50, { 0, 120, 30 } }, 50 }
     };
 
     for (const auto& [input, output] : inputAndOutput) {
@@ -507,8 +505,8 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTe
 {
     HgmSoftVSyncManager mgr;
     InitHgmSoftVSyncManager(mgr);
-    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
-    FrameRateRange appExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_72_HZ};
+    FrameRateRange finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
+    FrameRateRange appExpectedRange = { OLED_60_HZ, OLED_120_HZ, OLED_72_HZ };
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
     std::shared_ptr<RSRenderFrameRateLinker> appFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
     appFrameRateLinker->SetExpectedRange(appExpectedRange);
@@ -535,12 +533,12 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTe
 HWTEST_F(HgmSoftVSyncManagerTest, CollectGameRateDiscountChange, Function | SmallTest | Level2)
 {
     HgmSoftVSyncManager mgr;
-    FrameRateRange appExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
-    FrameRateRange appZeroExpectedRange = {OLED_MIN_HZ, OLED_120_HZ, OLED_MIN_HZ};
-    FrameRateRange appErrExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_MIN_HZ};
+    FrameRateRange appExpectedRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
+    FrameRateRange appZeroExpectedRange = { OLED_MIN_HZ, OLED_120_HZ, OLED_MIN_HZ };
+    FrameRateRange appErrExpectedRange = { OLED_60_HZ, OLED_120_HZ, OLED_MIN_HZ };
 
     EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange, 0), false);
-    std::vector<uint64_t> linkerIds = {frameRateLinkerId1, frameRateLinkerId2};
+    std::vector<uint64_t> linkerIds = { frameRateLinkerId1, frameRateLinkerId2 };
 
     uint32_t rateDiscount = 0;
     mgr.SetVsyncRateDiscountLTPO(linkerIds, rateDiscount);

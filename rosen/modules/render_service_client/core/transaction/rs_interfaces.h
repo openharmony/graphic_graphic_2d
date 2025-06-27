@@ -1176,7 +1176,10 @@ public:
      * @param callback callback function.
      * @return return value == 0 success, return value == others, failed.
      */
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback);
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);

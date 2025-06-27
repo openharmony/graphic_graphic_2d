@@ -27,6 +27,7 @@ struct HwcPropertyContext {
     bool isNodeRenderByDrawingCache = false;
     bool isNodeRenderByChildNode = false;
     Drawing::Matrix totalMatrix;
+    float absRotation = 0.f;
 };
 
 public:
@@ -102,6 +103,7 @@ private:
         HwcPropertyContext& ctx);
     static inline void UpdateHwcNodeAlpha(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
     static inline void UpdateHwcNodeTotalMatrix(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+    static void UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
 #if defined(MODIFIER_NG)
     template<typename T>
     static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(
