@@ -417,7 +417,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
             }
             // hpae offline
             if (drawable->GetRenderParams()->GetLayerInfo().useDeviceOffline &&
-                ProcessOfflineSurfaceDrawable(processor, *surfaceDrawable, false)) {
+                ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, false)) {
                 continue;
             }
             processor->CreateLayerForRenderThread(*surfaceDrawable);
