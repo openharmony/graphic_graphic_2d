@@ -34,7 +34,7 @@ public:
     }
     static void CallGlApiNoContext(void)
     {
-        WLOGE("Call To OpenGL ES API With No Current Context.");
+        WLOGD("Call To OpenGL ES API With No Current Context.");
         return;
     }
     bool InitStat() const
