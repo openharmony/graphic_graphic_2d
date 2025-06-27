@@ -800,11 +800,10 @@ template<typename T>
 std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
     const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
 {
-    auto modifier = node.GetModifierNG(modifierType);
-    if (modifier == nullptr) {
-        return nullptr;
+    if (auto modifier = node.GetModifierNG(modifierType)) {
+        return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty(propertyType));
     }
-    return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty(propertyType));
+    return nullptr;
 }
 #else
 template<typename T>
