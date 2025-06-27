@@ -42,7 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr uint32_t HIGHEST_Z_ORDER = 999;
-constexpr uint32_t HPAE_OFFLINE_TIMEOUT_MS = 100;
+constexpr std::chrono::miliseconds HPAE_OFFLINE_TIMEOUT{100};
 RSUniRenderProcessor::RSUniRenderProcessor()
     : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
 {
@@ -348,7 +348,7 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(
     }
     ProcessOfflineResult processOfflineResult;
     bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
-        taskId, HPAE_OFFLINE_TIMEOUT_MS, processOfflineResult);
+        taskId, HPAE_OFFLINE_TIMEOUT, processOfflineResult);
     if (waitSuccess && processOfflineResult.taskSuccess) {
         auto layer = uniComposerAdapter_->CreateOfflineLayer(surfaceDrawable, processOfflineResult);
         if (layer == nullptr) {
@@ -374,7 +374,7 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(RSSurfaceRenderNode& node)
         return false;
     }
     bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
-        taskId, HPAE_OFFLINE_TIMEOUT_MS, processOfflineResult);
+        taskId, HPAE_OFFLINE_TIMEOUT, processOfflineResult);
     if (waitSuccess && processOfflineResult.taskSuccess) {
         auto layer = uniComposerAdapter_->CreateOfflineLayer(node, processOfflineResult);
         if (layer == nullptr) {
