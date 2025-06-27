@@ -54,8 +54,8 @@ public:
     void ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) override;
     // hpae offline
     bool ProcessOfflineLayer(
-        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, bool async) override;
-    bool ProcessOfflineLayer(RSSurfaceRenderNode& node) override;
+        std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async) override;
+    bool ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNode>& node) override;
 
 private:
     bool GetForceClientForDRM(RSSurfaceRenderParams& params);
