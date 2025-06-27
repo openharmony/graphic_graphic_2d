@@ -17,9 +17,11 @@
 
 #include <algorithm>
 
+#include "common/rs_rect.h"
 #include "draw/canvas.h"
 
 #include "platform/common/rs_log.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1450,6 +1452,16 @@ std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawi
 void RSPaintFilterCanvas::SetEffectData(const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& effectData)
 {
     envStack_.top().effectData_ = effectData;
+}
+
+void RSPaintFilterCanvas::SetDamageRegion(const std::vector<OHOS::Rosen::RectI>& damageRegion)
+{
+    damageRegion_ = damageRegion;
+}
+
+const std::vector<OHOS::Rosen::RectI>& RSPaintFilterCanvas::GetDamageRegion() const
+{
+    return damageRegion_;
 }
 
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetEffectData() const

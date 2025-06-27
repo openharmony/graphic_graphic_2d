@@ -139,6 +139,8 @@ public:
         return filterType_;
     }
 
+    void ClearEffectCacheWithDamageRegion(const RSPaintFilterCanvas& canvas, const Drawing::RectI& filterBound);
+
 private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect);
@@ -220,10 +222,12 @@ private:
 
     // last stagingInForegroundFilter_ value
     NodeId lastInForegroundFilter_ = INVALID_NODEID;
-    
+
     std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager_;
     bool isHpaeCachedFilteredSnapshot_ = false;
     bool snapshotNeedUpdate_ = false;
+
+    bool takeNewSnapshot_ = false;
 public:
     static bool isCCMFilterCacheEnable_;
     static bool isCCMEffectMergeEnable_;

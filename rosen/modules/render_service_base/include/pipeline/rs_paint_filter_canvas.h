@@ -23,6 +23,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "common/rs_rect.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "screen_manager/screen_types.h"
@@ -256,6 +257,8 @@ public:
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
+    void SetDamageRegion(const std::vector<RectI>& damageRegion);
+    const std::vector<RectI>& GetDamageRegion() const;
     // behind window cache relate
     void SetBehindWindowData(const std::shared_ptr<CachedEffectData>& behindWindowData);
     const std::shared_ptr<CachedEffectData>& GetBehindWindowData() const;
@@ -440,6 +443,8 @@ private:
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
+
+    std::vector<RectI> damageRegion_;
 };
 
 #ifdef RS_ENABLE_VK
