@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "common/rs_macros.h"
+#include "common/rs_occlusion_region.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -166,6 +167,9 @@ public:
         isAccumulatedDirty_ = false;
     }
 
+    void SetDrawnRegion(const Occlusion::Region& region);
+    const Occlusion::Region& GetDrawnRegion() const;
+
     // dfx
     std::string ToString() const override;
 
@@ -211,6 +215,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTopDrawables_;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    Occlusion::Region drawnRegion_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H

@@ -19,6 +19,7 @@
 #include <map>
 #include <set>
 #include "platform/common/rs_innovation.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +37,32 @@ bool EventSortByY(const Event& e1, const Event& e2)
         return e1.type_ < e2.type_;
     }
     return e1.y_ < e2.y_;
+}
+
+Rect::Rect(int l, int t, int r, int b, bool checkValue)
+    : left_(l), top_(t), right_(r), bottom_(b)
+{
+    if (checkValue) {
+        CheckAndCorrectValue();
+        if (left_ != l || top_ != t || right_ != r || bottom_ != b) {
+            RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
+                "%{public}d], should in range [%{public}d, %{public}d]",
+                l, t, r, b, MIN_REGION_VALUE, MAX_REGION_VALUE);
+        }
+    }
+}
+
+Rect::Rect(const RectI& r, bool checkValue)
+    : left_(r.left_), top_(r.top_), right_(r.GetRight()), bottom_(r.GetBottom())
+{
+    if (checkValue) {
+        CheckAndCorrectValue();
+        if (left_ != r.left_ || top_ != r.top_ || right_ != r.GetRight() || bottom_ != r.GetBottom()) {
+            RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
+                "%{public}d], should in range [%{public}d, %{public}d]",
+                r.left_, r.top_, r.GetRight(), r.GetBottom(), MIN_REGION_VALUE, MAX_REGION_VALUE);
+        }
+    }
 }
 
 void Node::Update(int updateStart, int updateEnd, Event::Type type)
