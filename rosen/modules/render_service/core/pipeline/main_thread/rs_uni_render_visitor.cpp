@@ -3772,9 +3772,9 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
     if (curSurfaceNode_) {
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
         if (isIntersect) {
-            dirtyManager.MergeDirtyRect(globalHwcFilterRect);
+            dirtyManager.MergeDirtyRect(globalFilterRect);
         } else {
-            curSurfaceNoBelowDirtyFilter_.insert({node.GetId(), globalHwcFilterRect});
+            curSurfaceNoBelowDirtyFilter_.insert({node.GetId(), globalFilterRect});
         }
         if (node.GetRenderProperties().GetFilter()) {
             node.UpdateFilterCacheWithBelowDirty(dirtyManager, true);
@@ -3786,22 +3786,22 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
                 // record nodes which has transparent clean filter
                 RS_OPTIONAL_TRACE_NAME_FMT("CollectFilterInfoAndUpdateDirty::surfaceNode:%s, add node[%lld] to "
                     "transparentCleanFilter", curSurfaceNode_->GetName().c_str(), node.GetId());
-                transparentCleanFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalHwcFilterRect});
+                transparentCleanFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalFilterRect});
                 transparentHwcCleanFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalHwcFilterRect});
                 isNodeAddedToTransparentCleanFilters = true;
             }
             if (isIntersect) {
-                transparentDirtyFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalHwcFilterRect});
+                transparentDirtyFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalFilterRect});
                 transparentHwcDirtyFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalHwcFilterRect});
                 RS_LOGD("RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty global merge transparentDirtyFilter "
                     "%{public}s, global dirty %{public}s, add rect %{public}s", curSurfaceNode_->GetName().c_str(),
                     curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
-                    globalHwcFilterRect.ToString().c_str());
-                curDisplayDirtyManager_->MergeDirtyRect(globalHwcFilterRect);
+                    globalFilterRect.ToString().c_str());
+                curDisplayDirtyManager_->MergeDirtyRect(globalFilterRect);
             }
         } else {
             // record surface nodes and nodes in surface which has clean filter
-            globalFilter_.insert({node.GetId(), globalHwcFilterRect});
+            globalFilter_.insert({node.GetId(), globalFilterRect});
         }
     } else {
         // record container nodes which need filter
