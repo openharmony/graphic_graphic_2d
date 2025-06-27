@@ -156,6 +156,7 @@ bool GPUContextFuzzTest002(const uint8_t* data, size_t size)
  * 1. SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
  * 2. DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, const GPUResourceTag& tag)
  * 3. DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
+ * 4. GetHpsEffectSupport(std::vector<const char*>& instanceExtensions)
  */
 bool GPUContextFuzzTest003(const uint8_t* data, size_t size)
 {
@@ -191,6 +192,9 @@ bool GPUContextFuzzTest003(const uint8_t* data, size_t size)
         delete [] categoryKey;
         categoryKey = nullptr;
     }
+
+    std::vector<const char*> extensionProperties;
+    gpuContext->GetHpsEffectSupport(extensionProperties);
     return true;
 }
 } // namespace Drawing

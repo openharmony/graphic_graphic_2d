@@ -330,6 +330,8 @@ public:
 
     void FlushGpuMemoryInWaitQueue();
     
+    void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions);
+
     void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived);
 
     /**
