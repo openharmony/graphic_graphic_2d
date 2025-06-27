@@ -353,7 +353,7 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(
         auto layer = uniComposerAdapter_->CreateOfflineLayer(*surfaceDrawable, processOfflineResult);
         if (layer == nullptr) {
             RS_LOGE("RSUniRenderProcessor::ProcessOfflineLayer: failed to createLayer for node: %{public}" PRIu64 ")",
-                surfaceDrawable.GetId());
+                surfaceDrawable->GetId());
             return false;
         }
         layers_.emplace_back(layer);
@@ -379,7 +379,7 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNo
         auto layer = uniComposerAdapter_->CreateOfflineLayer(*node, processOfflineResult);
         if (layer == nullptr) {
             RS_LOGE("RSUniRenderProcessor::ProcessOfflineLayer: failed to createLayer for node: %{public}" PRIu64 ")",
-                node.GetId());
+                node->GetId());
             return false;
         }
         layers_.emplace_back(layer);
