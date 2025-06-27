@@ -87,7 +87,7 @@ private:
     bool GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo,
         sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence);
     void FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSurfaceBuffer);
-    void OfflineTaskFunc(RSRenderParams* paramsPtr, std::shared_ptr<ProcessOfflineFuture> &futurePtr);
+    void OfflineTaskFunc(RSRenderParams* paramsPtr, std::shared_ptr<ProcessOfflineFuture>& futurePtr);
     bool DoProcessOffline(RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult);
     void CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture> futurePtr);
 
