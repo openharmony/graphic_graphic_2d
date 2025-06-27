@@ -342,7 +342,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
         return __eglMustCastToProperFunctionPointerType(func);
     }
 
-    WLOGW("FindEglExtApi did not find an entry for %{public}s", procname);
+    WLOGD("FindEglExtApi did not find an entry for %{public}s", procname);
     return nullptr;
 }
 
