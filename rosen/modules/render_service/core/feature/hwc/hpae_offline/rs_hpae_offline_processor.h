@@ -89,7 +89,7 @@ private:
     void FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSurfaceBuffer);
     void OfflineTaskFunc(RSRenderParams* paramsPtr, std::shared_ptr<ProcessOfflineFuture>& futurePtr);
     bool DoProcessOffline(RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult);
-    void CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture> futurePtr);
+    void CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture>& futurePtr);
 
     // so handler
     bool loadSuccess_ = false;
