@@ -4998,7 +4998,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest002, TestSize.
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
 
     surfaceNode->isHwcGlobalPositionEnabled_ = false;
-    surfaceNode->IsHwcCrossNode_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
     surfaceNode->SetLayerTop(false);
     NodeId id = 0;
@@ -5045,7 +5045,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest003, TestSize.
     surfaceNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(id);
 
     surfaceNode->isHwcGlobalPositionEnabled_ = true;
-    surfaceNode->IsHwcCrossNode_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
     surfaceNode->SetLayerTop(false);
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
@@ -5054,7 +5054,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest003, TestSize.
 
     needForceUpdateHwcNodes = false;
     surfaceNode->isHwcGlobalPositionEnabled_ = false;
-    surfaceNode->IsHwcCrossNode_ = true;
+    surfaceNode->isHwcCrossNode_ = true;
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
     surfaceNode->SetLayerTop(false);
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
@@ -5063,7 +5063,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest003, TestSize.
 
     needForceUpdateHwcNodes = false;
     surfaceNode->isHwcGlobalPositionEnabled_ = false;
-    surfaceNode->IsHwcCrossNode_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->SetLayerTop(false);
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
@@ -5072,7 +5072,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest003, TestSize.
 
     needForceUpdateHwcNodes = false;
     surfaceNode->isHwcGlobalPositionEnabled_ = false;
-    surfaceNode->IsHwcCrossNode_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
     surfaceNode->SetLayerTop(true);
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
