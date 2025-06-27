@@ -63,6 +63,8 @@ namespace {
     const OHOS::Rosen::RectI DEFAULT_FILTER_RECT = {0, 0, 500, 500};
     const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
     constexpr int MAX_ALPHA = 255;
+    constexpr int SCREEN_WIDTH = 3120;
+    constexpr int SCREEN_HEIGHT = 1080;
     constexpr OHOS::Rosen::NodeId DEFAULT_NODE_ID = 100;
     constexpr int32_t DEFAULT_DISPLAY_OFFSET = 100;
     const OHOS::Rosen::RectI DEFAULT_SCREEN_RECT = {0, 0, 1000, 1000};
@@ -176,8 +178,8 @@ void RSUniRenderVisitorTest::InitTestSurfaceNodeAndScreenInfo(
     surfaceNode->SetVisibleRegion(region1);
 
     ScreenInfo screenInfo;
-    screenInfo.width = 3120;
-    screenInfo.height = 1080;
+    screenInfo.width = SCREEN_WIDTH;
+    screenInfo.height = SCREEN_HEIGHT;
     rsUniRenderVisitor->screenInfo_ = screenInfo;
 }
 
