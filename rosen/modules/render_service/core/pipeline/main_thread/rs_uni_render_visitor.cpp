@@ -2322,7 +2322,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
         }
-        if (hwcNodePtr->IsHardwareForcedDisabled()) {
+        if (hwcNodePtr->IsHardwareForcedDisabled() || hwcNodePtr->GetRSSurfaceHandler() == nullptr) {
             continue;
         }
         if (surfaceNode->GetVisibleRegion().IsEmpty()) {
@@ -2334,7 +2334,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
             || surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)
             || surfaceNode->IsLayerTop()) {
                 hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
-                hasVisibleHwcNodes = true;
+                needForceUpdateHwcNodes = true;
             }
         
         auto region = surfaceNode->GetVisibleRegion();
@@ -2344,7 +2344,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         auto newRect = Occlusion::Rect(rectI, true);
         newRect.Expand(EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX);
         Occlusion::Rect dstRect(hwcNodePtr->GetDstRect());
-        if (newRect.IsIntersectWith(dstRect)) {
+        if (newRect.IsIntersect(dstRect)) {
             hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
             hasVisibleHwcNodes = true;
             if (hwcNodePtr->GetRSSurfaceHandler() == nullptr) {

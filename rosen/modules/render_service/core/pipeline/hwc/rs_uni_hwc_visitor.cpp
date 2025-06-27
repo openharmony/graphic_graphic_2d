@@ -101,8 +101,8 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
         dstRect.top_ -= uniRenderVisitor_.curDisplayNode_->GetDisplayOffsetY();
     }
     
-    UpdateDsrRectByScreenInfo(node, dstRect, clipRect);
-    
+    UpdateDstRectByScreenInfo(node, dstRect, clipRect);
+
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&
         !node.GetHwcGlobalPositionEnabled()) {
         dstRect = dstRect.IntersectRect(uniRenderVisitor_.curSurfaceNode_->GetDstRect());
@@ -112,7 +112,7 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
     node.SetDstRectWithoutRenderFit(dstRect);
 }
 
-void RSUniHwcVisitor::UpdateDsrRectByScreenInfo(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
+void RSUniHwcVisitor::UpdateDstRectByScreenInfo(RSSurfaceRenderNode& node, RectI& dstRect, RectI& clipRect)
 {
     if (!node.IsHardwareEnabledTopSurface() && !node.GetHwcGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
