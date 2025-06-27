@@ -20,6 +20,7 @@
 #include "rs_profiler.h"
 
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
@@ -565,6 +566,14 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& 
 }
 
 template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Dump(std::string& out) const
+{
+    if (auto property = Get()) {
+        property->Dump(out);
+    }
+}
+
+template<>
 void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
 {
     if (!Get()) {
@@ -771,6 +780,36 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType()
+{
+    stagingValue_->SetModifierType(modifierType_);
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnAttach()
+{
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Attach(node);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnDetach()
+{
+    auto node = node_.lock();
+    if (!node) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Detach(node);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType()
 {
     stagingValue_->SetModifierType(modifierType_);
 }

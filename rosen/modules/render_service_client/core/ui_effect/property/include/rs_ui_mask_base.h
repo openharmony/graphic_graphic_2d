@@ -16,7 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_MASK_BASE_H
 #define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_MASK_BASE_H
 
-#include "render/rs_render_mask_base.h"
+#include "effect/rs_render_mask_base.h"
 #include "ui_effect/property/include/rs_ui_property_tag.h"
 #include "ui_effect/property/include/rs_ui_template.h"
 

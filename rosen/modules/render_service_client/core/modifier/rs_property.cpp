@@ -18,6 +18,7 @@
 #include "sandbox_utils.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier.h"
@@ -261,6 +262,54 @@ RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNG
         stagingValue_->GetRenderEffect(), id_);
 }
 
+template<>
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(const std::shared_ptr<RSNode>& node)
+{
+    if (stagingValue_) {
+        stagingValue_->Attach(node);
+    }
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach(const std::shared_ptr<RSNode>& node)
+{
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value)
+{
+    if (stagingValue_ && stagingValue_->SetValue(value, target_.lock())) {
+        return;
+    }
+
+    // failed to update all properties in shader, fall back to replace shader
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+
+    stagingValue_ = value;
+    auto node = target_.lock();
+    if (node == nullptr) {
+        return;
+    }
+    if (stagingValue_) {
+        stagingValue_->Attach(node);
+    }
+
+    MarkNodeDirty();
+    UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
+}
+
+template<>
+RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShaderBase>>::GetRenderProperty()
+{
+    return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>>(
+        stagingValue_->GetRenderEffect(), id_);
+}
+
 #define UPDATE_TO_RENDER(Command, value, type)                                                                       \
     auto node = target_.lock();                                                                                      \
     if (node != nullptr) {                                                                                           \
@@ -451,6 +500,13 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value->GetRenderEffect(), type);
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGShaderBase>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyNGShaderBase, value->GetRenderEffect(), type);
 }
 
 template<>

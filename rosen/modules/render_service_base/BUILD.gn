@@ -138,9 +138,11 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_visibility_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_color_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_image_render_modifier.cpp",
+    "src/modifier_ng/background/rs_background_ng_shader_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_shader_render_modifier.cpp",
     "src/modifier_ng/foreground/rs_env_foreground_color_render_modifier.cpp",
     "src/modifier_ng/foreground/rs_foreground_color_render_modifier.cpp",
+    "src/modifier_ng/foreground/rs_foreground_shader_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_bounds_clip_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_bounds_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_frame_clip_render_modifier.cpp",
@@ -266,6 +268,7 @@ ohos_source_set("render_service_base_src") {
 
     #effect
     "src/effect/rs_render_filter_base.cpp",
+    "src/effect/rs_render_shader_base.cpp",
 
     #hpae
     "src/hpae_base/rs_hpae_base_data.cpp",

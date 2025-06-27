@@ -31,7 +31,9 @@
 namespace OHOS::Rosen {
 class RSProperties;
 class RSFilter;
+class RSNGRenderShaderBase;
 namespace Drawing {
+class GEShader;
 class RuntimeEffect;
 }
 #ifdef RS_ENABLE_VK
@@ -102,6 +104,21 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
+};
+
+class RSBackgroundNGShaderDrawable : public RSDrawable {
+public:
+    RSBackgroundNGShaderDrawable() = default;
+    ~RSBackgroundNGShaderDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+private:
+    bool needSync_ = false;
+    std::shared_ptr<Drawing::GEShader> geShader_;
+    std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
 };
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {

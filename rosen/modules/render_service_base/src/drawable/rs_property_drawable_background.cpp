@@ -22,6 +22,7 @@
 #include "common/rs_common_tools.h"
 #endif
 #include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_shader_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "memory/rs_tag_tracker.h"
 #ifdef ROSEN_OHOS
@@ -289,6 +290,51 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     canvas.DetachBrush();
     return true;
+}
+
+RSDrawable::Ptr RSBackgroundNGShaderDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSBackgroundNGShaderDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+};
+
+bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    const auto& shader = properties.GetBackgroundNGShader();
+    if (!shader) {
+        return false;
+    }
+    needSync_ = true;
+    stagingShader_ = shader;
+    return true;
+}
+
+void RSBackgroundNGShaderDrawable::OnSync()
+{
+    if (needSync_) {
+        geShader_ = stagingShader_->GenerateGEShader();
+        needSync_ = false;
+    }
+}
+
+Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSBackgroundNGShaderDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        // Drawing::Brush brush;
+        // auto shaderEffect = geShader_->GetDrawingShader();
+        // // do not draw if shaderEffect is nullptr and keep RSShader behavior consistent
+        // if (shaderEffect == nullptr) {
+        //     return true;
+        // }
+        // brush.SetShaderEffect(shaderEffect);
+        // canvas.AttachBrush(brush);
+        // canvas.DrawRect(rect);
+        // canvas.DetachBrush();
+    };
 }
 
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
