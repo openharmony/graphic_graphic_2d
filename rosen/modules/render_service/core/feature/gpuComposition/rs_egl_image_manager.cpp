@@ -364,11 +364,7 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
     externalTextureInfo.SetWidth(buffer->GetSurfaceBufferWidth());
     externalTextureInfo.SetHeight(buffer->GetSurfaceBufferHeight());
 
-#ifndef ROSEN_EMULATOR
     auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
-#else
-    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
-#endif
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(eglTextureId);

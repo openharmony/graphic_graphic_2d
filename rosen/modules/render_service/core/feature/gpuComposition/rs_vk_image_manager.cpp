@@ -276,11 +276,7 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
     }
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",
         bitmapFormat.colorType, bitmapFormat.alphaType);
-#ifndef ROSEN_EMULATOR
     auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
-#else
-    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
-#endif
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Texture origin: %{public}d", static_cast<int>(surfaceOrigin));
     auto contextDrawingVk = canvas.GetGPUContext();
     if (contextDrawingVk == nullptr || image == nullptr) {
