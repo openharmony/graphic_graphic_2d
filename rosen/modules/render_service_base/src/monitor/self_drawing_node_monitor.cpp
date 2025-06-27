@@ -43,18 +43,18 @@ void SelfDrawingNodeMonitor::ClearRectMap()
 }
 
 void SelfDrawingNodeMonitor::RegisterRectChangeCallback(
-    pid_t pid, const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    pid_t pid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     RS_TRACE_NAME_FMT("SelfDrawingNodeMonitor::RegisterRectChangeCallback registerPid:%d", pid);
     rectChangeCallbackListenner_[pid] = callback;
-    rectChangeCallbackFilter_[pid] = filter;
+    rectChangeCallbackConstraint_[pid] = constraint;
 }
 
 void SelfDrawingNodeMonitor::UnRegisterRectChangeCallback(pid_t pid)
 {
     RS_TRACE_NAME_FMT("SelfDrawingNodeMonitor::UnRegisterRectChangeCallback unRegisterPid:%d", pid);
     rectChangeCallbackListenner_.erase(pid);
-    rectChangeCallbackFilter_.erase(pid);
+    rectChangeCallbackConstraint_.erase(pid);
     if (rectChangeCallbackListenner_.empty()) {
         ClearRectMap();
     }
@@ -72,9 +72,9 @@ void SelfDrawingNodeMonitor::TriggerRectChangeCallback()
             pid_t pid = iter.first;
             bool shouldTrigger = false;
             SelfDrawingNodeRectCallbackData callbackData;
-            auto filterIter = rectChangeCallbackFilter_.find(pid);
-            if (filterIter != rectChangeCallbackFilter_.end()) {
-                shouldTrigger = ShouldTrigger(filterIter->second, callbackData);
+            auto constraintIter = rectChangeCallbackConstraint_.find(pid);
+            if (constraintIter != rectChangeCallbackConstraint_.end()) {
+                shouldTrigger = ShouldTrigger(constraintIter->second, callbackData);
             }
             if (shouldTrigger && iter.second) {
                 iter.second->OnSelfDrawingNodeRectChange(std::make_shared<RSSelfDrawingNodeRectData>(callbackData));
@@ -87,21 +87,21 @@ void SelfDrawingNodeMonitor::TriggerRectChangeCallback()
     }
 }
 
-bool SelfDrawingNodeMonitor::ShouldTrigger(RectFilter& filter, SelfDrawingNodeRectCallbackData& callbackData)
+bool SelfDrawingNodeMonitor::ShouldTrigger(RectConstraint& constraint, SelfDrawingNodeRectCallbackData& callbackData)
 {
     bool ret = false;
     for (auto& [nodeId, rect] : curRect_) {
-        if (filter.pids.find(ExtractPid(nodeId)) == filter.pids.end()) {
+        if (constraint.pids.find(ExtractPid(nodeId)) == constraint.pids.end()) {
             continue;
         }
         auto iter = lastRect_.find(nodeId);
         if (iter == lastRect_.end()) {
-            if (CheckStatify(rect, filter)) {
+            if (CheckStatify(rect, constraint)) {
                 callbackData.insert(std::make_pair(nodeId, rect));
                 ret = true;
             }
         } else if (iter->second != rect) {
-            if (CheckStatify(rect, filter) != CheckStatify(iter->second, filter)) {
+            if (CheckStatify(rect, constraint) != CheckStatify(iter->second, constraint)) {
                 callbackData.insert(std::make_pair(nodeId, rect));
                 ret = true;
             }
@@ -109,11 +109,11 @@ bool SelfDrawingNodeMonitor::ShouldTrigger(RectFilter& filter, SelfDrawingNodeRe
     }
 
     for (auto& [nodeId, lastRect] : lastRect_) {
-        if (filter.pids.find(ExtractPid(nodeId)) == filter.pids.end()) {
+        if (constraint.pids.find(ExtractPid(nodeId)) == constraint.pids.end()) {
             continue;
         }
         if (curRect_.find(nodeId) == curRect_.end()) {
-            if (CheckStatify(lastRect, filter)) {
+            if (CheckStatify(lastRect, constraint)) {
                 callbackData.insert(std::make_pair(nodeId, RectI(0, 0, 0, 0)));
                 ret = true;
             }
@@ -122,12 +122,12 @@ bool SelfDrawingNodeMonitor::ShouldTrigger(RectFilter& filter, SelfDrawingNodeRe
     return ret;
 }
 
-bool SelfDrawingNodeMonitor::CheckStatify(RectI& rect, RectFilter& filter) const
+bool SelfDrawingNodeMonitor::CheckStatify(RectI& rect, RectConstraint& constraint) const
 {
     RS_OPTIONAL_TRACE_NAME_FMT("SelfDrawingNodeMonitor::CheckStatify rect %d %d %d %d", rect.GetTop(), rect.GetLeft(),
         rect.GetWidth(), rect.GetHeight());
-    if (rect.GetWidth() >= filter.range.lowLimit.width && rect.GetHeight() >= filter.range.lowLimit.height &&
-        rect.GetWidth() <= filter.range.highLimit.width && rect.GetHeight() <= filter.range.highLimit.height) {
+    if (rect.GetWidth() >= constraint.range.lowLimit.width && rect.GetHeight() >= constraint.range.lowLimit.height &&
+        rect.GetWidth() <= constraint.range.highLimit.width && rect.GetHeight() <= constraint.range.highLimit.height) {
             return true;
     }
     return false;

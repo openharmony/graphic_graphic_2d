@@ -5301,7 +5301,7 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool v
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
-    const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     if (!callback) {
         ROSEN_LOGE("%{public}s callback is nullptr", __func__);
@@ -5317,20 +5317,20 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
     }
     option.SetFlags(MessageOption::TF_SYNC);
 
-    uint32_t size = filter.pids.size();
+    uint32_t size = constraint.pids.size();
     if (!data.WriteUint32(size)) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write size err.");
         return WRITE_PARCEL_ERR;
     }
-    for (int32_t pid : filter.pids) {
+    for (int32_t pid : constraint.pids) {
         if (!data.WriteInt32(pid)) {
             ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write pid err.");
             return WRITE_PARCEL_ERR;
         }
     }
 
-    if (!data.WriteInt32(filter.range.lowLimit.width) || !data.WriteInt32(filter.range.lowLimit.height) ||
-        !data.WriteInt32(filter.range.highLimit.width) || !data.WriteInt32(filter.range.highLimit.height)) {
+    if (!data.WriteInt32(constraint.range.lowLimit.width) || !data.WriteInt32(constraint.range.lowLimit.height) ||
+        !data.WriteInt32(constraint.range.highLimit.width) || !data.WriteInt32(constraint.range.highLimit.height)) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write rectRange err.");
         return WRITE_PARCEL_ERR;
     }

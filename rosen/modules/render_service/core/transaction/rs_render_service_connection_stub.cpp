@@ -3527,7 +3527,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            RectFilter filter;
+            RectConstraint constraint;
             for (uint32_t i = 0; i < size; ++i) {
                 pid_t pid;
                 if (!data.ReadInt32(pid)) {
@@ -3536,10 +3536,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     ret = ERR_INVALID_REPLY;
                     break;
                 }
-                filter.pids.insert(pid);
+                constraint.pids.insert(pid);
             }
-            if (!data.ReadInt32(filter.range.lowLimit.width) || !data.ReadInt32(filter.range.lowLimit.height) ||
-                !data.ReadInt32(filter.range.highLimit.width) || !data.ReadInt32(filter.range.highLimit.height)) {
+            if (!data.ReadInt32(constraint.range.lowLimit.width) || !data.ReadInt32(constraint.range.lowLimit.height) ||
+                !data.ReadInt32(constraint.range.highLimit.width) ||
+                !data.ReadInt32(constraint.range.highLimit.height)) {
                 ROSEN_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
                            "rectRange failed");
                 ret = ERR_INVALID_REPLY;
@@ -3558,7 +3559,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            int32_t status = RegisterSelfDrawingNodeRectChangeCallback(filter, callback);
+            int32_t status = RegisterSelfDrawingNodeRectChangeCallback(constraint, callback);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Write status "
                         "failed!");

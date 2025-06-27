@@ -3261,7 +3261,7 @@ ErrCode RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
-    const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -3273,8 +3273,8 @@ int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    auto task = [pid = remotePid_, filter, callback]() {
-        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, filter, callback);
+    auto task = [pid = remotePid_, constraint, callback]() {
+        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, constraint, callback);
     };
     mainThread_->PostTask(task);
     return StatusCode::SUCCESS;
