@@ -30,15 +30,6 @@ public:
     ~RSLinearGradientBlurShaderFilter() override = default;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
-    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
-    {
-        auto dst = canvas.GetDeviceClipBounds();
-        tranX_ = dst.GetLeft();
-        tranY_ = dst.GetTop();
-        mat_ = canvas.GetTotalMatrix();
-        geoWidth_ = std::ceil(geoWidth);
-        geoHeight_ = std::ceil(geoHeight);
-    }
     
     void IsOffscreenCanvas(bool isOffscreenCanvas)
     {
@@ -49,12 +40,7 @@ private:
     friend class RSMarshallingHelper;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     inline static float imageScale_ = 1.f;
-    inline static float geoWidth_ = 0.f;
-    inline static float geoHeight_ = 0.f;
-    inline static float tranX_ = 0.f;
-    inline static float tranY_ = 0.f;
     inline static bool isOffscreenCanvas_ = true;
-    inline static Drawing::Matrix mat_;
 };
 } // namespace Rosen
 } // namespace OHOS

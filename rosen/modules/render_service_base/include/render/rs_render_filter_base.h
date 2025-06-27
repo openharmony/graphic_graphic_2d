@@ -27,6 +27,7 @@ namespace Rosen {
 namespace Drawing {
 class GEVisualEffectContainer;
 class GEVisualEffect;
+struct CanvasInfo;
 } // namespace Drawing
 
 enum class RSUIFilterType : int16_t {
@@ -198,9 +199,17 @@ public:
     size_t GetSize() const override {return sizeof(*this);}
     bool Marshalling(Parcel& parcel) override {return false;}
 
+    virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+    Drawing::CanvasInfo GetFilterCanvasInfo() const;
+
 protected:
     RSUIFilterType type_;
     std::map<RSUIFilterType, std::shared_ptr<RSRenderPropertyBase>> properties_;
+    float geoWidth_ = 0.f;
+    float geoHeight_ = 0.f;
+    float tranX_ = 0.f;
+    float tranY_ = 0.f;
+    Drawing::Matrix mat_;
     uint32_t hash_ = 0;
 };
 } // namespace Rosen
