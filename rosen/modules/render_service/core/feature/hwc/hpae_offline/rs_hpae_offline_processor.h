@@ -68,7 +68,7 @@ public:
     static std::shared_ptr<RSHpaeOfflineProcessor> GetOfflineProcessor();
     ~RSHpaeOfflineProcessor();
     
-    bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, 
+    bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         uint64_t taskId);
     bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& node, uint64_t taskId);
     bool IsRSHpaeOfflineProcessorReady();
