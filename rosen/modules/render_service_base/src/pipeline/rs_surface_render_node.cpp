@@ -557,6 +557,23 @@ std::string RSSurfaceRenderNode::SubSurfaceNodesDump() const
     return out;
 }
 
+void RSSurfaceRenderNode::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
+{
+#ifdef RS_ENABLE_GPU
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetIsNodeToBeCaptured(isNodeToBeCaptured);
+        isNodeToBeCaptured_ = isNodeToBeCaptured;
+        AddToPendingSyncList();
+    }
+#endif
+}
+
+bool RSSurfaceRenderNode::IsNodeToBeCaptured() const
+{
+    return isNodeToBeCaptured_;
+}
+
 void RSSurfaceRenderNode::OnResetParent()
 {
     if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {

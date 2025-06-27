@@ -431,6 +431,23 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsLeashWindowSurfaceNodeVisibleTest, TestSi
 }
 
 /**
+ * @tc.name: SetIsNodeToBeCapturedTest
+ * @tc.desc: test results of SetIsNodeToBeCaptured
+ * @tc.type: FUNC
+ * @tc.require: issueIA4VTS
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetIsNodeToBeCapturedTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    renderNode->stagingRenderParams_ = nullptr;
+    renderNode->SetIsNodeToBeCaptured(false);
+    EXPECT_TRUE(!renderNode->IsSubSurfaceNode());
+    renderNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
+    renderNode->SetIsNodeToBeCaptured(true);
+    EXPECT_TRUE(!renderNode->IsSubSurfaceNode());
+}
+
+/**
  * @tc.name: SetForceHardwareTest
  * @tc.desc: test results of SetForceHardware
  * @tc.type: FUNC
