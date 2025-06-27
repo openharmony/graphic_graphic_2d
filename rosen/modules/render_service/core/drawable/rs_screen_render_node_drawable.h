@@ -167,8 +167,8 @@ private:
     
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();
-    bool ProcessOfflineSurfaceDrawable(std::shared_ptr<RSProcessor> processor,
-        RSSurfaceRenderNodeDrawable &surfaceDrawable, bool async);
+    bool ProcessOfflineSurfaceDrawable(std::shared_ptr<RSProcessor>& processor,
+        RSSurfaceRenderNodeDrawable& surfaceDrawable, bool async);
 
     void CheckHpaeBlurRun(bool isHdrOn);
 
