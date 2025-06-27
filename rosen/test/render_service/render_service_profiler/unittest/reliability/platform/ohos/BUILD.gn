@@ -85,6 +85,7 @@ ohos_unittest("RSMarshallingHelperReliabilityTest") {
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ###############################################################################
