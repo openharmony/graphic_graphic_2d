@@ -55,8 +55,6 @@ namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
 constexpr float DEGAMMA = 1.0f / 2.2f;
 
-std::shared_ptr<Drawing::RuntimeEffect> RSHdrUtil::hdrHeadroomShaderEffect_ = nullptr;
-
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
 {

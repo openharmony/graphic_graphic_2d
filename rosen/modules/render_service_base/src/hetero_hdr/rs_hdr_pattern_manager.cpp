@@ -54,7 +54,7 @@ namespace OHOS {
 namespace Rosen {
 
 template <typename F>
-FunctionHeader *create_function_wrapper(F &&func)
+std::shared_ptr<FunctionHeader> create_function_wrapper(F &&func)
 {
     if (func == nullptr) {
         return nullptr;
@@ -63,7 +63,7 @@ FunctionHeader *create_function_wrapper(F &&func)
     auto *func_copy = new std::decay_t<F>(std::forward<F>(func));
 
     // 2. Create function header structure
-    auto *header = new FunctionHeader;
+    auto header = std::make_shared<FunctionHeader>();
 
     // 3. Set up execution function that invokes the callable
     header->execute = [](void *data) {
@@ -207,12 +207,12 @@ bool RSHDRPatternManager::MHCSubmitHDRTask(uint64_t frameId, MHC_PatternTaskName
     if (!MHCCheck("MHCSubmitHDRTask", frameId)) {
         return false;
     }
-    FunctionHeader* preFuncHeader = create_function_wrapper(std::move(preFunc));
-    void* c_preFunc = static_cast<void*>(preFuncHeader);
-    FunctionHeader* afterFuncHeader = create_function_wrapper(std::move(afterFunc));
-    void* c_afterFunc = static_cast<void*>(afterFuncHeader);
+    std::shared_ptr<FunctionHeader> preFuncHeader = create_function_wrapper(std::move(preFunc));
+    void* c_preFunc = static_cast<void*>(preFuncHeader.get());
+    std::shared_ptr<FunctionHeader> afterFuncHeader = create_function_wrapper(std::move(afterFunc));
+    void* c_afterFunc = static_cast<void*>(afterFuncHeader.get());
 
-    g_graphPatternAnimationTaskSubmit(g_instance, frameId, taskName, c_preFunc, taskHandle, c_afterFunc);
+    mhcDevice_->graphPatternAnimationTaskSubmit(g_instance, frameId, taskName, c_preFunc, taskHandle, c_afterFunc);
     return true;
 }
 
@@ -222,12 +222,12 @@ bool RSHDRPatternManager::MHCSubmitVulkanTask(uint64_t frameId, MHC_PatternTaskN
     if (!MHCCheck("MHCSubmitVulkanTask", frameId)) {
         return false;
     }
-    FunctionHeader* preFuncHeader = create_function_wrapper(std::move(preFunc));
-    void* c_preFunc = static_cast<void*>(preFuncHeader);
-    FunctionHeader* afterFuncHeader = create_function_wrapper(std::move(afterFunc));
-    void* c_afterFunc = static_cast<void*>(afterFuncHeader);
+    std::shared_ptr<FunctionHeader> preFuncHeader = create_function_wrapper(std::move(preFunc));
+    void* c_preFunc = static_cast<void*>(preFuncHeader.get());
+    std::shared_ptr<FunctionHeader> afterFuncHeader = create_function_wrapper(std::move(afterFunc));
+    void* c_afterFunc = static_cast<void*>(afterFuncHeader.get());
 
-    g_graphPatternVulkanTaskSubmit(g_instance, frameId, taskName, c_preFunc, c_afterFunc);
+    mhcDevice_->graphPatternVulkanTaskSubmit(g_instance, frameId, taskName, c_preFunc, c_afterFunc);
     return true;
 }
 
