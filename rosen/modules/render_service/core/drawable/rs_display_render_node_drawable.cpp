@@ -1839,6 +1839,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RSDirtyRectsDfx rsDirtyRectsDfx(*this);
         rsDirtyRectsDfx.OnDraw(*rscanvas);
     } else {
+		canvas.Clear(Drawing::Color::COLOR_BLACK);
         DrawHardwareEnabledNodes(canvas, *params);
     }
 }
