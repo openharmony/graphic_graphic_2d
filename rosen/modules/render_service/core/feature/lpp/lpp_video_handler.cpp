@@ -75,7 +75,6 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(const std::shared_ptr<RSSurfaceR
 
 void LppVideoHandler::JudgeRsDrawLppState(bool isPostUniRender)
 {
-    RS_TRACE_NAME_FMT("JudgeRsDrawLppState isPostUniRender = %d", isPostUniRender);
     bool requestVsync = false;
     for (const auto& surfaceNode : lowPowerSurfaceNode_) {
         sptr<IConsumerSurface> consumer;
@@ -89,7 +88,6 @@ void LppVideoHandler::JudgeRsDrawLppState(bool isPostUniRender)
         bool isHardware = !(surfaceNode->IsHardwareForcedDisabled());
         bool requestNextVsyncForLpp = false;
         bool isShbDrawLpp = true;
-        RS_TRACE_NAME_FMT("isHardware  =%d", isHardware);
 
         if (!isPostUniRender || (isPostUniRender && !isHardware)) {
             // GPU or SKIP
@@ -97,17 +95,15 @@ void LppVideoHandler::JudgeRsDrawLppState(bool isPostUniRender)
             requestNextVsyncForLpp = true;
         }
         if (isHardware) {
-            // HWC
+            // Hareware
             isShbDrawLpp = true;
             requestNextVsyncForLpp = false;
         }
 
         if (hasVirtualMirrorDisplay_.load()) {
             // Virtual screen needs to keep Vsync awake
-            RS_TRACE_NAME_FMT("Virtual screen needs to keep Vsync awake");
             requestNextVsyncForLpp = true;
         }
-        RS_LOGI("JudgeRsDrawLppState isShbDrawLpp = %d, requestNextVsyncForLpp = %d", isShbDrawLpp, requestNextVsyncForLpp);
         if (consumer->SetLppDrawSource(isShbDrawLpp, requestNextVsyncForLpp) != GSError::GSERROR_OK) {
             RS_TRACE_NAME_FMT("Stop By SetLppDrawSource");
             requestNextVsyncForLpp = false;
