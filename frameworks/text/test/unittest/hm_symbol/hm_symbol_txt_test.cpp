@@ -571,6 +571,8 @@ HWTEST_F(OHHmSymbolTxtTest, HMSymbolTxtOperator002, TestSize.Level0)
     gradients[0] = nullptr;
     symbolTxt.symbolColor_.gradients = gradients;
     EXPECT_FALSE(symbolTxt == symbolTxt1);
+    symbolTxt1.symbolColor_.gradients = gradients;
+    EXPECT_TRUE(symbolTxt == symbolTxt1);
 }
 
 /*
