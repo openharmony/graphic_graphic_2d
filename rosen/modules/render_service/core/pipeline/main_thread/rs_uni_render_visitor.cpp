@@ -2330,9 +2330,10 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         }
 
         auto regionRects = surfaceNode->GetVisibleRegion().GetRegionRects();
-        if (hwcNodePtr->GetHwcGlobalPositionEnabled() || hwcNodePtr->IsDRMCrossNode()
-        || surfaceNode->IsLayerTop()
-        || surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        if (hwcNodePtr->GetHwcGlobalPositionEnabled() ||
+            hwcNodePtr->IsDRMCrossNode() ||
+            surfaceNode->IsLayerTop() ||
+            surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
                 hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
                 needForceUpdateHwcNodes = true;
                 continue;
