@@ -16,7 +16,7 @@
 #include "ani_canvas.h"
 #include "brush_ani/ani_brush.h"
 #include "effect/color_space.h"
-#include "image_ani_utils.h"
+#include "pixel_map_taihe_ani.h"
 #include "image/image.h"
 #include "pen_ani/ani_pen.h"
 #include "sampling_options_ani/ani_sampling_options.h"
@@ -289,7 +289,7 @@ void AniCanvas::Constructor(ani_env* env, ani_object obj, ani_object pixelmapObj
         return;
     }
 #ifdef ROSEN_OHOS
-    std::shared_ptr<PixelMap> pixelMap = ImageAniUtils::GetPixelMapFromEnvSp(env, pixelmapObj);
+    std::shared_ptr<PixelMap> pixelMap = PixelMapTaiheAni::GetNativePixelMap(env, pixelmapObj);
     if (!pixelMap) {
         ROSEN_LOGE("AniCanvas::Constructor get pixelMap failed");
         AniThrowError(env, "Invalid params.");
@@ -358,7 +358,7 @@ void AniCanvas::DrawImageRect(ani_env* env, ani_object obj,
         return;
     }
 #ifdef ROSEN_OHOS
-    std::shared_ptr<PixelMap> pixelMap = ImageAniUtils::GetPixelMapFromEnvSp(env, pixelmapObj);
+    std::shared_ptr<PixelMap> pixelMap = PixelMapTaiheAni::GetNativePixelMap(env, pixelmapObj);
     if (!pixelMap) {
         ROSEN_LOGE("AniCanvas::DrawImageRect get pixelMap failed");
         AniThrowError(env, "Invalid params.");
@@ -416,7 +416,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         return;
     }
 #ifdef ROSEN_OHOS
-    std::shared_ptr<PixelMap> pixelMap = ImageAniUtils::GetPixelMapFromEnvSp(env, pixelmapObj);
+    std::shared_ptr<PixelMap> pixelMap = PixelMapTaiheAni::GetNativePixelMap(env, pixelmapObj);
     if (!pixelMap) {
         ROSEN_LOGE("AniCanvas::DrawImageRect get pixelMap failed");
         AniThrowError(env, "Invalid params.");

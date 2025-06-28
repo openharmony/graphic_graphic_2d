@@ -87,7 +87,7 @@ ohos_shared_library("drawing_ani_core") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image_ani",
+    "image_framework:image_taihe",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
   ]
@@ -173,7 +173,7 @@ ohos_shared_library("drawing_ani") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image_ani",
+    "image_framework:image_taihe",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
   ]
