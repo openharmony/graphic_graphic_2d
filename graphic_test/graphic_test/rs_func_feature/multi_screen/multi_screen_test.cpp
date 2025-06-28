@@ -1361,8 +1361,8 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_021)
     std::vector<uint32_t> colorVec(colorLength, 0xffff0000);
     uint32_t* color = colorVec.data();
     Media::InitializationOptions opts;
-    opts.size.width = colorWidth;
-    opts.size.height = colorHeight;
+    opts.size.width = static<int32_t>(colorWidth);
+    opts.size.height = static<int32_t>(colorHeight);
     opts.pixelFormat = Media::PixelFormat::RGBA_8888;
     opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
     std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
