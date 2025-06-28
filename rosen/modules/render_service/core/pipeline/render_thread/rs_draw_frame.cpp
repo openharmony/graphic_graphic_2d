@@ -31,6 +31,7 @@
 #include "render/rs_high_performance_visual_engine.h"
 #include "rs_frame_report.h"
 #include "rs_uni_render_thread.h"
+#include "feature/hetero_hdr/rs_hdr_manager.h"
 
 #include "rs_profiler.h"
 
@@ -71,6 +72,7 @@ void RSDrawFrame::RenderFrame()
         RSBaseRenderUtil::GetAccumulatedBufferCount());
     unirenderInstance_.UpdateDisplayNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
+    RSHdrManager::Instance().PostHdrSubTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
     RsFrameReport::GetInstance().UnblockMainThread();

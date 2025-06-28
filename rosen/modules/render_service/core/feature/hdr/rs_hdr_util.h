@@ -38,7 +38,10 @@ public:
     static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSDisplayRenderNode& displayNode);
     static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void SetHDRParam(RSSurfaceRenderNode& node, bool flag);
+    std::shared_ptr<Drawing::ShaderEffect> MakeHdrHeadroomShader(float hrRatio,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static void HandleVirtualScreenHDRStatus(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    static std::shared_ptr<Drawing::RuntimeEffect> hdrHeadroomShaderEffect_;
 };
 
 } // namespace Rosen

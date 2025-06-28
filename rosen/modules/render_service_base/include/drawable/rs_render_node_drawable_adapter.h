@@ -109,6 +109,7 @@ enum class DrawSkipType : uint8_t {
     RENDER_SKIP_IF_SCREEN_SWITCHING = 30,
     UI_FIRST_CACHE_FAIL = 31,
     SURFACE_SKIP_IN_MIRROR = 32,
+    HARDWARE_HDR_CACHE_SKIP = 33,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {

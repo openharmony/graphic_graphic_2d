@@ -174,6 +174,7 @@ public:
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
         PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
 
+    virtual void DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) = 0;
     void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
         BufferDrawParam& params);
     void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,

@@ -27,7 +27,6 @@
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "platform/common/rs_log.h"
-#include "rs_profiler.h"
 
 #include "transaction/rs_marshalling_helper.h"
 
@@ -66,7 +65,7 @@ bool RSCubicBezierInterpolator::Marshalling(Parcel& parcel) const
 RSCubicBezierInterpolator* RSCubicBezierInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id failed");
         return nullptr;
     }
@@ -173,7 +172,7 @@ bool LinearInterpolator::Marshalling(Parcel& parcel) const
 LinearInterpolator* LinearInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id failed");
         return nullptr;
     }
@@ -204,7 +203,7 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
 RSCustomInterpolator* RSCustomInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("Unmarshalling RSCustomInterpolator id failed");
         return nullptr;
     }
@@ -264,15 +263,14 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     int fpsPreferred = 0;
     int componentScene = 0;
     uint64_t token = 0;
-    if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
-            parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
-            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable) &&
-            parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) && parcel.ReadInt32(fpsPreferred) &&
-            parcel.ReadInt32(componentScene) && parcel.ReadUint64(token))) {
+    if (!(RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) && parcel.ReadInt32(duration) &&
+            parcel.ReadInt32(startDelay) && parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) &&
+            parcel.ReadBool(autoReverse) && parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) &&
+            parcel.ReadBool(isRepeatCallbackEnable) && parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) &&
+            parcel.ReadInt32(fpsPreferred) && parcel.ReadInt32(componentScene) && parcel.ReadUint64(token))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, id_);
     SetDuration(duration);
     SetStartDelay(startDelay);
     SetRepeatCount(repeatCount);
@@ -574,11 +572,11 @@ bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
     }
 
     if (!(RSMarshallingHelper::Unmarshalling(parcel, startValue_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, endValue_) && parcel.ReadUint64(rotationId_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, endValue_) &&
+            RSMarshallingHelper::UnmarshallingPidPlusId(parcel, rotationId_))) {
         ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse values failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, rotationId_);
     SetInterpolator(interpolator);
     SetRotationMode(static_cast<RotationMode>(rotationMode));
     SetIsNeedPath(isNeedPath);
@@ -610,11 +608,11 @@ bool RSRenderPropertyAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, isAdditive_))) {
+    if (!(RSMarshallingHelper::UnmarshallingPidPlusId(parcel, propertyId_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, isAdditive_))) {
         ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
     if (!RSMarshallingHelper::Unmarshalling(parcel, originValue_)) {
         return false;
     }
@@ -880,7 +878,7 @@ bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("RSSpringInterpolator::Unmarshalling Read id failed");
         return nullptr;
     }
@@ -915,7 +913,7 @@ bool RSStepsInterpolator::Marshalling(Parcel& parcel) const
 RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("RSStepsInterpolator::Unmarshalling Read id failed");
         return nullptr;
     }

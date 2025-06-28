@@ -96,7 +96,7 @@ bool RSRenderPixelMapMaskPara::WriteToParcel(Parcel& parcel)
 bool RSRenderPixelMapMaskPara::ReadFromParcel(Parcel& parcel)
 {
     cacheImage_ = nullptr;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, modifierType_)) {
         ROSEN_LOGE("RSRenderPixelMapMaskPara::ReadFromParcel type Error");

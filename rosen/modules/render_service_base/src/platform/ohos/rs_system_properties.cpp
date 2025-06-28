@@ -890,6 +890,14 @@ bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetHeterogComputingHDREnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.heterog.computing.hdr.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");

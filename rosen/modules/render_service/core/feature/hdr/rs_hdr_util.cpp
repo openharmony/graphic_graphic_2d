@@ -297,6 +297,48 @@ void RSHdrUtil::SetHDRParam(RSSurfaceRenderNode& node, bool flag)
     node.SetHDRPresent(flag);
 }
 
+std::shared_ptr<Drawing::ShaderEffect> RSHdrUtil::MakeHdrHeadroomShader(float hrRatio,
+    std::shared_ptr<Drawing::ShaderEffect> imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform half hrRatio;
+        uniform shader imageShader;
+
+        mat3 Mat_RGB_P3toBT709 = mat3(
+            1.224939741445,  -0.042056249524,  -0.019637688845,
+            -0.224939599120,   1.042057784075,  -0.078636557327,
+            -0.000001097215,   0.000000329788,   1.098273664879
+        );
+
+        mat3 MAT_RGB_P3tosRGB_VPE = mat3(1.22494, -0.0420569, -0.0196376,
+                            -0.22494, 1.04206, -0.078636,
+                            0.0, 0.0, 1.09827);
+        
+        half4 main(float2 coord)
+        {
+            vec4 color = imageShader.eval(coord);
+            vec3 linearColor = sign(color.rgb) * pow(abs(color.rgb), vec3(2.2f));
+            linearColor = MAT_RGB_P3tosRGB_VPE * linearColor;
+            vec3 hdr = sign(linearColor) * pow(abs(linearColor), vec3(1.0f / 2.2f));
+            hdr = hdr * hrRatio;
+            return vec4(hdr, 1.0);
+        }
+    )";
+    if (hdrHeadroomShaderEffect_ == nullptr) {
+        hdrHeadroomShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
+        if (hdrHeadroomShaderEffect_ == nullptr) {
+            ROSEN_LOGE("MakeDynamicDimShader::RuntimeShader effect error\n");
+            return nullptr;
+        }
+    }
+    std::shared_ptr<Drawing::ShaderEffect> children[] = {imageShader};
+    size_t childCount = 1;
+    auto data = std::make_shared<Drawing::Data>();
+    data->BuildWithCopy(&hrRatio, sizeof(hrRatio));
+
+    return hdrHeadroomShaderEffect_->MakeShader(data, children, childCount, nullptr, false);
+}
+
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
     if (node.GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE) {
@@ -340,6 +382,5 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSDisplayRenderNode& node, const sp
         node.SetFirstFrameOfInit(false);
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

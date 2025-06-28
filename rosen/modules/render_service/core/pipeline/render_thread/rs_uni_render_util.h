@@ -104,6 +104,8 @@ public:
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
+    static std::vector<GrBackendSemaphore> PrepareHdrSemaphoreVector(GrBackendSemaphore& backendSemaphore,
+        std::shared_ptr<Drawing::Surface>& surface);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);
     static SecSurfaceInfo GenerateSecSurfaceInfoFromNode(
         NodeId uiExtensionId, NodeId hostId, SecRectInfo uiExtensionRectInfo);
