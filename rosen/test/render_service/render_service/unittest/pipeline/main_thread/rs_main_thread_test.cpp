@@ -5070,6 +5070,7 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
     result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
         unsignedNowTime, lastVsyncTime, unsignedVsyncTimeStamp);
     ASSERT_EQ(result, true);
+    mainThread->timestamp_ = timestamp;
 }
 
 /**
