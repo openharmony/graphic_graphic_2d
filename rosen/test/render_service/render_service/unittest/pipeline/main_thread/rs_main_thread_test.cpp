@@ -5036,8 +5036,8 @@ HWTEST_F(RSMainThreadTest, MultiDisplayChangeTest, TestSize.Level2)
 }
 
 /**
- * @tc.name: IsFastComposeVsyncTimeSync
- * @tc.desc: test IsFastComposeVsyncTimeSync
+ * @tc.name: IsFastComposeVsyncTimeSync001
+ * @tc.desc: test IsFastComposeVsyncTimeSync input value error condition
  * @tc.type: FUNC
  * @tc.require: issueICGGHY
  */
@@ -5078,8 +5078,8 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsFastComposeVsyncTimeSync
- * @tc.desc: test IsFastComposeVsyncTimeSync
+ * @tc.name: IsFastComposeVsyncTimeSync002
+ * @tc.desc: test IsFastComposeVsyncTimeSync at time near vsync time or not condition
  * @tc.type: FUNC
  * @tc.require: issueICGGHY
  */

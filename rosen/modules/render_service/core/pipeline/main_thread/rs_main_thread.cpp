@@ -4323,7 +4323,7 @@ bool RSMainThread::IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool
     if (static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) {
         return false;
     }
-
+    // when buffer come near vsync time, difference value need to calculate offet
     if (!nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod >
         unsignedVsyncPeriod - FASTCOMPOSE_OFFSET) {
         lastFastComposeTimeStampDiff_ = (unsignedNowTime + FASTCOMPOSE_OFFSET - lastVsyncTime) % unsignedVsyncPeriod;
