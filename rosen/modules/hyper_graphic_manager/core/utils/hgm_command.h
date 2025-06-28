@@ -312,8 +312,8 @@ public:
     std::string GetGameNodeName(const std::string& pkgName) const override;
 
 protected:
-    std::string SettingModeId2XmlModeId(int32_t settingModeId) const;
-    int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const;
+    std::optional<std::string> SettingModeId2XmlModeId(int32_t settingModeId) const;
+    std::optional<int32_t> XmlModeId2SettingModeId(const std::string& xmlModeId) const;
     int32_t GetRefreshRateModeName(int32_t refreshRateModeId) const;
     std::string GetAppStrategyConfigName(const std::string& pkgName, int32_t appType) const;
 
