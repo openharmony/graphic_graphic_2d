@@ -5378,4 +5378,44 @@ HWTEST_F(RSMainThreadTest, SetTaskEndWithTime001, TestSize.Level1)
     auto rsVSyncDistributor = mainThread->rsVSyncDistributor_;
     mainThread->SetTaskEndWithTime(0);
 }
+
+/**
+ * @tc.name: CheckAdaptiveCompose001
+ * @tc.desc: Test CheckAdaptiveCompose
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto context = mainThread->context_;
+    mainThread->context_ = nullptr;
+    ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+    //reset
+    mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: CheckAdaptiveCompose002
+ * @tc.desc: Test CheckAdaptiveCompose
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        std::atomic<int32_t> status = frameRateMgr->isAdaptive_.load();
+        frameRateMgr->isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+        ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+        frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+        ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+        //reset
+        frameRateMgr->isAdaptive_.store(status.load());
+    }
+}
 } // namespace OHOS::Rosen
