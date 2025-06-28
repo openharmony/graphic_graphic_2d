@@ -62,8 +62,8 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     env->Object_GetPropertyByName_Ref(obj, "params", &aniParams);
     env->Object_GetPropertyByName_Double(obj, "type", &aniType);
 
-    result.type = static_cast<int32_t>(aniType);
-    result.id = static_cast<int32_t>(aniId);
+    result.type = static_cast<uint32_t>(aniType);
+    result.id = static_cast<uint32_t>(aniId);
     if (aniBundleName != nullptr) {
         AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniBundleName), result.bundleName);
     }
