@@ -2429,14 +2429,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
 
-    // children->size() is 1, the extended screen is not supported
-    // there is no visible hwc node or visible hwc nodes don't need update
-    if (children->size() == 1 && (!displayNode->HwcDisplayRecorder().HasVisibleHwcNodes() ||
-                                  !ExistBufferIsVisibleAndUpdate())) {
-        RS_TRACE_NAME_FMT("%s: no hwcNode in visibleRegion", __func__);
-        return true;
-    }
-
 #ifdef RS_ENABLE_GPU
     auto processor = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
     auto renderEngine = GetRenderEngine();

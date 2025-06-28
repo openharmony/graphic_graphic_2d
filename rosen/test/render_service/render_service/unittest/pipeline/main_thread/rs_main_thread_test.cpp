@@ -5270,10 +5270,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     rootNode->GenerateFullChildrenList();
     auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
     childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
     auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
@@ -5281,12 +5277,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
     ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
 
     NodeId displayId2 = 2;
     RSDisplayNodeConfig config;
