@@ -720,6 +720,9 @@ CoreCanvas& CoreCanvas::AttachPaint(const Paint& paint)
 {
     paintBrush_.Disable();
     paintPen_ = paint;
+#ifdef RS_ENABLE_GPU
+    paintPen_.SetGPUContext(GetGPUContext());
+#endif
     return *this;
 }
 

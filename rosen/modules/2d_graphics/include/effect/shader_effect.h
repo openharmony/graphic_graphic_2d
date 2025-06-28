@@ -192,6 +192,10 @@ public:
 
     std::shared_ptr<ExtendObject> GetExtendObject() { return object_; }
 
+#ifdef RS_ENABLE_GPU
+    void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) const;
+#endif
+
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
 private:
