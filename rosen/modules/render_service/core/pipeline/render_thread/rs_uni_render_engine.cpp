@@ -204,5 +204,14 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
         DrawBuffer(canvas, params);
     }
 }
+
+void RSUniRenderEngine::DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+{
+    if (!params.useCPU) {
+        DrawImage(canvas, params);
+    } else {
+        DrawBuffer(canvas, params);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
