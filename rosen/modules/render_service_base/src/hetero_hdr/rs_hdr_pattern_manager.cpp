@@ -212,7 +212,7 @@ bool RSHDRPatternManager::MHCSubmitHDRTask(uint64_t frameId, MHC_PatternTaskName
     std::shared_ptr<FunctionHeader> afterFuncHeader = create_function_wrapper(std::move(afterFunc));
     void* c_afterFunc = static_cast<void*>(afterFuncHeader.get());
 
-    mhcDevice_->graphPatternAnimationTaskSubmit(g_instance, frameId, taskName, c_preFunc, taskHandle, c_afterFunc);
+    g_graphPatternAnimationTaskSubmit(g_instance, frameId, taskName, c_preFunc, taskHandle, c_afterFunc);
     return true;
 }
 
