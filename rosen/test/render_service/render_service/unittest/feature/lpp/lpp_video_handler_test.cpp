@@ -16,8 +16,6 @@
 #include "feature/lpp/lpp_video_handler.h"
 #include "gtest/gtest.h"
 
-#include "pipeline/main_thread/rs_main_thread.h"
-
 using namespace testing;
 using namespace testing::ext;
 
@@ -76,7 +74,7 @@ HWTEST_F(LppVideoHandlerTest, AddLppSurfaceNode001, TestSize.Level1)
     ASSERT_EQ(lppVideoHandler.lowPowerSurfaceNode_.size(), 0);
 
     NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, RSMainThread::Instance()->context_);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
     auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     surfaceNode->surfaceHandler_ = nullptr;
     lppVideoHandler.AddLppSurfaceNode(surfaceNode);
@@ -113,7 +111,7 @@ HWTEST_F(LppVideoHandlerTest, JudgeRsDrawLppState001, TestSize.Level1)
 
     lppVideoHandler.lowPowerSurfaceNode_.clear();
     NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, RSMainThread::Instance()->context_);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
     surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
     lppVideoHandler.lowPowerSurfaceNode_.push_back(surfaceNode);
     lppVideoHandler.JudgeRsDrawLppState(isPostUniRender);
@@ -147,13 +145,13 @@ HWTEST_F(LppVideoHandlerTest, JudgeRsDrawLppState002, TestSize.Level1)
     bool isPostUniRender = true;
 
     NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, RSMainThread::Instance()->context_);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
     surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
     surfaceNode->surfaceHandler_->SetConsumer(IConsumerSurface::Create("LPP"));
     surfaceNode->isOnTheTree_ = false;
     lppVideoHandler.lowPowerSurfaceNode_.clear();
     lppVideoHandler.lowPowerSurfaceNode_.push_back(surfaceNode);
-    sptr<ConsumerSurface> surf=  static_cast<ConsumerSurface*>((surfaceNode->surfaceHandler_->consumer_).GetRefPtr());
+    sptr<ConsumerSurface> surf = static_cast<ConsumerSurface*>((surfaceNode->surfaceHandler_->consumer_).GetRefPtr());
     
     sptr<BufferQueue>& bufferQueue = surf->consumer_->bufferQueue_;
     bufferQueue->sourceType_ = OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO;
