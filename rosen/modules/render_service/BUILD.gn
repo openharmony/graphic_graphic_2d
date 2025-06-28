@@ -119,6 +119,7 @@ ohos_shared_library("librender_service") {
     "core/feature/hyper_graphic_manager/hgm_context.cpp",
     "core/feature/hyper_graphic_manager/hgm_hardware_utils.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
+    "core/feature/lpp/lpp_video_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
