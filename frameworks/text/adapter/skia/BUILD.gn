@@ -126,7 +126,6 @@ template("skia_libtxt") {
       include_dirs += [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
       defines += [ "CROSS_PLATFORM" ]
       deps = [
-        "$skia_root:skia_$platform",
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
@@ -186,7 +185,6 @@ ohos_static_library("font_asset") {
   defines = [ "TEXT_SYSTEM_OHOS" ]
   if (is_arkui_x) {
     deps = [
-      "$skia_root:skia_$platform",
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
