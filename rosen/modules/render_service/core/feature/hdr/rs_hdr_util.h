@@ -39,6 +39,8 @@ public:
     static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void SetHDRParam(RSSurfaceRenderNode& node, bool flag);
     static void HandleVirtualScreenHDRStatus(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    std::shared_ptr<Drawing::ShaderEffect> MakeHdrHeadroomShader(float hrRatio,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
 };
 
 } // namespace Rosen

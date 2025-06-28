@@ -50,9 +50,9 @@
 #endif
 
 constexpr float GAMMA2_2 = 2.2f;
-const int ROTATION_90 = -90;
-const int ROTATION_180 = -180;
-const int ROTATION_270 = -270;
+const int RS_ROTATION_90 = -90;
+const int RS_ROTATION_180 = -180;
+const int RS_ROTATION_270 = -270;
 
 namespace OHOS::Rosen::DrawableV2 {
 
@@ -155,17 +155,17 @@ BufferDrawParam RSSurfaceRenderNodeDrawable::InitBufferDrawParam(RSSurfaceRender
     switch (bufferTransform) {
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
             param.matrix.PreTranslate(0, param.srcRect.GetHeight());
-            param.matrix.PreRotate(ROTATION_90);  // rotate 90 degrees anti-clockwise at last.
+            param.matrix.PreRotate(RS_ROTATION_90);  // rotate 90 degrees anti-clockwise at last.
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
             param.matrix.PreTranslate(param.srcRect.GetWidth(), param.srcRect.GetHeight());
-            param.matrix.PreRotate(ROTATION_180);  // rotate 180 degrees anti-clockwise at last.
+            param.matrix.PreRotate(RS_ROTATION_180);  // rotate 180 degrees anti-clockwise at last.
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
             param.matrix.PreTranslate(param.srcRect.GetWidth(), 0);
-            param.matrix.PreRotate(ROTATION_270);  // rotate 270 degrees anti-clockwise at last.
+            param.matrix.PreRotate(RS_ROTATION_270);  // rotate 270 degrees anti-clockwise at last.
             break;
         }
         default: break;
