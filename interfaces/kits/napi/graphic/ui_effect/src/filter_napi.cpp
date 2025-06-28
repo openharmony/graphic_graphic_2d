@@ -361,7 +361,7 @@ napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
 static bool GetContentLight(napi_env env, napi_value* param, size_t length, std::shared_ptr<ContentLightPara>& para)
 {
     if (length < NUM_2) {
-        UIEFFECT_LOG_E("FilterNapi GetContentLight array length is less than 2");
+        FILTER_LOG_E("FilterNapi GetContentLight array length is less than 2");
         return false;
     }
 
