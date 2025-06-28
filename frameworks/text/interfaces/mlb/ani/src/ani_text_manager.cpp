@@ -38,7 +38,8 @@ template <typename Tuple, size_t... Is>
 static ani_status InitAllStruct(ani_vm* vm, uint32_t* result, std::index_sequence<Is...>)
 {
     ani_status ret;
-    [[maybe_unused]] bool status = (((ret = InitOneStruct<std::tuple_element_t<Is, Tuple>>(vm, result)) == ANI_OK) && ...);
+    [[maybe_unused]] bool status =
+        (((ret = InitOneStruct<std::tuple_element_t<Is, Tuple>>(vm, result)) == ANI_OK) && ...);
     return ret;
 }
 
