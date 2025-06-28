@@ -53,7 +53,7 @@ struct SamplingOptionsUtils {
     MipmapMode mipmap = MipmapMode::NONE;
 };
 
-inline void ConvertSamplingOptions(SamplingOptionsUtils tempSamplingOptions, const SamplingOptions sampling)
+inline void ConvertSamplingOptions(SamplingOptionsUtils& tempSamplingOptions, const SamplingOptions& sampling)
 {
     tempSamplingOptions.useCubic = sampling.GetUseCubic();
     tempSamplingOptions.cubic.cubicCoffB = sampling.GetCubicCoffB();
