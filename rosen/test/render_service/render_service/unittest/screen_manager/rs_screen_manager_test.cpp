@@ -4396,7 +4396,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenSecurityMask003, TestSize.Level1)
     screenManagerImpl->screens_.clear();
     rsScreen0->securityMask_ = nullptr;
     screenManagerImpl->screens_.insert(std::make_pair(screenId, rsScreen0));
-    auto res = screenManagerImpl->RSScreenManager::GetScreenSecurityMask(id);
+    auto res = screenManagerImpl->RSScreenManager::GetScreenSecurityMask(screenId);
     EXPECT_EQ(nullptr, res);
 }
 /*
