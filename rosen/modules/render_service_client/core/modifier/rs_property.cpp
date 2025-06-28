@@ -287,12 +287,12 @@ void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMa
         return;
     }
 
-    // Incremental update for filter properties, return if success
+    // Incremental update for mask properties, return if success
     if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
         return;
     }
 
-    // failed to update filter properties, fallback to replace operation
+    // failed to update mask properties, fallback to replace operation
     if (stagingValue_) {
         stagingValue_->Detach();
     }
@@ -502,6 +502,13 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value->GetRenderEffect(), type);
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyNGMaskBase, value->GetRenderEffect(), type);
 }
 
 template<>

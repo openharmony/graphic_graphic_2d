@@ -30,7 +30,7 @@ public:
 
     static std::shared_ptr<RSNGMaskBase> Create(RSNGEffectType type);
 
-    static std::shared_ptr<RSNGMaskBase> Create(std::shared_ptr<MaskPara> filterPara);
+    static std::shared_ptr<RSNGMaskBase> Create(std::shared_ptr<MaskPara> maskPara);
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>

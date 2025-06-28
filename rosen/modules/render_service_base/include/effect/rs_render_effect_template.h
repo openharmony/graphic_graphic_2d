@@ -251,12 +251,16 @@ public:
             case RSNGEffectType::DISPERSION: return "Dispersion";
             case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
             case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
+            case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
+            case RSNGEffectType::PIXEL_MAP_MASK: return "PixelMapMask";
             default:
                 return "UNKNOWN";
         }
     }
 
     static std::shared_ptr<Drawing::GEVisualEffect> CreateGEVisualEffect(RSNGEffectType type);
+    static void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge,
+        std::shared_ptr<Drawing::GEVisualEffect> geShader);
 
 private:
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,

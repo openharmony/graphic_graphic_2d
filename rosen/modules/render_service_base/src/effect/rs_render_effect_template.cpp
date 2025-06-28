@@ -30,7 +30,7 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
     const std::string& desc, const Vector4f& value)
 {
-    geFilter->SetParam(desc, value.x_);
+    geFilter->SetParam(desc, value);
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
@@ -42,12 +42,23 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
     const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value)
 {
-    geFilter->SetParam(desc, value->GenerateGEShaderMask());
+    auto ge = std::make_shared<Drawing::GEVisualEffectContainer>();
+    value->AppendToGEContainer(ge);
+    geFilter->SetParam(desc, ge);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)
 {
     return std::make_shared<Drawing::GEVisualEffect>(GetEffectTypeString(type), Drawing::DrawingPaintType::BRUSH);
+}
+
+void RSNGRenderEffectHelper::AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge,
+        std::shared_ptr<Drawing::GEVisualEffect> geShader)
+{
+    if (!ge) {
+        return;
+    }
+    ge->AddToChainedFilter(geShader);
 }
 } // namespace Rosen
 } // namespace OHOS
