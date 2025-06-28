@@ -69,7 +69,7 @@ ohos_unittest("text_ndk_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
-    "icu:shared_icuuc"
+    "icu:shared_icuuc",
   ]
 
   platform = current_os

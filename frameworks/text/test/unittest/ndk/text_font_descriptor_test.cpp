@@ -261,7 +261,7 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest007, TestSize.Level0)
             OH_Drawing_DestroyFontDescriptor(fd);
         } else {
             std::string s;
-            icu::UnicodeString ustr(reinterpret_cast<UChar*>(fullName->strData), fullName->strLen);
+            icu::UnicodeString ustr(reinterpret_cast<UChar*>(fullName->strData), fullName->strLen / sizeof(char16_t));
             ustr.toUTF8String(s);
             EXPECT_EQ(s, "Unknown");
         }
