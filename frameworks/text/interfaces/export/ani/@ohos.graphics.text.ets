@@ -1284,28 +1284,28 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    NONE,
+    NONE = 0x0,
 
     /**
      * There is a decoration line below the text.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    UNDERLINE,
+    UNDERLINE = 0x1,
 
     /**
      * There is a decoration line above the text.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    OVERLINE,
+    OVERLINE = 0x2,
 
     /**
      * There is a decoration line through the middle of the text.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    LINE_THROUGH,
+    LINE_THROUGH = 0x4,
   }
 
   /**
