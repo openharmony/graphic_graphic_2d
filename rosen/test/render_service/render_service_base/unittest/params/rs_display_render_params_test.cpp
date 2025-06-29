@@ -14,8 +14,10 @@
  */
 
 #include "gtest/gtest.h"
+#include "common/rs_occlusion_region.h"
 #include "params/rs_display_render_params.h"
 #include "limit_number.h"
+#include "surface_type.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -348,5 +350,21 @@ HWTEST_F(RSDisplayRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
     ASSERT_TRUE(params.needForceUpdateHwcNodes_);
     params.SetNeedForceUpdateHwcNodes(false);
     ASSERT_FALSE(params.needForceUpdateHwcNodes_);
+}
+
+/**
+ * @tc.name: DrawnRegion
+ * @tc.desc: test result of SetDrawnRegion and GetDrawnRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICI7AW
+ */
+HWTEST_F(RSDisplayRenderParamsTest, DrawnRegion, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    Occlusion::Region region(Occlusion::Rect(0, 0, 1000, 1000));
+    RSDisplayRenderParams params(id);
+    params.SetDrawnRegion(region);
+    EXPECT_EQ(params.GetDrawnRegion().GetRegionInfo(), region.GetRegionInfo());
+    EXPECT_EQ(params.drawnRegion_.GetRegionInfo(), region.GetRegionInfo());
 }
 } // namespace OHOS::Rosen
