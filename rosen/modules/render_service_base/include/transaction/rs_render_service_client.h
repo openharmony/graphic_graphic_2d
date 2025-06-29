@@ -520,7 +520,8 @@ private:
             std::size_t h1 = std::hash<NodeId>()(p.first);
             std::size_t h2 = RectHash()(p.second.mainScreenRect);
             std::size_t h3 = UICaptureParamHash()(p.second.uiCaptureInRangeParam);
-            return h1 ^ (h2 << 1) ^ (h3 << 2);
+            std::size_t h2 = RectHash()(p.second.specifiedAreaRect);
+            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
         }
     };
 

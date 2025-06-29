@@ -79,6 +79,8 @@ public:
 
 private:
     static bool IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect);
+    bool HasEndNodeRect() const;
+    bool UpdateStartAndEndNodeRect();
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap) const;
     std::unique_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
     std::unique_ptr<Media::PixelMap> CreatePixelMapByRect(const Drawing::Rect& specifiedAreaRect) const;
@@ -87,6 +89,8 @@ private:
     NodeId nodeId_ = INVALID_NODEID;
     RSSurfaceCaptureConfig captureConfig_ = {};
     static inline std::atomic<int32_t> captureCount_ = 0;
+    RectI startRect_ = {};
+    RectI endRect_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

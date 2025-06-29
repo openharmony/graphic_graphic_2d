@@ -123,6 +123,11 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
         return;
     }
+    if (!captureConfig.uiCaptureInRangeParam.useBeginNodeSize && !captureHandle->UpdateStartAndEndNodeRect()) {
+        RS_LOGE("RSUICapRSUiCaptureTaskParallel::Capture UpdateStartAndEndNodeRect error!");
+        ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
+        return;
+    }
     if (!captureHandle->CreateResources(specifiedAreaRect)) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture CreateResources failed");
         ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
@@ -168,6 +173,9 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
         node->GetType() != RSRenderNodeType::SURFACE_NODE) {
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid RSRenderNodeType!");
         return false;
+    }
+    if (HasEndNodeRect()) {
+        specifiedAreaRect = Drawing::Rect(0.f, 0.f, endRect_.width_, endRect_.height_);
     }
 #ifdef RS_ENABLE_VK
     float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
@@ -262,6 +270,10 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     int32_t rectTop = specifiedAreaRect.GetTop();
     const Drawing::scalar x_offset = static_cast<Drawing::scalar>(-1 * rectLeft);
     const Drawing::scalar y_offset = static_cast<Drawing::scalar>(-1 * rectTop);
+    if (HasEndNodeRect()) {
+        x_offset = captureConfig_.scaleX * (startRect_.left_ - endRect_.left_);
+        y_offset = captureConfig_.scaleY * (startRect_.right_ - endRect_.right_);
+    }
     relativeMatrix.Set(Drawing::Matrix::Index::TRANS_X, x_offset);
     relativeMatrix.Set(Drawing::Matrix::Index::TRANS_Y, y_offset);
     RS_LOGD("RSUiCaptureTaskParallel::Run: specifiedAreaRect offsetX is [%{public}f], offsetY is [%{public}f]",
@@ -496,6 +508,45 @@ void RSUiCaptureTaskParallel::ProcessUiCaptureCallback(sptr<RSISurfaceCaptureCal
     callback->OnSurfaceCapture(id, captureConfig, pixelmap);
     RSUiCaptureTaskParallel::captureCount_--;
     RSMainThread::Instance()->RequestNextVSync();
+}
+
+bool RSUiCaptureTaskParallel::HasEndNodeRect() const
+{
+    return captureConfig_.uiCaptureInRangeParam.endNodeId != INVALID_NODEID &&
+        !captureConfig_.uiCaptureInRangeParam.useBeginNodeSize;
+}
+
+bool RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect()
+{
+    auto startNode = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
+    if (!startNode) {
+        RS_LOGE("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect start node nullptr %{public}" PRIu64, nodeId_);
+        return false;
+    }
+    startRect_ = startNode->GetRenderProperties.GetBoundsGeometry()->GetAbsRect();
+    RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect startRect %{public}s", startRect_.ToString().c_str());
+
+    NodeId endNodeId = captureConfig_.uiCaptureInRangeParam.endNodeId;
+    if (!HasEndNodeRect()) {
+        RS_LOGE("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect end node invalid %{public}" PRIu64, endNodeId);
+        return false;
+    }
+
+    auto endNode = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(endNodeId);
+    if (!endNode) {
+        RS_LOGE("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect end node nullptr %{public}" PRIu64, endNodeId);
+        return false;
+    }
+    std::vector<NodeId> nodeIdVec;
+    startNode->CollectAllChildren(startNode, nodeIdVec);
+    if (std::find(nodeIdVec.begin(), nodeIdVec.end(), endNodeId) == nodeIdVec.end()) {
+        RS_LOGE("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endNode not on tree %{public}" PRIu64, endNodeId);
+        return false;
+    }
+
+    endRect_ = endNode->GetRenderProperties.GetBoundsGeometry()->GetAbsRect();
+    RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endRect %{public}s", endRect_.ToString().c_str());
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
