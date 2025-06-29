@@ -174,8 +174,9 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid RSRenderNodeType!");
         return false;
     }
+    Drawing::RectF targetRect = specifiedAreaRect;
     if (HasEndNodeRect()) {
-        specifiedAreaRect = Drawing::Rect(0.f, 0.f, endRect_.width_, endRect_.height_);
+        targetRect = Drawing::Rect(0.f, 0.f, endRect_.width_, endRect_.height_);
     }
 #ifdef RS_ENABLE_VK
     float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
@@ -202,16 +203,16 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
 
         nodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
-        if (IsRectValid(nodeId_, specifiedAreaRect)) {
-            pixelMap_ = CreatePixelMapByRect(specifiedAreaRect);
+        if (IsRectValid(nodeId_, targetRect)) {
+            pixelMap_ = CreatePixelMapByRect(targetRect);
         } else {
             pixelMap_ = CreatePixelMapByNode(curNode);
         }
     } else if (auto canvasNode = node->ReinterpretCastTo<RSCanvasRenderNode>()) {
         nodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode));
-        if (IsRectValid(nodeId_, specifiedAreaRect)) {
-            pixelMap_ = CreatePixelMapByRect(specifiedAreaRect);
+        if (IsRectValid(nodeId_, targetRect)) {
+            pixelMap_ = CreatePixelMapByRect(targetRect);
         } else {
             pixelMap_ = CreatePixelMapByNode(canvasNode);
         }
@@ -268,11 +269,11 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
     int32_t rectLeft = specifiedAreaRect.GetLeft();
     int32_t rectTop = specifiedAreaRect.GetTop();
-    const Drawing::scalar x_offset = static_cast<Drawing::scalar>(-1 * rectLeft);
-    const Drawing::scalar y_offset = static_cast<Drawing::scalar>(-1 * rectTop);
+    Drawing::scalar x_offset = static_cast<Drawing::scalar>(-1 * rectLeft);
+    Drawing::scalar y_offset = static_cast<Drawing::scalar>(-1 * rectTop);
     if (HasEndNodeRect()) {
         x_offset = captureConfig_.scaleX * (startRect_.left_ - endRect_.left_);
-        y_offset = captureConfig_.scaleY * (startRect_.right_ - endRect_.right_);
+        y_offset = captureConfig_.scaleY * (startRect_.top_ - endRect_.top_);
     }
     relativeMatrix.Set(Drawing::Matrix::Index::TRANS_X, x_offset);
     relativeMatrix.Set(Drawing::Matrix::Index::TRANS_Y, y_offset);
@@ -523,7 +524,7 @@ bool RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect()
         RS_LOGE("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect start node nullptr %{public}" PRIu64, nodeId_);
         return false;
     }
-    startRect_ = startNode->GetRenderProperties.GetBoundsGeometry()->GetAbsRect();
+    startRect_ = startNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect startRect %{public}s", startRect_.ToString().c_str());
 
     NodeId endNodeId = captureConfig_.uiCaptureInRangeParam.endNodeId;
@@ -544,7 +545,7 @@ bool RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect()
         return false;
     }
 
-    endRect_ = endNode->GetRenderProperties.GetBoundsGeometry()->GetAbsRect();
+    endRect_ = endNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endRect %{public}s", endRect_.ToString().c_str());
     return true;
 }
