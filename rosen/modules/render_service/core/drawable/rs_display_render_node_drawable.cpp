@@ -1716,9 +1716,10 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
 
 void RSDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
 {
+    RS_TRACE_FUNC();
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
     processor.PostProcess();
-    RS_LOGI("RSDisplayRenderNodeDrawable::SetCanvasBlack, set canvas to black because of security layer/mute status.");
+    RS_LOGD("RSDisplayRenderNodeDrawable: SetCanvasBlack");
     curCanvas_->SetDisableFilterCache(false);
 }
 
