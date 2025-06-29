@@ -379,6 +379,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     captureConfig.scaleY = scaleY;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     captureConfig.isSync = isSync;
+    captureConfig.specifiedAreaRect = specifiedAreaRect;
     if (RSSystemProperties::GetUniRenderEnabled()) {
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();

@@ -278,10 +278,12 @@ struct RSSurfaceCaptureConfig {
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
+    Drawing::Rect specifiedAreaRect = {};
     uint32_t backGroundColor = Drawing::Color::COLOR_TRANSPARENT;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect &&
+            specifiedAreaRect == config.specifiedAreaRect &&
             uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId &&
             uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize;
     }
