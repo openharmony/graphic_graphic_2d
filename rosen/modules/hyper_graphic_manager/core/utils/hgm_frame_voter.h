@@ -39,7 +39,14 @@ public:
 
     bool IsDragScene() const { return isDragScene_; }
     void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
-    void SetTouchUpLTPOFirst(bool isTouchUp);
+    void SetTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
+    {
+        isTouchUpLTPOFirstPeriod_.store(isTouchUpLTPOFirstPeriod);
+    }
+    void SetTouchUpLTPOFirstDynamicMode(DynamicModeType dynamicMode)
+    {
+        isTouchUpLTPOFirstDynamicMode_.store(dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST);
+    }
 
     void CleanVote(pid_t pid);
     void DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
@@ -62,17 +69,17 @@ private:
             markVoteChange_(voter);
         }
     }
-    bool NeedSkipVoterTouch()
+    bool NeedSkipVoterTouch(bool existVoterLTPO)
     {
-        if (existVoterLTPO_ && isTouchUpLTPOFirst_) {
+        if (existVoterLTPO && isTouchUpLTPOFirstPeriod_.load() && isTouchUpLTPOFirstDynamicMode_.load()) {
             return true;
         }
         return false;
     }
 
     bool isDragScene_ = false;
-    bool existVoterLTPO_ = false;
-    bool isTouchUpLTPOFirst_ = false;
+    std::atomic<bool> isTouchUpLTPOFirstPeriod_ = false;
+    std::atomic<bool> isTouchUpLTPOFirstDynamicMode_ = false;
     std::atomic<bool> voterGamesEffective_ = false;
     std::unordered_set<pid_t> pidRecord_;
     VoteRecord voteRecord_;

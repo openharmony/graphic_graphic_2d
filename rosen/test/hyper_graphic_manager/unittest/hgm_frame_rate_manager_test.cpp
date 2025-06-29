@@ -1350,6 +1350,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
     sleep(1);
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
+    sleep(2);
 }
 
 /**
@@ -1376,6 +1377,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchTask, Function | SmallTest | Level1
     mgr.HandleTouchTask(DEFAULT_PID, TOUCH_PULL_UP, 1);
 
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
+    sleep(3);
 }
 
 /**

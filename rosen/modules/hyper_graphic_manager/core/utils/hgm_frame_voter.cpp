@@ -55,28 +55,6 @@ HgmFrameVoter::HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy)
     }
 }
 
-void HgmFrameVoter::SetTouchUpLTPOFirst(bool isTouchUp)
-{
-    if (isTouchUpLTPOFirst_ == isTouchUp) {
-        return;
-    }
-
-    if (!isTouchUp) {
-        isTouchUpLTPOFirst_ = isTouchUp;
-        return;
-    }
-
-    PolicyConfigData::StrategyConfig strategyConfig;
-    HgmErrCode res = multiAppStrategy_.GetVoteRes(strategyConfig);
-    if (res != HgmErrCode::EXEC_SUCCESS) {
-        return;
-    }
-    if (strategyConfig.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST) {
-        isTouchUpLTPOFirst_ = isTouchUp;
-        return;
-    }
-}
-
 void HgmFrameVoter::CleanVote(pid_t pid)
 {
     if (pidRecord_.count(pid) == 0) {
@@ -167,6 +145,7 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
     std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange)
 {
     bool mergeSuccess = false;
+    bool existVoterLTPO = false;
     // [VOTER_LTPO, VOTER_IDLE)
     for (; voterIter != voters_.end() - 1; voterIter++) {
         if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
@@ -187,11 +166,11 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-        if ((isDragScene_ || NeedSkipVoterTouch()) && curVoteInfo.voterName == "VOTER_TOUCH") {
+        if ((isDragScene_ || NeedSkipVoterTouch(existVoterLTPO)) && curVoteInfo.voterName == "VOTER_TOUCH") {
             continue;
         }
         if (curVoteInfo.voterName == "VOTER_LTPO") {
-            existVoterLTPO_ = true;
+            existVoterLTPO = true;
         }
         ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {
@@ -279,7 +258,6 @@ std::pair<VoteInfo, VoteRange> HgmFrameVoter::ProcessVote(const std::string& cur
             break;
         }
     }
-    existVoterLTPO_ = false;
     voterGamesEffective_ = voterGamesEffective;
     // update effective status
     if (voterIter != voters_.end()) {

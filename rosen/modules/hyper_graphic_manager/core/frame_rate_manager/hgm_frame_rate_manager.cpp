@@ -97,6 +97,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     InitConfig();
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator, appDistributor);
     multiAppStrategy_.RegisterStrategyChangeCallback([this](const PolicyConfigData::StrategyConfig& strategy) {
+        frameVoter_.SetTouchUpLTPOFirstDynamicMode(strategy.dynamicMode);
         DeliverRefreshRateVote({"VOTER_PACKAGES", strategy.min, strategy.max}, ADD_VOTE);
         touchManager_.SetUpTimeout(strategy.upTimeOut);
         idleFps_ = strategy.idleFps;
