@@ -445,12 +445,11 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
     );
 }
 
-void SurfaceNodeCommandHelper::SetRegionToBeMagnified(RSContext& context, NodeId id, Vector4f regionToBeMagnified)
+void SurfaceNodeCommandHelper::SetRegionToBeMagnified(
+    RSContext& context, NodeId id, const Vector4<int>& regionToBeMagnified)
 {
     if (auto surfaceRenderNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         surfaceRenderNode->SetRegionToBeMagnified(regionToBeMagnified);
-        RS_LOGI_LIMIT("SurfaceNodeCommandHelper::SetRegionToBeMagnified, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
-            regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
     }
 }
 

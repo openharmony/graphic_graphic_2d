@@ -762,7 +762,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetRegionToBeMagnified, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
-    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    Vector4<int> regionToBeMagnified = {0, 0, 200, 200};
     SurfaceNodeCommandHelper::Create(context, nodeId);
     SurfaceNodeCommandHelper::SetRegionToBeMagnified(context, nodeId, regionToBeMagnified);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
