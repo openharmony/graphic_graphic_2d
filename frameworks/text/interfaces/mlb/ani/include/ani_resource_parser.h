@@ -25,9 +25,9 @@ namespace OHOS::Text::ANI {
 struct AniResource {
     std::string bundleName;
     std::string moduleName;
-    uint32_t id{0};
+    int32_t id{0};
     std::vector<std::string> params;
-    uint32_t type{0};
+    int32_t type{0};
 };
 class AniResourceParser final {
 public:

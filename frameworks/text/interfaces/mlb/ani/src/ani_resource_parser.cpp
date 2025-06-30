@@ -89,7 +89,8 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
         if (resource.id < 0 && !resource.params.empty() && !resource.params[0].empty()) {
             rPath = resource.params[0];
         } else {
-            uint32_t state = static_cast<uint32_t>(resourceManager->GetStringById(resource.id, rPath));
+            uint32_t state =
+                static_cast<uint32_t>(resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath));
             if (state >= static_cast<uint32_t>(Global::Resource::RState::ERROR)) {
                 return false;
             }
