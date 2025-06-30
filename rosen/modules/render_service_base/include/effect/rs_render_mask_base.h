@@ -29,14 +29,43 @@ namespace Drawing {
 
 class RSB_EXPORT RSNGRenderMaskBase : public RSNGRenderEffectBase<RSNGRenderMaskBase> {
 public:
-    virtual std::shared_ptr<Drawing::GEShaderMask> GenerateGEShaderMask()
-    {
-        return nullptr;
-    }
+    virtual ~RSNGRenderMaskBase() = default;
+
+    static std::shared_ptr<RSNGRenderMaskBase> Create(RSNGEffectType type);
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val);
+
+    virtual void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) {};
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGRenderMaskTemplate = RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...>;
+class RSNGRenderMaskTemplate : public RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...> {
+public:
+    using EffectTemplateBase = RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...>;
+
+    RSNGRenderMaskTemplate() : EffectTemplateBase() {}
+    ~RSNGRenderMaskTemplate() override = default;
+    RSNGRenderMaskTemplate(const std::tuple<PropertyTags...>& properties) noexcept
+        : EffectTemplateBase(properties) {}
+
+    void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) override
+    {
+        auto geMask = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
+        OnGenerateGEVisualEffect(geMask);
+        std::apply([&geMask](const auto&... propTag) {
+                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
+                    geMask, propTag), ...);
+            }, EffectTemplateBase::properties_);
+        RSNGRenderEffectHelper::AppendToGEContainer(ge, geMask);
+        if (EffectTemplateBase::nextEffect_) {
+            EffectTemplateBase::nextEffect_->AppendToGEContainer(ge);
+        }
+    }
+
+protected:
+    virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
+};
+
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 
@@ -47,7 +76,7 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
     ADD_PROPERTY_TAG(RippleMask, Center),
     ADD_PROPERTY_TAG(RippleMask, Radius),
     ADD_PROPERTY_TAG(RippleMask, Width),
-    ADD_PROPERTY_TAG(RippleMask, WidthCenterOffset)
+    ADD_PROPERTY_TAG(RippleMask, Offset)
 );
 
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,

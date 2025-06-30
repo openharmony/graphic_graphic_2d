@@ -20,6 +20,7 @@
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGFilterBase"
@@ -62,6 +63,7 @@ std::shared_ptr<RSNGFilterBase> ConvertDisplacementDistortFilterPara(std::shared
     auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
     auto dispDistortFilterPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
     dispDistortFilter->Setter<DispDistortFactorTag>(dispDistortFilterPara->GetFactor());
+    dispDistortFilter->Setter<DispDistortMaskTag>(RSNGMaskBase::Create(dispDistortFilterPara->GetMask()));
     return dispDistortFilter;
 }
 
@@ -75,6 +77,7 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     auto edgeLightFilterPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
     edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor().value_or(Vector4f()));
     edgeLightFilter->Setter<EdgeLightAlphaTag>(edgeLightFilterPara->GetAlpha());
+    edgeLightFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(edgeLightFilterPara->GetMask()));
     return edgeLightFilter;
 }
 }

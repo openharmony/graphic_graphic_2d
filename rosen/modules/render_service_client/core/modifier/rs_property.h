@@ -78,6 +78,7 @@ class RSImage;
 class RSMask;
 class RSPath;
 class RSNGFilterBase;
+class RSNGMaskBase;
 class RSLinearGradientBlurPara;
 class MotionBlurParam;
 class RSMagnifierParams;
@@ -316,6 +317,21 @@ private:
 };
 
 /**
+ * @struct RSRenderPropertyTraits
+ *
+ * @brief Helper for getting type of RSRenderProperty.
+ */
+template<typename T>
+struct RSRenderPropertyTraits {
+    using Type = RSRenderProperty<T>;
+};
+
+template<>
+struct RSRenderPropertyTraits<std::shared_ptr<RSNGMaskBase>> {
+    using Type = RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>;
+};
+
+/**
  * @class RSProperty
  *
  * @brief The class for properties.
@@ -347,7 +363,7 @@ public:
 
     using ValueType = T;
 
-    using RenderPropertyType = RSRenderProperty<T>;
+    using RenderPropertyType = typename RSRenderPropertyTraits<T>::Type;
 
     virtual void Set(const T& value)
     {
@@ -900,6 +916,16 @@ template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty();
 
 template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnAttach(RSNode& node,
+    std::weak_ptr<ModifierNG::RSModifier> modifier);
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnDetach();
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value);
+template<>
+RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty();
+
+template<>
 RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<float>::UpdateToRender(const float& value, PropertyUpdateType type) const;
@@ -969,6 +995,9 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const;
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);

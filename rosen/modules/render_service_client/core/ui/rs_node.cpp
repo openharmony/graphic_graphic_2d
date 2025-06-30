@@ -2379,12 +2379,21 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
         ROSEN_LOGE("Failed to set backgroundFilter, backgroundFilter is null!");
         return;
     }
-    // To do: generate composed filter here. Now we just set background blur in v1.0.
+    // planning: remove RSUIFilter and generate composed filter as RSNGFilterBase
+    std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
     std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto filterParas = backgroundFilter->GetAllPara();
     for (auto it = filterParas.begin(); it != filterParas.end(); ++it) {
         auto filterPara = *it;
         if (filterPara == nullptr) {
+            continue;
+        }
+        if (auto curFilter = RSNGFilterBase::Create(filterPara)) {
+            if (headFilter) {
+                headFilter->Append(curFilter);
+            } else {
+                headFilter = curFilter; // init headFilter
+            }
             continue;
         }
         switch (filterPara->GetParaType()) {
@@ -2441,6 +2450,7 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
     if (!uiFilter->GetAllTypes().empty()) {
         SetBackgroundUIFilter(uiFilter);
     }
+    SetBackgroundNGFilter(headFilter);
 }
 
 void RSNode::SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter)
@@ -2521,10 +2531,19 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
         return;
     }
     // To do: generate composed filter here. Now we just set foreground blur in v1.0.
+    std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
     std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto& filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara == nullptr) {
+            continue;
+        }
+        if (auto curFilter = RSNGFilterBase::Create(filterPara)) {
+            if (headFilter) {
+                headFilter->Append(curFilter);
+            } else {
+                headFilter = curFilter; // init headFilter
+            }
             continue;
         }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
@@ -2565,6 +2584,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
     if (!uiFilter->GetAllTypes().empty()) {
         SetForegroundUIFilter(uiFilter);
     }
+    SetForegroundNGFilter(headFilter);
 }
 
 void RSNode::SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter)
@@ -2741,38 +2761,34 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
 void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgroundFilter)
 {
 #if defined(MODIFIER_NG)
-    // Need modifierNG
-#else
     if (!backgroundFilter) {
-        ROSEN_LOGW("RSNode::SetBackgroundNGFilter background RSUIFilter is nullptr");
-        auto iter = propertyModifiers_.find(RSModifierType::BACKGROUND_NG_FILTER);
-        if (iter != propertyModifiers_.end()) {
-            RemoveModifier(iter->second);
-            propertyModifiers_.erase(iter);
+        ROSEN_LOGW("RSNode::SetBackgroundNGFilter background filter is nullptr");
+        auto& modifier =
+            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_FILTER)];
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_FILTER);
         }
         return;
     }
-    SetProperty<RSBackgroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
-        RSModifierType::BACKGROUND_NG_FILTER, backgroundFilter);
+    SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+        &ModifierNG::RSBackgroundFilterModifier::SetNGFilterBase>(backgroundFilter);
 #endif
 }
 
 void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter)
 {
 #if defined(MODIFIER_NG)
-    // Need modifierNG
-#else
     if (!foregroundFilter) {
-        ROSEN_LOGW("RSNode::SetForegroundNGFilter background RSUIFilter is nullptr");
-        auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_NG_FILTER);
-        if (iter != propertyModifiers_.end()) {
-            RemoveModifier(iter->second);
-            propertyModifiers_.erase(iter);
+        ROSEN_LOGW("RSNode::SetForegroundNGFilter background filter is nullptr");
+        auto& modifier =
+            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FOREGROUND_FILTER)];
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::FOREGROUND_NG_FILTER);
         }
         return;
     }
-    SetProperty<RSForegroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
-        RSModifierType::FOREGROUND_NG_FILTER, foregroundFilter);
+    SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+        &ModifierNG::RSForegroundFilterModifier::SetNGFilterBase>(foregroundFilter);
 #endif
 }
 

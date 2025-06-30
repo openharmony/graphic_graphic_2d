@@ -3892,6 +3892,20 @@ void RSProperties::GenerateBezierWarpFilter()
     }
 }
 
+void RSProperties::ComposeNGRenderFilter(
+    std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter)
+{
+    std::shared_ptr<RSDrawingFilter> originDrawingFilter = nullptr;
+    if (!originFilter) {
+        originDrawingFilter = std::make_shared<RSDrawingFilter>();
+    } else {
+        originDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(originFilter);
+    }
+    originDrawingFilter->SetNGRenderFilter(filter);
+    originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    originFilter = originDrawingFilter;
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -3912,6 +3926,10 @@ void RSProperties::GenerateBackgroundFilter()
 
     if (IsWaterRippleValid()) {
         GenerateWaterRippleFilter();
+    }
+
+    if (bgNGRenderFilter_) {
+        ComposeNGRenderFilter(backgroundFilter_, bgNGRenderFilter_);
     }
 
     if (alwaysSnapshot_ && backgroundFilter_ == nullptr) {
@@ -5184,8 +5202,9 @@ void RSProperties::UpdateForegroundFilter()
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
     } else if (IsHDRUIBrightnessValid()) {
         CreateHDRUIBrightnessFilter();
-    } else if (foregroundRenderFilter_) {
+    } else if (foregroundRenderFilter_ || fgNGRenderFilter_) {
         GenerateForegroundRenderFilter();
+        ComposeNGRenderFilter(foregroundFilter_, fgNGRenderFilter_);
     }
 }
 

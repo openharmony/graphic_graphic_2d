@@ -265,7 +265,9 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_trace.cpp",
 
     #effect
+    "src/effect/rs_render_effect_template.cpp",
     "src/effect/rs_render_filter_base.cpp",
+    "src/effect/rs_render_mask_base.cpp",
 
     #hpae
     "src/hpae_base/rs_hpae_base_data.cpp",

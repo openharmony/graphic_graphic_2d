@@ -141,4 +141,15 @@ Vector2f RSForegroundFilterModifier::GetAttractionDstPoint() const
 {
     return Getter(RSPropertyType::ATTRACTION_DSTPOINT, Vector2f(0.f, 0.f));
 }
+
+void RSForegroundFilterModifier::SetNGFilterBase(std::shared_ptr<RSNGFilterBase> filter)
+{
+    Setter<RSProperty>(RSPropertyType::FOREGROUND_NG_FILTER, filter);
+}
+
+std::shared_ptr<RSNGFilterBase> RSForegroundFilterModifier::GetNGFilterBase() const
+{
+    return Getter(RSPropertyType::FOREGROUND_NG_FILTER, nullptr);
+}
+
 } // namespace OHOS::Rosen::ModifierNG

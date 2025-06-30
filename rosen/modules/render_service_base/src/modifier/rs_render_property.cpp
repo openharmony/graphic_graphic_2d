@@ -20,6 +20,7 @@
 #include "rs_profiler.h"
 
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
@@ -771,6 +772,49 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType()
+{
+    stagingValue_->SetModifierType(modifierType_);
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
+{
+    if (stagingValue_) {
+        stagingValue_->Attach(node, modifier);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnDetach()
+{
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+}
+
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
+    const std::shared_ptr<RSNGRenderMaskBase>& value, PropertyUpdateType type)
+{
+    if (value == stagingValue_) {
+        return;
+    }
+    // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
+    // member variable.
+    auto node = node_.lock();
+    if (node && stagingValue_) {
+        stagingValue_->Detach();
+    }
+    stagingValue_ = value;
+    if (value) {
+        value->Attach(*node, modifier_.lock());
+    }
+    OnChange();
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnSetModifierType()
 {
     stagingValue_->SetModifierType(modifierType_);
 }
