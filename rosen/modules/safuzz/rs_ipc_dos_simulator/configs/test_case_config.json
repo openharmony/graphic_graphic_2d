@@ -2327,5 +2327,26 @@
     "inputParams": "WriteUint64;WriteString;WriteUint32",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_SERVICE_OPEN_FILE_TEST_001",
+    "interfaceName": "PROFILER_SERVICE_OPEN_FILE",
+    "inputParams": "WriteUint32;WriteString;WriteString;WriteString;WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_SERVICE_POPULATE_FILES_TEST_001",
+    "interfaceName": "PROFILER_SERVICE_POPULATE_FILES",
+    "inputParams": "WriteUint32;WriteString;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_IS_SECURE_SCREEN_TEST_001",
+    "interfaceName": "PROFILER_IS_SECURE_SCREEN",
+    "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]

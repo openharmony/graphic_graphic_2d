@@ -24,6 +24,7 @@
 #include "rs_frame_report.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+#include "rs_profiler.h"
 //blur predict
 #include "rs_frame_blur_predict.h"
 #include "system/rs_system_parameters.h"
@@ -3385,6 +3386,44 @@ int32_t RSRenderServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemI
     gpuMemInMB = memorySnapshotInfo.gpuMemory / MEM_BYTE_TO_MB;
     RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB called succ");
     return ERR_OK;
+}
+
+RetCodeHrpService RSRenderServiceConnection::ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+    const std::string& fileName, int32_t flags, int& outFd)
+{
+#ifdef RS_PROFILER_ENABLED
+    if (fileName.length() == 0 || !HrpServiceValidDirOrFileName(fileName)) {
+        return RET_HRP_SERVICE_ERR_INVALID_PARAM;
+    }
+
+    return RSProfiler::HrpServiceOpenFile(dirInfo, fileName, flags, outFd);
+#else
+    outFd = -1;
+    return RET_HRP_SERVICE_ERR_UNSUPPORTED;
+#endif
+}
+
+RetCodeHrpService RSRenderServiceConnection::ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+    uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
+{
+#ifdef RS_PROFILER_ENABLED
+    return RSProfiler::HrpServicePopulateFiles(dirInfo, firstFileIndex, outFiles);
+#else
+    outFiles.clear();
+    return RET_HRP_SERVICE_ERR_UNSUPPORTED;
+#endif
+}
+
+bool RSRenderServiceConnection::ProfilerIsSecureScreen()
+{
+#ifdef RS_PROFILER_ENABLED
+    if (!RSSystemProperties::GetProfilerEnabled()) {
+        return false;
+    }
+    return RSProfiler::IsSecureScreen();
+#else
+    return false;
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

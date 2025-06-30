@@ -40,6 +40,7 @@
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
+#include "rs_hrp_service.h"
 #include "rs_irender_client.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
@@ -490,6 +491,12 @@ public:
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+
+    RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd);
+    RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
+    bool ProfilerIsSecureScreen();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);

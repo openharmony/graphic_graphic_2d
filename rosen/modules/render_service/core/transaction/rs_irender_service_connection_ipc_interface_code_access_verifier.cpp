@@ -567,6 +567,18 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PID_GPU_MEMORY_IN_MB");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_OPEN_FILE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_SERVICE_OPEN_FILE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_SERVICE_POPULATE_FILES): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_SERVICE_POPULATE_FILES");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_IS_SECURE_SCREEN");
+            break;
+        }
         default: {
             break;
         }

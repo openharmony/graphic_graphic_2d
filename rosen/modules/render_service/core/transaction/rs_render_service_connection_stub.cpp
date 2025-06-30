@@ -36,6 +36,7 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_unmarshal_thread.h"
+#include "transaction/rs_hrp_service.h"
 #include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
@@ -208,6 +209,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -3696,6 +3700,51 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::AVCODEC_VIDEO_STOP Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE): {
+            HrpServiceDir baseDirType = HrpServiceGetDirType(data.ReadUint32());
+            std::string subDir = data.ReadString();
+            std::string subDir2 = data.ReadString();
+            std::string fileName = data.ReadString();
+            int32_t flags = data.ReadInt32();
+
+            int32_t retFd = -1;
+            HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+            RetCodeHrpService retCode = ProfilerServiceOpenFile(dirInfo, fileName, flags, retFd);
+            reply.WriteInt32((int32_t)retCode);
+            reply.WriteFileDescriptor(retFd);
+            if (retFd != -1) {
+                close(retFd); // call 'close' due to dup was invoked
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES): {
+            HrpServiceDir baseDirType = HrpServiceGetDirType(data.ReadUint32());
+            std::string subDir = data.ReadString();
+            std::string subDir2 = data.ReadString();
+            uint32_t firstFileIndex = data.ReadUint32();
+
+            std::vector<HrpServiceFileInfo> retFiles;
+            HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+            RetCodeHrpService retCode = ProfilerServicePopulateFiles(dirInfo, firstFileIndex, retFiles);
+            reply.WriteInt32((int32_t)retCode);
+            reply.WriteUint32((uint32_t)retFiles.size());
+            for (const auto& fi : retFiles) {
+                reply.WriteString(fi.name);
+                reply.WriteUint32(fi.size);
+                reply.WriteBool(fi.isDir);
+                reply.WriteUint32(fi.accessBits);
+                reply.WriteUint64(fi.accessTime.sec);
+                reply.WriteUint64(fi.accessTime.nsec);
+                reply.WriteUint64(fi.modifyTime.sec);
+                reply.WriteUint64(fi.modifyTime.nsec);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN): {
+            bool retValue = ProfilerIsSecureScreen();
+            reply.WriteBool(retValue);
             break;
         }
         default: {

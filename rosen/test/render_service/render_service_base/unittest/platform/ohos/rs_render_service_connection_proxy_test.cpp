@@ -1429,5 +1429,32 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetPidGpuMemoryInMBTest, TestSize.L
     int32_t res = proxy->GetPidGpuMemoryInMB(pid, gpuMemInMB);
     EXPECT_NE(res, ERR_OK);
 }
+
+/**
+ * @tc.name: ProfilerServiceOpenFileTest
+ * @tc.desc: ProfilerServiceOpenFileTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC98WU
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, ProfilerServiceOpenFileTest, TestSize.Level1)
+{
+    int32_t fd = 0;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN, "", ""};
+    proxy->ProfilerServiceOpenFile(dirInfo, "", 0, fd);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+* @tc.name: ProfilerIsSecureScreenTest
+* @tc.desc: ProfilerIsSecureScreenTest
+* @tc.type: FUNC
+* @tc.require: issuesIC98WU
+*/
+HWTEST_F(RSRenderServiceConnectionProxyTest, ProfilerIsSecureScreenTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    proxy->ProfilerIsSecureScreen();
+    ASSERT_TRUE(proxy);
+}
 } // namespace Rosen
 } // namespace OHOS
