@@ -124,7 +124,7 @@ HWTEST_F(RSOcclusionHandlerTest, CollectNode_WithNonAnomalous, TestSize.Level1)
  * @tc.name: ProcessOffTreeNodes_WithNodeEmpty
  * @tc.desc: Test ProcessOffTreeNodes when occlusionNodes_ is empty
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionHandlerTest, ProcessOffTreeNodes_WithNodeEmpty, TestSize.Level1)
 {
@@ -148,7 +148,7 @@ HWTEST_F(RSOcclusionHandlerTest, ProcessOffTreeNodes_WithNodeEmpty, TestSize.Lev
  * @tc.name: ProcessOffTreeNodes_WithNodeNotExist
  * @tc.desc: Test ProcessOffTreeNodes when node not exist
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionHandlerTest, ProcessOffTreeNodes_WithNodeNotExist, TestSize.Level1)
 {
@@ -284,7 +284,7 @@ HWTEST_F(RSOcclusionHandlerTest, UpdateChildrenOutOfRectInfo, TestSize.Level1)
  * @tc.name: UpdateSkippedSubTreeProp_WithNodeEmpty
  * @tc.desc: Test UpdateSkippedSubTreeProp when occlusionNodes_ is empty
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionHandlerTest, UpdateSkippedSubTreeProp_WithNodeEmpty, TestSize.Level1)
 {
@@ -398,7 +398,7 @@ HWTEST_F(RSOcclusionHandlerTest, GetRootNodeId, TestSize.Level1)
  * @tc.name: DebugPostOcclusionProcessing
  * @tc.desc: Test DebugPostOcclusionProcessing
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionHandlerTest, DebugPostOcclusionProcessing, TestSize.Level1)
 {
