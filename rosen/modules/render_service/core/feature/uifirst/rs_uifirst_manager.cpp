@@ -1268,13 +1268,14 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 {
     int64_t curSysTime = GetCurSysTime();
     currentFrameEvent_.clear();
-    if (!mainThread_ || entryViewNodeId_ == INVALID_NODEID || negativeScreenNodeId_ == INVALID_NODEID) {
+    if (!mainThread_) {
         mainThread_ = RSMainThread::Instance();
-        if (mainThread_) {
-            entryViewNodeId_ = mainThread_->GetContext().GetNodeMap().GetEntryViewNodeId();
-            negativeScreenNodeId_ = mainThread_->GetContext().GetNodeMap().GetNegativeScreenNodeId();
-            scbPid_ = ExtractPid(entryViewNodeId_);
-        }
+    }
+    if (mainThread_) {
+        const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+        entryViewNodeId_ = nodeMap.GetEntryViewNodeId();
+        negativeScreenNodeId_ = nodeMap.GetNegativeScreenNodeId();
+        scbPid_ = ExtractPid(entryViewNodeId_);
     }
     {
         std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
