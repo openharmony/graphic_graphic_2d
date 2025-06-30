@@ -991,6 +991,24 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
     return *this;
 }
 
+bool RSPaintFilterCanvasBase::DrawImageEffectHPS(const Drawing::Image& image,
+    const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams)
+{
+    bool result = false;
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            result = ((*iter)->DrawImageEffectHPS(image, hpsEffectParams) || result);
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        result = canvas_->DrawImageEffectHPS(image, hpsEffectParams);
+    }
+#endif
+    return result;
+}
+
 bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams)
 {
     bool result = false;

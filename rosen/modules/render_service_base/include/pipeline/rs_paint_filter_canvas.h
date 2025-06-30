@@ -139,6 +139,8 @@ public:
     CoreCanvas& DetachBrush() override;
     CoreCanvas& DetachPaint() override;
 
+    bool DrawImageEffectHPS(const Drawing::Image& image,
+        const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams) override;
     bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 

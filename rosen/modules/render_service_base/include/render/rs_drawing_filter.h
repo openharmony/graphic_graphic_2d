@@ -111,6 +111,11 @@ private:
 
     bool IsHpsBlurApplied(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush, float radius);
+    void DrawKawaseEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
+        const DrawImageRectAttributes& attr, const Drawing::Brush& brush,
+        std::shared_ptr<RSRenderFilterParaBase>& kawaseShaderFilter);
+    bool ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush);
     bool ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush);
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
