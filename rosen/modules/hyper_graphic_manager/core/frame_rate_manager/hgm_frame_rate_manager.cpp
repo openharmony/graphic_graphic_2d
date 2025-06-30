@@ -877,7 +877,8 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         return;
     }
     HgmTaskHandleThread::Instance().PostTask([this, pid, touchStatus, touchCnt]() {
-        if (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP) {
+        if (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP ||
+            touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END) {
             HandlePointerTask(pid, touchStatus, touchCnt);
         } else {
             HandleTouchTask(pid, touchStatus, touchCnt);
@@ -929,6 +930,19 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
             HGM_LOGD("[pointer manager] active");
             pointerManager_.HandleTimerReset();
             pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
+        }
+    }
+
+    if (pointerStatus ==  AXIS_BEGIN || pointerStatus == AXIS_UPDATE || pointerStatus == AXIS_END) {
+        PolicyConfigData::StrategyConfig strategyRes;
+        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
+            strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
+            HGM_LOGD("[pointer axis manager] active");
+            if (pointerStatus == AXIS_BEGIN) {
+                pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
+            } else {
+                pointerManager_.HandleTimerReset();
+            }
         }
     }
 }
