@@ -234,10 +234,10 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_canvas_render_node.cpp",
     "src/pipeline/rs_context.cpp",
     "src/pipeline/rs_dirty_region_manager.cpp",
-    "src/pipeline/rs_display_render_node.cpp",
     "src/pipeline/rs_draw_cmd.cpp",
     "src/pipeline/rs_draw_cmd_list.cpp",
     "src/pipeline/rs_effect_render_node.cpp",
+    "src/pipeline/rs_logical_display_render_node.cpp",
     "src/pipeline/rs_occlusion_config.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
@@ -251,6 +251,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
+    "src/pipeline/rs_screen_render_node.cpp",
     "src/pipeline/rs_surface_buffer_callback_manager.cpp",
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node.cpp",
@@ -413,11 +414,12 @@ ohos_source_set("render_service_base_src") {
 
       #params
       "src/params/rs_canvas_drawing_render_params.cpp",
-      "src/params/rs_display_render_params.cpp",
       "src/params/rs_effect_render_params.cpp",
+      "src/params/rs_logical_display_render_params.cpp",
       "src/params/rs_rcd_render_params.cpp",
       "src/params/rs_render_params.cpp",
       "src/params/rs_render_thread_params.cpp",
+      "src/params/rs_screen_render_params.cpp",
       "src/params/rs_surface_render_params.cpp",
     ]
   }

@@ -19,7 +19,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_context.h"
 
 using namespace testing;
@@ -35,7 +35,7 @@ public:
     void CreateRenderTask();
     std::unique_ptr<RSRenderTask> renderTask_;
     std::unique_ptr<RSSuperRenderTask> supRenderTask_;
-    std::shared_ptr<RSDisplayRenderNode> rsDisplayRenderNode_;
+    std::shared_ptr<RSScreenRenderNode> rsDisplayRenderNode_;
     std::shared_ptr<RSSurfaceRenderNode> rsSurfRenderNode_;
 };
 
@@ -49,8 +49,7 @@ void RSRenderTaskTest::SetUp()
     rsSurfRenderNode_ = std::make_shared<RSSurfaceRenderNode>(surfaceNodeConfig, rsContext->weak_from_this());
     ASSERT_NE(rsSurfRenderNode_, nullptr);
     
-    RSDisplayNodeConfig displayNodeConfig;
-    rsDisplayRenderNode_ = std::make_shared<RSDisplayRenderNode>(0, displayNodeConfig, rsContext->weak_from_this());
+    rsDisplayRenderNode_ = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
     ASSERT_NE(rsDisplayRenderNode_, nullptr);
 
     renderTask_ = std::make_unique<RSRenderTask>(*rsSurfRenderNode_, RSRenderTask::RenderNodeStage::PROCESS);
@@ -179,8 +178,7 @@ HWTEST_F(RSRenderTaskTest, GetNextRenderTaskEmpty, TestSize.Level1)
 HWTEST_F(RSRenderTaskTest, RSCompositionTask, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
-    RSDisplayNodeConfig displayConfig;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig, rsContext->weak_from_this());
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(10, 0, rsContext->weak_from_this());
     auto compositionTask = std::make_shared<RSCompositionTask>(rsDisplayRenderNode);
     ASSERT_EQ(compositionTask->GetIdx(), 10);
     compositionTask->SetIdx(20);

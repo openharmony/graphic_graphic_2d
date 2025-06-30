@@ -21,9 +21,11 @@
 #include "main_thread/rs_main_thread.h"
 
 #include "common/rs_obj_abs_geometry.h"
-#include "drawable/rs_display_render_node_drawable.h"
-#include "params/rs_display_render_params.h"
-#include "pipeline/rs_display_render_node.h"
+#include "drawable/rs_screen_render_node_drawable.h"
+#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "params/rs_screen_render_params.h"
+#include "params/rs_logical_display_render_params.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "platform/common/rs_log.h"
 
 #ifdef SOC_PERF_ENABLE
@@ -38,7 +40,7 @@ using namespace FRAME_TRACE;
 namespace OHOS {
 namespace Rosen {
 
-bool RSProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
+bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
     std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
 #ifdef RS_ENABLE_GPU
@@ -46,42 +48,45 @@ bool RSProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& d
         RS_LOGE("renderEngine is nullptr");
         return false;
     }
-    auto& params = displayDrawable.GetRenderParams();
+    auto& params = screenDrawable.GetRenderParams();
     if (params == nullptr) {
         RS_LOGE("RSProcessor::InitForRenderThread params is null!");
         return false;
     }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
-    offsetX_ = displayParams->GetDisplayOffsetX();
-    offsetY_ = displayParams->GetDisplayOffsetY();
-    mirroredId_ = mirroredId;
+    auto screenParams = static_cast<RSScreenRenderParams*>(params.get());
+    offsetX_ = screenParams->GetScreenOffsetX();
+    offsetY_ = screenParams->GetScreenOffsetY();
     renderEngine_ = renderEngine;
-    screenInfo_ = displayParams->GetScreenInfo();
-    screenInfo_.rotation = displayParams->GetNodeRotation();
-
-    // CalculateScreenTransformMatrix
-    auto mirroredNodeDrawable = displayParams->GetMirrorSourceDrawable().lock();
-    if (!mirroredNodeDrawable) {
-        screenTransformMatrix_ = displayParams->GetMatrix();
-    } else if (mirroredNodeDrawable->GetRenderParams()) {
-        auto& mirrorNodeParam = mirroredNodeDrawable->GetRenderParams();
-        screenTransformMatrix_ = mirrorNodeParam->GetMatrix();
-        if (mirroredId_ != INVALID_SCREEN_ID) {
-            auto mirroredScreenInfo = mirrorNodeParam->GetScreenInfo();
-            CalculateMirrorAdaptiveCoefficient(
-                static_cast<float>(screenInfo_.width), static_cast<float>(screenInfo_.height),
-                static_cast<float>(mirroredScreenInfo.width), static_cast<float>(mirroredScreenInfo.height)
-            );
-        }
-    }
+    screenInfo_ = screenParams->GetScreenInfo();
 
     // set default render frame config
     renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_);
 #endif
     return true;
 }
+    
+bool RSProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)
+{
+    auto& params = displayDrawable.GetRenderParams();
+    if (params == nullptr) {
+        RS_LOGE("RSProcess::UpdateMirrorInfo params is null!");
+        return false;
+    }
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(params.get());
+    screenInfo_.rotation = displayParams->GetNodeRotation();
+    // CalculateScreenTransformMatrix
+    auto mirroredNodeDrawable = displayParams->GetMirrorSourceDrawable().lock();
+    if (mirroredNodeDrawable && mirroredNodeDrawable->GetRenderParams()) {
+        auto& mirrorNodeParam = mirroredNodeDrawable->GetRenderParams();
+        CalculateMirrorAdaptiveCoefficient(static_cast<float>(params->GetBounds().GetWidth()),
+            static_cast<float>(params->GetBounds().GetHeight()),
+            static_cast<float>(mirrorNodeParam->GetBounds().GetWidth()),
+            static_cast<float>(mirrorNodeParam->GetBounds().GetHeight()));
+    }
+    return true;
+}
 
-bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
     std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
     if (renderEngine == nullptr) {
@@ -98,13 +103,12 @@ bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offse
     offsetY_ = offsetY;
     mirroredId_ = mirroredId;
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
-    screenInfo_.rotation = node.GetRotation();
+
     auto mirrorNode = node.GetMirrorSource().lock();
     CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : node);
 
     if (mirroredId_ != INVALID_SCREEN_ID) {
         mirroredScreenInfo_ = screenManager->QueryScreenInfo(mirroredId_);
-        mirroredScreenInfo_.rotation = mirrorNode->GetRotation();
         CalculateMirrorAdaptiveMatrix();
     }
 
@@ -113,21 +117,16 @@ bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offse
     return true;
 }
 
-void RSProcessor::SetMirrorScreenSwap(const RSDisplayRenderNode& node)
+void RSProcessor::SetMirrorScreenSwap(const RSScreenRenderNode& node)
 {
     auto mirroredNode = node.GetMirrorSource().lock();
     if (mirroredNode == nullptr) {
         RS_LOGE("RSProcessor::Init: Get mirroredNode failed");
         return;
     }
-    if (mirroredNode->GetRotation() == ScreenRotation::ROTATION_90 ||
-        mirroredNode->GetRotation() == ScreenRotation::ROTATION_270) {
-        std::swap(screenInfo_.width, screenInfo_.height);
-        std::swap(renderFrameConfig_.width, renderFrameConfig_.height);
-    }
 }
 
-void RSProcessor::CalculateScreenTransformMatrix(const RSDisplayRenderNode& node)
+void RSProcessor::CalculateScreenTransformMatrix(const RSScreenRenderNode& node)
 {
     auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr != nullptr) {

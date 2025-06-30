@@ -128,7 +128,8 @@ public:
 
     void SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
+        NodeId logicalDisplayNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -609,7 +610,7 @@ public:
     bool GetHwcGlobalPositionEnabled() const;
 
     void SetHwcCrossNode(bool isCrossNode);
-    bool IsDRMCrossNode() const;
+    bool IsHwcCrossNode() const;
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetLeashPersistentId(uint64_t leashPersistentId);
@@ -1313,9 +1314,9 @@ public:
     }
     bool GetNodeIsSingleFrameComposer() const override;
 
-    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorScreenNode(const RSBaseRenderNode::WeakPtr& ancestorScreenNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
+        ancestorScreenNode_ = ancestorScreenNode;
     }
 
     bool SetUifirstNodeEnableParam(MultiThreadCacheType b);
@@ -1334,9 +1335,9 @@ public:
         return uifirstStartTime_;
     }
 
-    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    RSBaseRenderNode::WeakPtr GetAncestorScreenNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorScreenNode_;
     }
     bool QuerySubAssignable(bool isRotation);
     bool QueryIfAllHwcChildrenForceDisabledByFilter();
@@ -1348,7 +1349,7 @@ public:
     void UpdatePartialRenderParams();
     // This function is used for extending visibleRegion by dirty blurfilter node half-obscured
     void UpdateExtendVisibleRegion(Occlusion::Region& region);
-    void UpdateAncestorDisplayNodeInRenderParams();
+    void UpdateAncestorScreenNodeInRenderParams();
 
     void SetNeedDrawFocusChange(bool needDrawFocusChange)
     {
@@ -1827,7 +1828,7 @@ private:
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
 #endif
-    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
+    RSBaseRenderNode::WeakPtr ancestorScreenNode_;
     RectI clipRegionFromParent_;
     RectI dstRect_;
     RectI srcRect_;

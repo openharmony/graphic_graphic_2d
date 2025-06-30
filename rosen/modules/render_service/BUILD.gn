@@ -216,7 +216,10 @@ ohos_shared_library("librender_service") {
   ]
 
   #dfx
-  sources += [ "core/drawable/dfx/rs_skp_capture_dfx.cpp" ]
+  sources += [
+    "core/drawable/dfx/rs_refresh_rate_dfx.cpp", 
+    "core/drawable/dfx/rs_skp_capture_dfx.cpp",
+  ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     sources += [
@@ -230,10 +233,11 @@ ohos_shared_library("librender_service") {
       "core/drawable/dfx/rs_dirty_rects_dfx.cpp",
       "core/drawable/rs_canvas_drawing_render_node_drawable.cpp",
       "core/drawable/rs_canvas_render_node_drawable.cpp",
-      "core/drawable/rs_display_render_node_drawable.cpp",
       "core/drawable/rs_effect_render_node_drawable.cpp",
+      "core/drawable/rs_logical_display_render_node_drawable.cpp",
       "core/drawable/rs_render_node_drawable.cpp",
       "core/drawable/rs_root_render_node_drawable.cpp",
+      "core/drawable/rs_screen_render_node_drawable.cpp",
       "core/drawable/rs_surface_render_node_drawable.cpp",
       "core/feature/capture/rs_surface_capture_task_parallel.cpp",
       "core/feature/capture/rs_ui_capture_solo_task_parallel.cpp",

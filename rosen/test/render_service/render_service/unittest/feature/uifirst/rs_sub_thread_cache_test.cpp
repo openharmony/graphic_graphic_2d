@@ -21,7 +21,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "skia_adapter/skia_surface.h"
 
@@ -35,7 +35,7 @@ constexpr NodeId DEFAULT_ID = 0xFFFF;
 class RSSubThreadCacheTest : public testing::Test {
 public:
     std::shared_ptr<RSSurfaceRenderNode> renderNode_;
-    std::shared_ptr<RSDisplayRenderNode> displayRenderNode_;
+    std::shared_ptr<RSScreenRenderNode> displayRenderNode_;
     std::shared_ptr<RSSurfaceRenderNodeDrawable> surfaceDrawable_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::shared_ptr<Drawing::Canvas> drawingCanvas_;
@@ -57,8 +57,8 @@ void RSSubThreadCacheTest::TearDownTestCase() {}
 void RSSubThreadCacheTest::SetUp()
 {
     renderNode_ = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
-    RSDisplayNodeConfig config;
-    displayRenderNode_ = std::make_shared<RSDisplayRenderNode>(DEFAULT_ID, config);
+    auto context = std::make_shared<RSContext>();
+    displayRenderNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
     if (!renderNode_) {
         RS_LOGE("RSSubThreadCacheTest: failed to create surface node.");
         return;

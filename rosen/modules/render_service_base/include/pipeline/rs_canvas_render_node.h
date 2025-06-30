@@ -79,7 +79,7 @@ public:
     void SetLinkedRootNodeId(NodeId rootNodeId);
     RSB_EXPORT NodeId GetLinkedRootNodeId() const;
 
-    void UpdateDisplayHDRNodeList(bool flag, NodeId displayNodeId) const;
+    void UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,

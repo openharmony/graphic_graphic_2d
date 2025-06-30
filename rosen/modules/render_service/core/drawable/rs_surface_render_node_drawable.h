@@ -27,7 +27,7 @@
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/uifirst/rs_draw_window_cache.h"
@@ -38,7 +38,8 @@ class RSRenderThreadParams;
 class RSSurfaceRenderNode;
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
-class RSDisplayRenderNodeDrawable;
+class RSScreenRenderNodeDrawable;
+class RSLogicalDisplayRenderNodeDrawable;
 class RSRcdSurfaceRenderNodeDrawable;
 
 // remove this when rcd node is replaced by common hardware composer node in OH 6.0 rcd refactoring

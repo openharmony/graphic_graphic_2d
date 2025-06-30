@@ -40,8 +40,9 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -260,7 +261,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
-            uifirstRootNodeId_, displayNodeId_);
+            uifirstRootNodeId_, screenNodeId_, logicalDisplayNodeId_);
     } else {
         if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
@@ -278,6 +279,11 @@ void RSRenderNode::SetContainBootAnimation(bool isContainBootAnimation)
 {
     isContainBootAnimation_ = isContainBootAnimation;
     isFullChildrenListValid_ = false;
+    if (GetType() == RSRenderNodeType::SCREEN_NODE) {
+        if (auto parentPtr = GetParent().lock()) {
+            parentPtr->SetContainBootAnimation(isContainBootAnimation);
+        }
+    }
 }
 
 void RSRenderNode::MoveUIExtensionChild(SharedPtr child)
@@ -424,7 +430,7 @@ void RSRenderNode::SetEnableHdrEffect(bool enableHdrEffect)
 }
 
 void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
+    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
 #ifdef RS_ENABLE_GPU
     // We do not need to label a child when the child is removed from a parent that is not on the tree
@@ -447,7 +453,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
                 parentNodeId);
             if (canvasNode->GetHDRPresent()) {
                 SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
-                canvasNode->UpdateDisplayHDRNodeList(flag, displayNodeId);
+                canvasNode->UpdateScreenHDRNodeList(flag, screenNodeId);
             }
             if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
                 SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
@@ -465,7 +471,8 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
 
     isNewOnTree_ = flag && !isOnTheTree_;
     isOnTheTree_ = flag;
-    displayNodeId_ = displayNodeId;
+    screenNodeId_ = screenNodeId;
+    logicalDisplayNodeId_ = logicalDisplayNodeId;
     if (isOnTheTree_) {
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
@@ -505,12 +512,12 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, displayNodeId);
+            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, displayNodeId);
+            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
     }
 #endif
 }
@@ -636,7 +643,8 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_,
+            screenNodeId_, logicalDisplayNodeId_);
     }
     if (child->IsCrossNode()) {
         child->SetDirty();
@@ -849,7 +857,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpNodeType(GetType(), out);
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
-    if (auto displayNode = ReinterpretCastTo<RSDisplayRenderNode>()) {
+    if (auto displayNode = ReinterpretCastTo<RSScreenRenderNode>()) {
         out += ", screenId[" + std::to_string(displayNode->GetScreenId()) + "]";
     }
     if (auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>()) {
@@ -1056,8 +1064,8 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
 void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
 {
     switch (nodeType) {
-        case RSRenderNodeType::DISPLAY_NODE: {
-            out += "DISPLAY_NODE";
+        case RSRenderNodeType::SCREEN_NODE: {
+            out += "SCREEN_NODE";
             break;
         }
         case RSRenderNodeType::RS_NODE: {
@@ -1086,6 +1094,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
         }
         case RSRenderNodeType::EFFECT_NODE: {
             out += "EFFECT_NODE";
+            break;
+        }
+        case RSRenderNodeType::LOGICAL_DISPLAY_NODE: {
+            out += "LOGICAL_DISPLAY_NODE";
             break;
         }
         default: {
@@ -1125,12 +1137,11 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
             std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
         out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
-    } else if (GetType() == RSRenderNodeType::DISPLAY_NODE) {
-        auto displayNode = static_cast<const RSDisplayRenderNode*>(this);
+    } else if (GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+        auto displayNode = static_cast<const RSLogicalDisplayRenderNode*>(this);
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
         out += ", securityExemption: " + std::to_string(displayNode->GetSecurityExemption());
         out += ", virtualScreenMuteStatus: " + std::to_string(displayNode->GetVirtualScreenMuteStatus());
-        out += ", colorSpace: " + std::to_string(displayNode->GetColorSpace());
     } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
         auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
         NodeId linkedRootNodeId = canvasNode->GetLinkedRootNodeId();
@@ -2987,7 +2998,7 @@ void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSR
 
 void RSRenderNode::ResetAndApplyModifiers()
 {
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(shared_from_this());
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(shared_from_this());
     int32_t currentScbPid = displayNode == nullptr ? -1 : displayNode->GetCurrentScbPid();
 #if defined(MODIFIER_NG)
     for (const auto& [modifierType, resetFunc] : ModifierNG::RSRenderModifier::GetResetFuncMap()) {
@@ -3403,6 +3414,16 @@ void RSRenderNode::SetBootAnimation(bool isBootAnimation)
     ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 "isBootAnimation %{public}d",
         GetId(), isBootAnimation);
     isBootAnimation_ = isBootAnimation;
+    if (GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+        if (auto parent = GetParent().lock()) {
+            parent->SetBootAnimation(isBootAnimation);
+        }
+    } else if (GetType() == RSRenderNodeType::SCREEN_NODE) {
+        if (!isBootAnimation) {
+            return;
+        }
+        SetContainBootAnimation(true);
+    }
 }
 
 bool RSRenderNode::GetBootAnimation() const

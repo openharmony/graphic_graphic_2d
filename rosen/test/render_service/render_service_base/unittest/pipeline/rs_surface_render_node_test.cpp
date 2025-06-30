@@ -816,9 +816,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetHwcCrossNodeTest, TestSize.Level1)
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     node->SetHwcCrossNode(true);
-    ASSERT_EQ(node->IsDRMCrossNode(), true);
+    ASSERT_EQ(node->IsHwcCrossNode(), true);
     node->SetHwcCrossNode(false);
-    ASSERT_FALSE(node->IsDRMCrossNode());
+    ASSERT_FALSE(node->IsHwcCrossNode());
 }
 
 /**
@@ -831,8 +831,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, AncestorDisplayNodeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto displayNode = std::make_shared<RSBaseRenderNode>(0, context);
-    node->SetAncestorDisplayNode(displayNode);
-    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
+    node->SetAncestorScreenNode(displayNode);
+    ASSERT_EQ(node->GetAncestorScreenNode().lock(), displayNode);
 }
 
 /**

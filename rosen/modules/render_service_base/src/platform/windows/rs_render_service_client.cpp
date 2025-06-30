@@ -543,6 +543,14 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
     return {};
 }
 
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+{
+}
+
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+}
+
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return {};

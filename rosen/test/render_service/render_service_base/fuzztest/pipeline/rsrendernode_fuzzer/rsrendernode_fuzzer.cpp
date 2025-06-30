@@ -23,7 +23,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -156,12 +156,8 @@ bool RSCrossRenderNodeFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     NodeId id = GetData<NodeId>();
-    uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
-    NodeId mirrorNodeId = GetData<NodeId>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    RSDisplayRenderNode displayNode(id, config, context);
+    RSScreenRenderNode displayNode(id, 1, context);
 
     NodeId childId = GetData<NodeId>();
     NodeId cloneNodeId = GetData<NodeId>();
@@ -263,7 +259,7 @@ bool RSDirtyRegionManagerFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
+bool RSScreenRenderParamsNodeFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -276,21 +272,13 @@ bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
 
     // getdata
     NodeId id = GetData<NodeId>();
-    uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
-    NodeId mirrorNodeId = GetData<NodeId>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
-    int32_t offsetX = GetData<int32_t>();
-    int32_t offsetY = GetData<int32_t>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSBaseRenderNode>(id, context);
     std::vector<RSBaseRenderNode::SharedPtr> vec = { node };
     bool isUniRender = GetData<bool>();
-    RSDisplayRenderNode::CompositeType type = GetData<RSDisplayRenderNode::CompositeType>();
+    CompositeType type = GetData<CompositeType>();
     bool flag = GetData<bool>();
-    RSDisplayRenderNode::SharedPtr displayPtrNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    bool isMirror = GetData<bool>();
-    bool isSecurityDisplay = GetData<bool>();
+    RSScreenRenderNode::SharedPtr displayPtrNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     uint32_t refreshRate = GetData<uint32_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
     int32_t bufferage = GetData<int32_t>();
@@ -299,16 +287,12 @@ bool RSDisplayRenderNodeFuzzTest(const uint8_t* data, size_t size)
     int width = GetData<int>();
     int height = GetData<int>();
     RectI rect(left, top, width, height);
-    RSDisplayRenderNode displayNode(id, config, context);
+    RSScreenRenderNode displayNode(id, 1, context);
 
-    displayNode.SetScreenId(screenId);
-    displayNode.SetDisplayOffset(offsetX, offsetY);
     displayNode.CollectSurface(node, vec, isUniRender, false);
     displayNode.SetCompositeType(type);
     displayNode.SetForceSoftComposite(flag);
     displayNode.SetMirrorSource(displayPtrNode);
-    displayNode.SetIsMirrorDisplay(isMirror);
-    displayNode.SetSecurityDisplay(isSecurityDisplay);
     displayNode.SkipFrame(refreshRate, skipFrameInterval);
     displayNode.UpdateDisplayDirtyManager(bufferage);
     displayNode.UpdateSurfaceNodePos(id, rect);
@@ -591,7 +575,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSContextFuzzTest(data, size);
     OHOS::Rosen::RSCanvasRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSDirtyRegionManagerFuzzTest(data, size);
-    OHOS::Rosen::RSDisplayRenderNodeFuzzTest(data, size);
+    OHOS::Rosen::RSScreenRenderParamsNodeFuzzTest(data, size);
     OHOS::Rosen::RSDrawCmdListFuzzTest(data, size);
     OHOS::Rosen::RSOcclusionConfigFuzzTes(data, size);
 

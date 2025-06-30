@@ -19,7 +19,7 @@
 #include "surface_type.h"
 
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_meta_data_helper.h"
@@ -62,17 +62,18 @@ std::shared_ptr<Drawing::Image> CreateSkImage()
     return surface->GetImageSnapshot();
 }
 
-RSDisplayRenderNodeDrawable* GenerateDisplayDrawableById(NodeId id, RSDisplayNodeConfig config)
+RSScreenRenderNodeDrawable* GenerateDisplayDrawableById(NodeId id, ScreenId screenId,
+    const std::weak_ptr<RSContext>& context)
 {
-    std::shared_ptr<RSDisplayRenderNode> renderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    std::shared_ptr<RSScreenRenderNode> renderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     if (!renderNode) {
         return nullptr;
     }
-    RSRenderNodeDrawableAdapter* displayAdapter = RSDisplayRenderNodeDrawable::OnGenerate(renderNode);
+    RSRenderNodeDrawableAdapter* displayAdapter = RSScreenRenderNodeDrawable::OnGenerate(renderNode);
     if (!displayAdapter) {
         return nullptr;
     }
-    return static_cast<RSDisplayRenderNodeDrawable*>(displayAdapter);
+    return static_cast<RSScreenRenderNodeDrawable*>(displayAdapter);
 }
 
 void RSUniRenderUtilTest::SetUpTestCase()
@@ -387,8 +388,8 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
     uint32_t threadIndex = 1;
     RSUniRenderUtil::ClearNodeCacheSurface(nullptr, nullptr, threadIndex, 0);
     NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     ASSERT_NE(node, nullptr);
     threadIndex = UNI_MAIN_THREAD_INDEX;
     auto cacheSurface = node->GetCacheSurface(threadIndex, false);
@@ -694,11 +695,11 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam002, TestSize.Level2)
 {
     RSUniRenderUtil rsUniRenderUtil;
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id++, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
     ASSERT_NE(rsDisplayRenderNode, nullptr);
     auto node = std::make_shared<RSRenderNode>(id++);
-    auto rsDisplayRenderNodeDrawable = std::make_shared<DrawableV2::RSDisplayRenderNodeDrawable>(node);
+    auto rsDisplayRenderNodeDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(node);
     rsDisplayRenderNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(node->id_);
     rsDisplayRenderNode->renderDrawable_ = rsDisplayRenderNodeDrawable;
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -726,8 +727,8 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam003, TestSize.Level2)
 {
     RSUniRenderUtil rsUniRenderUtil;
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id++, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
     auto cpuParam = rsUniRenderUtil.CreateBufferDrawParam(*rsDisplayRenderNode, true);
     auto nocpuParam = rsUniRenderUtil.CreateBufferDrawParam(*rsDisplayRenderNode, false);
     ASSERT_NE(cpuParam.useCPU, nocpuParam.useCPU);
@@ -745,10 +746,10 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam004, TestSize.Level2)
 {
     RSUniRenderUtil rsUniRenderUtil;
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id++, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
     auto node = std::make_shared<RSRenderNode>(id++);
-    auto rsDisplayRenderNodeDrawable = std::make_shared<DrawableV2::RSDisplayRenderNodeDrawable>(node);
+    auto rsDisplayRenderNodeDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(node);
     rsDisplayRenderNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(node->id_);
     rsDisplayRenderNode->renderDrawable_ = rsDisplayRenderNodeDrawable;
     auto cpuParam = rsUniRenderUtil.CreateBufferDrawParam(*rsDisplayRenderNode, true);
@@ -884,11 +885,11 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam010, TestSize.Level2)
     // Basic setup
     RSUniRenderUtil rsUniRenderUtil;
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id++, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
     ASSERT_NE(rsDisplayRenderNode, nullptr);
     auto node = std::make_shared<RSRenderNode>(id++);
-    auto rsDisplayRenderNodeDrawable = std::make_shared<DrawableV2::RSDisplayRenderNodeDrawable>(node);
+    auto rsDisplayRenderNodeDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(node);
     rsDisplayRenderNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(node->id_);
     rsDisplayRenderNode->renderDrawable_ = rsDisplayRenderNodeDrawable;
 
@@ -1213,11 +1214,11 @@ HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion004, TestSize.Level1
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable001, TestSize.Level1)
 {
     NodeId defaultDisplayId = 5;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(displayDrawable, nullptr);
     int32_t bufferAge = 0;
-    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
     params->isFirstVisitCrossNodeDisplay_ = false;
     bool aligned = false;
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
@@ -1242,11 +1243,11 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable001, TestSize.Level1)
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable002, TestSize.Level1)
 {
     NodeId defaultDisplayId = 5;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(displayDrawable, nullptr);
     int32_t bufferAge = 0;
-    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
     params->isFirstVisitCrossNodeDisplay_ = false;
     bool aligned = false;
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters;
@@ -1281,11 +1282,11 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable002, TestSize.Level1)
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable003, TestSize.Level1)
 {
     NodeId defaultDisplayId = 5;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(displayDrawable, nullptr);
     int32_t bufferAge = 0;
-    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
     params->isFirstVisitCrossNodeDisplay_ = true;
     bool aligned = false;
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters;
@@ -1314,11 +1315,11 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable003, TestSize.Level1)
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
 {
     NodeId defaultDisplayId = 5;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(displayDrawable, nullptr);
     int32_t bufferAge = 0;
-    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
     params->isFirstVisitCrossNodeDisplay_ = false;
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
 
@@ -1347,11 +1348,11 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
 HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
 {
     NodeId defaultDisplayId = 5;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
     ASSERT_NE(displayDrawable, nullptr);
     int32_t bufferAge = 0;
-    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
     params->isFirstVisitCrossNodeDisplay_ = false;
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
 

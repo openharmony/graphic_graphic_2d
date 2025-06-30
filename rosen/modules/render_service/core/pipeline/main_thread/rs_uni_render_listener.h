@@ -20,7 +20,7 @@
 #include <mutex>
 #include <ibuffer_consumer_listener.h>
 #include "common/rs_common_def.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_surface_handler.h"
 

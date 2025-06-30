@@ -28,7 +28,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "draw/clip.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
 #include "include/utils/SkCamera.h"
@@ -1297,12 +1297,12 @@ ScreenId RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderPar
 {
     ScreenId screenId = 0;
     if (gettid() == RSUniRenderThread::Instance().GetTid()) { // Check whether the thread is in the UniRenderThread.
-        auto ancestorDrawable = nodeParams->GetAncestorDisplayDrawable().lock();
+        auto ancestorDrawable = nodeParams->GetAncestorScreenDrawable().lock();
         if (ancestorDrawable == nullptr) {
             return screenId;
         }
         auto ancestorDisplayDrawable =
-            std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(ancestorDrawable);
+            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(ancestorDrawable);
         if (ancestorDisplayDrawable == nullptr) {
             return screenId;
         }
@@ -1310,16 +1310,16 @@ ScreenId RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderPar
         if (ancestorParam == nullptr) {
             return screenId;
         }
-        auto renderParams = static_cast<RSDisplayRenderParams*>(ancestorParam.get());
+        auto renderParams = static_cast<RSScreenRenderParams*>(ancestorParam.get());
         if (renderParams == nullptr) {
             return screenId;
         }
         screenId = renderParams->GetScreenId();
     } else {
-        std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
-        auto displayLock = nodeParams->GetAncestorDisplayNode().lock();
+        std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
+        auto displayLock = nodeParams->GetAncestorScreenNode().lock();
         if (displayLock != nullptr) {
-            ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+            ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
         }
         if (ancestor == nullptr) {
             return screenId;

@@ -29,7 +29,7 @@
 #include "common/rs_vector4.h"
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_render_node.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "recording/draw_cmd_list.h"
 
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
@@ -143,7 +143,7 @@ class RSRenderNode;
 class RSRenderModifier;
 class RSProperties;
 class RSContext;
-class RSDisplayRenderNode;
+class RSScreenRenderNode;
 class RSRenderNodeMap;
 class RSAnimationManager;
 class RSRenderAnimation;
@@ -319,7 +319,7 @@ private:
 
     RSB_EXPORT static bool IsSecureScreen();
 
-    RSB_EXPORT static std::shared_ptr<RSDisplayRenderNode> GetDisplayNode(const RSContext& context);
+    RSB_EXPORT static std::shared_ptr<RSScreenRenderNode> GetScreenNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 
     // RSRenderNodeMap

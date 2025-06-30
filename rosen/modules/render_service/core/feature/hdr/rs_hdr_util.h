@@ -17,7 +17,7 @@
 #define RS_HDR_UTIL_H
 
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -34,11 +34,11 @@ public:
     static bool CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode);
     static bool CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
     static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
-    static void UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node);
-    static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSDisplayRenderNode& displayNode);
+    static void UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node);
+    static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSScreenRenderNode& displayNode);
     static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void SetHDRParam(RSSurfaceRenderNode& node, bool flag);
-    static void HandleVirtualScreenHDRStatus(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
 };
 
 } // namespace Rosen

@@ -194,7 +194,7 @@ void RsFrameReport::PostAndWait()
     ReportSchedEvent(FrameSchedEvent::RS_POST_AND_WAIT, {});
 }
 
-void RsFrameReport::BeginFlush()
+void RsFrameReport::CheckBeginFlushPoint()
 {
     ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
 }

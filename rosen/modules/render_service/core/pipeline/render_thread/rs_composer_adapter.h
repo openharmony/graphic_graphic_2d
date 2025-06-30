@@ -18,7 +18,7 @@
 
 #include "hdi_backend.h"
 
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_base_render_util.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -38,11 +38,11 @@ public:
 
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
         const FallbackCallback& cb);
-    bool Init(const RSDisplayRenderNode& node, const ScreenInfo& screenInfo, const ScreenInfo& mirroredScreenInfo,
+    bool Init(const RSScreenRenderNode& node, const ScreenInfo& screenInfo, const ScreenInfo& mirroredScreenInfo,
         float mirrorAdaptiveCoefficient, const FallbackCallback& cb);
 
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
-    LayerInfoPtr CreateLayer(RSDisplayRenderNode& node) const;
+    LayerInfoPtr CreateLayer(RSScreenRenderNode& node) const;
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     /* only used for mock tests */
     void SetHdiBackendDevice(HdiDevice* device);
@@ -55,7 +55,7 @@ private:
     LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;
     LayerInfoPtr CreateTunnelLayer(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node, bool isTunnelCheck = false) const;
-    ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
+    ComposeInfo BuildComposeInfo(RSScreenRenderNode& node) const;
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,

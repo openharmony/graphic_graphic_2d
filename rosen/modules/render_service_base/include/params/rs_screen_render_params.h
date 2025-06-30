@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
-#define RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
+#ifndef RENDER_SERVICE_BASE_PARAMS_RS_SCREEN_RENDER_PARAMS_H
+#define RENDER_SERVICE_BASE_PARAMS_RS_SCREEN_RENDER_PARAMS_H
 
 #include <memory>
 
@@ -22,15 +22,15 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_params.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "screen_manager/rs_screen_info.h"
 #include "pipeline/rs_surface_render_node.h"
 namespace OHOS::Rosen {
-class RSB_EXPORT RSDisplayRenderParams : public RSRenderParams {
+class RSB_EXPORT RSScreenRenderParams : public RSRenderParams {
 public:
-    explicit RSDisplayRenderParams(NodeId id);
-    ~RSDisplayRenderParams() override = default;
+    explicit RSScreenRenderParams(NodeId id);
+    ~RSScreenRenderParams() override = default;
 
     void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 
@@ -51,29 +51,22 @@ public:
     }
 
     const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const;
-    int32_t GetDisplayOffsetX() const
+    int32_t GetScreenOffsetX() const
     {
-        return offsetX_;
+        return screenInfo_.offsetX;
     }
-    int32_t GetDisplayOffsetY() const
+    int32_t GetScreenOffsetY() const
     {
-        return offsetY_;
+        return screenInfo_.offsetY;
     }
-    uint64_t GetScreenId() const override
+    uint64_t GetScreenId() const
     {
-        return screenId_;
+        return screenInfo_.id;
     }
-    uint64_t GetMirroredId() const
-    {
-        return mirroredId_;
-    }
-    const ScreenInfo& GetScreenInfo() const override
+
+    const ScreenInfo& GetScreenInfo() const
     {
         return screenInfo_;
-    }
-    NodeId GetMirrorSourceId() const
-    {
-        return mirrorSourceId_;
     }
 
     bool IsDirtyAlignEnabled() const
@@ -86,18 +79,11 @@ public:
         isDirtyAlignEnabled_ = isDirtyAlignEnabled;
     }
 
-    RSDisplayRenderNode::CompositeType GetCompositeType() const
+    CompositeType GetCompositeType() const
     {
         return compositeType_;
-    };
-    ScreenRotation GetScreenRotation() const override
-    {
-        return screenRotation_;
     }
-    ScreenRotation GetNodeRotation() const
-    {
-        return nodeRotation_;
-    }
+
     bool IsMirrorScreen() const
     {
         return isMirrorScreen_;
@@ -110,45 +96,18 @@ public:
     {
         return hasChildCrossNode_;
     }
-    RSSpecialLayerManager& GetMultableSpecialLayerMgr()
+    
+    uint32_t GetChildDisplayCount() const
     {
-        return specialLayerManager_;
-    }
-    const RSSpecialLayerManager& GetSpecialLayerMgr() const
-    {
-        return specialLayerManager_;
-    }
-    const std::map<ScreenId, bool>& GethasCaptureWindow() const
-    {
-        return hasCaptureWindow_;
-    }
-
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledDrawables()
-    {
-        return hardwareEnabledDrawables_;
-    }
-
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTopDrawables()
-    {
-        return hardwareEnabledTopDrawables_;
-    }
-
-    void SetSecurityDisplay(bool isSecurityDisplay);
-    bool GetSecurityDisplay() const override
-    {
-        return isSecurityDisplay_;
+        return childDisplayCount_;
     }
     void SetGlobalZOrder(float zOrder);
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
-    bool HasCaptureWindow() const;
-
+    // hsc todo: to delete
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
-
-    void SetRotationChanged(bool changed) override;
-    bool IsRotationChanged() const override;
 
     void SetFingerprint(bool hasFingerprint) override;
     bool GetFingerprint() override;
@@ -170,32 +129,11 @@ public:
     void SetZoomed(bool isZoomed);
     bool GetZoomed() const;
 
-    bool HasMirrorDisplay() const;
-    void SetHasMirrorDisplay(bool hasMirrorDisplay);
+    bool HasMirrorScreen() const;
+    void SetHasMirrorScreen(bool hasMirrorScreen);
 
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetTargetSurfaceRenderNodeDrawable() const;
-
-    bool IsSpecialLayerChanged() const
-    {
-        auto iter = displaySpecailSurfaceChanged_.find(screenId_);
-        return iter == displaySpecailSurfaceChanged_.end() ? false : iter->second;
-    }
-
-    bool GetSecurityExemption() const
-    {
-        return isSecurityExemption_;
-    }
-
-    bool HasSecLayerInVisibleRect() const
-    {
-        return hasSecLayerInVisibleRect_;
-    }
-
-    bool HasSecLayerInVisibleRectChanged() const
-    {
-        return hasSecLayerInVisibleRectChanged_;
-    }
 
     // Only used in virtual expand screen to record accumulate frame status
     void SetAccumulatedDirty(bool isAccumulatedDirty)
@@ -229,10 +167,6 @@ public:
         return roundCornerSurfaceDrawables_;
     }
 
-    bool GetVirtualScreenMuteStatus() const
-    {
-        return virtualScreenMuteStatus_;
-    }
     void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes);
     bool GetNeedForceUpdateHwcNodes() const;
 
@@ -243,60 +177,46 @@ public:
     std::string ToString() const override;
 
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable() override;
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetDisplayDrawables()
+    {
+        return logicalDisplayNodeDrawables_;
+    }
 private:
-    RSSpecialLayerManager specialLayerManager_;
-    std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
-    std::map<ScreenId, bool> hasCaptureWindow_;
+
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
     std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
-    int32_t offsetX_ = -1;
-    int32_t offsetY_ = -1;
-    ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
-    ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
-    uint64_t screenId_ = 0;
-    bool isSecurityDisplay_ = false;
-    bool isSecurityExemption_ = false;
-    bool hasSecLayerInVisibleRect_ = false;
-    bool hasSecLayerInVisibleRectChanged_ = false;
     bool isDirtyAlignEnabled_ = false;
-    std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
-    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
-    NodeId mirrorSourceId_ = INVALID_NODEID;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     ScreenInfo screenInfo_;
-    ScreenId mirroredId_ = INVALID_SCREEN_ID;
-    RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
+    uint32_t childDisplayCount_ = 0;
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needForceUpdateHwcNodes_ = false;
     bool needOffscreen_ = false;
-    bool isRotationChanged_ = false;
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     bool isHDRStatusChanged_ = false;
-    bool virtualScreenMuteStatus_ = false;
     // Only used in virtual expand screen to record accumulate frame status
     bool isAccumulatedDirty_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
-    bool hasMirrorDisplay_ = false;
+    bool hasMirrorScreen_ = false;
     // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
-    friend class RSDisplayRenderNode;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrawables_;
-    // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTopDrawables_;
+    friend class RSScreenRenderNode;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     Occlusion::Region drawnRegion_;
 };
 } // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_PARAMS_RS_DISPLAY_RENDER_PARAMS_H
+
+#endif // RENDER_SERVICE_BASE_PARAMS_RS_SCREEN_RENDER_PARAMS_H

@@ -27,11 +27,12 @@
 #include "hgm_core.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_screen.h"
 #include "rs_trace.h"
+#include "screen_manager/rs_screen_node_listener.h"
 #include "vsync_sampler.h"
 
 #undef LOG_TAG
@@ -526,6 +527,7 @@ void RSScreenManager::ProcessPendingConnections()
         pendingConnectedIds.swap(pendingConnectedIds_);
     }
     for (auto id : pendingConnectedIds) {
+        NotifyScreenNodeChange(id, true);
         if (!isHwcDead_) {
             TriggerCallbacks(id, ScreenEvent::CONNECTED);
         } else if (id != 0 && MultiScreenParam::IsRsReportHwcDead()) {
@@ -672,13 +674,14 @@ void RSScreenManager::ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& outp
 {
     ScreenId id = ToScreenId(output->GetScreenId());
     RS_LOGW("%{public}s process screen disconnected, id: %{public}" PRIu64, __func__, id);
-    if (GetScreen(id) == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-    } else {
+    if (auto screen = GetScreen(id)) {
         TriggerCallbacks(id, ScreenEvent::DISCONNECTED);
+        NotifyScreenNodeChange(id, false);
         std::lock_guard<std::mutex> lock(screenMapMutex_);
         screens_.erase(id);
         RS_LOGI("%{public}s: Screen(id %{public}" PRIu64 ") disconnected.", __func__, id);
+    } else {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
     }
     {
         std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
@@ -1081,6 +1084,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
         screens_[newId] = std::make_shared<RSScreen>(configs);
     }
     ++currentVirtualScreenNum_;
+    NotifyScreenNodeChange(newId, true);
     RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 ").", __func__, newId);
     return newId;
 }
@@ -1470,35 +1474,25 @@ void RSScreenManager::RemoveVirtualScreen(ScreenId id)
 {
     {
         std::lock_guard<std::mutex> lock(screenMapMutex_);
-        auto screensIt = screens_.find(id);
-        if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        auto iter = screens_.find(id);
+        if (iter == screens_.end() || iter->second == nullptr) {
             RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
             return;
         }
-        if (!screensIt->second->IsVirtual()) {
+        if (!iter->second->IsVirtual()) {
             RS_LOGW("%{public}s: The screen is not virtual, id %{public}" PRIu64, __func__, id);
             return;
         }
 
-        screens_.erase(screensIt);
+        screens_.erase(iter);
         --currentVirtualScreenNum_;
-
-        // Update other screens' mirrorId.
-        for (auto& [id, screen] : screens_) {
-            if (screen == nullptr) {
-                RS_LOGW("%{public}s: screen %{public}" PRIu64 " not found", __func__, id);
-                continue;
-            }
-            if (screen->MirroredId() == id) {
-                screen->SetMirror(INVALID_SCREEN_ID);
-            }
-        }
         RS_LOGI("%{public}s: remove virtual screen(id %{public}" PRIu64 ").", __func__, id);
     }
     {
         std::lock_guard<std::mutex> lock(virtualScreenIdMutex_);
         freeVirtualScreenIds_.push(id);
     }
+    NotifyScreenNodeChange(id, false);
 
     // when virtual screen doesn't exist no more, render control can be recovered.
     {
@@ -1875,6 +1869,8 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     info.height = screen->Height();
     info.phyWidth = screen->PhyWidth() ? screen->PhyWidth() : screen->Width();
     info.phyHeight = screen->PhyHeight() ? screen->PhyHeight() : screen->Height();
+    info.offsetX = screen->GetOffsetX();
+    info.offsetY = screen->GetOffsetY();
     info.isSamplingOn = screen->IsSamplingOn();
     info.samplingTranslateX = screen->GetSamplingTranslateX();
     info.samplingTranslateY = screen->GetSamplingTranslateY();
@@ -1997,6 +1993,28 @@ void RSScreenManager::RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallb
     }
     screenChangeCallbacks_.erase(iter);
     RS_LOGI("%{public}s: remove a remote callback succeed.", __func__);
+}
+
+void RSScreenManager::RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener)
+{
+    if (listener == nullptr) {
+        RS_LOGE("%{public}s: callback is null", __func__);
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
+        for (const auto& [id, screen] : screens_) {
+            if (screen == nullptr) {
+                RS_LOGW("%{public}s: screen %{public}" PRIu64" not found", __func__, id);
+                continue;
+            }
+            listener->OnScreenConnect(id);
+        }
+    }
+
+    std::lock_guard<std::shared_mutex> lock(screenChangeCallbackMutex_);
+    screenNodeListener_ = listener;
 }
 
 void RSScreenManager::DisplayDump(std::string& dumpString)
@@ -2527,10 +2545,32 @@ bool RSScreenManager::IsVisibleRectSupportRotation(ScreenId id)
     return screen->GetVisibleRectSupportRotation();
 }
 
+void RSScreenManager::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+    }
+    screen->SetScreenOffset(offsetX, offsetY);
+}
+
 bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func) const
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
     return std::any_of(screens_.cbegin(), screens_.cend(), func);
+}
+
+void RSScreenManager::NotifyScreenNodeChange(ScreenId id, bool connected) const
+{
+    if (screenNodeListener_ == nullptr) {
+        RS_LOGE("%{public}s: screenNodeListener_ is nullptr!", __func__);
+        return;
+    }
+    if (connected) {
+        screenNodeListener_->OnScreenConnect(id);
+    } else {
+        screenNodeListener_->OnScreenDisconnect(id);
+    }
 }
 
 void RSScreenManager::TriggerCallbacks(ScreenId id, ScreenEvent event, ScreenChangeReason reason) const

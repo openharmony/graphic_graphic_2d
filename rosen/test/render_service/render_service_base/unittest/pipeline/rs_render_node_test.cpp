@@ -25,7 +25,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -1622,7 +1622,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
 
     std::string outTest1 = "";
-    nodeTest->DumpNodeType(RSRenderNodeType::DISPLAY_NODE, outTest1);
+    nodeTest->DumpNodeType(RSRenderNodeType::SCREEN_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::RS_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::SURFACE_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::CANVAS_NODE, outTest1);
@@ -1701,7 +1701,7 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
-	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
+        "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
         "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0], colorSpace: 4, uifirstColorGamut: 4");
 }
 
@@ -1714,8 +1714,8 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
 {
     std::string outTest = "";
-    RSDisplayNodeConfig config;
-    auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
+    auto context = std::make_shared<RSContext>();
+    auto renderNode = std::make_shared<RSScreenRenderNode>(0, 0, context);
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0, colorSpace: 4");
 }
@@ -1989,9 +1989,8 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossParentChild009, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, AddCrossScreenChild, TestSize.Level1)
 {
     NodeId id = 1;
-    struct RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(id, 0, context);
     EXPECT_NE(displayRenderNode, nullptr);
     auto childTest1 = nullptr;
     displayRenderNode->AddCrossScreenChild(childTest1, 2, -1);

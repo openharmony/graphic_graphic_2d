@@ -31,11 +31,11 @@ public:
     
     RSVirtualScreenProcessor();
     ~RSVirtualScreenProcessor() noexcept override;
-    bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+    bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
 
     void ProcessSurface(RSSurfaceRenderNode& node) override;
-    void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
+    void ProcessScreenSurface(RSScreenRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
 

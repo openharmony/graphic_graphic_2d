@@ -228,6 +228,14 @@ void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
 }
 
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+{
+}
+
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+}
+
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
 }

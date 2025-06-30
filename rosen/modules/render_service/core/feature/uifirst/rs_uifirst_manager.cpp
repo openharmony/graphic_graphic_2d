@@ -25,7 +25,7 @@
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_memory_manager.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -267,7 +267,7 @@ void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRe
     auto node = surfaceNode->GetParent().lock();
 
     while (node != nullptr) {
-        if (node->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+        if (node->GetType() == RSRenderNodeType::SCREEN_NODE) {
             break;
         }
         if (node->IsSuggestedDrawInGroup()) {
@@ -460,22 +460,22 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-    if (!surfaceParams || !surfaceParams->GetAncestorDisplayNode().lock()) {
+    if (!surfaceParams || !surfaceParams->GetAncestorScreenNode().lock()) {
         return;
     }
-    auto ancestor = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    auto ancestor = surfaceParams->GetAncestorScreenNode().lock()->ReinterpretCastTo<RSScreenRenderNode>();
     if (!ancestor) {
         return;
     }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
-    if (!displayParams) {
+    auto screenParams = static_cast<RSScreenRenderParams*>(ancestor->GetRenderParams().get());
+    if (!screenParams) {
         return;
     }
-    bool isHdrOn = displayParams->GetHDRPresent();
-    ScreenId id = displayParams->GetScreenId();
+    bool isHdrOn = screenParams->GetHDRPresent();
+    ScreenId id = screenParams->GetScreenId();
     auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
     rsSubThreadCache.SetHDRPresent(isHdrOn);
-    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(displayParams->GetNewColorSpace()) &&
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(screenParams->GetNewColorSpace()) &&
         GetUiFirstSwitch();
     bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
@@ -484,7 +484,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         if ((isScRGBEnable || ColorGamutParam::IsAdaptiveColorGamutEnabled()) && changeColorSpace) {
             RS_LOGI("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
-            RS_TRACE_NAME_FMT("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
+            RS_TRACE_NAME_FMT("UIFirstHDR SyncScreenParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
             drawable->GetRsSubThreadCache().ClearCacheSurfaceInThread();
         }
@@ -1936,8 +1936,8 @@ void RSUifirstManager::RefreshUIFirstParam()
     if (!firstChildren) {
         return;
     }
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
-    if (!displayNode) {
+    auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstChildren);
+    if (!screenNode) {
         return;
     }
     isUiFirstSupportFlag_ = true;

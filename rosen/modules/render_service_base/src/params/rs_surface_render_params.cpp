@@ -434,7 +434,7 @@ void RSSurfaceRenderParams::SetHwcCrossNode(bool isCrossNode)
 {
     isHwcCrossNode_ = isCrossNode;
 }
-bool RSSurfaceRenderParams::IsDRMCrossNode() const
+bool RSSurfaceRenderParams::IsHwcCrossNode() const
 {
     return isHwcCrossNode_;
 }
@@ -564,8 +564,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isAppWindow_ = isAppWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
-    targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
-    targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
+    targetSurfaceParams->ancestorScreenNode_ = ancestorScreenNode_;
+    targetSurfaceParams->ancestorScreenDrawable_ = ancestorScreenDrawable_;
     targetSurfaceParams->sourceDisplayRenderNodeDrawable_ = sourceDisplayRenderNodeDrawable_;
     targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
     targetSurfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
@@ -578,7 +578,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isCrossNode_ = isCrossNode_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
-    targetSurfaceParams->absDrawRect_ = absDrawRect_;
     targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
     targetSurfaceParams->visibleRegion_ = visibleRegion_;
@@ -675,7 +674,6 @@ std::string RSSurfaceRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(isAttractionValid_);
     ret += RENDER_BASIC_PARAM_TO_STRING(needBilinearInterpolation_);
     ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
-    ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(occlusionVisible_);
     ret += RENDER_BASIC_PARAM_TO_STRING(isOccludedByFilterCache_);
     ret += "}";

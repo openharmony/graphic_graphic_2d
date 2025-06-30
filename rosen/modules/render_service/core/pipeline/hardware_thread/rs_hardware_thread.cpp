@@ -313,7 +313,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         output->ReleaseLayers(releaseFence_);
         RSBaseRenderUtil::DecAcquiredBufferCount();
-        RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();
+        RSUniRenderThread::Instance().NotifyScreenNodeBufferReleased();
         if (hasGameScene) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();

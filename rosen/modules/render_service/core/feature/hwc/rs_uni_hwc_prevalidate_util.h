@@ -24,7 +24,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -72,8 +72,8 @@ public:
         ScreenId id, std::vector<RequestLayerInfo> infos, std::map<uint64_t, RequestCompositionType> &strategy);
     bool CreateSurfaceNodeLayerInfo(uint32_t zorder,
         RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
-    bool CreateDisplayNodeLayerInfo(uint32_t zorder,
-        RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
+    bool CreateScreenNodeLayerInfo(uint32_t zorder,
+        RSScreenRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     bool CreateRCDLayerInfo(
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     bool IsPrevalidateEnable();

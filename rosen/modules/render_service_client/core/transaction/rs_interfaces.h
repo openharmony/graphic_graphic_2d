@@ -739,6 +739,21 @@ public:
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
     /**
+     * @brief Set screen offset.
+     * @param id Screen id.
+     * @param offSetX The offset value of the screen drawing area on the X-axis.
+     * @param offSetY The offset value of the screen drawing area on the Y-axis.
+     */
+    void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY);
+
+    /**
+     * @brief Set frame gravity of screen node
+     * @param id Screen id.
+     * @param gravity The gravity value of the screen node.
+     */
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
+    /**
      * @brief Create a VsyncReceiver instance.
      * @param name Indicates the name of the VsyncReceiver instance.
      * @param looper Indicates the pointer of a eventHandle instance.

@@ -508,7 +508,7 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight /
             (boundsHeight == 0.0f ? 1.0f : boundsHeight));
         if (absRect == node.GetDstRect()) {
-            // If the SurfaceRenderNode is completely in the DisplayRenderNode,
+            // If the SurfaceRenderNode is completely in the ScreenRenderNode,
             // we do not need to crop the buffer.
             srcRect.width_ = bufferWidth;
             srcRect.height_ = bufferHeight;

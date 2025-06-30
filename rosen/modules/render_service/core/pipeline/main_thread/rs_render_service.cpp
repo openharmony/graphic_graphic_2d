@@ -178,7 +178,7 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
         return false;
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
-	
+
     RSGfxDumpInit(); // Gfx Init
 
     RS_PROFILER_INIT(this);

@@ -64,7 +64,7 @@ public:
     void UniRenderEnd();
     void UnblockMainThread();
     void PostAndWait();
-    void BeginFlush();
+    void CheckBeginFlushPoint();
     void ReportBufferCount(int count);
     void ReportHardwareInfo(int tid);
     void ReportFrameDeadline(int deadline, uint32_t currentRate);

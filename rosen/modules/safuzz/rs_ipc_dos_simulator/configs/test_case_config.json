@@ -963,15 +963,6 @@
     "commandListRepeat": 1
   },
   {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_109",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeSetDisplayOffset*100",
-    "commandListRepeat": 1
-  },
-  {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_110",
     "interfaceName": "COMMIT_TRANSACTION",
     "inputParams": "WriteRSTransactionData",
@@ -1005,15 +996,6 @@
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
     "commandList": "RSDisplayNodeSetBootAnimation*100",
-    "commandListRepeat": 1
-  },
-  {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_114",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeSetRogSize*100",
     "commandListRepeat": 1
   },
   {

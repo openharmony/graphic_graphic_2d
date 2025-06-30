@@ -3424,6 +3424,49 @@ ErrCode RSRenderServiceConnectionProxy::SetScreenActiveRect(ScreenId id, const R
     return ERR_OK;
 }
 
+void RSRenderServiceConnectionProxy::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id) || !data.WriteInt32(offSetX) || !data.WriteInt32(offSetY)) {
+        ROSEN_LOGE("%{public}s: write error.", __func__);
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_OFFSET);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+
+    if (!data.WriteUint64(id) || !data.WriteInt32(gravity)) {
+        ROSEN_LOGE("%{public}s: write error.", __func__);
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
+    }
+}
+
 ErrCode RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(
     sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode)
 {

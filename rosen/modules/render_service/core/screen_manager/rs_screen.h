@@ -66,6 +66,11 @@ public:
     // physical screen resolution
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
+
+    virtual void SetScreenOffset(int32_t offsetX, int32_t offsetY) = 0;
+    virtual int32_t GetOffsetX() const = 0;
+    virtual int32_t GetOffsetY() const = 0;
+
     virtual bool IsSamplingOn() const = 0;
     virtual float GetSamplingTranslateX() const = 0;
     virtual float GetSamplingTranslateY() const = 0;
@@ -207,6 +212,9 @@ public:
     // physical screen resolution
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
+    void SetScreenOffset(int32_t offsetX, int32_t offsetY) override;
+    int32_t GetOffsetX() const override;
+    int32_t GetOffsetY() const override;
     bool IsSamplingOn() const override;
     float GetSamplingTranslateX() const override;
     float GetSamplingTranslateY() const override;
@@ -366,6 +374,9 @@ private:
     std::vector<GraphicDisplayModeInfo> supportedModes_;
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
+
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
 
     mutable std::mutex producerSurfaceMutex_;
     sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual

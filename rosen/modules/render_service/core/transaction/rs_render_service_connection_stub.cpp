@@ -132,6 +132,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_OFFSET),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
@@ -2467,6 +2469,29 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_OFFSET): {
+            ScreenId id = INVALID_SCREEN_ID;
+            int32_t offsetX = 0;
+            int32_t offsetY = 0;
+            if (!data.ReadUint64(id) || !data.ReadInt32(offsetX) || !data.ReadInt32(offsetY)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_OFFSET Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetScreenOffset(id, offsetX, offsetY);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY): {
+            ScreenId id = INVALID_SCREEN_ID;
+            int32_t gravity = 0;
+            if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetScreenFrameGravity(id, gravity);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -3375,20 +3400,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            uint64_t mirrorId{0};
+            uint64_t mirroredId{0};
             uint64_t screenId{0};
-            bool isMirrored{false};
-            if (!data.ReadUint64(mirrorId) ||
+            bool isMirror{false};
+            if (!data.ReadUint64(mirroredId) ||
                 !data.ReadUint64(screenId) ||
-                !data.ReadBool(isMirrored)) {
+                !data.ReadBool(isMirror)) {
                 RS_LOGE("RSRenderServiceConnectionStub::CREATE_DISPLAY_NODE Read config failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             RSDisplayNodeConfig config = {
                 .screenId = screenId,
-                .isMirrored = isMirrored,
-                .mirrorNodeId = mirrorId,
+                .isMirrored = isMirror,
+                .mirrorNodeId = mirroredId,
                 .isSync = true,
             };
             bool success;

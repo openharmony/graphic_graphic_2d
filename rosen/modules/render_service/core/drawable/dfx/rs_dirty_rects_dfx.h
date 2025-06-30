@@ -21,22 +21,22 @@
 #include "system/rs_system_parameters.h"
 
 #include "common/rs_occlusion_region.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "params/rs_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 namespace OHOS::Rosen {
 
 class RSDirtyRectsDfx {
 public:
-    explicit RSDirtyRectsDfx(DrawableV2::RSDisplayRenderNodeDrawable& targetDrawable)
-        : targetDrawable_(targetDrawable), displayParams_(targetDrawable.GetRenderParams())
+    explicit RSDirtyRectsDfx(DrawableV2::RSScreenRenderNodeDrawable& targetDrawable)
+        : targetDrawable_(targetDrawable), screenParams_(targetDrawable.GetRenderParams())
     {}
     ~RSDirtyRectsDfx() = default;
 
@@ -64,12 +64,9 @@ private:
     Occlusion::Region mergedDirtyRegion_;
     std::vector<RectI> virtualDirtyRects_;
     ScreenInfo screenInfo_;
-    const DrawableV2::RSDisplayRenderNodeDrawable& targetDrawable_;
-    const std::unique_ptr<RSRenderParams>& displayParams_;
+    const DrawableV2::RSScreenRenderNodeDrawable& targetDrawable_;
+    const std::unique_ptr<RSRenderParams>& screenParams_;
 
-    bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
-        ScreenRotation rotation, int translateWidth, int translateHeight);
-    void DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas);
     void DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect, const Drawing::Color color,
         const RSPaintStyle fillType, int edgeWidth = 6, bool isTextOutsideRect = false) const;
     bool DrawDetailedTypesOfDirtyRegionForDFX(RSPaintFilterCanvas& canvas,

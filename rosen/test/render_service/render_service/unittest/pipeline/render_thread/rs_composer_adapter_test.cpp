@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
@@ -410,9 +410,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest010, Function | SmallTest | Leve
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     composerAdapter_->output_ = nullptr;
-    RSDisplayNodeConfig config;
     NodeId id = 1;
-    RSDisplayRenderNode node(id, config);
+    RSScreenRenderNode node(id, 1);
     auto infoPtr = composerAdapter_->CreateLayer(node);
     ASSERT_EQ(infoPtr, nullptr);
 }
@@ -429,18 +428,17 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
     uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
-    RSDisplayNodeConfig config;
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, 1);
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+    std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+    std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(composerAdapter_->CreateLayer(*node), nullptr);
 }

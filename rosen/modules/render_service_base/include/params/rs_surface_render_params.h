@@ -87,20 +87,20 @@ public:
     {
         return selfDrawingType_;
     }
-    void SetAncestorDisplayNode(const RSRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorScreenNode(const RSRenderNode::WeakPtr& ancestorScreenNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
-        auto node = ancestorDisplayNode.lock();
-        ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
+        ancestorScreenNode_ = ancestorScreenNode;
+        auto node = ancestorScreenNode.lock();
+        ancestorScreenDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
 
-    RSRenderNode::WeakPtr GetAncestorDisplayNode() const
+    RSRenderNode::WeakPtr GetAncestorScreenNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorScreenNode_;
     }
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorDisplayDrawable() const
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorScreenDrawable() const
     {
-        return ancestorDisplayDrawable_;
+        return ancestorScreenDrawable_;
     }
 
     float GetAlpha() const
@@ -130,10 +130,6 @@ public:
     const Color& GetBackgroundColor() const
     {
         return backgroundColor_;
-    }
-    const RectI& GetAbsDrawRect() const override
-    {
-        return absDrawRect_;
     }
     const RRect& GetRRect() const
     {
@@ -388,7 +384,7 @@ public:
     bool GetHwcGlobalPositionEnabled() const;
 
     void SetHwcCrossNode(bool isCrossNode);
-    bool IsDRMCrossNode() const;
+    bool IsHwcCrossNode() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
@@ -753,8 +749,8 @@ private:
     bool isAppWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
-    RSRenderNode::WeakPtr ancestorDisplayNode_;
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
+    RSRenderNode::WeakPtr ancestorScreenNode_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorScreenDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr sourceDisplayRenderNodeDrawable_;
 
@@ -779,7 +775,6 @@ private:
     RectI dstRect_;
     RectI oldDirtyInSurface_;
     RectI childrenDirtyRect_;
-    RectI absDrawRect_;
     RRect rrect_;
     Rect ancoSrcCrop_{};
     uint32_t ancoFlags_ = 0;

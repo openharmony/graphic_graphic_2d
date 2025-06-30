@@ -44,6 +44,7 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_animation_command.h"
+#include "command/rs_display_node_command.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_node_command.h"
 #include "common/rs_background_thread.h"
@@ -82,6 +83,7 @@
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/main_thread/rs_render_service_visitor.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -276,26 +278,26 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 
 #ifdef RS_ENABLE_GPU
 // rcd node will be handled by RS tree in OH 6.0 rcd refactoring, should remove this later
-void DoScreenRcdTask(RSDisplayRenderNode& displayNode, std::shared_ptr<RSProcessor> &processor)
+void DoScreenRcdTask(RSScreenRenderNode& screenNode, std::shared_ptr<RSProcessor> &processor)
 {
     if (processor == nullptr) {
         RS_LOGD("DoScreenRcdTask has no processor");
         return;
     }
     auto screenInfo =
-        static_cast<RSDisplayRenderParams *>(displayNode.GetStagingRenderParams().get())->GetScreenInfo();
+        static_cast<RSScreenRenderParams *>(screenNode.GetStagingRenderParams().get())->GetScreenInfo();
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(displayNode.GetId());
-        auto rcdNodeTop = std::static_pointer_cast<RSRcdSurfaceRenderNode>(displayNode.GetRcdSurfaceNodeTop());
+    auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(screenNode.GetId());
+        auto rcdNodeTop = std::static_pointer_cast<RSRcdSurfaceRenderNode>(screenNode.GetRcdSurfaceNodeTop());
     if (rcdNodeTop) {
         rcdNodeTop->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
     } else {
         RS_LOGD("Top rcdnode is null");
     }
-    auto rcdNodeBottom = std::static_pointer_cast<RSRcdSurfaceRenderNode>(displayNode.GetRcdSurfaceNodeBottom());
+    auto rcdNodeBottom = std::static_pointer_cast<RSRcdSurfaceRenderNode>(screenNode.GetRcdSurfaceNodeBottom());
     if (rcdNodeBottom) {
         rcdNodeBottom->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
     } else {
@@ -631,6 +633,22 @@ void RSMainThread::Init()
         RSRenderNodeGC::Instance().SetGCTaskEnable(isEnable);
     };
     conn->SetGCNotifyTask(GCNotifyTaskProxy);
+    RSScreenRenderNode::SetReleaseTask([](ScreenId id) {
+        auto screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            RS_LOGE("ReleaseScreenDmaBuffer: screenManager is nullptr");
+            return;
+        }
+        screenManager->ReleaseScreenDmaBuffer(id);
+    });
+    RSLogicalDisplayRenderNode::SetScreenStatusNotifyTask([](bool status) {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            RS_LOGE("RSMainThread::Init screenManager is nullptr");
+            return;
+        }
+        screenManager->SetScreenSwitchStatus(status);
+    });
 #ifdef RS_ENABLE_GL
     /* move to render thread ? */
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -684,23 +702,7 @@ void RSMainThread::Init()
         config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, accessibilityObserver_);
     }
 #endif
-
-    RSDisplayRenderNode::SetReleaseTask([](ScreenId id) {
-        auto screenManager = CreateOrGetScreenManager();
-        if (screenManager == nullptr) {
-            RS_LOGE("ReleaseScreenDmaBuffer: screenManager is nullptr");
-            return;
-        }
-        screenManager->ReleaseScreenDmaBuffer(id);
-    });
-    RSDisplayRenderNode::SetScreenStatusNotifyTask([](bool status) {
-        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-        if (screenManager == nullptr) {
-            RS_LOGE("Init screenManager is nullptr");
-            return;
-        }
-        screenManager->SetScreenSwitchStatus(status);
-    });
+    RegisterScreenNodeListener();
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([this]() {
         bool isOverDrawEnabled = RSOverdrawController::GetInstance().IsEnabled();
@@ -1011,6 +1013,7 @@ void RSMainThread::Start()
     if (runner_) {
         runner_->Run();
     }
+    isRunning_ = true;
 }
 
 void RSMainThread::ProcessCommand()
@@ -1791,8 +1794,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 // collect hwc nodes vector, used for display node skip and direct composition cases
                 surfaceNode->SetIsLastFrameHwcEnabled(!surfaceNode->IsHardwareForcedDisabled());
                 hardwareEnabledNodes_.emplace_back(surfaceNode);
-                hardwareEnabledDrwawables_.emplace_back(std::make_pair(surfaceNode->GetDisplayNodeId(),
-                surfaceNode->GetRenderDrawable()));
+                hardwareEnabledDrwawables_.emplace_back(std::make_tuple(surfaceNode->GetScreenNodeId(),
+                    surfaceNode->GetLogicalDisplayNodeId(), surfaceNode->GetRenderDrawable()));
             }
 
             // set content dirty for hwc node if needed
@@ -1879,17 +1882,16 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     const auto& children = rootNode->GetChildren();
     auto itr = std::find_if(children->begin(), children->end(),
         [](const std::shared_ptr<RSRenderNode>& child) -> bool {
-            if (child == nullptr || child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+            if (child == nullptr || child->GetType() != RSRenderNodeType::SCREEN_NODE) {
                 return false;
             }
-            auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(child);
-            if (displayNodeSp->GetMirrorSource().lock()) {
+            auto screenNodeSp = std::static_pointer_cast<RSScreenRenderNode>(child);
+            if (screenNodeSp->GetMirrorSource().lock()) {
                 // wired projection case
-                return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
+                return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE;
             }
             // virtual expand screen
-            return displayNodeSp->GetCompositeType() ==
-                RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+            return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     });
 
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
@@ -1967,7 +1969,7 @@ uint32_t RSMainThread::GetRefreshRate() const
 
 uint32_t RSMainThread::GetDynamicRefreshRate() const
 {
-    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(screenNodeScreenId_);
     if (refreshRate == 0) {
         RS_LOGE("GetDynamicRefreshRate refreshRate is invalid");
         return STANDARD_REFRESH_RATE;
@@ -2206,11 +2208,19 @@ void RSMainThread::CheckBlurEffectCountStatistics(std::shared_ptr<RSRenderNode> 
     if (children->empty()) {
         return;
     }
-    auto displayNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(children->front());
-    if (displayNode == nullptr) {
+    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(children->front());
+    if (screenNode == nullptr) {
         return;
     }
-    auto scbPid = displayNode->GetCurrentScbPid();
+    auto displayNodeChildren = screenNode->GetChildren();
+    if (displayNodeChildren->empty()) {
+        return;
+    }
+    auto logicalDisplayNode = RSRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(children->front());
+    if (logicalDisplayNode == nullptr) {
+        return;
+    }
+    auto scbPid = logicalDisplayNode->GetCurrentScbPid();
     int32_t uid = 0;
     std::string bundleName;
     for (auto& [pid, count] : rootNode->blurEffectCounter_) {
@@ -2321,7 +2331,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             WaitUntilUploadTextureTaskFinishedForGL();
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
-            renderThreadParams_->hardCursorDrawableMap_ = RSPointerWindowManager::Instance().GetHardCursorDrawableMap();
+            renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
             RsFrameReport::GetInstance().DirectRenderEnd();
             return;
         }
@@ -2377,7 +2387,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SelfDrawingNodeMonitor::GetInstance().TriggerRectChangeCallback();
         rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
-        renderThreadParams_->hardCursorDrawableMap_ = RSPointerWindowManager::Instance().GetHardCursorDrawableMap();
+        renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
@@ -2415,10 +2425,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
-    auto displayNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(children->front());
-    if (!displayNode ||
-        displayNode->GetCompositeType() != RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
-        RS_LOGE("DoDirectComposition displayNode state error");
+    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(children->front());
+    if (!screenNode ||
+        screenNode->GetCompositeType() != CompositeType::UNI_RENDER_COMPOSITE) {
+        RS_LOGE("DoDirectComposition screenNode state error");
         return false;
     }
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
@@ -2426,37 +2436,45 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_LOGE("DoDirectComposition screenManager is nullptr");
         return false;
     }
-    auto screenInfo = screenManager->QueryScreenInfo(displayNode->GetScreenId());
+    auto screenInfo = screenManager->QueryScreenInfo(screenNode->GetScreenId());
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGE("DoDirectComposition: ScreenState error!");
         return false;
     }
 
+    // children->size() is 1, the extended screen is not supported
+    // there is no visible hwc node or visible hwc nodes don't need update
+    if (children->size() == 1 && (!screenNode->HwcDisplayRecorder().HasVisibleHwcNodes() ||
+                                  !ExistBufferIsVisibleAndUpdate())) {
+        RS_TRACE_NAME_FMT("%s: no hwcNode in visibleRegion", __func__);
+        return true;
+    }
+
 #ifdef RS_ENABLE_GPU
-    auto processor = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
+    auto processor = RSProcessorFactory::CreateProcessor(screenNode->GetCompositeType());
     auto renderEngine = GetRenderEngine();
     if (processor == nullptr || renderEngine == nullptr) {
         RS_LOGE("DoDirectComposition: RSProcessor or renderEngine is null!");
         return false;
     }
 
-    if (!processor->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
+    if (!processor->Init(*screenNode, screenInfo.offsetX, screenInfo.offsetY,
         INVALID_SCREEN_ID, renderEngine)) {
         RS_LOGE("DoDirectComposition: processor init failed!");
         return false;
     }
 #endif
-    auto drawable = displayNode->GetRenderDrawable();
+    auto drawable = screenNode->GetRenderDrawable();
     if (drawable != nullptr) {
 #ifdef RS_ENABLE_GPU
-        auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-        auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+        auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+        auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
 #else
         auto surfaceHandler = nullptr;
 #endif
 #ifdef RS_ENABLE_GPU
-        if (RSAncoManager::Instance()->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes_,
-            displayNode->GetRotation(), screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight())) {
+        if (RSAncoManager::Instance()->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes_,
+            ScreenRotation::ROTATION_0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight())) {
             return false;
         }
 #endif
@@ -2468,14 +2486,14 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RSHardwareThread::Instance().DumpEventQueue();
     }
 #ifdef RS_ENABLE_GPU
-    uint32_t screenId = displayNode->GetScreenId();
+    auto screenId = screenNode->GetScreenId();
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode == nullptr) {
             RS_LOGE("DoDirectComposition: surfaceNode is null!");
             continue;
         }
         RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId);
-        displayNode->CollectHdrStatus(surfaceNode->GetVideoHdrStatus());
+        screenNode->CollectHdrStatus(surfaceNode->GetVideoHdrStatus());
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
         if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
@@ -2484,15 +2502,16 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetPreBuffer(nullptr);
                 surfaceNode->AddToPendingSyncList();
             }
-            std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
-            if (auto ancestorDisplayNode = surfaceNode->GetAncestorDisplayNode().lock()) {
-                ancestor = ancestorDisplayNode->ReinterpretCastTo<RSDisplayRenderNode>();
+            auto displayLock = surfaceNode->GetAncestorScreenNode().lock();
+            std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
+            if (displayLock != nullptr) {
+                ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
             }
             if (ancestor != nullptr && params->GetHwcGlobalPositionEnabled()) {
-                params->SetOffsetX(ancestor->GetDisplayOffsetX());
-                params->SetOffsetY(ancestor->GetDisplayOffsetY());
-                params->SetRogWidthRatio(params->IsDRMCrossNode() ?
-                    screenManager->QueryScreenInfo(ancestor->GetScreenId()).GetRogWidthRatio() : 1.0f);
+                auto screenInfo = screenManager->QueryScreenInfo(ancestor->GetScreenId());
+                params->SetOffsetX(screenInfo.offsetX);
+                params->SetOffsetY(screenInfo.offsetY);
+                params->SetRogWidthRatio(params->IsHwcCrossNode() ? screenInfo.GetRogWidthRatio() : 1.0f);
             } else {
                 params->SetOffsetX(0);
                 params->SetOffsetY(0);
@@ -2504,27 +2523,25 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         }
     }
     RSLuminanceControl::Get().SetHdrStatus(screenId,
-        displayNode->GetForceCloseHdr() ? HdrStatus::NO_HDR : displayNode->GetDisplayHdrStatus());
+        screenNode->GetForceCloseHdr() ? HdrStatus::NO_HDR : screenNode->GetDisplayHdrStatus());
 #endif
 #ifdef RS_ENABLE_GPU
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        DoScreenRcdTask(*displayNode, processor);
-    }
+    DoScreenRcdTask(*screenNode, processor);
 #endif
     if (waitForRT) {
 #ifdef RS_ENABLE_GPU
-        RSUniRenderThread::Instance().PostSyncTask([processor, displayNode]() {
+        RSUniRenderThread::Instance().PostSyncTask([processor, screenNode]() {
             RS_TRACE_NAME("DoDirectComposition PostProcess");
             HgmCore::Instance().SetDirectCompositionFlag(true);
-            processor->ProcessDisplaySurface(*displayNode);
+            processor->ProcessScreenSurface(*screenNode);
             processor->PostProcess();
         });
 #endif
     } else {
         HgmCore::Instance().SetDirectCompositionFlag(true);
 #ifdef RS_ENABLE_GPU
-        processor->ProcessDisplaySurface(*displayNode);
+        processor->ProcessScreenSurface(*screenNode);
         processor->PostProcess();
 #endif
     }
@@ -2692,7 +2709,7 @@ void RSMainThread::OnUniRenderDraw()
         isNeedResetClearMemoryTask_ = false;
     }
 
-    UpdateDisplayNodeScreenId();
+    UpdateScreenNodeScreenId();
     RsFrameReport::GetInstance().RenderEnd();
 #endif
 #endif
@@ -2810,7 +2827,7 @@ RSVisibleLevel RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curR
     return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
 }
 
-RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSScreenRenderNode>& screenNode,
     const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
     Occlusion::Region& accumulatedRegion, Occlusion::Region& curRegion, Occlusion::Region& totalRegion)
 {
@@ -2819,8 +2836,8 @@ RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<
     }
 
     if (!isUniRender_) {
-        if (displayNode) {
-            surfaceNode->SetDstRect(displayNode->GetSurfaceDstRect(surfaceNode->GetId()));
+        if (screenNode) {
+            surfaceNode->SetDstRect(screenNode->GetSurfaceDstRect(surfaceNode->GetId()));
         }
     }
 
@@ -2840,7 +2857,7 @@ RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<
     return visibleLevel;
 }
 
-void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRenderNode>& screenNode,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
     std::map<NodeId, RSVisibleLevel>& dstVisMapForVsyncRate)
 {
@@ -2853,7 +2870,7 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRe
 
     vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport() &&
                            RSSystemParameters::GetVSyncControlEnabled();
-    auto calculator = [this, &displayNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec, &visMapForVsyncRate,
+    auto calculator = [this, &screenNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec, &visMapForVsyncRate,
         &hasFilterCacheOcclusion, filterCacheOcclusionEnabled] (std::shared_ptr<RSSurfaceRenderNode>& curSurface,
         bool needSetVisibleRegion) {
         curSurface->setQosCal(vsyncControlEnabled_);
@@ -2865,7 +2882,7 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRe
         Occlusion::Region curRegion {};
         Occlusion::Region totalRegion {};
         auto visibleLevel =
-            CalcSurfaceNodeVisibleRegion(displayNode, curSurface, accumulatedRegion, curRegion, totalRegion);
+            CalcSurfaceNodeVisibleRegion(screenNode, curSurface, accumulatedRegion, curRegion, totalRegion);
 
         curSurface->SetVisibleRegionRecursive(totalRegion, curVisVec, visMapForVsyncRate, needSetVisibleRegion,
             visibleLevel, !systemAnimatedScenesList_.empty());
@@ -2913,21 +2930,21 @@ void RSMainThread::CalcOcclusion()
         RS_LOGE("CalcOcclusion GetGlobalRootRenderNode fail");
         return;
     }
-    std::map<RSDisplayRenderNode::SharedPtr, std::vector<RSBaseRenderNode::SharedPtr>> curAllSurfacesInDisplay;
+    std::map<RSScreenRenderNode::SharedPtr, std::vector<RSBaseRenderNode::SharedPtr>> curAllSurfacesInDisplay;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     for (const auto& child : *node->GetSortedChildren()) {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
-        if (displayNode) {
-            const auto& surfaces = displayNode->GetCurAllSurfaces();
-            curAllSurfacesInDisplay[displayNode] = surfaces;
+        auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(child);
+        if (screenNode) {
+            const auto& surfaces = screenNode->GetCurAllSurfaces();
+            curAllSurfacesInDisplay[screenNode] = surfaces;
             curAllSurfaces.insert(curAllSurfaces.end(), surfaces.begin(), surfaces.end());
         }
     }
 
     if (node->GetChildrenCount()== 1) {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node->GetFirstChild());
-        if (displayNode) {
-            curAllSurfaces = displayNode->GetCurAllSurfaces();
+        auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(node->GetFirstChild());
+        if (screenNode) {
+            curAllSurfaces = screenNode->GetCurAllSurfaces();
         }
     } else {
         node->CollectSurface(node, curAllSurfaces, isUniRender_, false);
@@ -3940,8 +3957,8 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
 
     std::unordered_map<pid_t, std::vector<NodeId>> topNodes;
     if (const auto& rootNode = context_->GetGlobalRootRenderNode()) {
-        for (const auto& displayNode : *rootNode->GetSortedChildren()) {
-            for (const auto& node : *displayNode->GetSortedChildren()) {
+        for (const auto& screenNode : *rootNode->GetSortedChildren()) {
+            for (const auto& node : *screenNode->GetSortedChildren()) {
                 NodeId id = node->GetId();
                 topNodes[ExtractPid(id)].push_back(id);
             }
@@ -4790,6 +4807,7 @@ bool RSMainThread::IsSingleDisplay()
     return rootNode->GetChildrenCount() == 1;
 }
 
+// hsc todo
 bool RSMainThread::HasMirrorDisplay() const
 {
     bool hasWiredMirrorDisplay = false;
@@ -4803,15 +4821,15 @@ bool RSMainThread::HasMirrorDisplay() const
     }
 
     for (auto& child : *rootNode->GetSortedChildren()) {
-        if (!child || !child->IsInstanceOf<RSDisplayRenderNode>()) {
+        if (!child || !child->IsInstanceOf<RSScreenRenderNode>()) {
             continue;
         }
-        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (!displayNode) {
+        auto screenNode = child->ReinterpretCastTo<RSScreenRenderNode>();
+        if (!screenNode) {
             continue;
         }
-        if (auto mirroredNode = displayNode->GetMirrorSource().lock()) {
-            if (displayNode->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
+        if (auto mirroredNode = screenNode->GetMirrorSource().lock()) {
+            if (screenNode->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
                 hasWiredMirrorDisplay = true;
             } else {
                 hasVirtualMirrorDisplay = true;
@@ -4824,42 +4842,21 @@ bool RSMainThread::HasMirrorDisplay() const
     return hasWiredMirrorDisplay || hasVirtualMirrorDisplay;
 }
 
-void RSMainThread::UpdateRogSizeIfNeeded()
-{
-    if (RSSystemProperties::IsFoldScreenFlag()) {
-        return;
-    }
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (!rootNode) {
-        return;
-    }
-    auto child = rootNode->GetFirstChild();
-    if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
-        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (displayNode == nullptr) {
-            return;
-        }
-        auto screenManager = CreateOrGetScreenManager();
-        if (screenManager == nullptr) {
-            return;
-        }
-        screenManager->SetRogScreenResolution(
-            displayNode->GetScreenId(), displayNode->GetRogWidth(), displayNode->GetRogHeight());
-    }
-}
-
-void RSMainThread::UpdateDisplayNodeScreenId()
+void RSMainThread::UpdateScreenNodeScreenId()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
-        RS_LOGE("UpdateDisplayNodeScreenId rootNode is nullptr");
+        RS_LOGE("UpdateScreenNodeScreenId rootNode is nullptr");
         return;
     }
-    auto child = rootNode->GetFirstChild();
-    if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
-        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (displayNode) {
-            displayNodeScreenId_ = displayNode->GetScreenId();
+    auto childList = rootNode->GetChildrenList();
+    for (auto& child : childList) {
+        if (auto node = child.lock()) {
+            auto screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
+            if (screenNode && screenNode->GetChildrenCount() > 0) {
+                screenNodeScreenId_ = screenNode->GetScreenId();
+                break;
+            }
         }
     }
 }
@@ -5067,11 +5064,11 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
         auto& rsLuminance = RSLuminanceControl::Get();
         auto& rsColorTemperature = RSColorTemperature::Get();
         for (const auto& child : *rootNode->GetSortedChildren()) {
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
-            if (displayNode == nullptr) {
+            auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(child);
+            if (screenNode == nullptr) {
                 continue;
             }
-            auto screenId = displayNode->GetScreenId();
+            auto screenId = screenNode->GetScreenId();
             if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
                 uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
                 screenManager->SetScreenBacklight(screenId, newLevel);
@@ -5246,6 +5243,65 @@ void RSMainThread::OnFmtTraceSwitchCallback(const char *key, const char *value, 
     }
     bool isTraceEnable = (std::atoi(value) != 0);
     RSSystemProperties::SetDebugFmtTraceEnabled(isTraceEnable);
+}
+
+void RSMainThread::RegisterScreenNodeListener()
+{
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("%{public}s failed: screenManager is null.", __func__);
+        return;
+    }
+
+    screenManager->RegisterScreenNodeListener(std::make_shared<RSScreenNodeListener>());
+}
+
+void RSMainThread::RSScreenNodeListener::OnScreenConnect(ScreenId id)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto task = [context = mainThread->context_, id]() {
+        auto& nodeMap = context->GetMutableNodeMap();
+        auto node = std::shared_ptr<RSScreenRenderNode>(new RSScreenRenderNode(GenerateUniqueNodeIdForRS(),
+            id, context->weak_from_this()), RSRenderNodeGC::NodeDestructor);
+        nodeMap.RegisterRenderNode(node);
+        context->GetGlobalRootRenderNode()->AddChild(node);
+
+        auto setOnTree = [id, context] (auto& node) {
+            bool isConditionMet = node && node->GetScreenId() == id &&
+                !node->IsOnTheTree() && node->IsWaitToSetOnTree();
+            if (isConditionMet) {
+                DisplayNodeCommandHelper::AddDisplayNodeToTree(*context, node->GetId());
+            }
+        };
+        nodeMap.TraverseLogicalDisplayNodes(setOnTree);
+    };
+    if (mainThread->isRunning_) {
+        mainThread->PostTask(task);
+    } else {
+        task();
+    }
+}
+
+void RSMainThread::RSScreenNodeListener::OnScreenDisconnect(ScreenId id)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto task = [context = mainThread->context_, id]() {
+        std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+        auto& nodeMap = context->GetMutableNodeMap();
+        nodeMap.TraverseScreenNodes(
+            [id, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == id) {
+                screenNode = node;
+            }
+        });
+        if (screenNode == nullptr) {
+            return;
+        }
+        context->GetGlobalRootRenderNode()->RemoveChild(screenNode);
+        nodeMap.UnregisterRenderNode(screenNode->GetId());
+    };
+
+    mainThread->PostTask(task);
 }
 
 void RSMainThread::HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
