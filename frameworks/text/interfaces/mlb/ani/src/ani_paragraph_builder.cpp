@@ -89,7 +89,8 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         return ANI_NOT_FOUND;
     }
 
-    std::string ctorSignature = std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + std::string(ANI_CLASS_FONT_COLLECTION) + ":V";
+    std::string ctorSignature =
+        std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + std::string(ANI_CLASS_FONT_COLLECTION) + ":V";
     std::string pushStyleSignature = std::string(ANI_INTERFACE_TEXT_STYLE) + ":V";
     std::string buildStyleSignature = ":" + std::string(ANI_CLASS_PARAGRAPH);
     std::array methods = {
