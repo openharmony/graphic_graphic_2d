@@ -264,6 +264,33 @@ HWTEST_F(SurfaceTest, ClearDrawingArea001, TestSize.Level1)
     surface->ClearDrawingArea();
 }
 #endif
+
+/**
+ * @tc.name: GetHeadroom001
+ * @tc.desc: Test for getting headroom from surface.
+ * @tc.type: FUNC
+ * @tc.require:I774GD
+*/
+HWTEST_F(SurfaceTest, GetHeadroom001, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+    ASSERT_EQ(surface->GetHeadroom(), 1.0f);
+}
+
+/**
+ * @tc.name: SetHeadroom001
+ * @tc.desc: Test for setting headroom to surface.
+ * @tc.type: FUNC
+ * @tc.require:I774GD
+*/
+HWTEST_F(SurfaceTest, SetHeadroom001, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+    surface->SetHeadroom(1.5f);
+    ASSERT_EQ(surface->GetHeadroom(), 1.0f);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -76,6 +76,8 @@ bool BuildImageFuzzTest(const uint8_t* data, size_t size)
  *  9. Serialize()
  *  10. Deserialize()
  *  11. MakeRasterImage()
+ *  12. GetHeadroom()
+ *  13. SetHeadroom(float)
  */
 bool ImageFuzzTest001(const uint8_t* data, size_t size)
 {
@@ -107,6 +109,9 @@ bool ImageFuzzTest001(const uint8_t* data, size_t size)
     auto dataVal = image.Serialize();
     image.Deserialize(dataVal);
     image.MakeRasterImage();
+    float headroom = GetObject<float>();
+    image.SetHeadroom(headroom);
+    image.GetHeadroom();
     return true;
 }
 

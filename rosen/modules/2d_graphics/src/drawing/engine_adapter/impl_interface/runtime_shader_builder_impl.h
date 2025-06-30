@@ -36,7 +36,7 @@ public:
 
     virtual std::shared_ptr<ShaderEffect> MakeShader(const Matrix* localMatrix, bool isOpaque) = 0;
     virtual std::shared_ptr<Image> MakeImage(GPUContext* gpuContext,
-        const Matrix* localMatrix, ImageInfo resultInfo, bool mipmapped) = 0;
+        const Matrix* localMatrix, ImageInfo resultInfo, bool mipmapped, float headroom) = 0;
 
     virtual void SetChild(const std::string& name, std::shared_ptr<ShaderEffect> shader) = 0;
     virtual void SetUniform(const std::string& name, float val) = 0;
