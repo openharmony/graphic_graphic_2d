@@ -1028,6 +1028,31 @@ HWTEST_F(VSyncDistributorTest, DVSyncCheckPreexecuteAndUpdateTsTest001, Function
 }
 
 /*
+* Function: VSyncCheckPreexecuteAndUpdateTsTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test VSyncCheckPreexecuteAndUpdateTs
+ */
+HWTEST_F(VSyncDistributorTest, VSyncCheckPreexecuteAndUpdateTsTest001, Function | MediumTest| Level3)
+{
+    auto vsyncEnabeled = vsyncDistributor->vsyncEnabled_;
+    auto controller = vsyncDistributor->controller_;
+    vsyncDistributor->vsyncEnabled_ = true;
+    int64_t timestamp = 10000000;
+    int64_t period = 8333333;
+    int64_t vsyncCount = 1;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_FALSE(vsyncDistributor->DVSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount));
+    
+    vsyncDistributor->vsyncEnabled_ = vsyncEnabeled;
+    vsyncDistributor->controller_ = nullptr;
+    ASSERT_FALSE(vsyncDistributor->DVSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount));
+    vsyncDistributor->vsyncEnabled_ = vsyncEnabeled;
+    vsyncDistributor->controller_ = controller;
+}
+
+/*
 * Function: NotifyPackageEventTest001
 * Type: Function
 * Rank: Important(2)
