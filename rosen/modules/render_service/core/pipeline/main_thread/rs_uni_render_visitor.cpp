@@ -2348,7 +2348,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         rectI.width_ = static_cast<int>(std::round(rectI.width_ * screenInfo_.GetRogWidthRatio()));
         rectI.height_ = static_cast<int>(std::round(rectI.height_ * screenInfo_.GetRogHeightRatio()));
         auto newRegionRect = Occlusion::Rect(rectI, true);
-        newRegionRect.Expand(EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX, EXPEND_ONE_PIX);
+        newRegionRect.Expand(EXPAND_ONE_PIX, EXPAND_ONE_PIX, EXPAND_ONE_PIX, EXPAND_ONE_PIX);
         Occlusion::Rect dstRect(hwcNodePtr->GetDstRect());
         if (newRegionRect.IsIntersect(dstRect)) {
             hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
