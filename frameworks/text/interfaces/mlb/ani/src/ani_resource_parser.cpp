@@ -62,8 +62,8 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     env->Object_GetPropertyByName_Ref(obj, "params", &aniParams);
     env->Object_GetPropertyByName_Double(obj, "type", &aniType);
 
-    result.type = static_cast<uint32_t>(aniType);
-    result.id = static_cast<uint32_t>(aniId);
+    result.type = static_cast<int32_t>(aniType);
+    result.id = static_cast<int32_t>(aniId);
     if (aniBundleName != nullptr) {
         AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniBundleName), result.bundleName);
     }
@@ -89,7 +89,8 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
         if (resource.id < 0 && !resource.params.empty() && !resource.params[0].empty()) {
             rPath = resource.params[0];
         } else {
-            uint32_t state = static_cast<uint32_t>(resourceManager->GetStringById(resource.id, rPath));
+            uint32_t state =
+                static_cast<uint32_t>(resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath));
             if (state >= static_cast<uint32_t>(Global::Resource::RState::ERROR)) {
                 return false;
             }
