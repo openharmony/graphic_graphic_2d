@@ -176,9 +176,13 @@ void RSUniRenderVisitorTest::InitTestSurfaceNodeAndScreenInfo(
     Occlusion::Region region1({100, 50, 1000, 1500});
     surfaceNode->SetVisibleRegion(region1);
 
+    NodeId screenNodeId = 10;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0);
+
     ScreenInfo screenInfo;
     screenInfo.width = SCREEN_WIDTH;
     screenInfo.height = SCREEN_HEIGHT;
+    rsUniRenderVisitor->curScreenNode_->screenInfo_ = screenInfo;
 }
 
 /**
