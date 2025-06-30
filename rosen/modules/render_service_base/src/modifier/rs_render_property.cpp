@@ -30,10 +30,10 @@ namespace Rosen {
 void RSRenderPropertyBase::Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
     node_ = node.weak_from_this();
+    modifier_ = modifier;
     node.RegisterProperty(shared_from_this());
     OnChange();
     OnAttach(node, modifier);
-    modifier_ = modifier;
 }
 
 void RSRenderPropertyBase::Detach()
