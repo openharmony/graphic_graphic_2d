@@ -192,7 +192,7 @@ void BootCompileProgress::OnVsync()
     if (!isUpdateOptEnd_) {
         compileHandler_->PostTask([this] { this->DrawCompileProgress(); });
     } else {
-        LOGI("ota compile completed, cost time: %{public}ld", GetSystemCurrentTime() - startTimeMs_);
+        LOGI("ota compile completed");
         compileRunner_->Stop();
     }
 }
