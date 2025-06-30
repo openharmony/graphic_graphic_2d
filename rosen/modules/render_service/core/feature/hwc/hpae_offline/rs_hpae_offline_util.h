@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef RS_CORE_FEATURE_HPAE_OFFLINE_UTIL_H
 #define RS_CORE_FEATURE_HPAE_OFFLINE_UTIL_H
 #include "platform/common/rs_log.h"
