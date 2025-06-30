@@ -23,6 +23,7 @@
 #include "ani_index_and_affinity_converter.h"
 #include "ani_line_metrics_converter.h"
 #include "ani_paragraph.h"
+#include "ani_text_line.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "canvas_ani/ani_canvas.h"
@@ -99,6 +100,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"didExceedMaxLines", ":Z", reinterpret_cast<void*>(DidExceedMaxLines)},
         ani_native_function{
             "getActualTextRange", getActualTextRangeSignature.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
+        ani_native_function{"getTextLines", getTextLinesSignature.c_str(), reinterpret_cast<void*>(GetTextLines)},
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;",
             reinterpret_cast<void*>(GetLineMetricsAt)},
@@ -438,6 +440,47 @@ ani_object AniParagraph::GetActualTextRange(
         return AniTextUtils::CreateAniUndefined(env);
     }
     return boundaryObj;
+}
+
+ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
+{
+    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
+    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
+    if (typography == nullptr) {
+        TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return arrayObj;
+    }
+    std::shared_ptr<Typography> paragraphCopy = typography->CloneSelf();
+    if (!paragraphCopy) {
+        TEXT_LOGE("Failed to clone paragraph");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return arrayObj;
+    }
+    std::vector<std::unique_ptr<TextLineBase>> textlines = typography->GetTextLines();
+    arrayObj = AniTextUtils::CreateAniArray(env, textlines.size());
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    if (isUndefined) {
+        TEXT_LOGE("Failed to Create arrayObject");
+        return arrayObj;
+    }
+    ani_size index = 0;
+    for (auto& textline : textlines) {
+        if (textline == nullptr) {
+            continue;
+        }
+        ani_object aniObj = AniTextLine::CreateTextLine(env, textline);
+        std::unique_ptr<Rosen::Typography> paragraphPtr(paragraphCopy.get());
+        AniTextLine::SetParagraph(env, aniObj, paragraphPtr);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to set textline item %{public}zu", index);
+            continue;
+        }
+        index++;
+    }
+    return arrayObj;
 }
 
 ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
