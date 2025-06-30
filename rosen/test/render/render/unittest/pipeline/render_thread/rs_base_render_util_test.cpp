@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "parameters.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
+#include "pipeline/rs_test_util.h"
 #include "surface_buffer_impl.h"
 #include "system/rs_system_parameters.h"
 
