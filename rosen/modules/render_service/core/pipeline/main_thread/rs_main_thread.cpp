@@ -54,6 +54,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -1551,6 +1552,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         dividedRenderbufferTimestamps_.clear();
     }
     RSDrmUtil::ClearDrmNodes();
+    LppVideoHandler::Instance().ClearLppSufraceNode();
     const auto& nodeMap = GetContext().GetNodeMap();
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
@@ -1598,6 +1600,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
                 surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
             auto parentNode = surfaceNode->GetParent().lock();
+            LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
             if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
                     IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume,
                     parentNode ? parentNode->GetId() : 0)) {
@@ -2660,6 +2663,8 @@ void RSMainThread::Render()
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     CheckSystemSceneStatus();
     UpdateLuminanceAndColorTemp();
+    bool isPostUniRender = isUniRender_ && !doDirectComposition_ && needDrawFrame_;
+    LppVideoHandler::Instance().JudgeRsDrawLppState(isPostUniRender);
 }
 
 void RSMainThread::OnUniRenderDraw()
@@ -4796,6 +4801,7 @@ bool RSMainThread::HasMirrorDisplay() const
     if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
         hasWiredMirrorDisplay_.store(false);
         hasVirtualMirrorDisplay_.store(false);
+        LppVideoHandler::Instance().SetHasVirtualMirrorDisplay(false);
         return false;
     }
 
@@ -4817,6 +4823,7 @@ bool RSMainThread::HasMirrorDisplay() const
     }
     hasWiredMirrorDisplay_.store(hasWiredMirrorDisplay);
     hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
+    LppVideoHandler::Instance().SetHasVirtualMirrorDisplay(hasVirtualMirrorDisplay);
     return hasWiredMirrorDisplay || hasVirtualMirrorDisplay;
 }
 

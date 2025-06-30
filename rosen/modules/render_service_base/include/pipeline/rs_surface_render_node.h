@@ -401,9 +401,6 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (GetTunnelLayerId()) {
-            return false;
-        }
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
         // isForcedClipHole: for tv product, force clip hole in tvplayer
