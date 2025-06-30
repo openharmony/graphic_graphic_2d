@@ -13,20 +13,28 @@
  * limitations under the License.
  */
 #include <ani.h>
+#include <inttypes.h>
 #include <tuple>
 
 #include "ani_common.h"
 #include "ani_font_collection.h"
+#include "ani_line_typeset.h"
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
+#include "ani_run.h"
+#include "ani_text_line.h"
 #include "ani_text_utils.h"
+#include "line_typography.h"
+#include "text_line_base.h"
+#include "typography.h"
+#include "typography_create.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
 #define STRUCT_LIST(...) using AniTypes = std::tuple<__VA_ARGS__>
 
 // add new struct in this macro
-STRUCT_LIST(AniFontCollection, AniParagraph, AniParagraphBuilder);
+STRUCT_LIST(AniFontCollection, AniParagraph, AniParagraphBuilder, AniLineTypeset, AniTextLine, AniRun);
 
 template <typename T>
 static ani_status InitOneStruct(ani_vm* vm, uint32_t* result)
@@ -59,11 +67,17 @@ static void Clean(ani_env* env, ani_object object)
     ani_long ptr;
     ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptr);
     if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to clean ptr");
+        return;
+    }
+    if (ptr == 0) {
+        TEXT_LOGE("Auto clean failed, undefined ptr");
         return;
     }
     ani_ref stringRef = nullptr;
     ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
     if (ret != ANI_OK) {
+        TEXT_LOGE("Auto clean failed, ptr %{public}" PRId64, ptr);
         return;
     }
 
@@ -74,8 +88,9 @@ static void Clean(ani_env* env, ani_object object)
     }
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
-        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Paragraph", SafeDelete<AniParagraph>},
-        {"FontCollection", SafeDelete<AniFontCollection>}};
+        {"ParagraphBuilder", SafeDelete<Rosen::TypographyCreate>}, {"Typography", SafeDelete<Rosen::Typography>},
+        {"FontCollection", SafeDelete<AniFontCollection>}, {"LineTypeset", SafeDelete<Rosen::LineTypography>},
+        {"TextLine", SafeDelete<Rosen::TextLineBase>}, {"Run", SafeDelete<Rosen::Run>}};
 
     if (deleteMap.count(className)) {
         deleteMap.at(className)(ptr);
@@ -104,7 +119,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("[Manager] Failed to bind methods, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
