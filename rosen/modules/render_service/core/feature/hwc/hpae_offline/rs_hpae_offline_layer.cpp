@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-#include "rs_trace.h"
-#include "platform/common/rs_log.h"
-#include "common/rs_optional_trace.h"
-
 #include "feature/hwc/hpae_offline/rs_hpae_offline_layer.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
 
+#include "common/rs_optional_trace.h"
+#include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
+#include "platform/common/rs_log.h"
 #include "memory/rs_tag_tracker.h"
+#include "rs_trace.h"
 
 namespace OHOS::Rosen {
 
@@ -37,20 +36,20 @@ RSHpaeOfflineLayer::~RSHpaeOfflineLayer()
 
 bool RSHpaeOfflineLayer::PreAllocBuffers(const BufferRequestConfig& config)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("prealloc offline buffer.");
     if (!surfaceCreated_) {
         sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler_);
         if (!CreateSurface(listener)) {
             return false;
         }
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("prealloc offline buffer.");
     GSError ret = surface_->PreAllocBuffers(config, bufferSize_);
     if (ret != GSERROR_OK) {
-        ret = surface_->CleanCache(true);
+        ret = pSurface_->CleanCache(true);
         RS_OFFLINE_LOGW("offline prealloc buffer failed, clean cache: %{public}d", ret);
         return false;
     }
-    RS_OFFLINE_LOGD("hpae_offline: offline prealloc buffer success.");
+    RS_OFFLINE_LOGD("offline prealloc buffer success.");
     return true;
 }
 
@@ -65,7 +64,7 @@ sptr<SurfaceBuffer> RSHpaeOfflineLayer::RequestSurfaceBuffer(
         }
     }
     sptr<SurfaceBuffer> buffer = nullptr;
-    surface_->RequestBuffer(buffer, releaseFence, config);
+    pSurface_->RequestBuffer(buffer, releaseFence, config);
     return buffer;
 }
 
@@ -74,7 +73,7 @@ bool RSHpaeOfflineLayer::CreateSurface(sptr<IBufferConsumerListener>& listener)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Create offline surface");
     auto consumer = surfaceHandler_->GetConsumer();
-    if (consumer != nullptr && surface_ != nullptr) {
+    if (consumer != nullptr && pSurface_ != nullptr) {
         RS_OFFLINE_LOGD("surface already created, return.");
         return true;
     }
@@ -89,12 +88,12 @@ bool RSHpaeOfflineLayer::CreateSurface(sptr<IBufferConsumerListener>& listener)
         return false;
     }
     auto producer = consumer->GetProducer();
-    surface_ = Surface::CreateSurfaceAsProducer(producer);
-    if (!surface_) {
+    pSurface_ = Surface::CreateSurfaceAsProducer(producer);
+    if (!pSurface_) {
         RS_OFFLINE_LOGE("create surface fail, CreateSurfaceAsProducer fail.");
         return false;
     }
-    surface_->SetQueueSize(bufferSize_);
+    pSurface_->SetQueueSize(bufferSize_);
     surfaceCreated_ = true;
     surfaceHandler_->SetConsumer(consumer);
     return true;
@@ -104,14 +103,14 @@ void RSHpaeOfflineLayer::FlushSurfaceBuffer(
     sptr<SurfaceBuffer>& buffer, int32_t acquireFence, BufferFlushConfig& flushConfig)
 {
     sptr<SyncFence> acquireFenceSp(new SyncFence(acquireFence));
-    surface_->FlushBuffer(buffer, acquireFenceSp, flushConfig);
+    pSurface_->FlushBuffer(buffer, acquireFenceSp, flushConfig);
 }
 
 void RSHpaeOfflineLayer::CleanCache(bool cleanAll)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: clean offline buffer cache.");
-    if (surface_ != nullptr) {
-        GSError ret = surface_->CleanCache(cleanAll);
+    if (pSurface_ != nullptr) {
+        GSError ret = pSurface_->CleanCache(cleanAll);
         RS_OFFLINE_LOGD("clean offline buffer cache, ret = %{public}d.", ret);
     }
 }
