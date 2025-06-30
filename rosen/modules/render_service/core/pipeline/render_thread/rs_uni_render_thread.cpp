@@ -1188,4 +1188,4 @@ void RSUniRenderThread::DumpVkImageInfo(std::string &dumpString)
     });
 }
 } // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS 

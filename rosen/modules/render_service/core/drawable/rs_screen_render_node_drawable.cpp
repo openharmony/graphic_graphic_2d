@@ -1380,4 +1380,4 @@ bool RSScreenRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo scre
     return needSkip;
 }
 
-} // namespace OHOS::Rosen::DrawableV2
+} //namespace OHOS::Rosen::DrawableV2

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -251,67 +250,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level
     virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
     mainRenderParams->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
-    screenManager->RemoveVirtualScreen(screenId);
-}
-
-/**
- * @tc.name: InitForRenderThread002
- * @tc.desc: Test RSUniRenderVirtualProcessorTest.InitForRenderThread autoBufferRotation is on
- * @tc.type:FUNC
- * @tc.require: issueICGA54
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
-    ASSERT_NE(surface, nullptr);
-    auto screenId = screenManager->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
-    screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
-
-    NodeId mainNodeId = 1;
-    NodeId virtualNodeId = 2;
-    RSDisplayNodeConfig mainConfig{0, false, INVALID_SCREEN_ID, false};
-    auto mainNode = std::make_shared<RSDisplayRenderNode>(mainNodeId, mainConfig);
-    mainNode->InitRenderParams();
-    RSDisplayNodeConfig virtualConfig{screenId, true, mainNodeId, false};
-    auto virtualNode = std::make_shared<RSDisplayRenderNode>(virtualNodeId, virtualConfig);
-    virtualNode->InitRenderParams();
-    ASSERT_NE(mainNode->renderDrawable_, nullptr);
-    ASSERT_NE(virtualNode->renderDrawable_, nullptr);
-    ASSERT_NE(mainNode->renderDrawable_->renderParams_, nullptr);
-    ASSERT_NE(virtualNode->renderDrawable_->renderParams_, nullptr);
-
-    auto mainRenderDrawable = static_cast<RSDisplayRenderNodeDrawable* >(mainNode->renderDrawable_.get());
-    auto virtualRenderDrawable = static_cast<RSDisplayRenderNodeDrawable* >(virtualNode->renderDrawable_.get());
-    ASSERT_NE(mainRenderDrawable, nullptr);
-    ASSERT_NE(virtualRenderDrawable, nullptr);
-    auto mainRenderParams = static_cast<RSDisplayRenderParams* >(mainRenderDrawable->GetRenderParams().get());
-    auto virtualRenderParams = static_cast<RSDisplayRenderParams* >(virtualRenderDrawable->GetRenderParams().get());
-    ASSERT_NE(mainRenderParams, nullptr);
-    ASSERT_NE(virtualRenderParams, nullptr);
-    virtualRenderParams->mirrorSourceDrawable_ = mainNode->renderDrawable_;
-    virtualRenderParams->screenId_ = screenId;
-
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    ASSERT_NE(renderEngine, nullptr);
-    renderEngine->Init();
-
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(virtualProcessor, nullptr);
-
-    virtualProcessor->InitForRenderThread(*mainRenderDrawable, 0, renderEngine);
-    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    
-    screenManager->SetVirtualScreenAutoRotation(screenId, true);
-    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-
-    virtualRenderDrawable->SetFirstBufferRotation(ScreenRotation::ROTATION_90);
-    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    virtualProcessor->InitForRenderThread(*mainRenderDrawable, INVALID_SCREEN_ID, renderEngine);
-    mainRenderParams->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    virtualProcessor->InitForRenderThread(*mainRenderDrawable, INVALID_SCREEN_ID, renderEngine);
     screenManager->RemoveVirtualScreen(screenId);
 }
 
