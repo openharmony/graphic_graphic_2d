@@ -2499,11 +2499,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetRogWidthRatio(1.0f);
             }
             processor->CreateLayer(*surfaceNode, *params);
-            // Set buffer to synced state in directComposition only when buffer is consumed.
-            // If buffer is not consumed, it should keep buffer sync state until next buffer consumed.
-            if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                params->SetBufferSynced(true);
-            }
+            // buffer is synced to directComposition
+            params->SetBufferSynced(true);
         }
     }
     RSLuminanceControl::Get().SetHdrStatus(screenId,
