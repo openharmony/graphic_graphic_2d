@@ -51,53 +51,31 @@ HWTEST_F(RSProfilerBaseTest, IsPlaybackParcel, Level1)
 HWTEST_F(RSProfilerBaseTest, SurfaceOnDrawMatchOptimize, Level1)
 {
     EXPECT_NO_THROW({
-        bool defaultValue = false;
+        for (int default_bool_value = 0; default_bool_value < 2; ++default_bool_value) {
+            RSProfiler::testing_ = true;
 
-        RSProfiler::testing_ = true;
-        bool useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
+            bool useNodeMatchOptimize = default_bool_value;
+            RSProfiler::SetMode(Mode::READ_EMUL);
+            RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
+            EXPECT_TRUE(useNodeMatchOptimize);
 
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_FALSE(useNodeMatchOptimize);
+            useNodeMatchOptimize = default_bool_value;
+            RSProfiler::SetMode(Mode::NONE);
+            RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
+            EXPECT_FALSE(useNodeMatchOptimize);
 
-        RSProfiler::testing_ = false;
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_FALSE(useNodeMatchOptimize);
+            RSProfiler::testing_ = false;
 
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_FALSE(useNodeMatchOptimize);
+            useNodeMatchOptimize = default_bool_value;
+            RSProfiler::SetMode(Mode::READ_EMUL);
+            RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
+            EXPECT_FALSE(useNodeMatchOptimize);
 
-        defaultValue = true;
-
-        RSProfiler::testing_ = true;
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-
-        RSProfiler::testing_ = false;
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
+            useNodeMatchOptimize = default_bool_value;
+            RSProfiler::SetMode(Mode::NONE);
+            RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
+            EXPECT_FALSE(useNodeMatchOptimize);
+        }
     });
 }
 
