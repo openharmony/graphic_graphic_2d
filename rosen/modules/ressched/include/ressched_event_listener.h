@@ -42,27 +42,25 @@ private:
     std::atomic<bool> isNeedReport_ = {false};
     std::atomic<bool> isFirstReport_ = {false};
     uint64_t lastReportTime_ = 0;
-
     std::atomic<uint32_t> currentPid_;
     uint32_t currentType_;
     std::chrono::steady_clock::time_point beginTimeStamp_;
     std::chrono::steady_clock::time_point endTimeStamp_;
     uint64_t frameCountNum_;
     bool isFrameRateFirstReport_ = false;
-    static std::mutex ffrtGetMutex_;
-
+    static std::mutex ffrtGetQueueMutex_;
+    static std::mutex ffrtGetHighFrequenceQueueMutex_;
     static std::shared_ptr<ffrt::queue> ffrtQueue_;
+    static std::shared_ptr<ffrt::queue> ffrtHighPriorityQueue_;
 
     void HandleDrawFrameEventReport(uint32_t eventValue);
     void HandleFrameRateStatisticsReport(uint32_t eventValue, std::unordered_map<std::string, std::string> extInfo);
-
     void HandleFrameRateStatisticsBeginAsync(uint32_t pid, uint32_t type);
     void HandleFrameRateStatisticsEndAsync(uint32_t pid, uint32_t type);
     void HandleFrameRateStatisticsBreakAsync(uint32_t pid, uint32_t type);
-
     void ReportFrameRateToRSS(const std::unordered_map<std::string, std::string>& mapPayload);
-    
     static bool GetFfrtQueue();
+    static bool GetFfrtHighPriorityQueue();
 };
 } // namespace Rosen
 } // namespace OHOS

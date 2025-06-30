@@ -16,6 +16,7 @@
 #include <charconv>
 #include <limits>
 
+#include "ffrt_inner.h"
 #include "ressched_event_listener.h"
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -32,9 +33,13 @@ constexpr double EPSILON = 0.1;
 std::once_flag ResschedEventListener::createFlag_;
 sptr<ResschedEventListener> ResschedEventListener::instance_ = nullptr;
 std::shared_ptr<ffrt::queue> ResschedEventListener::ffrtQueue_ = nullptr;
-std::mutex ResschedEventListener::ffrtGetMutex_;
+std::shared_ptr<ffrt::queue> ResschedEventListener::ffrtHighPriorityQueue_ = nullptr;
+std::mutex ResschedEventListener::ffrtGetQueueMutex_;
+std::mutex ResschedEventListener::ffrtGetHighFrequenceQueueMutex_;
 constexpr uint64_t SAMPLE_TIME = 100000000;
-const std::string RS_RESSCHED_EVENT_LISTENER_QUEUE = "res_ressched_event_listener_queue";
+const std::string RS_RESSCHED_LISTENER_QUEUE = "res_ressched_event_listener_queue";
+const std::string RS_RESSCHED_LISTENER_QUEUE_HIGH_PRIOTITY = "res_ressched_event_listener_high_priotity_queue";
+
 sptr<ResschedEventListener> ResschedEventListener::GetInstance() noexcept
 {
     std::call_once(createFlag_, []() {
@@ -130,9 +135,15 @@ void ResschedEventListener::HandleFrameRateStatisticsReport(uint32_t eventValue,
 
 void ResschedEventListener::ReportFrameRateToRSS(const std::unordered_map<std::string, std::string>& mapPayload)
 {
-    uint32_t type = ResourceSchedule::ResType::RES_TYPE_FRAME_RATE_REPORT_FROM_RS;
-    int64_t value = ResourceSchedule::ResType::FrameRateReportState::FRAME_RATE_COMMON_REPORT;
-    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+    if (GetFfrtHighPriorityQueue()) {
+        ffrtHighPriorityQueue_->submit([mapPayload]() {
+            RS_TRACE_BEGIN("FrameRateStatistics ReportFrameRateToRSS");
+            uint32_t type = ResourceSchedule::ResType::RES_TYPE_FRAME_RATE_REPORT_FROM_RS;
+            int64_t value = ResourceSchedule::ResType::FrameRateReportState::FRAME_RATE_COMMON_REPORT;
+            OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+            RS_TRACE_END();
+        });
+    }
 }
 
 void ResschedEventListener::ReportFrameCountAsync(uint32_t pid)
@@ -193,9 +204,7 @@ void ResschedEventListener::HandleFrameRateStatisticsEndAsync(uint32_t pid, uint
                 mapPayload["pid"] = std::to_string(currentPid_.load());
                 mapPayload["type"] = std::to_string(currentType_);
                 mapPayload["frameRate"] = std::to_string(frameRate);
-                RS_TRACE_BEGIN("FrameRateStatistics ReportFrameRateToRSS");
-                    ReportFrameRateToRSS(mapPayload);
-                RS_TRACE_END();
+                ReportFrameRateToRSS(mapPayload);
             }
             currentPid_.store(DEFAULT_PID);
             currentType_ = DEFAULT_TYPE;
@@ -215,13 +224,33 @@ bool ResschedEventListener::GetFfrtQueue()
         return true;
     }
     if (ffrtQueue_ == nullptr) {
-        std::lock_guard<std::mutex> lock(ffrtGetMutex_);
+        std::lock_guard<std::mutex> lock(ffrtGetQueueMutex_);
         if (ffrtQueue_ == nullptr) {
-            ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_EVENT_LISTENER_QUEUE.c_str(),
+            ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_LISTENER_QUEUE.c_str(),
                 ffrt::queue_attr().qos(ffrt::qos_default));
         }
     }
     if (ffrtQueue_ == nullptr) {
+        RS_TRACE_BEGIN("FrameRateStatistics Init ffrtqueue failed!");
+        RS_TRACE_END();
+        return false;
+    }
+    return true;
+}
+
+bool ResschedEventListener::GetFfrtHighPriorityQueue()
+{
+    if (ffrtHighPriorityQueue_ != nullptr) {
+        return true;
+    }
+    if (ffrtHighPriorityQueue_ == nullptr) {
+        std::lock_guard<std::mutex> lock(ffrtGetHighFrequenceQueueMutex_);
+        if (ffrtHighPriorityQueue_ == nullptr) {
+            ffrtHighPriorityQueue_ = std::make_shared<ffrt::queue>(
+                RS_RESSCHED_LISTENER_QUEUE_HIGH_PRIOTITY.c_str(), ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+        }
+    }
+    if (ffrtHighPriorityQueue_ == nullptr) {
         RS_TRACE_BEGIN("FrameRateStatistics Init ffrtqueue failed!");
         RS_TRACE_END();
         return false;
