@@ -4804,6 +4804,23 @@ void RSNode::DumpTree(int depth, std::string& out) const
     }
 }
 
+#if defined(MODIFIER_NG)
+void RSNode::DumpModifierNGs(std::string& out) const
+{
+    for (const auto& [id, modifier] : modifiersNG_) {
+        if (modifier == nullptr) {
+            continue;
+        }
+
+        auto renderModifier = modifier->CreateRenderModifier();
+        if (renderModifier == nullptr) {
+            continue;
+        }
+        renderModifier->Dump(out, ",");
+    }
+}
+#endif
+
 void RSNode::Dump(std::string& out) const
 {
     auto iter = RSUINodeTypeStrs.find(GetType());
@@ -4855,6 +4872,9 @@ void RSNode::Dump(std::string& out) const
     }
     
     out += "], modifiers[";
+#if defined(MODIFIER_NG)
+    DumpModifierNGs(out);
+#else
     for (const auto& [id, modifier] : modifiers_) {
         if (modifier == nullptr) {
             continue;
@@ -4868,6 +4888,7 @@ void RSNode::Dump(std::string& out) const
         out += ":";
         renderModifier->Dump(out);
     }
+#endif
     out += "]";
 }
 

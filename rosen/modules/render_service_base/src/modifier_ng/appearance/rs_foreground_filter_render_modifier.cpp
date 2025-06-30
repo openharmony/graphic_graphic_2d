@@ -48,7 +48,7 @@ void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetDistortionK(std::nullopt);
     properties.SetAttractionFraction(0.f);
     properties.SetAttractionDstPoint(Vector2f());
-    properties.SetBackgroundUIFilter({});
+    properties.SetForegroundUIFilter({});
 }
 
 void RSForegroundFilterRenderModifier::AttachRenderFilterProperty(

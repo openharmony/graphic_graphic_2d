@@ -7737,6 +7737,11 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
+#if defined(MODIFIER_NG)
+    rsNode->SetAlpha(0.5);
+    string out3;
+    ASSERT_TRUE(!out3.empty());
+#endif
 }
 
 /**

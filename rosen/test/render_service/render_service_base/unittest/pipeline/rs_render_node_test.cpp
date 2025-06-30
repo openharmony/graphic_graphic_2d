@@ -30,6 +30,8 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render/rs_filter.h"
+#include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
 
@@ -2692,6 +2694,68 @@ HWTEST_F(RSRenderNodeTest, CheckGroupableAnimationTest028, TestSize.Level1)
     nodeTest->context_ = context;
     // RSSystemProperties::GetAnimationCacheEnabled() is false
     canvasRenderNodeTest->CheckGroupableAnimation(1, true);
+
+#if defined(MODIFIER_NG)
+    {
+        auto property = std::make_shared<RSRenderProperty<int>>();
+
+        std::shared_ptr<ModifierNG::RSRenderModifier> modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+        modifier->properties_[ModifierNG::RSPropertyType::ALPHA] = property;
+
+        std::shared_ptr<RSContext> contextTest = std::make_shared<RSContext>();
+        std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
+            std::make_shared<RSSurfaceRenderNode>(0, std::make_shared<RSContext>());
+        contextTest->nodeMap.residentSurfaceNodeMap_.emplace(std::make_pair(0, surfaceNode));
+        surfaceNode->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier);
+        surfaceNode->properties_[2] = property;
+        surfaceNode->context_ = contextTest;
+        surfaceNode->CheckGroupableAnimation(2, true);
+    }
+
+    {
+        auto property = std::make_shared<RSRenderProperty<Vector4f>>();
+
+        std::shared_ptr<ModifierNG::RSRenderModifier> modifier = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+        modifier->properties_[ModifierNG::RSPropertyType::BOUNDS] = property;
+
+        std::shared_ptr<RSContext> contextTest = std::make_shared<RSContext>();
+        std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
+            std::make_shared<RSSurfaceRenderNode>(0, std::make_shared<RSContext>());
+        contextTest->nodeMap.residentSurfaceNodeMap_.emplace(std::make_pair(0, surfaceNode));
+        surfaceNode->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::BOUNDS)].emplace_back(modifier);
+        surfaceNode->properties_[2] = property;
+        surfaceNode->context_ = contextTest;
+        surfaceNode->CheckGroupableAnimation(2, true);
+    }
+#endif
+}
+
+/**
+ * @tc.name: CheckGroupableAnimationTest029
+ * @tc.desc: CheckGroupableAnimation test
+ * @tc.type: FUNC
+ * @tc.require: issueI9V3BK
+ */
+HWTEST_F(RSRenderNodeTest, CheckGroupableAnimationTest029, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderProperty<Vector4f>>();
+    EXPECT_NE(property, nullptr);
+#if defined(MODIFIER_NG)
+    std::shared_ptr<ModifierNG::RSRenderModifier> modifier = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    modifier->properties_[ModifierNG::RSPropertyType::BOUNDS] = property;
+
+    std::shared_ptr<RSContext> contextTest = std::make_shared<RSContext>();
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
+        std::make_shared<RSSurfaceRenderNode>(0, std::make_shared<RSContext>());
+    contextTest->nodeMap.residentSurfaceNodeMap_.emplace(std::make_pair(0, surfaceNode));
+    surfaceNode->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::BOUNDS)].emplace_back(modifier);
+    surfaceNode->properties_[2] = property;
+    surfaceNode->context_ = contextTest;
+    auto animation = std::make_shared<RSRenderAnimation>();
+    surfaceNode->animationManager_.animations_[0] = animation;
+    surfaceNode->animationManager_.animations_[1] = nullptr;
+    surfaceNode->CheckGroupableAnimation(2, false);
+#endif
 }
 
 /**

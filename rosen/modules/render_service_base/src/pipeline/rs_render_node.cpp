@@ -3740,6 +3740,62 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCacheSurface(uint32_t threadI
     return nullptr;
 }
 
+#if defined(MODIFIER_NG)
+bool RSRenderNode::GroupableAnimationType(
+    const PropertyId& id, bool& isGroupAnimationType, bool& isCacheableAnimationType)
+{
+    if (auto property = GetProperty(id)) {
+        if (auto modifierNG = property->GetModifierNG().lock()) {
+            isGroupAnimationType = modifierNG->HasProperty(ModifierNG::RSPropertyType::ALPHA) ||
+                                   modifierNG->HasProperty(ModifierNG::RSPropertyType::ROTATION) ||
+                                   modifierNG->HasProperty(ModifierNG::RSPropertyType::SCALE);
+            isCacheableAnimationType = modifierNG->HasProperty(ModifierNG::RSPropertyType::BOUNDS) ||
+                                       modifierNG->HasProperty(ModifierNG::RSPropertyType::FRAME);
+            return true;
+        }
+    }
+    return false;
+}
+
+void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
+{
+    if (id <= 0 || GetType() != RSRenderNodeType::CANVAS_NODE) {
+        return;
+    }
+    auto context = GetContext().lock();
+    if (!RSSystemProperties::GetAnimationCacheEnabled() ||
+        !context || !context->GetNodeMap().IsResidentProcessNode(GetId())) {
+        return;
+    }
+    bool isGroupAnimationType = false;
+    bool isCacheableAnimationType = false;
+    if (!GroupableAnimationType(id, isGroupAnimationType, isCacheableAnimationType)) {
+        return;
+    }
+    if (isAnimAdd) {
+        if (isGroupAnimationType) {
+            MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true, false);
+        } else if (isCacheableAnimationType) {
+            hasCacheableAnim_ = true;
+        }
+        return;
+    }
+    bool hasGroupableAnim = false;
+    hasCacheableAnim_ = false;
+    for (auto& [_, animation] : animationManager_.animations_) {
+        if (!animation || id == animation->GetPropertyId()) {
+            continue;
+        }
+        if (!GroupableAnimationType(animation->GetPropertyId(), isGroupAnimationType, isCacheableAnimationType)) {
+            continue;
+        }
+        hasGroupableAnim = (hasGroupableAnim || isGroupAnimationType);
+        hasCacheableAnim_ = (hasCacheableAnim_ || isCacheableAnimationType);
+    }
+    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim, false);
+}
+
+#else
 void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 {
     if (id <= 0 || GetType() != RSRenderNodeType::CANVAS_NODE) {
@@ -3777,6 +3833,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
     }
     MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim, false);
 }
+#endif
 
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
@@ -4843,7 +4900,11 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasSandBox(hasSandbox);
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
 #ifdef RS_ENABLE_PREFETCH
+#if defined(MODIFIER_NG)
+    __builtin_prefetch(&boundsModifierNG_, 0, 1);
+#else
     __builtin_prefetch(&boundsModifier_, 0, 1);
+#endif
 #endif
     stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
