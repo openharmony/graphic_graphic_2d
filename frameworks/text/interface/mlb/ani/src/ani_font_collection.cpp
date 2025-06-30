@@ -166,7 +166,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind methods: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        TEXT_LOGE("[FontCollection] Failed to bind methods: %{public}s", ANI_CLASS_FONT_COLLECTION);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;

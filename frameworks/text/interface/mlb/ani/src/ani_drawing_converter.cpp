@@ -65,6 +65,27 @@ void AniDrawingConverter::ParseDrawingColorToNative(
     colorSrc = Drawing::Color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));
 }
 
+ani_status AniDrawingConverter::ParseDrawingPointToNative(
+    ani_env* env, ani_object obj, OHOS::Rosen::Drawing::Point& point)
+{
+    ani_double x{0};
+    ani_status ret = env->Object_GetPropertyByName_Double(obj, "x", &x);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Param x is invalid, ret %{public}d", ret);
+        return ret;
+    }
+
+    ani_double y{0};
+    ret = env->Object_GetPropertyByName_Double(obj, "x", &y);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Param y is invalid, ret %{public}d", ret);
+        return ret;
+    }
+    point.SetX(x);
+    point.SetY(y);
+    return ret;
+}
+
 ani_object AniDrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS, ":V");
@@ -85,5 +106,37 @@ ani_object AniDrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawin
     env->Object_SetPropertyByName_Double(aniObj, "strikethroughThickness", ani_double(fontMetrics.fStrikeoutThickness));
     env->Object_SetPropertyByName_Double(aniObj, "strikethroughPosition", ani_double(fontMetrics.fStrikeoutPosition));
     return aniObj;
+}
+
+ani_status AniDrawingConverter::ParseRectToAni(ani_env* env, const OHOS::Rosen::Drawing::RectF& rect, ani_object& obj)
+{
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT, ":V");
+    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(rect.left_))) {
+        return ANI_INVALID_ARGS;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(rect.top_))) {
+        return ANI_INVALID_ARGS;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "right", ani_double(rect.right_))) {
+        return ANI_INVALID_ARGS;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(rect.bottom_))) {
+        return ANI_INVALID_ARGS;
+    }
+    obj = aniObj;
+    return ANI_OK;
+}
+
+ani_status AniDrawingConverter::ParsePointToAni(ani_env* env, const OHOS::Rosen::Drawing::Point& point, ani_object& obj)
+{
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_POINT, ":V");
+    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "x", ani_double(point.GetX()))) {
+        return ANI_INVALID_ARGS;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "y", ani_double(point.GetY()))) {
+        return ANI_INVALID_ARGS;
+    }
+    obj = aniObj;
+    return ANI_OK;
 }
 } // namespace OHOS::Text::ANI
