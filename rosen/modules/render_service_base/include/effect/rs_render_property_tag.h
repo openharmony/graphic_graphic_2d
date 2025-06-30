@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_RENDER_PROPERTY_TAG_H
 
 #include "modifier/rs_render_property.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {

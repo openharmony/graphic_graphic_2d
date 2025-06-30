@@ -52,6 +52,7 @@ void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetAttractionFraction(0.f);
     properties.SetAttractionDstPoint(Vector2f());
     properties.SetBackgroundUIFilter({});
+    properties.SetForegroundNGFilter({});
 }
 
 void RSForegroundFilterRenderModifier::AttachRenderFilterProperty(

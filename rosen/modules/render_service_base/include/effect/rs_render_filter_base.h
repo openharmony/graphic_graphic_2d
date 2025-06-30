@@ -38,7 +38,7 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderFilterBase>& val);
 
-    virtual void GenerateGEVisualEffect() {}
+    virtual void GenerateGEVisualEffect() = 0;
 
     virtual void OnSync()
     {
@@ -46,7 +46,7 @@ public:
     }
 
 protected:
-    std::vector<std::shared_ptr<Drawing::GEVisualEffect>> geFilters_;
+    std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
 
 private:
     friend class RSNGFilterBase;
@@ -71,7 +71,7 @@ public:
                 (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
                     geFilter, propTag), ...);
             }, EffectTemplateBase::properties_);
-        RSNGRenderFilterBase::geFilters_.push_back(geFilter);
+        RSNGRenderFilterBase::geFilter_ = std::move(geFilter);
 
         if (EffectTemplateBase::nextEffect_) {
             EffectTemplateBase::nextEffect_->GenerateGEVisualEffect();

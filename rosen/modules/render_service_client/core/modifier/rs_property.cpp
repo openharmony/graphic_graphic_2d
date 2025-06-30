@@ -258,6 +258,9 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNG
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty()
 {
+    if (!stagingValue_) {
+        return nullptr;
+    }
     return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>(
         stagingValue_->GetRenderEffect(), id_);
 }
@@ -308,6 +311,9 @@ void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMa
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty()
 {
+    if (!stagingValue_) {
+        return nullptr;
+    }
     return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>(
         stagingValue_->GetRenderEffect(), id_);
 }
@@ -502,13 +508,6 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value->GetRenderEffect(), type);
-}
-
-template<>
-void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
-    const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyNGMaskBase, value->GetRenderEffect(), type);
 }
 
 template<>

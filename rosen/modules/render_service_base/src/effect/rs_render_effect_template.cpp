@@ -18,6 +18,8 @@
 #include "effect/rs_render_mask_base.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
+#include "render/rs_path.h"
+#include "render/rs_pixel_map_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,9 +44,18 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
     const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value)
 {
-    auto ge = std::make_shared<Drawing::GEVisualEffectContainer>();
-    value->AppendToGEContainer(ge);
-    geFilter->SetParam(desc, ge);
+    auto geVisualEffect = value->GenerateGEVisualEffect();
+    if (!geVisualEffect) {
+        return;
+    }
+    geFilter->SetParam(desc, geVisualEffect->GenerateShaderMask());
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+    const std::string& desc, std::shared_ptr<Media::PixelMap> value)
+{
+    auto image = RSPixelMapUtil::ExtractDrawingImage(value);
+    geFilter->SetParam(desc, image);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

@@ -3902,7 +3902,9 @@ void RSProperties::ComposeNGRenderFilter(
         originDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(originFilter);
     }
     originDrawingFilter->SetNGRenderFilter(filter);
-    originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    if (filter) {
+        originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    }
     originFilter = originDrawingFilter;
 }
 

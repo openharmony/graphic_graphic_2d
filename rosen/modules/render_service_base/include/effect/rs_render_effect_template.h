@@ -245,7 +245,7 @@ public:
             case RSNGEffectType::INVALID: return "Invalid";
             case RSNGEffectType::NONE: return "None";
             case RSNGEffectType::BLUR: return "Blur";
-            case RSNGEffectType::DISPLACEMENT_DISTORT: return "DisplacementDistort";
+            case RSNGEffectType::DISPLACEMENT_DISTORT: return "DispDistort";
             case RSNGEffectType::SOUND_WAVE: return "SoundWave";
             case RSNGEffectType::EDGE_LIGHT: return "EdgeLight";
             case RSNGEffectType::DISPERSION: return "Dispersion";
@@ -274,13 +274,16 @@ private:
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
         const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
+
+    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+        const std::string& desc, std::shared_ptr<Media::PixelMap> value);
 };
 
 template <typename Base, RSNGEffectType Type, typename... PropertyTags>
 void RSNGRenderEffectTemplate<Base, Type, PropertyTags...>::Dump(std::string& out) const
 {
     std::string descStr = ": ";
-    std::string splitStr = ", ";
+    std::string splitStr = "--";
 
     out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
     out += descStr;

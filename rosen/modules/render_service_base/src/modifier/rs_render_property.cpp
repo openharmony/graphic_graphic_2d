@@ -562,7 +562,19 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& 
 {
     if (auto property = Get()) {
         property->Dump(out);
+        return;
     }
+    out += "[null]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Dump(std::string& out) const
+{
+    if (auto property = Get()) {
+        property->Dump(out);
+        return;
+    }
+    out += "[null]";
 }
 
 template<>
@@ -764,7 +776,7 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
         stagingValue_->Detach();
     }
     stagingValue_ = value;
-    if (value) {
+    if (node && value) {
         value->Attach(*node, modifier_.lock());
     }
     OnChange();

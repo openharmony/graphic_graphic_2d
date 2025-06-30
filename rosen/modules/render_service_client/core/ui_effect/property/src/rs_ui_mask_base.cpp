@@ -16,6 +16,7 @@
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #include "platform/common/rs_log.h"
+#include "pixel_map.h"
 #include "ui_effect/mask/include/pixel_map_mask_para.h"
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
@@ -66,7 +67,7 @@ std::shared_ptr<RSNGMaskBase> ConvertPixelMapMaskPara(std::shared_ptr<MaskPara> 
     pixelMapMask->Setter<PixelMapMaskSrcTag>(pixelMapMaskPara->GetSrc());
     pixelMapMask->Setter<PixelMapMaskDstTag>(pixelMapMaskPara->GetDst());
     pixelMapMask->Setter<PixelMapMaskFillColorTag>(pixelMapMaskPara->GetFillColor());
-    // TODO: pixelMap
+    pixelMapMask->Setter<PixelMapMaskImageTag>(pixelMapMaskPara->GetPixelMap());
     return pixelMapMask;
 }
 }

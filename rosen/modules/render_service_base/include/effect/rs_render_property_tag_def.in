@@ -68,3 +68,4 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Offset, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Src, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Dst, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, FillColor, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(PixelMapMask, Image, std::shared_ptr<Media::PixelMap>);

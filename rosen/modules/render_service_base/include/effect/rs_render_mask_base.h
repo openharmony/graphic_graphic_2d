@@ -35,7 +35,7 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val);
 
-    virtual void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) {};
+    virtual std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() = 0;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
@@ -48,7 +48,7 @@ public:
     RSNGRenderMaskTemplate(const std::tuple<PropertyTags...>& properties) noexcept
         : EffectTemplateBase(properties) {}
 
-    void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) override
+    std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
     {
         auto geMask = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geMask);
@@ -56,10 +56,8 @@ public:
                 (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
                     geMask, propTag), ...);
             }, EffectTemplateBase::properties_);
-        RSNGRenderEffectHelper::AppendToGEContainer(ge, geMask);
-        if (EffectTemplateBase::nextEffect_) {
-            EffectTemplateBase::nextEffect_->AppendToGEContainer(ge);
-        }
+        // Currently only a single mask is used, so we do not handle the nextEffect_ here.
+        return geMask;
     }
 
 protected:
@@ -82,7 +80,8 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
-    ADD_PROPERTY_TAG(PixelMapMask, FillColor)
+    ADD_PROPERTY_TAG(PixelMapMask, FillColor),
+    ADD_PROPERTY_TAG(PixelMapMask, Image)
 );
 
 #undef ADD_PROPERTY_TAG

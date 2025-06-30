@@ -93,14 +93,16 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
 void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
     std::shared_ptr<Drawing::GEVisualEffectContainer> container)
 {
-    if (!filter || !container) {
-        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: filter or container nullptr");
+    if (!container) {
+        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: container nullptr");
         return;
     }
 
-    std::for_each(filter->geFilters_.begin(), filter->geFilters_.end(), [&container](const auto& filter) {
-        container->AddToChainedFilter(filter);
-    });
+    auto current = filter;
+    if (current) {
+        container->AddToChainedFilter(current->geFilter_);
+        current = current->nextEffect_;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

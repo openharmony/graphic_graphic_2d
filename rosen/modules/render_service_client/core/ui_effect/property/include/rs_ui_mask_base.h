@@ -51,8 +51,12 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
-    ADD_PROPERTY_TAG(PixelMapMask, FillColor)
+    ADD_PROPERTY_TAG(PixelMapMask, FillColor),
+    ADD_PROPERTY_TAG(PixelMapMask, Image)
 );
+
+#undef DECLARE_MASK
+#undef ADD_PROPERTY_TAG
 
 } // namespace Rosen
 } // namespace OHOS
