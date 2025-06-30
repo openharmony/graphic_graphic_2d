@@ -547,7 +547,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
-    if (dstRect_.width == 0 || dstRect_.height == 0) {
+    if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
         return;
     }
     float left = frameRect_.left_;
