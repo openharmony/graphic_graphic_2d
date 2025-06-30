@@ -56,32 +56,32 @@ std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::GetTaskFuture(
         RS_OFFLINE_LOGW("%{public}s, taskPool has not wanted task.", __func__);
         return nullptr;
     }
-    auto status = std::move(iter->second);
+    auto future = std::move(iter->second);
     resultPool_.erase(iter);
-    return status;
+    return future;
 }
 
 bool RSHpaeOfflineProcessSyncer::WaitForTaskAndGetResult(uint64_t taskId,
     std::chrono::milliseconds timeout, ProcessOfflineResult& processOfflineResult)
 {
     RS_TRACE_NAME_FMT("Wait for offline task.", __func__);
-    auto status = GetTaskFuture(taskId);
-    if (!status) {
+    auto future = GetTaskFuture(taskId);
+    if (!future) {
         RS_OFFLINE_LOGE("%{public}s, task is null.", __func__);
         return false;
     }
 
-    std::unique_lock<std::mutex> lock(status->mtx);
+    std::unique_lock<std::mutex> lock(future->mtx);
     if (timeout == std::chrono::milliseconds::max()) {
-        status->cv.wait(lock, [status] { return status->done; });
+        future->cv.wait(lock, [future] { return future->done; });
     } else {
-        if (!status->cv.wait_for(lock, timeout, [status] { return status->done; })) {
-            status->timeout = true;
+        if (!future->cv.wait_for(lock, timeout, [future] { return future->done; })) {
+            future->timeout = true;
             RS_OFFLINE_LOGW("%{public}s, wait task[%{public}" PRIu64 "] timeout!!!", __func__, taskId);
             return false;
         }
     }
-    processOfflineResult = status->result;
+    processOfflineResult = future->result;
     return true;
 }
 
