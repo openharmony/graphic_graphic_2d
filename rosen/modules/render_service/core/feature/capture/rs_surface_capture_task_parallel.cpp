@@ -273,6 +273,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
+        RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
+    }
     bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
     bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
@@ -377,14 +380,12 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
-        " origin pixelmap size: [%{public}u, %{public}u],"
-        " scale: [%{public}f, %{public}f],"
-        " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f],"
-        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d], blackList: [%{public}zu]",
-        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
-        rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(),
-        captureConfig_.useDma, screenRotation_, screenCorrection_, captureConfig_.blackList.size());
+    RS_LOGI("RSSurfaceCaptureTaskParallel::%{public}s NodeId[%{public}" PRIu64 "],pixelmap[%{public}u, %{public}u],"
+        " scale[%{public}f, %{public}f], rect[%{public}f, %{public}f, %{public}f, %{public}f], dma[%{public}d],"
+        " rotation[%{public}d], correction[%{public}d], blackList[%{public}zu]", __func__, node->GetId(),
+        pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(), captureConfig_.useDma, screenRotation_,
+        screenCorrection_, captureConfig_.blackList.size());
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = node->GetColorSpace();

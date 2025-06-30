@@ -23,6 +23,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_hrp_service.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "rs_trace.h"
 
@@ -1938,6 +1939,10 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
         !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
         !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.left_) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.top_) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.right_) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.WriteUInt64Vector(captureConfig.blackList) ||
         !data.WriteUint32(captureConfig.backGroundColor)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
@@ -5301,7 +5306,7 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool v
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
-    const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     if (!callback) {
         ROSEN_LOGE("%{public}s callback is nullptr", __func__);
@@ -5317,20 +5322,20 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
     }
     option.SetFlags(MessageOption::TF_SYNC);
 
-    uint32_t size = filter.pids.size();
+    uint32_t size = constraint.pids.size();
     if (!data.WriteUint32(size)) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write size err.");
         return WRITE_PARCEL_ERR;
     }
-    for (int32_t pid : filter.pids) {
+    for (int32_t pid : constraint.pids) {
         if (!data.WriteInt32(pid)) {
             ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write pid err.");
             return WRITE_PARCEL_ERR;
         }
     }
 
-    if (!data.WriteInt32(filter.range.lowLimit.width) || !data.WriteInt32(filter.range.lowLimit.height) ||
-        !data.WriteInt32(filter.range.highLimit.width) || !data.WriteInt32(filter.range.highLimit.height)) {
+    if (!data.WriteInt32(constraint.range.lowLimit.width) || !data.WriteInt32(constraint.range.lowLimit.height) ||
+        !data.WriteInt32(constraint.range.highLimit.width) || !data.WriteInt32(constraint.range.highLimit.height)) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write rectRange err.");
         return WRITE_PARCEL_ERR;
     }
@@ -5549,6 +5554,121 @@ int32_t RSRenderServiceConnectionProxy::GetPidGpuMemoryInMB(pid_t pid, float &gp
     }
 
     return err;
+}
+
+RetCodeHrpService RSRenderServiceConnectionProxy::ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+    const std::string& fileName, int32_t flags, int& outFd)
+{
+    const uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ProfilerServiceOpenFile WriteInterfaceToken err.");
+        return RET_HRP_SERVICE_ERR_UNKNOWN;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint32((uint32_t)dirInfo.baseDirType);
+    data.WriteString(dirInfo.subDir);
+    data.WriteString(dirInfo.subDir2);
+    data.WriteString(fileName);
+    data.WriteInt32(flags);
+
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != ERR_NONE) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ProfilerServiceOpenFile sendrequest error : %{public}d", err);
+        return RET_HRP_SERVICE_ERR_PROXY_SEND_REQUEST;
+    }
+
+    int32_t retCode = RET_HRP_SERVICE_ERR_UNKNOWN;
+    if (!reply.ReadInt32(retCode)) {
+        return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
+    }
+
+    int retFd = reply.ReadFileDescriptor();
+    if (retFd == -1) {
+        return retCode < 0 ? (RetCodeHrpService)retCode : RET_HRP_SERVICE_ERR_INVALID_FILE_DESCRIPTOR;
+    }
+
+    outFd = retFd;
+    return (RetCodeHrpService)retCode;
+}
+
+RetCodeHrpService RSRenderServiceConnectionProxy::ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+    uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
+{
+    const uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ProfilerServicePopulateFiles WriteInterfaceToken err.");
+        return RET_HRP_SERVICE_ERR_UNKNOWN;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint32((uint32_t)dirInfo.baseDirType);
+    data.WriteString(dirInfo.subDir);
+    data.WriteString(dirInfo.subDir2);
+    data.WriteUint32(firstFileIndex);
+
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != ERR_NONE) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ProfilerServicePopulateFiles sendrequest error : %{public}d", err);
+        return RET_HRP_SERVICE_ERR_PROXY_SEND_REQUEST;
+    }
+
+    int32_t retCode = RET_HRP_SERVICE_ERR_UNKNOWN;
+    if (!reply.ReadInt32(retCode)) {
+        return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
+    }
+    if (retCode < RET_HRP_SERVICE_SUCCESS) {
+        return (RetCodeHrpService)retCode;
+    }
+
+    uint32_t retCount = 0;
+    if (!reply.ReadUint32(retCount)) {
+        return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT;
+    }
+
+    std::vector<HrpServiceFileInfo> retFiles;
+    for (uint32_t i = 0; i < retCount; i++) {
+        HrpServiceFileInfo fi {};
+        if (!reply.ReadString(fi.name) || !reply.ReadUint32(fi.size) || !reply.ReadBool(fi.isDir) ||
+            !reply.ReadUint32(fi.accessBits) || !reply.ReadUint64(fi.accessTime.sec) ||
+            !reply.ReadUint64(fi.accessTime.nsec) || !reply.ReadUint64(fi.modifyTime.sec) ||
+            !reply.ReadUint64(fi.modifyTime.nsec)) {
+            return RET_HRP_SERVICE_ERR_PROXY_INVALID_RESULT_DATA;
+        }
+        retFiles.emplace_back(fi);
+    }
+    outFiles.swap(retFiles);
+    return (RetCodeHrpService)retCode;
+}
+
+bool RSRenderServiceConnectionProxy::ProfilerIsSecureScreen()
+{
+    const uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ProfilerIsSecureScreen WriteInterfaceToken err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != ERR_NONE) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ProfilerIsSecureScreen sendrequest error : %{public}d", err);
+        return false;
+    }
+
+    bool retValue = false;
+    if (!reply.ReadBool(retValue)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ProfilerIsSecureScreen ReadBool err.");
+        return false;
+    }
+    return retValue;
 }
 } // namespace Rosen
 } // namespace OHOS

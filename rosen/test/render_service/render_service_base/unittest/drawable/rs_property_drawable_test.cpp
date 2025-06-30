@@ -400,4 +400,32 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest014, TestSize.Level1)
     drawFunc(filterCanvas.get(), &rect);
     EXPECT_NE(filterCanvas->cacheBehindWindowData_, nullptr);
 }
+
+/**
+ * @tc.name: RSFilterDrawableTest015
+ * @tc.desc: Test RSFilterDrawable CreateDrawFunc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest015, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    Drawing::Canvas canvas;
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
+    auto shaderFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
+    drawable->filter_ = std::make_shared<RSDrawingFilter>(shaderFilter);
+    drawable->filter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+
+    // Test rect == nullptr
+    drawable->CreateDrawFunc()(&canvas, nullptr);
+    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(drawable->filter_);
+    auto shaderLinearGradientBlurFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
+    EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 1.0f);
+
+    // Test rect != nullptr
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    drawable->CreateDrawFunc()(&canvas, &rect);
+    EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 10.0f);
+}
+
 } // namespace OHOS::Rosen

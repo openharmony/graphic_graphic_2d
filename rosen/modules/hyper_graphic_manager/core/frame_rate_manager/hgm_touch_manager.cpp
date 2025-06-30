@@ -22,34 +22,34 @@
 
 namespace OHOS::Rosen {
 namespace {
-    constexpr int32_t UP_TIMEOUT_MS = 3000;
-    constexpr int32_t RS_IDLE_TIMEOUT_MS = 600;
+constexpr int32_t UP_TIMEOUT_MS = 3000;
+constexpr int32_t RS_IDLE_TIMEOUT_MS = 600;
 }
 
 HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(TouchState::IDLE_STATE),
-    upTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this] () {
+    upTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this]() {
         OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
     }),
-    rsIdleTimeoutTimer_("rs_idle_timeout_timer", std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this] () {
+    rsIdleTimeoutTimer_("rs_idle_timeout_timer", std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this]() {
         OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
     })
 {
-    RegisterEventCallback(TouchEvent::UP_EVENT, [this] (TouchEvent event) {
+    RegisterEventCallback(TouchEvent::UP_EVENT, [this](TouchEvent event) {
         ChangeState(TouchState::UP_STATE);
     });
-    RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
+    RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this](TouchEvent event) {
         ChangeState(TouchState::IDLE_STATE);
     });
-    RegisterEventCallback(TouchEvent::RS_IDLE_TIMEOUT_EVENT, [this] (TouchEvent event) {
+    RegisterEventCallback(TouchEvent::RS_IDLE_TIMEOUT_EVENT, [this](TouchEvent event) {
         ChangeState(TouchState::IDLE_STATE);
     });
 
     // register state callback
-    RegisterEnterStateCallback(TouchState::UP_STATE, [this] (TouchState lastState, TouchState newState) {
+    RegisterEnterStateCallback(TouchState::UP_STATE, [this](TouchState lastState, TouchState newState) {
         upTimeoutTimer_.Start();
         rsIdleTimeoutTimer_.Start();
     });
-    RegisterExitStateCallback(TouchState::UP_STATE, [this] (TouchState lastState, TouchState newState) {
+    RegisterExitStateCallback(TouchState::UP_STATE, [this](TouchState lastState, TouchState newState) {
         upTimeoutTimer_.Stop();
         rsIdleTimeoutTimer_.Stop();
     });

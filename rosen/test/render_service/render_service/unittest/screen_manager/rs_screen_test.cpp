@@ -1122,7 +1122,7 @@ HWTEST_F(RSScreenTest, PowerStatusDump_003, testing::ext::TestSize.Level1)
     rsScreen->PowerStatusDump(dumpString);
 
     status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_BUTT;
-    rsScreen->SetPowerStatus(status);
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
     rsScreen->PowerStatusDump(dumpString);
 
     status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;
@@ -2324,5 +2324,170 @@ HWTEST_F(RSScreenTest, SetScreenActiveRect, testing::ext::TestSize.Level1)
     actRect.y = 2;
     res = rsScreen->RSScreen::SetScreenActiveRect(actRect);
     EXPECT_EQ(StatusCode::HDI_ERROR, res);
+}
+/*
+ * @tc.name: SetActiveMode_007
+ * @tc.desc: SetActiveMode Test, IsVirtual() is false, modeId >= supportedModes_.size() hdiScreen_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICII6Y
+ */
+HWTEST_F(RSScreenTest, SetActiveMode_007, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->isVirtual_ = false;
+    rsScreen->supportedModes_.resize(1);
+    uint32_t modeId = 5;
+    rsScreen->hdiScreen_ = nullptr;
+    rsScreen->SetActiveMode(modeId);
+}
+
+/*
+ * @tc.name: SetPowerStatus_009
+ * @tc.desc: SetPowerStatus Test, test VirtualScreen SetPowerStatus
+ * @tc.type: FUNC
+ * @tc.require: issueICII6Y
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_009, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_EQ(rsScreen->hdiScreen_, nullptr);
+    rsScreen->hdiScreen_ = HdiScreen::CreateHdiScreen(static_cast<uint32_t>(mockScreenId_));
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_DOZE_SUSPEND;
+    int32_t ret = rsScreen->SetPowerStatus(status);
+    EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::HDI_ERROR));
+}
+
+/*
+ * @tc.name: GetPowerStatus_001
+ * @tc.desc: GetPowerStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueICII6Y
+ */
+HWTEST_F(RSScreenTest, GetPowerStatus_001, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    ASSERT_NE(rsScreen, nullptr);
+    rsScreen->hdiScreen_ = nullptr;
+    rsScreen->powerStatus_ = ScreenPowerStatus::POWER_STATUS_ON;
+    ASSERT_EQ(rsScreen->GetPowerStatus(), ScreenPowerStatus::INVALID_POWER_STATUS);
+}
+
+/*
+ * @tc.name: SetScreenBacklight_005
+ * @tc.desc: SetScreenBacklight Test, trigger branch -- IsVirtual()
+ * @tc.type: FUNC
+ * @tc.require: issueICII6Y
+ */
+HWTEST_F(RSScreenTest, SetScreenBacklight_005, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->hdiScreen_ = HdiScreen::CreateHdiScreen(static_cast<uint32_t>(id));
+    rsScreen->SetScreenBacklight(1);
+}
+
+/*
+ * @tc.name: SetResolution004
+ * @tc.desc: SetResolution004 Test
+ * @tc.type: FUNC
+ * @tc.require: issueICII6Y
+ */
+HWTEST_F(RSScreenTest, SetResolution004, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 100;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    EXPECT_NE(nullptr, rsScreen);
+
+    uint32_t width = 300;
+    uint32_t height = 400;
+
+    rsScreen->isVirtual_ = false;
+    rsScreen->phyWidth_ = 400;
+    auto res = rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+
+    rsScreen->phyWidth_ = 100;
+    rsScreen->phyHeight_ = 500;
+    res = rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+
+    rsScreen->phyWidth_ = 300;
+    rsScreen->phyHeight_ = 400;
+    res = rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+
+    rsScreen->phyWidth_ = 100;
+    rsScreen->phyHeight_ = 100;
+
+    width = 0;
+    rsScreen->RSScreen::SetResolution(width, height);
+
+    width = 300;
+    height = 0;
+    rsScreen->RSScreen::SetResolution(width, height);
+
+    height = 400;
+    rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+}
+/*
+ * @tc.name: PowerStatusDump_004
+ * @tc.desc: PowerStatusDump Test, trigger all cases of switch
+ * @tc.type: FUNC
+ * @tc.require: issueICII6Y
+ */
+HWTEST_F(RSScreenTest, PowerStatusDump_004, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::string dumpString = "dumpString";
+    uint32_t status;
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_STANDBY;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_FAKE;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_BUTT;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ADVANCED;
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = static_cast<GraphicDispPowerStatus>(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ADVANCED + 1);
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    rsScreen->PowerStatusDump(dumpString);
 }
 } // namespace OHOS::Rosen

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <atomic>
 #include <thread>
 
 #include "rs_profiler.h"
@@ -29,7 +30,7 @@ namespace OHOS::Rosen {
 static constexpr uint32_t INACTIVITY_THRESHOLD_SECONDS = 5u;
 static DeviceInfo g_deviceInfo;
 static std::mutex g_deviceInfoMutex;
-static bool g_started = false;
+static std::atomic_bool g_started = false;
 static double g_inactiveTimestamp = 0.0;
 static double g_recordsTimestamp = 0.0;
 static double g_currentFrameDirtyRegion = 0.0;
@@ -44,11 +45,11 @@ void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& o
 static bool HasInitializationFinished()
 {
     constexpr uint32_t maxAttempts = 600u;
-    static uint32_t attempt = 0u;
+    static std::atomic_uint32_t attempt = 0u;
     if (attempt < maxAttempts) {
         attempt++;
     }
-    return attempt == maxAttempts;
+    return attempt >= maxAttempts;
 }
 
 static std::string GetBetaRecordFileName(uint32_t index)

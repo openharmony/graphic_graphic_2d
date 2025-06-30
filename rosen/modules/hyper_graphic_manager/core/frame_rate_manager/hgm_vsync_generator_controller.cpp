@@ -23,14 +23,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t TARGET_TIME_TRIGGER_PULSE_NUM = 6;
+constexpr uint32_t TARGET_TIME_TRIGGER_PULSE_NUM = 6;
 }
 
 HgmVSyncGeneratorController::HgmVSyncGeneratorController(sptr<VSyncController> rsController,
     sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
     : rsController_(rsController),
-    appController_(appController),
-    vsyncGenerator_(vsyncGenerator)
+      appController_(appController),
+      vsyncGenerator_(vsyncGenerator)
 {
 }
 

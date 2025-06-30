@@ -80,6 +80,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
+constexpr int EXPAND_ONE_PIX = 1;
 constexpr int MAX_ALPHA = 255;
 constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
@@ -2321,16 +2322,38 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
         }
-        if (hwcNodePtr->IsHardwareForcedDisabled()) {
+        if (hwcNodePtr->IsHardwareForcedDisabled() || hwcNodePtr->GetRSSurfaceHandler() == nullptr) {
             continue;
         }
+        if (surfaceNode->GetVisibleRegion().IsEmpty()) {
+            continue;
+        }
+
+        // 1.hwcNode moving to extended screen 2.hwcNode is crossNode
+        // 3. sufaceNode is top layer 4. In drm Scene
+        if (hwcNodePtr->GetHwcGlobalPositionEnabled() ||
+            hwcNodePtr->IsDRMCrossNode() ||
+            surfaceNode->IsLayerTop() ||
+            surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+            hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
+            needForceUpdateHwcNodes = true;
+            continue;
+        }
+        
+        auto visibleRegion = surfaceNode->GetVisibleRegion();
+        visibleRegion.MakeBound();
+        auto visibleRectI = visibleRegion.GetBound().ToRectI();
+        visibleRectI.left_ = static_cast<int>(std::round(visibleRectI.left_ * screenInfo_.GetRogWidthRatio()));
+        visibleRectI.top_ = static_cast<int>(std::round(visibleRectI.top_ * screenInfo_.GetRogHeightRatio()));
+        visibleRectI.width_ = static_cast<int>(std::round(visibleRectI.width_ * screenInfo_.GetRogWidthRatio()));
+        visibleRectI.height_ =
+            static_cast<int>(std::round(visibleRectI.height_ * screenInfo_.GetRogHeightRatio()));
+        auto newRegionRect = Occlusion::Rect(visibleRectI, true);
+        newRegionRect.Expand(EXPAND_ONE_PIX, EXPAND_ONE_PIX, EXPAND_ONE_PIX, EXPAND_ONE_PIX);
         Occlusion::Rect dstRect(hwcNodePtr->GetDstRect());
-        if (surfaceNode->GetVisibleRegion().IsIntersectWith(dstRect)) {
+        if (newRegionRect.IsIntersect(dstRect)) {
             hwcNodePtr->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true); // visible Region
             hasVisibleHwcNodes = true;
-            if (hwcNodePtr->GetRSSurfaceHandler() == nullptr) {
-                continue;
-            }
             if (hwcNodePtr->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed()) {
                 needForceUpdateHwcNodes = true;
             }

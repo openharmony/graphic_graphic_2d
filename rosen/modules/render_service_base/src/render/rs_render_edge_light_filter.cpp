@@ -49,6 +49,8 @@ void RSRenderEdgeLightFilterPara::CalculateHash()
         auto maskHash = mask_->Hash();
         hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
     }
+    hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+    hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
 }
 
 std::shared_ptr<RSRenderFilterParaBase> RSRenderEdgeLightFilterPara::DeepCopy() const
@@ -280,7 +282,7 @@ void RSRenderEdgeLightFilterPara::GenerateGEVisualEffect(
     }
 
     auto edgeLightShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
-        Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH);
+        Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_ALPHA, alpha_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_BLOOM, bloom_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_R, color.x_);

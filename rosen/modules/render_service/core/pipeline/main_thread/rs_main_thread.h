@@ -212,6 +212,9 @@ public:
     bool IsCurtainScreenUsingStatusChanged() const;
     bool IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
         uint64_t unsignedNowTime, uint64_t lastVsyncTime);
+    // check if timestamp in vsync receiver sync with mainthread timestamp, if not, return false;
+    bool IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
+        uint64_t unsignedNowTime, uint64_t lastVsyncTime, int64_t vsyncTimeStamp);
     void CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);

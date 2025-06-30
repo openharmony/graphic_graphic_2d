@@ -832,7 +832,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw failed to create canvas");
         return;
     }
-
+    curCanvas_->SetDrawnRegion(params->GetDrawnRegion());
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(paramScreenId);
     curCanvas_->SetHdrOn(isHdrOn);
@@ -1716,9 +1716,10 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
 
 void RSDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
 {
+    RS_TRACE_FUNC();
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
     processor.PostProcess();
-    RS_LOGI("RSDisplayRenderNodeDrawable::SetCanvasBlack, set canvas to black because of security layer/mute status.");
+    RS_LOGD("RSDisplayRenderNodeDrawable: SetCanvasBlack");
     curCanvas_->SetDisableFilterCache(false);
 }
 

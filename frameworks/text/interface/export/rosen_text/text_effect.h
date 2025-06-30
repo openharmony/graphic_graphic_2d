@@ -59,6 +59,7 @@ public:
     virtual int UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) = 0;
     virtual void StartEffect(Drawing::Canvas* canvas, double x, double y) = 0;
     virtual void StopEffect() = 0;
+    virtual void NoEffect(Drawing::Canvas* canvas, double x, double y) = 0;
 
     TextEffectStrategy strategy_{TextEffectStrategy::STRATEGY_BUTT};
     TextEffectState state_{TextEffectState::STOP};

@@ -2298,7 +2298,7 @@ private:
 };
 
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
-    const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback)
+    const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -2311,7 +2311,7 @@ int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
         cb = new CustomSelfDrawingNodeRectChangeCallback(callback);
     }
 
-    return renderService->RegisterSelfDrawingNodeRectChangeCallback(filter, cb);
+    return renderService->RegisterSelfDrawingNodeRectChangeCallback(constraint, cb);
 }
 
 int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
@@ -2395,5 +2395,43 @@ int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
     }
     return ret;
 }
+RetCodeHrpService RSRenderServiceClient::ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+    const std::string& fileName, int32_t flags, int& fd)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RET_HRP_SERVICE_ERR_UNKNOWN;
+    }
+
+    if (!HrpServiceValidDirOrFileName(fileName)
+        || !HrpServiceValidDirOrFileName(dirInfo.subDir) || !HrpServiceValidDirOrFileName(dirInfo.subDir2)) {
+        return RET_HRP_SERVICE_ERR_INVALID_PARAM;
+    }
+    fd = -1;
+    return renderService->ProfilerServiceOpenFile(dirInfo, fileName, flags, fd);
+}
+
+RetCodeHrpService RSRenderServiceClient::ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+    uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RET_HRP_SERVICE_ERR_UNKNOWN;
+    }
+    if (!HrpServiceValidDirOrFileName(dirInfo.subDir) || !HrpServiceValidDirOrFileName(dirInfo.subDir2)) {
+        return RET_HRP_SERVICE_ERR_INVALID_PARAM;
+    }
+    return renderService->ProfilerServicePopulateFiles(dirInfo, firstFileIndex, outFiles);
+}
+
+bool RSRenderServiceClient::ProfilerIsSecureScreen()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->ProfilerIsSecureScreen();
+    }
+    return false;
+}
+
 } // namespace Rosen
 } // namespace OHOS

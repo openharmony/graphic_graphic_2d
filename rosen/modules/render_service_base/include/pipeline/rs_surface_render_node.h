@@ -401,9 +401,6 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (GetTunnelLayerId()) {
-            return false;
-        }
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
         // isForcedClipHole: for tv product, force clip hole in tvplayer
@@ -1404,6 +1401,9 @@ public:
     void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes) const;
     std::string SubSurfaceNodesDump() const;
 
+    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
+    bool IsNodeToBeCaptured() const;
+
     void SetDoDirectComposition(bool flag)
     {
         doDirectComposition_ = flag;
@@ -1751,6 +1751,7 @@ private:
     bool hasTransparentSurface_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
+    bool isNodeToBeCaptured_ = false;
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
     bool needHidePrivacyContent_ = false;

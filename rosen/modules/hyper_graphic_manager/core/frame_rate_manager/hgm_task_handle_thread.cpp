@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-#include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
-#include "xcollie/watchdog.h"
+
 #include <unistd.h>
+
+#include "hgm_log.h"
+#include "xcollie/watchdog.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -34,7 +36,7 @@ HgmTaskHandleThread::HgmTaskHandleThread() : runner_(AppExecFwk::EventRunner::Cr
 {
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     if (handler_ != nullptr) {
-        auto task = [] () {
+        auto task = []() {
             auto& hgmTaskHandleThread = HgmTaskHandleThread::Instance();
             int ret = HiviewDFX::Watchdog::GetInstance().AddThread(
                 "HgmTaskHandle", hgmTaskHandleThread.handler_, WATCHDOG_TIMEVAL);

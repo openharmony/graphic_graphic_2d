@@ -15,7 +15,10 @@
 
 #include "render/rs_filter_cache_manager.h"
 #include "rs_trace.h"
+#include "common/rs_common_def.h"
+#include "common/rs_occlusion_region.h"
 #include "render/rs_filter.h"
+#include "utils/rect.h"
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifdef USE_M133_SKIA
@@ -201,6 +204,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     const std::optional<Drawing::RectI>& srcRect,
     const std::optional<Drawing::RectI>& dstRect)
 {
+    takeNewSnapshot_ = false;
     RS_OPTIONAL_TRACE_FUNC();
     if (nodeId !=0 && DrawFilterUsingHpae(canvas, filter, hpaeCacheManager_, nodeId)) {
         return;
@@ -233,6 +237,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
     const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect)
 {
+    takeNewSnapshot_ = false;
     RS_OPTIONAL_TRACE_FUNC();
     if (canvas.GetDeviceClipBounds().IsEmpty()) {
         return nullptr;
@@ -301,6 +306,7 @@ void RSFilterCacheManager::TakeSnapshot(
     filter->PreProcess(snapshot);
 
     // Update the cache state.
+    takeNewSnapshot_ = true;
     snapshotRegion_ = RectI(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), snapshotIBounds);
     cachedFilterHash_ = 0;
@@ -885,6 +891,25 @@ void RSFilterCacheManager::CompactFilterCache()
     }
     InvalidateFilterCache(renderClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::SNAPSHOT);
+}
+
+void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
+    const RSPaintFilterCanvas& canvas, const Drawing::RectI& filterBound)
+{
+    if (!takeNewSnapshot_) {
+        return;
+    }
+    auto drawnRegion = canvas.GetDrawnRegion();
+    if (drawnRegion.IsEmpty()) {
+        return;
+    }
+    Occlusion::Region filterRegion(
+        Occlusion::Rect(filterBound.left_, filterBound.top_, filterBound.right_, filterBound.bottom_));
+    // if region belongs to filterRegion but not drawnRegion is not empty, the cache is invalid.
+    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty();
+    if (isCacheInvalid) {
+        InvalidateFilterCache(FilterCacheType::BOTH);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

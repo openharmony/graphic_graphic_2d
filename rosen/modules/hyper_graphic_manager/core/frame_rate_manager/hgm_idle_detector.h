@@ -27,7 +27,6 @@ enum class UIFWKType : int32_t {
     FROM_UNKNOWN = 0,
     FROM_SURFACE = 1,
 };
-constexpr uint32_t ACE_ANIMATOR_OFFSET = 16;
 
 class HgmIdleDetector {
 public:

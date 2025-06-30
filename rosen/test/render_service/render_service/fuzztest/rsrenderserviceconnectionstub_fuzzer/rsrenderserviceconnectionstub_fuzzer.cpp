@@ -3802,6 +3802,81 @@ bool DoGetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
+
+bool DoProfilerServiceOpenFile(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE);
+    pid_t newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoProfilerServicePopulateFiles(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES);
+    pid_t newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoProfilerIsSecureScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN);
+    pid_t newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -3931,5 +4006,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoNotifySoftVsyncRateDiscountEvent(data, size);
     OHOS::Rosen::DoSetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);
+    OHOS::Rosen::DoProfilerServiceOpenFile(data, size);
+    OHOS::Rosen::DoProfilerServicePopulateFiles(data, size);
+    OHOS::Rosen::DoProfilerIsSecureScreen(data, size);
     return 0;
 }

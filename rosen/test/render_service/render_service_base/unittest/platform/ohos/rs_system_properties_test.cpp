@@ -1139,8 +1139,10 @@ HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
 {
-    RSSystemProperties::SetTypicalResidentProcess(true);
-    EXPECT_EQ(RSSystemProperties::isTypicalResidentProcess_, true);
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
+    RSSystemProperties::SetTypicalResidentProcess(!enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
 }
 
 /**

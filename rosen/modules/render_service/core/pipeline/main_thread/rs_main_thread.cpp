@@ -54,6 +54,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -1551,6 +1552,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         dividedRenderbufferTimestamps_.clear();
     }
     RSDrmUtil::ClearDrmNodes();
+    LppVideoHandler::Instance().ClearLppSufraceNode();
     const auto& nodeMap = GetContext().GetNodeMap();
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
@@ -1598,6 +1600,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
                 surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
             auto parentNode = surfaceNode->GetParent().lock();
+            LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
             if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
                     IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume,
                     parentNode ? parentNode->GetId() : 0)) {
@@ -2429,14 +2432,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
 
-    // children->size() is 1, the extended screen is not supported
-    // there is no visible hwc node or visible hwc nodes don't need update
-    if (children->size() == 1 && (!displayNode->HwcDisplayRecorder().HasVisibleHwcNodes() ||
-                                  !ExistBufferIsVisibleAndUpdate())) {
-        RS_TRACE_NAME_FMT("%s: no hwcNode in visibleRegion", __func__);
-        return true;
-    }
-
 #ifdef RS_ENABLE_GPU
     auto processor = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
     auto renderEngine = GetRenderEngine();
@@ -2668,6 +2663,8 @@ void RSMainThread::Render()
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     CheckSystemSceneStatus();
     UpdateLuminanceAndColorTemp();
+    bool isPostUniRender = isUniRender_ && !doDirectComposition_ && needDrawFrame_;
+    LppVideoHandler::Instance().JudgeRsDrawLppState(isPostUniRender);
 }
 
 void RSMainThread::OnUniRenderDraw()
@@ -4314,17 +4311,41 @@ bool RSMainThread::IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsy
     return true;
 }
 
+bool RSMainThread::IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
+    uint64_t unsignedNowTime, uint64_t lastVsyncTime, int64_t vsyncTimeStamp)
+{
+    if (unsignedVsyncPeriod == 0) {
+        return false;
+    }
+    if (vsyncTimeStamp < 0) {
+        return false;
+    }
+    // if vsynctimestamp updated but timestamp_ not, diff > 1/2 vsync， don't fastcompose
+    if (static_cast<uint64_t>(vsyncTimeStamp) - timestamp_ > REFRESH_PERIOD / 2) {
+        return false;
+    }
+    // when buffer come near vsync time, difference value need to add offset before division
+    if (!nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod >
+        unsignedVsyncPeriod - FASTCOMPOSE_OFFSET) {
+        lastFastComposeTimeStampDiff_ = (unsignedNowTime + FASTCOMPOSE_OFFSET - lastVsyncTime) % unsignedVsyncPeriod;
+    } else {
+        lastFastComposeTimeStampDiff_ = (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod;
+    }
+    return true;
+}
+
 void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 {
     auto nowTime = SystemTime();
     uint64_t unsignedNowTime = static_cast<uint64_t>(nowTime);
     uint64_t unsignedLastFlushedDesiredPresentTimeStamp = static_cast<uint64_t>(lastFlushedDesiredPresentTimeStamp);
     int64_t vsyncPeriod = 0;
+    int64_t vsyncTimeStamp = 0;
     bool nextVsyncRequested = true;
     bool earlyFastComposeFlag = false;
     VsyncError ret = VSYNC_ERROR_UNKOWN;
     if (receiver_) {
-        ret = receiver_->GetVSyncPeriod(vsyncPeriod);
+        ret = receiver_->GetVSyncPeriodAndLastTimeStamp(vsyncPeriod, vsyncTimeStamp);
         nextVsyncRequested = receiver_->IsRequestedNextVSync();
     }
     uint64_t unsignedVsyncPeriod = static_cast<uint64_t>(vsyncPeriod);
@@ -4334,6 +4355,11 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     } else {
         lastVsyncTime = timestamp_;
         lastFastComposeTimeStampDiff_ = 0;
+    }
+    if (!IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp)) {
+        RequestNextVSync();
+        return;
     }
     if (ret != VSYNC_ERROR_OK || !context_ ||
         !IsFastComposeAllow(unsignedVsyncPeriod, nextVsyncRequested, unsignedNowTime, lastVsyncTime)) {
@@ -4357,10 +4383,6 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
         unsignedNowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
         RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
-        RS_LOGD("fastcompose late for %{public}" PRIu64, unsignedNowTime - lastVsyncTime);
-        if (earlyFastComposeFlag) {
-            curTime_ -= FASTCOMPOSE_OFFSET; // adapt timestamp diff at early fastcompose
-        }
         ForceRefreshForUni(true);
         return;
     }
@@ -4412,7 +4434,6 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
                 ret = receiver_->GetVSyncPeriod(vsyncPeriod);
             }
             if (ret == VSYNC_ERROR_OK && vsyncPeriod > 0) {
-                lastFastComposeTimeStampDiff_ = (now - curTime_ + lastFastComposeTimeStampDiff_) % vsyncPeriod;
                 lastFastComposeTimeStamp_ = timestamp_;
                 RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record"
                     "Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
@@ -4780,6 +4801,7 @@ bool RSMainThread::HasMirrorDisplay() const
     if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
         hasWiredMirrorDisplay_.store(false);
         hasVirtualMirrorDisplay_.store(false);
+        LppVideoHandler::Instance().SetHasVirtualMirrorDisplay(false);
         return false;
     }
 
@@ -4801,6 +4823,7 @@ bool RSMainThread::HasMirrorDisplay() const
     }
     hasWiredMirrorDisplay_.store(hasWiredMirrorDisplay);
     hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
+    LppVideoHandler::Instance().SetHasVirtualMirrorDisplay(hasVirtualMirrorDisplay);
     return hasWiredMirrorDisplay || hasVirtualMirrorDisplay;
 }
 

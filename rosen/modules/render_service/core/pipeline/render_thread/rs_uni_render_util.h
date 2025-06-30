@@ -122,6 +122,8 @@ public:
     static void MultiLayersPerf(size_t layerNum);
     static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
         float realImageWidth, float realImageHeight);
+    // Calculate the rotation angle around the z-axis from quaternion
+    static float GetYawFromQuaternion(const Quaternion& q);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);

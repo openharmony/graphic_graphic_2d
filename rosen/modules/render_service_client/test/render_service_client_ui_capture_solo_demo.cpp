@@ -246,6 +246,8 @@ public:
         }
         cout << "pixelmap write to png sucess" << endl;
     }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 };
 
 void InitNativeTokenInfo()
@@ -330,6 +332,8 @@ public:
         }
         cout << "pixelmap write to png success" << endl;
     }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 };
 
 int main()

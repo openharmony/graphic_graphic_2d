@@ -63,6 +63,7 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
 {
+    ClearDrawingCacheDataMap();
     ClearCachedSurface();
     ResetClearSurfaceFunc();
 }
@@ -86,6 +87,10 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    if (canvas.GetUICapture() && captureParam.captureFinished_) {
+        return;
+    }
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
@@ -100,10 +105,12 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     DrawContent(canvas, bounds);
 
-    auto& captureParam = RSUniRenderThread::GetCaptureParam();
     bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
         captureParam.endNodeId_ == GetId() &&
         captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture) {
+        captureParam.captureFinished_ = true;
+    }
     if (!captureParam.isSoloNodeUiCapture_ && !stopDrawForRangeCapture) {
         DrawChildren(canvas, bounds);
     }

@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "common/rs_optional_trace.h"
 #include "feature/hyper_graphic_manager/hgm_hardware_utils.h"
+
+#include "common/rs_optional_trace.h"
 #include "parameters.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 
@@ -26,14 +27,15 @@ constexpr uint32_t DELAY_TIME_OFFSET = 100;
 constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
 constexpr int32_t MAX_HAL_DISPLAY_ID = 20;
 }
+
 void HgmHardwareUtils::RegisterChangeDssRefreshRateCb()
 {
-    auto changeDssRefreshRateCb = [this] (ScreenId screenId, uint32_t refreshRate, bool followPipeline) {
-        RSHardwareThread::Instance().PostTask([this, screenId, refreshRate, followPipeline] () {
+    auto changeDssRefreshRateCb = [this](ScreenId screenId, uint32_t refreshRate, bool followPipeline) {
+        RSHardwareThread::Instance().PostTask([this, screenId, refreshRate, followPipeline]() {
             ChangeDssRefreshRate(screenId, refreshRate, followPipeline);
         });
     };
-    HgmTaskHandleThread::Instance().PostTask([changeDssRefreshRateCb] () {
+    HgmTaskHandleThread::Instance().PostTask([changeDssRefreshRateCb]() {
         if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
             frameRateMgr->SetChangeDssRefreshRateCb(changeDssRefreshRateCb);
         }
@@ -115,7 +117,7 @@ void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uin
 void HgmHardwareUtils::PerformSetActiveMode(
     std::shared_ptr<HdiOutput> output, uint64_t timestamp, uint64_t constraintRelativeTime)
 {
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         return;
@@ -199,7 +201,7 @@ void HgmHardwareUtils::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
 {
     if (followPipeline) {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-        auto task = [this, screenId, refreshRate, vsyncId = refreshRateParam_.vsyncId] () {
+        auto task = [this, screenId, refreshRate, vsyncId = refreshRateParam_.vsyncId]() {
             if (vsyncId != refreshRateParam_.vsyncId || !HgmCore::Instance().IsSwitchDssEnable(screenId)) {
                 return;
             }

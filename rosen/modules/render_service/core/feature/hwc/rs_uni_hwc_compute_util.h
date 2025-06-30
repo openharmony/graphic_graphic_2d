@@ -27,6 +27,7 @@ struct HwcPropertyContext {
     bool isNodeRenderByDrawingCache = false;
     bool isNodeRenderByChildNode = false;
     Drawing::Matrix totalMatrix;
+    float absRotation = 0.f;
 };
 
 public:
@@ -102,8 +103,15 @@ private:
         HwcPropertyContext& ctx);
     static inline void UpdateHwcNodeAlpha(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
     static inline void UpdateHwcNodeTotalMatrix(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+    static void UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+#if defined(MODIFIER_NG)
+    template<typename T>
+    static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(
+        const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType);
+#else
     template<typename T>
     static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(const RSRenderNode& node, RSModifierType type);
+#endif
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);

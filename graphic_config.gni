@@ -90,14 +90,9 @@ gpu_defines = []
 accessibility_defines = []
 
 if (graphic_2d_feature_screenless_enable) {
-  graphic_2d_feature_bootanimation_enable = false
-  graphic_2d_feature_enable_vulkan = false
-  player_framework_enable = false
-  graphic_2d_feature_drivers_interface_display_enable = false
-  graphic_2d_feature_rs_enable_uni_render = true
-
   gpu_defines += ["SCREENLESS_DEVICE"]
 }
+
 if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_vulkan) {
     gpu_defines += [
@@ -129,7 +124,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
   libvulkan = []
   if (graphic_2d_feature_enable_vulkan) {
-    libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
+    libvulkan += [ "vulkan-loader:vulkan_loader" ]
   }
 } else {
   gpu_defines += [ "ACE_DISABLE_GL" ]
@@ -433,10 +428,6 @@ if (!ohos_indep_compiler_enable) {
                         "list lines")
 } else {
   adapters = ["preview", "ohos"]
-}
-
-if (defined(use_clang_coverage) && use_clang_coverage) {
-  graphic_2d_feature_rs_enable_profiler = false
 }
 
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {

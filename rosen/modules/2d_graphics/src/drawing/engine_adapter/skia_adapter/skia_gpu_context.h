@@ -151,6 +151,8 @@ public:
     void FlushGpuMemoryInWaitQueue() override;
     
     void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) override;
+
+    void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

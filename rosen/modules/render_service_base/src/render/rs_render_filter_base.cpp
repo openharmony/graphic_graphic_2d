@@ -78,5 +78,20 @@ namespace Rosen {
         return {};
     }
 
+    void RSRenderFilterParaBase::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+    {
+        auto dst = canvas.GetDeviceClipBounds();
+        geoWidth_ = std::ceil(geoWidth);
+        geoHeight_ = std::ceil(geoHeight);
+        tranX_ = dst.GetLeft();
+        tranY_ = dst.GetTop();
+        mat_ = canvas.GetTotalMatrix();
+    }
+
+    Drawing::CanvasInfo RSRenderFilterParaBase::GetFilterCanvasInfo() const
+    {
+        return Drawing::CanvasInfo { geoWidth_, geoHeight_, tranX_, tranY_, mat_ };
+    }
+
 } // namespace Rosen
 } // namespace OHOS

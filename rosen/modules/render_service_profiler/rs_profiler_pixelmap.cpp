@@ -182,7 +182,7 @@ void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
     }
 
     constexpr size_t skipBytes = 24u;
-    const auto size = static_cast<size_t>(const_cast<PixelMap&>(map).GetByteCount());
+    const auto size = static_cast<size_t>(map.GetByteCount());
     const ImageProperties properties(map);
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
         PushImage(

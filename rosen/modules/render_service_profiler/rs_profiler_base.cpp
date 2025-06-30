@@ -80,8 +80,9 @@ static std::unordered_map<AnimationId, std::vector<int64_t>> g_animeStartMap;
 bool RSProfiler::testing_ = false;
 std::vector<std::shared_ptr<RSRenderNode>> RSProfiler::testTree_ = std::vector<std::shared_ptr<RSRenderNode>>();
 bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
+bool RSProfiler::hrpServiceEnabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
-int8_t RSProfiler::signalFlagChanged_ = 0;
+std::atomic<int8_t> RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::atomic_bool RSProfiler::renderNodeKeepDrawCmdList_ = false;
 std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
@@ -96,6 +97,11 @@ constexpr size_t GetParcelMaxCapacity()
 bool RSProfiler::IsEnabled()
 {
     return enabled_ || testing_;
+}
+
+bool RSProfiler::IsHrpServiceEnabled()
+{
+    return hrpServiceEnabled_;
 }
 
 bool RSProfiler::IsBetaRecordEnabled()

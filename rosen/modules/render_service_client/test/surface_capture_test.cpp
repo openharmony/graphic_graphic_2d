@@ -276,6 +276,8 @@ int main()
         {
             DrawPixelmap(showNode_, pixelmap);
         }
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     private:
         std::shared_ptr<RSSurfaceNode> showNode_;
     };

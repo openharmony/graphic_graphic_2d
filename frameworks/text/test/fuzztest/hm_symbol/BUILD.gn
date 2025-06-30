@@ -15,6 +15,7 @@ group("fuzztest") {
   testonly = true
 
   deps = [
+    "hmsymbolnodebuild_fuzzer:fuzztest",
     "hmsymbolrun_fuzzer:fuzztest",
     "hmsymboltxt_fuzzer:fuzztest",
   ]

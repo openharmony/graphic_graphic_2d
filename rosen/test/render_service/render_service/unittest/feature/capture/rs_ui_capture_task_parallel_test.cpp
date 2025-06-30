@@ -64,6 +64,9 @@ public:
         isCallbackCalled_ = true;
     }
 
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+
     void Reset()
     {
         captureSuccess_ = false;

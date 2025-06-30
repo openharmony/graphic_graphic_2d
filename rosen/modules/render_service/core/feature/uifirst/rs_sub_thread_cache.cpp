@@ -1004,6 +1004,11 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
+    if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
+            __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
+            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
+    }
     if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
         (surfaceParams.HasBlackListByScreenId(RSUniRenderThread::GetCaptureParam().virtualScreenId_) ||
         surfaceParams.HasBlackListByScreenId(INVALID_SCREEN_ID))) {

@@ -167,9 +167,6 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     }
 
     if (renderServiceClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
-        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
-            " transactionData empty:%{public}d]",
-            renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
         RS_TRACE_NAME("UI skip");
         uiSkipCount_++;
         return;

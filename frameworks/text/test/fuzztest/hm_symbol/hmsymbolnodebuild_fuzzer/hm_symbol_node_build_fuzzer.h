@@ -12,29 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
-#define RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
 
-#include <unordered_set>
+#ifndef TEST_FUZZTEST_HMSYMBOLNODEBUILD_FUZZER_H
+#define TEST_FUZZTEST_HMSYMBOLNODEBUILD_FUZZER_H
 
-namespace OHOS {
-namespace Rosen {
+#include <climits>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 
-struct RectSize {
-    int32_t width = 0;
-    int32_t height = 0;
-};
+#define FUZZ_PROJECT_NAME "hmsymbolnodebuild_fuzzer"
 
-struct RectSizeRange {
-    RectSize lowLimit = {};
-    RectSize highLimit = {};
-};
-
-struct RectFilter {
-    std::unordered_set<pid_t> pids = {};
-    RectSizeRange range = {};
-};
-
-} // namespace Rosen
-} // namespace OHOS
-#endif //RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
+#endif // TEST_FUZZTEST_HMSYMBOLNODEBUILD_FUZZER_H

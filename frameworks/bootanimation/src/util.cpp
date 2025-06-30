@@ -23,8 +23,8 @@
 
 namespace OHOS {
 constexpr const float HALF = 2.0;
-constexpr const float RADIO_PHONE = 360.0;
-constexpr const float RADIO_OTHER = 800.0;
+constexpr const float RATIO_PHONE = 360.0;
+constexpr const float RATIO_OTHER = 800.0;
 
 void PostTask(std::function<void()> func, uint32_t delayTime)
 {
@@ -355,14 +355,14 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
  * @param vp vp value.
  * @return Returns the font size.
  */
-int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp)
+int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp)
 {
     std::string deviceType = GetDeviceType();
-    float radio = RADIO_PHONE;
+    float ratio = RATIO_PHONE;
     if (DEVICE_TYPE_PHONE != deviceType && DEVICE_TYPE_WEARABLE != deviceType) {
-        radio = RADIO_OTHER;
+        ratio = RATIO_OTHER;
     }
-    return static_cast<int32_t>(std::ceil(sideLen * HALF / radio) / HALF * vp);
+    return static_cast<int32_t>(std::ceil(sideLen * HALF / ratio) / HALF * vp);
 }
 
 std::string ReadFile(const std::string &filePath)

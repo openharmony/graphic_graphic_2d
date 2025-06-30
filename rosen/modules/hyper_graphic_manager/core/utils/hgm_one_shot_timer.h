@@ -64,7 +64,7 @@ private:
     std::unique_ptr<ChronoSteadyClock> clock_ = nullptr;
 
     std::atomic<std::chrono::steady_clock::time_point> resetTimePoint_;
-    std::atomic<bool> running_{false};
+    std::atomic<bool> running_{ false };
 };
 } // namespace OHOS::Rosen
 

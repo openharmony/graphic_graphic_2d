@@ -5036,6 +5036,79 @@ HWTEST_F(RSMainThreadTest, MultiDisplayChangeTest, TestSize.Level2)
 }
 
 /**
+ * @tc.name: IsFastComposeVsyncTimeSync001
+ * @tc.desc: test IsFastComposeVsyncTimeSync input value error condition
+ * @tc.type: FUNC
+ * @tc.require: issueICGGHY
+ */
+HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t unsignedVsyncPeriod = 0;
+    bool nextVsyncRequested = false;
+    uint64_t unsignedNowTime = 1000;
+    uint64_t lastVsyncTime = 500;
+    int64_t vsyncTimeStamp = -100;
+    uint64_t timestamp = mainThread->timestamp_;
+    bool result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, false);
+    unsignedVsyncPeriod = 16666666;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, false);
+    vsyncTimeStamp = 16666666;
+    mainThread->timestamp_ = 1000;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, false);
+    mainThread->timestamp_ = 15666666;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    mainThread->timestamp_ = 17666666;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    nextVsyncRequested = true;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    mainThread->timestamp_ = timestamp;
+}
+
+/**
+ * @tc.name: IsFastComposeVsyncTimeSync002
+ * @tc.desc: test IsFastComposeVsyncTimeSync at time near vsync time or not condition
+ * @tc.type: FUNC
+ * @tc.require: issueICGGHY
+ */
+HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t unsignedVsyncPeriod = 0;
+    bool nextVsyncRequested = false;
+    uint64_t unsignedNowTime = 1000;
+    uint64_t lastVsyncTime = 500;
+    int64_t vsyncTimeStamp = 16666666;
+    uint64_t timestamp = mainThread->timestamp_;
+    mainThread->timestamp_ = 16666666;
+    bool result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    unsignedNowTime = 1000;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    nextVsyncRequested = true;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    mainThread->timestamp_ = timestamp;
+}
+
+/**
  * @tc.name: CheckFastCompose
  * @tc.desc: test CheckFastCompose
  * @tc.type: FUNC
@@ -5061,6 +5134,23 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
     mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
     ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
     mainThread->receiver_ = receiver;
+}
+
+/**
+ * @tc.name: CheckFastCompose
+ * @tc.desc: test CheckFastCompose
+ * @tc.type: FUNC
+ * @tc.require: issueICGGHY
+ */
+HWTEST_F(RSMainThreadTest, CheckFastCompose002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t timestamp = mainThread->timestamp_;
+    mainThread->timestamp_ = mainThread->timestamp_ - 16666666;
+    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
+    mainThread->timestamp_ = timestamp;
 }
 
 /**
@@ -5270,10 +5360,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     rootNode->GenerateFullChildrenList();
     auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
     childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
     auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
@@ -5281,12 +5367,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
     ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
 
     NodeId displayId2 = 2;
     RSDisplayNodeConfig config;
@@ -5387,5 +5467,45 @@ HWTEST_F(RSMainThreadTest, SetTaskEndWithTime001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     auto rsVSyncDistributor = mainThread->rsVSyncDistributor_;
     mainThread->SetTaskEndWithTime(0);
+}
+
+/**
+ * @tc.name: CheckAdaptiveCompose001
+ * @tc.desc: Test CheckAdaptiveCompose
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto context = mainThread->context_;
+    mainThread->context_ = nullptr;
+    ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+    //reset
+    mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: CheckAdaptiveCompose002
+ * @tc.desc: Test CheckAdaptiveCompose
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        std::atomic<int32_t> status = frameRateMgr->isAdaptive_.load();
+        frameRateMgr->isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+        ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+        frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+        ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+        //reset
+        frameRateMgr->isAdaptive_.store(status.load());
+    }
 }
 } // namespace OHOS::Rosen

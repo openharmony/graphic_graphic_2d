@@ -24,6 +24,7 @@
 #include "rs_frame_report.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+#include "rs_profiler.h"
 //blur predict
 #include "rs_frame_blur_predict.h"
 #include "system/rs_system_parameters.h"
@@ -1331,7 +1332,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         isSystemCalling = permissions.isSystemCalling,
         selfCapture = permissions.selfCapture]() -> void {
         RS_TRACE_NAME_FMT("RSRenderServiceConnection::TakeSurfaceCapture captureTask nodeId:[%" PRIu64 "]", id);
-        RS_LOGI("TakeSurfaceCapture captureTask begin nodeId:[%{public}" PRIu64 "]", id);
+        RS_LOGD("TakeSurfaceCapture captureTask begin nodeId:[%{public}" PRIu64 "]", id);
         if (captureConfig.captureType == SurfaceCaptureType::UICAPTURE) {
             // When the isSync flag in captureConfig is true, UI capture processes commands before capture.
             // When the isSync flag in captureConfig is false, UI capture will check null node independently.
@@ -1452,7 +1453,10 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-    std::function<void()> setWindowFreezeTask = [id, isFreeze, callback, captureConfig, blurParam]() -> void {
+    bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::SET_WINDOW_FREEZE_IMMEDIATELY");
+    std::function<void()> setWindowFreezeTask =
+        [id, isFreeze, callback, captureConfig, blurParam, isSystemCalling]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("SetWindowFreezeImmediately failed, node is nullptr");
@@ -1463,9 +1467,6 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
         }
         node->SetStaticCached(isFreeze);
         if (isFreeze) {
-            bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
-                "::SET_WINDOW_FREEZE_IMMEDIATELY");
             RSSurfaceCaptureParam captureParam;
             captureParam.id = id;
             captureParam.config = captureConfig;
@@ -3261,7 +3262,7 @@ ErrCode RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
-    const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -3273,8 +3274,8 @@ int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    auto task = [pid = remotePid_, filter, callback]() {
-        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, filter, callback);
+    auto task = [pid = remotePid_, constraint, callback]() {
+        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, constraint, callback);
     };
     mainThread_->PostTask(task);
     return StatusCode::SUCCESS;
@@ -3385,6 +3386,44 @@ int32_t RSRenderServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemI
     gpuMemInMB = memorySnapshotInfo.gpuMemory / MEM_BYTE_TO_MB;
     RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB called succ");
     return ERR_OK;
+}
+
+RetCodeHrpService RSRenderServiceConnection::ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+    const std::string& fileName, int32_t flags, int& outFd)
+{
+#ifdef RS_PROFILER_ENABLED
+    if (fileName.length() == 0 || !HrpServiceValidDirOrFileName(fileName)) {
+        return RET_HRP_SERVICE_ERR_INVALID_PARAM;
+    }
+
+    return RSProfiler::HrpServiceOpenFile(dirInfo, fileName, flags, outFd);
+#else
+    outFd = -1;
+    return RET_HRP_SERVICE_ERR_UNSUPPORTED;
+#endif
+}
+
+RetCodeHrpService RSRenderServiceConnection::ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+    uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
+{
+#ifdef RS_PROFILER_ENABLED
+    return RSProfiler::HrpServicePopulateFiles(dirInfo, firstFileIndex, outFiles);
+#else
+    outFiles.clear();
+    return RET_HRP_SERVICE_ERR_UNSUPPORTED;
+#endif
+}
+
+bool RSRenderServiceConnection::ProfilerIsSecureScreen()
+{
+#ifdef RS_PROFILER_ENABLED
+    if (!RSSystemProperties::GetProfilerEnabled()) {
+        return false;
+    }
+    return RSProfiler::IsSecureScreen();
+#else
+    return false;
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

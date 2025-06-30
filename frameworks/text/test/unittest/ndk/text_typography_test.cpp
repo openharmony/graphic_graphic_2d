@@ -585,8 +585,8 @@ HWTEST_F(NdkTypographyTest, TypographyBreakStrategyTest003, TestSize.Level0)
     OH_Drawing_TypographyHandlerAddText(fHandler, DEFAULT_LONG_TEXT);
     CreateTypography();
     OH_Drawing_TypographyLayout(fTypography, 200);
-    EXPECT_EQ(OH_Drawing_TypographyGetHeight(fTypography), 1593);
-    EXPECT_EQ(::round(OH_Drawing_TypographyGetLongestLineWithIndent(fTypography)), 213);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(fTypography), 1180);
+    EXPECT_EQ(::round(OH_Drawing_TypographyGetLongestLineWithIndent(fTypography)), 200);
 }
 
 /*

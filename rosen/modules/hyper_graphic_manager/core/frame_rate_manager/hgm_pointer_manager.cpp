@@ -13,55 +13,56 @@
  * limitations under the License.
  */
 
+#include "hgm_pointer_manager.h"
+
 #include <chrono>
 #include <map>
 #include <set>
 
 #include "hgm_core.h"
 #include "hgm_multi_app_strategy.h"
-#include "hgm_pointer_manager.h"
 #include "hgm_task_handle_thread.h"
 
 
 namespace OHOS::Rosen {
 namespace {
-    constexpr int32_t UP_TIMEOUT_MS = 3000;
-    constexpr int32_t RS_IDLE_TIMEOUT_MS = 1200;
+constexpr int32_t UP_TIMEOUT_MS = 3000;
+constexpr int32_t RS_IDLE_TIMEOUT_MS = 1200;
 }
 
 HgmPointerManager::HgmPointerManager() : HgmStateMachine<PointerState, PointerEvent>(PointerState::POINTER_IDLE_STATE),
-    activeTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this] () {
+    activeTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this]() {
         OnEvent(PointerEvent::POINTER_ACTIVE_TIMEOUT_EVENT);
     }),
-    rsIdleTimeoutTimer_("rs_idle_timeout_timer", std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this] () {
+    rsIdleTimeoutTimer_("rs_idle_timeout_timer", std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this]() {
         OnEvent(PointerEvent::POINTER_RS_IDLE_TIMEOUT_EVENT);
     })
 {
-    RegisterEventCallback(PointerEvent::POINTER_ACTIVE_EVENT, [this] (PointerEvent event) {
+    RegisterEventCallback(PointerEvent::POINTER_ACTIVE_EVENT, [this](PointerEvent event) {
         ChangeState(PointerState::POINTER_ACTIVE_STATE);
     });
-    RegisterEventCallback(PointerEvent::POINTER_ACTIVE_TIMEOUT_EVENT, [this] (PointerEvent event) {
+    RegisterEventCallback(PointerEvent::POINTER_ACTIVE_TIMEOUT_EVENT, [this](PointerEvent event) {
         ChangeState(PointerState::POINTER_IDLE_STATE);
     });
-    RegisterEventCallback(PointerEvent::POINTER_RS_IDLE_TIMEOUT_EVENT, [this] (PointerEvent event) {
+    RegisterEventCallback(PointerEvent::POINTER_RS_IDLE_TIMEOUT_EVENT, [this](PointerEvent event) {
         ChangeState(PointerState::POINTER_IDLE_STATE);
     });
 
     // register state callback
     RegisterEnterStateCallback(PointerState::POINTER_ACTIVE_STATE,
-        [this] (PointerState lastState, PointerState newState) {
-        activeTimeoutTimer_.Start();
-        rsIdleTimeoutTimer_.Start();
-        pointerInfo_ = { GetPkgName(), newState, OLED_120_HZ };
-        Vote();
-    });
+        [this](PointerState lastState, PointerState newState) {
+            activeTimeoutTimer_.Start();
+            rsIdleTimeoutTimer_.Start();
+            pointerInfo_ = { GetPkgName(), newState, OLED_120_HZ };
+            Vote();
+        });
     RegisterEnterStateCallback(PointerState::POINTER_IDLE_STATE,
-        [this] (PointerState lastState, PointerState newState) {
-        pointerInfo_ = { GetPkgName(), newState };
-        activeTimeoutTimer_.Stop();
-        rsIdleTimeoutTimer_.Stop();
-        Vote();
-    });
+        [this](PointerState lastState, PointerState newState) {
+            pointerInfo_ = { GetPkgName(), newState };
+            activeTimeoutTimer_.Stop();
+            rsIdleTimeoutTimer_.Stop();
+            Vote();
+        });
 }
 
 void HgmPointerManager::Vote()

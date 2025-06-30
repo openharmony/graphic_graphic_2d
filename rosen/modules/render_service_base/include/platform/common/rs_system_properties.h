@@ -369,6 +369,7 @@ public:
     static bool GetHybridRenderTextBlobEnabled();
     static bool GetHybridRenderSvgEnabled();
     static bool GetHybridRenderHmsymbolEnabled();
+    static bool GetTypicalResidentProcess();
     static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
 
     static bool GetVKImageUseEnabled();

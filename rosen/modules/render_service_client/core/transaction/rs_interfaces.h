@@ -1177,7 +1177,7 @@ public:
      * @return return value == 0 success, return value == others, failed.
      */
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback);
+        const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 

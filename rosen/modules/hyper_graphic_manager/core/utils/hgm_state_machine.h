@@ -90,7 +90,7 @@ void HgmStateMachine<State, Event>::ChangeState(State state)
         }
 
         // exit state callback
-        for (auto &[id, callback] : exitStateCallbacks_[lastState]) {
+        for (auto& [id, callback] : exitStateCallbacks_[lastState]) {
             if (callback != nullptr) {
                 callback(lastState, state);
             }
@@ -104,7 +104,7 @@ void HgmStateMachine<State, Event>::ChangeState(State state)
         state_.store(state);
 
         // enter state callback
-        for (auto &[id, callback] : enterStateCallbacks_[state]) {
+        for (auto& [id, callback] : enterStateCallbacks_[state]) {
             if (callback != nullptr) {
                 callback(lastState, state);
             }
@@ -117,7 +117,7 @@ void HgmStateMachine<State, Event>::OnEvent(Event event)
 {
     if (auto iter = eventCallbacks_.find(event); iter != eventCallbacks_.end()) {
         if (iter->second != nullptr) {
-            ExecuteCallback([callback = iter->second, event = event] () { callback(event); });
+            ExecuteCallback([callback = iter->second, event = event]() { callback(event); });
         }
     }
 }

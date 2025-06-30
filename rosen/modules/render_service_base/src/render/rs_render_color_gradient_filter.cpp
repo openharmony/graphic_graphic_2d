@@ -40,6 +40,8 @@ void RSRenderColorGradientFilterPara::CalculateHash()
         auto maskHash = mask_->Hash();
         hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
     }
+    hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+    hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
 }
 
 std::shared_ptr<RSRenderFilterParaBase> RSRenderColorGradientFilterPara::DeepCopy() const
@@ -272,7 +274,7 @@ void RSRenderColorGradientFilterPara::GenerateGEVisualEffect(
         return;
     }
     auto colorGradientFilter = std::make_shared<Drawing::GEVisualEffect>("COLOR_GRADIENT",
-        Drawing::DrawingPaintType::BRUSH);
+        Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
     colorGradientFilter->SetParam("COLOR", colors_);
     colorGradientFilter->SetParam("POSITION", positions_);
     colorGradientFilter->SetParam("STRENGTH", strengths_);

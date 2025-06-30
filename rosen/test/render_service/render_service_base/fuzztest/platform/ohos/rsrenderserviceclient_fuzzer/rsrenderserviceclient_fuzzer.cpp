@@ -2576,6 +2576,82 @@ bool DoGetBehindWindowFilterEnabled(const uint8_t *data, size_t size)
     client->GetBehindWindowFilterEnabled(enabled);
     return true;
 }
+
+bool ProfilerServiceOpenFile(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    RSRenderServiceConnectHub::GetInstance()->Destroy();
+
+    uint32_t strlen = GetData<uint32_t>() % 20;
+
+    HrpServiceDir baseDirType = HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN;
+
+    std::string subDir = GetStringFromData(strlen);
+    std::string subDir2 = GetStringFromData(strlen);
+    std::string fileName = GetStringFromData(strlen);
+    int32_t flags = GetData<int32_t>();
+    int32_t outFd = GetData<int32_t>();
+    HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+
+    client->ProfilerServiceOpenFile(dirInfo, fileName, flags, outFd);
+    return true;
+}
+
+bool ProfilerServicePopulateFiles(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    RSRenderServiceConnectHub::GetInstance()->Destroy();
+
+    uint32_t strlen = GetData<uint32_t>() % 20;
+
+    HrpServiceDir baseDirType = HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN;
+
+    std::string subDir = GetStringFromData(strlen);
+    std::string subDir2 = GetStringFromData(strlen);
+
+    HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+    std::vector<HrpServiceFileInfo> outFiles;
+
+    client->ProfilerServicePopulateFiles(dirInfo, 0, outFiles);
+    return true;
+}
+
+bool ProfilerIsSecureScreen(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    RSRenderServiceConnectHub::GetInstance()->Destroy();
+
+    client->ProfilerIsSecureScreen();
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 

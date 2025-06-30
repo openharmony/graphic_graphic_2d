@@ -16,6 +16,8 @@
 
 #include "font_descriptor_mgr.h"
 
+#include <mutex>
+
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {

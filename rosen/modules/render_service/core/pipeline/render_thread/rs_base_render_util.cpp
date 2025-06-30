@@ -1006,8 +1006,8 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
             ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
         }
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
-            RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
-                surfaceHandler.GetNodeId(), ret);
+            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug surfaceHandler(id: %{public}" PRIu64 ") "
+                "AcquireBuffer failed(ret: %{public}d)!", surfaceHandler.GetNodeId(), ret);
             surfaceBuffer = nullptr;
             return false;
         }

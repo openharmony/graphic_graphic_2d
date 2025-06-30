@@ -793,7 +793,8 @@ int32_t RSUIDirector::GetCurrentRefreshRateMode()
 int32_t RSUIDirector::GetAnimateExpectedRate() const
 {
     int32_t animateRate = 0;
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         auto& range = modifierManager->GetFrameRateRange();
         if (range.IsValid()) {

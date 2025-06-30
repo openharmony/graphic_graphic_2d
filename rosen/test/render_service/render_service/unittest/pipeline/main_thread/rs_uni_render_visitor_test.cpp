@@ -63,6 +63,8 @@ namespace {
     const OHOS::Rosen::RectI DEFAULT_FILTER_RECT = {0, 0, 500, 500};
     const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
     constexpr int MAX_ALPHA = 255;
+    constexpr int SCREEN_WIDTH = 3120;
+    constexpr int SCREEN_HEIGHT = 1080;
     constexpr OHOS::Rosen::NodeId DEFAULT_NODE_ID = 100;
     constexpr int32_t DEFAULT_DISPLAY_OFFSET = 100;
     const OHOS::Rosen::RectI DEFAULT_SCREEN_RECT = {0, 0, 1000, 1000};
@@ -95,6 +97,8 @@ public:
 
     static inline Mock::MatrixMock* matrixMock_;
     ScreenId CreateVirtualScreen(sptr<RSScreenManager> screenManager);
+    static void InitTestSurfaceNodeAndScreenInfo(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        std::shared_ptr<RSUniRenderVisitor>& rSUniRenderVisitor);
 };
 
 class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
@@ -160,6 +164,23 @@ ScreenId RSUniRenderVisitorTest::CreateVirtualScreen(sptr<RSScreenManager> scree
         return INVALID_SCREEN_ID;
     }
     return screenId;
+}
+
+void RSUniRenderVisitorTest::InitTestSurfaceNodeAndScreenInfo(
+    std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    std::shared_ptr<RSUniRenderVisitor>& rsUniRenderVisitor)
+{
+    surfaceNode->SetNodeHasBackgroundColorAlpha(true);
+    surfaceNode->SetHardwareEnableHint(true);
+    surfaceNode->SetDstRect({10, 1, 100, 100});
+    surfaceNode->SetIsOntheTreeOnlyFlag(true);
+    Occlusion::Region region1({100, 50, 1000, 1500});
+    surfaceNode->SetVisibleRegion(region1);
+
+    ScreenInfo screenInfo;
+    screenInfo.width = SCREEN_WIDTH;
+    screenInfo.height = SCREEN_HEIGHT;
+    rsUniRenderVisitor->screenInfo_ = screenInfo;
 }
 
 /**
@@ -4940,7 +4961,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Lev
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
         needForceUpdateHwcNodes);
-    EXPECT_TRUE(hasVisibleHwcNodes);
+    EXPECT_FALSE(hasVisibleHwcNodes);
 
     Occlusion::Region region2({100, 1200, 1000, 1500});
     surfaceNode->SetVisibleRegion(region2);
@@ -4951,6 +4972,112 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Lev
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
         needForceUpdateHwcNodes);
     EXPECT_FALSE(hasVisibleHwcNodes);
+}
+
+/**
+ * @tc.name: UpdateHwcNodesIfVisibleForAppTest002
+ * @tc.desc: Test UpdateHwcNodesIfVisibleForAppTest002;
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest002, TestSize.Level2)
+{
+    bool hasVisibleHwcNodes = false;
+    bool needForceUpdateHwcNodes = false;
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+   
+    InitTestSurfaceNodeAndScreenInfo(surfaceNode, rsUniRenderVisitor);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+
+    surfaceNode->isHwcGlobalPositionEnabled_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+    surfaceNode->SetLayerTop(false);
+    NodeId id = 0;
+    surfaceNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(id);
+
+    Occlusion::Region region2({50, 50, 1000, 1500});
+    surfaceNode->SetVisibleRegion(region2);
+    
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_TRUE(hasVisibleHwcNodes);
+
+    hasVisibleHwcNodes = false;
+    Occlusion::Region emptyRegion({0, 0, 0, 0});
+    surfaceNode->SetVisibleRegion(emptyRegion);
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_FALSE(hasVisibleHwcNodes);
+}
+
+/**
+ * @tc.name: UpdateHwcNodesIfVisibleForAppTest003
+ * @tc.desc: Test UpdateHwcNodesIfVisibleForAppTest003;
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest003, TestSize.Level2)
+{
+    bool hasVisibleHwcNodes = false;
+    bool needForceUpdateHwcNodes = false;
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+   
+    InitTestSurfaceNodeAndScreenInfo(surfaceNode, rsUniRenderVisitor);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    NodeId id = 0;
+    surfaceNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(id);
+
+    surfaceNode->isHwcGlobalPositionEnabled_ = true;
+    surfaceNode->isHwcCrossNode_ = false;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+    surfaceNode->SetLayerTop(false);
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_TRUE(needForceUpdateHwcNodes);
+
+    needForceUpdateHwcNodes = false;
+    surfaceNode->isHwcGlobalPositionEnabled_ = false;
+    surfaceNode->isHwcCrossNode_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+    surfaceNode->SetLayerTop(false);
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_TRUE(needForceUpdateHwcNodes);
+
+    needForceUpdateHwcNodes = false;
+    surfaceNode->isHwcGlobalPositionEnabled_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    surfaceNode->SetLayerTop(false);
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_TRUE(needForceUpdateHwcNodes);
+
+    needForceUpdateHwcNodes = false;
+    surfaceNode->isHwcGlobalPositionEnabled_ = false;
+    surfaceNode->isHwcCrossNode_ = false;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+    surfaceNode->SetLayerTop(true);
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_TRUE(needForceUpdateHwcNodes);
 }
 
 /*

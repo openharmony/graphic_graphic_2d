@@ -189,6 +189,9 @@ public:
 
     bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) override;
 
+    bool DrawImageEffectHPS(const Image& image,
+        const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams) override;
+
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
 private:

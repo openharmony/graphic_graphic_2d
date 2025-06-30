@@ -153,6 +153,7 @@ static int RunNodeTreeProfilerTest(int argc, char **argv)
         cout << "nodetree failed : wrong param number" << endl;
         return 0;
     }
+    RSGraphicTestDirector::Instance().SetProfilerTest(true);
     RSGraphicTestDirector::Instance().Run();
     std::string path = argv[ARGS_TWO];
     bool useBufferDump = false;
@@ -170,6 +171,7 @@ static int RunPlaybackProfilerTest(int argc, char **argv)
         cout << "nodetree failed : wrong param number" << endl;
         return 0;
     }
+    RSGraphicTestDirector::Instance().SetProfilerTest(true);
     RSGraphicTestDirector::Instance().Run();
     std::string path = argv[ARGS_TWO];
     bool useBufferDump = false;

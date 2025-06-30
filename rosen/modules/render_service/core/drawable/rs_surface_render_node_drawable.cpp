@@ -1141,13 +1141,13 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
         enableVisiableRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
-        //Window screenshot does not enable uifirst.
-        if (!RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
-            subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
+        if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
+            if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+                RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
+            }
             return;
         }
     }
-
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, false)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
         return;

@@ -107,8 +107,7 @@ public:
                 (RSNGRenderShaderHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
                     geShader, propTag), ...);
                 },
-                EffectTemplateBase::properties_
-            );
+                EffectTemplateBase::properties_);
         RSNGRenderShaderHelper::AppendToGEContainer(ge, geShader);
         if (EffectTemplateBase::nextEffect_) {
             EffectTemplateBase::nextEffect_->AppendToGEContainer(ge);

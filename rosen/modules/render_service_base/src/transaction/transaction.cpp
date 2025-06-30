@@ -348,7 +348,7 @@ GSError RSTransactionManager::QueueTransaction(const RSTransactionConfig& config
 }
 
 GSError RSTransactionManager::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, int64_t& timestamp,
-    std::vector<OHOS::Rect>& damages)
+    std::vector<OHOS::Rect>& damages, bool isLppMode)
 {
     sptr<Transaction> rsTransaction = nullptr;
     {
@@ -362,6 +362,7 @@ GSError RSTransactionManager::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<Sy
     fence = rsTransaction->GetFence();
     timestamp = rsTransaction->GetUiTimestamp();
     damages = rsTransaction->GetDamages();
+    (void)isLppMode;
     return GSERROR_OK;
 }
 

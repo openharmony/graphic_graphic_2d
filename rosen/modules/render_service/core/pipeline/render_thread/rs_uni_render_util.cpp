@@ -165,6 +165,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
 #endif
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
     rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
+    params.SetDrawnRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
     if (damageRegionRects.empty()) {
         // When damageRegionRects is empty, SetDamageRegion function will not take effect and buffer will
@@ -1411,6 +1412,31 @@ void RSUniRenderUtil::GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInf
         Occlusion::Region mappedRegion{mappedRect};
         sampledDrawnRegion.OrSelf(mappedRegion);
     }
+}
+
+float RSUniRenderUtil::GetYawFromQuaternion(const Quaternion& q)
+{
+    // Normalized quaternion
+    float x = q[0];
+    float y = q[1];
+    float z = q[2];
+    float w = q[3];
+    float norm = std::sqrt((x * x) + (y * y) + (z * z) + (w * w));
+    if (ROSEN_EQ(norm, 0.f)) {
+        RS_LOGW("RSUniRenderUtil::GetYawFromQuaternion, norm is 0");
+        return 0;
+    }
+    x = x / norm;
+    y = y / norm;
+    z = z / norm;
+    w = w / norm;
+
+    // Hamilton(right-hand), Formula: atan2(2(wz + xy), w² + x² - y² - z²)
+    float sinyCosp = 2.f * (w * z + x * y);
+    float cosyCosp = (w * w + x * x) - (y * y + z * z);
+    float yaw = std::atan2(sinyCosp, cosyCosp);
+
+    return yaw * (180.f / PI);
 }
 } // namespace Rosen
 } // namespace OHOS

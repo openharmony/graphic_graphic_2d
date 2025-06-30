@@ -149,6 +149,9 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
+    if (pixelMap_ && image_) {
+        image_->SetSupportOpaqueOpt(pixelMap_->GetSupportOpaqueOpt());
+    }
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);

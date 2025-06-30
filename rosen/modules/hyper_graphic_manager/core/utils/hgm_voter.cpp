@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-HgmVoter::HgmVoter(const std::vector<std::string>& voters): voters_(voters)
+HgmVoter::HgmVoter(const std::vector<std::string>& voters) : voters_(voters)
 {
     HGM_LOGI("Construction of HgmVoter");
 }
@@ -26,7 +26,7 @@ VoteInfo HgmVoter::ProcessVote()
 {
     VoteInfo resultVoteInfo;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
-    auto &[min, max] = voteRange;
+    auto& [min, max] = voteRange;
 
     auto voterIter = voters_.begin();
     for (; voterIter != voters_.end(); ++voterIter) {
@@ -54,7 +54,7 @@ VoteInfo HgmVoter::ProcessVote()
 bool HgmVoter::ProcessVote(std::vector<std::string>::iterator& voterIter,
     VoteInfo& resultVoteInfo, VoteRange& voteRange)
 {
-    auto &voter = *voterIter;
+    auto& voter = *voterIter;
     if (voteRecord_.find(voter) == voteRecord_.end()) {
         return false;
     }
@@ -79,8 +79,8 @@ bool HgmVoter::ProcessVote(std::vector<std::string>::iterator& voterIter,
 
 std::pair<bool, bool> HgmVoter::MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange)
 {
-    auto &[min, max] = rangeRes;
-    auto &[minTemp, maxTemp] = curVoteRange;
+    auto& [min, max] = rangeRes;
+    auto& [minTemp, maxTemp] = curVoteRange;
     bool needMergeVoteInfo = false;
     if (minTemp > min) {
         min = minTemp;

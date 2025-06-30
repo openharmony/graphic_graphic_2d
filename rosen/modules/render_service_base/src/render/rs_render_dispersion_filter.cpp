@@ -55,6 +55,8 @@ void RSRenderDispersionFilterPara::CalculateHash()
     hash_ = hashFunc(&greenOffsetY_, sizeof(greenOffsetY_), hash_);
     hash_ = hashFunc(&blueOffsetX_, sizeof(blueOffsetX_), hash_);
     hash_ = hashFunc(&blueOffsetY_, sizeof(blueOffsetY_), hash_);
+    hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+    hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
 }
 
 std::shared_ptr<RSRenderFilterParaBase> RSRenderDispersionFilterPara::DeepCopy() const
@@ -254,7 +256,7 @@ void RSRenderDispersionFilterPara::GenerateGEVisualEffect(
     }
 
     auto dispersionShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
-        Drawing::GE_FILTER_DISPERSION, Drawing::DrawingPaintType::BRUSH);
+        Drawing::GE_FILTER_DISPERSION, Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
     dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_MASK,
         mask_ != nullptr ? mask_->GenerateGEShaderMask() : nullptr);
     dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_OPACITY, opacity_);

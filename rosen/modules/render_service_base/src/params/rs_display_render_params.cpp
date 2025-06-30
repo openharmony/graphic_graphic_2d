@@ -330,4 +330,14 @@ bool RSDisplayRenderParams::GetNeedOffscreen() const
     return needOffscreen_;
 }
 
+void RSDisplayRenderParams::SetDrawnRegion(const Occlusion::Region& region)
+{
+    drawnRegion_ = region;
+}
+
+const Occlusion::Region& RSDisplayRenderParams::GetDrawnRegion() const
+{
+    return drawnRegion_;
+}
+
 } // namespace OHOS::Rosen

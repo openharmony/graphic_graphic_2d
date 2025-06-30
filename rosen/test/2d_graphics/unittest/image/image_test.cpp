@@ -743,6 +743,21 @@ HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest006, TestSize.Level1)
     EXPECT_TRUE(image != nullptr);
     gpuContext = nullptr;
 }
+
+/**
+ * @tc.name: SupportOpaqueOptTest
+ * @tc.desc: test for SupportOpaqueOptTest success for YUV YCRCB_P010.
+ * @tc.type: FUNC
+ * @tc.require: I782P9
+ */
+HWTEST_F(ImageTest, SupportOpaqueOptTest, TestSize.Level1)
+{
+    auto image = std::make_shared<Image>();
+    image->SetSupportOpaqueOpt(true);
+    auto data = image->GetSupportOpaqueOpt();
+    EXPECT_TRUE(data);
+}
+
 #endif
 } // namespace Drawing
 } // namespace Rosen

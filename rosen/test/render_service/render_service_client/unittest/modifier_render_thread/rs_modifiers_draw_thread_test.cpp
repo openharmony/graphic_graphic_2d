@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <parameters.h>
 
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_node_command.h"
@@ -20,6 +21,10 @@
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "recording/draw_cmd.h"
 #include "render_context/shader_cache.h"
+#include "command/rs_animation_command.h"
+#include "command/rs_command.h"
+#include "transaction/rs_render_service_client.h"
+#include "transaction/rs_transaction_handler.h"
 
 #ifdef RS_ENABLE_VK
 #include "src/platform/ohos/backend/rs_vulkan_context.h"
@@ -31,12 +36,26 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 constexpr const int64_t DELAY_TIME = 1000;
 constexpr const char* TASK_NAME = "TaskName";
+
+class RSRenderThreadClientHybridTest : public RSIRenderClient {
+public:
+    RSRenderThreadClientHybridTest() = default;
+    ~RSRenderThreadClientHybridTest() = default;
+
+    void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override {};
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override {};
+};
 class RSModifiersDrawThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    std::unique_ptr<RSIRenderClient> CreateRenderThreadClientHybrid()
+    {
+        return std::make_unique<RSRenderThreadClientHybridTest>();
+    }
 };
 
 void RSModifiersDrawThreadTest::SetUpTestCase()
@@ -48,6 +67,53 @@ void RSModifiersDrawThreadTest::SetUpTestCase()
 void RSModifiersDrawThreadTest::TearDownTestCase() {}
 void RSModifiersDrawThreadTest::SetUp() {}
 void RSModifiersDrawThreadTest::TearDown() {}
+
+/**
+ * @tc.name: FlushImplicitTransaction001
+ * @tc.desc: test func FlushImplicitTransaction when hybridCallback is null
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClientHybrid();
+    ASSERT_NE(renderThreadClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    auto hybridrenderEnable = system::GetParameter("const.graphics.hybridrenderenable", "0");
+    system::SetParameter("const.graphics.hybridrenderenable", "1");
+    transaction->FlushImplicitTransaction(timestamp);
+    system::SetParameter("const.graphics.hybridrenderenable", hybridrenderEnable);
+}
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: FlushImplicitTransaction002
+ * @tc.desc: test func FlushImplicitTransaction when hybridCallback is not null
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction002, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClientHybrid();
+    ASSERT_NE(renderThreadClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    CommitTransactionCallback callback =
+        [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {};
+    transaction->SetCommitTransactionCallback(callback);
+    transaction->FlushImplicitTransaction(timestamp);
+}
+#endif
 
 /**
  * @tc.name: GetInstanceTest001
@@ -307,7 +373,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueICEFNX
  */
-HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
+HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest006, TestSize.Level1)
 {
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
@@ -326,6 +392,30 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
     ASSERT_NE(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: ConvertTransactionTest007
+ * @tc.desc: test results of ConvertTransaction of HMSYMBOL
+ * @tc.type: FUNC
+ * @tc.require: issueICEFNX
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest007, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    uint16_t propertyId = 1;
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::HMSYMBOL);
+    auto cType = PropertyUpdateType::UPDATE_TYPE_OVERWRITE;
+    auto transactionData = std::make_unique<RSTransactionData>();
+    Drawing::Brush brush;
+    Drawing::BrushHandle brushHandle;
+    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
+    ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
+    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(nodeId, cmdList, propertyId, cType);
+    transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
 }
 
 /**

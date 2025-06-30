@@ -693,6 +693,7 @@ ohos_unittest("RSMainThreadTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
   ]
   external_deps = [
     "c_utils:utils",

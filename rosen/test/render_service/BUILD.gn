@@ -18,6 +18,7 @@ group("test") {
   deps = [
     "render_service/fuzztest/rsirenderserviceipcinterfacecodeaccessverifier_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
+    "render_service/fuzztest/rsrenderserviceconnection000_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnectionstub_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicesecurityutils_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicestub_fuzzer:fuzztest",
@@ -128,6 +129,7 @@ group("test") {
     "render_service_base/unittest/gfx:unittest",
     "render_service_base/unittest/hwc:unittest",
     "render_service_base/unittest/ipc_callbacks:unittest",
+    "render_service_base/unittest/effect:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
     "render_service_base/unittest/monitor:unittest",

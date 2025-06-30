@@ -315,7 +315,7 @@ public:
      *         {@link GSERROR_NO_BUFFER} 40601000 - no buffer.
      */
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, int64_t& timestamp,
-                          std::vector<OHOS::Rect>& damages_) override;
+                          std::vector<OHOS::Rect>& damages_, bool isLppMode = false) override;
     /**
      * @brief Acquire buffer for data consumed.
      *

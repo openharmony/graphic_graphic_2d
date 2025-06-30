@@ -342,7 +342,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
         return __eglMustCastToProperFunctionPointerType(func);
     }
 
-    WLOGW("FindEglExtApi did not find an entry for %{public}s", procname);
+    WLOGD("FindEglExtApi did not find an entry for %{public}s", procname);
     return nullptr;
 }
 
@@ -1284,6 +1284,9 @@ EGLBoolean EglSwapBuffersWithDamageKHRImpl(EGLDisplay dpy, EGLSurface draw,
 {
     ClearError();
     WLOGD("");
+#if USE_APS_IGAMESERVICE_FUNC
+    OHOS::GameService::EglSliceReport::GetInstance().AddGraphicCount();
+#endif
     EglWrapperDisplay *display = ValidateDisplay(dpy);
     if (!display) {
         return EGL_FALSE;
