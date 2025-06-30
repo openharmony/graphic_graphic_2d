@@ -31,15 +31,10 @@ bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
         return false;
     }
     for (size_t i = 0; i < symbolColor_.gradients.size(); i++) {
-        bool isNullptr = symbolColor_.gradients[i] == nullptr && symbolColor.gradients[i] == nullptr;
-        if (isNullptr) {
-            continue;
-        }
-        bool isUnequal = symbolColor_.gradients[i] == nullptr || symbolColor.gradients[i] == nullptr;
-        if (isUnequal) {
-            return false;
-        }
-        if (!symbolColor_.gradients[i]->IsNearlyEqual(symbolColor.gradients[i])) {
+        const auto& l = symbolColor_.gradients[i];
+        const auto& r = symbolColor.gradients[i];
+        bool isEqual = (l == nullptr && r == nullptr) || (l != nullptr && r != nullptr && l->IsNearlyEqual(r));
+        if (!isEqual) {
             return false;
         }
     }
