@@ -228,7 +228,7 @@ HWTEST_F(RSOcclusionNodeTest, RemoveChild_WithInAnomalousSituations, TestSize.Le
  * @tc.name: RemoveChild_WithInNonAnomalousSituations
  * @tc.desc: Test RemoveChild in non-anomalous situations.
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, RemoveChild_WithInNonAnomalousSituations, TestSize.Level1)
 {
@@ -264,7 +264,7 @@ HWTEST_F(RSOcclusionNodeTest, RemoveChild_WithInNonAnomalousSituations, TestSize
  * @tc.name: RemoveSubTree
  * @tc.desc: Test RemoveSubTree
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, RemoveSubTree, TestSize.Level1)
 {
@@ -395,7 +395,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithInNonAnomalous, TestSize
  * @tc.name: CollectNodeProperties_WithIsBgOpaque_EqualTrue
  * @tc.desc: Test CollectNodeProperties and then isBgOpaque_ will be true
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithIsBgOpaque_EqualTrue, TestSize.Level1)
 {
@@ -414,9 +414,9 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithIsBgOpaque_EqualTrue, Te
  * @tc.name: CollectNodeProperties_WithisNeedClip_EqualTrue
  * @tc.desc: Test CollectNodeProperties when isNeedClip_ is true
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
-HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithisNeedClip__EqualTrue, TestSize.Level1)
+HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithisNeedClip_EqualTrue, TestSize.Level1)
 {
     std::shared_ptr<OcclusionNode> rootNode =
         std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
@@ -436,7 +436,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithisNeedClip__EqualTrue, T
  * @tc.name: IsSubTreeShouldIgnored
  * @tc.desc: Test IsSubTreeShouldIgnored with this subtree make bounds non-rectangular.
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored, TestSize.Level1)
 {
@@ -448,7 +448,6 @@ HWTEST_F(RSOcclusionNodeTest, IsSubTreeShouldIgnored, TestSize.Level1)
     bool result = rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties);
     EXPECT_TRUE(result);
     renderProperties.clipPath_ = nullptr;
-    #undef RS_ENABLE_UNI_RENDER
     result = rootNode->IsSubTreeShouldIgnored(*renderNode, renderProperties);
     EXPECT_FALSE(result);
 }
@@ -985,7 +984,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_WithInNonAnomalous, TestSize.Level
  * @tc.name: DetectOcclusion_Ringed_OcclusionTree
  * @tc.desc: Test DetectOcclusion with ringed occlusion tree
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_Ringed_OcclusionTree, TestSize.Level1)
 {
@@ -1037,7 +1036,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_Ringed_OcclusionTree, TestSize.Lev
  * @tc.name: PreorderTraversal
  * @tc.desc: Test PreorderTraversal
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, PreorderTraversal, TestSize.Level1)
 {
@@ -1072,7 +1071,7 @@ HWTEST_F(RSOcclusionNodeTest, PreorderTraversal, TestSize.Level1)
  * @tc.name: CheckNodeOcclusion
  * @tc.desc: Test CheckNodeOcclusion with isNeedClip_ is false
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, CheckNodeOcclusion, TestSize.Level1)
 {
@@ -1092,7 +1091,7 @@ HWTEST_F(RSOcclusionNodeTest, CheckNodeOcclusion, TestSize.Level1)
  * @tc.name: IsOutOfRootRect
  * @tc.desc: Test IsOutOfRootRect
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, IsOutOfRootRect, TestSize.Level1)
 {
@@ -1110,7 +1109,7 @@ HWTEST_F(RSOcclusionNodeTest, IsOutOfRootRect, TestSize.Level1)
  * @tc.name: CalculateNodeAllBounds
  * @tc.desc: Test CalculateNodeAllBounds with isNeedClip_ is true
  * @tc.type: FUNC
- * @tc.require: issueIC2H2
+ * @tc.require: issueICICVE
  */
 HWTEST_F(RSOcclusionNodeTest, CalculateNodeAllBounds, TestSize.Level1)
 {
