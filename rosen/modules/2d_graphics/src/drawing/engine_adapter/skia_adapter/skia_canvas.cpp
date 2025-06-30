@@ -1398,13 +1398,6 @@ bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParamet
 #endif
 }
 
-bool SkiaCanvas::DrawImageEffectHPS(const Image& image,
-    const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams)
-{
-    LOGD("skia does not support DrawImageEffectHPS");
-    return false;
-}
-
 std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
 {
     if (!skCanvas_) {

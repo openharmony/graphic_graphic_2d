@@ -1125,24 +1125,6 @@ HWTEST_F(SkiaCanvasTest, DrawImageLattice001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawImageEffectHPSTest001
- * @tc.desc: Test DrawImageEffectHPSTest
- * @tc.type: FUNC
- * @tc.require: I91EH1
- */
-HWTEST_F(SkiaCanvasTest, DrawImageEffectHPSTest001, TestSize.Level1)
-{
-    auto skiaCanvas = std::make_shared<SkiaCanvas>();
-    ASSERT_TRUE(skiaCanvas != nullptr);
-    Image image;
-    Rect dst;
-    Rect src;
-    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
-    hpsEffectParams.push_back(std::make_shared<HpsBlurEffectParameter>(src, dst, 10.f, 1.f, 1.f));
-    skiaCanvas->DrawImageEffectHPS(image, hpsEffectParams);
-}
-
-/**
  * @tc.name: OpCalculateBeforeTest001
  * @tc.desc: Test OpCalculateBefore
  * @tc.type: FUNC

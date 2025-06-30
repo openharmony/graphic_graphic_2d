@@ -820,12 +820,6 @@ bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurP
     return impl_->DrawBlurImage(image, blurParams);
 }
 
-bool CoreCanvas::DrawImageEffectHPS(const Image& image,
-    const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams)
-{
-    return impl_->DrawImageEffectHPS(image, hpsEffectParams);
-}
-
 void CoreCanvas::SetParallelRender(bool parallelEnable)
 {
     impl_->SetParallelRender(parallelEnable);

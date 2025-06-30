@@ -480,63 +480,6 @@ HWTEST_F(CanvasTest, CanvasDrawPictureTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawImageEffectHPSTest001
- * @tc.desc: Test for DrawImageEffectHPS function.
- * @tc.type: FUNC
- * @tc.require: I719R9
-*/
-HWTEST_F(CanvasTest, DrawImageEffectHPSTest001, TestSize.Level1)
-{
-    auto canvas = std::make_unique<Canvas>();
-    ASSERT_TRUE(canvas != nullptr);
-    Drawing::Image image;
-    Drawing::Rect srcRect = { 0.0f, 0.0f, 1.0f, 1.0f };
-    Drawing::Rect dstRect = { 0.0f, 0.0f, 1.0f, 1.0f };
-    std::vector<std::shared_ptr<Drawing::HpsEffectParameter>> hpsEffectParams;
-    hpsEffectParams.push_back(std::make_shared<Drawing::HpsBlurEffectParameter>(srcRect, dstRect, 10.f, 1.f, 1.f));
-    canvas->DrawImageEffectHPS(image, hpsEffectParams);
-}
-
-/**
- * @tc.name: HpsEffectParameterGetTypeTest001
- * @tc.desc: Test for HpsEffectParameter GetEffectType function.
- * @tc.type: FUNC
- * @tc.require: I719R9
-*/
-HWTEST_F(CanvasTest, HpsEffectParameterGetTypeTest001, TestSize.Level1)
-{
-    Drawing::Image image;
-    Drawing::Rect srcRect = { 0.0f, 0.0f, 1.0f, 1.0f };
-    Drawing::Rect dstRect = { 0.0f, 0.0f, 1.0f, 1.0f };
-    // Blur
-    auto hpsBlurEffectArgs = std::make_shared<Drawing::HpsBlurEffectParameter>(srcRect, dstRect, 10.f, 1.f, 1.f);
-    EXPECT_EQ(hpsBlurEffectArgs->GetEffectType(), Drawing::HpsEffect::BLUR);
-    // GREY
-    auto hpsGreyArgs = std::make_shared<Drawing::HpsGreyParameter>(srcRect, dstRect, 1.f, 2.f);
-    EXPECT_EQ(hpsGreyArgs->GetEffectType(), Drawing::HpsEffect::GREY);
-    // AIBAR
-    auto hpsAiBarArgs = std::make_shared<Drawing::HpsAiBarParameter>(srcRect, dstRect,
-    0.5f, 0.7f, 0.5f, 0.2f, 1.f);
-    EXPECT_EQ(hpsAiBarArgs->GetEffectType(), Drawing::HpsEffect::AIBAR);
-    // STRETCH
-    auto hpsStretchArgs = std::make_shared<Drawing::HpsStretchParameter>(srcRect, dstRect,
-    11.f, 12.f, 13.f, 14.f, 1, 256.f, 256.f);
-    EXPECT_EQ(hpsStretchArgs->GetEffectType(), Drawing::HpsEffect::STRETCH);
-    // LINEAR_GRADIENT_BLUR
-    std::vector<float> fractionStopsData = {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f};
-    std::shared_ptr<std::vector<float>> fractionStopsPtr = std::make_shared<std::vector<float>>(fractionStopsData);
-    uint32_t fractionStopsCount = fractionStopsData.size() / 2;
-    std::array<float, 9> mat = {1.0f, 0.0f, 56.0f, 0.0f, 1.0f, 1898.0f, 0.0f, 0.0f, 1.0f};
-    auto hpsGradientBlurArgs = std::make_shared<Drawing::HpsGradientBlurParameter>(srcRect, dstRect,
-    30.f, fractionStopsPtr, fractionStopsCount, 0, 1316.f, 364.f, mat);
-    EXPECT_EQ(hpsGradientBlurArgs->GetEffectType(), Drawing::HpsEffect::LINEAR_GRADIENT_BLUR);
-    // MESA
-    auto hpsMesaArgs = std::make_shared<Drawing::HpsMesaParameter>(srcRect, dstRect,
-    10.f, 1.f, 2.f, 11.f, 12.f, 13.f, 14.f, 1, 256.f, 256.f);
-    EXPECT_EQ(hpsMesaArgs->GetEffectType(), Drawing::HpsEffect::MESA);
-}
-
-/**
  * @tc.name: CanvasClipRectTest001
  * @tc.desc: Test replacing the clipping area with the intersection or difference between clipping area and Rect.
  * @tc.type: FUNC

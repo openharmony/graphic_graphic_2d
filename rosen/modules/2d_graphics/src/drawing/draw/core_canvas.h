@@ -22,7 +22,6 @@
 #include "drawing/engine_adapter/impl_interface/core_canvas_impl.h"
 #include "utils/drawing_macros.h"
 #include "utils/rect.h"
-#include "drawing/draw/hps_effect_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -752,9 +751,6 @@ public:
     virtual void SetParallelRender(bool parallelEnable);
 
     virtual bool DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams);
-
-    virtual bool DrawImageEffectHPS(const Image& image,
-        const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams);
 
     /**
      * @brief                   Get the size after HPS blur downsampling. Only VK will return valid values.

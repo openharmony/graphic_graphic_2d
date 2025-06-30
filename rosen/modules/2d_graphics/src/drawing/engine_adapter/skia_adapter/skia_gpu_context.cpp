@@ -582,11 +582,6 @@ void SkiaGPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(
 #endif
 }
 
-void SkiaGPUContext::GetHpsEffectSupport(std::vector<const char*>& instanceExtensions)
-{
-    return;
-}
-
 std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>>
     SkiaGPUContext::contextPostMap_ = {};
 
