@@ -16,14 +16,13 @@
 #ifndef RS_OPINC_MANAGER_H
 #define RS_OPINC_MANAGER_H
 
-#include "drawable/rs_render_node_drawable.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
-class RSOpincManager {
+class RSB_EXPORT RSOpincManager {
 public:
     static RSOpincManager& Instance();
 
-    void ReadOPIncCcmParam();
     bool GetOPIncSwitch() const
     {
         return isOPIncOn_;
@@ -33,6 +32,10 @@ public:
     {
         isOPIncOn_ = opincSwitch;
     }
+
+    bool OpincGetNodeSupportFlag(RSRenderNode& node);
+    bool IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable);
+
 private:
     RSOpincManager() = default;
     ~RSOpincManager() = default;
@@ -40,6 +43,8 @@ private:
     RSOpincManager(const RSOpincManager&&);
     RSOpincManager& operator=(const RSOpincManager&);
     RSOpincManager& operator=(const RSOpincManager&&);
+
+    bool OpincGetCanvasNodeSupportFlag(RSRenderNode& node);
 
     bool isOPIncOn_ = false;
 };

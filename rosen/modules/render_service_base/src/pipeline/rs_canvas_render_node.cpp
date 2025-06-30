@@ -137,22 +137,6 @@ void RSCanvasRenderNode::OnTreeStateChanged()
     ModifyWindowWideColorGamutNum(IsOnTheTree(), graphicColorGamut_);
 }
 
-bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
-{
-    const auto& property = GetRenderProperties();
-    if (GetSharedTransitionParam() ||
-        property.IsSpherizeValid() ||
-        property.IsAttractionValid() ||
-        property.NeedFilter() ||
-        property.GetUseEffect() ||
-        property.GetColorBlend().has_value() ||
-        (GetOpincCache().IsSuggestOpincNode() &&
-            (ChildHasVisibleFilter() || ChildHasVisibleEffect() || IsSelfDrawingNode()))) {
-        return false;
-    }
-    return true && GetOpincCache().OpincGetSupportFlag();
-}
-
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

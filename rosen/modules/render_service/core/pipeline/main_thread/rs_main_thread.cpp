@@ -620,7 +620,7 @@ void RSMainThread::Init()
         renderEngine_ = std::make_shared<RSRenderEngine>();
         renderEngine_->Init();
     }
-    RSOpincManager::Instance().ReadOPIncCcmParam();
+    RSOpincManager::Instance().SetOPIncSwitch(OPIncParam::IsOPIncEnable());
     RSUifirstManager::Instance().ReadUIFirstCcmParam();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {

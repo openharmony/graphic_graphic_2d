@@ -488,50 +488,6 @@ HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OpincGetNodeSupportFlag001
- * @tc.desc: test results of OpincGetNodeSupportFlag
- * @tc.type: FUNC
- * @tc.require: issueI9VPPN
- */
-HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
-{
-    NodeId nodeId = 2;
-    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = true;
-
-    rsCanvasRenderNode->childHasVisibleFilter_ = true;
-    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleFilter_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->childHasVisibleEffect_ = true;
-    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleEffect_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = false;
-
-    rsCanvasRenderNode->childHasVisibleFilter_ = true;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleFilter_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->childHasVisibleEffect_ = true;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleEffect_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
-    Color color(255, 0, 0);
-    std::optional<Color> colorBlend = color;
-    property.SetColorBlend(colorBlend);
-    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-}
-
-/**
  * @tc.name: SetLinkedRootNodeId
  * @tc.desc: test SetLinkedRootNodeId
  * @tc.type: FUNC

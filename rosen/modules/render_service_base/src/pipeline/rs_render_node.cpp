@@ -3855,22 +3855,14 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     SetDirty();
 }
 
-// mark support node
-void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode)
-{
-    // supportFlag is obtained from the child node.
-    // make sure current node is the bottom of the node marked by arkui.
-    opincCache_.OpincSetSupportFlag(opincCache_.OpincGetSupportFlag() && supportFlag &&
-        nodeGroupType_ == RSRenderNode::NodeGroupType::NONE && !isOpincRootNode);
-}
-
 std::string RSRenderNode::QuickGetNodeDebugInfo()
 {
     std::string ret("");
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
-    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d",
+    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d filter:%d effect:%d",
         GetId(), IsSubTreeDirty(), opincCache_.GetNodeCacheState(), opincCache_.GetUnchangeCount(),
-        opincCache_.IsSuggestOpincNode(), OpincGetNodeSupportFlag(), opincCache_.OpincGetRootFlag());
+        opincCache_.IsSuggestOpincNode(), opincCache_.GetCurNodeTreeSupportFlag(), opincCache_.OpincGetRootFlag(),
+        ChildHasVisibleFilter(), ChildHasVisibleEffect());
 #endif
     return ret;
 }
@@ -3881,7 +3873,7 @@ void RSRenderNode::UpdateOpincParam()
         stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
         stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
-        stagingRenderParams_->OpincUpdateSupportFlag(OpincGetNodeSupportFlag());
+        stagingRenderParams_->OpincUpdateSupportFlag(opincCache_.GetCurNodeTreeSupportFlag());
     }
 }
 
