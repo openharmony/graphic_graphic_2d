@@ -484,6 +484,9 @@ private:
     static void SaveSkp(const ArgList& args);
     static void SaveOffscreenSkp(const ArgList& args);
     static void SaveComponentSkp(const ArgList& args);
+    static void SaveSkpImgCache(const ArgList& args);
+    static void SaveSkpOnCapture(const ArgList& args);
+    static void SaveSkpExtended(const ArgList& args);
     static void SaveRdc(const ArgList& args);
     static void DrawingCanvasRedrawEnable(const ArgList& args);
     static void RenderNodeKeepDrawCmd(const ArgList& args);

@@ -30,6 +30,10 @@
 #include "drawable/dfx/rs_refresh_rate_dfx.h"
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
+
 namespace OHOS::Rosen::DrawableV2 {
 
 namespace {
@@ -149,6 +153,13 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         UpdateSlrScale(screenInfo, screenParams);
         ScaleCanvasIfNeeded(screenInfo);
         PrepareOffscreenRender(*this, !screenInfo.isSamplingOn);
+#ifdef RS_PROFILER_ENABLED
+        if (auto canvas =
+                RSCaptureRecorder::GetInstance().TryInstantCapture(static_cast<float>(curCanvas_->GetWidth()),
+                    static_cast<float>(curCanvas_->GetHeight()), SkpCaptureType::EXTENDED)) {
+            curCanvas_->AddCanvas(canvas);
+        }
+#endif
         curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
 
@@ -164,6 +175,9 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (needOffScreen && canvasBackup_) {
         Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
         params->ApplyAlphaAndMatrixToCanvas(*curCanvas_);
+#ifdef RS_PROFILER_ENABLED
+        RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::EXTENDED);
+#endif
         FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE),
             screenInfo.isSamplingOn);
     }
@@ -729,6 +743,16 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     auto cacheImage = mirroredScreenDrawable ? mirroredScreenDrawable->GetCacheImgForCapture() : nullptr;
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false);
+#ifdef RS_PROFILER_ENABLED
+    if (auto canvas =
+            RSCaptureRecorder::GetInstance().TryInstantCapture(
+                static_cast<float>(virtualProcesser->GetCanvas()->GetWidth()),
+                static_cast<float>(virtualProcesser->GetCanvas()->GetHeight()), SkpCaptureType::IMG_CACHED)) {
+        if (virtualProcesser && virtualProcesser->GetCanvas()) {
+            virtualProcesser->GetCanvas()->AddCanvas(canvas);
+        }
+    }
+#endif
     virtualProcesser->CalculateTransform(GetOriginScreenRotation());
     RSDirtyRectsDfx rsDirtyRectsDfx(*curScreenDrawable);
     std::shared_ptr<RSSLRScaleFunction> slrManager = enableVisibleRect_ ? nullptr : virtualProcesser->GetSlrManager();
@@ -784,7 +808,9 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     }
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, *curCanvas_, *mirroredScreenParams);
     curCanvas_->Restore();
-
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::IMG_CACHED);
+#endif
     RSUniRenderThread::ResetCaptureParam();
     uniParam.SetOpDropped(isOpDropped);
     // Restore the initial state of the canvas to avoid state accumulation
@@ -877,6 +903,13 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     bool securitySkip = (isSecurity && !uniParam.GetSecExemption() && !virtualSecLayerOption) ||
         params.GetVirtualScreenMuteStatus();
     if (securitySkip) {
+#ifdef RS_PROFILER_ENABLED
+        if (auto canvas =
+                RSCaptureRecorder::GetInstance().TryInstantCapture(static_cast<float>(curCanvas_->GetWidth()),
+                    static_cast<float>(curCanvas_->GetHeight()), SkpCaptureType::ON_CAPTURE)) {
+            curCanvas_->AddCanvas(canvas);
+        }
+#endif
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         if (screenManager->GetScreenSecurityMask(params.GetScreenId())) {
@@ -884,6 +917,9 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
         } else {
             SetCanvasBlack(*virtualProcesser);
         }
+#ifdef RS_PROFILER_ENABLED
+        RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::ON_CAPTURE);
+#endif
         virtualDirtyNeedRefresh_ = true;
         curCanvas_->RestoreToCount(0);
         return;
@@ -908,7 +944,12 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     virtualProcesser->CanvasClipRegionForUniscaleMode(visibleClipRectMatrix_, mirroredScreenInfo);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredDrawable, false);
-
+#ifdef RS_PROFILER_ENABLED
+    if (auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(static_cast<float>(curCanvas_->GetWidth()),
+        static_cast<float>(curCanvas_->GetHeight()), SkpCaptureType::ON_CAPTURE)) {
+        curCanvas_->AddCanvas(canvas);
+    }
+#endif
     // set mirror screen capture param
     // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
     // surface in PrepareOffscreenRender() above. The offscreen surface has the same size as
@@ -921,6 +962,9 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     (mirroredDrawable->*drawFunc)(*curCanvas_);
     uniParam.SetOpDropped(isOpDropped);
     RSUniRenderThread::ResetCaptureParam();
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::ON_CAPTURE);
+#endif
     FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST),
         mirroredScreenInfo.isSamplingOn);
     // Restore the initial state of the canvas to avoid state accumulation
