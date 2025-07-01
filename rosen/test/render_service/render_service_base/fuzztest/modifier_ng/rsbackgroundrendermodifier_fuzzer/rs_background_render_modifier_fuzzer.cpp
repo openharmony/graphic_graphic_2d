@@ -22,7 +22,6 @@
 #include <cstdint>
 #include <securec.h>
 
-
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -116,8 +115,6 @@ bool RSBackgroundShaderRenderModifierFuzzTest(const uint8_t* data, size_t size)
 
     return true;
 }
-
-
 } // namespace Rosen
 } // namespace OHOS
 
@@ -130,4 +127,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSBackgroundShaderRenderModifierFuzzTest(data, size);
     return 0;
 }
-

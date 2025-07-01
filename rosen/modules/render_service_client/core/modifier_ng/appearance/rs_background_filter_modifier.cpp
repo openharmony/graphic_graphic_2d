@@ -162,12 +162,11 @@ void RSBackgroundFilterModifier::SetUIFilter(std::shared_ptr<RSUIFilter> backgro
     }
     auto iter = properties_.find(RSPropertyType::BACKGROUND_UI_FILTER);
     if (iter != properties_.end() && iter->second != nullptr) {
-        std::shared_ptr<RSUIFilter> oldUIFilter = nullptr;
+        // static_pointer_cast will not return nullptr
         auto oldProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(iter->second);
-        if (oldProperty) {
-            oldUIFilter = oldProperty->Get();
-        }
-        if (oldUIFilter && backgroundFilter->IsStructureSame(oldUIFilter)) {
+        auto oldUIFilter = oldProperty->Get();
+        bool isValid = oldUIFilter && backgroundFilter->IsStructureSame(oldUIFilter);
+        if (isValid) {
             oldUIFilter->SetValue(backgroundFilter);
             return;
         }

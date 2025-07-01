@@ -142,11 +142,6 @@ public:
     void Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier = {});
     void Detach();
 
-    void Attach(std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
-    {
-        modifier_ = modifier;
-    }
-
     // deprecated
     RSModifierType GetModifierType() const
     {

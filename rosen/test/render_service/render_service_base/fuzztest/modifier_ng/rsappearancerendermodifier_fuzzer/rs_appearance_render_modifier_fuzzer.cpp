@@ -210,7 +210,7 @@ bool RSDynamicLightUpRenderModifierFuzzTest(const uint8_t* data, size_t size)
     RSProperties properties;
     modifier->ResetProperties(properties);
     modifier->GetLegacyPropertyApplierMap();
-    
+
     return true;
 }
 
@@ -317,7 +317,7 @@ bool RSParticleEffectRenderModifierFuzzTest(const uint8_t* data, size_t size)
     RSProperties properties;
     modifier->ResetProperties(properties);
     modifier->GetLegacyPropertyApplierMap();
-    
+
     return true;
 }
 
@@ -424,7 +424,7 @@ bool RSVisibilityRenderModifierFuzzTest(const uint8_t* data, size_t size)
     RSProperties properties;
     modifier->ResetProperties(properties);
     modifier->GetLegacyPropertyApplierMap();
-    
+
     return true;
 }
 
@@ -454,4 +454,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSVisibilityRenderModifierFuzzTest(data, size);
     return 0;
 }
-

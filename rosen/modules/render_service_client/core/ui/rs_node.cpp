@@ -138,16 +138,7 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 };
 std::once_flag flag_;
 
-#if defined(MODIFIER_NG)
-bool IsPathAnimatableProperty(const ModifierNG::RSPropertyType& type)
-{
-    if (type == ModifierNG::RSPropertyType::BOUNDS || type == ModifierNG::RSPropertyType::FRAME ||
-        type == ModifierNG::RSPropertyType::TRANSLATE) {
-        return true;
-    }
-    return false;
-}
-#else
+#ifndef MODIFIER_NG
 bool IsPathAnimatableModifier(const RSModifierType& type)
 {
     if (type == RSModifierType::BOUNDS || type == RSModifierType::FRAME || type == RSModifierType::TRANSLATE) {
@@ -2743,9 +2734,7 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
 
 void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgroundFilter)
 {
-#if defined(MODIFIER_NG)
-    // Need modifierNG
-#else
+#ifndef MODIFIER_NG
     if (!backgroundFilter) {
         ROSEN_LOGW("RSNode::SetBackgroundNGFilter background RSUIFilter is nullptr");
         auto iter = propertyModifiers_.find(RSModifierType::BACKGROUND_NG_FILTER);
@@ -2762,9 +2751,7 @@ void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgr
 
 void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter)
 {
-#if defined(MODIFIER_NG)
-    // Need modifierNG
-#else
+#ifndef MODIFIER_NG
     if (!foregroundFilter) {
         ROSEN_LOGW("RSNode::SetForegroundNGFilter background RSUIFilter is nullptr");
         auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_NG_FILTER);
@@ -3839,7 +3826,7 @@ void RSNode::UpdateModifierMotionPathOption()
     SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
     SetMotionPathOptionToProperty(ModifierNG::RSModifierType::TRANSFORM, ModifierNG::RSPropertyType::TRANSLATE);
     for (const auto& [_, property] : properties_) {
-        if (IsPathAnimatableProperty(property->GetPropertyTypeNG())) {
+        if (property->IsPathAnimatable()) {
             property->SetMotionPathOption(motionPathOption_);
         }
     }
@@ -3935,19 +3922,17 @@ void RSNode::MarkAllExtendModifierDirty()
     extendModifierIsDirty_ = true;
 #if defined(MODIFIER_NG)
     for (auto& [id, modifier] : modifiersNG_) {
-        if (!modifier->IsCustom()) {
+        if (modifier->GetType() < ModifierNG::RSModifierType::TRANSITION_STYLE) {
             continue;
         }
-        modifier->SetDirty(true, modifierManager);
-    }
 #else
     for (auto& [id, modifier] : modifiers_) {
         if (modifier->GetModifierType() < RSModifierType::CUSTOM) {
             continue;
         }
+#endif
         modifier->SetDirty(true, modifierManager);
     }
-#endif
 }
 
 void RSNode::ResetExtendModifierDirty()
@@ -5147,44 +5132,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
         modifier->GetModifierTypeString().c_str());
 }
 #endif
-
-void RSNode::AttachProperty(std::shared_ptr<RSPropertyBase> property)
-{
-#if defined(MODIFIER_NG)
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    if (!property) {
-        return;
-    }
-    if (motionPathOption_ != nullptr && IsPathAnimatableProperty(property->GetPropertyTypeNG())) {
-        property->SetMotionPathOption(motionPathOption_);
-    }
-    property->Attach(*this);
-#endif
-}
-
-void RSNode::DettachProperty(PropertyId id)
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    properties_.erase(id);
-}
-
-void RSNode::AttachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
-{
-    if (modifier && !modifier->properties_.empty()) {
-        for (const auto &[_, property] : modifier->properties_) {
-            AttachProperty(property);
-        }
-    }
-}
-
-void RSNode::DetachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
-{
-    if (modifier && !modifier->properties_.empty()) {
-        for (const auto &[_, property] : modifier->properties_) {
-            DettachProperty(property->GetId());
-        }
-    }
-}
 
 void RSNode::DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
 {

@@ -2328,8 +2328,13 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
 
     nodeTest->UpdateDrawableVecV2();
 
+#if defined(MODIFIER_NG)
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+#else
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::BOUNDS), true);
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::ROTATION_X), true);
+#endif
     std::shared_ptr<DrawableTest> drawableTest1 = std::make_shared<DrawableTest>();
     nodeTest->drawableVec_.at(1) = drawableTest1;
     EXPECT_TRUE(nodeTest->dirtySlots_.empty());
@@ -2339,7 +2344,11 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     auto sum = nodeTest->dirtySlots_.size();
     EXPECT_NE(nodeTest->dirtySlots_.size(), 0);
 
+#if defined(MODIFIER_NG)
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+#else
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::PIVOT), true);
+#endif
     std::shared_ptr<DrawableTest> drawableTest2 = std::make_shared<DrawableTest>();
     nodeTest->drawableVec_.at(4) = drawableTest2;
     RSShadow rsShadow;

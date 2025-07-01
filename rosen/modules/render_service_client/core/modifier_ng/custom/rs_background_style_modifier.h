@@ -34,6 +34,12 @@ public:
     {
         return;
     };
+
+protected:
+    RSPropertyType GetInnerPropertyType() const override
+    {
+        return RSPropertyType::BACKGROUND_STYLE;
+    }
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_CUSTOM_RS_BACKGROUND_STYLE_MODIFIER_H

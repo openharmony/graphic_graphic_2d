@@ -14,6 +14,7 @@
  */
 
 #include "modifier_ng/appearance/rs_background_filter_render_modifier.h"
+
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen::ModifierNG {
@@ -87,10 +88,8 @@ void RSBackgroundFilterRenderModifier::AttachRenderFilterProperty(
     if (!node) {
         return;
     }
+    // static_pointer_cast will not return nullptr
     auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property);
-    if (!renderProperty) {
-        return;
-    }
     auto& renderFilter = renderProperty->GetRef();
     for (auto paramtype : renderFilter->GetUIFilterTypes()) {
         auto propGroup = renderFilter->GetRenderFilterPara(paramtype);
@@ -99,8 +98,7 @@ void RSBackgroundFilterRenderModifier::AttachRenderFilterProperty(
         }
         for (auto& prop : propGroup->GetLeafRenderProperties()) {
             if (prop) {
-                node->properties_.emplace(prop->GetId(), prop);
-                prop->Attach(shared_from_this());
+                prop->Attach(*node, shared_from_this());
             }
         }
     }
@@ -119,10 +117,8 @@ void RSBackgroundFilterRenderModifier::DetachRenderFilterProperty(
     if (!node) {
         return;
     }
+    // static_pointer_cast will not return nullptr
     auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property);
-    if (!renderProperty) {
-        return;
-    }
     auto& renderFilter = renderProperty->GetRef();
     for (auto paramtype : renderFilter->GetUIFilterTypes()) {
         auto propGroup = renderFilter->GetRenderFilterPara(paramtype);
@@ -136,5 +132,4 @@ void RSBackgroundFilterRenderModifier::DetachRenderFilterProperty(
         }
     }
 }
-
 } // namespace OHOS::Rosen::ModifierNG

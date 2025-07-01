@@ -1385,7 +1385,7 @@ public:
      */
     void SetShadowMask(bool shadowMask);
 
-        /**
+    /**
      * @brief Sets the strategy of the shadow mask.
      *
      * @param strategy Indicates the strategy of the shadow mask.
@@ -2015,10 +2015,6 @@ private:
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
-    void AttachProperty(std::shared_ptr<RSPropertyBase> property);
-    void DettachProperty(PropertyId id);
-    void AttachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
-    void DetachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
     void DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
 
     /**

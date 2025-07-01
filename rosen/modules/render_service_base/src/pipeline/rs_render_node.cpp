@@ -22,10 +22,9 @@
 #include <set>
 #include <utility>
 
-#include "rs_profiler.h"
+#include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
-#include "string_utils.h"
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
@@ -58,6 +57,8 @@
 #include "render/rs_render_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+#include "rs_profiler.h"
+#include "string_utils.h"
 
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -157,9 +158,9 @@ bool RSRenderNode::IsContentNode() const
         ((HasContentStyleModifierOnly() && !GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE).empty()) ||
         !HasDrawCmdModifiers());
 #else
-    return ((drawCmdModifiers_.size() == 1 &&
-        (drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE) != drawCmdModifiers_.end())) ||
-        drawCmdModifiers_.empty()) && !GetRenderProperties().isDrawn_;
+    return !GetRenderProperties().isDrawn_ &&
+        ((drawCmdModifiers_.size() == 1 && drawCmdModifiers_.count(RSModifierType::CONTENT_STYLE)) ||
+        drawCmdModifiers_.empty());
 #endif
 }
 
@@ -1153,11 +1154,24 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
 
 void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
 {
-    if (drawCmdModifiers_.empty() && modifiersNG_.empty()) {
+    std::string splitStr = ", ";
+    std::string modifierDesc = "";
+#if defined(MODIFIER_NG)
+    for (auto& slot : modifiersNG_) {
+        for (auto& modifier : slot) {
+            if (!modifier->IsCustom()) {
+                continue;
+            }
+            modifier->Dump(modifierDesc, splitStr);
+        }
+    }
+    if (modifierDesc.empty()) {
         return;
     }
-    std::string splitStr = ", ";
-    std::string modifierDesc = ", DrawCmdModifiers:[";
+#else
+    if (drawCmdModifiers_.empty()) {
+        return;
+    }
     for (auto& [type, modifiers] : drawCmdModifiers_) {
         auto modifierTypeString = std::make_shared<RSModifierTypeString>();
         std::string typeName = modifierTypeString->GetModifierTypeString(type);
@@ -1176,32 +1190,16 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         }
         modifierDesc += "]" + splitStr;
     }
-    for (auto& slot : modifiersNG_) {
-        for (auto& modifier : slot) {
-            if (!modifier->IsCustom()) {
-                continue;
-            }
-            modifier->Dump(modifierDesc, splitStr);
-        }
-    }
+#endif
+    modifierDesc = ", DrawCmdModifiers2:[" + modifierDesc;
     out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length()) + "]";
 }
 
 void RSRenderNode::DumpModifiers(std::string& out) const
 {
-    if (modifiers_.empty() && modifiersNG_.empty()) {
-        return;
-    }
     std::string splitStr = ", ";
-    out += ", OtherModifiers:[";
     std::string propertyDesc = "";
-    for (auto& [type, modifier] : modifiers_) {
-        auto pid = ExtractPid(modifier->GetPropertyId());
-        propertyDesc = propertyDesc + "pid:" + std::to_string(pid) + "->";
-        propertyDesc += modifier->GetModifierTypeString();
-        modifier->Dump(propertyDesc);
-        propertyDesc += splitStr;
-    }
+#if defined(MODIFIER_NG)
     for (auto& slot : modifiersNG_) {
         for (auto& modifier : slot) {
             if (modifier->IsCustom()) {
@@ -1210,7 +1208,22 @@ void RSRenderNode::DumpModifiers(std::string& out) const
             modifier->Dump(propertyDesc, splitStr);
         }
     }
-    out += propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]";
+    if (propertyDesc.empty()) {
+        return;
+    }
+#else
+    if (modifiers_.empty()) {
+        return;
+    }
+    for (auto& [type, modifier] : modifiers_) {
+        auto pid = ExtractPid(modifier->GetPropertyId());
+        propertyDesc = propertyDesc + "pid:" + std::to_string(pid) + "->";
+        propertyDesc += modifier->GetModifierTypeString();
+        modifier->Dump(propertyDesc);
+        propertyDesc += splitStr;
+    }
+#endif
+    out += ", OtherModifiers:[" + propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]";
 }
 
 void RSRenderNode::ResetIsOnlyBasicGeoTransform()

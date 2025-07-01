@@ -71,6 +71,31 @@ void RSForegroundFilterModifier::SetDistortionK(std::optional<float> distortionK
     SetterOptional<RSAnimatableProperty>(RSPropertyType::DISTORTION_K, distortionK);
 }
 
+std::optional<float> RSForegroundFilterModifier::GetDistortionK() const
+{
+    return GetterOptional<float>(RSPropertyType::DISTORTION_K);
+}
+
+void RSForegroundFilterModifier::SetAttractionFraction(float fraction)
+{
+    Setter(RSPropertyType::ATTRACTION_FRACTION, fraction);
+}
+
+float RSForegroundFilterModifier::GetAttractionFraction() const
+{
+    return Getter(RSPropertyType::ATTRACTION_FRACTION, 0.f);
+}
+
+void RSForegroundFilterModifier::SetAttractionDstPoint(const Vector2f& dstPoint)
+{
+    Setter(RSPropertyType::ATTRACTION_DSTPOINT, dstPoint);
+}
+
+Vector2f RSForegroundFilterModifier::GetAttractionDstPoint() const
+{
+    return Getter(RSPropertyType::ATTRACTION_DSTPOINT, Vector2f(0.f, 0.f));
+}
+
 void RSForegroundFilterModifier::SetUIFilter(std::shared_ptr<RSUIFilter> foregroundFilter)
 {
     if (!foregroundFilter) {
@@ -78,12 +103,11 @@ void RSForegroundFilterModifier::SetUIFilter(std::shared_ptr<RSUIFilter> foregro
     }
     auto iter = properties_.find(RSPropertyType::FOREGROUND_UI_FILTER);
     if (iter != properties_.end() && iter->second != nullptr) {
-        std::shared_ptr<RSUIFilter> oldUIFilter = nullptr;
+        // static_pointer_cast will not return nullptr
         auto oldProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(iter->second);
-        if (oldProperty) {
-            oldUIFilter = oldProperty->Get();
-        }
-        if (oldUIFilter && foregroundFilter->IsStructureSame(oldUIFilter)) {
+        auto oldUIFilter = oldProperty->Get();
+        bool isValid = oldUIFilter && foregroundFilter->IsStructureSame(oldUIFilter);
+        if (isValid) {
             oldUIFilter->SetValue(foregroundFilter);
             return;
         }
@@ -115,30 +139,5 @@ void RSForegroundFilterModifier::AttachUIFilterProperty(std::shared_ptr<RSUIFilt
         }
     }
     AttachProperty(RSPropertyType::FOREGROUND_UI_FILTER, property);
-}
-
-std::optional<float> RSForegroundFilterModifier::GetDistortionK() const
-{
-    return GetterOptional<float>(RSPropertyType::DISTORTION_K);
-}
-
-void RSForegroundFilterModifier::SetAttractionFraction(float fraction)
-{
-    Setter(RSPropertyType::ATTRACTION_FRACTION, fraction);
-}
-
-float RSForegroundFilterModifier::GetAttractionFraction() const
-{
-    return Getter(RSPropertyType::ATTRACTION_FRACTION, 0.f);
-}
-
-void RSForegroundFilterModifier::SetAttractionDstPoint(const Vector2f& dstPoint)
-{
-    Setter(RSPropertyType::ATTRACTION_DSTPOINT, dstPoint);
-}
-
-Vector2f RSForegroundFilterModifier::GetAttractionDstPoint() const
-{
-    return Getter(RSPropertyType::ATTRACTION_DSTPOINT, Vector2f(0.f, 0.f));
 }
 } // namespace OHOS::Rosen::ModifierNG

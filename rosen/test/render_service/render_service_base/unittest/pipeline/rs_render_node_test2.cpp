@@ -1124,14 +1124,21 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
     std::string outTest6 = "";
     nodeTest->DumpDrawCmdModifiers(outTest6);
-    EXPECT_EQ(outTest6, ", DrawCmdModifier2]");
+    EXPECT_EQ(outTest6, "");
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
         std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     EXPECT_NE(propertyTest, nullptr);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)].emplace_back(modifier);
+#else
     std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
         std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
     EXPECT_NE(drawCmdModifiersTest, nullptr);
     nodeTest->drawCmdModifiers_[RSModifierType::CHILDREN].emplace_back(drawCmdModifiersTest);
+#endif
     nodeTest->DumpDrawCmdModifiers(outTest6);
     EXPECT_NE(outTest6, "");
 }

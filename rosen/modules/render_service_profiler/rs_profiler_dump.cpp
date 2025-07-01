@@ -85,7 +85,7 @@ void RSProfiler::DumpOffscreen(RSContext& context, JsonWriter& rootOffscreen, bo
             DumpNode(*node, children, useMockPid, pid > 0, false);
         }
     });
-    
+
     children.PopArray();
     rootOffscreen.PopObject();
 }
@@ -315,11 +315,13 @@ void RSProfiler::DumpNodeDrawCmdModifier(
     } else if (modifier->GetType() == ModifierNG::RSModifierType::CLIP_TO_FRAME) {
         if (modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
             auto property = modifier->GetProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME);
-            std::string str;
-            property->Dump(str);
-            out.PushObject();
-            out["CUSTOM_CLIP_TO_FRAME"] = str;
-            out.PopObject();
+            if (property != nullptr) {
+                std::string str;
+                property->Dump(str);
+                out.PushObject();
+                out["CUSTOM_CLIP_TO_FRAME"] = str;
+                out.PopObject();
+            }
         }
     } else if (modifier->GetType() == ModifierNG::RSModifierType::HDR_BRIGHTNESS) {
         if (modifier->HasProperty(ModifierNG::RSPropertyType::HDR_BRIGHTNESS)) {
