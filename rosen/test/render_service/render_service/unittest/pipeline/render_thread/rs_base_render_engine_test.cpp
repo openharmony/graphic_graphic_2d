@@ -14,16 +14,18 @@
  */
 
 #include "gtest/gtest.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
-#include "pipeline/render_thread/rs_render_engine.h"
-#include "v2_1/cm_color_space.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
-#include "recording/recording_canvas.h"
+
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #else
 #include "feature/gpuComposition/rs_egl_image_manager.h"
 #endif
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/rs_test_util.h"
+#include "recording/recording_canvas.h"
+#include "v2_1/cm_color_space.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -467,6 +469,32 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer003, TestSize.Level1)
             EXPECT_EQ(image->GetAlphaType(), Drawing::AlphaType::ALPHATYPE_PREMUL);
         }
     }
+#endif
+}
+
+HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor001, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto shaderEffect = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_WHITE);
+    BufferDrawParam params;
+    params.buffer = CreateBuffer();
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+
+    params.isHdrRedraw = true;
+    renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter);
+    ASSERT_EQ(params.disableHdrFloatHeadRoom, true);
+
+    params.isHdrRedraw = false;
+    params.isTmoNitsFixed = true;
+    renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter);
+    ASSERT_TRUE(ROSEN_EQ(parameter.sdrNits, 500.0f)); // 500: DEFAULT_DISPLAY_NIT
+    ASSERT_TRUE(ROSEN_EQ(parameter.tmoNits, 500.0f)); // 500: DEFAULT_DISPLAY_NIT
+
+    params.isHdrRedraw = false;
+    params.isTmoNitsFixed = false;
+    ASSERT_NE(params.paint.shaderEffect_, nullptr);
 #endif
 }
 #endif
