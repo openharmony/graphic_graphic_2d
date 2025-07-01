@@ -1802,7 +1802,7 @@ HWTEST_F(RSSurfaceNodeTest, SetRegionToBeMagnified, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    Vector4<int> regionToBeMagnified = {0, 0, 200, 200};
     surfaceNode->SetRegionToBeMagnified(regionToBeMagnified);
     ASSERT_NE(surfaceNode, nullptr);
 }

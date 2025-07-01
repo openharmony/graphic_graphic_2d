@@ -737,7 +737,7 @@ public:
         dstRectWithoutRenderFit_ = Drawing::Rect(rect.left_, rect.top_, rect.GetRight(), rect.GetBottom());
     }
 
-    void SetRegionToBeMagnified(Vector4f regionToBeMagnified)
+    void SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified)
     {
         regionToBeMagnified_ = regionToBeMagnified;
     }
@@ -1834,7 +1834,7 @@ private:
     RectI srcRect_;
     RectI originalDstRect_;
     RectI originalSrcRect_;
-    Vector4f regionToBeMagnified_;
+    Vector4<int> regionToBeMagnified_;
     Drawing::Rect dstRectWithoutRenderFit_;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     Vector4f overDrawBufferNodeCornerRadius_;

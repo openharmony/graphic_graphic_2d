@@ -989,13 +989,11 @@ void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
         GetId(), screenId);
 }
 
-void RSSurfaceNode::SetRegionToBeMagnified(const Vector4f& regionToBeMagnified)
+void RSSurfaceNode::SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified)
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetRegionToBeMagnified>(GetId(), regionToBeMagnified);
     AddCommand(command, true);
-    RS_LOGI_LIMIT("RSSurfaceNode::SetRegionToBeMagnified, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
-        regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
 }
 
 bool RSSurfaceNode::IsSelfDrawingNode() const
