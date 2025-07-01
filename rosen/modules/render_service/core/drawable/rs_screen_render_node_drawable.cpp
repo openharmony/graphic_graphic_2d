@@ -1432,4 +1432,4 @@ void RSScreenRenderNodeDrawable::CheckAndPostAsyncProcessOfflineTask()
     }
 }
 
-} //namespace OHOS::Rosen::DrawableV2
+} // namespace OHOS::Rosen::DrawableV2
