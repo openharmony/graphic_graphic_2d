@@ -78,6 +78,12 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRootRenderNode.UpdateSuggestedBufferSize(width, height);
     rsRootRenderNode.SetEnableRender(true);
     rsRootRenderNode.GetEnableRender();
+
+    rsRootRenderNode.InitRenderParams();
+    rsRootRenderNode.UpdateRenderParams();
+    bool enable = GetData<bool>();
+    rsRootRenderNode.EnableWindowKeyFrame(enable);
+    rsRootRenderNode.IsWindowKeyFrameEnabled();
     return true;
 }
 } // namespace Rosen

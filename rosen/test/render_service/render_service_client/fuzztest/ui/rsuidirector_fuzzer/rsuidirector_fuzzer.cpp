@@ -120,6 +120,7 @@ void DoGoForeground(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     bool isTextureExport = GetData<bool>();
     director->GoForeground(isTextureExport);
+    director->StartTextureExport();
 }
 
 void DoInit(const uint8_t* data, size_t size)
@@ -184,6 +185,9 @@ void DoSetRoot(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     NodeId root = GetData<NodeId>();
     director->SetRoot(root);
+
+    auto rootNode = std::make_shared<RSRootNode>(root);
+    director->SetRSRootNode(rootNode);
 }
 
 void DoSetUITaskRunner(const uint8_t* data, size_t size)
@@ -293,6 +297,9 @@ void DoRecvMessages002(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
+    NodeId id = GetData<NodeId>();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
+    cmds->AddCommand(command, id, FollowType::FOLLOW_TO_SELF);
     director->RecvMessages(cmds);
 }
 

@@ -422,6 +422,7 @@ bool RSRenderNodeGcFuzzerTest(const uint8_t* data, size_t size)
     OHOS::Rosen::RSRenderNodeGC::Instance().IsBucketQueueEmpty();
     OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeBucket();
     OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseDrawableBucket();
     OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseOffTreeNodeBucket();
     OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseFromTree();
 
@@ -543,6 +544,14 @@ bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
     surfaceHandler->ConsumeAndUpdateBuffer(buffer);
     surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
 
+    Rect damage = { 0, 0, 0, 0 };
+    int64_t timestamp = GetData<int64_t>();
+    sptr<SurfaceBuffer> surfaceBuffer;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    buffer.buffer = surfaceBuffer;
+    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp);
+    surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
+    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp);
     return true;
 }
 

@@ -15,6 +15,7 @@
 
 #include "rssurfacefps_fuzzer.h"
 #include "gfx/fps_info/rs_surface_fps.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -102,6 +103,27 @@ bool RSSurfaceFpsFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool RSFirstFrameNotifierTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    pid_t pid = GetData<pid_t>();
+    const sptr<RSIFirstFrameCommitCallback> callback;
+    RSFirstFrameNotifier::GetInstance().RegisterFirstFrameCommitCallback(pid, callback);
+
+    ScreenId screenId = GetData<ScreenId>();
+    RSFirstFrameNotifier::GetInstance().OnFirstFrameCommitCallback(screenId);
+    RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(screenId);
+    RSFirstFrameNotifier::GetInstance().AddFirstFrameCommitScreen(screenId);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -110,5 +132,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::RSSurfaceFpsFuzzTest(data, size);
+    OHOS::Rosen::RSFirstFrameNotifierTest(data, size);
     return 0;
 }
