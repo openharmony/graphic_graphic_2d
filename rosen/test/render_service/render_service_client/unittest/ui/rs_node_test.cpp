@@ -7737,6 +7737,15 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
+    std::string out3;
+    rsNode->DumpModifiers(out3);
+    rsNode->modifiersNG_[1] = nullptr;
+    std::string out5;
+    rsNode->DumpModifiers(out5);
+    rsNode->SetAlpha(0.5);
+    std::string out6;
+    rsNode->Dump(out6);
+    ASSERT_TRUE(!out6.empty());
 }
 
 /**

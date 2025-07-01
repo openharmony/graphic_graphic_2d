@@ -4864,7 +4864,11 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasSandBox(hasSandbox);
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
 #ifdef RS_ENABLE_PREFETCH
+#if defined(MODIFIER_NG)
+    __builtin_prefetch(&boundsModifierNG_, 0, 1);
+#else
     __builtin_prefetch(&boundsModifier_, 0, 1);
+#endif
 #endif
     stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
