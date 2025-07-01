@@ -14,6 +14,7 @@
  */
 
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/hetero_hdr/rs_hetero_hdr_util.h"

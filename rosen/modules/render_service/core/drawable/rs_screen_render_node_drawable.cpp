@@ -823,7 +823,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     SetScreenNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
 
-    if(filterCacheOcclusionUpdated_) {
+    if (filterCacheOcclusionUpdated_) {
         filterCacheOcclusionUpdated_ = false;
     } else {
         CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
