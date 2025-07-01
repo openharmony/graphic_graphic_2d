@@ -470,6 +470,18 @@ public:
      * @return True if support opaque optimization, otherwise return false.
      */
     bool GetSupportOpaqueOpt() const;
+
+    /**
+     * @brief         Set headroom for texture in image.
+     * @param headroom  headroom value
+     */
+    void SetHeadroom(float headroom);
+
+    /**
+     * @brief         Get headroom for texture in Surface.
+     * @return        headroom value
+     */
+    float GetHeadroom() const;
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };

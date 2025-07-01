@@ -129,6 +129,9 @@ public:
     void SetSupportOpaqueOpt(bool supportOpaqueOpt) override;
 
     bool GetSupportOpaqueOpt() const override;
+
+    void SetHeadroom(float headroom) override;
+    float GetHeadroom() const override;
 private:
 #ifdef RS_ENABLE_GPU
     sk_sp<GrDirectContext> grContext_ = nullptr;

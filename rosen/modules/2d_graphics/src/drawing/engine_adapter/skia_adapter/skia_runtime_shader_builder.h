@@ -43,7 +43,7 @@ public:
 
     std::shared_ptr<ShaderEffect> MakeShader(const Matrix* localMatrix, bool isOpaque) override;
     std::shared_ptr<Image> MakeImage(GPUContext* grContext, const Matrix* localMatrix,
-        ImageInfo resultInfo, bool mipmapped) override;
+        ImageInfo resultInfo, bool mipmapped, float headroom) override;
 
     void SetChild(const std::string& name, std::shared_ptr<ShaderEffect> shader) override;
     void SetUniform(const std::string& name, float val) override;

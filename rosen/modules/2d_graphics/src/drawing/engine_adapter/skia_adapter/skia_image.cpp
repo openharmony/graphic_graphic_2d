@@ -800,6 +800,17 @@ bool SkiaImage::GetSupportOpaqueOpt() const
 #endif
     return false;
 }
+
+void SkiaImage::SetHeadroom(float headroom)
+{
+    LOGD("SkiaImage does not support SetHeadroom!");
+}
+
+float SkiaImage::GetHeadroom() const
+{
+    LOGD("SkiaImage does not support GetHeadroom!");
+    return 1.0f;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

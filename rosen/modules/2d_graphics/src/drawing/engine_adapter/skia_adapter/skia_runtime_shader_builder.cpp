@@ -59,7 +59,7 @@ std::shared_ptr<ShaderEffect> SkiaRuntimeShaderBuilder::MakeShader(const Matrix*
 }
 
 std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext, const Matrix* localMatrix,
-    ImageInfo resultInfo, bool mipmapped)
+    ImageInfo resultInfo, bool mipmapped, float headroom)
 {
     if (!skRuntimeShaderBuilder_ || !grContext) {
         return nullptr;
