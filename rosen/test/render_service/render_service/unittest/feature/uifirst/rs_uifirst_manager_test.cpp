@@ -1757,7 +1757,7 @@ HWTEST_F(RSUifirstManagerTest, HandlePurgeBehindWindow001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, IsBehindWindowOcclusion001, TestSize.Level1)
 {
     auto emptyRegion = Occlusion::Region();
-    auto visibleRegion = Occlusion:Region({50, 50, 100, 100});
+    auto visibleRegion = Occlusion::Region({50, 50, 100, 100});
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     auto childSubSurfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
