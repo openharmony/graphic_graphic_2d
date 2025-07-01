@@ -639,7 +639,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // warning : don't delete this trace or change trace level to optional !!!
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:[%f], "
         "preSub:[%d], currentFrameDirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d), "
-        "visibleRengion: [%s], opaqueRegion: [%s], transparentRegion: [%s]",
+        "visibleRegion: [%s], opaqueRegion: [%s], transparentRegion: [%s]",
         name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
         GetId(), surfaceParams->GetGlobalAlpha(), surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,

@@ -97,9 +97,35 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetCurrentFrameVisibleDirty001, TestSize.Lev
     // default surface
     surfaceAdapters.emplace_back(surfaceAdapter);
     
+    auto createDrawableWithDirtyManager = [](NodeId id, bool isApp, bool emptyDstRect) -> RSRenderNodeDrawable::Ptr {
+        std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(id);
+        auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+        auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
+        if (surfaceDrawable == nullptr) {
+            return nullptr;
+        }
+        surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+        surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+        if (surfaceDrawable->syncDirtyManager_ == nullptr || surfaceDrawable->renderParams_ == nullptr) {
+            return nullptr;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+        surfaceParams->isLeashorMainWindow_ = isApp;
+        surfaceParams->dstRect_ = emptyDstRect ? RectI() : DEFAULT_RECT1;
+        return surfaceDrawable;
+    };
+
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, true));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, false));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, false, true));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, false, false));
+
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
     ScreenInfo screenInfo;
     auto rects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*displayDrawable, screenInfo, *params);
+    EXPECT_EQ(rects.empty(), true);
+    displayDrawable->syncDirtyManager_ = nullptr;
+    rects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*displayDrawable, screenInfo, *params);
     EXPECT_EQ(rects.empty(), true);
     displayDrawable = nullptr;
 }

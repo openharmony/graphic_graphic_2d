@@ -76,7 +76,7 @@ private:
         const std::optional<Drawing::Matrix>& matrix);
     // basic check point
     static bool CheckMergeFilterDirty(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
-        FilterDirtyRegionInfoList& filterList, const std::optional<Drawing::Matrix>& matrix,
+        RSFilterDirtyCollector& collector, const std::optional<Drawing::Matrix>& matrix,
         const std::optional<Occlusion::Region>& visibleRegion);
 
     static void ResetFilterInfoStatus(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
