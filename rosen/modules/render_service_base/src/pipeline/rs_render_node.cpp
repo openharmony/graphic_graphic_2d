@@ -3767,45 +3767,6 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
         !context || !context->GetNodeMap().IsResidentProcessNode(GetId())) {
         return;
     }
-    bool isGroupAnimationType = false;
-    bool isCacheableAnimationType = false;
-    if (!GroupableAnimationType(id, isGroupAnimationType, isCacheableAnimationType)) {
-        return;
-    }
-    if (isAnimAdd) {
-        if (isGroupAnimationType) {
-            MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, true, false);
-        } else if (isCacheableAnimationType) {
-            hasCacheableAnim_ = true;
-        }
-        return;
-    }
-    bool hasGroupableAnim = false;
-    hasCacheableAnim_ = false;
-    for (auto& [_, animation] : animationManager_.animations_) {
-        if (!animation || id == animation->GetPropertyId()) {
-            continue;
-        }
-        if (!GroupableAnimationType(animation->GetPropertyId(), isGroupAnimationType, isCacheableAnimationType)) {
-            continue;
-        }
-        hasGroupableAnim = (hasGroupableAnim || isGroupAnimationType);
-        hasCacheableAnim_ = (hasCacheableAnim_ || isCacheableAnimationType);
-    }
-    MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim, false);
-}
-
-#else
-void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
-{
-    if (id <= 0 || GetType() != RSRenderNodeType::CANVAS_NODE) {
-        return;
-    }
-    auto context = GetContext().lock();
-    if (!RSSystemProperties::GetAnimationCacheEnabled() ||
-        !context || !context->GetNodeMap().IsResidentProcessNode(GetId())) {
-        return;
-    }
     auto target = modifiers_.find(id);
     if (target == modifiers_.end() || !target->second) {
         return;
@@ -3833,7 +3794,6 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
     }
     MarkNodeGroup(NodeGroupType::GROUPED_BY_ANIM, hasGroupableAnim, false);
 }
-#endif
 
 bool RSRenderNode::IsForcedDrawInGroup() const
 {

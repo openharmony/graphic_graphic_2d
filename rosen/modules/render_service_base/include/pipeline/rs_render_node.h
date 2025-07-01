@@ -1000,10 +1000,6 @@ protected:
     void DrawPropertyDrawable(RSDrawableSlot slot, RSPaintFilterCanvas& canvas);
     void DrawPropertyDrawableRange(RSDrawableSlot begin, RSDrawableSlot end, RSPaintFilterCanvas& canvas);
 
-#if defined(MODIFIER_NG)
-    bool GroupableAnimationType(const PropertyId& id, bool& isGroupAnimationType, bool& isCacheableAnimationType);
-#endif
-
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
