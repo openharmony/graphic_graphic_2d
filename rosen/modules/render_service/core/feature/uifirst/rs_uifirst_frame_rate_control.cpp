@@ -79,13 +79,14 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
     }
 }
 
-bool RSUifirstFrameRateControl::JudgeMultiSubSurface(RSSurfaceRenderNode& node)
+bool RSUifirstFrameRateControl::JudgeMultiSubSurface(const RSSurfaceRenderNode& node)
 {
     return node.GetChildren()->size() > 1;
 }
 
 bool RSUifirstFrameRateControl::GetUifirstFrameDropInternal(int frameInterval)
 {
+    std::lock_guard<std::mutex> lock(incrementCallCount_);
     callCount_++;
     if(callCount_ % (frameInterval + 1) == 0) {
         callCount_ = 0;
@@ -94,7 +95,7 @@ bool RSUifirstFrameRateControl::GetUifirstFrameDropInternal(int frameInterval)
     return true;
 }
 
-bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(RSSurfaceRenderNode& node)
+bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(const RSSurfaceRenderNode& node)
 {
     bool inAnimation = JudgeStartAnimation() || JudgeStopAnimation() || JudgeMultTaskAnimation();
     bool hasMultipleSubSurfaces = JudgeMultiSubSurface(node);
@@ -103,7 +104,7 @@ bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(RSSurfaceRenderNode& 
     return inAnimation && (forceRefreshOnce_ || (!hasMultipleSubSurfaces && canDropFrame));
 }
 
-bool RSUifirstFrameRateControl::NeedRSUifirstControlFrameDrop(RSSurfaceRenderNode& node)
+bool RSUifirstFrameRateControl::NeedRSUifirstControlFrameDrop(const RSSurfaceRenderNode& node)
 {
     return SubThreadFrameDropDecision(node);
 }

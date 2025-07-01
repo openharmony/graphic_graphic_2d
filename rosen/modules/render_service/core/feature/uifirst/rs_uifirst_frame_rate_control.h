@@ -19,6 +19,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "transaction/rs_render_service_client.h"
+#include <mutex>
 
 namespace OHOS::Rosen {
 class RSUifirstFrameRateControl {
@@ -69,9 +70,9 @@ public:
 
     void SetAnimationStartInfo(const DataBaseRs& eventInfo);
     void SetAnimationEndInfo(const DataBaseRs& eventInfo);
-    bool JudgeMultiSubSurface(RSSurfaceRenderNode& node);
-    bool SubThreadFrameDropDecision(RSSurfaceRenderNode& node);
-    bool NeedRSUifirstControlFrameDrop(RSSurfaceRenderNode& node);
+    bool JudgeMultiSubSurface(const RSSurfaceRenderNode& node);
+    bool SubThreadFrameDropDecision(const RSSurfaceRenderNode& node);
+    bool NeedRSUifirstControlFrameDrop(const RSSurfaceRenderNode& node);
     bool GetUifirstFrameDropInternal(int);
     bool JudgeStartAnimation() const
     {
@@ -102,8 +103,10 @@ public:
     {
         multTaskAnimationStatus_ = status;
     }
+
 private:
     RSUifirstFrameRateControl() {}
+    std::mutex incrementCallCount_;
     int callCount_ = 0;
     bool startAnimationStatus_ = false;
     bool stopAnimationStatus_ = false;

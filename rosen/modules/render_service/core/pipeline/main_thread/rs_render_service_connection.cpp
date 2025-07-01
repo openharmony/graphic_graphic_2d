@@ -3406,7 +3406,7 @@ int32_t RSRenderServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemI
         RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB fail to find pid!");
         return ERR_INVALID_VALUE;
     }
-    gpuMemInMB = memorySnapshotInfo.gpuMemory / MEM_BYTE_TO_MB;
+    gpuMemInMB = static_cast<float>(memorySnapshotInfo.gpuMemory) / MEM_BYTE_TO_MB;
     RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB called succ");
     return ERR_OK;
 }
