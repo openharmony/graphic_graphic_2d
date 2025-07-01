@@ -2032,7 +2032,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     if (!RSUniHwcPrevalidateUtil::GetInstance().IsPrevalidateEnable()) {
         RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniRenderVisitor::PrevalidateHwcNode prevalidate close");
         hwcVisitor_->PrintHiperfCounterLog("counter2", static_cast<uint64_t>(0));
-        RSHpaeOfflineProcessor::GetOfflineProcessor()->CheckAndPostClearOfflineResourceTask();
+        RSHpaeOfflineProcessor.GetOfflineProcessor()->CheckAndPostClearOfflineResourceTask();
         return;
     }
     auto& curMainAndLeashSurfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
@@ -2046,7 +2046,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     if (prevalidLayers.size() == 0) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniRenderVisitor::PrevalidateHwcNode no hardware layer");
         hwcVisitor_->PrintHiperfCounterLog("counter2", INPUT_HWC_LAYERS);
-        RSHpaeOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
+        RSHpaeOfflineProcessor.GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
         return;
     }
     // add display layer
@@ -2080,7 +2080,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
         auto iter = std::find_if(strategy.begin(), strategy.end(),
             [](const auto& elem) { return elem.second == RequestCompositionType::OFFLINE_DEVICE; });
         if (iter == strategy.end()) {
-            RSHpaeOfflineProcessor::GetOfflineProcessor()->CheckAndPostClearOfflineResourceTask();
+            RSHpaeOfflineProcessor.GetOfflineProcessor()->CheckAndPostClearOfflineResourceTask();
         }
     }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -2099,8 +2099,8 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             continue;
         }
         if (it.second == RequestCompositionType::OFFLINE_DEVICE &&
-            RSHpaeOfflineProcessor::GetOfflineProcessor()->IsRSHpaeOfflineProcessorReady()) {
-            node->SetOfflineDeviceEnable(true);
+            RSHpaeOfflineProcessor.GetOfflineProcessor()->IsRSHpaeOfflineProcessorReady()) {
+            node->SetDeviceOfflineEnable(true);
             continue;
         }
         if (node->IsInFixedRotation() || node->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
