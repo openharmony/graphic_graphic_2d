@@ -355,7 +355,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, EnergyConsumptionAssureanceTest, TestSi
         .description = "DRAG_SCENE" };
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
     ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
-    EventInfo eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = true,
+    eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = true,
         .description = "TEST" };
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
     ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
