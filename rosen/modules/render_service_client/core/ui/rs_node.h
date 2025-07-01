@@ -1800,7 +1800,7 @@ protected:
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
 #if defined(MODIFIER_NG)
-    void DumpModifierNGs(std::string& out) const;
+    void DumpModifiersNG(std::string& out) const;
 #endif
 
     bool isRenderServiceNode_;
