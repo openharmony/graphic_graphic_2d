@@ -118,7 +118,7 @@ ohos_shared_library("librender_service") {
     "core/feature/hetero_hdr/rs_hetero_hdr_util.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_layer.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_processor.cpp",
-    "core/feature/hwc/hpae_offline/rs_hpae_offline_process_sycner.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_thread_manager.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "core/feature/hpae/rs_hpae_buffer.cpp",
