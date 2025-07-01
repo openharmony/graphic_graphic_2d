@@ -27,7 +27,7 @@
 #include "surface_type.h"
 
 #include "common/rs_optional_trace.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
