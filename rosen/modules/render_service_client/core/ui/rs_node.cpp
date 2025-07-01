@@ -4815,7 +4815,6 @@ void RSNode::DumpModifiers(std::string& out) const
         if (modifier == nullptr) {
             continue;
         }
-
         auto renderModifier = modifier->CreateRenderModifier();
         if (renderModifier == nullptr) {
             continue;

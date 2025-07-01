@@ -7737,7 +7737,6 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
-#if defined(MODIFIER_NG)
     std::string out3;
     rsNode->DumpModifiers(out3);
     rsNode->modifiersNG_[1] = nullptr;
@@ -7747,7 +7746,6 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     std::string out6;
     rsNode->Dump(out6);
     ASSERT_TRUE(!out6.empty());
-#endif
 }
 
 /**
