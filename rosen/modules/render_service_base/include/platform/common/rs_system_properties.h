@@ -348,6 +348,7 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
+    static bool GetOptimizeCanvasDrawRegionEnabled();
     static bool GetHpaeBlurUsingAAE();
 
     static bool GetWindowKeyFrameEnabled();

@@ -626,6 +626,11 @@ public:
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
 
+    void SetCmdlistDrawRegion(RectF cmdlistDrawRegion);
+    RectF GetCmdlistDrawRegion();
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
+    bool GetNeedUseCmdlistDrawRegion();
+
 private:
     inline float DecreasePrecision(float value)
     {
@@ -716,6 +721,7 @@ private:
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
     bool localMagnificationCap_ = false;
+    bool needUseCmdlistDrawRegion_ = false;
     float hdrBrightnessFactor_ = 1.0f; // for displayNode
     float canvasNodeHDRBrightnessFactor_ = 1.0f; // for canvasNode
     float frameOffsetX_ = 0.f;
@@ -772,6 +778,7 @@ private:
     Vector2f attractDstPoint_ = {0.f, 0.f};
     RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
     RRect rrect_ = RRect{};
+    RectF cmdlistDrawRegion_ = { 0.f, 0.f, 0.f, 0.f };
     RSObjGeometry frameGeo_;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;

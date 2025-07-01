@@ -157,6 +157,15 @@ void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nod
     context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(nodeId, true);
 }
 
+void RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(RSContext& context, NodeId nodeId, bool needUseCmdlistDrawRegion)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node != nullptr) {
+        node->SetNeedUseCmdlistDrawRegion(needUseCmdlistDrawRegion);
+    }
+}
+
 void RSNodeCommandHelper::SetEnableHDREffect(RSContext& context, NodeId nodeId, bool enableHDREffect)
 {
     auto& nodeMap = context.GetNodeMap();

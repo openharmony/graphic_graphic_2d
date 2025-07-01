@@ -3598,5 +3598,39 @@ HWTEST_F(RSPropertiesTest, SetAndGetProperties001, TestSize.Level1)
     properties.SetPersp(Vector4f(2.0f, 2.0f, 2.0f, 2.0f));
     EXPECT_EQ(properties.GetPersp(), Vector4f(2.0f, 2.0f, 2.0f, 2.0f));
 }
+
+/**
+ * @tc.name: GetCmdlistDrawRegion
+ * @tc.desc: test results of GetCmdlistDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSPropertiesTest, GetCmdlistDrawRegion, TestSize.Level1)
+{
+    RSProperties properties;
+    RectF cmdlistDrawRegion1 { 0.f, 0.f, 0.f, 0.f };
+    RectF cmdlistDrawRegion2 { 1.0f, 1.0f, 1.0f, 1.0f };
+    properties.SetCmdlistDrawRegion(cmdlistDrawRegion1);
+    EXPECT_EQ(properties.GetCmdlistDrawRegion().IsEmpty(), true);
+    properties.SetCmdlistDrawRegion(cmdlistDrawRegion2);
+    EXPECT_EQ(properties.GetCmdlistDrawRegion().IsEmpty(), false);
+}
+
+/**
+ * @tc.name: GetNeedUseCmdlistDrawRegion
+ * @tc.desc: test results of GetNeedUseCmdlistDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSPropertiesTest, GetNeedUseCmdlistDrawRegion, TestSize.Level1)
+{
+    RSProperties properties;
+    bool needUseCmdlistDrawRegion1 = false;
+    bool needUseCmdlistDrawRegion2 = true;
+    properties.SetNeedUseCmdlistDrawRegion(needUseCmdlistDrawRegion1);
+    EXPECT_EQ(properties.GetNeedUseCmdlistDrawRegion(), false);
+    properties.SetNeedUseCmdlistDrawRegion(needUseCmdlistDrawRegion2);
+    EXPECT_EQ(properties.GetNeedUseCmdlistDrawRegion(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

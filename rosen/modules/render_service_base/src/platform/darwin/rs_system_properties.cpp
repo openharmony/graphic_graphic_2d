@@ -618,6 +618,11 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;

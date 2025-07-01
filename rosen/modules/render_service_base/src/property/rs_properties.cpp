@@ -5351,5 +5351,27 @@ void RSProperties::ResetBorder(bool isOutline)
     SetDirty();
     contentDirty_ = true;
 }
+
+void RSProperties::SetCmdlistDrawRegion(RectF cmdlistDrawRegion)
+{
+    cmdlistDrawRegion_ = cmdlistDrawRegion_.JoinRect(cmdlistDrawRegion);
+    SetDirty();
+    geoDirty_ = true; // Use cmdlist drawRegion when the canvas node needs to use cmdlist drawRegion
+}
+
+RectF RSProperties::GetCmdlistDrawRegion()
+{
+    return cmdlistDrawRegion_;
+}
+
+void RSProperties::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
+{
+    needUseCmdlistDrawRegion_ = needUseCmdlistDrawRegion;
+}
+
+bool RSProperties::GetNeedUseCmdlistDrawRegion()
+{
+    return needUseCmdlistDrawRegion_;
+}
 } // namespace Rosen
 } // namespace OHOS
