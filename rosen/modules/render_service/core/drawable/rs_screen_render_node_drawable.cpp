@@ -495,7 +495,7 @@ void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusionFast()
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         SetDrawSkipType(DrawSkipType::SCREEN_MANAGER_NULL);
-        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw ScreenManager is nullptr");
+        RS_LOGE("RSScreenRenderNodeDrawable::OnDraw ScreenManager is nullptr");
         return;
     }
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
@@ -1417,7 +1417,7 @@ void RSScreenRenderNodeDrawable::CheckAndPostAsyncProcessOfflineTask()
         if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
             continue;
         }
-        auto params = static_cast<RSDisplayRenderParams*>(renderParams_.get());
+        auto params = static_cast<RSScreenRenderParams*>(renderParams_.get());
         if (screenNodeId != params->GetId()) {
             continue;
         }
