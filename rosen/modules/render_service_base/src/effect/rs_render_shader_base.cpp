@@ -40,6 +40,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderAuroraNoise>();
         }
     },
+    {RSNGEffectType::PARTICLE_CIRCULAR_HALO, [] {
+            return std::make_shared<RSNGRenderParticleCircularHalo>();
+        }
+    }
 };
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderShaderHelper::CreateGEFilter(RSNGEffectType type)

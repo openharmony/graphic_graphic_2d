@@ -80,3 +80,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Radius, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(AuroraNoise, Noise, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Noise, float);
