@@ -562,6 +562,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
     targetSurfaceParams->isLeashWindow_ = isLeashWindow_;
     targetSurfaceParams->isAppWindow_ = isAppWindow_;
+    targetSurfaceParams->isLeashorMainWindow_ = isLeashorMainWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorScreenNode_ = ancestorScreenNode_;

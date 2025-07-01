@@ -224,7 +224,7 @@ void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSScreenRenderNod
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
+        if (surfaceParams == nullptr || !surfaceParams->IsLeashOrMainWindow()) {
             continue;
         }
         // for cross-display surface, only merge dirty history once.
@@ -269,7 +269,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
                 "dirty manager is nullptr", surfaceNodeDrawable->GetId());
             continue;
         }
-        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
+        if (!surfaceParams->IsLeashOrMainWindow() || surfaceParams->GetDstRect().IsEmpty()) {
             continue;
         }
         // for cross-display surface, only consider the dirty region on the first display (use global dirty for others).

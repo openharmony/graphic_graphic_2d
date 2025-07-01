@@ -64,7 +64,7 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
                 "dirty manager is nullptr", surfaceNodeDrawable->GetId());
             continue;
         }
-        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
+        if (!surfaceParams->IsLeashOrMainWindow() || surfaceParams->GetDstRect().IsEmpty()) {
             continue;
         }
         // for cross-screen surface, only consider the dirty region on the first display (use global dirty for others).
@@ -79,9 +79,19 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
             surfaceCurrentFrameDirtyRegion.GetRight(), surfaceCurrentFrameDirtyRegion.GetBottom() } };
         Occlusion::Region damageRegion = currentFrameDirtyRegion.And(visibleRegion);
         damageRegions.OrSelf(damageRegion);
+        auto surfaceFilterCollector = surfaceDirtyManager->GetFilterCollector();
+        damageRegions.OrSelf(surfaceFilterCollector.GetPureCleanFilterDirtyRegion());
+        surfaceFilterCollector.ClearPureCleanFilterDirtyRegion();
     }
+    auto screenDirtyManager = screenNodeDrawable.GetSyncDirtyManager();
+    if (screenDirtyManager == nullptr) {
+        return {};
+    }
+    auto screenFilterCollector = screenDirtyManager->GetFilterCollector();
+    damageRegions.OrSelf(screenFilterCollector.GetPureCleanFilterDirtyRegion());
+    screenFilterCollector.ClearPureCleanFilterDirtyRegion();
     auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegions, screenInfo);
-    RectI rect = screenNodeDrawable.GetSyncDirtyManager()->GetDirtyRegionFlipWithinSurface();
+    RectI rect = screenDirtyManager->GetDirtyRegionFlipWithinSurface();
     if (!rect.IsEmpty()) {
         rects.emplace_back(rect);
     }
@@ -181,7 +191,7 @@ bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForScreen(Occlusion::Region
         return false;
     }
     return CheckMergeFilterDirty(damageRegion, drawRegion,
-        screenDirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true), matrix, std::nullopt);
+        screenDirtyManager->GetFilterCollector(), matrix, std::nullopt);
 }
 
 bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(Occlusion::Region& damageRegion,
@@ -201,15 +211,14 @@ bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(Occlusion::Regio
             RS_LOGI("DealWithFilterDirtyForSurface surface param or dirty manager is nullptr");
             continue;
         }
-        elementChanged |= CheckMergeFilterDirty(damageRegion, drawRegion,
-            surfaceDirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true),
+        elementChanged |= CheckMergeFilterDirty(damageRegion, drawRegion, surfaceDirtyManager->GetFilterCollector(),
             matrix, surfaceParams->GetVisibleRegion());
     }
     return elementChanged;
 }
 
 bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
-    FilterDirtyRegionInfoList& filterList, const std::optional<Drawing::Matrix>& matrix,
+    RSFilterDirtyCollector& collector, const std::optional<Drawing::Matrix>& matrix,
     const std::optional<Occlusion::Region>& visibleRegion)
 {
     auto addDirtyInIntersect = [&] (FilterDirtyRegionInfo& info) {
@@ -232,12 +241,14 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
             RSObjAbsGeometry::MapRegion(info.filterDirty_, matrix.value()) : info.filterDirty_;
         Occlusion::Region alignedDirtyRegion = matrix.has_value() ?
             RSObjAbsGeometry::MapRegion(info.alignedFilterDirty_, matrix.value()) : info.alignedFilterDirty_;
+        collector.AddPureCleanFilterDirtyRegion(dirtyRegion);
         damageRegion.OrSelf(dirtyRegion);
         drawRegion.OrSelf(dirtyAlignEnabled_ ? alignedDirtyRegion : dirtyRegion);
         info.addToDirty_ = true;
         return true;
     };
     // return if any filter is added to damage region and draw region.
+    auto& filterList = collector.GetFilterDirtyRegionInfoList(true);
     return std::find_if(filterList.begin(), filterList.end(), addDirtyInIntersect) != filterList.end();
 }
 
@@ -277,14 +288,15 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
     }
     // Subtree dirty region doesn't need to be considered for background filter.
     auto& filterProperties = filterNode.GetRenderProperties();
-    bool isBackgroundFilterClean = (filterProperties.GetBackgroundFilter() ||
-        filterProperties.GetNeedDrawBehindWindow()) && !filterNode.IsBackgroundInAppOrNodeSelfDirty();
     FilterDirtyRegionInfo filterInfo = {
         .id_ = filterNode.GetId(),
         .intersectRegion_ = isSurface ? filterRegion : dirtyRegion,
         .filterDirty_ = dirtyRegion,
         .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
-        .belowDirty_ = !isBackgroundFilterClean && preDirty.has_value() ? preDirty.value() : Occlusion::Region()
+        .belowDirty_ = preDirty.value_or(Occlusion::Region()),
+        .isBackgroundFilterClean_ =
+            (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
+            !filterNode.IsBackgroundInAppOrNodeSelfDirty()
     };
     return filterInfo;
 }

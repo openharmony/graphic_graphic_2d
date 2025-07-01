@@ -79,6 +79,11 @@ public:
     {
         return isAppWindow_;
     }
+    bool IsLeashOrMainWindow() const
+    {
+        return isLeashorMainWindow_;
+    }
+
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return rsSurfaceNodeType_;
@@ -747,6 +752,7 @@ private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
     bool isAppWindow_ = false;
+    bool isLeashorMainWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorScreenNode_;
