@@ -12,30 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_CONSTRAINT_H
+#define RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_CONSTRAINT_H
 
-#include "rs_graphic_test.h"
+#include <unordered_set>
 
-using namespace testing;
-using namespace testing::ext;
+namespace OHOS {
+namespace Rosen {
 
-namespace OHOS::Rosen {
-
-class PlaybackRecoverTest : public RSGraphicTest {
-private:
-    const int screenWidth = GetScreenSize()[0];
-    const int screenHeight = GetScreenSize()[1];
-
-public:
-    //called before each tests
-    void BeforeEach() override
-    {
-        SetScreenSize(screenWidth, screenHeight);
-        system("setenforce 0");
-    }
+struct RectSize {
+    int32_t width = 0;
+    int32_t height = 0;
 };
 
-GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, performanceTest)
-{
-    PlaybackRecover("/data/local/tmp/Playback/running.ohr", 8.0f);
-}
-}
+struct RectSizeRange {
+    RectSize lowLimit = {};
+    RectSize highLimit = {};
+};
+
+struct RectConstraint {
+    std::unordered_set<pid_t> pids = {};
+    RectSizeRange range = {};
+};
+
+} // namespace Rosen
+} // namespace OHOS
+#endif //RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_CONSTRAINT_H

@@ -67,7 +67,8 @@ const uint8_t DO_HAS_UIRUNNING_ANIMATION = 32;
 const uint8_t DO_GET_INDEX = 33;
 const uint8_t DO_DUMP_NODE_TREE_PROCESSOR = 34;
 const uint8_t DO_POST_DELAY_TASK = 35;
-const uint8_t TARGET_SIZE = 36;
+const uint8_t DO_SET_TYPICAL_RESIDENT_PROCESS = 36;
+const uint8_t TARGET_SIZE = 37;
 
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
@@ -119,6 +120,7 @@ void DoGoForeground(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     bool isTextureExport = GetData<bool>();
     director->GoForeground(isTextureExport);
+    director->StartTextureExport();
 }
 
 void DoInit(const uint8_t* data, size_t size)
@@ -183,6 +185,9 @@ void DoSetRoot(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     NodeId root = GetData<NodeId>();
     director->SetRoot(root);
+
+    auto rootNode = std::make_shared<RSRootNode>(root);
+    director->SetRSRootNode(rootNode);
 }
 
 void DoSetUITaskRunner(const uint8_t* data, size_t size)
@@ -292,6 +297,9 @@ void DoRecvMessages002(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
+    NodeId id = GetData<NodeId>();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
+    cmds->AddCommand(command, id, FollowType::FOLLOW_TO_SELF);
     director->RecvMessages(cmds);
 }
 
@@ -358,6 +366,13 @@ void DoPostDelayTask(const uint8_t* data, size_t size)
     int32_t instanceId = GetData<int32_t>();
     director->PostDelayTask(task);
     director->PostDelayTask(task, delay, instanceId);
+}
+
+void DoSetTypicalResidentProcess(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    bool isTypicalResidentProcess = GetData<bool>();
+    director->SetTypicalResidentProcess(isTypicalResidentProcess);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -478,6 +493,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_POST_DELAY_TASK:
             OHOS::Rosen::DoPostDelayTask(data, size);
+            break;
+        case OHOS::Rosen::DO_SET_TYPICAL_RESIDENT_PROCESS:
+            OHOS::Rosen::DoSetTypicalResidentProcess(data, size);
             break;
         default:
             return -1;

@@ -508,7 +508,7 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight /
             (boundsHeight == 0.0f ? 1.0f : boundsHeight));
         if (absRect == node.GetDstRect()) {
-            // If the SurfaceRenderNode is completely in the DisplayRenderNode,
+            // If the SurfaceRenderNode is completely in the ScreenRenderNode,
             // we do not need to crop the buffer.
             srcRect.width_ = bufferWidth;
             srcRect.height_ = bufferHeight;
@@ -567,6 +567,15 @@ inline void RSUniHwcComputeUtil::UpdateHwcNodeTotalMatrix(const std::shared_ptr<
     }
 }
 
+void RSUniHwcComputeUtil::UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx)
+{
+    if (!parent->GetRenderProperties().GetQuaternion().IsIdentity()) {
+        ctx.absRotation += RSUniRenderUtil::GetYawFromQuaternion(parent->GetRenderProperties().GetQuaternion());
+    } else {
+        ctx.absRotation += parent->GetRenderProperties().GetRotation();
+    }
+}
+
 void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     if (hwcNode == nullptr) {
@@ -577,19 +586,17 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
     bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
     const auto& hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
-    hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
     HwcPropertyContext ctx;
     ctx.alpha = hwcNode->GetRenderProperties().GetAlpha();
     ctx.totalMatrix = hwcNodeGeo->GetMatrix();
+    ctx.absRotation = hwcNode->GetRenderProperties().GetRotation();
     RSUniHwcComputeUtil::TraverseParentNodeAndReduce(
         hwcNode,
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeDrawingCache(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeBlendNeedChildNode(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAlpha(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeTotalMatrix(parent, ctx); },
-        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
-            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
-        },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAbsRotation(parent, ctx); },
         [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
             auto cornerRadius = parentProperty.GetCornerRadius();
@@ -653,6 +660,7 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
     }
     hwcNode->SetTotalMatrix(ctx.totalMatrix);
     hwcNode->SetGlobalAlpha(ctx.alpha);
+    hwcNode->SetAbsRotation(ctx.absRotation);
     hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
 }
 
@@ -787,6 +795,17 @@ bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
         property.GetColorFilter() != nullptr;
 }
 
+#if defined(MODIFIER_NG)
+template<typename T>
+std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
+    const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
+{
+    if (auto modifier = node.GetModifierNG(modifierType)) {
+        return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty(propertyType));
+    }
+    return nullptr;
+}
+#else
 template<typename T>
 std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
     const RSRenderNode& node, RSModifierType type)
@@ -799,11 +818,17 @@ std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifie
     const auto& modifier = itr->second.back();
     return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty());
 }
+#endif
 
 bool RSUniHwcComputeUtil::IsForegroundColorStrategyValid(RSRenderNode& node)
 {
-    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(
-        node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+#if defined(MODIFIER_NG)
+    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(node,
+        ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
+#else
+    auto property =
+        GetPropertyFromModifier<ForegroundColorStrategyType>(node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+#endif
     return (property == nullptr) ? false : property->Get() != ForegroundColorStrategyType::INVALID;
 }
 

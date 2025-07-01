@@ -59,13 +59,15 @@ private:
     bool EquRect(RectI a, RectI b);
     RectI RectRound(RectI src);
 
-    void GetFixDstRectStatus(bool isUifistR, RSSurfaceRenderParams *surfaceParams, RectI &boundSize,
+    void GetFixDstRectStatus(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable,
+        bool isUifistR, RSSurfaceRenderParams *surfaceParams, RectI &boundSize,
         bool &isFixDstRect);
     int32_t BuildHDRTask(RSSurfaceRenderParams *surfaceParams, MdcRectT srcRect, uint32_t* taskId, void** taskPtr);
     bool IsHDRSurfaceNodeSkipped(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceDrawable);
     bool PrepareHapeTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceDrawable,
         uint64_t curFrameId);
     void FindParentLeashWindowNode();
+    ScreenId GetScreenIDByDrawable(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
 
     std::shared_ptr<RSSurfaceRenderNode> windowSceneNode_;
     std::unordered_map<NodeId, NodeId> ownedLeashWindowIdMap_;

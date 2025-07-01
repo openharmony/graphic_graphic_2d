@@ -113,7 +113,7 @@ HWTEST_F(HgmXmlParserTest, StringToVector002, Function | SmallTest | Level1)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     std::string spacesBetweenNumbersInput = "1 2   3  45 ";
-    std::vector<uint32_t> expected = {1, 2, 3, 45};
+    std::vector<uint32_t> expected = { 1, 2, 3, 45 };
     std::vector<uint32_t> result = parser->StringToVector(spacesBetweenNumbersInput);
     EXPECT_EQ(expected, result);
 }
@@ -141,15 +141,15 @@ HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level1)
 HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level1)
 {
     std::vector<std::pair<std::string, bool>> cases = {
-        {"", false},
-        {"123456789", false},
-        {"a023", false},
-        {"02a3", false},
-        {"023a", false},
-        {"123", true},
-        {"-123", true},
-        {"023", true},
-        {"12345678", true}
+        { "", false },
+        { "123456789", false },
+        { "a023", false },
+        { "02a3", false },
+        { "023a", false },
+        { "123", true },
+        { "-123", true },
+        { "023", true },
+        { "12345678", true }
     };
     for (const auto& [str, res] : cases) {
         EXPECT_EQ(XMLParser::IsNumber(str), res);

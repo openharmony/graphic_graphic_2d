@@ -28,7 +28,7 @@
 #include <utility>
 #endif
 
-#include "common/rs_self_draw_rect_change_callback_filter.h"
+#include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -40,6 +40,7 @@
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
+#include "rs_hrp_service.h"
 #include "rs_irender_client.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
@@ -119,6 +120,8 @@ public:
     SurfaceCaptureCallback() {}
     virtual ~SurfaceCaptureCallback() {}
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
+    virtual void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR) = 0;
 };
 
 class SurfaceBufferCallback {
@@ -349,6 +352,10 @@ public:
 
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -473,7 +480,7 @@ public:
     void SetWindowContainer(NodeId nodeId, bool value);
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        const RectFilter& filter, const SelfDrawingNodeRectChangeCallback& callback);
+        const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
@@ -488,6 +495,12 @@ public:
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+
+    RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd);
+    RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
+    bool ProfilerIsSecureScreen();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);
@@ -518,7 +531,8 @@ private:
             std::size_t h1 = std::hash<NodeId>()(p.first);
             std::size_t h2 = RectHash()(p.second.mainScreenRect);
             std::size_t h3 = UICaptureParamHash()(p.second.uiCaptureInRangeParam);
-            return h1 ^ (h2 << 1) ^ (h3 << 2);
+            std::size_t h4 = RectHash()(p.second.specifiedAreaRect);
+            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
         }
     };
 

@@ -1122,7 +1122,7 @@ HWTEST_F(RSScreenTest, PowerStatusDump_003, testing::ext::TestSize.Level1)
     rsScreen->PowerStatusDump(dumpString);
 
     status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_BUTT;
-    rsScreen->SetPowerStatus(status);
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
     rsScreen->PowerStatusDump(dumpString);
 
     status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;

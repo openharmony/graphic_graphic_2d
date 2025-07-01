@@ -34,63 +34,131 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 enum class FuzzMethod {
-    SETENABLE = 0,
-    SETNODESIZE,
-    SETNODESCALE,
-    ADDDECISIONELEMENT,
+    ADDDECISIONELEMENT = 0,
     MAKEDECISION,
     CALCULATEPREFERREDRATE,
+    PROCESSVECTOR4F,
+    PROCESSVECTOR2F,
+    PROCESSFLOAT,
     END
 };
 } // namespace
 
+/*
+ * Test the CalculatePreferredRate method of the RSAnimationRateDecider class.
+ */
 void CalculatePreferredRate(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
 {
+    PropertyId propertyId = FD.ConsumeIntegral<PropertyId>();
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSPropertyUnit::PIXEL_POSITION);
+        FD.ConsumeFloatingPoint<float>(), propertyId, RSPropertyUnit::PIXEL_POSITION);
     int32_t frameRate = FD.ConsumeIntegral<int32_t>();
-    auto frameRateGetFunc =
-        [frameRate](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
-            return frameRate;
-        };
+    auto frameRateGetFunc = [frameRate](const RSPropertyUnit unit, float velocity, int32_t area,
+                                int32_t length) -> int32_t { return frameRate; };
     decider.CalculatePreferredRate(property, frameRateGetFunc);
 }
 
+/*
+ * Test the AddDecisionElement method of the RSAnimationRateDecider class.
+ */
 void AddDecisionElement(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
 {
-    PropertyValue velocity;
-    FrameRateRange range(FD.ConsumeIntegral<int>(), FD.ConsumeIntegral<int>(), FD.ConsumeIntegral<int>());
-    decider.AddDecisionElement(FD.ConsumeIntegral<uint64_t>(), velocity, range);
+    decider.SetEnable(FD.ConsumeBool());
+    PropertyId propertyId = FD.ConsumeIntegral<PropertyId>();
+    PropertyValue velocity = std::make_shared<RSRenderAnimatableProperty<float>>(
+        FD.ConsumeFloatingPoint<float>(), propertyId, RSPropertyUnit::PIXEL_POSITION);
+    int min = FD.ConsumeIntegral<int>();
+    int max = FD.ConsumeIntegral<int>();
+    int preferred = FD.ConsumeIntegral<int>();
+    uint32_t type = FD.ConsumeIntegral<uint32_t>();
+    std::vector<ComponentScene> sceneVec = { ComponentScene::UNKNOWN_SCENE, ComponentScene::SWIPER_FLING };
+    ComponentScene componentScene = sceneVec[FD.ConsumeIntegralInRange<int>(0, sceneVec.size() - 1)];
+    FrameRateRange range(min, max, preferred, type, componentScene);
+    decider.AddDecisionElement(propertyId, velocity, range);
 }
 
+/*
+ * Test the MakeDecision method of the RSAnimationRateDecider class.
+ */
 void MakeDecision(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
 {
-    int32_t frameRate = FD.ConsumeIntegral<int32_t>();
-    auto frameRateGetFunc =
-        [frameRate](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
-            return frameRate;
-        };
-    decider.MakeDecision(frameRateGetFunc);
+    AddDecisionElement(FD, decider);
+    if (FD.ConsumeBool()) {
+        int32_t frameRate = FD.ConsumeIntegral<int32_t>();
+        auto frameRateGetFunc = [frameRate](const RSPropertyUnit unit, float velocity, int32_t area,
+                                    int32_t length) -> int32_t { return frameRate; };
+        decider.MakeDecision(frameRateGetFunc);
+    } else {
+        decider.MakeDecision(nullptr);
+    }
 }
 
+/*
+ * Get RSPropertyUnit.
+ */
+RSPropertyUnit GetRSPropertyUnit(FuzzedDataProvider& FD)
+{
+    std::vector<RSPropertyUnit> unitVec = { RSPropertyUnit::UNKNOWN, RSPropertyUnit::PIXEL_POSITION,
+        RSPropertyUnit::PIXEL_SIZE, RSPropertyUnit::RATIO_SCALE, RSPropertyUnit::ANGLE_ROTATION };
+    auto unit = unitVec[FD.ConsumeIntegralInRange<int>(0, unitVec.size() - 1)];
+    return unit;
+}
+
+/*
+ * Test the ProcessVector4f method of the RSAnimationRateDecider class.
+ */
+void ProcessVector4f(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
+{
+    Vector4f value(FD.ConsumeFloatingPoint<float>(), FD.ConsumeFloatingPoint<float>(), FD.ConsumeFloatingPoint<float>(),
+        FD.ConsumeFloatingPoint<float>());
+    auto propertyId = FD.ConsumeIntegral<PropertyId>();
+    auto unit = GetRSPropertyUnit(FD);
+    PropertyValue property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(value, propertyId, unit);
+    int32_t frameRate = FD.ConsumeIntegral<int32_t>();
+    auto frameRateGetFunc = [frameRate](const RSPropertyUnit unit, float velocity, int32_t area,
+                                int32_t length) -> int32_t { return frameRate; };
+    decider.ProcessVector4f(property, frameRateGetFunc);
+}
+
+/*
+ * Test the ProcessVector2f method of the RSAnimationRateDecider class.
+ */
+void ProcessVector2f(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
+{
+    Vector2f value(FD.ConsumeFloatingPoint<float>(), FD.ConsumeFloatingPoint<float>());
+    auto propertyId = FD.ConsumeIntegral<PropertyId>();
+    auto unit = GetRSPropertyUnit(FD);
+    PropertyValue property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(value, propertyId, unit);
+    int32_t frameRate = FD.ConsumeIntegral<int32_t>();
+    auto frameRateGetFunc = [frameRate](const RSPropertyUnit unit, float velocity, int32_t area,
+                                int32_t length) -> int32_t { return frameRate; };
+    decider.ProcessVector2f(property, frameRateGetFunc);
+}
+
+/*
+ * Test the ProcessFloat method of the RSAnimationRateDecider class.
+ */
+void ProcessFloat(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
+{
+    float value = FD.ConsumeFloatingPoint<float>();
+    auto propertyId = FD.ConsumeIntegral<PropertyId>();
+    auto unit = GetRSPropertyUnit(FD);
+    PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(value, propertyId, unit);
+    int32_t frameRate = FD.ConsumeIntegral<int32_t>();
+    auto frameRateGetFunc = [frameRate](const RSPropertyUnit unit, float velocity, int32_t area,
+                                int32_t length) -> int32_t { return frameRate; };
+    decider.ProcessFloat(property, frameRateGetFunc);
+}
+
+/*
+ * Test all method of the RSAnimationRateDecider class.
+ */
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider FD(data, size);
     RSAnimationRateDecider decider;
     uint8_t methodCount = static_cast<uint8_t>(FuzzMethod::END) + 1;
     switch (static_cast<FuzzMethod>(FD.ConsumeIntegral<uint8_t>() % methodCount)) {
-        case FuzzMethod::SETENABLE: {
-            decider.SetEnable(FD.ConsumeBool());
-            break;
-        }
-        case FuzzMethod::SETNODESIZE: {
-            decider.SetNodeSize(FD.ConsumeFloatingPoint<float>(), FD.ConsumeFloatingPoint<float>());
-            break;
-        }
-        case FuzzMethod::SETNODESCALE: {
-            decider.SetNodeScale(FD.ConsumeFloatingPoint<float>(), FD.ConsumeFloatingPoint<float>());
-            break;
-        }
         case FuzzMethod::ADDDECISIONELEMENT: {
             AddDecisionElement(FD, decider);
             break;
@@ -101,6 +169,18 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         }
         case FuzzMethod::CALCULATEPREFERREDRATE: {
             CalculatePreferredRate(FD, decider);
+            break;
+        }
+        case FuzzMethod::PROCESSVECTOR4F: {
+            ProcessVector4f(FD, decider);
+            break;
+        }
+        case FuzzMethod::PROCESSVECTOR2F: {
+            ProcessVector2f(FD, decider);
+            break;
+        }
+        case FuzzMethod::PROCESSFLOAT: {
+            ProcessFloat(FD, decider);
             break;
         }
         default:

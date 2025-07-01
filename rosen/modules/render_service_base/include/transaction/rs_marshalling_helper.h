@@ -190,6 +190,9 @@ public:
     std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
     static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 
+    static RSB_EXPORT bool UnmarshallingPidPlusId(Parcel& parcel, uint64_t& val);
+    static RSB_EXPORT bool UnmarshallingPidPlusIdNoChangeIfZero(Parcel& parcel, uint64_t& val);
+
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                                                   \
     static RSB_EXPORT bool CompatibleMarshalling(Parcel& parcel, const TYPE& val, uint16_t paramVersion); \

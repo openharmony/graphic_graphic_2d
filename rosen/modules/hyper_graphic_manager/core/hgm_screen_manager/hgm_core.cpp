@@ -32,7 +32,8 @@
 #include "hgm_screen_info.h"
 
 namespace OHOS::Rosen {
-static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
+namespace {
+std::map<uint32_t, int64_t> IDEAL_PERIOD = {
     { 144, 6944444 },
     { 120, 8333333 },
     { 90, 11111111 },
@@ -49,6 +50,7 @@ static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
     { 15, 66666666 },
     { 10, 100000000 },
 };
+} // namespace
 
 HgmCore& HgmCore::Instance()
 {
@@ -65,7 +67,7 @@ HgmCore::HgmCore()
 void HgmCore::Init()
 {
     static std::once_flag onceFlag;
-    std::call_once(onceFlag, [this] () {
+    std::call_once(onceFlag, [this]() {
         if (InitXmlConfig() != EXEC_SUCCESS) {
             HGM_LOGE("HgmCore falied to parse");
             return;
@@ -107,19 +109,19 @@ void HgmCore::CheckCustomFrameRateModeValid()
     }
 
     auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
-    auto &screenConfigs = mPolicyConfigData_->screenConfigs_;
+    auto& screenConfigs = mPolicyConfigData_->screenConfigs_;
     if (screenConfigs.find(curScreenStrategyId) == screenConfigs.end()) {
         return;
     }
 
-    auto &screenConfig = screenConfigs[curScreenStrategyId];
+    auto& screenConfig = screenConfigs[curScreenStrategyId];
     auto modeStr = std::to_string(customFrameRateMode_);
     if (screenConfig.find(modeStr) != screenConfig.end() || screenConfig.empty()) {
         return;
     }
 
     int32_t maxMode = HGM_REFRESHRATE_MODE_AUTO;
-    for (auto &[modeStr, _] : screenConfig) {
+    for (auto& [modeStr, _] : screenConfig) {
         if (!XMLParser::IsNumber(modeStr)) {
             continue;
         }

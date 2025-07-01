@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,6 +81,23 @@ bool DoReleaseResource(const uint8_t* data, size_t size)
     SKResourceManager::Instance().ReleaseResource();
     return true;
 }
+
+bool HaveReleaseableResourceCheck(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    const std::list<std::shared_ptr<Drawing::Surface>> list;
+
+    SKResourceManager::Instance().HaveReleaseableResourceCheck(list);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -90,5 +107,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoHoldResource(data, size);
     OHOS::Rosen::DoReleaseResource(data, size);
+    OHOS::Rosen::HaveReleaseableResourceCheck(data, size);
     return 0;
 }

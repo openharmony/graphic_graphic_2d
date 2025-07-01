@@ -161,12 +161,10 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     /********** RSDisplayNodeCommand **********/
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeCreate),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetScreenId),
-    DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetDisplayOffset),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetSecurityDisplay),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetDisplayMode),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetScreenRotation),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetBootAnimation),
-    DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetRogSize),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeAddToTree),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeRemoveFromTree),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetNodePid),

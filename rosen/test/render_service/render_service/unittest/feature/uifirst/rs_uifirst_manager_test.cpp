@@ -62,7 +62,7 @@ void RSUifirstManagerTest::TearDownTestCase()
     renderNodeMap.renderNodeMap_.clear();
     renderNodeMap.surfaceNodeMap_.clear();
     renderNodeMap.residentSurfaceNodeMap_.clear();
-    renderNodeMap.displayNodeMap_.clear();
+    renderNodeMap.screenNodeMap_.clear();
     renderNodeMap.canvasDrawingNodeMap_.clear();
     renderNodeMap.uiExtensionSurfaceNodes_.clear();
 
@@ -244,8 +244,8 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
 {
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, context->weak_from_this());
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
     ASSERT_NE(surfaceNode, nullptr);
@@ -329,13 +329,19 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNode, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, ProcessDoneNode001, TestSize.Level1)
 {
     NodeId id = 1;
+    uifirstManager_.capturedNodes_.push_back(id);
+    uifirstManager_.ProcessDoneNode();
+    EXPECT_TRUE(uifirstManager_.capturedNodes_.empty());
+    
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
     auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode);
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(id, adapter));
+    uifirstManager_.capturedNodes_.push_back(id);
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
 
     uifirstManager_.pendingResetNodes_.insert(std::make_pair(id, surfaceRenderNode));
+    uifirstManager_.capturedNodes_.push_back(id);
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.pendingResetNodes_.empty());
 
@@ -467,10 +473,10 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
     ASSERT_NE(surfaceDrawable, nullptr);
     surfaceDrawable->GetRsSubThreadCache().SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     NodeId id = 10;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, context->weak_from_this());
     auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
-    surfaceRenderParams->SetAncestorDisplayNode(displayNode);
+    surfaceRenderParams->SetAncestorScreenNode(displayNode);
     auto colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
 }
@@ -486,6 +492,12 @@ HWTEST_F(RSUifirstManagerTest, ProcessTreeStateChange, TestSize.Level1)
     ASSERT_NE(surfaceNode1, nullptr);
     surfaceNode1->SetIsOnTheTree(true);
     uifirstManager_.ProcessTreeStateChange(*surfaceNode1);
+
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetIsOnTheTree(false);
+    surfaceNode2->SetIsNodeToBeCaptured(true);
+    uifirstManager_.ProcessTreeStateChange(*surfaceNode2);
 }
 
 /**
@@ -745,15 +757,15 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     uifirstManager_.isRecentTaskScene_ = false;
 
     // 3. cardNode
-    RSDisplayNodeConfig displayConfig;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(10, 0, rsContext->weak_from_this());
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = ++RSTestUtil::id;
     surfaceConfig.name = "ArkTSCardNode";
     auto surfaceNode3 = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode3->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
     surfaceNode3->firstLevelNodeId_ = surfaceNode3->GetId();
-    surfaceNode3->SetAncestorDisplayNode(displayNode);
+    surfaceNode3->SetAncestorScreenNode(displayNode);
     uifirstManager_.entryViewNodeId_ = 1;
     uifirstManager_.negativeScreenNodeId_ = 1;
     surfaceNode3->instanceRootNodeId_ = 1;
@@ -858,10 +870,10 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     auto visitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(visitor, nullptr);
     visitor->ancestorNodeHasAnimation_ = true;
-    visitor->curDisplayDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
-    NodeId displayNodeId = 2;
-    RSDisplayNodeConfig config;
-    visitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+    visitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    NodeId screenNodeId = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    visitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
 
     // case01: shouldpaint of parent node is false
     rsCanvasRenderNode->shouldPaint_ = false;
@@ -2025,6 +2037,18 @@ HWTEST_F(RSUifirstManagerTest, AddProcessDoneNode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddCapturedNodes
+ * @tc.desc: Test AddCapturedNodes
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RSUifirstManagerTest, AddCapturedNodes, TestSize.Level1)
+{
+    uifirstManager_.AddCapturedNodes(1);
+    ASSERT_FALSE(uifirstManager_.capturedNodes_.empty());
+}
+
+/**
  * @tc.name: CheckCurrentFrameHasCardNodeReCreate
  * @tc.desc: Test if card node recreate on single frame
  * @tc.type: FUNC
@@ -2233,8 +2257,8 @@ HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
 {
     RSSurfaceRenderNode node(100);
     RSDisplayNodeConfig displayConfig;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig);
-    node.SetAncestorDisplayNode(displayNode);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(10, displayConfig);
+    node.SetAncestorScreenNode(displayNode);
 
     // leash window doesn't
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));

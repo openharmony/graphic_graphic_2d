@@ -18,7 +18,8 @@
 #include "command/rs_command_verify_helper.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
@@ -229,14 +230,14 @@ void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId
     if (surfaceRenderNode == nullptr) {
         return;
     }
-    nodeMap.TraverseDisplayNodes(
-        [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
-            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
-                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation() ||
-                !displayRenderNode->IsOnTheTree()) {
+    nodeMap.TraverseLogicalDisplayNodes(
+        [&surfaceRenderNode, &screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& logicalDisplayRenderNode) {
+            if (logicalDisplayRenderNode == nullptr || logicalDisplayRenderNode->GetScreenId() != screenId ||
+                logicalDisplayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation() ||
+                !logicalDisplayRenderNode->IsOnTheTree()) {
                 return;
             }
-            displayRenderNode->AddChild(surfaceRenderNode);
+            logicalDisplayRenderNode->AddChild(surfaceRenderNode);
         });
 }
 
@@ -247,13 +248,13 @@ void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId
     if (surfaceRenderNode == nullptr) {
         return;
     }
-    nodeMap.TraverseDisplayNodes(
-        [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
-            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
-                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
+    nodeMap.TraverseLogicalDisplayNodes(
+        [&surfaceRenderNode, &screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& logicalDisplayRenderNode) {
+            if (logicalDisplayRenderNode == nullptr || logicalDisplayRenderNode->GetScreenId() != screenId ||
+                logicalDisplayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
                 return;
             }
-            displayRenderNode->RemoveChild(surfaceRenderNode);
+            logicalDisplayRenderNode->RemoveChild(surfaceRenderNode);
         });
 }
 
@@ -379,10 +380,10 @@ void SurfaceNodeCommandHelper::SetSourceVirtualDisplayId(RSContext& context, Nod
 {
     if (auto surfaceRenderNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         const auto& nodeMap = context.GetNodeMap();
-        nodeMap.TraverseDisplayNodes(
-            [surfaceRenderNode, screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
-                if (displayRenderNode != nullptr && displayRenderNode->GetScreenId() == screenId) {
-                    surfaceRenderNode->SetSourceDisplayRenderNodeId(displayRenderNode->GetId());
+        nodeMap.TraverseScreenNodes(
+            [surfaceRenderNode, screenId](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
+                if (screenRenderNode != nullptr && screenRenderNode->GetScreenId() == screenId) {
+                    surfaceRenderNode->SetSourceDisplayRenderNodeId(screenRenderNode->GetId());
                 }
             }
         );
@@ -397,8 +398,8 @@ void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeI
         RS_LOGE("SurfaceNodeCommandHelper::AttachToWindowContainer Invalid surfaceRenderNode");
         return;
     }
-    nodeMap.TraverseDisplayNodes(
-        [surfaceRenderNode, screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
+    nodeMap.TraverseLogicalDisplayNodes(
+        [surfaceRenderNode, screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
                 displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
                 return;
@@ -425,8 +426,8 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
         RS_LOGE("SurfaceNodeCommandHelper::DetachFromWindowContainer Invalid surfaceRenderNode");
         return;
     }
-    nodeMap.TraverseDisplayNodes(
-        [surfaceRenderNode, screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
+    nodeMap.TraverseLogicalDisplayNodes(
+        [surfaceRenderNode, screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
                 displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
                 return;

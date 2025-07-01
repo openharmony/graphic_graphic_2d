@@ -26,19 +26,19 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    int32_t width = 720;
-    int32_t height = 1080;
-    int32_t phyWidth = 685;
-    int32_t phyHeight = 1218;
-    ScreenSize screenSize = {width, height, phyWidth, phyHeight};
+int32_t width = 720;
+int32_t height = 1080;
+int32_t phyWidth = 685;
+int32_t phyHeight = 1218;
+ScreenSize screenSize = {width, height, phyWidth, phyHeight};
 
-    constexpr int32_t settingMode1 = 1;
-    constexpr int32_t settingMode2 = 2;
-    constexpr int32_t settingMode3 = 3;
-    constexpr int32_t IDEAL_30_PERIOD = 33333333;
-    constexpr int32_t IDEAL_60_PERIOD = 16666666;
-
+constexpr int32_t settingMode1 = 1;
+constexpr int32_t settingMode2 = 2;
+constexpr int32_t settingMode3 = 3;
+constexpr int32_t IDEAL_30_PERIOD = 33333333;
+constexpr int32_t IDEAL_60_PERIOD = 16666666;
 }
+
 class HyperGraphicManagerTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
@@ -65,8 +65,8 @@ HWTEST_F(HyperGraphicManagerTest, Instance, Function | SmallTest | Level4)
 {
     PART("CaseDescription") {
         STEP("1. call GetInstance twice") {
-            auto &instance1 = HgmCore::Instance();
-            auto &instance2 = HgmCore::Instance();
+            auto& instance1 = HgmCore::Instance();
+            auto& instance2 = HgmCore::Instance();
             STEP("2. check the result of configuration") {
                 STEP_ASSERT_EQ(&instance1, &instance2);
             }
@@ -87,9 +87,9 @@ HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level4)
             auto defaultRateMode = "0";
             auto newRateMode = "1";
             RSSystemProperties::SetHgmRefreshRateModesEnabled(newRateMode);
-            auto &instance1 = HgmCore::Instance();
+            auto& instance1 = HgmCore::Instance();
             RSSystemProperties::SetHgmRefreshRateModesEnabled(defaultRateMode);
-            auto &instance2 = HgmCore::Instance();
+            auto& instance2 = HgmCore::Instance();
             STEP_ASSERT_EQ(&instance1, &instance2);
         }
     }
@@ -105,7 +105,7 @@ HWTEST_F(HyperGraphicManagerTest, SetAsConfigTest, Function | SmallTest | Level4
 {
     PART("CaseDescription") {
         STEP("1. call GetInstance twice") {
-            auto &instance1 = HgmCore::Instance();
+            auto& instance1 = HgmCore::Instance();
             if (instance1.hgmFrameRateMgr_ == nullptr) {
                 return;
             }
@@ -138,7 +138,7 @@ HWTEST_F(HyperGraphicManagerTest, GetActiveScreenTest, Function | SmallTest | Le
 {
     PART("CaseDescription") {
         STEP("1. call GetInstance twice") {
-            auto &instance1 = HgmCore::Instance();
+            auto& instance1 = HgmCore::Instance();
             if (instance1.GetActiveScreen() == nullptr) {
                 return;
             }
@@ -158,12 +158,12 @@ HWTEST_F(HyperGraphicManagerTest, GetActiveScreenTest, Function | SmallTest | Le
  */
 HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
 
     PART("CaseDescription") {
         STEP("1. check if IsInit() is true") {
             bool enabled = instance.IsEnabled();
-            if (enabled == false) {
+            if (!enabled) {
                 return;
             }
             STEP_ASSERT_EQ(enabled, true);
@@ -182,7 +182,7 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
  */
 HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     int sizeListBefore = 0;
     int sizeListAfter = 0;
     int sizeScreenIds = 0;
@@ -222,7 +222,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
  */
 HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
 {
-    auto &instance5 = HgmCore::Instance();
+    auto& instance5 = HgmCore::Instance();
     sptr<HgmScreen> screen = nullptr;
     ScreenId screenId = 3;
 
@@ -257,7 +257,7 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
  */
 HWTEST_F(HyperGraphicManagerTest, AddScreenModeInfo, Function | SmallTest | Level3)
 {
-    auto &instance6 = HgmCore::Instance();
+    auto& instance6 = HgmCore::Instance();
     int addMode = 0;
     ScreenId screenId = 4;
 
@@ -292,7 +292,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreenModeInfo, Function | SmallTest | Leve
  */
 HWTEST_F(HyperGraphicManagerTest, RemoveScreen, Function | MediumTest | Level2)
 {
-    auto &instance7 = HgmCore::Instance();
+    auto& instance7 = HgmCore::Instance();
     int sizeListBefore = 0;
     int sizeListAfter = 0;
     ScreenId screenId = 6;
@@ -334,7 +334,7 @@ HWTEST_F(HyperGraphicManagerTest, RemoveScreen, Function | MediumTest | Level2)
  */
 HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | Level2)
 {
-    auto &instance8 = HgmCore::Instance();
+    auto& instance8 = HgmCore::Instance();
     ScreenId screenId = 7;
     sptr<HgmScreen> screen = nullptr;
     int32_t width = 1344;
@@ -427,7 +427,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate_002, Function | MediumTes
  */
 HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     ScreenId screenId = 7;
     sptr<HgmScreen> screen = nullptr;
     int32_t width = 1344;
@@ -462,7 +462,7 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
  */
 HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     ScreenId screenId1 = 7;
     ScreenId screenId2 = 8;
     int32_t width = 1344;
@@ -542,12 +542,12 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
         }
         STEP("screen constructor tests") {
             // format<width, height, phyWidth, phyHeight>
-            ScreenSize screenSize1 = {0, 0, 0, 0};
+            ScreenSize screenSize1 = { 0, 0, 0, 0 };
             sptr<HgmScreen> screen1 = new HgmScreen(0, 0, screenSize1);
             screen1 = nullptr;
             STEP_ASSERT_EQ(screen1, nullptr);
 
-            ScreenSize screenSize2 = {720, 1080, 685, 1218};
+            ScreenSize screenSize2 = { 720, 1080, 685, 1218 };
             sptr<HgmScreen> screen2 = new HgmScreen(0, 0, screenSize2);
             screen2 = nullptr;
             STEP_ASSERT_EQ(screen2, nullptr);
@@ -563,7 +563,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
  */
 HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     ScreenId screenId2 = 8;
     ScreenId screenId3 = 9;
     sptr<HgmScreen> screen = nullptr;
@@ -626,7 +626,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
  */
 HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     ScreenId screenId2 = 8;
     sptr<HgmScreen> screen = nullptr;
     int32_t width = 1344;
@@ -667,7 +667,7 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
  */
 HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     EXPECT_EQ(instance.GetIdealPeriod(30), IDEAL_30_PERIOD);
     EXPECT_EQ(instance.GetIdealPeriod(60), IDEAL_60_PERIOD);
     int32_t invalidValue = 0;
@@ -682,7 +682,7 @@ HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
  */
 HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     instance.SetLtpoEnabled(true);
     instance.SetSupportedMaxTE(360);
     instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
@@ -704,7 +704,7 @@ HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level2)
 HWTEST_F(HyperGraphicManagerTest, NotifyScreenPowerStatus, Function | SmallTest | Level2)
 {
     ScreenId screenId = 8;
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     instance.NotifyScreenPowerStatus(screenId, POWER_STATUS_ON);
     if (instance.hgmFrameRateMgr_ != nullptr) {
         EXPECT_NE(instance.hgmFrameRateMgr_->curScreenId_, screenId);
@@ -720,7 +720,7 @@ HWTEST_F(HyperGraphicManagerTest, NotifyScreenPowerStatus, Function | SmallTest 
  */
 HWTEST_F(HyperGraphicManagerTest, RefreshRateModeChangeCallback, Function | SmallTest | Level2)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     instance.RegisterRefreshRateModeChangeCallback([](int32_t num) {return;});
     EXPECT_NE(instance.GetRefreshRateModeChangeCallback(), nullptr);
 }
@@ -733,7 +733,7 @@ HWTEST_F(HyperGraphicManagerTest, RefreshRateModeChangeCallback, Function | Smal
  */
 HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | Level1)
 {
-    auto &instance = HgmCore::Instance();
+    auto& instance = HgmCore::Instance();
     EXPECT_EQ(instance.GetEnableDynamicMode(), true);
     instance.SetEnableDynamicMode(false);
     EXPECT_EQ(instance.GetEnableDynamicMode(), false);
@@ -747,7 +747,7 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
  */
 HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level4)
 {
-    auto &hgm = HgmCore::Instance();
+    auto& hgm = HgmCore::Instance();
     hgm.Init();
 
     auto mgr = hgm.GetFrameRateMgr();
@@ -790,7 +790,7 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
  */
 HWTEST_F(HyperGraphicManagerTest, SetActualTimestamp, Function | SmallTest | Level2)
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     int64_t timestamp = 1700;
     hgmCore.SetActualTimestamp(timestamp);
     EXPECT_EQ(hgmCore.GetActualTimestamp() == timestamp, true);
@@ -804,7 +804,7 @@ HWTEST_F(HyperGraphicManagerTest, SetActualTimestamp, Function | SmallTest | Lev
  */
 HWTEST_F(HyperGraphicManagerTest, SetVsyncId, Function | SmallTest | Level2)
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     uint64_t vsyncId = 1800;
     hgmCore.SetVsyncId(vsyncId);
     EXPECT_EQ(hgmCore.GetVsyncId() == vsyncId, true);
@@ -818,7 +818,7 @@ HWTEST_F(HyperGraphicManagerTest, SetVsyncId, Function | SmallTest | Level2)
  */
 HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Level2)
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     bool isForceRefresh = false;
     hgmCore.SetForceRefreshFlag(isForceRefresh);
     EXPECT_EQ(hgmCore.GetForceRefreshFlag() == isForceRefresh, true);
@@ -832,7 +832,7 @@ HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Le
  */
 HWTEST_F(HyperGraphicManagerTest, SetFastComposeTimeStampDiff, Function | SmallTest | Level2)
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     bool fastComposeTimeStampDiff = false;
     hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
     EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff() == fastComposeTimeStampDiff, true);
@@ -846,7 +846,7 @@ HWTEST_F(HyperGraphicManagerTest, SetFastComposeTimeStampDiff, Function | SmallT
  */
 HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest | Level2)
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     int32_t pipelineOffsetPulseNum = 6;
     int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
     hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
@@ -861,7 +861,7 @@ HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest |
  */
 HWTEST_F(HyperGraphicManagerTest, IsSwitchDssEnable, Function | SmallTest | Level2)
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     ScreenId screenId = 2;
     EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), false);
     hgmCore.SetScreenSwitchDssEnable(screenId, true);

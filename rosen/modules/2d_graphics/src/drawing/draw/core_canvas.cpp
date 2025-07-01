@@ -720,6 +720,9 @@ CoreCanvas& CoreCanvas::AttachPaint(const Paint& paint)
 {
     paintBrush_.Disable();
     paintPen_ = paint;
+#ifdef RS_ENABLE_GPU
+    paintPen_.SetGPUContext(GetGPUContext());
+#endif
     return *this;
 }
 
@@ -815,6 +818,12 @@ bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurP
     }
 #endif
     return impl_->DrawBlurImage(image, blurParams);
+}
+
+bool CoreCanvas::DrawImageEffectHPS(const Image& image,
+    const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams)
+{
+    return impl_->DrawImageEffectHPS(image, hpsEffectParams);
 }
 
 void CoreCanvas::SetParallelRender(bool parallelEnable)

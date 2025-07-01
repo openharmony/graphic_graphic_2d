@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
 
+#include <atomic>
 #include <cmath>
 #include <functional>
 #include <limits.h>
@@ -29,6 +30,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_anco_type.h"
+#include "draw/color.h"
 
 namespace OHOS {
 class Surface;
@@ -55,8 +57,11 @@ constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
 
-// types in the same layer should be 0/1/2/4/8
-// types for UINode
+/**
+ * Bitmask enumeration for hierarchical type identification
+ * Descendant types must include all ancestor bits following the rules:
+ * childFlags = ParentFlags | AdditionalBits
+ */
 enum class RSUINodeType : uint32_t {
     UNKNOW              = 0x0000u,
     RS_NODE             = 0x0001u,
@@ -85,18 +90,23 @@ enum class FollowType : uint8_t {
 #define CM_INLINE
 #endif
 
-// types for RenderNode
+/**
+ * Bitmask enumeration for hierarchical type identification
+ * Descendant types must include all ancestor bits following the rules:
+ * childFlags = ParentFlags | AdditionalBits
+ */
 enum class RSRenderNodeType : uint32_t {
-    UNKNOW              = 0x0000u,
-    RS_NODE             = 0x0001u,
-    DISPLAY_NODE        = 0x0011u,
-    SURFACE_NODE        = 0x0021u,
-    PROXY_NODE          = 0x0041u,
-    CANVAS_NODE         = 0x0081u,
-    EFFECT_NODE         = 0x0101u,
-    ROUND_CORNER_NODE   = 0x0201u,
-    ROOT_NODE           = 0x1081u,
-    CANVAS_DRAWING_NODE = 0x2081u,
+    UNKNOW                 = 0x0000u,
+    RS_NODE                = 0x0001u,
+    SCREEN_NODE            = 0x0011u,
+    SURFACE_NODE           = 0x0021u,
+    PROXY_NODE             = 0x0041u,
+    CANVAS_NODE            = 0x0081u,
+    EFFECT_NODE            = 0x0101u,
+    ROUND_CORNER_NODE      = 0x0201u,
+    LOGICAL_DISPLAY_NODE   = 0x0401u,
+    ROOT_NODE              = 0x1081u,
+    CANVAS_DRAWING_NODE    = 0x2081u,
 };
 
 // types for Processor
@@ -107,6 +117,14 @@ enum class RSProcessorType : uint32_t {
     VIRTUAL_SCREEN_PROCESSOR        = 0x0021u,
     UNIRENDER_PROCESSOR             = 0x0041u,
     UNIRENDER_VIRTUAL_PROCESSOR     = 0x0081u,
+};
+
+enum class CompositeType : uint32_t {
+    UNI_RENDER_COMPOSITE = 0,
+    UNI_RENDER_MIRROR_COMPOSITE,
+    UNI_RENDER_EXPAND_COMPOSITE,
+    HARDWARE_COMPOSITE,
+    SOFTWARE_COMPOSITE
 };
 
 enum RSRenderParamsDirtyType {
@@ -277,9 +295,12 @@ struct RSSurfaceCaptureConfig {
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
+    Drawing::Rect specifiedAreaRect = {};
+    uint32_t backGroundColor = Drawing::Color::COLOR_TRANSPARENT;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect &&
+            specifiedAreaRect == config.specifiedAreaRect &&
             uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId &&
             uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize;
     }
@@ -589,6 +610,18 @@ inline constexpr int32_t ExtractTid(uint64_t token)
 {
     // extract high 32 bits of token as tid
     return static_cast<int32_t>(token >> 32);
+}
+
+inline constexpr uint64_t MakeNodeId(pid_t pid, uint32_t uid)
+{
+    // combine pid and uid to nodeId
+    return (static_cast<uint64_t>(pid) << 32) | uid;
+}
+
+inline uint64_t GenerateUniqueNodeIdForRS()
+{
+    static std::atomic<uint32_t> uid { 0 };
+    return MakeNodeId(getpid(), uid.fetch_add(1, std::memory_order_relaxed));
 }
 
 template<class Container, class Predicate>

@@ -54,8 +54,6 @@ private:
     RSUnmarshalThread& operator=(const RSUnmarshalThread&&);
 
     bool IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const;
-    void SetFrameLoad(int load);
-    void SetFrameParam(int requestId, int load, int frameNum, int value);
     static constexpr uint32_t MIN_PENDING_REQUEST_SYNC_DATA_SIZE = 32 * 1024;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

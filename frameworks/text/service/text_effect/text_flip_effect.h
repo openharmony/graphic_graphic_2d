@@ -47,6 +47,7 @@ public:
     int UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) override;
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override;
     void StopEffect() override;
+    void NoEffect(Drawing::Canvas* canvas, double x, double y) override;
 
 private:
     bool CheckInputParams(const std::unordered_map<TextEffectAttribute, std::string>& config);

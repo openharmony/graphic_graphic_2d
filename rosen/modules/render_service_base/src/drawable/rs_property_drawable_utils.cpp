@@ -485,6 +485,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         behindWindow ? canvas->SetBehindWindowData(data) : canvas->SetEffectData(data);
+        cacheManager->ClearEffectCacheWithDrawnRegion(*canvas, clipIBounds);
         return;
     }
 #endif

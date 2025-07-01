@@ -404,3 +404,33 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest011, TestSize.Level1)
     effect_->blurEnable_ = true;
     EXPECT_EQ(effect_->GenerateFlipConfig(15.0).size(), 2);
 }
+
+/*
+ * @tc.name: TextFlipEffectTest012
+ * @tc.desc: Test for NoEffect action
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest012, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.enableAutoSpace = false;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"88";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate->CreateTypography();
+    double maxWidth = 1500;
+    typography0->Layout(maxWidth);
+
+    std::shared_ptr<Typography> typography(typography0.release());
+    TypographyConfig config = { typography, {0, text.length()} };
+    effect_->AppendTypography({config});
+    effect_->NoEffect(mockCanvas_.get(), 100.0, 200.0);
+    EXPECT_TRUE(effect_->lastAllBlobGlyphIds_.empty());
+
+    effect_->RemoveTypography({config});
+    effect_->NoEffect(mockCanvas_.get(), 100.0, 200.0);
+    EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
+}

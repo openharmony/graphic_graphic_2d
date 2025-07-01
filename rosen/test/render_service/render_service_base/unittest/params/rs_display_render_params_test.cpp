@@ -14,14 +14,16 @@
  */
 
 #include "gtest/gtest.h"
-#include "params/rs_display_render_params.h"
+#include "common/rs_occlusion_region.h"
+#include "params/rs_logical_display_render_params.h"
 #include "limit_number.h"
+#include "surface_type.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSDisplayRenderParamsTest : public testing::Test {
+class RSLogicalDisplayRenderParamsTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -30,11 +32,11 @@ public:
     static void DisplayTestInfo();
 };
 
-void RSDisplayRenderParamsTest::SetUpTestCase() {}
-void RSDisplayRenderParamsTest::TearDownTestCase() {}
-void RSDisplayRenderParamsTest::SetUp() {}
-void RSDisplayRenderParamsTest::TearDown() {}
-void RSDisplayRenderParamsTest::DisplayTestInfo()
+void RSLogicalDisplayRenderParamsTest::SetUpTestCase() {}
+void RSLogicalDisplayRenderParamsTest::TearDownTestCase() {}
+void RSLogicalDisplayRenderParamsTest::SetUp() {}
+void RSLogicalDisplayRenderParamsTest::TearDown() {}
+void RSLogicalDisplayRenderParamsTest::DisplayTestInfo()
 {
     return;
 }
@@ -45,13 +47,15 @@ void RSDisplayRenderParamsTest::DisplayTestInfo()
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, OnSync001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, OnSync001, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[2];
     std::unique_ptr<RSRenderParams> target = nullptr;
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     params.OnSync(target);
-    EXPECT_FALSE(params.isMainAndLeashSurfaceDirty_);
+    target = std::make_unique<RSRenderParams>(id);
+    ASSERT_NE(target, nullptr);
+    params.OnSync(target);
 }
 
 /**
@@ -60,15 +64,11 @@ HWTEST_F(RSDisplayRenderParamsTest, OnSync001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
-    RSDisplayRenderParams params(id);
-    params.SetMainAndLeashSurfaceDirty(params.GetMainAndLeashSurfaceDirty());
+    RSLogicalDisplayRenderParams params(id);
     EXPECT_EQ(params.needSync_, false);
-
-    params.SetMainAndLeashSurfaceDirty(true);
-    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -77,10 +77,10 @@ HWTEST_F(RSDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty, TestSize.Level1
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetRotationChanged, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetRotationChanged, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     params.SetRotationChanged(params.IsRotationChanged());
     EXPECT_EQ(params.needSync_, false);
 
@@ -94,10 +94,10 @@ HWTEST_F(RSDisplayRenderParamsTest, SetRotationChanged, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetHDRPresent, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetHDRPresent, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[5];
-    RSDisplayRenderParams params(id);
+    RSScreenRenderParams params(id);
     params.SetHDRPresent(params.GetHDRPresent());
     EXPECT_EQ(params.needSync_, false);
 
@@ -111,10 +111,10 @@ HWTEST_F(RSDisplayRenderParamsTest, SetHDRPresent, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetHDRStatusChanged, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetHDRStatusChanged, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSScreenRenderParams params(id);
     params.SetHDRStatusChanged(params.IsHDRStatusChanged());
     EXPECT_EQ(params.needSync_, false);
 
@@ -128,10 +128,10 @@ HWTEST_F(RSDisplayRenderParamsTest, SetHDRStatusChanged, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetNewColorSpace, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetNewColorSpace, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[6];
-    RSDisplayRenderParams params(id);
+    RSScreenRenderParams params(id);
     params.SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_EQ(params.needSync_, false);
 
@@ -145,10 +145,10 @@ HWTEST_F(RSDisplayRenderParamsTest, SetNewColorSpace, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetNewPixelFormat, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetNewPixelFormat, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSScreenRenderParams params(id);
     params.SetNewPixelFormat(params.GetNewPixelFormat());
     EXPECT_EQ(params.needSync_, false);
 
@@ -162,13 +162,13 @@ HWTEST_F(RSDisplayRenderParamsTest, SetNewPixelFormat, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasCaptureWindow, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, HasCaptureWindow, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     EXPECT_FALSE(params.HasCaptureWindow());
 
-    params.hasCaptureWindow_[params.screenId_] = true;
+    params.hasCaptureWindow_ = true;
     EXPECT_TRUE(params.HasCaptureWindow());
 }
 
@@ -178,10 +178,10 @@ HWTEST_F(RSDisplayRenderParamsTest, HasCaptureWindow, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIB2QEK
  */
-HWTEST_F(RSDisplayRenderParamsTest, Fingerprint001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, Fingerprint001, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     EXPECT_FALSE(params.GetFingerprint());
 
     params.SetFingerprint(true);
@@ -194,10 +194,10 @@ HWTEST_F(RSDisplayRenderParamsTest, Fingerprint001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetNeedOffscreen, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetNeedOffscreen, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     auto needOffscreen = params.GetNeedOffscreen();
     params.SetNeedOffscreen(needOffscreen);
     EXPECT_EQ(params.needSync_, false);
@@ -212,10 +212,10 @@ HWTEST_F(RSDisplayRenderParamsTest, SetNeedOffscreen, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIACYVJ
  */
-HWTEST_F(RSDisplayRenderParamsTest, IsSpecialLayerChanged001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, IsSpecialLayerChanged001, TestSize.Level1)
 {
     constexpr NodeId id = 0;
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     EXPECT_FALSE(params.IsSpecialLayerChanged());
 }
 
@@ -225,10 +225,10 @@ HWTEST_F(RSDisplayRenderParamsTest, IsSpecialLayerChanged001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIAKMJP
  */
-HWTEST_F(RSDisplayRenderParamsTest, GetSecurityExemption001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, GetSecurityExemption001, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     EXPECT_FALSE(params.GetSecurityExemption());
 }
 
@@ -238,10 +238,10 @@ HWTEST_F(RSDisplayRenderParamsTest, GetSecurityExemption001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIB2KBH
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRect001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, HasSecLayerInVisibleRect001, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     EXPECT_EQ(params.HasSecLayerInVisibleRect(), false);
 }
 
@@ -251,10 +251,10 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRect001, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require: issueIB2KBH
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRect002, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, HasSecLayerInVisibleRect002, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     params.hasSecLayerInVisibleRect_ = true;
     EXPECT_EQ(params.HasSecLayerInVisibleRect(), true);
 }
@@ -265,10 +265,10 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRect002, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require: issueIB2KBH
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged001, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), false);
 }
 
@@ -278,10 +278,10 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged001, TestSize
  * @tc.type: FUNC
  * @tc.require: issueIB2KBH
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged002, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged002, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     params.hasSecLayerInVisibleRectChanged_ = true;
     EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), true);
 }
@@ -292,10 +292,10 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged002, TestSize
  * @tc.type: FUNC
  * @tc.require: issueICCV9N
  */
-HWTEST_F(RSDisplayRenderParamsTest, ResetVirtualExpandAccumulatedParams, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, ResetVirtualExpandAccumulatedParams, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSScreenRenderParams params(id);
     params.SetAccumulatedDirty(true);
     ASSERT_TRUE(params.GetAccumulatedDirty());
     params.SetAccumulatedHdrStatusChanged(true);
@@ -311,10 +311,10 @@ HWTEST_F(RSDisplayRenderParamsTest, ResetVirtualExpandAccumulatedParams, TestSiz
  * @tc.type: FUNC
  * @tc.require: issueIB2KBH
  */
-HWTEST_F(RSDisplayRenderParamsTest, GetTargetSurfaceRenderNodeDrawable, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, GetTargetSurfaceRenderNodeDrawable, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSScreenRenderParams params(id);
     params.SetTargetSurfaceRenderNodeDrawable(std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>());
     EXPECT_TRUE(params.GetTargetSurfaceRenderNodeDrawable().expired());
 }
@@ -325,10 +325,10 @@ HWTEST_F(RSDisplayRenderParamsTest, GetTargetSurfaceRenderNodeDrawable, TestSize
  * @tc.type: FUNC
  * @tc.require: issueIBTNC3
  */
-HWTEST_F(RSDisplayRenderParamsTest, GetVirtualScreenMuteStatus, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, GetVirtualScreenMuteStatus, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSLogicalDisplayRenderParams params(id);
     params.virtualScreenMuteStatus_ = true;
     ASSERT_TRUE(params.GetVirtualScreenMuteStatus());
 }
@@ -339,10 +339,10 @@ HWTEST_F(RSDisplayRenderParamsTest, GetVirtualScreenMuteStatus, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIC0AQO
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
+    RSScreenRenderParams params(id);
     params.needForceUpdateHwcNodes_ = false;
     params.SetNeedForceUpdateHwcNodes(true);
     ASSERT_TRUE(params.needForceUpdateHwcNodes_);

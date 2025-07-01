@@ -358,8 +358,13 @@ napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-static bool GetContentLight(napi_env env, napi_value* param, std::shared_ptr<ContentLightPara>& para)
+static bool GetContentLight(napi_env env, napi_value* param, size_t length, std::shared_ptr<ContentLightPara>& para)
 {
+    if (length < NUM_2) {
+        FILTER_LOG_E("FilterNapi GetContentLight array length is less than 2");
+        return false;
+    }
+
     Vector3f lightPosition = Vector3f(0.0f, 0.0f, 0.0f);
     Vector4f lightColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -405,7 +410,7 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
         return thisVar;
     }
 
-    UIEFFECT_NAPI_CHECK_RET_D(GetContentLight(env, argValue, para), nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(GetContentLight(env, argValue, argCount, para), nullptr,
         FILTER_LOG_E("FilterNapi GetContentLight fail"));
 
     float lightIntensity = 0.f;

@@ -26,7 +26,7 @@
 #include "metadata_helper.h"
 #endif
 
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 
 namespace OHOS {

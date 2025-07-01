@@ -26,10 +26,10 @@
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
@@ -48,7 +48,7 @@ RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 {
 }
 
-bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
                                 std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
     if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
@@ -58,20 +58,28 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
-    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
+    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_);
 }
 
-bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
-    ScreenId mirroredId, std::shared_ptr<RSBaseRenderEngine> renderEngine)
+bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
+    std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-    if (!RSProcessor::InitForRenderThread(displayDrawable, mirroredId, renderEngine)) {
+    if (!RSProcessor::InitForRenderThread(screenDrawable, renderEngine)) {
         return false;
     }
     // In uni render mode, we can handle screen rotation in the rendering process,
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
-    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
+    return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_);
+}
+
+bool RSUniRenderProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)
+{
+    if (!RSProcessor::UpdateMirrorInfo(displayDrawable)) {
+        return false;
+    }
+    return uniComposerAdapter_->UpdateMirrorInfo(mirrorAdaptiveCoefficient_);
 }
 
 void RSUniRenderProcessor::PostProcess()
@@ -212,15 +220,15 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
     }
     bool forceClientForDRM = false;
     auto ancestorDisplayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
+        std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(params.GetAncestorScreenDrawable().lock());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
         uniParam == nullptr) {
         RS_LOGE("%{public}s ancestorDisplayDrawable/ancestorDisplayDrawableParams/uniParam is nullptr", __func__);
         return false;
     } else {
-        auto displayParams = static_cast<RSDisplayRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
-        forceClientForDRM = displayParams->IsRotationChanged() || uniParam->GetCacheEnabledForRotation();
+        auto screenParams = static_cast<RSScreenRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
+        forceClientForDRM = screenParams->IsRotationChanged() || uniParam->GetCacheEnabledForRotation();
     }
     return forceClientForDRM;
 }
@@ -339,17 +347,17 @@ void RSUniRenderProcessor::ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRe
     layers_.emplace_back(layer);
 }
 
-void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
+void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
 {
     auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessDisplaySurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
+        RS_LOGE("RSUniRenderProcessor::ProcessScreenSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
             node.GetId());
         return;
     }
     if (node.GetFingerprint()) {
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_HBM_SYNC);
-        RS_LOGD("RSUniRenderProcessor::ProcessDisplaySurface, set layer mask hbm sync");
+        RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
@@ -358,32 +366,32 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
     if (!drawable) {
         return;
     }
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     RSUniRenderThread::Instance().SetAcquireFence(surfaceHandler->GetAcquireFence());
 }
 
-void RSUniRenderProcessor::ProcessDisplaySurfaceForRenderThread(
-    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+void RSUniRenderProcessor::ProcessScreenSurfaceForRenderThread(
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
 {
-    auto layer = uniComposerAdapter_->CreateLayer(displayDrawable);
+    auto layer = uniComposerAdapter_->CreateLayer(screenDrawable);
     if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessDisplaySurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
-            displayDrawable.GetId());
+        RS_LOGE("RSUniRenderProcessor::ProcessScreenSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
+            screenDrawable.GetId());
         return;
     }
-    auto& params = displayDrawable.GetRenderParams();
+    auto& params = screenDrawable.GetRenderParams();
     if (!params) {
         return;
     }
     if (params->GetFingerprint()) {
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_HBM_SYNC);
-        RS_LOGD("RSUniRenderProcessor::ProcessDisplaySurface, set layer mask hbm sync");
+        RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    auto surfaceHandler = displayDrawable.GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable.GetRSSurfaceHandlerOnDraw();
     if (!surfaceHandler) {
         return;
     }

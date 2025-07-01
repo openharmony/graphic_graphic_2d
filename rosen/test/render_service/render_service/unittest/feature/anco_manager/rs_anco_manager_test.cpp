@@ -37,8 +37,8 @@ void RSAncoManagerTest::SetUp() {}
 void RSAncoManagerTest::TearDown() {}
 
 /**
- * @tc.name: AncoOptimizeDisplayNode
- * @tc.desc: test AncoOptimizeDisplayNode
+ * @tc.name: AncoOptimizeScreenNode
+ * @tc.desc: test AncoOptimizeScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
@@ -52,7 +52,7 @@ HWTEST_F(RSAncoManagerTest, IsAncoOptimize, TestSize.Level2)
 }
 
 /**
- * @tc.name: AncoOptimizeDisplayNode
+ * @tc.name: AncoOptimizeScreenNode
  * @tc.desc: test AncoOptimizeDisplayNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
@@ -68,17 +68,17 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_01, TestSize.Level2)
     std::unique_ptr<Mock::MockRSAncoManager> mock = std::make_unique<Mock::MockRSAncoManager>();
     EXPECT_CALL(*mock, IsAncoOptimize(_)).WillRepeatedly(testing::Return(true));
 
-    ASSERT_EQ(mock->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
+    ASSERT_EQ(mock->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes,
         ScreenRotation::ROTATION_90, 0, 0), false);
 }
 
 /**
- * @tc.name: AncoOptimizeDisplayNode
- * @tc.desc: test AncoOptimizeDisplayNode
+ * @tc.name: AncoOptimizeScreenNode
+ * @tc.desc: test AncoOptimizeScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
-HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_02, TestSize.Level2)
+HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_02, TestSize.Level2)
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = std::make_shared<RSSurfaceHandler>(0);
@@ -93,17 +93,17 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_02, TestSize.Level2)
     EXPECT_CALL(*mock, IsAncoOptimize(_)).WillRepeatedly(testing::Return(true));
     ASSERT_NE(surfaceHandler->GetBuffer(), nullptr);
 
-    ASSERT_EQ(mock->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
+    ASSERT_EQ(mock->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes,
         ScreenRotation::ROTATION_90, 0, 0), false);
 }
 
 /**
- * @tc.name: AncoOptimizeDisplayNode
- * @tc.desc: test AncoOptimizeDisplayNode
+ * @tc.name: AncoOptimizeScreenNode
+ * @tc.desc: test AncoOptimizeScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
-HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_03, TestSize.Level2)
+HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_03, TestSize.Level2)
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = std::make_shared<RSSurfaceHandler>(0);
@@ -116,17 +116,17 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_03, TestSize.Level2)
     EXPECT_CALL(*mock, IsAncoOptimize(_)).WillRepeatedly(testing::Return(true));
     ASSERT_EQ(surfaceHandler->GetBuffer(), nullptr);
 
-    ASSERT_EQ(mock->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
+    ASSERT_EQ(mock->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes,
         ScreenRotation::ROTATION_90, 1260, 2720), false);
 }
 
 /**
- * @tc.name: AncoOptimizeDisplayNode
- * @tc.desc: test AncoOptimizeDisplayNode
+ * @tc.name: AncoOptimizeScreenNode
+ * @tc.desc: test AncoOptimizeScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
-HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_04, TestSize.Level2)
+HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_04, TestSize.Level2)
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = std::make_shared<RSSurfaceHandler>(0);
@@ -166,17 +166,17 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_04, TestSize.Level2)
     hardwareEnabledNodes.push_back(surfaceNode2);
     hardwareEnabledNodes.push_back(surfaceNode3);
 
-    ASSERT_EQ(mock->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
+    ASSERT_EQ(mock->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes,
               ScreenRotation::ROTATION_90, 1260, 2720), true);
 }
 
 /**
- * @tc.name: AncoOptimizeDisplayNode
- * @tc.desc: test AncoOptimizeDisplayNode
+ * @tc.name: AncoOptimizeScreenNode
+ * @tc.desc: test AncoOptimizeScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
-HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_05, TestSize.Level2)
+HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_05, TestSize.Level2)
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = std::make_shared<RSSurfaceHandler>(0);
@@ -215,17 +215,17 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_05, TestSize.Level2)
     hardwareEnabledNodes.push_back(surfaceNode2);
     hardwareEnabledNodes.push_back(surfaceNode3);
 
-    ASSERT_EQ(mock->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
+    ASSERT_EQ(mock->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes,
               ScreenRotation::ROTATION_90, 1260, 2720), true);
 }
 
 /**
- * @tc.name: AncoOptimizeDisplayNode
- * @tc.desc: test AncoOptimizeDisplayNode
+ * @tc.name: AncoOptimizeScreenNode
+ * @tc.desc: test AncoOptimizeScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
-HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_06, TestSize.Level2)
+HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_06, TestSize.Level2)
 {
     auto ancoManager = RSAncoManager::Instance();
     ASSERT_NE(ancoManager, nullptr);
@@ -234,7 +234,7 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_06, TestSize.Level2)
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
 
     sptr<SyncFence> fence = SyncFence::InvalidFence();
-    ASSERT_EQ(ancoManager->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
+    ASSERT_EQ(ancoManager->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes,
         ScreenRotation::ROTATION_90, 0, 0), false);
 }
 

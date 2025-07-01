@@ -37,14 +37,14 @@ class HgmMultiAppStrategy final {
 public:
     using StrategyChangeCallback = std::function<void(const PolicyConfigData::StrategyConfig&)>;
 
-    HgmMultiAppStrategy();
-    ~HgmMultiAppStrategy() = default;
-
     struct TouchInfo {
         std::string pkgName;
         TouchState touchState;
         int32_t upExpectFps;
     };
+
+    HgmMultiAppStrategy();
+    ~HgmMultiAppStrategy() = default;
 
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
     void HandleTouchInfo(const TouchInfo& touchInfo);

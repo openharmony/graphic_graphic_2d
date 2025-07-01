@@ -56,3 +56,4 @@ HWTEST_F(RSProfilerCommandTest, CommandArgListTest, testing::ext::TestSize.Level
     list.Clear();
     EXPECT_TRUE(list.Empty());
 }
+}

@@ -26,7 +26,7 @@
 
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -172,8 +172,8 @@ bool RSUniHwcPrevalidateUtil::IsNeedDssRotate(GraphicTransformType transform) co
     return false;
 }
 
-bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
-    RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
+bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
+    RSScreenRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
 {
     if (!node) {
         return false;
@@ -182,8 +182,8 @@ bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
     if (!drawable) {
         return false;
     }
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     if (!surfaceHandler->GetConsumer() || !surfaceHandler->GetBuffer()) {
         return false;
     }
@@ -197,7 +197,7 @@ bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
     info.format = buffer->GetFormat();
     info.fps = fps;
     LayerRotate(info, surfaceHandler->GetConsumer(), screenInfo);
-    RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateDisplayNodeLayerInfo %{public}" PRIu64 ","
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateScreenNodeLayerInfo %{public}" PRIu64 ","
         " src: %{public}d,%{public}d,%{public}d,%{public}d"
         " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","
         " bufferUsage: %{public}" PRIu64 ", layerUsage: %{public}" PRIu64 ","

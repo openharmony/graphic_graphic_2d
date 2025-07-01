@@ -280,13 +280,10 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         }
         if (canvas && ptr && ptr->filter_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
-            if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR && rect != nullptr) {
+            if (rect) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                std::shared_ptr<RSRenderFilterParaBase> rsShaderFilter =
-                    filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
-                if (rsShaderFilter != nullptr) {
-                    auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
-                    tmpFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
+                for (const auto& shaderFilter : filter->GetShaderFilters()) {
+                    shaderFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
                 }
             }
             int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();

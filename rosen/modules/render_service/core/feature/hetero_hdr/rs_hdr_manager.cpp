@@ -14,7 +14,6 @@
  */
 
 #include "common/rs_optional_trace.h"
-#include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/hetero_hdr/rs_hetero_hdr_util.h"
@@ -22,7 +21,6 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "hetero_hdr/rs_hdr_pattern_manager.h"
 #include "metadata_helper.h"
-#include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
@@ -79,6 +77,7 @@ void RSHdrManager::UpdateHdrNodes(RSSurfaceRenderNode &node, bool isCurrentFrame
 }
 
 void RSHdrManager::GetFixDstRectStatus(
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable,
     bool isUifistR, RSSurfaceRenderParams *surfaceParams, RectI &finalDstRect, bool &isFixDstRect)
 {
     if (surfaceParams == nullptr) {
@@ -96,7 +95,7 @@ void RSHdrManager::GetFixDstRectStatus(
     }
 
     bool ratiojudge = (abs(ratio - 1.0) > 0.02);
-    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(surfaceParams->GetScreenId());
+    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     int realRotation = RSBaseRenderUtil::RotateEnumToInt(
         RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType));
 
@@ -171,7 +170,7 @@ bool RSHdrManager::PrepareHapeTask(
         RSHDRPatternManager::Instance().MHCReleaseEGraph(curFrameId);
         return false;
     }
-    dstBuffer_ = (nodeDrawable->GetRsHdrBUfferLayer())->PrepareHDRDstBuffer(surfaceParams);
+    dstBuffer_ = (nodeDrawable->GetRsHdrBUfferLayer())->PrepareHDRDstBuffer(surfaceParams, GetScreenIDByDrawable(nodeDrawable));
     if (dstBuffer_ == nullptr) {
         RS_LOGE("dstBuffer is nullptr");
         RSHDRPatternManager::Instance().MHCReSetCurFrameId();
@@ -282,7 +281,7 @@ bool RSHdrManager::PrepareAndSubmitHdrTask(
                       (!nodeDrawable->GetCurHeterogComputingHdr());
     auto src = RectRound(RectI(srcRect.x, srcRect.y, srcRect.w, srcRect.h));
 
-    GetFixDstRectStatus((pendingNodes.find(ownedLeashWindowIdMap_[nodeId]) != pendingNodes.end()),
+    GetFixDstRectStatus(nodeDrawable, (pendingNodes.find(ownedLeashWindowIdMap_[nodeId]) != pendingNodes.end()),
         surfaceParams, dst_, isFixedDstBuffer_);
     // isFixedDstBuffer is true when hpae and GPU are used separately for scaling
     if (isFixedDstBuffer_ || srcRect.w == 0 || srcRect.h == 0) {
@@ -362,6 +361,27 @@ void RSHdrManager::PostHdrSubTasks()
     ownedAppWindowIdMap_.clear();
 }
 
+ScreenId RSHdrManager::GetScreenIDByDrawable(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable)
+{
+#ifdef RS_ENABLE_GPU
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+    if (!surfaceParams || !surfaceParams->GetAncestorScreenNode().lock()) {
+        return INVALID_SCREEN_ID;
+    }
+    auto ancestor = surfaceParams->GetAncestorScreenNode().lock()->ReinterpretCastTo<RSScreenRenderNode>();
+    if (!ancestor) {
+        return INVALID_SCREEN_ID;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(ancestor->GetRenderParams().get());
+    if (!screenParams) {
+        return INVALID_SCREEN_ID;
+    }
+    return screenParams->GetScreenId();
+#else
+    return INVALID_SCREEN_ID;
+#endif
+}
+
 void RSHdrManager::FindParentLeashWindowNode()
 {
     if (pendingPostNodes_.size() != 1) {
@@ -437,7 +457,7 @@ int32_t RSHdrManager::BuildHDRTask(
 bool RSHdrManager::IsHDRSurfaceNodeSkipped(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceDrawable)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, surfaceParams->GetScreenId())) {
+    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, GetScreenIDByDrawable(surfaceDrawable))) {
         return true;
     }
     if (!surfaceDrawable->ShouldPaint()) {

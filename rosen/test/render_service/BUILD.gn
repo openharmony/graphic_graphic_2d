@@ -18,6 +18,7 @@ group("test") {
   deps = [
     "render_service/fuzztest/rsirenderserviceipcinterfacecodeaccessverifier_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
+    "render_service/fuzztest/rsrenderserviceconnection000_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnectionstub_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicesecurityutils_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicestub_fuzzer:fuzztest",
@@ -175,6 +176,7 @@ group("test") {
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
     "render_service_base/fuzztest/rsanimationfractionstandard_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsanimationmarshalling_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationratedeciderstandard_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsspringmodelstandard_fuzzer:fuzztest",
   ]

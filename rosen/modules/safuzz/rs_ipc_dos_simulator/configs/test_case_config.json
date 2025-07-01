@@ -963,15 +963,6 @@
     "commandListRepeat": 1
   },
   {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_109",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeSetDisplayOffset*100",
-    "commandListRepeat": 1
-  },
-  {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_110",
     "interfaceName": "COMMIT_TRANSACTION",
     "inputParams": "WriteRSTransactionData",
@@ -1005,15 +996,6 @@
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
     "commandList": "RSDisplayNodeSetBootAnimation*100",
-    "commandListRepeat": 1
-  },
-  {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_114",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeSetRogSize*100",
     "commandListRepeat": 1
   },
   {
@@ -2325,6 +2307,27 @@
     "testCaseDesc": "AVCODEC_VIDEO_STOP_TEST_001",
     "interfaceName": "AVCODEC_VIDEO_STOP",
     "inputParams": "WriteUint64;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_SERVICE_OPEN_FILE_TEST_001",
+    "interfaceName": "PROFILER_SERVICE_OPEN_FILE",
+    "inputParams": "WriteUint32;WriteString;WriteString;WriteString;WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_SERVICE_POPULATE_FILES_TEST_001",
+    "interfaceName": "PROFILER_SERVICE_POPULATE_FILES",
+    "inputParams": "WriteUint32;WriteString;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_IS_SECURE_SCREEN_TEST_001",
+    "interfaceName": "PROFILER_IS_SECURE_SCREEN",
+    "inputParams": "",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   }

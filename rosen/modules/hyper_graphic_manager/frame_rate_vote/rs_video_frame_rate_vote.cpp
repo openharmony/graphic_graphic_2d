@@ -13,18 +13,19 @@
  * limitations under the License.
  */
 
+#include "rs_video_frame_rate_vote.h"
+
 #include <chrono>
 
-#include "rs_video_frame_rate_vote.h"
 #include "ffrt_inner.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-    const static uint32_t NORMAL_RATE_MIN = 1;
-    const static uint32_t NORMAL_RATE_MAX = 144;
-    constexpr int32_t DELAY_TIME = 1000 * 1000;
+constexpr uint32_t NORMAL_RATE_MIN = 1;
+constexpr uint32_t NORMAL_RATE_MAX = 144;
+constexpr int32_t DELAY_TIME = 1000 * 1000;
 }
 
 RSVideoFrameRateVote::RSVideoFrameRateVote(uint64_t surfaceNodeId,

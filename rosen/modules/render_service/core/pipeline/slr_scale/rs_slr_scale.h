@@ -16,7 +16,7 @@
 #ifndef RS_SLR_SCALE_H
 #define RS_SLR_SCALE_H
 
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 

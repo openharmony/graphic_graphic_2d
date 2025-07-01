@@ -69,6 +69,8 @@ class SurfaceCaptureFuture : public SurfaceCaptureCallback {
         {
             pixelMap_ = pixelmap;
         }
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
         std::shared_ptr<Media::PixelMap> GetPixelMap()
         {
             return pixelMap_;

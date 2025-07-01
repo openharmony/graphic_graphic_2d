@@ -90,7 +90,7 @@ private:
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
     // Vrate
-    //defalut value is 1, visiable lower than 10%.
+    // defalut value is 1, visiable lower than 10%.
     int32_t vrateControlMinifpsValue_ = 1;
     sptr<VSyncDistributor> appDistributor_ = nullptr;
     FrameRateLinkerMap appFrameRateLinkers_;

@@ -56,7 +56,8 @@ private:
     static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender);
     static napi_value SetHDRUIBrightness(napi_env env, napi_callback_info info);
     static napi_value CreateBorderLight(napi_env env, napi_callback_info info);
-    static bool GetBorderLight(napi_env env, napi_value* param, std::shared_ptr<BorderLightEffectPara>& para);
+    static bool GetBorderLight(napi_env env, napi_value* param, size_t length,
+        std::shared_ptr<BorderLightEffectPara>& para);
     static float GetSpecialValue(napi_env env, napi_value argValue);
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };

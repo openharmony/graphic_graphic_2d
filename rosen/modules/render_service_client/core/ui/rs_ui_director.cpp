@@ -63,6 +63,7 @@ namespace Rosen {
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
+static std::once_flag g_isResidentProcessFlag;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -792,7 +793,8 @@ int32_t RSUIDirector::GetCurrentRefreshRateMode()
 int32_t RSUIDirector::GetAnimateExpectedRate() const
 {
     int32_t animateRate = 0;
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         auto& range = modifierManager->GetFrameRateRange();
         if (range.IsValid()) {
@@ -800,6 +802,17 @@ int32_t RSUIDirector::GetAnimateExpectedRate() const
         }
     }
     return animateRate;
+}
+
+void RSUIDirector::SetTypicalResidentProcessOnce(bool isTypicalResidentProcess)
+{
+    std::call_once(g_isResidentProcessFlag,
+        [isTypicalResidentProcess]() { RSSystemProperties::SetTypicalResidentProcess(isTypicalResidentProcess); });
+}
+
+void RSUIDirector::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+    SetTypicalResidentProcessOnce(isTypicalResidentProcess);
 }
 } // namespace Rosen
 } // namespace OHOS

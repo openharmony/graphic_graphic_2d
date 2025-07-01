@@ -213,13 +213,14 @@ bool FontParser::ParseOneTable(std::shared_ptr<Drawing::Typeface> typeface, Font
 using TableTypes = std::tuple<CmapTables, NameTable, PostTable>;
 
 template<typename Tuple, size_t... Is>
-bool FontParser::ParseAllTables(
-    std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor, std::index_sequence<Is...>)
+bool FontParser::ParseAllTables(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor,
+    std::index_sequence<Is...>) const
 {
     return (ParseOneTable<std::tuple_element_t<Is, Tuple>>(typeface, fontDescriptor) && ...);
 }
 
-bool FontParser::ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+bool FontParser::ParseTable(
+    std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor) const
 {
     return ParseAllTables<TableTypes>(
         typeface, fontDescriptor, std::make_index_sequence<std::tuple_size_v<TableTypes>>());
@@ -335,8 +336,15 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::GetSystemFo
     return CreateFontDescriptors(typefaces, locale);
 }
 
+std::shared_ptr<FontParser::FontDescriptor> FontParser::ParserFontDescriptorFromPath(
+    const std::string& path, size_t index, const std::string& locale) const
+{
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index);
+    return CreateFontDescriptor(typeface, GetLanguageId(locale));
+}
+
 std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::ParserFontDescriptorsFromPath(
-    const std::string& path, const std::string& locale)
+    const std::string& path, const std::string& locale) const
 {
     std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
     int index = 0;
@@ -348,8 +356,26 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::ParserFontD
     return CreateFontDescriptors(typefaces, locale);
 }
 
+std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
+    const std::shared_ptr<Drawing::Typeface>& typeface, unsigned int languageId) const
+{
+    if (typeface == nullptr) {
+        return nullptr;
+    }
+    FontDescriptor desc;
+    desc.requestedLid = languageId;
+    desc.path = typeface->GetFontPath();
+    auto fontStyle = typeface->GetFontStyle();
+    desc.weight = fontStyle.GetWeight();
+    desc.width = fontStyle.GetWidth();
+    if (!ParseTable(typeface, desc)) {
+        return nullptr;
+    }
+    return std::make_shared<FontParser::FontDescriptor>(desc);
+}
+
 std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::CreateFontDescriptors(
-    const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces, const std::string& locale)
+    const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces, const std::string& locale) const
 {
     if (typefaces.empty()) {
         return {};
@@ -359,16 +385,11 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::CreateFontD
     descriptors.reserve(typefaces.size());
     unsigned int languageId = static_cast<unsigned int>(GetLanguageId(locale));
     for (auto& item : typefaces) {
-        FontDescriptor desc;
-        desc.requestedLid = languageId;
-        desc.path = item->GetFontPath();
-        auto fontStyle = item->GetFontStyle();
-        desc.weight = fontStyle.GetWeight();
-        desc.width = fontStyle.GetWidth();
-        if (!ParseTable(item, desc)) {
+        std::shared_ptr<FontParser::FontDescriptor> desc = CreateFontDescriptor(item, languageId);
+        if (desc == nullptr) {
             continue;
         }
-        descriptors.emplace_back(std::make_shared<FontDescriptor>(desc));
+        descriptors.push_back(std::move(desc));
     }
     return descriptors;
 }

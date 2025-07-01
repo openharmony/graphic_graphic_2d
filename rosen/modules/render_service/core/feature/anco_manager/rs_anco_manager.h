@@ -26,7 +26,7 @@ public:
     static RSAncoManager* Instance();
     AncoHebcStatus GetAncoHebcStatus() const;
     void SetAncoHebcStatus(AncoHebcStatus hebcStatus);
-    bool AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+    bool AncoOptimizeScreenNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes,
         ScreenRotation rotation, uint32_t width, uint32_t height);
     virtual bool IsAncoOptimize(ScreenRotation rotation);
@@ -41,7 +41,7 @@ public:
 
 private:
     bool AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt);
-    // anco displayNode use hebc
+    // anco screenNode use hebc
     std::atomic<int32_t> ancoHebcStatus_ = static_cast<int32_t>(AncoHebcStatus::INITIAL);
 protected:
     RSAncoManager() = default;

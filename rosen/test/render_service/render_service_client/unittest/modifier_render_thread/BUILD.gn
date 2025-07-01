@@ -50,6 +50,7 @@ ohos_unittest("RSModifiersDrawThreadTest") {
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
   defines = []
   if (accessibility_enable) {

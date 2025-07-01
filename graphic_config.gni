@@ -90,14 +90,9 @@ gpu_defines = []
 accessibility_defines = []
 
 if (graphic_2d_feature_screenless_enable) {
-  graphic_2d_feature_bootanimation_enable = false
-  graphic_2d_feature_enable_vulkan = false
-  player_framework_enable = false
-  graphic_2d_feature_drivers_interface_display_enable = false
-  graphic_2d_feature_rs_enable_uni_render = true
-
   gpu_defines += ["SCREENLESS_DEVICE"]
 }
+
 if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_vulkan) {
     gpu_defines += [
@@ -129,7 +124,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
   libvulkan = []
   if (graphic_2d_feature_enable_vulkan) {
-    libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
+    libvulkan += [ "vulkan-loader:vulkan_loader" ]
   }
 } else {
   gpu_defines += [ "ACE_DISABLE_GL" ]
@@ -364,7 +359,15 @@ graphic_2d_ext_root = "//foundation/graphic/graphic_2d_ext"
 hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"
-skia_root_new = "//third_party/skia"
+if (graphic_2d_feature_upgrade_skia) {
+  if (!defined(skia_root_new)) {
+    skia_root_new = "//third_party/skia/m133"
+  }
+} else {
+    if (!defined(skia_root_new)) {
+    skia_root_new = "//third_party/skia"
+  }
+}
 graphic_surface_root = "//foundation/graphic/graphic_surface"
 fuzz_test_output_path = "graphic_2d/graphic_2d"
 video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
@@ -425,10 +428,6 @@ if (!ohos_indep_compiler_enable) {
                         "list lines")
 } else {
   adapters = ["preview", "ohos"]
-}
-
-if (defined(use_clang_coverage) && use_clang_coverage) {
-  graphic_2d_feature_rs_enable_profiler = false
 }
 
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {

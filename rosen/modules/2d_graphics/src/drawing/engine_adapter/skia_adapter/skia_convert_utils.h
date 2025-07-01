@@ -43,6 +43,26 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+#ifdef USE_M133_SKIA
+struct SamplingOptionsUtils {
+    int maxAniso = 0;
+    bool useCubic = false;
+    CubicResampler cubic = {0, 0};
+    FilterMode filter = FilterMode::NEAREST;
+    MipmapMode mipmap = MipmapMode::NONE;
+};
+
+inline void ConvertSamplingOptions(SamplingOptionsUtils& tempSamplingOptions, const SamplingOptions& sampling)
+{
+    tempSamplingOptions.useCubic = sampling.GetUseCubic();
+    tempSamplingOptions.cubic.cubicCoffB = sampling.GetCubicCoffB();
+    tempSamplingOptions.cubic.cubicCoffC = sampling.GetCubicCoffC();
+    tempSamplingOptions.filter = sampling.GetFilterMode();
+    tempSamplingOptions.mipmap = sampling.GetMipmapMode();
+}
+#endif
+
 class SkiaConvertUtils {
 public:
     static void DrawingFontMetricsCastToSkFontMetrics(const FontMetrics& fontMetrics, SkFontMetrics& skFontMetrics)

@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_HDR_BUFFER_LAYER_H
  
 #include "common/rs_common_def.h"
-#include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_handler.h"
 #include "transaction/rs_render_service_client.h"
@@ -36,7 +35,7 @@ public:
         return surfaceHandler_;
     }
     void ConsumeAndUpdateBuffer();
-    sptr<SurfaceBuffer> PrepareHDRDstBuffer(RSSurfaceRenderParams *surfaceParams);
+    sptr<SurfaceBuffer> PrepareHDRDstBuffer(RSSurfaceRenderParams *surfaceParams, ScreenId screenId);
  
 private:
     void FlushSurfaceBuffer(sptr<SurfaceBuffer> &buffer, int32_t acquireFence,

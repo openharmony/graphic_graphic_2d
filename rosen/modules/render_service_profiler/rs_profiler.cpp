@@ -38,8 +38,9 @@
 #include "common/rs_common_def.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "render/rs_typeface_cache.h"
@@ -167,12 +168,12 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     if (!context_) {
         return;
     }
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
+    std::shared_ptr<RSScreenRenderNode> displayNode = GetScreenNode(*context_);
     if (!displayNode) {
         return;
     }
     // the following logic calcuate the percentage of dirtyRegion
-    auto params = static_cast<RSDisplayRenderParams*>(displayNode->GetRenderParams().get());
+    auto params = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
     if (!params) {
         return;
     }
@@ -478,9 +479,18 @@ void RSProfiler::OnProcessCommand()
 
 bool RSProfiler::IsSecureScreen()
 {
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
-    if (displayNode) {
-        return (displayNode->GetMultableSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)) ? true : false;
+    std::shared_ptr<RSScreenRenderNode> screenNode = GetScreenNode(*context_);
+    if (!screenNode) {
+        return false;
+    }
+    for (auto& child : *screenNode->GetChildren()) {
+        auto displayNode = child->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+        if (!displayNode) {
+            continue;
+        }
+        if (displayNode->GetMultableSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)) {
+            return true;
+        }
     }
     return false;
 }
@@ -1257,8 +1267,8 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     RenderServiceTreeDump(json, pid);
 
     auto& display = json["Display"];
-    auto displayNode = GetDisplayNode(*context_);
-    auto dirtyManager = displayNode ? displayNode->GetDirtyManager() : nullptr;
+    auto screenNode = GetScreenNode(*context_);
+    auto dirtyManager = screenNode ? screenNode->GetDirtyManager() : nullptr;
     if (dirtyManager) {
         const auto displayRect = dirtyManager->GetSurfaceRect();
         display = { displayRect.GetLeft(), displayRect.GetTop(), displayRect.GetRight(), displayRect.GetBottom() };
@@ -1389,8 +1399,10 @@ void RSProfiler::GetRoot(const ArgList& args)
             type = "UNKNOWN";
         } else if (nodeType == RSRenderNodeType::RS_NODE) {
             type = "NONE";
-        } else if (nodeType == RSRenderNodeType::DISPLAY_NODE) {
-            type = "DISPLAY_NODE";
+        } else if (nodeType == RSRenderNodeType::SCREEN_NODE) {
+            type = "SCREEN_NODE";
+        } else if (nodeType == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+            type = "LOGICAL_DISPLAY_NODE";
         } else if (nodeType == RSRenderNodeType::EFFECT_NODE) {
             type = "EFFECT_NODE";
         } else if (nodeType == RSRenderNodeType::ROOT_NODE) {
@@ -1408,7 +1420,7 @@ void RSProfiler::GetRoot(const ArgList& args)
     };
 
     if (node) {
-        out += "ROOT_ID=" + std::to_string(node->GetId()); // DISPLAY_NODE;ohos.sceneboard
+        out += "ROOT_ID=" + std::to_string(node->GetId()); // SCREEN_NODE;ohos.sceneboard
     }
 
     Respond(out);

@@ -130,8 +130,7 @@ void RSRenderModifier::AttachProperty(RSPropertyType type, const std::shared_ptr
         return;
     }
     if (auto node = target_.lock()) {
-        node->properties_.emplace(property->GetId(), property);
-        property->Attach(shared_from_this());
+        property->Attach(*node, weak_from_this());
         property->UpdatePropertyUnitNG(type);
         node->SetDirty();
         node->AddDirtyType(GetType());
@@ -148,7 +147,7 @@ void RSRenderModifier::DetachProperty(RSPropertyType type)
     }
     if (auto node = target_.lock()) {
         DetachRenderFilterProperty(it->second, type);
-        node->properties_.erase(it->second->GetId());
+        it->second->Detach();
         node->SetDirty();
         node->AddDirtyType(GetType());
     }
@@ -183,8 +182,7 @@ void RSRenderModifier::OnAttachModifier(RSRenderNode& node)
     node.AddDirtyType(GetType());
     target_ = node.weak_from_this();
     for (auto& [type, property] : properties_) {
-        node.properties_.emplace(property->GetId(), property);
-        property->Attach(shared_from_this());
+        property->Attach(node, weak_from_this());
         property->UpdatePropertyUnitNG(type);
     }
     dirty_ = true;
@@ -199,7 +197,7 @@ void RSRenderModifier::OnDetachModifier()
     }
     for (auto& [type, property] : properties_) {
         DetachRenderFilterProperty(property, type);
-        node->properties_.erase(property->GetId());
+        property->Detach();
     }
     node->SetDirty();
     node->AddDirtyType(GetType());
@@ -246,7 +244,7 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     RSRenderModifier* ret = constructor();
-    if (!RSMarshallingHelper::Unmarshalling(parcel, ret->id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->properties_)) {
         delete ret;
         return nullptr;

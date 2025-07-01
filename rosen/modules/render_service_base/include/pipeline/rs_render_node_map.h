@@ -27,12 +27,12 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSSurfaceRenderNode;
-class RSDisplayRenderNode;
+class RSScreenRenderNode;
 class RSCanvasDrawingRenderNode;
+class RSLogicalDisplayRenderNode;
 class RSB_EXPORT RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
-    bool RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);
 
     void RegisterUnTreeNode(NodeId id);
@@ -63,7 +63,9 @@ public:
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
     void TraverseSurfaceNodesBreakOnCondition(
         std::function<bool (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
-    void TraverseDisplayNodes(std::function<void (const std::shared_ptr<RSDisplayRenderNode>&)> func) const;
+    void TraverseScreenNodes(std::function<void (const std::shared_ptr<RSScreenRenderNode>&)> func) const;
+    void TraverseLogicalDisplayNodes(
+        std::function<void (const std::shared_ptr<RSLogicalDisplayRenderNode>&)> func) const;
     void TraverseCanvasDrawingNodes(std::function<void (const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const;
     const std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetResidentSurfaceNodeMap() const;
     bool IsResidentProcessNode(NodeId id) const;
@@ -99,7 +101,8 @@ private:
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> renderNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> surfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> residentSurfaceNodeMap_;
-    std::unordered_map<NodeId, std::shared_ptr<RSDisplayRenderNode>> displayNodeMap_;
+    std::unordered_map<NodeId, std::shared_ptr<RSScreenRenderNode>> screenNodeMap_;
+    std::unordered_map<NodeId, std::shared_ptr<RSLogicalDisplayRenderNode>> logicalDisplayNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;
     std::unordered_map<NodeId, bool> purgeableNodeMap_;
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>>

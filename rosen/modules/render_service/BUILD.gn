@@ -123,6 +123,7 @@ ohos_shared_library("librender_service") {
     "core/feature/hyper_graphic_manager/hgm_context.cpp",
     "core/feature/hyper_graphic_manager/hgm_hardware_utils.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
+    "core/feature/lpp/lpp_video_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
@@ -219,7 +220,10 @@ ohos_shared_library("librender_service") {
   ]
 
   #dfx
-  sources += [ "core/drawable/dfx/rs_skp_capture_dfx.cpp" ]
+  sources += [
+    "core/drawable/dfx/rs_refresh_rate_dfx.cpp", 
+    "core/drawable/dfx/rs_skp_capture_dfx.cpp",
+  ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     sources += [
@@ -233,10 +237,11 @@ ohos_shared_library("librender_service") {
       "core/drawable/dfx/rs_dirty_rects_dfx.cpp",
       "core/drawable/rs_canvas_drawing_render_node_drawable.cpp",
       "core/drawable/rs_canvas_render_node_drawable.cpp",
-      "core/drawable/rs_display_render_node_drawable.cpp",
       "core/drawable/rs_effect_render_node_drawable.cpp",
+      "core/drawable/rs_logical_display_render_node_drawable.cpp",
       "core/drawable/rs_render_node_drawable.cpp",
       "core/drawable/rs_root_render_node_drawable.cpp",
+      "core/drawable/rs_screen_render_node_drawable.cpp",
       "core/drawable/rs_surface_render_node_drawable.cpp",
       "core/feature/capture/rs_surface_capture_task_parallel.cpp",
       "core/feature/capture/rs_ui_capture_solo_task_parallel.cpp",
@@ -381,6 +386,7 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_command.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_hrp_service.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_network.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",

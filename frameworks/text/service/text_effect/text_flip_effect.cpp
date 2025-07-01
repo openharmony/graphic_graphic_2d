@@ -175,6 +175,17 @@ void TextFlipEffect::StopEffect()
     std::vector<uint16_t>().swap(lastAllBlobGlyphIds_);
 }
 
+void TextFlipEffect::NoEffect(Drawing::Canvas* canvas, double x, double y)
+{
+    if (typographyConfig_.typography == nullptr) {
+        return;
+    }
+    bool lastSkipState = typographyConfig_.typography->HasSkipTextBlobDrawing();
+    typographyConfig_.typography->SetSkipTextBlobDrawing(false);
+    typographyConfig_.typography->Paint(canvas, x, y);
+    typographyConfig_.typography->SetSkipTextBlobDrawing(lastSkipState);
+}
+
 void TextFlipEffect::DrawTextFlip(std::vector<TextBlobRecordInfo>& infos, Drawing::Canvas* canvas, double x, double y)
 {
     auto animationFunc = typographyConfig_.typography->GetAnimation();

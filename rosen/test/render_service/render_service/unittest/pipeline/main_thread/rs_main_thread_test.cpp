@@ -24,13 +24,14 @@
 #include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
 #include "screen_manager/rs_screen.h"
@@ -63,7 +64,7 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
-    static std::shared_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode();
+    static std::shared_ptr<RSScreenRenderNode> GetAndInitScreenRenderNode();
     static void ChangeHardwareEnabledNodesBufferData(
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
 
@@ -117,7 +118,7 @@ void RSMainThreadTest::TearDown()
     renderNodeMap.renderNodeMap_.clear();
     renderNodeMap.surfaceNodeMap_.clear();
     renderNodeMap.residentSurfaceNodeMap_.clear();
-    renderNodeMap.displayNodeMap_.clear();
+    renderNodeMap.screenNodeMap_.clear();
     renderNodeMap.canvasDrawingNodeMap_.clear();
     renderNodeMap.uiExtensionSurfaceNodes_.clear();
 }
@@ -127,11 +128,11 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
     return nullptr;
 }
 
-std::shared_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNode()
+std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode()
 {
     NodeId displayId = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, 0, rsContext);
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 0xFFFF;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
@@ -146,7 +147,6 @@ std::shared_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNo
     rsScreen->phyWidth_ = SCREEN_PHYSICAL_WIDTH;
     rsScreen->phyHeight_ = SCREEN_PHYSICAL_HEIGHT;
     screenManager->MockHdiScreenConnected(rsScreen);
-    displayNode->SetScreenId(screenId);
     return displayNode;
 }
 
@@ -1735,8 +1735,8 @@ HWTEST_F(RSMainThreadTest, UniRender001, TestSize.Level1)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     rootNode->AddChild(childDisplayNode, 0);
     rootNode->InitRenderParams();
     childDisplayNode->InitRenderParams();
@@ -1760,8 +1760,8 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     rootNode->AddChild(childDisplayNode, 0);
     // prepare status
     bool doDirectComposition = mainThread->doDirectComposition_;
@@ -1801,11 +1801,17 @@ HWTEST_F(RSMainThreadTest, UniRender003, TestSize.Level1)
     // prepare nodes
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
-    NodeId id = 1;
+    NodeId screenNodeId = 2;
+    ScreenId screenId = 3;
+    auto screenNode = std::shared_ptr<RSScreenRenderNode>(new RSScreenRenderNode(screenNodeId,
+        screenId, context->weak_from_this()));
+    rootNode->AddChild(screenNode);
     RSDisplayNodeConfig config;
-    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    rootNode->AddChild(childDisplayNode, 0);
+    NodeId displayNodeId = 1;
+    auto childDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    screenNode->AddChild(childDisplayNode, 0);
     rootNode->InitRenderParams();
+    screenNode->InitRenderParams();
     childDisplayNode->InitRenderParams();
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
@@ -1903,8 +1909,8 @@ HWTEST_F(RSMainThreadTest, Render, TestSize.Level1)
     mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     const std::shared_ptr<RSBaseRenderNode> rootNode = mainThread->context_->globalRootRenderNode_;
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     rootNode->AddChild(childDisplayNode);
     bool isUniRender = mainThread->isUniRender_;
     mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
@@ -2035,9 +2041,8 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    RSDisplayNodeConfig config;
     NodeId displayNodeId = 0;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayNodeId, config, mainThread->context_);
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayNodeId, 0, mainThread->context_->weak_from_this());
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     NodeId surfaceNodeId = 0;
@@ -2428,8 +2433,8 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion002, TestSize.Level1)
     mainThread->CalcOcclusion();
     // run with more than one node
     auto node3 = std::make_shared<RSRenderNode>(0, true);
-    RSDisplayNodeConfig config1;
-    auto node4 = std::make_shared<RSDisplayRenderNode>(1, config1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node4 = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
     RSSurfaceRenderNodeConfig config2;
     auto node5 = std::make_shared<RSSurfaceRenderNode>(config2);
     node3->AddChild(node4);
@@ -3561,29 +3566,6 @@ HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus003, TestSiz
 }
 
 /**
- * @tc.name: UpdateRogSizeIfNeeded
- * @tc.desc: UpdateRogSizeIfNeeded Test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, UpdateRogSizeIfNeeded, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    // prepare context
-    auto contextInit = mainThread->context_;
-    auto context = std::make_shared<RSContext>();
-    auto rootNode = context->GetGlobalRootRenderNode();
-    NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    rootNode->AddChild(childDisplayNode);
-    mainThread->context_ = context;
-    mainThread->UpdateRogSizeIfNeeded();
-    mainThread->context_ = contextInit;
-}
-
-/**
  * @tc.name: ReleaseSurface
  * @tc.desc: ReleaseSurface Test
  * @tc.type: FUNC
@@ -3836,45 +3818,45 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDisplayNodeScreenId001
- * @tc.desc: UpdateDisplayNodeScreenId, when rootnode is nullptr.
+ * @tc.name: UpdateScreenNodeScreenId001
+ * @tc.desc: UpdateScreenNodeScreenId, when rootnode is nullptr.
  * @tc.type: FUNC
  * @tc.require: issueI97LXT
  */
-HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     ASSERT_NE(mainThread->context_, nullptr);
     mainThread->context_->globalRootRenderNode_ = nullptr;
-    mainThread->UpdateDisplayNodeScreenId();
-    ASSERT_EQ(mainThread->displayNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
+    mainThread->UpdateScreenNodeScreenId();
+    ASSERT_EQ(mainThread->screenNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
 }
 
 /**
- * @tc.name: UpdateDisplayNodeScreenId002
- * @tc.desc: UpdateDisplayNodeScreenId, root node has no child display node.
+ * @tc.name: UpdateScreenNodeScreenId002
+ * @tc.desc: UpdateScreenNodeScreenId, root node has no child display node.
  * @tc.type: FUNC
  * @tc.require: issueI97LXT
  */
-HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId002, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     ASSERT_NE(mainThread->context_, nullptr);
     NodeId id = 1;
     mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(id);
-    mainThread->UpdateDisplayNodeScreenId();
-    ASSERT_EQ(mainThread->displayNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
+    mainThread->UpdateScreenNodeScreenId();
+    ASSERT_EQ(mainThread->screenNodeScreenId_, DEFAULT_DISPLAY_SCREEN_ID);
 }
 
 /**
- * @tc.name: UpdateDisplayNodeScreenId003
- * @tc.desc: UpdateDisplayNodeScreenId, root node has one child display node.
+ * @tc.name: UpdateScreenNodeScreenId003
+ * @tc.desc: UpdateScreenNodeScreenId, root node has one child display node.
  * @tc.type: FUNC
  * @tc.require: issueI97LXT
  */
-HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId003, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -3883,12 +3865,12 @@ HWTEST_F(RSMainThreadTest, UpdateDisplayNodeScreenId003, TestSize.Level1)
     mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(rootId);
     RSDisplayNodeConfig config;
     NodeId displayId = 1;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayId, config);
     uint64_t screenId = 1;
     displayNode->SetScreenId(screenId);
     mainThread->context_->globalRootRenderNode_->AddChild(displayNode);
     ASSERT_FALSE(mainThread->context_->globalRootRenderNode_->children_.empty());
-    mainThread->UpdateDisplayNodeScreenId();
+    mainThread->UpdateScreenNodeScreenId();
 }
 
 /**
@@ -3945,8 +3927,8 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition, TestSize.Level1)
     NodeId rootId = 0;
     auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
     NodeId displayId = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, 0, rsContext->weak_from_this());
     rootNode->AddChild(displayNode);
     mainThread->DoDirectComposition(rootNode, false);
 }
@@ -4518,18 +4500,18 @@ HWTEST_F(RSMainThreadTest, HasMirrorDisplay002, TestSize.Level2)
     NodeId id = 1;
     auto node1 = std::make_shared<RSRenderNode>(id);
     id++;
-    RSDisplayNodeConfig config;
-    auto displayNode1 = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode1 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     id++;
     node1->AddChild(displayNode1);
     node1->GenerateFullChildrenList();
     ASSERT_TRUE(node1->GetChildrenCount() <= 1);
     mainThread->context_->globalRootRenderNode_ = node1;
     ASSERT_EQ(mainThread->HasMirrorDisplay(), false);
-    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     id++;
-    auto mirrorSourceNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    displayNode2->isMirroredDisplay_ = true;
+    auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    displayNode2->isMirroredScreen_ = true;
     displayNode2->SetMirrorSource(mirrorSourceNode);
     node1->AddChild(displayNode2);
     node1->GenerateFullChildrenList();
@@ -4572,7 +4554,7 @@ HWTEST_F(RSMainThreadTest, SendClientDumpNodeTreeCommands, TestSize.Level2)
 
     NodeId testId = 1;
     auto rootNode = mainThread->context_->globalRootRenderNode_;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(testId++, RSDisplayNodeConfig {});
+    auto displayNode = std::make_shared<RSScreenRenderNode>(testId++, 0, std::make_shared<RSContext>());
     rootNode->AddChild(displayNode);
     auto node1 = std::make_shared<RSRenderNode>(testId++);
     displayNode->AddChild(node1);
@@ -4984,8 +4966,8 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition001, TestSize.Level1)
     NodeId rootId = 0;
     auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
     NodeId displayId = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, 0, rsContext->weak_from_this());
     rootNode->AddChild(displayNode);
     rootNode->GenerateFullChildrenList();
 
@@ -5006,12 +4988,12 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition002, TestSize.Level1)
     NodeId rootId = 0;
     auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
     NodeId displayId = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, 0, rsContext->weak_from_this());
     rootNode->AddChild(displayNode);
     rootNode->GenerateFullChildrenList();
-    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
-    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+    auto childNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
 
     bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
     ASSERT_FALSE(doDirectComposition);
@@ -5033,6 +5015,79 @@ HWTEST_F(RSMainThreadTest, MultiDisplayChangeTest, TestSize.Level2)
     mainThread->isMultiDisplayChange_ = false;
     EXPECT_FALSE(mainThread->GetMultiDisplayChange());
     mainThread->MultiDisplayChange(getMultiDisplayStatus);
+}
+
+/**
+ * @tc.name: IsFastComposeVsyncTimeSync001
+ * @tc.desc: test IsFastComposeVsyncTimeSync input value error condition
+ * @tc.type: FUNC
+ * @tc.require: issueICGGHY
+ */
+HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t unsignedVsyncPeriod = 0;
+    bool nextVsyncRequested = false;
+    uint64_t unsignedNowTime = 1000;
+    uint64_t lastVsyncTime = 500;
+    int64_t vsyncTimeStamp = -100;
+    uint64_t timestamp = mainThread->timestamp_;
+    bool result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, false);
+    unsignedVsyncPeriod = 16666666;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, false);
+    vsyncTimeStamp = 16666666;
+    mainThread->timestamp_ = 1000;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, false);
+    mainThread->timestamp_ = 15666666;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    mainThread->timestamp_ = 17666666;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    nextVsyncRequested = true;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    mainThread->timestamp_ = timestamp;
+}
+
+/**
+ * @tc.name: IsFastComposeVsyncTimeSync002
+ * @tc.desc: test IsFastComposeVsyncTimeSync at time near vsync time or not condition
+ * @tc.type: FUNC
+ * @tc.require: issueICGGHY
+ */
+HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t unsignedVsyncPeriod = 0;
+    bool nextVsyncRequested = false;
+    uint64_t unsignedNowTime = 1000;
+    uint64_t lastVsyncTime = 500;
+    int64_t vsyncTimeStamp = 16666666;
+    uint64_t timestamp = mainThread->timestamp_;
+    mainThread->timestamp_ = 16666666;
+    bool result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    unsignedNowTime = 1000;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    nextVsyncRequested = true;
+    result = mainThread->IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
+        unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
+    ASSERT_EQ(result, true);
+    mainThread->timestamp_ = timestamp;
 }
 
 /**
@@ -5061,6 +5116,23 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
     mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
     ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
     mainThread->receiver_ = receiver;
+}
+
+/**
+ * @tc.name: CheckFastCompose
+ * @tc.desc: test CheckFastCompose
+ * @tc.type: FUNC
+ * @tc.require: issueICGGHY
+ */
+HWTEST_F(RSMainThreadTest, CheckFastCompose002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t timestamp = mainThread->timestamp_;
+    mainThread->timestamp_ = mainThread->timestamp_ - 16666666;
+    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
+    mainThread->timestamp_ = timestamp;
 }
 
 /**
@@ -5251,13 +5323,13 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     NodeId rootId = 0;
     auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
     ASSERT_NE(rootNode, nullptr);
-    auto displayNode = GetAndInitDisplayRenderNode();
+    auto displayNode = GetAndInitScreenRenderNode();
     ASSERT_NE(displayNode, nullptr);
     auto otherNode = std::make_shared<RSRenderNode>(2);
     displayNode->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(otherNode);
 
-    auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(otherNode);
-    auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
+    auto drawable = DrawableV2::RSScreenRenderNodeDrawable::OnGenerate(otherNode);
+    auto displayDrawable = static_cast<DrawableV2::RSScreenRenderNodeDrawable*>(drawable);
     ASSERT_NE(displayDrawable, nullptr);
     ASSERT_NE(displayDrawable->surfaceHandler_, nullptr);
     displayDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
@@ -5268,12 +5340,8 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 
     rootNode->AddChild(displayNode);
     rootNode->GenerateFullChildrenList();
-    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
-    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
+    auto childNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
@@ -5282,15 +5350,9 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
     ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
 
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
-
-    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
-    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
-
     NodeId displayId2 = 2;
-    RSDisplayNodeConfig config;
-    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(displayId2, config);
+    auto context = std::make_shared<RSContext>();
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(displayId2, 0, context);
     rootNode->AddChild(displayNode2);
     rootNode->GenerateFullChildrenList();
 
@@ -5324,16 +5386,16 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     config.screenId = 5; // screeId is 5 for test
 
     // INIT CHILDLIST
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
-    displayNode->SetScreenId(config.screenId);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, config.screenId, rsContext->weak_from_this());
 
-    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(2, config);
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(displayId, 2, rsContext->weak_from_this());
 
     rootNode->AddChild(displayNode);
     rootNode->AddChild(displayNode2);
     rootNode->GenerateFullChildrenList();
-    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
-    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+    auto childNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
 
     // INIT NodeList
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config.screenId, mainThread->context_);
@@ -5387,5 +5449,45 @@ HWTEST_F(RSMainThreadTest, SetTaskEndWithTime001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     auto rsVSyncDistributor = mainThread->rsVSyncDistributor_;
     mainThread->SetTaskEndWithTime(0);
+}
+
+/**
+ * @tc.name: CheckAdaptiveCompose001
+ * @tc.desc: Test CheckAdaptiveCompose
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto context = mainThread->context_;
+    mainThread->context_ = nullptr;
+    ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+    //reset
+    mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: CheckAdaptiveCompose002
+ * @tc.desc: Test CheckAdaptiveCompose
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        std::atomic<int32_t> status = frameRateMgr->isAdaptive_.load();
+        frameRateMgr->isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+        ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+        frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+        ASSERT_FALSE(mainThread->CheckAdaptiveCompose());
+        //reset
+        frameRateMgr->isAdaptive_.store(status.load());
+    }
 }
 } // namespace OHOS::Rosen

@@ -414,7 +414,7 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationValueTest, Level1)
     animation.SetRotationMode(RotationMode::ROTATE_AUTO);
     animation.SetRotationValue(tangent);
     EXPECT_EQ(animation.GetRotationMode(), RotationMode::ROTATE_AUTO);
-	
+
     animation.SetRotationMode(RotationMode::ROTATE_AUTO_REVERSE);
     animation.SetRotationValue(tangent);
     EXPECT_EQ(animation.GetRotationMode(), RotationMode::ROTATE_AUTO_REVERSE);

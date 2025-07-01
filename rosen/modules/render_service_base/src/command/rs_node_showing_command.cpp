@@ -238,10 +238,10 @@ bool RSNodeGetAnimationsValueFraction::ReadFromParcel(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, success_)) {
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId_)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, nodeId_)) {
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, animationId_)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, animationId_)) {
         return false;
     }
     return true;

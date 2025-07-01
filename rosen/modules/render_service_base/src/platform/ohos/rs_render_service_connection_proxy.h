@@ -259,6 +259,10 @@ public:
 
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
 
+    void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY) override;
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -381,7 +385,7 @@ public:
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+        const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
@@ -394,6 +398,12 @@ public:
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
+
+    RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd) override;
+    RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
+    bool ProfilerIsSecureScreen() override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

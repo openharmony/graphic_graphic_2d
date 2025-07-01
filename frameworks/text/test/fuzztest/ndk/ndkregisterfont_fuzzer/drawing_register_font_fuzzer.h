@@ -37,5 +37,5 @@
 #include "drawing_text_typography.h"
 #include "drawing_types.h"
 
-#define FUZZ_PROJECT_NAME "drawing_register_font_fuzzer"
+#define FUZZ_PROJECT_NAME "ndkregisterfont_fuzzer"
 #endif // TEST_FUZZTEST_DRAWING_REGISTER_FONT_FUZZER_H

@@ -70,7 +70,7 @@ void RSDrawFrame::RenderFrame()
     Sync();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
         RSBaseRenderUtil::GetAccumulatedBufferCount());
-    unirenderInstance_.UpdateDisplayNodeScreenId();
+    unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSHdrManager::Instance().PostHdrSubTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();

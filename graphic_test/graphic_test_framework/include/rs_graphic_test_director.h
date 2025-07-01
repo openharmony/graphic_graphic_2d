@@ -43,6 +43,7 @@ public:
     void SetScreenSize(float width, float height);
     bool IsSingleTest();
     void SetSingleTest(bool IsSingleTest);
+    void SetProfilerTest(bool isProfilerTest);
 
     void StartRunUIAnimation();
     bool HasUIRunningAnimation();
@@ -58,6 +59,7 @@ private:
     ScreenId screenId_ = 0;
     RectF screenBounds_;
     bool isSingleTest_ = false;
+    bool isProfilerTest_ = false;
     std::shared_ptr<RSGraphicRootNode> rootNode_;
     std::shared_ptr<RSUIDirector> rsUiDirector_;
 

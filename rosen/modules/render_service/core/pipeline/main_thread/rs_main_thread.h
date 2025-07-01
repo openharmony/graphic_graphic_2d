@@ -48,6 +48,7 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
+#include "screen_manager/rs_screen_node_listener.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"
@@ -212,6 +213,9 @@ public:
     bool IsCurtainScreenUsingStatusChanged() const;
     bool IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
         uint64_t unsignedNowTime, uint64_t lastVsyncTime);
+    // check if timestamp in vsync receiver sync with mainthread timestamp, if not, return false;
+    bool IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
+        uint64_t unsignedNowTime, uint64_t lastVsyncTime, int64_t vsyncTimeStamp);
     void CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
@@ -226,7 +230,7 @@ public:
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
     void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
-    // Save marks, and use it for DisplayNode later.
+    // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
     pid_t GetDesktopPidForRotationScene() const;
@@ -437,7 +441,7 @@ public:
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
-    using DrawablesVec = std::vector<std::pair<NodeId,
+    using DrawablesVec = std::vector<std::tuple<NodeId, NodeId,
         DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     RSMainThread();
@@ -458,10 +462,10 @@ private:
     void SetDeviceType();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
-    RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+    RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSScreenRenderNode>& screenNode,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedRegion,
         Occlusion::Region& curRegion, Occlusion::Region& totalRegion);
-    void CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
+    void CalcOcclusionImplementation(const std::shared_ptr<RSScreenRenderNode>& screenNode,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
         std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
     void CalcOcclusion();
@@ -472,9 +476,9 @@ private:
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
     void CheckSystemSceneStatus();
-    // ROG: Resolution Online Government
-    void UpdateRogSizeIfNeeded();
-    void UpdateDisplayNodeScreenId();
+    void RegisterScreenNodeListener();
+    void UpdateScreenNodeScreenId();
+
     uint32_t GetRefreshRate() const;
     uint32_t GetDynamicRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
@@ -569,6 +573,14 @@ private:
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
     bool ExistBufferIsVisibleAndUpdate();
+    class RSScreenNodeListener : public RSIScreenNodeListener {
+    public:
+        ~RSScreenNodeListener() override = default;
+
+        void OnScreenConnect(ScreenId id) override;
+        void OnScreenDisconnect(ScreenId id) override;
+    };
+
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
@@ -660,9 +672,10 @@ private:
     uint32_t appPid_ = 0;
     uint64_t lastFocusNodeId_ = 0;
     uint64_t appWindowId_ = 0;
-    ScreenId displayNodeScreenId_ = 0;
+    ScreenId screenNodeScreenId_ = 0;
     std::atomic<uint64_t> focusNodeId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;
+    std::atomic<bool> isRunning_ = false;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::shared_ptr<RSContext> context_;

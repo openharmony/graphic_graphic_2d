@@ -143,6 +143,8 @@ public:
         return isSplitScreenScene_.load();
     }
 
+    void AddCapturedNodes(NodeId id);
+
     void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
     {
         if (currentFrameCacheType != MultiThreadCacheType::ARKTS_CARD) {
@@ -342,7 +344,7 @@ private:
         { "hongyunvd" },
         { "ecoengine" },
     };
-
+    std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
 };
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {

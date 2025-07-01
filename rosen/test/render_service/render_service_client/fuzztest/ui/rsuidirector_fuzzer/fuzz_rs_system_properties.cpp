@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,29 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
-#define RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H
 
-#include <unordered_set>
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
 
-struct RectSize {
-    int32_t width = 0;
-    int32_t height = 0;
-};
+bool RSSystemProperties::GetUniRenderEnabled()
+{
+    return false;
+}
 
-struct RectSizeRange {
-    RectSize lowLimit = {};
-    RectSize highLimit = {};
-};
-
-struct RectFilter {
-    std::unordered_set<pid_t> pids = {};
-    RectSizeRange range = {};
-};
-
+bool RSSystemProperties::GetHybridRenderEnabled()
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
-#endif //RENDER_SERVICE_BASE_CORE_COMMON_RS_SELF_DRAW_RECT_CHANGE_CALLBACK_FILTER_H

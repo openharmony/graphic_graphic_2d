@@ -26,8 +26,9 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    std::vector<std::string> voters = {"voter1", "voter2"};
+std::vector<std::string> voters = { "voter1", "voter2" };
 }
+
 class DeliverVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase()

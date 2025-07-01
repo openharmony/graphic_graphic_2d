@@ -212,15 +212,15 @@ bool operator!=(const std::shared_ptr<const RSPropertyBase>& a, const std::share
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(const std::shared_ptr<RSNode>& node)
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier)
 {
     if (stagingValue_) {
-        stagingValue_->Attach(node);
+        stagingValue_->Attach(node, modifier);
     }
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach(const std::shared_ptr<RSNode>& node)
+void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach()
 {
     if (stagingValue_) {
         stagingValue_->Detach();
@@ -230,22 +230,24 @@ void RSProperty<std::shared_ptr<RSNGFilterBase>>::OnDetach(const std::shared_ptr
 template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value)
 {
-    if (stagingValue_ && stagingValue_->SetValue(value, target_.lock())) {
+    auto node = target_.lock();
+    if (node == nullptr) {
+        stagingValue_ = value;
         return;
     }
 
-    // failed to update all properties in filter, fall back to replace filter
+    // Incremental update for filter properties, return if success
+    if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
+        return;
+    }
+
+    // failed to update filter properties, fallback to replace operation
     if (stagingValue_) {
         stagingValue_->Detach();
     }
-
     stagingValue_ = value;
-    auto node = target_.lock();
-    if (node == nullptr) {
-        return;
-    }
     if (stagingValue_) {
-        stagingValue_->Attach(node);
+        stagingValue_->Attach(*node, modifierNG_);
     }
 
     MarkNodeDirty();

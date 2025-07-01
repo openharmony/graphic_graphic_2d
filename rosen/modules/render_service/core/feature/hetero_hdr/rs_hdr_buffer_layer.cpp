@@ -15,7 +15,6 @@
 
 #include "rs_trace.h"
 #include "platform/common/rs_log.h"
-
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
@@ -39,15 +38,14 @@ RSHDRBUfferLayer::~RSHDRBUfferLayer()
 {
 }
 
-sptr<SurfaceBuffer> RSHDRBUfferLayer::PrepareHDRDstBuffer(RSSurfaceRenderParams *surfaceParams)
+sptr<SurfaceBuffer> RSHDRBUfferLayer::PrepareHDRDstBuffer(RSSurfaceRenderParams *surfaceParams, ScreenId screenId)
 {
     auto layerTransform = surfaceParams->GetLayerInfo().transformType;
     int realRotation = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(layerTransform));
     RS_LOGE("Yaolin GetTransform1 %{public}d", realRotation);
     RS_TRACE_NAME_FMT("Yaolin GetTransform1 [%d]", realRotation);
 
-    ScreenId paramScreenId = surfaceParams->GetScreenId();
-    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(paramScreenId);
+    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(screenId);
 
     BufferRequestConfig config{};
     const int ROTATION_90 = 90;

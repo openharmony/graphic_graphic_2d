@@ -149,6 +149,9 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
+    if (pixelMap_ && image_) {
+        image_->SetSupportOpaqueOpt(pixelMap_->GetSupportOpaqueOpt());
+    }
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);
@@ -544,6 +547,9 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
+    if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
+        return;
+    }
     float left = frameRect_.left_;
     float right = frameRect_.GetRight();
     float top = frameRect_.top_;
@@ -705,11 +711,10 @@ void RSImage::SetDynamicRangeMode(uint32_t dynamicRangeMode)
 #ifdef ROSEN_OHOS
 static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& width, int& height)
 {
-    if (!RSMarshallingHelper::Unmarshalling(parcel, uniqueId)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, uniqueId)) {
         RS_LOGE("RSImage::Unmarshalling uniqueId fail");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, uniqueId);
     if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
         RS_LOGE("RSImage::Unmarshalling width fail");
         return false;
@@ -836,11 +841,10 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
         RS_LOGE("RSImage::Unmarshalling UnmarshallingIdAndSize fail");
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, nodeId)) {
         RS_LOGE("RSImage::Unmarshalling nodeId fail");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId);
     return true;
 }
 

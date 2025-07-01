@@ -287,6 +287,10 @@ public:
 
     virtual ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) = 0;
 
+    virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
+
+    virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
+
     virtual ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) = 0;
 
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -421,7 +425,7 @@ public:
     virtual ErrCode SetWindowContainer(NodeId nodeId, bool value) = 0;
 
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        const RectFilter& filter, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
+        const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
     
     virtual int32_t UnRegisterSelfDrawingNodeRectChangeCallback() = 0;
 
@@ -439,6 +443,12 @@ public:
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 
     virtual int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) = 0;
+
+    virtual RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd) = 0;
+    virtual RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
+    virtual bool ProfilerIsSecureScreen() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -40,14 +40,14 @@ void SelfDrawingNodeMonitorTest::TearDownTestCase()
 {
     monitor_->ClearRectMap();
     monitor_->rectChangeCallbackListenner_.clear();
-    monitor_->rectChangeCallbackFilter_.clear();
+    monitor_->rectChangeCallbackConstraint_.clear();
 }
 void SelfDrawingNodeMonitorTest::SetUp() {}
 void SelfDrawingNodeMonitorTest::TearDown()
 {
     monitor_->ClearRectMap();
     monitor_->rectChangeCallbackListenner_.clear();
-    monitor_->rectChangeCallbackFilter_.clear();
+    monitor_->rectChangeCallbackConstraint_.clear();
 }
 SelfDrawingNodeMonitor* SelfDrawingNodeMonitorTest::monitor_ = nullptr;
 
@@ -85,8 +85,8 @@ HWTEST_F(SelfDrawingNodeMonitorTest, InsertCurRectMapTest, TestSize.Level1)
 HWTEST_F(SelfDrawingNodeMonitorTest, SelfDrawingNodeRectCallbackTest, TestSize.Level1)
 {
     sptr<RSISelfDrawingNodeRectChangeCallback> callback;
-    RectFilter filter;
-    monitor_->RegisterRectChangeCallback(0, filter, callback);
+    RectConstraint constraint;
+    monitor_->RegisterRectChangeCallback(0, constraint, callback);
     ASSERT_TRUE(monitor_-> IsListeningEnabled());
     NodeId id = 0;
     RectI rect = RectI(0, 0, 1, 1);
@@ -103,8 +103,8 @@ HWTEST_F(SelfDrawingNodeMonitorTest, SelfDrawingNodeRectCallbackTest, TestSize.L
 HWTEST_F(SelfDrawingNodeMonitorTest, UnRegisterRectChangeCallbackTest001, TestSize.Level1)
 {
     sptr<RSISelfDrawingNodeRectChangeCallback> callback;
-    RectFilter filter;
-    monitor_->RegisterRectChangeCallback(0, filter, callback);
+    RectConstraint constraint;
+    monitor_->RegisterRectChangeCallback(0, constraint, callback);
     ASSERT_TRUE(monitor_-> IsListeningEnabled());
     monitor_->TriggerRectChangeCallback();
 }
@@ -117,8 +117,8 @@ HWTEST_F(SelfDrawingNodeMonitorTest, UnRegisterRectChangeCallbackTest001, TestSi
 HWTEST_F(SelfDrawingNodeMonitorTest, UnRegisterRectChangeCallbackTest002, TestSize.Level1)
 {
     sptr<RSISelfDrawingNodeRectChangeCallback> callback;
-    RectFilter filter;
-    monitor_->RegisterRectChangeCallback(0, filter, callback);
+    RectConstraint constraint;
+    monitor_->RegisterRectChangeCallback(0, constraint, callback);
     ASSERT_TRUE(monitor_-> IsListeningEnabled());
     auto pid = monitor_->rectChangeCallbackListenner_.begin()->first;
     monitor_->UnRegisterRectChangeCallback(pid);
@@ -144,10 +144,10 @@ HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest001, TestSize.
     sptr<RSISelfDrawingNodeRectChangeCallback> callback = new RSSelfDrawingNodeRectChangeCallbackStubMock();
     ASSERT_NE(callback, nullptr);
     pid_t callingPid = 0;
-    RectFilter filter;
-    filter.pids = { 0 };
+    RectConstraint constraint;
+    constraint.pids = { 0 };
     monitor_->rectChangeCallbackListenner_[callingPid] = callback;
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
     ASSERT_TRUE(monitor_->IsListeningEnabled());
     NodeId id = 0;
     RectI rect = RectI(0, 0, 0, 0);
@@ -165,10 +165,10 @@ HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest002, TestSize.
 {
     sptr<RSISelfDrawingNodeRectChangeCallback> callback = nullptr;
     pid_t callingPid = 0;
-    RectFilter filter;
-    filter.pids = { 0 };
+    RectConstraint constraint;
+    constraint.pids = { 0 };
     monitor_->rectChangeCallbackListenner_[callingPid] = callback;
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
     ASSERT_TRUE(monitor_->IsListeningEnabled());
     NodeId id = 0;
     RectI rect = RectI(0, 0, 0, 0);
@@ -187,9 +187,9 @@ HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest003, TestSize.
     sptr<RSISelfDrawingNodeRectChangeCallback> callback = new RSSelfDrawingNodeRectChangeCallbackStubMock();
     ASSERT_NE(callback, nullptr);
     pid_t callingPid = 0;
-    RectFilter filter;
+    RectConstraint constraint;
     monitor_->rectChangeCallbackListenner_[callingPid] = callback;
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
     ASSERT_TRUE(monitor_->IsListeningEnabled());
     NodeId id = 0;
     RectI rect = RectI(0, 0, 1, 1);
@@ -207,9 +207,9 @@ HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest004, TestSize.
 {
     sptr<RSISelfDrawingNodeRectChangeCallback> callback = nullptr;
     pid_t callingPid = 0;
-    RectFilter filter;
+    RectConstraint constraint;
     monitor_->rectChangeCallbackListenner_[callingPid] = callback;
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
     ASSERT_TRUE(monitor_->IsListeningEnabled());
     NodeId id = 0;
     RectI rect = RectI(0, 0, 1, 1);
@@ -227,7 +227,7 @@ HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest005, TestSize.
 {
     sptr<RSISelfDrawingNodeRectChangeCallback> callback;
     pid_t callingPid = 0;
-    RectFilter filter;
+    RectConstraint constraint;
     monitor_->rectChangeCallbackListenner_[callingPid] = callback;
     ASSERT_TRUE(monitor_->IsListeningEnabled());
     NodeId id = 0;
@@ -245,19 +245,19 @@ HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest005, TestSize.
 HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest001, TestSize.Level1)
 {
     pid_t callingPid = 0;
-    RectFilter filter;
-    filter.pids = { 0 };
+    RectConstraint constraint;
+    constraint.pids = { 0 };
     SelfDrawingNodeRectCallbackData callbackData;
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
     NodeId id = 0;
     RectI rect = RectI(0, 0, 1, 1);
     monitor_->InsertCurRectMap(id, rect);
-    EXPECT_FALSE(monitor_->ShouldTrigger(filter, callbackData));
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
 
-    filter.range.highLimit.width = 1;
-    filter.range.highLimit.height = 1;
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
-    EXPECT_TRUE(monitor_->ShouldTrigger(filter, callbackData));
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    EXPECT_TRUE(monitor_->ShouldTrigger(constraint, callbackData));
 }
 
 /*
@@ -268,22 +268,22 @@ HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest001, TestSize.Level1)
 HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest002, TestSize.Level1)
 {
     pid_t callingPid = 0;
-    RectFilter filter;
-    filter.pids = { 0 };
+    RectConstraint constraint;
+    constraint.pids = { 0 };
     SelfDrawingNodeRectCallbackData callbackData;
-    filter.range.highLimit.width = 1;
-    filter.range.highLimit.height = 1;
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
     NodeId id = 0;
     RectI rect = RectI(0, 0, 1, 1);
     monitor_->InsertCurRectMap(id, rect);
     rect = RectI(0, 0, 1, 1);
     monitor_->lastRect_[id] = rect;
-    EXPECT_FALSE(monitor_->ShouldTrigger(filter, callbackData));
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
 
     rect = RectI(0, 0, 2, 2);
     monitor_->lastRect_[id] = rect;
-    EXPECT_TRUE(monitor_->ShouldTrigger(filter, callbackData));
+    EXPECT_TRUE(monitor_->ShouldTrigger(constraint, callbackData));
 }
 
 /*
@@ -295,27 +295,27 @@ HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest003, TestSize.Level1)
 {
     pid_t callingPid = 0;
     NodeId id = 0;
-    RectFilter filter;
-    filter.pids = {};
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
+    RectConstraint constraint;
+    constraint.pids = {};
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
     SelfDrawingNodeRectCallbackData callbackData;
     RectI rect = RectI(0, 0, 0, 0);
     monitor_->lastRect_[id] = rect;
-    EXPECT_FALSE(monitor_->ShouldTrigger(filter, callbackData));
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
 
-    filter.pids = { 0 };
-    monitor_->rectChangeCallbackFilter_[callingPid] = filter;
-    EXPECT_TRUE(monitor_->ShouldTrigger(filter, callbackData));
+    constraint.pids = { 0 };
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    EXPECT_TRUE(monitor_->ShouldTrigger(constraint, callbackData));
 
-    filter.range.highLimit.width = 1;
-    filter.range.highLimit.height = 1;
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
     rect = RectI(0, 0, 2, 2);
     monitor_->lastRect_[id] = rect;
-    EXPECT_FALSE(monitor_->ShouldTrigger(filter, callbackData));
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
 
     rect = RectI(0, 0, 0, 0);
     monitor_->InsertCurRectMap(id, rect);
-    EXPECT_FALSE(monitor_->ShouldTrigger(filter, callbackData));
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
 }
 
 /*
@@ -325,28 +325,28 @@ HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest003, TestSize.Level1)
  */
 HWTEST_F(SelfDrawingNodeMonitorTest, CheckStatifyTest, TestSize.Level1)
 {
-    RectFilter filter;
-    filter.range.lowLimit.width = 1;
-    filter.range.lowLimit.height = 1;
-    filter.range.highLimit.width = 1;
-    filter.range.highLimit.height = 1;
+    RectConstraint constraint;
+    constraint.range.lowLimit.width = 1;
+    constraint.range.lowLimit.height = 1;
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
     RectI rect = RectI(0, 0, 0, 0);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
     rect = RectI(1, 0, 0, 0);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
     rect = RectI(1, 1, 0, 0);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
     rect = RectI(1, 1, 1, 0);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
     rect = RectI(1, 1, 1, 1);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), true);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), true);
     rect = RectI(2, 0, 0, 0);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
     rect = RectI(1, 2, 0, 0);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
     rect = RectI(1, 1, 2, 0);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
     rect = RectI(1, 1, 1, 2);
-    EXPECT_EQ(monitor_->CheckStatify(rect, filter), false);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
 }
 } // namespace OHOS::Rosen

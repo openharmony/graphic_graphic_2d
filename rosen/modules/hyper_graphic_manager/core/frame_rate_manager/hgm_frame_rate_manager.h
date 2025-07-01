@@ -172,7 +172,7 @@ public:
     void ProcessPageUrlVote(pid_t pid, std::string strategy, const bool isAddVoter);
     void CleanPageUrlVote(pid_t pid);
     void HandlePageUrlEvent();
-    void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
+    void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
     // called by OS_IPC thread
     bool SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
     HgmSoftVSyncManager& SoftVSyncMgrRef() { return softVSyncManager_; };
@@ -204,7 +204,7 @@ private:
 
     void HandleIdleEvent(bool isIdle);
     void HandleStylusSceneEvent(const std::string& sceneName);
-    void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
+    void HandleSceneEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);

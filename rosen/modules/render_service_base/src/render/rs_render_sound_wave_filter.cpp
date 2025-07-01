@@ -73,7 +73,7 @@ namespace Rosen {
     {
         int16_t type = 0;
         int16_t modifierType = 0;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
+        if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
             !RSMarshallingHelper::Unmarshalling(parcel, type) ||
             !RSMarshallingHelper::Unmarshalling(parcel, modifierType)) {
             ROSEN_LOGE("RSRenderSoundWaveFilterPara::ReadFromParcel type Error");
@@ -206,28 +206,22 @@ namespace Rosen {
     void RSRenderSoundWaveFilterPara::CalculateHash()
     {
 #ifdef USE_M133_SKIA
-        hash_ = SkChecksum::Hash32(&colorA_, sizeof(colorA_), hash_);
-        hash_ = SkChecksum::Hash32(&colorB_, sizeof(colorB_), hash_);
-        hash_ = SkChecksum::Hash32(&colorC_, sizeof(colorC_), hash_);
-        hash_ = SkChecksum::Hash32(&colorProgress_, sizeof(colorProgress_), hash_);
-        hash_ = SkChecksum::Hash32(&soundIntensity_, sizeof(soundIntensity_), hash_);
-        hash_ = SkChecksum::Hash32(&shockWaveAlphaA_, sizeof(shockWaveAlphaA_), hash_);
-        hash_ = SkChecksum::Hash32(&shockWaveAlphaB_, sizeof(shockWaveAlphaB_), hash_);
-        hash_ = SkChecksum::Hash32(&shockWaveProgressA_, sizeof(shockWaveProgressA_), hash_);
-        hash_ = SkChecksum::Hash32(&shockWaveProgressB_, sizeof(shockWaveProgressB_), hash_);
-        hash_ = SkChecksum::Hash32(&shockWaveTotalAlpha_, sizeof(shockWaveTotalAlpha_), hash_);
+        const auto hashFunc = SkChecksum::Hash32;
 #else
-        hash_ = SkOpts::hash(&colorA_, sizeof(colorA_), hash_);
-        hash_ = SkOpts::hash(&colorB_, sizeof(colorB_), hash_);
-        hash_ = SkOpts::hash(&colorC_, sizeof(colorC_), hash_);
-        hash_ = SkOpts::hash(&colorProgress_, sizeof(colorProgress_), hash_);
-        hash_ = SkOpts::hash(&soundIntensity_, sizeof(soundIntensity_), hash_);
-        hash_ = SkOpts::hash(&shockWaveAlphaA_, sizeof(shockWaveAlphaA_), hash_);
-        hash_ = SkOpts::hash(&shockWaveAlphaB_, sizeof(shockWaveAlphaB_), hash_);
-        hash_ = SkOpts::hash(&shockWaveProgressA_, sizeof(shockWaveProgressA_), hash_);
-        hash_ = SkOpts::hash(&shockWaveProgressB_, sizeof(shockWaveProgressB_), hash_);
-        hash_ = SkOpts::hash(&shockWaveTotalAlpha_, sizeof(shockWaveTotalAlpha_), hash_);
+        const auto hashFunc = SkOpts::hash;
 #endif
+        hash_ = hashFunc(&colorA_, sizeof(colorA_), hash_);
+        hash_ = hashFunc(&colorB_, sizeof(colorB_), hash_);
+        hash_ = hashFunc(&colorC_, sizeof(colorC_), hash_);
+        hash_ = hashFunc(&colorProgress_, sizeof(colorProgress_), hash_);
+        hash_ = hashFunc(&soundIntensity_, sizeof(soundIntensity_), hash_);
+        hash_ = hashFunc(&shockWaveAlphaA_, sizeof(shockWaveAlphaA_), hash_);
+        hash_ = hashFunc(&shockWaveAlphaB_, sizeof(shockWaveAlphaB_), hash_);
+        hash_ = hashFunc(&shockWaveProgressA_, sizeof(shockWaveProgressA_), hash_);
+        hash_ = hashFunc(&shockWaveProgressB_, sizeof(shockWaveProgressB_), hash_);
+        hash_ = hashFunc(&shockWaveTotalAlpha_, sizeof(shockWaveTotalAlpha_), hash_);
+        hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+        hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
     }
 
     float RSRenderSoundWaveFilterPara::GetColorProgress() const
@@ -268,8 +262,8 @@ namespace Rosen {
     void RSRenderSoundWaveFilterPara::GenerateGEVisualEffect(
         std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
     {
-        auto soundWaveFilter =
-            std::make_shared<Drawing::GEVisualEffect>("SOUND_WAVE", Drawing::DrawingPaintType::BRUSH);
+        auto soundWaveFilter = std::make_shared<Drawing::GEVisualEffect>(
+            "SOUND_WAVE", Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
         soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLOR_A, colorA_);
         soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLOR_B, colorB_);
         soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLOR_C, colorC_);

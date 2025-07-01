@@ -25,8 +25,9 @@
 #include "common/rs_obj_geometry.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -106,7 +107,7 @@ void RSProfiler::DumpNodeAbsoluteProperties(const RSRenderNode& node, JsonWriter
     auto parent = node.GetParent().lock();
     while (parent) {
         parentStack.push(parent);
-        if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+        if (parent->GetType() == RSRenderNodeType::SCREEN_NODE) {
             break;
         }
         parent = parent->GetParent().lock();
@@ -211,8 +212,8 @@ void RSProfiler::DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out)
         subclass["Size"] = { rootNode.GetRenderProperties().GetFrameWidth(),
             rootNode.GetRenderProperties().GetFrameHeight() };
         subclass["EnableRender"] = rootNode.GetEnableRender();
-    } else if (node.GetType() == RSRenderNodeType::DISPLAY_NODE) {
-        auto& displayNode = static_cast<const RSDisplayRenderNode&>(node);
+    } else if (node.GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+        auto& displayNode = static_cast<const RSLogicalDisplayRenderNode&>(node);
         subclass["skipLayer"] = displayNode.GetSecurityDisplay();
     }
     subclass.PopObject();

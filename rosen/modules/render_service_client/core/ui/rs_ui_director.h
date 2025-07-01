@@ -293,11 +293,18 @@ public:
      */
     void SetRSRootNode(std::shared_ptr<RSRootNode> rootNode);
 
+    /**
+     * @brief Identify typical resident processes of the system, such as FSR, SCB, inputMethod.
+     *
+     * @param isTypicalResidentProcess means whether the relevant services are disabled.
+     */
+    static void SetTypicalResidentProcess(bool isTypicalResidentProcess = false);
+
 private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
-    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = true);
+    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance);
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
@@ -306,6 +313,7 @@ private:
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(
         const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
+    static void SetTypicalResidentProcessOnce(bool isResidentProcess);
 
 #ifdef RS_ENABLE_VK
     void InitHybridRender();

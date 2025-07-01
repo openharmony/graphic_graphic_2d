@@ -98,7 +98,7 @@ HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level0)
     EXPECT_EQ(paragraph_->GetMaxWidth(), layoutWidth_);
     EXPECT_EQ(paragraph_->GetHeight(), 19);
     EXPECT_EQ(static_cast<int>(paragraph_->GetLongestLine()), 44);
-    EXPECT_EQ(static_cast<int>(paragraph_->GetMinIntrinsicWidth()), 50);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetMinIntrinsicWidth()), 78);
     EXPECT_EQ(static_cast<int>(paragraph_->GetMaxIntrinsicWidth()), 78);
     EXPECT_EQ(static_cast<int>(paragraph_->GetAlphabeticBaseline()), 14);
     EXPECT_EQ(static_cast<int>(paragraph_->GetIdeographicBaseline()), 18);
@@ -384,12 +384,12 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level0)
     paragraphBuilder->AddText(text);
     std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
     ASSERT_NE(paragraph, nullptr);
-    paragraph->Layout(519);
+    paragraph->Layout(560);
     std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
-    ASSERT_EQ(textLines.size(), 8);
-    //expect lines 0,3,6 to have hyphenation breakpoints,
+    ASSERT_EQ(textLines.size(), 6);
+    //expect lines 0,2,4 to have hyphenation breakpoints,
     //and the last charater of each line to have a hyphen glyphid of 800
-    size_t breakArr[3] = {0, 3, 6};
+    size_t breakArr[3] = {0, 2, 4};
     for (size_t i = 0; i < 3; i++) {
         ASSERT_NE(textLines.at(breakArr[i]), nullptr);
         std::vector<std::unique_ptr<SPText::Run>> runs = textLines.at(breakArr[i])->GetGlyphRuns();

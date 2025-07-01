@@ -25,7 +25,7 @@
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_memory_manager.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -43,6 +43,7 @@ namespace {
     constexpr int EVENT_STOP_TIMEOUT = 150;
     constexpr int EVENT_DISABLE_UIFIRST_GAP = 100;
     constexpr int CLEAR_CACHE_DELAY = 400;
+    const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
     constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
     constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
     constexpr int UIFIRST_TASKSKIP_PRIO_THRESHOLD = 3;
@@ -133,10 +134,12 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     if (!nodePtr) {
         return;
     }
-    RS_TRACE_NAME_FMT("ResetUifirstNode name:%s,id:%" PRIu64 ",isOnTheTree:%d,",
-        nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree());
-    RS_LOGI("ResetUifirstNode name:%{public}s,id:%{public}" PRIu64 ",isOnTheTree:%{public}d,",
-        nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree());
+    RS_TRACE_NAME_FMT("ResetUifirstNode name:%s,id:%" PRIu64 ",isOnTheTree:%d,"
+        "toBeCaptured:%d", nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree(),
+        nodePtr->IsNodeToBeCaptured());
+    RS_LOGI("ResetUifirstNode name:%{public}s,id:%{public}" PRIu64 ",isOnTheTree:%{public}d,"
+        "toBeCaptured:%{public}d", nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree(),
+        nodePtr->IsNodeToBeCaptured());
     pendingPostNodes_.erase(nodePtr->GetId());
     pendingPostCardNodes_.erase(nodePtr->GetId());
     nodePtr->SetUifirstUseStarting(false);
@@ -146,8 +149,26 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
         pendingForceUpdateNode_.push_back(nodePtr->GetId());
     }
     RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
-    if (auto drawable = GetSurfaceDrawableByID(nodePtr->GetId())) {
-        drawable->GetRsSubThreadCache().ResetUifirst();
+
+    auto drawable = GetSurfaceDrawableByID(nodePtr->GetId());
+    if (!drawable) {
+        return;
+    }
+    auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
+    if (!nodePtr->IsOnTheTree() && nodePtr->IsNodeToBeCaptured()) {
+        rsSubThreadCache.ResetUifirst(true);
+        auto taskName = CLEAR_CACHE_TASK_PREFIX + std::to_string(nodePtr->GetId());
+        auto releaseTask = [drawable] {
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+            if (surfaceParams && surfaceParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE) {
+                RS_TRACE_NAME_FMT("ResetUifirstNode clearCache id:%llu", surfaceParams->GetId());
+                drawable->GetRsSubThreadCache().ResetUifirst();
+            }
+        };
+        RSUniRenderThread::Instance().PostTask(releaseTask, taskName, CLEAR_CACHE_DELAY);
+    } else {
+        nodePtr->SetIsNodeToBeCaptured(false);
+        rsSubThreadCache.ResetUifirst();
     }
 }
 
@@ -246,7 +267,7 @@ void RSUifirstManager::RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRe
     auto node = surfaceNode->GetParent().lock();
 
     while (node != nullptr) {
-        if (node->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+        if (node->GetType() == RSRenderNodeType::SCREEN_NODE) {
             break;
         }
         if (node->IsSuggestedDrawInGroup()) {
@@ -380,6 +401,25 @@ void RSUifirstManager::ProcessDoneNode()
     SetNodeNeedForceUpdateFlag(false);
     ProcessDoneNodeInner();
 
+    // reset node when node is not doing
+    for (auto it = capturedNodes_.begin(); it != capturedNodes_.end();) {
+        if (mainThread_ && subthreadProcessingNode_.find(*it) == subthreadProcessingNode_.end()) {
+            // reset uifirst
+            auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                mainThread_->GetContext().GetNodeMap().GetRenderNode(*it));
+            if (node == nullptr) {
+                it = capturedNodes_.erase(it);
+                continue;
+            }
+            node->SetIsNodeToBeCaptured(false);
+            if (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) {
+                ResetUifirstNode(node);
+            }
+            it = capturedNodes_.erase(it);
+        } else {
+            it++;
+        }
+    }
     for (auto it = pendingResetNodes_.begin(); it != pendingResetNodes_.end();) {
         if (subthreadProcessingNode_.find(it->first) == subthreadProcessingNode_.end()) {
             ResetUifirstNode(it->second);
@@ -420,22 +460,22 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-    if (!surfaceParams || !surfaceParams->GetAncestorDisplayNode().lock()) {
+    if (!surfaceParams || !surfaceParams->GetAncestorScreenNode().lock()) {
         return;
     }
-    auto ancestor = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    auto ancestor = surfaceParams->GetAncestorScreenNode().lock()->ReinterpretCastTo<RSScreenRenderNode>();
     if (!ancestor) {
         return;
     }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
-    if (!displayParams) {
+    auto screenParams = static_cast<RSScreenRenderParams*>(ancestor->GetRenderParams().get());
+    if (!screenParams) {
         return;
     }
-    bool isHdrOn = displayParams->GetHDRPresent();
-    ScreenId id = displayParams->GetScreenId();
+    bool isHdrOn = screenParams->GetHDRPresent();
+    ScreenId id = screenParams->GetScreenId();
     auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
     rsSubThreadCache.SetHDRPresent(isHdrOn);
-    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(displayParams->GetNewColorSpace()) &&
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(screenParams->GetNewColorSpace()) &&
         GetUiFirstSwitch();
     bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
@@ -444,7 +484,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         if ((isScRGBEnable || ColorGamutParam::IsAdaptiveColorGamutEnabled()) && changeColorSpace) {
             RS_LOGI("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
-            RS_TRACE_NAME_FMT("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
+            RS_TRACE_NAME_FMT("UIFirstHDR SyncScreenParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
             drawable->GetRsSubThreadCache().ClearCacheSurfaceInThread();
         }
@@ -1092,6 +1132,12 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
 
     if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW ||
         currentFrameCacheType == MultiThreadCacheType::NONFOCUS_WINDOW) {
+        if (isRecentTaskScene_.load() && !node->IsNodeToBeCaptured() &&
+            currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW) {
+            node->SetIsNodeToBeCaptured(true);
+        } else if (!isRecentTaskScene_.load()) {
+            node->SetIsNodeToBeCaptured(false);
+        }
         // delete card node in leashwindow tree
         for (auto it = pendingPostCardNodes_.begin(); it != pendingPostCardNodes_.end();) {
             auto surfaceNode = it->second;
@@ -1222,13 +1268,14 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 {
     int64_t curSysTime = GetCurSysTime();
     currentFrameEvent_.clear();
-    if (!mainThread_ || entryViewNodeId_ == INVALID_NODEID || negativeScreenNodeId_ == INVALID_NODEID) {
+    if (!mainThread_) {
         mainThread_ = RSMainThread::Instance();
-        if (mainThread_) {
-            entryViewNodeId_ = mainThread_->GetContext().GetNodeMap().GetEntryViewNodeId();
-            negativeScreenNodeId_ = mainThread_->GetContext().GetNodeMap().GetNegativeScreenNodeId();
-            scbPid_ = ExtractPid(entryViewNodeId_);
-        }
+    }
+    if (mainThread_) {
+        const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+        entryViewNodeId_ = nodeMap.GetEntryViewNodeId();
+        negativeScreenNodeId_ = nodeMap.GetNegativeScreenNodeId();
+        scbPid_ = ExtractPid(entryViewNodeId_);
     }
     {
         std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
@@ -1509,8 +1556,10 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         RS_TRACE_NAME_FMT("IsLeashWindowCache: needFilterSCB [%d]", needFilterSCB);
         return false;
     }
-    RS_TRACE_NAME_FMT("IsLeashWindowCache: toSubThread[%d] recent[%d] scale[%d] filter[%d] rotate[%d]",
-        isNeedAssignToSubThread, isRecentScene, isScale, hasFilter, isRotate);
+    RS_TRACE_NAME_FMT("IsLeashWindowCache: toSubThread[%d] IsScale[%d]"
+        " filter:[%d] rotate[%d] captured[%d]",
+        isNeedAssignToSubThread, node.IsScale(),
+        node.HasFilter(), RSUifirstManager::Instance().rotationChanged_, node.IsNodeToBeCaptured());
     RS_LOGD("IsLeashWindowCache: toSubThread[%{public}d] recent[%{public}d] scale[%{public}d] filter[%{public}d] "
         "rotate[%{public}d]", isNeedAssignToSubThread, isRecentScene, isScale, hasFilter, isRotate);
     return isNeedAssignToSubThread;
@@ -1806,6 +1855,11 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
     pendingResetWindowCachedNodes_.emplace_back(surfaceNode);
 }
 
+void RSUifirstManager::AddCapturedNodes(NodeId id)
+{
+    capturedNodes_.push_back(id);
+}
+
 void RSUifirstManager::ResetCurrentFrameDeletedCardNodes()
 {
     currentFrameDeletedCardNodes_.clear();
@@ -1882,8 +1936,8 @@ void RSUifirstManager::RefreshUIFirstParam()
     if (!firstChildren) {
         return;
     }
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
-    if (!displayNode) {
+    auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstChildren);
+    if (!screenNode) {
         return;
     }
     isUiFirstSupportFlag_ = true;

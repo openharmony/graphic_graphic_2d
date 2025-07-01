@@ -52,9 +52,9 @@ public:
 private:
     void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     bool MergeLtpo2IdleVote(
-        std::vector<std::string>::iterator &voterIter, VoteInfo& resultVoteInfo, VoteRange &mergedVoteRange);
+        std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
     bool ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
-        VoteInfo& resultVoteInfo, VoteRange& voteRange, bool &voterGamesEffective);
+        VoteInfo& resultVoteInfo, VoteRange& voteRange, bool& voterGamesEffective);
     void MarkVoteChange(const std::string& voter = "")
     {
         if (markVoteChange_) {

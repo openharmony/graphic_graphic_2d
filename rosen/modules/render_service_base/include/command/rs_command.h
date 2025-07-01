@@ -37,7 +37,7 @@ enum RSCommandType : uint16_t {
     SURFACE_NODE = 3,
     PROXY_NODE = 4,
     ROOT_NODE = 5,
-    DISPLAY_NODE = 6,
+    DISPLAY_NODE = 6, // LOGICAL_DISPLAY_NODE
     EFFECT_NODE = 7,
     CANVAS_DRAWING_NODE = 8,
     // animation commands

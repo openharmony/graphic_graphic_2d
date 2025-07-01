@@ -26,8 +26,9 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t waitTaskFinishNs = 100000;
+constexpr int32_t waitTaskFinishNs = 100000;
 }
+
 class HgmTouchManagerTest : public HgmTestBase {
 public:
     static void SetUpTestCase()
@@ -183,7 +184,7 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level1)
         }
         STEP("ExecuteCallback") {
             touchManager.ExecuteCallback(nullptr);
-            touchManager.ExecuteCallback([] () { usleep(1); });
+            touchManager.ExecuteCallback([]() { usleep(1); });
             touchManager.ExecuteCallback(nullptr);
         }
     }

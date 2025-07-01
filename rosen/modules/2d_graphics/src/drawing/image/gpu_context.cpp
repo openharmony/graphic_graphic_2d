@@ -296,6 +296,11 @@ void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void
     impl_->SuppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
 }
 
+void GPUContext::GetHpsEffectSupport(std::vector<const char*>& instanceExtensions)
+{
+    impl_->GetHpsEffectSupport(instanceExtensions);
+}
+
 void GPUContextOptions::SetStoreCachePath(const std::string& filePath)
 {
     filePath_ = filePath;

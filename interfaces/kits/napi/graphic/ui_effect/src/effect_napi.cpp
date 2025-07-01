@@ -237,7 +237,7 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateBorderLight para is nullptr"));
 
-    UIEFFECT_NAPI_CHECK_RET_D(GetBorderLight(env, argValue, para), nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(GetBorderLight(env, argValue, argCount, para), nullptr,
         UIEFFECT_LOG_E("EffectNapi GetBorderLight fail"));
 
     float lightIntensity = 0.f;
@@ -257,8 +257,14 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, std::shared_ptr<BorderLightEffectPara>& para)
+bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, size_t length,
+    std::shared_ptr<BorderLightEffectPara>& para)
 {
+    if (length < NUM_2) {
+        UIEFFECT_LOG_E("FilterNapi GetBorderLight array length is less than 2");
+        return false;
+    }
+
     Vector3f lightPosition = {0.0f, 0.0f, 0.0f};
     Vector4f lightColor = {0.0f, 0.0f, 0.0f, 0.0f};
 

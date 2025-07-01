@@ -28,7 +28,6 @@
 #include "impl_interface/region_impl.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
-#include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"

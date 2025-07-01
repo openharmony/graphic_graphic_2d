@@ -35,28 +35,25 @@ public:
     virtual ~RSNGEffectBase() = default;
     virtual RSNGEffectType GetType() const = 0;
     virtual std::shared_ptr<RenderEffectBase> GetRenderEffect() = 0;
-    virtual bool SetValue(const std::shared_ptr<Derived>& other, std::shared_ptr<RSNode> node) = 0;
-    virtual void Attach(const std::shared_ptr<RSNode>& node) = 0;
+    virtual bool SetValue(
+        const std::shared_ptr<Derived>& other, RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) = 0;
+    virtual void Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) = 0;
     virtual void Detach() = 0;
 
+    // Should only be called on not-attached effect.
     bool Append(const std::shared_ptr<Derived>& effect)
     {
         if (!effect) {
             return true;
         }
 
-        if (effect.get() == this || effect->GetNextEffect()) {
-            ROSEN_LOGE("Append failed, only single effect not same with head is allowed to append");
+        if (effect->nextEffect_) {
+            ROSEN_LOGE("Append failed, only single effect is allowed to append");
             return false;
         }
 
-        if (!nextEffect_) {
-            nextEffect_ = effect;
-            return true;
-        }
-
-        auto current = nextEffect_;
-        size_t count = 1;
+        auto current = Derived::shared_from_this();
+        size_t count = 0;
         while (current->nextEffect_ && count < RenderEffectBase::EFFECT_COUNT_LIMIT) {
             count++;
             current = current->nextEffect_;
@@ -75,38 +72,16 @@ public:
     }
 
 protected:
-    [[nodiscard]] virtual bool OnSetValue(const std::shared_ptr<Derived>& other, std::shared_ptr<RSNode> node)
-    {
-        auto otherNextEffect = other->GetNextEffect();
-        if (!nextEffect_ || !nextEffect_->SetValue(otherNextEffect, node)) {
-            SetNextEffect(otherNextEffect, node);
-        }
-        return true;
-    }
-    
-    virtual void OnAttach(const std::shared_ptr<RSNode>& node)
-    {
-        if (nextEffect_) {
-            nextEffect_->Attach(node);
-        }
-    }
-    virtual void OnDetach()
+    inline void SetNextEffect(
+        const std::shared_ptr<Derived>& effect, RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
     {
         if (nextEffect_) {
             nextEffect_->Detach();
         }
-    }
-
-    inline const std::shared_ptr<Derived>& GetNextEffect() const
-    {
-        return nextEffect_;
-    }
-
-    inline void SetNextEffect(const std::shared_ptr<Derived>& nextEffect, std::shared_ptr<RSNode> node)
-    {
-        OnDetach();
-        nextEffect_ = nextEffect;
-        OnAttach(node);
+        nextEffect_ = effect;
+        if (nextEffect_) {
+            nextEffect_->Attach(node, modifier);
+        }
     }
 
     size_t GetEffectCount() const
@@ -125,7 +100,7 @@ protected:
 
 template <typename T>
 struct is_property_tag : std::false_type {};
-    
+
 template <const char* Name, class PropertyType>
 struct is_property_tag<PropertyTagBase<Name, PropertyType>> : std::true_type {};
 
@@ -144,7 +119,7 @@ public:
         Type, typename PropertyTags::RenderPropertyTagType...>;
 
     RSNGEffectTemplate() = default;
-    virtual ~RSNGEffectTemplate() override = default;
+    ~RSNGEffectTemplate() override = default;
 
     RSNGEffectType GetType() const override
     {
@@ -159,14 +134,14 @@ public:
 
         // 2. Create render filter by type and fill properties
         auto current = std::make_shared<RenderEffectTemplate>(renderProperties);
-        if (auto nextEffect = Base::GetNextEffect(); nextEffect) {
-            auto nextRenderEffect = nextEffect->GetRenderEffect();
-            current->SetNextEffect(nextRenderEffect);
+        if (auto& nextEffect = Base::nextEffect_) {
+            current->nextEffect_ = nextEffect->GetRenderEffect();
         }
         return current;
     }
 
-    bool SetValue(const std::shared_ptr<Base>& other, std::shared_ptr<RSNode> node) override
+    bool SetValue(const std::shared_ptr<Base>& other, RSNode& node,
+        const std::weak_ptr<ModifierNG::RSModifier>& modifier) override
     {
         if (other == nullptr || GetType() != other->GetType()) {
             return false;
@@ -178,20 +153,31 @@ public:
                 (args.value_->Set(std::get<std::decay_t<decltype(args)>>(otherProps).value_->Get()), ...);
             },
             properties_);
-        
-        return Base::OnSetValue(other, node);
+
+        auto& otherNextEffect = otherDown->nextEffect_;
+        if (!Base::nextEffect_ || !Base::nextEffect_->SetValue(otherNextEffect, node, modifier)) {
+            Base::SetNextEffect(otherNextEffect, node, modifier);
+        }
+        return true;
     }
 
-    void Attach(const std::shared_ptr<RSNode>& node) override
+    void Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) override
     {
-        std::apply([&node](const auto&... args) { (RSUIFilterUtils::Attach(args.value_, node), ...); }, properties_);
-        Base::OnAttach(node);
+        std::apply([&node, &modifier](const auto&... args) {
+                (RSNGEffectUtils::Attach(args.value_, node, modifier), ...);
+            },
+            properties_);
+        if (Base::nextEffect_) {
+            Base::nextEffect_->Attach(node, modifier);
+        }
     }
 
     void Detach() override
     {
-        std::apply([](const auto&... args) { (RSUIFilterUtils::Detach(args.value_), ...); }, properties_);
-        Base::OnDetach();
+        std::apply([](const auto&... args) { (RSNGEffectUtils::Detach(args.value_), ...); }, properties_);
+        if (Base::nextEffect_) {
+            Base::nextEffect_->Detach();
+        }
     }
 
     template<typename Tag>

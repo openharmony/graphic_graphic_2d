@@ -428,30 +428,31 @@ HWTEST_F(RSUniRenderThreadTest, RenderServiceTreeDump001, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDisplayNodeScreenId001
- * @tc.desc: Test UpdateDisplayNodeScreenId
+ * @tc.name: UpdateScreenNodeScreenId001
+ * @tc.desc: Test UpdateScreenNodeScreenId
  * @tc.type: FUNC
  * @tc.require: issueIAE59W
  */
-HWTEST_F(RSUniRenderThreadTest, UpdateDisplayNodeScreenId001, TestSize.Level1)
+HWTEST_F(RSUniRenderThreadTest, UpdateScreenNodeScreenId001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.UpdateDisplayNodeScreenId();
+    instance.UpdateScreenNodeScreenId();
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
     RSMainThread::Instance()->context_->globalRootRenderNode_->children_.push_back(std::weak_ptr<RSRenderNode>(node));
-    instance.UpdateDisplayNodeScreenId();
+    instance.UpdateScreenNodeScreenId();
     EXPECT_TRUE(instance.clearMemoryFinished_);
 
     RSMainThread::Instance()->context_->globalRootRenderNode_->children_.clear();
-    RSDisplayNodeConfig config;
-    std::shared_ptr<RSDisplayRenderNode> renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> renderNode =
+            std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
     RSMainThread::Instance()->context_->globalRootRenderNode_->children_.push_back(
-        std::weak_ptr<RSDisplayRenderNode>(renderNode));
-    instance.UpdateDisplayNodeScreenId();
+        std::weak_ptr<RSScreenRenderNode>(renderNode));
+    instance.UpdateScreenNodeScreenId();
     EXPECT_TRUE(RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode());
 
     RSMainThread::Instance()->context_->globalRootRenderNode_ = nullptr;
-    instance.UpdateDisplayNodeScreenId();
+    instance.UpdateScreenNodeScreenId();
     EXPECT_FALSE(RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode());
 }
 
@@ -469,22 +470,22 @@ HWTEST_F(RSUniRenderThreadTest, GetDynamicRefreshRate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: WaitUntilDisplayNodeBufferReleased001
- * @tc.desc: Test WaitUntilDisplayNodeBufferReleased
+ * @tc.name: WaitUntilScreenNodeBufferReleased001
+ * @tc.desc: Test WaitUntilScreenNodeBufferReleased
  * @tc.type: FUNC
  * @tc.require: issueIAE59W
  */
-HWTEST_F(RSUniRenderThreadTest, WaitUntilDisplayNodeBufferReleased001, TestSize.Level1)
+HWTEST_F(RSUniRenderThreadTest, WaitUntilScreenNodeBufferReleased001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     auto node = std::make_shared<RSRenderNode>(0);
-    auto displayNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(std::move(node));
-    bool res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
+    auto screenRenderNodeDrawable = std::make_shared<RSScreenRenderNodeDrawable>(std::move(node));
+    bool res = instance.WaitUntilScreenNodeBufferReleased(*screenRenderNodeDrawable);
     EXPECT_TRUE(res);
 
-    displayNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
-    displayNodeDrawable->surfaceHandler_->consumer_ = IConsumerSurface::Create();
-    res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
+    screenRenderNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
+    screenRenderNodeDrawable->surfaceHandler_->consumer_ = IConsumerSurface::Create();
+    res = instance.WaitUntilScreenNodeBufferReleased(*screenRenderNodeDrawable);
     EXPECT_TRUE(res);
 }
 

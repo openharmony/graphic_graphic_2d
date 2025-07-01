@@ -39,11 +39,14 @@ public:
 
     // RSRenderProperty(s) to staging value
     virtual void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) {}
+    // Temporary solution, apply Modifier to RSProperties, used in legacy code
     void ApplyLegacyProperty(RSProperties& properties);
 
+    // For attaching/detaching RSRenderProperty to RSRenderModifier
     void AttachProperty(RSPropertyType type, const std::shared_ptr<RSRenderPropertyBase>& property);
     void DetachProperty(RSPropertyType type);
 
+    // For attaching/detaching RSRenderModifier to RSRenderNode
     bool IsAttached() const;
     void OnAttachModifier(RSRenderNode& node);
     void OnDetachModifier();

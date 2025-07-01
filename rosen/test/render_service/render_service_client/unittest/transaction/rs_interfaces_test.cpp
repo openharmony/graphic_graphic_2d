@@ -52,6 +52,8 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI001, TestSize.Level1)
         explicit TestSurfaceCapture() {}
         ~TestSurfaceCapture() {}
         void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     };
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto callback = std::make_shared<TestSurfaceCapture>();
@@ -158,6 +160,8 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig001, TestSize.Level1
         explicit TestSurfaceCapture() {}
         ~TestSurfaceCapture() {}
         void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     };
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto callback = std::make_shared<TestSurfaceCapture>();

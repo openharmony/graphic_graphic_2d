@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"

@@ -388,7 +388,7 @@ void FontConfigJson::ParseFullName(const cJSON* root, std::vector<std::string>& 
     }
 }
 
-int FontConfigJson::ParseInstallFont(const cJSON* root, FontFileMap& fontPathList)
+int FontConfigJson::ParseInstallFont(const cJSON* root, FullNameToPath& fontPathList)
 {
     const char* tag = "fontlist";
     cJSON* rootObj = cJSON_GetObjectItem(root, tag);
@@ -415,8 +415,8 @@ int FontConfigJson::ParseInstallFont(const cJSON* root, FontFileMap& fontPathLis
         }
         std::vector<std::string> fullNameList;
         ParseFullName(item, fullNameList);
-        for (const auto& fullName: fullNameList) {
-            fontPathList.emplace(fullName, fullPath->valuestring);
+        for (size_t i = 0; i < fullNameList.size(); i += 1) {
+            fontPathList[fullNameList[i]] = { i, fullPath->valuestring };
         }
     }
     return SUCCESSED;
@@ -443,8 +443,8 @@ int FontConfigJson::ParseInstallConfig(const char* fontPath, T& fontPathList)
     return SUCCESSED;
 }
 
-template int FontConfigJson::ParseInstallConfig(const char *fontPath, FontFileMap& fontPathList);
-template int FontConfigJson::ParseInstallConfig(const char *fontPath, std::vector<std::string>& fontPathList);
+template int FontConfigJson::ParseInstallConfig(const char* fontPath, FullNameToPath& fontPathList);
+template int FontConfigJson::ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList);
 
 void FontConfigJson::DumpAlias(const AliasSet& aliasSet) const
 {

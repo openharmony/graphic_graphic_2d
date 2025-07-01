@@ -29,7 +29,6 @@ namespace Rosen {
 enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_CREATE = 0,
     DISPLAY_NODE_SET_SCREEN_ID = 1,
-    DISPLAY_NODE_SET_DISPLAY_OFFSET = 2,
     DISPLAY_NODE_SET_SECURITY_DISPLAY = 3,
     DISPLAY_NODE_SET_DISPLAY_MODE = 4,
     DISPLAY_NODE_SET_SCREEN_ROTATION = 5,
@@ -45,14 +44,13 @@ enum RSDisplayNodeCommandType : uint16_t {
 class RSB_EXPORT DisplayNodeCommandHelper {
 public:
     static void Create(RSContext&, NodeId, const RSDisplayNodeConfig&);
-    static std::shared_ptr<RSDisplayRenderNode> CreateWithConfigInRS(RSContext&, NodeId, const RSDisplayNodeConfig&);
+    static std::shared_ptr<RSLogicalDisplayRenderNode> CreateWithConfigInRS(
+        RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenId(RSContext&, NodeId, uint64_t);
-    static void SetDisplayOffset(RSContext&, NodeId, int32_t, int32_t);
     static void SetSecurityDisplay(RSContext&, NodeId, bool);
     static void SetDisplayMode(RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenRotation(RSContext&, NodeId, const ScreenRotation&);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
-    static void SetRogSize(RSContext&, NodeId, uint32_t, uint32_t);
     static void AddDisplayNodeToTree(RSContext&, NodeId);
     static void RemoveDisplayNodeFromTree(RSContext&, NodeId);
     static void SetScbNodePid(RSContext&, NodeId, const std::vector<int32_t>& oldScbPids, int32_t currentScbPid);
@@ -66,9 +64,6 @@ ADD_COMMAND(RSDisplayNodeCreate,
 ADD_COMMAND(RSDisplayNodeSetScreenId,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ID,
         DisplayNodeCommandHelper::SetScreenId, NodeId, uint64_t))
-ADD_COMMAND(RSDisplayNodeSetDisplayOffset,
-    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_OFFSET,
-        DisplayNodeCommandHelper::SetDisplayOffset, NodeId, int32_t, int32_t))
 ADD_COMMAND(RSDisplayNodeSetSecurityDisplay,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_SECURITY_DISPLAY,
         DisplayNodeCommandHelper::SetSecurityDisplay, NodeId, bool))
@@ -81,9 +76,6 @@ ADD_COMMAND(RSDisplayNodeSetScreenRotation,
 ADD_COMMAND(RSDisplayNodeSetBootAnimation,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_BOOT_ANIMATION,
         DisplayNodeCommandHelper::SetBootAnimation, NodeId, bool))
-ADD_COMMAND(RSDisplayNodeSetRogSize,
-    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_ROG_SIZE,
-        DisplayNodeCommandHelper::SetRogSize, NodeId, uint32_t, uint32_t))
 ADD_COMMAND(RSDisplayNodeAddToTree,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_ADD_TO_TREE,
         DisplayNodeCommandHelper::AddDisplayNodeToTree, NodeId))
