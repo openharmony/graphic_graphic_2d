@@ -88,32 +88,7 @@ T* GetNativeFromObj(ani_env* env, ani_object obj)
 
 ani_object CreateAniUndefined(ani_env* env);
 
-inline ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ...)
-{
-    ani_class aniClass;
-    if (env->FindClass(className, &aniClass) != ANI_OK) {
-        ROSEN_LOGE("[Drawing] CreateAniObject FindClass failed");
-        return CreateAniUndefined(env);
-    }
-
-    ani_method aniConstructor;
-    if (env->Class_FindMethod(aniClass, "<ctor>", methodSig, &aniConstructor) != ANI_OK) {
-        ROSEN_LOGE("[Drawing] CreateAniObject Class_FindMethod failed");
-        return CreateAniUndefined(env);
-    }
-
-    ani_object aniObject;
-    va_list args;
-    va_start(args, methodSig);
-    if (env->Object_New_V(aniClass, aniConstructor, &aniObject, args) != ANI_OK) {
-        ROSEN_LOGE("[Drawing] CreateAniObject Object_New failed");
-        va_end(args);
-        return CreateAniUndefined(env);
-    }
-    va_end(args);
-
-    return aniObject;
-}
+ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ...);
 
 template<typename T>
 ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
