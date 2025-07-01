@@ -4804,10 +4804,14 @@ void RSNode::DumpTree(int depth, std::string& out) const
     }
 }
 
-#if defined(MODIFIER_NG)
-void RSNode::DumpModifiersNG(std::string& out) const
+void RSNode::DumpModifiers(std::string& out) const
 {
-    for (const auto& [id, modifier] : modifiersNG_) {
+#if defined(MODIFIER_NG)
+    const auto& modifiers = modifiersNG_;
+#else
+    const auto& modifiers = modifiers_;
+#endif
+    for (const auto& [id, modifier] : modifiers) {
         if (modifier == nullptr) {
             continue;
         }
@@ -4816,10 +4820,15 @@ void RSNode::DumpModifiersNG(std::string& out) const
         if (renderModifier == nullptr) {
             continue;
         }
+#if defined(MODIFIER_NG)
         renderModifier->Dump(out, ",");
+#else
+        out += " " + modifier->GetModifierTypeString();
+        out += ":";
+        renderModifier->Dump(out);
+#endif
     }
 }
-#endif
 
 void RSNode::Dump(std::string& out) const
 {
@@ -4872,23 +4881,7 @@ void RSNode::Dump(std::string& out) const
     }
     
     out += "], modifiers[";
-#if defined(MODIFIER_NG)
-    DumpModifiersNG(out);
-#else
-    for (const auto& [id, modifier] : modifiers_) {
-        if (modifier == nullptr) {
-            continue;
-        }
-
-        auto renderModifier = modifier->CreateRenderModifier();
-        if (renderModifier == nullptr) {
-            continue;
-        }
-        out += " " + modifier->GetModifierTypeString();
-        out += ":";
-        renderModifier->Dump(out);
-    }
-#endif
+    DumpModifiers(out);
     out += "]";
 }
 

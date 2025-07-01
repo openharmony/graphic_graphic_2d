@@ -1799,9 +1799,7 @@ protected:
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
-#if defined(MODIFIER_NG)
-    void DumpModifiersNG(std::string& out) const;
-#endif
+    void DumpModifiers(std::string& out) const;
 
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
