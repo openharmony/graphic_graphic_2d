@@ -24,7 +24,8 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
-#include "ui/"
+#include "ui/rs_display_node.h"
+#include "ui/rs_canvas_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -50,10 +51,10 @@ HWTEST_F(RSCustomModifierHelperTest, CreateDrawingContextTest, TestSize.Level1)
     RSCustomModifierHelper::CreateDrawingContext(node);
     EXPECT_EQ(node, nullptr);
 
-    bool isRenderServiceNode = false;
-    std::shared_ptr<RSNode> node2 = RSRootNode::Create(isRenderServiceNode);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSDisplayNode> node2 = RSDisplayNode::Create(config);
     RSCustomModifierHelper::CreateDrawingContext(node2);
-    EXPECT_FALSE(node->IsInstanceOf<RSCanvasNode>());
+    EXPECT_FALSE(node2->IsInstanceOf<RSCanvasNode>());
 
     std::shared_ptr<RSNode> node3 = RSCanvasNode::Create();
     ModifierNG::RSDrawingContext context = RSCustomModifierHelper::CreateDrawingContext(node3);
@@ -67,21 +68,28 @@ HWTEST_F(RSCustomModifierHelperTest, CreateDrawingContextTest, TestSize.Level1)
  */
 HWTEST_F(RSCustomModifierHelperTest, FinishDrawingTest, TestSize.Level1)
 {
-    Drawing::Canvas canvas;
     float width = 100.0f;
     float height = 100.0f;
-    ModifierNG::RSDrawingContext context = { &canvas, width, height };
-    auto drawCmdList = RSCustomModifierHelper::FinishDrawing(context);
-    EXPECT_EQ(drawCmdList, nullptr);
+    ModifierNG::RSDrawingContext context1 = { nullptr, width, height };
+    auto drawCmdList1 = RSCustomModifierHelper::FinishDrawing(context1);
+    EXPECT_EQ(drawCmdList1, nullptr);
 
-    ModifierNG::RSDrawingContext context2 = { nullptr, width, height };
-    auto drawCmdList2 = RSCustomModifierHelper::FinishDrawing(context);
-    EXPECT_EQ(drawCmdList2, nullptr);
-
-    auto recordingCanvas = new ExtendRecordingCanvas(width, height);
-    ModifierNG::RSDrawingContext context3 = { recordingCanvas, width, height };
+    auto canvas2 = new ExtendRecordingCanvas(width, height);
+    ModifierNG::RSDrawingContext context2 = { canvas2, width, height };
     RSSystemProperties::SetDrawTextAsBitmap(true);
+    auto drawCmdList2 = RSCustomModifierHelper::FinishDrawing(context2);
+    EXPECT_NE(drawCmdList2, nullptr);
+
+    auto canvas3 = new ExtendRecordingCanvas(width, height);
+    ModifierNG::RSDrawingContext context3 = { canvas3, width, height };
+    RSSystemProperties::SetDrawTextAsBitmap(false);
     auto drawCmdList3 = RSCustomModifierHelper::FinishDrawing(context3);
     EXPECT_NE(drawCmdList3, nullptr);
+
+    auto canvas4 = new ExtendRecordingCanvas(width, height);
+    ModifierNG::RSDrawingContext context4 = { canvas4, width, height };
+    canvas4->cmdList_ = nullptr;
+    auto drawCmdList4 = RSCustomModifierHelper::FinishDrawing(context4);
+    EXPECT_EQ(drawCmdList4, nullptr);
 }
 } // namespace OHOS::Rosen
