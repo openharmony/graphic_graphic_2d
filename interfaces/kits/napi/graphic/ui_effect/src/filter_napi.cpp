@@ -74,6 +74,7 @@ napi_value TileModeInit(napi_env env)
 
 napi_value FilterNapi::Init(napi_env env, napi_value exports)
 {
+    RegisterFilterParaUnmarshallingCallback();
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createFilter", CreateFilter),
     };
@@ -169,7 +170,8 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("bezierWarp", SetBezierWarp),
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
-        DECLARE_NAPI_FUNCTION("contentLight", SetContentLight)
+        DECLARE_NAPI_FUNCTION("contentLight", SetContentLight),
+        DECLARE_NAPI_FUNCTION("maskTransition", SetMaskTransition)
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -986,6 +988,68 @@ napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info in
     para->SetBrightnessRatio(static_cast<float>(brightnessRatio));
     filterObj->AddPara(para);
     return thisVar;
+}
+
+napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetMaskTransition failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi transition failed, is not system app");
+        return nullptr;
+    }
+
+    const size_t requireArgc = NUM_3;
+    size_t realArgc = NUM_3;
+    napi_value argv[NUM_3] = { 0 };
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetMaskTransition parsing input failed"));
+
+    auto para = std::make_shared<MaskTransitionPara>();
+
+    Mask* mask = nullptr;
+    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&mask));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetMaskTransition napi_unwrap mask failed"));
+    para->SetMask(mask->GetMaskPara());
+
+    float factor = 1.0f;
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_1]) == napi_number) {
+        double tmp = 0.0f;
+        if (napi_get_value_double(env, argv[NUM_1], &tmp) == napi_ok) {
+            factor = static_cast<float>(tmp);
+        }
+    }
+    para->SetFactor(factor);
+
+    bool inverse = false;
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_2]) == napi_boolean) {
+        bool tmp = inverse;
+        if (napi_get_value_bool(env, argv[NUM_2], &tmp) == napi_ok) {
+            inverse = tmp;
+        }
+    }
+    para->SetInverse(inverse);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetMaskTransition napi_unwrap fail"));
+    filterObj->AddPara(para);
+
+    return thisVar;
+}
+
+void FilterNapi::RegisterFilterParaUnmarshallingCallback()
+{
+    ContentLightPara::RegisterUnmarshallingCallback();
+    DispersionPara::RegisterUnmarshallingCallback();
+    DisplacementDistortPara::RegisterUnmarshallingCallback();
+    MaskTransitionPara::RegisterUnmarshallingCallback();
+    WaterRipplePara::RegisterUnmarshallingCallback();
 }
 
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)

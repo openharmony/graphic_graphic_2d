@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,24 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_FILTER_DISPERSION_PARA_H
-#define UIEFFECT_FILTER_DISPERSION_PARA_H
-#include "common/rs_vector2.h"
+
+#ifndef UIEFFECT_FILTER_MASK_TRANSITION_PARA_H
+#define UIEFFECT_FILTER_MASK_TRANSITION_PARA_H
+
 #include "filter_para.h"
 #include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSC_EXPORT DispersionPara : public FilterPara {
-public:
-    DispersionPara()
-    {
-        this->type_ = FilterPara::ParaType::DISPERSION;
-    }
-    ~DispersionPara() override = default;
 
-    DispersionPara(const DispersionPara& other);
+class RSC_EXPORT MaskTransitionPara : public FilterPara {
+public:
+    MaskTransitionPara()
+    {
+        this->type_ = FilterPara::ParaType::MASK_TRANSITION;
+    }
+    ~MaskTransitionPara() override = default;
+
+    MaskTransitionPara(const MaskTransitionPara& other);
 
     void SetMask(std::shared_ptr<MaskPara> maskPara)
     {
@@ -41,44 +43,24 @@ public:
         return maskPara_;
     }
 
-    void SetOpacity(float opacity)
+    void SetFactor(float factor)
     {
-        opacity_ = opacity;
+        factor_ = factor;
     }
 
-    float GetOpacity() const
+    float GetFactor() const
     {
-        return opacity_;
+        return factor_;
     }
 
-    void SetRedOffset(const Vector2f& redOffset)
+    void SetInverse(bool inverse)
     {
-        redOffset_ = redOffset;
+        inverse_ = inverse;
     }
 
-    const Vector2f& GetRedOffset() const
+    bool GetInverse() const
     {
-        return redOffset_;
-    }
-
-    void SetGreenOffset(const Vector2f& greenOffset)
-    {
-        greenOffset_ = greenOffset;
-    }
-
-    const Vector2f& GetGreenOffset() const
-    {
-        return greenOffset_;
-    }
-
-    void SetBlueOffset(const Vector2f& blueOffset)
-    {
-        blueOffset_ = blueOffset;
-    }
-
-    const Vector2f& GetBlueOffset() const
-    {
-        return blueOffset_;
+        return inverse_;
     }
 
     bool Marshalling(Parcel& parcel) const override;
@@ -91,12 +73,11 @@ public:
 
 private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
-
-    float opacity_ = 0.0f;
-    Vector2f redOffset_;
-    Vector2f greenOffset_;
-    Vector2f blueOffset_;
+    float factor_ = 1.0f;
+    bool inverse_ = false;
 };
+
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_FILTER_EDGE_LIGHT_PARA_H
+
+#endif // UIEFFECT_FILTER_MASK_TRANSITION_PARA_H

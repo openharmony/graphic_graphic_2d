@@ -18,10 +18,11 @@
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 #include "filter_para.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class ContentLightPara : public FilterPara {
+class RSC_EXPORT ContentLightPara : public FilterPara {
 public:
     ContentLightPara()
     {
@@ -58,6 +59,14 @@ public:
     {
         return lightIntensity_;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
+
+    std::shared_ptr<FilterPara> Clone() const override;
 
 private:
     Vector3f lightPosition_;

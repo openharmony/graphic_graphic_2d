@@ -31,6 +31,7 @@
 #include "filter/include/filter_edge_light_para.h"
 #include "filter/include/filter_dispersion_para.h"
 #include "filter/include/filter_content_light_para.h"
+#include "filter/include/filter_mask_transition_para.h"
 #include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -74,6 +75,9 @@ private:
     static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);
     static napi_value SetHDRBrightnessRatio(napi_env env, napi_callback_info info);
     static napi_value SetContentLight(napi_env env, napi_callback_info info);
+    static napi_value SetMaskTransition(napi_env env, napi_callback_info info);
+
+    static void RegisterFilterParaUnmarshallingCallback();
 
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static uint32_t GetSpecialIntValue(napi_env env, napi_value argValue);

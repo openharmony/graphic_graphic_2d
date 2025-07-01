@@ -34,6 +34,7 @@ thread_local napi_ref MaskNapi::sConstructor_ = nullptr;
 
 napi_value MaskNapi::Init(napi_env env, napi_value exports)
 {
+    RegisterMaskParaUnmarshallingCallback();
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createRippleMask", CreateRippleMask),
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
@@ -332,5 +333,12 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
 
     return Create(env, para);
 }
+
+void MaskNapi::RegisterMaskParaUnmarshallingCallback()
+{
+    PixelMapMaskPara::RegisterUnmarshallingCallback();
+    RadialGradientMaskPara::RegisterUnmarshallingCallback();
+}
+
 }  // namespace Rosen
 }  // namespace OHOS

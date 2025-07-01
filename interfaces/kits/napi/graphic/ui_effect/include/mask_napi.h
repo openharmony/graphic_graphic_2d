@@ -51,6 +51,8 @@ private:
     static napi_value CreateRippleMask(napi_env env, napi_callback_info info);
     static napi_value CreateRadialGradientMask(napi_env env, napi_callback_info info);
     static napi_value CreatePixelMapMask(napi_env env, napi_callback_info info);
+
+    static void RegisterMaskParaUnmarshallingCallback();
 };
 } // namespace Rosen
 } // namespace OHOS
