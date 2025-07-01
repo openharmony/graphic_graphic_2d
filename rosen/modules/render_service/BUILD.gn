@@ -1,5 +1,5 @@
 
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+\# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -117,6 +117,10 @@ ohos_shared_library("librender_service") {
     "core/feature/hetero_hdr/rs_hdr_manager.cpp",
     "core/feature/hetero_hdr/rs_hdr_surface_render_node_drawable.cpp",
     "core/feature/hetero_hdr/rs_hetero_hdr_util.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_layer.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_processor.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_process_sycner.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_thread_manager.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "core/feature/hpae/rs_hpae_buffer.cpp",
     "core/feature/hpae/rs_hpae_manager.cpp",
