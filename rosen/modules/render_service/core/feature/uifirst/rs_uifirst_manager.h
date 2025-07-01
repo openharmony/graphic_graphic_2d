@@ -54,7 +54,6 @@ public:
         bool isFirst = true;
     };
     
-
     void AddProcessDoneNode(NodeId id);
     void AddProcessSkippedNode(NodeId id);
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
