@@ -261,6 +261,19 @@ HWTEST_F(SkiaGPUContextTest, RegisterVulkanErrorCallback001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetEarlyZFlagTest001
+ * @tc.desc: Test SetEarlyZFlag
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(SkiaGPUContextTest, SetEarlyZFlagTest001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetEarlyZFlag(true);
+}
+
+/**
  * @tc.name: SetCurrentGpuResourceTag001
  * @tc.desc: Test SetCurrentGpuResourceTag
  * @tc.type: FUNC

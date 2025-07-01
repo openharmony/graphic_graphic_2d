@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -584,6 +584,33 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSurfaceTest, TestSize.Level1)
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     instance.ReleaseSurface();
     ASSERT_EQ(instance.tmpSurfaces_.size(), 0);
+}
+
+/**
+ * @tc.name: SetEarlyZFlagTest
+ * @tc.desc: Test Set EarlyZ Flag in RSUniRenderThread
+ * @tc.type: FUNC
+ * @tc.require: issueIB2I9E
+ */
+HWTEST_F(RSUniRenderThreadTest, SetEarlyZFlag, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    ClearMemoryMoment moment = ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE;
+    bool deeply = true;
+    bool isDefaultClean = true;
+    instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
+    ASSERT_NE(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), nullptr);
+
+    RSDrawFrame drawFrame_;
+    auto& rsJankStats = RSJankStats::GetInstance();
+    rsJankStats.ddgrEarlyZEnableFlag_ = true;
+    rsJankStats.isFlushEarlyZ_ = true;
+    drawFrame_.SetEarlyZFlag(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    EXPECT_FALSE(rsJankStats.isFlushEarlyZ_);
+    rsJankStats.isFlushEarlyZ_ = true;
+    rsJankStats.ddgrEarlyZEnableFlag_ = false;
+    drawFrame_.SetEarlyZFlag(nullptr);
+    EXPECT_TRUE(rsJankStats.isFlushEarlyZ_);
 }
 
 /**

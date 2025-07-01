@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,8 @@ const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 #endif
+
+bool RSSystemProperties::isEnableEarlyZ_ = system::GetBoolParameter("persist.sys.graphic.ddgrEarlyZ.enabled", true);
 
 int ConvertToInt(const char *originValue, int defaultValue)
 {
@@ -1605,6 +1607,11 @@ bool RSSystemProperties::GetCompositeLayerEnabled()
     static bool compositeLayerEnable =
         system::GetBoolParameter("rosen.graphic.composite.layer", false);
     return compositeLayerEnable;
+}
+
+bool RSSystemProperties::GetEarlyZEnable()
+{
+    return isEnableEarlyZ_;
 }
 } // namespace Rosen
 } // namespace OHOS
