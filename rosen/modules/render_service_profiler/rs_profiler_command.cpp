@@ -81,6 +81,9 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "save_skp", SaveSkp },
     { "save_offscreen", SaveOffscreenSkp },
     { "save_component", SaveComponentSkp },
+    { "save_imgcache", SaveSkpImgCache },
+    { "save_oncapture", SaveSkpOnCapture },
+    { "save_extended", SaveSkpExtended },
     { "info", GetDeviceInfo },
     { "freq", GetDeviceFrequency },
     { "fixenv", FixDeviceEnv },
@@ -135,10 +138,59 @@ void RSProfiler::SaveSkp(const ArgList& args)
     RSCaptureRecorder::GetInstance().SetDrawingCanvasNodeId(nodeId);
     if (nodeId == 0) {
         RSSystemProperties::SetInstantRecording(true);
-        Respond("Recording full frame .skp");
+        SendMessage("Recording full frame .skp");
     } else {
-        Respond("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
+        SendMessage("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
     }
+    AwakeRenderServiceThread();
+}
+
+static void SetSkpAndClear()
+{
+    RSCaptureRecorder::GetInstance().SetCaptureTypeClear(true);
+    RSSystemProperties::SetInstantRecording(true);
+}
+
+void RSProfiler::SaveSkpImgCache(const ArgList& args)
+{
+    const auto option = args.Uint32();
+    if (option == 0) {
+        RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::DEFAULT);
+        SetSkpAndClear();
+        SendMessage("Recording full frame .skp, default capturing of caсhed content");
+    } else if (option == 1) {
+        RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::IMG_CACHED);
+        SetSkpAndClear();
+        SendMessage("Recording full frame .skp, drawing of cached img");
+    } else {
+        SendMessage("Invalid argument for: skp_imgcache");
+    }
+    AwakeRenderServiceThread();
+}
+
+void RSProfiler::SaveSkpOnCapture(const ArgList& args)
+{
+    const auto option = args.Node();
+    if (option != 0) {
+        SendMessage("There's no argument for the command: skp_oncapture");
+        return;
+    }
+    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::ON_CAPTURE);
+    SetSkpAndClear();
+    SendMessage("Recording full frame .skp, OnCapture call for mirrored node");
+    AwakeRenderServiceThread();
+}
+
+void RSProfiler::SaveSkpExtended(const ArgList& args)
+{
+    const auto option = args.Node();
+    if (option != 0) {
+        SendMessage("There's no argument for the command: skp_extended");
+        return;
+    }
+    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::EXTENDED);
+    SetSkpAndClear();
+    SendMessage("Recording full frame .skp, offscreen rendering for extended screen");
     AwakeRenderServiceThread();
 }
 
