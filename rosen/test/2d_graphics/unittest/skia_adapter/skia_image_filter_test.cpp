@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include "gtest/gtest.h"
+#include "effect/color_filter.h"
 #include "image/bitmap.h"
 #include "draw/color.h"
 #include "include/effects/SkImageFilters.h"
@@ -55,11 +56,7 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur001, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::REPEAT, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
-#ifdef USE_M133_SKIA
-    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
-#else
     EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
-#endif
 }
 
 /**
@@ -77,11 +74,7 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur002, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::MIRROR, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
-#ifdef USE_M133_SKIA
-    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
-#else
     EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
-#endif
 }
 
 /**
@@ -99,11 +92,7 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur003, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::DECAL, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
-#ifdef USE_M133_SKIA
-    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
-#else
     EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
-#endif
 }
 
 /**
@@ -160,6 +149,45 @@ HWTEST_F(SkiaImageFilterTest, InitWithImage001, TestSize.Level1)
     SamplingOptions options(FilterMode::LINEAR);
     skiaImageFilter->InitWithImage(image, rect, rect, options);
     EXPECT_TRUE(skiaImageFilter->filter_ != nullptr);
+}
+
+/**
+ * @tc.name: AllFunc001
+ * @tc.desc: Test AllFunc
+ * @tc.type: FUNC
+ * @tc.require: IAZ845
+ */
+HWTEST_F(SkiaImageFilterTest, AllFunc001, TestSize.Level1)
+{
+    int32_t width = 200;
+    int32_t height = 200;
+    scalar sigmaX = 5.0f;
+    scalar sigmaY = 5.0f;
+    Rect rect(0.0f, 0.0f, width, height);
+    std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
+    skiaImageFilter->InitWithBlur(
+        sigmaX, sigmaX, TileMode::REPEAT, nullptr, ImageBlurType::GAUSS, rect);
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+
+    auto colorFilter = ColorFilter::CreateSrgbGammaToLinear();
+    skiaImageFilter->InitWithColor(*colorFilter, nullptr, rect);
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+
+    skiaImageFilter->InitWithOffset(sigmaX, sigmaY, nullptr, rect);
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+
+    skiaImageFilter->InitWithColorBlur(*colorFilter, sigmaX, sigmaY, ImageBlurType::GAUSS, rect);
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+    
+    std::vector<scalar> coefficients = {1.0f, 2.0f, 3.0f, 4.0f};
+    skiaImageFilter->InitWithArithmetic(coefficients, true, nullptr, nullptr, rect);
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+
+    skiaImageFilter->InitWithBlend(BlendMode::SRC, rect, nullptr, nullptr);
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
+
+    skiaImageFilter->InitWithShader(nullptr, rect);
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen
