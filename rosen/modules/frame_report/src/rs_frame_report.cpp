@@ -121,6 +121,7 @@ int RsFrameReport::GetEnable()
 
 void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload)
 {
+    std::lock_guard<std::mutex> lock(reportSchedEventFuncLock_);
     if (reportSchedEventFunc_ == nullptr) {
         reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
     }
@@ -227,6 +228,17 @@ void RsFrameReport::ReportFrameDeadline(int deadline, uint32_t currentRate)
     payload["rsFrameDeadline"] = std::to_string(deadline);
     payload["currentRate"] = std::to_string(currentRate);
     ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
+}
+
+void RsFrameReport::ReportUnmarshalData(int unmarshalTid, size_t dataSize)
+{
+    if (unmarshalTid <= 0) {
+        return;
+    }
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["unmarshalTid"] = std::to_string(unmarshalTid);
+    payload["dataSize"] = std::to_string(dataSize);
+    ReportSchedEvent(FrameSchedEvent::RS_UNMARSHAL_DATA, payload);
 }
 
 void RsFrameReport::ReportDDGRTaskInfo()

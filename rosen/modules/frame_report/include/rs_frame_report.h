@@ -16,6 +16,7 @@
 #ifndef ROSEN_MODULE_RS_FRAME_REPORT_H
 #define ROSEN_MODULE_RS_FRAME_REPORT_H
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -38,7 +39,7 @@ enum class FrameSchedEvent {
     RS_POST_AND_WAIT = 10011,
     RS_BEGIN_FLUSH = 10012,
     RS_BLUR_PREDICT = 10013,
-    RS_MODIFIER_INFO = 10014,
+    RS_UNMARSHAL_DATA = 10014,
     RS_DDGR_TASK = 10017,
     GPU_SCB_SCENE_INFO = 40001,
     SCHED_EVENT_MAX,
@@ -68,6 +69,7 @@ public:
     void ReportBufferCount(int count);
     void ReportHardwareInfo(int tid);
     void ReportFrameDeadline(int deadline, uint32_t currentRate);
+    void ReportUnmarshalData(int unmarshalTid, size_t dataSize);
     void ReportDDGRTaskInfo();
     void ReportScbSceneInfo(std::string description, bool eventStatus);
 
@@ -86,6 +88,8 @@ private:
     ReportSchedEventFunc reportSchedEventFunc_ = nullptr;
     SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
     SetFrameParamFunc setFrameParamFunc_ = nullptr;
+
+    std::mutex reportSchedEventFuncLock_;
 
     int bufferCount_ = 0;
     int hardwareTid_ = 0;

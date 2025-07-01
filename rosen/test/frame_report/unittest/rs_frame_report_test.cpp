@@ -165,5 +165,22 @@ HWTEST_F(RsFrameReportTest, ReportHardwareInfo001, TestSize.Level1)
     fr.ReportHardwareInfo(1);
     EXPECT_EQ(fr.hardwareTid_, 1);
 }
+
+/**
+ * @tc.name: ReportUnmarshalData001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, ReportUnmarshalData001, TestSize.Level1)
+{
+    int unmarshalTid = 123456;
+    size_t dataSize = 20 * 1024;
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.ReportUnmarshalData(unmarshalTid, dataSize);
+    unmarshalTid = 0;
+    fr.ReportUnmarshalData(unmarshalTid, dataSize);
+    EXPECT_EQ(fr.hardwareTid_, 1);
+}
 } // namespace Rosen
 } // namespace OHOS
