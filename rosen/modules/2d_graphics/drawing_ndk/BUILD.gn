@@ -25,7 +25,10 @@ if (ohos_indep_compiler_enable) {
 }
 
 config("export_config") {
-  include_dirs = [ "$drawing_ndk_include_dir" ]
+  include_dirs = [
+    "$drawing_ndk_include_dir",
+    "$rosen_text_root/interface/ndk/include",
+  ]
 }
 
 if (enable_text_gine) {

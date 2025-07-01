@@ -16,7 +16,6 @@ import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-
 ohos_source_set("text_ndk") {
   sanitize = {
     cfi = true
@@ -32,8 +31,8 @@ ohos_source_set("text_ndk") {
     "$rosen_root/modules/2d_graphics/drawing_ndk/include",
     "$rosen_text_root",
     "$rosen_text_root/adapter",
-    "$rosen_text_root/adapter/skia",
     "$rosen_text_root/interface/export",
+    "$rosen_text_root/interface/ndk/include",
     "$rosen_text_root/service",
     "$rosen_text_root/service/texgine/src",
   ]
@@ -55,6 +54,10 @@ ohos_source_set("text_ndk") {
   ]
 
   defines = []
+  if (use_skia_txt) {
+    defines += [ "USE_SKIA_TXT" ]
+    include_dirs += [ "$rosen_text_root/adapter/skia" ]
+  }
   if (is_arkui_x) {
     defines += [ "CROSS_PLATFORM" ]
   }
@@ -74,16 +77,13 @@ ohos_source_set("text_ndk") {
 
     if (!is_arkui_x) {
       deps += [ "$rosen_root/modules/platform:hilog" ]
+      public_external_deps = [ "skia:skia_canvaskit" ]
     }
 
     external_deps += [ "bounds_checking_function:libsec_static" ]
     defines += [ "MODULE_DRAWING" ]
   }
 
-  # if (rosen_is_ohos) {
-  # include_dirs += [ "$graphic_2d_root/interfaces/inner_api/surface" ]
-  # external_deps += [ "c_utils:utils" ]
-  # }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

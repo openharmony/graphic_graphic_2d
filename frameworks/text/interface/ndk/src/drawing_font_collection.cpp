@@ -16,7 +16,12 @@
 #include "drawing_font_collection.h"
 
 #include "rosen_text/font_collection.h"
+
+#ifdef USE_SKIA_TXT
 #include "skia_txt/font_collection.h"
+#else
+#include "txt/font_collection.h"
+#endif
 
 #include "utils/object_mgr.h"
 
