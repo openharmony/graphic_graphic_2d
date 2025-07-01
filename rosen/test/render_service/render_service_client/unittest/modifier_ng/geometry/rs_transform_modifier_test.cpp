@@ -64,6 +64,9 @@ HWTEST_F(RSTransformModifierNGTypeTest, RSTransformModifierTest, TestSize.Level1
     Vector2f pivotValue(1.0f, 2.0f);
     modifier->SetPivot(pivotValue);
     EXPECT_EQ(modifier->GetPivot(), pivotValue);
+    bool animatable = false;
+    modifier->SetPivot(pivotValue, animatable);
+    EXPECT_EQ(modifier->GetPivot(), pivotValue);
 
     float pivotZValue = 1.0f;
     modifier->SetPivotZ(pivotZValue);
@@ -113,5 +116,52 @@ HWTEST_F(RSTransformModifierNGTypeTest, RSTransformModifierTest, TestSize.Level1
     Vector4f perspValue(1.0f, 2.0f, 3.0f, 4.0f);
     modifier->SetPersp(perspValue);
     EXPECT_EQ(modifier->GetPersp(), perspValue);
+}
+
+/**
+ * @tc.name: ApplyGeometryTest
+ * @tc.desc: Test the function ApplyGeometry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransformModifierNGTypeTest, ApplyGeometryTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSTransformModifier>();
+    // geometry is null
+    std::shared_ptr<RSObjAbsGeometry> geometry = nullptr;
+    modifier->ApplyGeometry(geometry);
+    EXPECT_EQ(geometry, nullptr);
+    // geometry is not null, but all properties is null
+    geometry = std::make_shared<RSObjAbsGeometry>();
+    modifier->ApplyGeometry(geometry);
+    EXPECT_NE(geometry, nullptr);
+    // geometry and property is not null
+    Vector2f pivotValue(1.0f, 2.0f);
+    float pivotZValue = 1.0f;
+    Quaternion quaternionValue(1.0f, 2.0f, 3.0f, 4.0f);
+    float rotationValue = 1.0f;
+    float rotationXValue = 1.0f;
+    float rotationYValue = 1.0f;
+    float cameraDistanceValue = 1.0f;
+    Vector2f scaleValue(1.0f, 2.0f);
+    float scaleZValue = 1.0f;
+    Vector3f skewValue(1.0f, 2.0f, 3.0f);
+    Vector4f perspValue(1.0f, 2.0f, 3.0f, 4.0f);
+    Vector2f translateValue(1.0f, 2.0f);
+    float translateZValue = 1.0f;
+    modifier->SetPivot(pivotValue);
+    modifier->SetPivotZ(pivotZValue);
+    modifier->SetQuaternion(quaternionValue);
+    modifier->SetRotation(rotationValue);
+    modifier->SetRotationX(rotationXValue);
+    modifier->SetRotationY(rotationYValue);
+    modifier->SetCameraDistance(cameraDistanceValue);
+    modifier->SetScale(scaleValue);
+    modifier->SetScaleZ(scaleZValue);
+    modifier->SetSkew(skewValue);
+    modifier->SetPersp(perspValue);
+    modifier->SetTranslate(translateValue);
+    modifier->SetTranslateZ(translateZValue);
+    modifier->ApplyGeometry(geometry);
+    EXPECT_NE(geometry, nullptr);
 }
 } // namespace OHOS::Rosen

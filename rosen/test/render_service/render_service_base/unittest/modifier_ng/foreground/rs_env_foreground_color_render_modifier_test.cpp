@@ -24,8 +24,10 @@
 
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
 #include "property/rs_properties.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 using namespace testing;
+
 using namespace testing::ext;
 using namespace OHOS::Rosen::ModifierNG;
 
@@ -47,11 +49,29 @@ HWTEST_F(RSEnvForegroundColorRenderModifierNGTypeTest,
          RSEnvForegroundColorRenderModifierTest,
          TestSize.Level1)
 {
-    RSEnvForegroundColorRenderModifier modifier;
-    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR);
+    ModifierNG::RSEnvForegroundColorRenderModifier modifier;
     RSProperties properties;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
     modifier.Apply(&filterCanvas, properties);
+    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR);
+}
+
+/**
+ * @tc.name: OnSetDirtyTest
+ * @tc.desc: Test the function OnSetDirty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEnvForegroundColorRenderModifierNGTypeTest, OnSetDirtyTest, TestSize.Level1)
+{
+    ModifierNG::RSEnvForegroundColorRenderModifier modifier;
+    modifier.OnSetDirty();
+    EXPECT_EQ(modifier.target_.lock(), nullptr);
+    
+    NodeId id = 0;
+    RSCanvasRenderNode node(id);
+    modifier.target_ = node.weak_from_this();
+    modifier.OnSetDirty();
+    EXPECT_NE(modifier.target_.lock(), nullptr);
 }
 } // namespace OHOS::Rosen
