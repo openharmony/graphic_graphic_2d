@@ -1553,7 +1553,6 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
     node.UpdateCurCornerRadius(curCornerRadius_);
-
     // 1. Recursively traverse child nodes
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
@@ -1642,6 +1641,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (node.GetHwcRecorder().GetZorderChanged() && curSurfaceNode_) {
         curSurfaceNode_->SetNeedCollectHwcNode(true);
     }
+
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     auto subTreeDirty = node.GetOpincCache().OpincForcePrepareSubTree(autoCacheEnable_,
