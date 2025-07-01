@@ -119,6 +119,7 @@ private:
 
     bool curSecExemption_ = false;
     bool lastSecExemption_ = false;
+    bool virtualDirtyNeedRefresh_ = false;
     bool enableVisibleRect_ = false;
     Drawing::RectI curVisibleRect_;
     Drawing::RectI lastVisibleRect_;

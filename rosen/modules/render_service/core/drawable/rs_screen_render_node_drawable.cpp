@@ -821,6 +821,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    uniParam->SetSLRScaleManager(nullptr);
+    if (screenInfo.isSamplingOn) {
+        auto scaleManager = std::make_shared<RSSLRScaleFunction>(
+            screenInfo.phyWidth, screenInfo.phyHeight, screenInfo.width, screenInfo.height);
+        screenInfo.samplingDistance = scaleManager->GetKernelSize();
+        uniParam->SetSLRScaleManager(scaleManager);
+    }
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
     std::vector<RectI> damageRegionrects;
     std::vector<RectI> curFrameVisibleRegionRects;

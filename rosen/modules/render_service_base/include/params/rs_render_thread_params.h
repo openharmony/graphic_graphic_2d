@@ -27,6 +27,7 @@
 
 namespace OHOS::Rosen {
 class RSProcessor;
+class RSSLRScaleFunction;
 struct CaptureParam {
     bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
@@ -504,6 +505,16 @@ public:
         return virtualDirtyRefresh_;
     }
 
+    void SetSLRScaleManager(std::shared_ptr<RSSLRScaleFunction> slrManager)
+    {
+        slrManager_ = slrManager;
+    }
+
+    std::shared_ptr<RSSLRScaleFunction> GetSLRScaleManager() const
+    {
+        return slrManager_;
+    }
+
 private:
     bool virtualDirtyRefresh_ = false;
     // Used by hardware thred
@@ -553,6 +564,7 @@ private:
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
+    std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
 
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
