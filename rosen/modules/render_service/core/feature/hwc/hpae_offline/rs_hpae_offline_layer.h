@@ -17,10 +17,10 @@
 #define RENDER_SERVICE_DRAWABLE_RS_HPAE_OFFLINE_LAYER_H
 
 #include "common/rs_common_def.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "transaction/rs_render_service_client.h"
-#include "params/rs_display_render_params.h"
 
 #include <string>
 
