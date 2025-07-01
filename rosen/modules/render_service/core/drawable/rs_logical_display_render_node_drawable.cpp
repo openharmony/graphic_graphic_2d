@@ -946,7 +946,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     PrepareOffscreenRender(*mirroredDrawable, false);
 #ifdef RS_PROFILER_ENABLED
     if (auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(static_cast<float>(curCanvas_->GetWidth()),
-            static_cast<float>(curCanvas_->GetHeight()), SkpCaptureType::ON_CAPTURE)) {
+        static_cast<float>(curCanvas_->GetHeight()), SkpCaptureType::ON_CAPTURE)) {
         curCanvas_->AddCanvas(canvas);
     }
 #endif

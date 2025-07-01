@@ -140,7 +140,7 @@ void RSProfiler::SaveSkp(const ArgList& args)
         RSSystemProperties::SetInstantRecording(true);
         SendMessage("Recording full frame .skp");
     } else {
-        SendMessage("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
+        SendMessage("Recording .skp for DrawingCanvasNode: id= %" PRId64 "", nodeId);
     }
     AwakeRenderServiceThread();
 }
