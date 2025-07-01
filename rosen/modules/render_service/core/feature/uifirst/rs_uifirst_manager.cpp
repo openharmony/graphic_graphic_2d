@@ -609,6 +609,7 @@ void RSUifirstManager::HandlePurgeBehindWindow(
     if (timeDiffInMilliseconds >= PURGE_BEHIND_WINDOW_TIME) {
         ++it;
         pendingNodeBehindWindow_[id].curTime_ = currentTime;
+        RS_OPTIONAL_TRACE_NAME_FMT("DO not Purge by behind window, node name %s", node->GetName().c_str());
     } else {
         it = pendingNode.erase(it);
         RS_OPTIONAL_TRACE_NAME_FMT("Purge by behind window, node name %s", node->GetName().c_str());
@@ -658,11 +659,12 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             !rsSubThreadCache.IsSubThreadSkip()) {
             RS_OPTIONAL_TRACE_NAME_FMT("Purge node name %s", surfaceParams->GetName().c_str());
             it = pendingNode.erase(it);
-        } else if (NeedPurgeByBehindWindow(node, id)) {
-            HandlePurgeBehindWindow(it, pendingNode);
         } else if (SubThreadControlFrameRate(id, drawable, node)) {
             RS_OPTIONAL_TRACE_NAME_FMT("Purge frame drop node name %s", surfaceParams->GetName().c_str());
             it = pendingNode.erase(it);
+        } else if (NeedPurgeByBehindWindow(node, id)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("Decide Whether to Purge node by behind window or not");
+            HandlePurgeBehindWindow(it, pendingNode);
         } else {
             pendingNodeBehindWindow_[id].isFirst = false;
             ++it;
