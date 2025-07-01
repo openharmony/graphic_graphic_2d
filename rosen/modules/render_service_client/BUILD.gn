@@ -134,6 +134,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/appearance/rs_visibility_modifier.cpp",
       "core/modifier_ng/background/rs_background_color_modifier.cpp",
       "core/modifier_ng/background/rs_background_image_modifier.cpp",
+      "core/modifier_ng/background/rs_background_ng_shader_modifier.cpp",
       "core/modifier_ng/background/rs_background_shader_modifier.cpp",
       "core/modifier_ng/custom/rs_background_style_modifier.cpp",
       "core/modifier_ng/custom/rs_content_style_modifier.cpp",
@@ -143,6 +144,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/custom/rs_transition_style_modifier.cpp",
       "core/modifier_ng/foreground/rs_env_foreground_color_modifier.cpp",
       "core/modifier_ng/foreground/rs_foreground_color_modifier.cpp",
+      "core/modifier_ng/foreground/rs_foreground_shader_modifier.cpp",
       "core/modifier_ng/geometry/rs_bounds_clip_modifier.cpp",
       "core/modifier_ng/geometry/rs_bounds_modifier.cpp",
       "core/modifier_ng/geometry/rs_frame_clip_modifier.cpp",
@@ -204,6 +206,7 @@ template("render_service_client_source_set") {
       "core/ui_effect/property/src/rs_ui_pixel_map_mask.cpp",
       "core/ui_effect/property/src/rs_ui_radial_gradient_mask.cpp",
       "core/ui_effect/property/src/rs_ui_ripple_mask.cpp",
+      "core/ui_effect/property/src/rs_ui_shader_base.cpp",
       "core/ui_effect/property/src/rs_ui_sound_wave_filter.cpp",
     ]
 

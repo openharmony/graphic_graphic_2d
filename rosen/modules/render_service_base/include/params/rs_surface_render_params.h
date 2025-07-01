@@ -735,7 +735,7 @@ public:
         return rsSurfaceNodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
-    const Vector4f& GetRegionToBeMagnified() const
+    const Vector4<int>& GetRegionToBeMagnified() const
     {
         return regionToBeMagnified_;
     }
@@ -778,7 +778,7 @@ private:
     RRect rrect_;
     Rect ancoSrcCrop_{};
     uint32_t ancoFlags_ = 0;
-    Vector4f regionToBeMagnified_;
+    Vector4<int> regionToBeMagnified_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;

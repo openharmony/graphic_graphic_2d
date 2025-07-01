@@ -441,7 +441,7 @@ ohos_shared_library("librender_service") {
     "ability_runtime:app_manager",
     "cJSON:cjson",
     "c_utils:utils",
-    "drivers_interface_display:libdisplay_commontype_proxy_2.1",
+    "drivers_interface_display:libdisplay_commontype_proxy_2.2",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "graphic_surface:surface",

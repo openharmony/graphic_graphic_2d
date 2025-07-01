@@ -63,6 +63,8 @@ enum class RSModifierType : uint16_t {
     ENV_FOREGROUND_COLOR = 31,
     HDR_BRIGHTNESS = 32,
     BEHIND_WINDOW_FILTER = 33,
+    BACKGROUND_NG_SHADER = 34,
+    FOREGROUND_SHADER = 35,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -128,6 +130,7 @@ public:
             case RSPropertyType::BACKGROUND_COLOR: return "BackgroundColor";
             case RSPropertyType::BACKGROUND_SHADER: return "BackgroundShader";
             case RSPropertyType::BACKGROUND_SHADER_PROGRESS: return "BackgroundShaderProgress";
+            case RSPropertyType::BACKGROUND_NG_SHADER: return "BackgroundNGShader";
             case RSPropertyType::BG_IMAGE: return "BgImage";
             case RSPropertyType::BG_IMAGE_INNER_RECT: return "BgImageInnerRect";
             case RSPropertyType::BG_IMAGE_WIDTH: return "BgImageWidth";
@@ -257,6 +260,7 @@ public:
             case RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";
             case RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR: return "BehindWindowFilterMaskColor";
+            case RSPropertyType::FOREGROUND_SHADER: return "ForegroundShader";
             case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }

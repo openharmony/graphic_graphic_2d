@@ -49,6 +49,7 @@ enum class RSDrawableSlot : int8_t {
     BLENDER,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
+    BACKGROUND_NG_SHADER,
     BACKGROUND_IMAGE,
     BACKGROUND_FILTER,
     USE_EFFECT,
@@ -76,6 +77,7 @@ enum class RSDrawableSlot : int8_t {
     DYNAMIC_DIM,
     COMPOSITING_FILTER,
     FOREGROUND_COLOR,
+    FOREGROUND_SHADER,
     FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)

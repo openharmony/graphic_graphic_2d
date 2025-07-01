@@ -898,6 +898,15 @@ template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::Set(const std::shared_ptr<RSNGFilterBase>& value);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGFilterBase>>::GetRenderProperty();
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& node,
+    std::weak_ptr<ModifierNG::RSModifier> modifier);
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnDetach();
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value);
+template<>
+RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShaderBase>>::GetRenderProperty();
 
 template<>
 RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const;
@@ -969,6 +978,9 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGShaderBase>& value, PropertyUpdateType type) const;
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);

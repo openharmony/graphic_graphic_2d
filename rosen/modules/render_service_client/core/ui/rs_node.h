@@ -81,6 +81,7 @@ class RSObjAbsGeometry;
 class RSUIContext;
 class RSUIFilter;
 class RSNGFilterBase;
+class RSNGShaderBase;
 enum class CancelAnimationStatus;
 
 namespace ModifierNG {
@@ -1166,6 +1167,20 @@ public:
      * @param foregroundFilter Indicates the foreground filter to be applied.
      */
     void SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter);
+
+    /**
+     * @brief Sets the background shader.
+     *
+     * @param backgroundShader Indicates the background shader to be applied.
+     */
+    void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
+
+    /**
+     * @brief Sets the foreground shader.
+     *
+     * @param foregroundShader Indicates the foreground shader to be applied.
+     */
+    void SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader);
 
     /**
      * @brief Sets the filter.
