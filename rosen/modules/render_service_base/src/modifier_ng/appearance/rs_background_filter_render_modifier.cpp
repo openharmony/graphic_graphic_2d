@@ -98,8 +98,7 @@ void RSBackgroundFilterRenderModifier::AttachRenderFilterProperty(
         }
         for (auto& prop : propGroup->GetLeafRenderProperties()) {
             if (prop) {
-                node->properties_.emplace(prop->GetId(), prop);
-                prop->Attach(shared_from_this());
+                prop->Attach(*node, shared_from_this());
             }
         }
     }
