@@ -59,7 +59,7 @@ HWTEST_F(RSBehindWindowFilterRenderModifierNGTest, OnSetDirtyTest, TestSize.Leve
     NodeId nodeId = 1;
     std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSCanvasRenderNode>(nodeId);
     std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
-    modifier->target_ = weakPtr;
+    modifier.target_ = weakPtr;
     modifier.OnSetDirty();
     EXPECT_NE(modifier.target_.lock(), nullptr);
 }

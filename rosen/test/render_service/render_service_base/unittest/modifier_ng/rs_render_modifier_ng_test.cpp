@@ -25,6 +25,7 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 #include "message_parcel.h"
 #include "property/rs_properties.h"
@@ -131,6 +132,81 @@ HWTEST_F(RSRenderModifierNGTest, SetDirtyTest, TestSize.Level1)
     std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
     modifier->target_ = weakPtr;
     modifier->SetDirty();
+    EXPECT_NE(modifier->target_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: MarshallingTest
+ * @tc.desc: test the function Marshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, MarshallingTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    Parcel parcel;
+    EXPECT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: UnmarshallingTest
+ * @tc.desc: test the function Unmarshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, UnmarshallingTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    Parcel parcel;
+    auto res = modifier->Unmarshalling(parcel);
+    EXPECT_EQ(res, nullptr);
+}
+
+/**
+ * @tc.name: ApplyLegacyPropertyTest
+ * @tc.desc: test the function ApplyLegacyProperty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    RSProperties properties;
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    modifier->ApplyLegacyProperty(properties);
+    EXPECT_NE(modifier, nullptr);
+}
+
+/**
+ * @tc.name: RSCustomRenderModifier_Apply_Test
+ * @tc.desc: test the function Apply of the class RSCustomRenderModifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, RSCustomRenderModifier_Apply_Test, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    drawCmdList->SetWidth(1024);
+    drawCmdList->SetHeight(1090);
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    property->GetRef() = drawCmdList;
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSProperties properties;
+    modifier->Apply(&paintFilterCanvas, properties);
+}
+
+/**
+ * @tc.name: RSCustomRenderModifier_OnSetDirty_Test
+ * @tc.desc: test the function OnSetDirty of the class RSCustomRenderModifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, RSCustomRenderModifier_OnSetDirty_Test, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
+    modifier->target_ = weakPtr;
+    modifier->OnSetDirty();
     EXPECT_NE(modifier->target_.lock(), nullptr);
 }
 }
