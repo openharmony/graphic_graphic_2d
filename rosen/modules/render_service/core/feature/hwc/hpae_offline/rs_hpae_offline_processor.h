@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,12 +59,7 @@ using GetOfflineConfigFunc = int32_t (*)(OfflineProcessOutputInfo &);
 
 class RSHpaeOfflineProcessor : public std::enable_shared_from_this<RSHpaeOfflineProcessor> {
 public:
-    static inline constexpr RSProcessorType Type = RSProcessorType::RS_PROCESSOR;
-    RSProcessorType GetType() const
-    {
-        return Type;
-    }
-    static std::shared_ptr<RSHpaeOfflineProcessor> GetOfflineProcessor();
+    static RSHpaeOfflineProcessor& GetOfflineProcessor();
     ~RSHpaeOfflineProcessor();
     
     bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
