@@ -277,10 +277,10 @@ class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
     explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
-    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
         SAFUZZ_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase");
-        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+        client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }
 
 private:

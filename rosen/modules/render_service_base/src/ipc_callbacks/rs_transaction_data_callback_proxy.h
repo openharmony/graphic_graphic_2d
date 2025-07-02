@@ -28,7 +28,7 @@ public:
     explicit RSTransactionDataCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSTransactionDataCallbackProxy() noexcept = default;
 
-    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override;
+    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override;
 
 private:
     static inline BrokerDelegator<RSTransactionDataCallbackProxy> delegator_;

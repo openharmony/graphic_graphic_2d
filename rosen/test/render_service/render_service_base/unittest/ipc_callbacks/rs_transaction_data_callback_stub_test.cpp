@@ -25,7 +25,7 @@ class RSTransactionDataCallbackStubMock : public RSTransactionDataCallbackStub {
 public:
     RSTransactionDataCallbackStubMock() = default;
     virtual ~RSTransactionDataCallbackStubMock() = default;
-    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override {};
+    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override {};
 };
 
 class RSTransactionDataCallbackStubTest : public testing::Test {

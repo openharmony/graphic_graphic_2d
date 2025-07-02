@@ -5131,7 +5131,7 @@ void RSRenderServiceConnectionProxy::SetFreeMultiWindowStatus(bool enable)
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetFreeMultiWindowStatus: Send Request err.");
     }
 }
-void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid,
+void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
     if (callback == nullptr) {
@@ -5147,12 +5147,12 @@ void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     static_assert(std::is_same_v<int32_t, pid_t>, "pid_t is not int32_t on this platform.");
-    if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write int32 val err.");
+    if (!data.WriteUint64(token)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write multi token val err.");
         return;
     }
     if (!data.WriteUint64(timeStamp)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write uint64 val err.");
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write timeStamp val err.");
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
@@ -5162,7 +5162,7 @@ void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
     RS_LOGD("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: Send Request err.");
