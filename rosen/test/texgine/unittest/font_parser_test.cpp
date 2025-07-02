@@ -293,11 +293,13 @@ HWTEST_F(FontParserTest, CheckFullNameParamInvalidTest1, TestSize.Level1)
     fd.requestedLid = LANGUAGE_EN;
     EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_SC, "non-empty"));
     fd.fullName = "";
-    EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_TC, "non-empty"));
+    EXPECT_FALSE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_TC, "non-empty"));
 
     fd.requestedFullname = "testName";
     fd.fullName = "otherName";
     fd.requestedLid = LANGUAGE_EN;
+    EXPECT_FALSE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_EN, "non-empty"));
+    fd.fullNameLid = LANGUAGE_EN;
     EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_EN, "non-empty"));
 
     fd.requestedFullname = "";
