@@ -825,6 +825,7 @@ ohos_shared_library("librender_service_base") {
   deps += [
     "$rosen_root/modules/platform:platform",
     "$rosen_root/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/utils/color_manager:color_manager_source",
   ]
 
   # for header file

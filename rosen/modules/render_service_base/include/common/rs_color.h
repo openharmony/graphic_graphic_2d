@@ -28,11 +28,12 @@ namespace OHOS {
 namespace Rosen {
 using scalar = Drawing::scalar;
 namespace {
-constexpr static uint8_t RGB_MAX = 255;
+constexpr static uint8_t RGB_MAX_VALUE = 255;
 constexpr static uint8_t COLOR_ARRAY_RED_INDEX = 0;
 constexpr static uint8_t COLOR_ARRAY_GREEN_INDEX = 1;
 constexpr static uint8_t COLOR_ARRAY_BLUE_INDEX = 2;
 }
+
 class RSB_EXPORT RSColor final {
 public:
     RSColor() noexcept : alpha_(0), blue_(0), green_(0), red_(0) {}
@@ -92,8 +93,11 @@ public:
     void SetGreen(int16_t green);
     void SetRed(int16_t red);
     void SetAlpha(int16_t alpha);
-    void SetColorSpace(GraphicColorGamut colorSpace);
+    void SetColorSpace(const GraphicColorGamut colorSpace);
     void MultiplyAlpha(float alpha);
+
+    void ConvertToP3ColorSpace();
+    void ConvertToSRGBColorSpace();
 
     void Dump(std::string& out) const;
 

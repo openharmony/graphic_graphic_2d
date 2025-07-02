@@ -2072,13 +2072,15 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 
 void RSNode::SetBackgroundColor(RSColor& color)
 {
+    RSColor colorInP3 = color;
+    colorInP3.ConvertToP3ColorSpace();
 #if defined(MODIFIER_NG)
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
-        color);
+        colorInP3);
 #else
-    SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
+    SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, colorInP3);
 #endif
-    if (color.GetAlpha() > 0) {
+    if (colorInP3.GetAlpha() > 0) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
