@@ -81,6 +81,7 @@ typedef struct FontConfigJsonInfo {
 } FontConfigJsonInfo;
 
 using FontFileMap = std::unordered_map<std::string, std::string>;
+using FullNameToPath = std::unordered_map<std::string, std::pair<size_t, std::string>>;
 
 class FontConfigJson : public FontConfig {
 public:
@@ -113,7 +114,7 @@ private:
     int ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo);
     int ParseAliasArr(const cJSON* arr, FontGenericInfo &genericInfo);
     static int ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList);
-    static int ParseInstallFont(const cJSON* root, FontFileMap& fontPathList);
+    static int ParseInstallFont(const cJSON* root, FullNameToPath& fontPathList);
     static void ParseFullName(const cJSON* root, std::vector<std::string>& fullNameList);
     void DumpFontDir() const;
     void DumpGeneric() const;
