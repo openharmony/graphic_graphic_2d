@@ -58,6 +58,10 @@ ohos_unittest("text_ndk_test") {
     "$rosen_text_root/service/texgine/src",
   ]
 
+  if (ohos_indep_compiler_enable) {
+    include_dirs += ["//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+  }
+
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
@@ -69,6 +73,7 @@ ohos_unittest("text_ndk_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
+    "icu:shared_icuuc",
   ]
 
   platform = current_os
