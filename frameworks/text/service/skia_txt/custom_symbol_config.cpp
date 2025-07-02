@@ -51,9 +51,11 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyNam
 
     std::unique_lock<std::shared_mutex> lock(mutex_);
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfigGroup;
+    std::unordered_map<OHOS::Rosen::Drawing::DrawingAnimationType, OHOS::Rosen::Drawing::DrawingAnimationInfo>
+        animationInfos;
     LoadSymbolErrorCode result = LoadSymbolErrorCode::JSON_ERROR;
-    if (root.isMember(SYMBOL_LAYERS_GROUPING)
-        && SymbolConfigParser::ParseSymbolLayersGrouping(root[SYMBOL_LAYERS_GROUPING], symbolConfigGroup)) {
+
+    if (SymbolConfigParser::ParseSymbolConfig(root, symbolConfigGroup, animationInfos)) {
         symbolConfig_.emplace(familyName, symbolConfigGroup);
         result = LoadSymbolErrorCode::SUCCESS;
     }

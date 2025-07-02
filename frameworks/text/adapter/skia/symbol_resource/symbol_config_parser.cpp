@@ -22,6 +22,10 @@ namespace OHOS {
 namespace Rosen {
 namespace Symbol {
 namespace {
+
+constexpr char SPECIAL_ANIMATIONS[] = "special_animations";
+constexpr char COMMON_ANIMATIONS[] = "common_animations";
+constexpr char SYMBOL_LAYERS_GROUPING[] = "symbol_layers_grouping";
 constexpr char NATIVE_GLYPH_ID[] = "native_glyph_id";
 constexpr char SYMBOL_GLYPH_ID[] = "symbol_glyph_id";
 constexpr char LAYERS[] = "layers";
@@ -381,7 +385,7 @@ void SymbolConfigParser::ParseGroupSettings(const Json::Value& root, std::vector
 
 void SymbolConfigParser::MatchCommonSubType(const std::string& subTypeStr, RSCommonSubType& commonSubType)
 {
-    if(SYMBOL_ANIMATION_DIRECTION.count(subTypeStr) == 0) {
+    if (SYMBOL_ANIMATION_DIRECTION.count(subTypeStr) == 0) {
         return;
     }
     commonSubType = SYMBOL_ANIMATION_DIRECTION.at(subTypeStr);
@@ -640,7 +644,6 @@ void SymbolConfigParser::ParseSymbolProperties(const char* key, const Json::Valu
         }
         piecewiseParameter.properties.emplace(std::string(memberName), propertyValues);
     }
-}
 }
 } // namespace Symbol
 } // namespace Rosen

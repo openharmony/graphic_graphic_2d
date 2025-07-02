@@ -24,18 +24,10 @@ namespace Rosen {
 namespace Symbol {
 class DefaultSymbolConfigTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
 };
 
-void DefaultSymbolConfigTest::SetUpTestCase()
-{
-}
-void DefaultSymbolConfigTest::TearDownTestCase()
-{
-}
 void DefaultSymbolConfigTest::SetUp()
 {
     DefaultSymbolConfig::GetInstance()->ParseConfigOfHmSymbol("/system/fonts/hm_symbol_config_next.json");
@@ -47,21 +39,17 @@ void DefaultSymbolConfigTest::TearDown()
     DefaultSymbolConfig::GetInstance()->Clear();
 }
 
-class DefaultSymbolConfigWithoutSetUpTest : public testing::Test {};
-
-
 /**
  * @tc.name: GetSymbolLayersGroups001
  * @tc.desc: Test GetSymbolLayersGroups
  * @tc.type: FUNC
- * @tc.require: I91EQ7
  */
-HWTEST_F(DefaultSymbolConfigWithoutSetUpTest, GetSymbolLayersGroups001, TestSize.Level0)
+HWTEST_F(DefaultSymbolConfigTest, GetSymbolLayersGroups001, TestSize.Level0)
 {
     DefaultSymbolConfig::GetInstance()->Clear();
     int result =
         DefaultSymbolConfig::GetInstance()->ParseConfigOfHmSymbol("/system/fonts/hm_symbol_config_next_undefined.json");
-    EXPECT_EQ(result, 1);                                                             // 1 meas ERROR_CONFIG_NOT_FOUND
+    EXPECT_EQ(result, 1);                                                       // 1 means ERROR_CONFIG_NOT_FOUND
     auto groups = DefaultSymbolConfig::GetInstance()->GetSymbolLayersGroups(3); // 3 is an existing GlyphID
     ASSERT_TRUE(groups.symbolGlyphId == 0);
 }
@@ -70,9 +58,8 @@ HWTEST_F(DefaultSymbolConfigWithoutSetUpTest, GetSymbolLayersGroups001, TestSize
  * @tc.name: GetSymbolLayersGroups002
  * @tc.desc: Test GetSymbolLayersGroups
  * @tc.type: FUNC
- * @tc.require: I91EQ7
  */
-HWTEST_F(DefaultSymbolConfigWithoutSetUpTest, GetSymbolLayersGroups002, TestSize.Level0)
+HWTEST_F(DefaultSymbolConfigTest, GetSymbolLayersGroups002, TestSize.Level0)
 {
     DefaultSymbolConfig::GetInstance()->Clear();
     int result = DefaultSymbolConfig::GetInstance()->ParseConfigOfHmSymbol("/system/fonts/hm_symbol_config_next.json");
@@ -85,7 +72,6 @@ HWTEST_F(DefaultSymbolConfigWithoutSetUpTest, GetSymbolLayersGroups002, TestSize
  * @tc.name: GetGroupParameters001
  * @tc.desc: Test GetGroupParameters  by scale effect with wholeSymbol or bylayer
  * @tc.type: FUNC
- * @tc.require: I91EQ7
  */
 HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters001, TestSize.Level0)
 {
@@ -116,7 +102,6 @@ HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters001, TestSize.Level0)
  * @tc.name: GetGroupParameters002
  * @tc.desc: Test GetGroupParameters by scale effect with UP or DOWN
  * @tc.type: FUNC
- * @tc.require: I91EQ7
  */
 HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters002, TestSize.Level0)
 {
@@ -140,7 +125,6 @@ HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters002, TestSize.Level0)
  * @tc.name: GetGroupParameters003
  * @tc.desc: Test GetGroupParameters  by scale effect with number of error layers
  * @tc.type: FUNC
- * @tc.require: I91EQ7
  */
 HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters003, TestSize.Level0)
 {
@@ -154,7 +138,6 @@ HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters003, TestSize.Level0)
  * @tc.name: GetGroupParameters004
  * @tc.desc: Test GetGroupParameters by variable_color effext by cumulative or iteratuve
  * @tc.type: FUNC
- * @tc.require: I91EQ7
  */
 HWTEST_F(DefaultSymbolConfigTest, GetGroupParameters004, TestSize.Level0)
 {

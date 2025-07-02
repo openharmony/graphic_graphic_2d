@@ -137,25 +137,23 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level0)
 HWTEST_F(OHHmSymbolRunTest, DrawSymbol004, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
-    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
-    const char* str = "A"; // "A"is Glyphs
+    RSPoint paint_ = {100, 100};              // 100, 100 is the offset
+    const char* str = "A"; // "A" is Glyphs
     Drawing::Font font;
     auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
     HMSymbolTxt symbolTxt;
-    symbolTxt.setSymbolType(SymbolType::CUSTOM);
-    symbolTxt.setSymbolEffect(RSEffectStrategy::REPLACE_APPEAR);
+    symbolTxt.SetSymbolType(SymbolType::CUSTOM);
+    symbolTxt.SetSymbolEffect(RSEffectStrategy::REPLACE_APPEAR);
     symbolTxt.SetAnimationMode(1); // the 1 is the byLayer or iterative effect
-    
+
     std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
         [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) { return true; };
 
     HMSymbolRun hmSymbolRun = HMSymbolRun(2, symbolTxt, textblob, animationFunc);
     hmSymbolRun.SetAnimationStart(true);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
-    printf("print run status 1:%d \n",hmSymbolRun.currentAnimationHasPlayed_);
     hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
-    printf("print run status 2:%d \n",hmSymbolRun.currentAnimationHasPlayed_);
 }
 
 /*

@@ -15,8 +15,8 @@
 
 #include <gtest/gtest.h>
 #include <json/json.h>
+#include <json/value.h>
 
-#include "json/value.h"
 #include "symbol_resource/symbol_config_parser.h"
 
 using namespace testing;
@@ -75,7 +75,7 @@ private:
                             "slope": -1.0000001192092896,
                             "group_settings": [{
                                 "animation_index": -1,
-                                "group_indexs": [{ 
+                                "group_indexes": [{
                                     "layer_indexes": [0]
                                 }]
                             }, {
@@ -129,7 +129,7 @@ private:
                                         "curve_args": {
                                             "ctrlX1": 0.2,
                                             "ctrlY1": 0,
-                                            鈥渃trlX2": 0.2,
+                                            "ctrlX2": 0.2,
                                             "ctrlY2": 1
                                         },
                                         "duration": 200,
@@ -150,7 +150,7 @@ private:
                                         "curve_args": {
                                             "ctrlX1": 0.2,
                                             "ctrlY1": 0,
-                                            鈥渃trlX2": 0.2,
+                                            "ctrlX2": 0.2,
                                             "ctrlY2": 1
                                         },
                                         "duration": 150,
@@ -311,7 +311,7 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest008, TestSize.Level0)
 
 /*
  * @tc.name: SymbolConfigParserTest009
- * @tc.desc: test for valid symbol animations data
+ * @tc.desc: test for not array layers
  * @tc.type: FUNC
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest009, TestSize.Level0)
@@ -324,20 +324,20 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest009, TestSize.Level0)
 
 /*
  * @tc.name: SymbolConfigParserTest010
- * @tc.desc: test for valid symbol animations data
+ * @tc.desc: test for not array animation
  * @tc.type: FUNC
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest010, TestSize.Level0)
 {
     rootAnimations_["animations"] = Json::objectValue;
-    std::unordered_map<RSAnimationType, RSAnimationInfo>  animationInfos;
+    std::unordered_map<RSAnimationType, RSAnimationInfo> animationInfos;
     EXPECT_FALSE(
         OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolAnimations(rootAnimations_["animations"], animationInfos));
 }
 
 /*
  * @tc.name: SymbolConfigParserTest011
- * @tc.desc: test for valid symbol animations data
+ * @tc.desc: test for invalid json
  * @tc.type: FUNC
  */
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest011, TestSize.Level0)
@@ -346,5 +346,3 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest011, TestSize.Level0)
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
     EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolConfig(rootInvalid_, symbolConfig, animationInfos));
 }
-
-

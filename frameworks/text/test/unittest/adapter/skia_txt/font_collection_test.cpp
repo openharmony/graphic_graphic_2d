@@ -483,7 +483,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest014, TestSi
     res = fontCollection_->LoadSymbolJson("testCustomSymbol", invalidBuffer, sizeof(invalidBuffer));
     EXPECT_EQ(res, LoadSymbolErrorCode::JSON_ERROR);
 
-    res = fontCollection_->LoadSymbolJson("testCustomSymbol", buffer.get(), bufferSize());
+    res = fontCollection_->LoadSymbolJson("testCustomSymbol", buffer.get(), bufferSize);
     EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
 }
 } // namespace Rosen

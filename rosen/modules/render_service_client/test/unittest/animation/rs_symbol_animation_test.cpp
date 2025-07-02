@@ -1985,7 +1985,7 @@ HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation002, TestSize.Level1) {
  * @tc.desc: Test SetDisableAnimation by symbolNodes with path and parameters
  * @tc.type: FUNC
  */
-HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation002, TestSize.Level1) {
+HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation003, TestSize.Level1) {
     /**
      * @tc.steps: step1. init data
      */

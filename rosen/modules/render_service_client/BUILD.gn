@@ -261,7 +261,7 @@ template("render_service_client_source_set") {
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
       deps += [
-        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" 
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
         "$rosen_text_root:rosen_text",
       ]
       if (rs_enable_gpu) {

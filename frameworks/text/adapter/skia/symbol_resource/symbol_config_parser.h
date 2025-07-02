@@ -29,9 +29,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Symbol {
 
-constexpr char SPECIAL_ANIMATIONS[] = "special_animations";
-constexpr char COMMON_ANIMATIONS[] = "common_animations";
-constexpr char SYMBOL_LAYERS_GROUPING[] = "symbol_layers_grouping";
 class SymbolConfigParser {
 public:
     static bool ParseSymbolConfig(const Json::Value& root,

@@ -296,8 +296,6 @@ bool RSSymbolAnimation::SetReplaceDisappear(
         effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_DISAPPEAR;
     } else if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR) {
         effectStrategy = Drawing::DrawingEffectStrategy::QUICK_REPLACE_DISAPPEAR;
-    } else {
-        return false;
     }
 
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, effectStrategy);
