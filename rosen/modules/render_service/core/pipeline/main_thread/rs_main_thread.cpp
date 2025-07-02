@@ -2494,6 +2494,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #ifdef RS_ENABLE_GPU
         if (RSAncoManager::Instance()->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes_,
             ScreenRotation::ROTATION_0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight())) {
+            RS_OPTIONAL_TRACE_NAME("hwc debug: disabled directComposition by ancoOptimizeScreenNode");
             return false;
         }
 #endif
