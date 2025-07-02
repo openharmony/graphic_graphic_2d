@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_MASK_BASE_H
 
 #include "effect/rs_render_mask_base.h"
+#include "ui_effect/mask/include/mask_para.h"
 #include "ui_effect/property/include/rs_ui_property_tag.h"
 #include "ui_effect/property/include/rs_ui_template.h"
 
@@ -24,6 +25,12 @@ namespace OHOS {
 namespace Rosen {
 
 class RSNGMaskBase : public RSNGEffectBase<RSNGMaskBase, RSNGRenderMaskBase> {
+public:
+    virtual ~RSNGMaskBase() = default;
+
+    static std::shared_ptr<RSNGMaskBase> Create(RSNGEffectType type);
+
+    static std::shared_ptr<RSNGMaskBase> Create(std::shared_ptr<MaskPara> maskPara);
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
@@ -38,14 +45,18 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
     ADD_PROPERTY_TAG(RippleMask, Center),
     ADD_PROPERTY_TAG(RippleMask, Radius),
     ADD_PROPERTY_TAG(RippleMask, Width),
-    ADD_PROPERTY_TAG(RippleMask, WidthCenterOffset)
+    ADD_PROPERTY_TAG(RippleMask, Offset)
 );
 
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
-    ADD_PROPERTY_TAG(PixelMapMask, FillColor)
+    ADD_PROPERTY_TAG(PixelMapMask, FillColor),
+    ADD_PROPERTY_TAG(PixelMapMask, Image)
 );
+
+#undef DECLARE_MASK
+#undef ADD_PROPERTY_TAG
 
 } // namespace Rosen
 } // namespace OHOS

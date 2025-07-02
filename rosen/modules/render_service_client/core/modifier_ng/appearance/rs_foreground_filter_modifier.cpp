@@ -140,4 +140,15 @@ void RSForegroundFilterModifier::AttachUIFilterProperty(std::shared_ptr<RSUIFilt
     }
     AttachProperty(RSPropertyType::FOREGROUND_UI_FILTER, property);
 }
+
+void RSForegroundFilterModifier::SetNGFilterBase(std::shared_ptr<RSNGFilterBase> filter)
+{
+    Setter<RSProperty>(RSPropertyType::FOREGROUND_NG_FILTER, filter);
+}
+
+std::shared_ptr<RSNGFilterBase> RSForegroundFilterModifier::GetNGFilterBase() const
+{
+    return Getter(RSPropertyType::FOREGROUND_NG_FILTER, nullptr);
+}
+
 } // namespace OHOS::Rosen::ModifierNG

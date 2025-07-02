@@ -29,14 +29,41 @@ namespace Drawing {
 
 class RSB_EXPORT RSNGRenderMaskBase : public RSNGRenderEffectBase<RSNGRenderMaskBase> {
 public:
-    virtual std::shared_ptr<Drawing::GEShaderMask> GenerateGEShaderMask()
-    {
-        return nullptr;
-    }
+    virtual ~RSNGRenderMaskBase() = default;
+
+    static std::shared_ptr<RSNGRenderMaskBase> Create(RSNGEffectType type);
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val);
+
+    virtual std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() = 0;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGRenderMaskTemplate = RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...>;
+class RSNGRenderMaskTemplate : public RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...> {
+public:
+    using EffectTemplateBase = RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...>;
+
+    RSNGRenderMaskTemplate() : EffectTemplateBase() {}
+    ~RSNGRenderMaskTemplate() override = default;
+    RSNGRenderMaskTemplate(const std::tuple<PropertyTags...>& properties) noexcept
+        : EffectTemplateBase(properties) {}
+
+    std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
+    {
+        auto geMask = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
+        OnGenerateGEVisualEffect(geMask);
+        std::apply([&geMask](const auto&... propTag) {
+                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
+                    geMask, propTag), ...);
+            }, EffectTemplateBase::properties_);
+        // Currently only a single mask is used, so we do not handle the nextEffect_ here.
+        return geMask;
+    }
+
+protected:
+    virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
+};
+
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 
@@ -47,13 +74,14 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
     ADD_PROPERTY_TAG(RippleMask, Center),
     ADD_PROPERTY_TAG(RippleMask, Radius),
     ADD_PROPERTY_TAG(RippleMask, Width),
-    ADD_PROPERTY_TAG(RippleMask, WidthCenterOffset)
+    ADD_PROPERTY_TAG(RippleMask, Offset)
 );
 
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
-    ADD_PROPERTY_TAG(PixelMapMask, FillColor)
+    ADD_PROPERTY_TAG(PixelMapMask, FillColor),
+    ADD_PROPERTY_TAG(PixelMapMask, Image)
 );
 
 #undef ADD_PROPERTY_TAG
