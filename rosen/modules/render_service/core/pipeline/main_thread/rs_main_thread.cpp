@@ -182,7 +182,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t VSYNC_LOG_ENABLED_TIMES_THRESHOLD = 500;
 constexpr uint32_t VSYNC_LOG_ENABLED_STEP_TIMES = 100;
-constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 10;
+constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 20;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
