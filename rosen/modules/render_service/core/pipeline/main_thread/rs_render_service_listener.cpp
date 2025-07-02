@@ -20,7 +20,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "frame_report.h"
 #include "sync_fence.h"
-#include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 namespace OHOS {
@@ -232,6 +232,8 @@ void RSRenderServiceListener::OnTransformChange()
         RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, node->GetId());
         node->SetContentDirty();
         node->SetDoDirectComposition(false);
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 "disabled directComposition by transformChange",
+            node->Getname().c_str(), node->GetId());
         if (node->GetRSSurfaceHandler() != nullptr) {
             node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(true);
         }
