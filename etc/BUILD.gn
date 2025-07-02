@@ -10,11 +10,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import("//build/config/components/init/param/param_fixer.gni")
 import("//build/ohos.gni")
 
 if (ohos_indep_compiler_enable) {
   group("ohos.para.dac") {
+  }
+  group("ohos.para") {
   }
 } else {
   ohos_prebuilt_etc("ohos.para.dac") {
@@ -22,4 +24,10 @@ if (ohos_indep_compiler_enable) {
     part_name = "graphic_2d"
     module_install_dir = "etc/param"
   }
+  ohos_prebuilt_para("ohos.para") {
+    source = "//foundation/graphic/graphic_2d/etc/graphic.para"
+    part_name = "graphic_2d"
+    module_install_dir = "etc/param"
+  }
 }
+   

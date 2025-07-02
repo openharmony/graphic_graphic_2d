@@ -61,7 +61,8 @@
         "graphic_2d_feature_enable_opengl_to_vulkan",
         "graphic_2d_feature_screenless_enable",
         "graphic_2d_feature_tv_metadata_enable",
-        "graphic_2d_feature_upgrade_skia"
+        "graphic_2d_feature_upgrade_skia",
+        "graphic_2d_feature_enable_rdo"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -161,7 +162,8 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-            "//foundation/graphic/graphic_2d/etc:ohos.para.dac"
+            "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
+            "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]
       },
         "inner_kits": [

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,8 @@
 #include "effect/filter.h"
 #include "recording/recording_canvas.h"
 #include "image/pixelmap_native.h"
+#include "drawing_canvas_utils.h"
+#include "pixelmap_native_impl.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -99,6 +101,31 @@ void NativeDrawingCanvasTest::TearDown()
         OH_Drawing_CanvasDestroy(canvas_);
         canvas_ = nullptr;
     }
+}
+
+static OH_Drawing_PixelMap* CreateOHDrawingPixelMap(
+    OH_Pixelmap_InitializationOptions *options, OH_PixelmapNative *pixelMap)
+{
+    OH_PixelmapInitializationOptions_Create(&options);
+    // 4 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 4);
+    // 4 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 4);
+    // 3 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 255 means rgba data
+    uint8_t data[] = {
+        255, 255, 0, 255,
+        255, 255, 0, 255,
+        255, 255, 0, 255,
+        255, 255, 0, 255
+    };
+    // 16 means data length
+    size_t dataLength = 16;
+    OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMap);
+    return OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
 }
 
 /*
@@ -1587,6 +1614,239 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob047, TestS
 }
 
 /*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRectConstraint048
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapRectConstraint in FAST_SRC_RECT_CONSTRAINT mode.
+ * @tc.type: FUNC
+ * @tc.require: ICBC29
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRectConstraint048, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_Drawing_PixelMap *drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Rect* srcRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_Rect* dstRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(samplingOptions, nullptr);
+    OH_Drawing_ErrorCode code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas_, drPixelMap, srcRect, dstRect,
+        samplingOptions, OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas_, drPixelMap, srcRect, dstRect, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas_, drPixelMap, srcRect, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas_, drPixelMap, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas_, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(nullptr, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRectConstraint049
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapRectConstraint in FAST_SRC_RECT_CONSTRAINT mode
+ *           using RecordingCanvas.
+ * @tc.type: FUNC
+ * @tc.require: ICBC29
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRectConstraint049, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_Drawing_PixelMap *drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+
+    auto recordingCanvas = new RecordingCanvas(100, 100);
+    OH_Drawing_Canvas *cCanvas = reinterpret_cast<OH_Drawing_Canvas*>(recordingCanvas);
+    EXPECT_NE(cCanvas, nullptr);
+    OH_Drawing_Rect* srcRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_Rect* dstRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(samplingOptions, nullptr);
+    OH_Drawing_ErrorCode code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, srcRect, dstRect,
+        samplingOptions, OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, srcRect, dstRect, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, srcRect, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(nullptr, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_NE(drawCmdList, nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    delete recordingCanvas;
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRectConstraint050
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapRectConstraint in STRICT_SRC_RECT_CONSTRAINT mode.
+ * @tc.type: FUNC
+ * @tc.require: ICBC29
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRectConstraint050, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_Drawing_PixelMap *drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Rect* srcRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_Rect* dstRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(samplingOptions, nullptr);
+    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    OH_Drawing_ErrorCode code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, dstRect,
+        samplingOptions, OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, dstRect, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(nullptr, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRectConstraint051
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapRectConstraint in STRICT_SRC_RECT_CONSTRAINT mode
+ *           using RecordingCanvas.
+ * @tc.type: FUNC
+ * @tc.require: ICBC29
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_OH_Drawing_DrawPixelMapRectConstraint051, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_Drawing_PixelMap *drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    auto recordingCanvas = new RecordingCanvas(100, 100);
+    OH_Drawing_Canvas *cCanvas = reinterpret_cast<OH_Drawing_Canvas*>(recordingCanvas);
+    EXPECT_NE(cCanvas, nullptr);
+    OH_Drawing_Rect* srcRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_Rect* dstRect = OH_Drawing_RectCreate(0, 0, 4, 4);
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        OH_Drawing_FilterMode::FILTER_MODE_NEAREST, OH_Drawing_MipmapMode::MIPMAP_MODE_NEAREST);
+    EXPECT_NE(samplingOptions, nullptr);
+    OH_Drawing_ErrorCode code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, srcRect, dstRect,
+        samplingOptions, OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, srcRect, dstRect, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, srcRect, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, drPixelMap, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(cCanvas, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawPixelMapRectConstraint(nullptr, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_NE(drawCmdList, nullptr);
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    delete recordingCanvas;
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapRectConstraint052
+ * @tc.desc: test for DrawingCanvasUtils::DrawPixelMapRectConstraint with invalid parameters and validate error codes.
+ * @tc.type: FUNC
+ * @tc.require: ICBC29
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRectConstraint052, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_Drawing_PixelMap *drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+
+    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(nullptr);
+    EXPECT_EQ(canvas, nullptr);
+    canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+
+    std::shared_ptr<Media::PixelMap> p = reinterpret_cast<OH_PixelmapNative*>(drPixelMap)->GetInnerPixelmap();
+    const Drawing::Rect srcRect = Drawing::Rect(0, 0, 4, 4);
+    const Drawing::Rect dstRect = Drawing::Rect(0, 0, 4, 4);
+
+    OH_Drawing_ErrorCode code = DrawingCanvasUtils::DrawPixelMapRectConstraint(nullptr, p, &srcRect, &dstRect,
+        nullptr, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = DrawingCanvasUtils::DrawPixelMapRectConstraint(reinterpret_cast<Canvas*>(canvas), nullptr, &srcRect,
+        &dstRect, nullptr, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = DrawingCanvasUtils::DrawPixelMapRectConstraint(reinterpret_cast<Canvas*>(canvas), p, &srcRect, nullptr,
+        nullptr, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = DrawingCanvasUtils::DrawPixelMapRectConstraint(reinterpret_cast<Canvas*>(canvas), p, &srcRect,
+        &dstRect, nullptr, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
  * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateBlur041
  * @tc.desc: test for Creates an OH_Drawing_ImageFilter object that blurs its input by the separate x and y sigmas.
  * @tc.type: FUNC
@@ -1692,6 +1952,32 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawSingleCharac
     const char* strThree = "";
     EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strThree, font, x, y), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateBlurWithCrop046
+ * @tc.desc: test for OH_Drawing_ImageFilterCreateBlurWithCrop.
+ * @tc.type: FUNC
+ * @tc.require: ICBC29
+*/
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateBlurWithCrop046, TestSize.Level1)
+{
+    float sifmaX = 0.f;
+    float sigmaY = 0.f;
+    OH_Drawing_ImageFilter* imagefilterWithCrop1 =
+        OH_Drawing_ImageFilterCreateBlurWithCrop(sifmaX, sigmaY, CLAMP, nullptr, nullptr);
+    EXPECT_NE(imagefilterWithCrop1, nullptr);
+    OH_Drawing_ImageFilter* imagefilter = nullptr;
+    imagefilter = OH_Drawing_ImageFilterCreateBlur(sifmaX, sigmaY, CLAMP, nullptr);
+    EXPECT_NE(imagefilter, nullptr);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 200, 500, 300);
+    EXPECT_NE(rect, nullptr);
+    OH_Drawing_ImageFilter* imagefilterWithCrop2 =
+        OH_Drawing_ImageFilterCreateBlurWithCrop(sifmaX, sigmaY, CLAMP, imagefilter, rect);
+    EXPECT_NE(imagefilterWithCrop2, nullptr);
+    OH_Drawing_ImageFilterDestroy(imagefilter);
+    OH_Drawing_ImageFilterDestroy(imagefilterWithCrop1);
+    OH_Drawing_ImageFilterDestroy(imagefilterWithCrop2);
 }
 
 /*

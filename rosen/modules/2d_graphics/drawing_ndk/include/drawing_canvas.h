@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -267,6 +267,27 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* canvas
  */
 void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas*, OH_Drawing_PixelMap*, const OH_Drawing_Rect* src,
     const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions*);
+
+/**
+ * @brief Draw the specified area of the Media::PixelMap to the specified area of the canvas.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param pixelMap Indicates the pointer to an <b>OH_Drawing_PixelMap</b> object.
+ * @param src Indicates the area of source pixelmap.
+ * @param dst Indicates the area of destination canvas.
+ * @param samplingOptions Indicates the sampling mode.
+ * @param constraint Indicates constraint type.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of canvas, pixelMap
+ *                 and dst is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapRectConstraint(OH_Drawing_Canvas* canvas,
+    OH_Drawing_PixelMap* pixelMap, const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst,
+    const OH_Drawing_SamplingOptions* samplingOptions, OH_Drawing_SrcRectConstraint constraint);
 
 /**
  * @brief Fills clipped canvas area with brush.

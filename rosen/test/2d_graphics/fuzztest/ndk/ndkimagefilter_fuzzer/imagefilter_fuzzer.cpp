@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "drawing_color_filter.h"
 #include "drawing_color.h"
 #include "drawing_image_filter.h"
+#include "drawing_rect.h"
 
 
 namespace OHOS {
@@ -107,6 +108,31 @@ void NativeImageFilterTest002(const uint8_t* data, size_t size)
     OH_Drawing_ImageFilterDestroy(inputFilter);
 }
 
+void NativeImageFilterTest003(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+
+    float sigmaX = GetObject<float>();
+    float sigmaY = GetObject<float>();
+    uint32_t tileMode = GetObject<uint32_t>();
+    OH_Drawing_ImageFilter* inputFilter1 = OH_Drawing_ImageFilterCreateBlurWithCrop(
+        sigmaX, sigmaY, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), nullptr, rect);
+    OH_Drawing_ImageFilter* inputFilter2 = OH_Drawing_ImageFilterCreateBlurWithCrop(
+        sigmaX, sigmaY, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), nullptr, nullptr);
+    
+    OH_Drawing_ImageFilterDestroy(inputFilter1);
+    OH_Drawing_ImageFilterDestroy(inputFilter2);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -118,5 +144,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeImageFilterTest(data, size);
     OHOS::Rosen::Drawing::NativeImageFilterTest001(data, size);
     OHOS::Rosen::Drawing::NativeImageFilterTest002(data, size);
+    OHOS::Rosen::Drawing::NativeImageFilterTest003(data, size);
     return 0;
 }
