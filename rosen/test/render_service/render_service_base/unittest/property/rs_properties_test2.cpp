@@ -1432,6 +1432,24 @@ HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetShadowColorTest
+ * @tc.desc: test SetShadowColor with shadow mask
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetShadowColorTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Color color(0XFF0000FF); // 0XFF0000FF is RBGA
+    properties.SetShadowColor(color);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+
+    properties.SetShadowMask(2); // mask color blur
+    properties.filterNeedUpdate_ = false;
+    properties.SetShadowColor(color);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+}
+
+/**
  * @tc.name: UpdateForegroundFilterTest001
  * @tc.desc: test UpdateForegroundFilter with shadow mask
  * @tc.type: FUNC

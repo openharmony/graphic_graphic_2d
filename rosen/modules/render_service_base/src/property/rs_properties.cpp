@@ -2074,6 +2074,9 @@ void RSProperties::SetShadowColor(Color color)
         shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetColor(color);
+    if (GetShadowMask() == SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR) {
+        filterNeedUpdate_ = true;
+    }
     SetDirty();
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
