@@ -776,6 +776,43 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateUifirstNodesPhone003
+ * @tc.desc: Test enable uifirst and use starting window on phone
+ * @tc.type: FUNC
+ * @tc.require: issueICJIR8
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone003, TestSize.Level1)
+{
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashWindow->firstLevelNodeId_ = leashWindow->GetId();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+
+    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    // no starting window
+    uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+
+    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    // no starting window
+    uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+
+    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto startingWindow = std::make_shared<RSCanvasRenderNode>(1);
+    startingWindow->stagingRenderParams_ = std::make_unique<RSRenderParams>(1);
+    std::vector<std::shared_ptr<RSRenderNode>> children;
+    children.push_back(appWindow);
+    children.push_back(startingWindow);
+    leashWindow->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+    // use starting window
+    uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+}
+
+/**
  * @tc.name: UpdateUifirstNodes
  * @tc.desc: Test UpdateUifirstNodes, with deviceType is PC
  * @tc.type: FUNC
@@ -2364,5 +2401,28 @@ HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
     uifirstManager_.subthreadProcessSkippedNode_.clear();
+}
+
+/**
+ * @tc.name: HasStartingWindowTest
+ * @tc.desc: Test HasStartingWindow
+ * @tc.type: FUNC
+ * @tc.require: issueICJIR8
+ */
+HWTEST_F(RSUifirstManagerTest, HasStartingWindowTest, TestSize.Level1)
+{
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    ASSERT_FALSE(uifirstManager_.HasStartingWindow(*leashWindow));
+
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto startingWindow = std::make_shared<RSCanvasRenderNode>(1);
+    startingWindow->stagingRenderParams_ = std::make_unique<RSRenderParams>(1);
+    std::vector<std::shared_ptr<RSRenderNode>> children;
+    children.push_back(appWindow);
+    children.push_back(startingWindow);
+    leashWindow->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+    ASSERT_TRUE(uifirstManager_.HasStartingWindow(*leashWindow));
 }
 }
