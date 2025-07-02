@@ -123,9 +123,10 @@ public:
     void MergeOldDirty(NodeId id);
     void MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node);
 
-    void SetRotationChanged(bool rotationChanged)
+    void PreStatusProcess(bool rotationChanged)
     {
         rotationChanged_ = rotationChanged;
+        curUifirstWindowNums_ = 0;
     }
 
     bool IsRecentTaskScene() const
@@ -266,6 +267,11 @@ private:
     // starting
     void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);
 
+    bool IsFocusedNode(const RSSurfaceRenderNode& node) const;
+    void IncreaseUifirstWindowCount(const RSSurfaceRenderNode& node);
+    void DecreaseUifirstWindowCount(const RSSurfaceRenderNode& node);
+    bool IsExceededWindowsThreshold(const RSSurfaceRenderNode& node) const;
+
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
     bool isUiFirstSupportFlag_ = false;
@@ -348,6 +354,11 @@ private:
     };
     std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
+
+    // maximum uifirst window count
+    int uifirstWindowsNumThreshold_ = 0;
+    // current uifirst window count
+    int curUifirstWindowNums_ = 0;
 };
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:
