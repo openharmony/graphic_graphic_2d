@@ -135,15 +135,17 @@ HWTEST_F(RSTransformModifierNGTypeTest, GetRotationTest, TestSize.Level1)
 HWTEST_F(RSTransformModifierNGTypeTest, ApplyGeometryTest, TestSize.Level1)
 {
     auto modifier = std::make_shared<ModifierNG::RSTransformModifier>();
-    // geometry is null
     std::shared_ptr<RSObjAbsGeometry> geometry = nullptr;
     modifier->ApplyGeometry(geometry);
     EXPECT_EQ(geometry, nullptr);
+
     // geometry is not null, but all properties is null
     geometry = std::make_shared<RSObjAbsGeometry>();
     modifier->ApplyGeometry(geometry);
     EXPECT_NE(geometry, nullptr);
+
     // geometry and property is not null
+    // 1.0f 2.0f 3.0f 4.0f : incremental change initial value
     Vector2f pivotValue(1.0f, 2.0f);
     float pivotZValue = 1.0f;
     Quaternion quaternionValue(1.0f, 2.0f, 3.0f, 4.0f);

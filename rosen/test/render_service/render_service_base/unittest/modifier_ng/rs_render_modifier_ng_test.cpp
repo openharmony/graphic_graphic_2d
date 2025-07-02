@@ -48,7 +48,7 @@ void RSRenderModifierNGTest::SetUp() {}
 void RSRenderModifierNGTest::TearDown() {}
 
 /**
- * @tc.name: AttachProperty
+ * @tc.name: AttachPropertyTest
  * @tc.desc: test the function AttachProperty
  * @tc.type: FUNC
  */
