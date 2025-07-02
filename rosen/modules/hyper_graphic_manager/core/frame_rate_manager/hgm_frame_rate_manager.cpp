@@ -1242,7 +1242,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         return;
     }
 
-    CheckForceUpdateCallback(refreshRate)
+    CheckForceUpdateCallback(refreshRate);
 
     // changeGenerator only once in a single vsync period
     if (!changeGeneratorRateValid_.load()) {

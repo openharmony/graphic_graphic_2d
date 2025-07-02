@@ -1422,7 +1422,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level1)
     mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second = false;
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     mgr.voterTouchEffective_ = true;
-    mgr.DeliverRefreshRateVote({"VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID}, true);
+    mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     EXPECT_EQ(mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second, true);
 }
