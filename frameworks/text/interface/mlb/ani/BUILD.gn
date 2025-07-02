@@ -13,8 +13,8 @@
 
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("text_engine_ani_group") {
   deps = [
@@ -27,8 +27,9 @@ config("text_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    "./include",
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+    "$rosen_text_root",
+    "$rosen_text_root/interface/mlb/ani/include",
+    "$rosen_text_root/interface/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
 }
@@ -36,17 +37,17 @@ config("text_config") {
 ohos_shared_library("text_engine_ani") {
   branch_protector_ret = "pac_ret"
   sources = [
+    "./src/ani_drawing_converter.cpp",
     "./src/ani_font_collection.cpp",
+    "./src/ani_line_metrics_converter.cpp",
     "./src/ani_paragraph.cpp",
     "./src/ani_paragraph_builder.cpp",
-    "./src/ani_resource_parser.cpp",
-    "./src/ani_text_manager.cpp",
-    "./src/ani_text_utils.cpp",
-    "./src/ani_drawing_converter.cpp",
-    "./src/ani_line_metrics_converter.cpp",
     "./src/ani_paragraph_style_converter.cpp",
+    "./src/ani_resource_parser.cpp",
     "./src/ani_run_metrics_converter.cpp",
+    "./src/ani_text_manager.cpp",
     "./src/ani_text_style_converter.cpp",
+    "./src/ani_text_utils.cpp",
   ]
 
   configs = [ ":text_config" ]
@@ -58,8 +59,8 @@ ohos_shared_library("text_engine_ani") {
   }
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$rosen_text_root:rosen_text",
-    "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
   ]
 
   external_deps = [
