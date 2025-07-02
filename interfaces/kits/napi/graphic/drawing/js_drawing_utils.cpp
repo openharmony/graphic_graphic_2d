@@ -483,15 +483,24 @@ void MakeFontFeaturesFromJsArray(napi_env env, std::shared_ptr<DrawingFontFeatur
 
     for (uint32_t i = 0; i < size; ++i) {
         napi_value tempNumber = nullptr;
-        napi_get_element(env, array, i, &tempNumber);
+        napi_status status = napi_get_element(env, array, i, &tempNumber);
+        if (status != napi_ok || tempNumber == nullptr) {
+            continue;
+        }
         std::string name;
         napi_value tempValue = nullptr;
-        napi_get_named_property(env, tempNumber, "name", &tempValue);
+        status = napi_get_named_property(env, tempNumber, "name", &tempValue);
+        if (status != napi_ok || tempValue == nullptr) {
+            continue;
+        }
         if (!ConvertFromJsValue(env, tempValue, name)) {
             continue;
         }
         double value = 0.0;
-        napi_get_named_property(env, tempNumber, "value", &tempValue);
+        status = napi_get_named_property(env, tempNumber, "value", &tempValue);
+        if (status != napi_ok || tempValue == nullptr) {
+            continue;
+        }
         if (!ConvertFromJsValue(env, tempValue, value)) {
             continue;
         }
