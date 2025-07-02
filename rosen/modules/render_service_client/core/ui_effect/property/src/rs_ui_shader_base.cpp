@@ -32,6 +32,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGAuroraNoise>();
         }
     },
+    {RSNGEffectType::PARTICLE_CIRCULAR_HALO, [] {
+            return std::make_shared<RSNGParticleCircularHalo>();
+        }
+    }
 };
 
 std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(RSNGEffectType type)

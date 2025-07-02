@@ -41,8 +41,9 @@ public:
             case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
             case RSNGEffectType::WAVY_RIPPLE_LIGHT: return "WavyRippleLight";
             case RSNGEffectType::AURORA_NOISE: return "AuroraNoise";
+            case RSNGEffectType::PARTICLE_CIRCULAR_HALO: return "ParticleCircularHalo";
             default:
-                return "UNKNOWN";	                return "UNKNOWN";
+                return "UNKNOWN";
         }
     }
 
@@ -140,6 +141,12 @@ DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
 
 DECLARE_SHADER(AuroraNoise, AURORA_NOISE,
     ADD_PROPERTY_TAG(AuroraNoise, Noise)
+);
+
+DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
+    ADD_PROPERTY_TAG(ParticleCircularHalo, Center),
+    ADD_PROPERTY_TAG(ParticleCircularHalo, Radius),
+    ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
 );
 
 #undef ADD_PROPERTY_TAG
