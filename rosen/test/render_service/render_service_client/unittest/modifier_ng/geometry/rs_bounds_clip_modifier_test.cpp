@@ -39,11 +39,11 @@ public:
 };
 
 /**
- * @tc.name: RSBoundsClipModifierTest
- * @tc.desc: Test Set/Get functions of RSBoundsClipModifier
+ * @tc.name: SetAndGetCornerRadiusTest
+ * @tc.desc: Test the set and get functions for the corner radius property
  * @tc.type: FUNC
  */
-HWTEST_F(RSBoundsClipModifierNGTypeTest, RSBoundsClipModifierTest, TestSize.Level1)
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetAndGetCornerRadiusTest, TestSize.Level1)
 {
     std::shared_ptr<ModifierNG::RSBoundsClipModifier> modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
 
@@ -52,5 +52,58 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, RSBoundsClipModifierTest, TestSize.Leve
     Vector4f cornerRadius(1.0f, 2.0f, 3.0f, 4.0f);
     modifier->SetCornerRadius(cornerRadius);
     EXPECT_EQ(modifier->GetCornerRadius(), cornerRadius);
+}
+
+/**
+ * @tc.name: SetClipRectWithRadiusTest
+ * @tc.desc: Test the function SetClipRectWithRadius
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipRectWithRadiusTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    Vector4f clipRect(100.0f);
+    Vector4f clipRadius(50.0f);
+    modifier->SetClipRectWithRadius(clipRect, clipRadius);
+    EXPECT_NE(modifier, nullptr);
+}
+
+/**
+ * @tc.name: SetClipRRectTest
+ * @tc.desc: Test the function SetClipRRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipRRectTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    auto rrect = std::make_shared<RRect>();
+    modifier->SetClipRRect(rrect);
+    EXPECT_NE(modifier, nullptr);
+}
+
+/**
+ * @tc.name: SetClipBoundsTest
+ * @tc.desc: Test the function SetClipBounds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipBoundsTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    auto clipToBounds = std::make_shared<RSPath>();
+    modifier->SetClipBounds(clipToBounds);
+    EXPECT_NE(modifier, nullptr);
+}
+
+/**
+ * @tc.name: SetClipToBoundsTest
+ * @tc.desc: Test the function SetClipToBounds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipToBoundsTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    bool clipToBounds = false;
+    modifier->SetClipToBounds(clipToBounds);
+    EXPECT_NE(modifier, nullptr);
 }
 } // namespace OHOS::Rosen
