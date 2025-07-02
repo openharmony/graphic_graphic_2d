@@ -22,6 +22,7 @@
 #include "typography_types.h"
 
 namespace OHOS::Rosen {
+std::mutex JsRun::constructorMutex_;
 thread_local napi_ref JsRun::constructor_ = nullptr;
 const std::string CLASS_NAME = "Run";
 napi_value JsRun::Constructor(napi_env env, napi_callback_info info)
@@ -53,6 +54,32 @@ napi_value JsRun::Constructor(napi_env env, napi_callback_info info)
 
 napi_value JsRun::Init(napi_env env, napi_value exportObj)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get reference, ret %{public}d", status);
+        return nullptr;
+    }
+
+    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+        return nullptr;
+    }
+
+    return exportObj;
+}
+
+bool JsRun::CreateConstructor(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(constructorMutex_);
+    if (constructor_) {
+        return true;
+    }
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getGlyphCount", JsRun::GetGlyphCount),
         DECLARE_NAPI_FUNCTION("getGlyphs", JsRun::GetGlyphs),
@@ -73,22 +100,15 @@ napi_value JsRun::Init(napi_env env, napi_value exportObj)
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to define class, ret %{public}d", status);
-        return nullptr;
+        return false;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to create reference, ret %{public}d", status);
-        return nullptr;
+        return false;
     }
-
-    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
-        return nullptr;
-    }
-
-    return exportObj;
+    return true;
 }
 
 void JsRun::Destructor(napi_env env, void* nativeObject, void* finalize)
@@ -102,6 +122,10 @@ void JsRun::Destructor(napi_env env, void* nativeObject, void* finalize)
 
 napi_value JsRun::CreateRun(napi_env env, napi_callback_info info)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
     napi_value result = nullptr;
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
