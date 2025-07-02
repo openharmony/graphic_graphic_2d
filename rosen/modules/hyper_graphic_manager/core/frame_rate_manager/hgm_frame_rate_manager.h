@@ -246,6 +246,12 @@ private:
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
     void CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate);
+    void CheckForceUpdateCallback(uint32_t refreshRate, uint32_t controllerRate)
+    {
+        if (needForceUpdateUniRender_ && refreshRate != currRefreshRate_.load() && forceUpdateCallback_) {
+            forceUpdateCallback_(false, true);
+        }
+    }
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
 

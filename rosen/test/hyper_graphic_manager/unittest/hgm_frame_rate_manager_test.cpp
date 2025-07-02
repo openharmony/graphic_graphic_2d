@@ -1318,6 +1318,32 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckNeedUpdateAppOffset, Function | SmallTest
 }
 
 /**
+ * @tc.name: TestCheckForceUpdateCallback
+ * @tc.desc: Verify the result of CheckForceUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestCheckForceUpdateCallback, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    mgr.InitTouchManager();
+    mgr.needForceUpdateUniRender_ = true;
+    mgr.currRefreshRate_.store(OLED_120_HZ);
+    mgr.CheckForceUpdateCallback(OLED_60_HZ);
+    EXPECT_EQ(mgr.needForceUpdateUniRender_, true);
+
+    mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
+    mgr.CheckForceUpdateCallback(OLED_60_HZ);
+    mgr.CheckForceUpdateCallback(OLED_120_HZ);
+
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.needForceUpdateUniRender_, false);
+    mgr.CheckForceUpdateCallback(OLED_120_HZ);
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+}
+
+/**
  * @tc.name: TestHandleTouchEvent
  * @tc.desc: Verify the result of HandleTouchEvent
  * @tc.type: FUNC
@@ -1348,6 +1374,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.HandleTouchEvent(0, TOUCH_DOWN, 1);
     mgr.HandleTouchEvent(0, TOUCH_UP, 1);
     mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    sleep(1);
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
 }
 
@@ -1386,7 +1413,6 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchTask, Function | SmallTest | Level1
 HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level1)
 {
     HgmFrameRateManager mgr;
-    mgr.InitTouchManager();
     mgr.voterTouchEffective_ = true;
     mgr.MarkVoteChange();
     mgr.MarkVoteChange("NULL");
@@ -1396,18 +1422,9 @@ HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level1)
     mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second = false;
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     mgr.voterTouchEffective_ = true;
-    mgr.needForceUpdateUniRender_ = true;
-    mgr.DeliverRefreshRateVote({"VOTER_POWER_MODE", OLED_90_HZ, OLED_90_HZ, DEFAULT_PID}, true);
-    EXPECT_EQ(mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second, true);
-    mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) {};
-    mgr.needForceUpdateUniRender_ = true;
-    mgr.lastVoteInfo_.voterName = "VOTER_LTPO";
+    mgr.DeliverRefreshRateVote({"VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID}, true);
     mgr.MarkVoteChange("VOTER_POWER_MODE");
-    EXPECT_EQ(mgr.needForceUpdateUniRender_, true);
-    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
-    EXPECT_EQ(mgr.needForceUpdateUniRender_, false);
-    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
-    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    EXPECT_EQ(mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second, true);
 }
 
 /**
