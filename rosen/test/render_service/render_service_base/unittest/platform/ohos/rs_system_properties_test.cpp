@@ -1154,8 +1154,8 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Level1)
 {
     RSSystemProperties::SetTypicalResidentProcess(true);
-    bool enbaled = RSSystemProperties::GetHybridRenderEnabled();
-    EXPECT_EQ(enbaled, false);
+    bool enabled = RSSystemProperties::GetHybridRenderEnabled();
+    EXPECT_EQ(enabled, false);
 }
 } // namespace Rosen
 } // namespace OHOS
