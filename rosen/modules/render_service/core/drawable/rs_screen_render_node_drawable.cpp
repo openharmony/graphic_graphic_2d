@@ -837,7 +837,8 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
     }
     if (isHdrOn) {
-        params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+        params->SetNewPixelFormat(RSHdrUtil::GetRGBA1010108Enabled() ?
+            GRAPHIC_PIXEL_FMT_RGBA_1010108 : GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
     // hpae offline: post offline task
     CheckAndPostAsyncProcessOfflineTask();

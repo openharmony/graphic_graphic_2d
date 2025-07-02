@@ -38,6 +38,7 @@ public:
     static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSScreenRenderNode& displayNode);
     static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void SetHDRParam(RSSurfaceRenderNode& node, bool flag);
+    static bool GetRGBA1010108Enabled();
     static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
     std::shared_ptr<Drawing::ShaderEffect> MakeHdrHeadroomShader(float hrRatio,
         std::shared_ptr<Drawing::ShaderEffect> imageShader);

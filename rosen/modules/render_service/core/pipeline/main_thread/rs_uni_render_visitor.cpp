@@ -2130,8 +2130,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             topLayers.emplace_back(hwcNodePtr);
             continue;
         }
-        if ((curScreenNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty() ||
-            hasFingerprint_) &&
+        if (((curScreenNode_->GetHasUniRenderHdrSurface() && !RSHdrUtil::GetRGBA1010108Enabled()) ||
+            !drmNodes_.empty() || hasFingerprint_) &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64
                 " disabled by Having UniRenderHdrSurface/DRM node",

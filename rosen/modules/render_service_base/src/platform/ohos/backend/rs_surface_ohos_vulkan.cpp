@@ -85,7 +85,7 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
     if (RSSystemProperties::GetAFBCEnabled() && !isProtected) {
         int32_t format = 0;
         NativeWindowHandleOpt(mNativeWindow, GET_FORMAT, &format);
-        if (format == GRAPHIC_PIXEL_FMT_RGBA_8888 && useAFBC) {
+        if ((format == GRAPHIC_PIXEL_FMT_RGBA_8888 || format == GRAPHIC_PIXEL_FMT_RGBA_1010108) && useAFBC) {
             bufferUsage_ =
                 (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
         }
