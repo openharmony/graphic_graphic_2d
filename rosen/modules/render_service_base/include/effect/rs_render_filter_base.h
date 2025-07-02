@@ -38,7 +38,7 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderFilterBase>& val);
 
-    virtual void GenerateGEVisualEffect() = 0;
+    virtual void GenerateGEVisualEffect() {};
 
     virtual void OnSync()
     {

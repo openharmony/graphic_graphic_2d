@@ -52,6 +52,15 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+    const std::string& desc, const std::shared_ptr<RSPath> value)
+{
+    if (value == nullptr) {
+        return;
+    }
+    geFilter->SetParam(desc, std::make_shared<Drawing::Path>(value->GetDrawingPath()));
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
     const std::string& desc, std::shared_ptr<Media::PixelMap> value)
 {
     auto image = RSPixelMapUtil::ExtractDrawingImage(value);

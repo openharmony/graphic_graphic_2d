@@ -2819,48 +2819,6 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
 #endif
 }
 
-void RSNode::SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader)
-{
-#if defined(MODIFIER_NG)
-    if (!backgroundShader) {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier =
-            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
-        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER)) {
-            return;
-        }
-        modifier->DetachProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER);
-        return;
-    }
-    SetPropertyNG<ModifierNG::RSBackgroundNGShaderModifier,
-        &ModifierNG::RSBackgroundNGShaderModifier::SetBackgroundNGShader>(backgroundShader);
-#else
-    // origin
-#endif
-}
-
-void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader)
-{
-#if defined(MODIFIER_NG)
-    if (!foregroundShader) {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier =
-            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FOREGROUND_SHADER)];
-        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::FOREGROUND_SHADER)) {
-            return;
-        }
-        modifier->DetachProperty(ModifierNG::RSPropertyType::FOREGROUND_SHADER);
-        return;
-    }
-    SetPropertyNG<ModifierNG::RSForegroundShaderModifier,
-        &ModifierNG::RSForegroundShaderModifier::SetForegroundShader>(foregroundShader);
-#else
-    // origin
-#endif
-}
-
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
     if (filter == nullptr) {

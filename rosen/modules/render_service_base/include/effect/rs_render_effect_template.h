@@ -253,6 +253,9 @@ public:
             case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
             case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
             case RSNGEffectType::PIXEL_MAP_MASK: return "PixelMapMask";
+            case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
+            case RSNGEffectType::WAVY_RIPPLE_LIGHT: return "WavyRippleLight";
+            case RSNGEffectType::AURORA_NOISE: return "AuroraNoise";
             default:
                 return "UNKNOWN";
         }
@@ -274,6 +277,9 @@ private:
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
         const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
+
+    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+        const std::string& desc, std::shared_ptr<RSPath> value);
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
         const std::string& desc, std::shared_ptr<Media::PixelMap> value);

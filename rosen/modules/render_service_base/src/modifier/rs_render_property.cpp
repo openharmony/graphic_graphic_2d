@@ -884,7 +884,7 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnSetModifierType()
 {
-    if (value == stagingValue_) {
+    if (stagingValue_) {
         stagingValue_->SetModifierType(modifierType_);
     }
 }

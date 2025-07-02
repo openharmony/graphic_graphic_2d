@@ -77,6 +77,10 @@ public:
     {
         renderFilter_ = filter;
     }
+    inline std::shared_ptr<RSNGRenderFilterBase> GetNGRenderFilter() const
+    {
+        return renderFilter_;
+    }
     bool CanSkipFrame() const
     {
         return canSkipFrame_;
