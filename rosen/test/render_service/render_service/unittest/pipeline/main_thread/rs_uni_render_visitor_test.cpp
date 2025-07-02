@@ -47,6 +47,7 @@
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "screen_manager/rs_screen.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -4181,7 +4182,7 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode001, TestSize.Level
 
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
     rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    ASSERT_TRUE(RSOpincManager::Instance().OpincGetNodeSupportFlag(*rsCanvasRenderNode));
 }
 
 /**

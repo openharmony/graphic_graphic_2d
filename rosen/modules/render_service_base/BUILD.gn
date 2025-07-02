@@ -391,6 +391,7 @@ ohos_source_set("render_service_base_src") {
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
+    "src/feature/opinc/rs_opinc_manager.cpp",
     "src/feature/single_frame_composer/rs_single_frame_composer.cpp",
     "src/feature/capture/rs_capture_pixelmap_manager.cpp",
 

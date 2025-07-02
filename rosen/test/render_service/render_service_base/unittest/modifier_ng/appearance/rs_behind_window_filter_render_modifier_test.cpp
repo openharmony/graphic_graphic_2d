@@ -25,6 +25,7 @@
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
 #include "property/rs_properties.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,14 +45,22 @@ void RSBehindWindowFilterRenderModifierNGTest::SetUp() {}
 void RSBehindWindowFilterRenderModifierNGTest::TearDown() {}
 
 /**
- * @tc.name: RSBehindWindowFilterRenderModifierTest
- * @tc.desc:GetType & ResetProperties
- * @tc.type:FUNC
+ * @tc.name: OnSetDirtyTest
+ * @tc.desc: test the function OnSetDirty and the result of GetType()
+ * @tc.type: FUNC
  */
-HWTEST_F(RSBehindWindowFilterRenderModifierNGTest, RSBehindWindowFilterRenderModifierTest, TestSize.Level1)
+HWTEST_F(RSBehindWindowFilterRenderModifierNGTest, OnSetDirtyTest, TestSize.Level1)
 {
     RSBehindWindowFilterRenderModifier modifier;
-    modifier.OnSetDirty();
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
+    modifier.OnSetDirty();
+    EXPECT_EQ(modifier.target_.lock(), nullptr);
+    
+    NodeId nodeId = 1;
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
+    modifier.target_ = weakPtr;
+    modifier.OnSetDirty();
+    EXPECT_NE(modifier.target_.lock(), nullptr);
 }
 } // namespace OHOS::Rosen

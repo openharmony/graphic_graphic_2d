@@ -672,13 +672,6 @@ public:
 
     std::string QuickGetNodeDebugInfo();
 
-    // mark support node
-    void OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode);
-    virtual bool OpincGetNodeSupportFlag()
-    {
-        return false;
-    }
-
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
 
