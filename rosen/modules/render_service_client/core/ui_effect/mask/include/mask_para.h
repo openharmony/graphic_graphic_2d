@@ -31,6 +31,7 @@ public:
         RIPPLE_MASK,
         RADIAL_GRADIENT_MASK,
         PIXEL_MAP_MASK,
+        WAVE_GRADIENT_MASK,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
