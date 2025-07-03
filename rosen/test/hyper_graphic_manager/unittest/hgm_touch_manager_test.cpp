@@ -190,5 +190,36 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level0)
     }
     sleep(1); // wait for task finished
 }
+
+/**
+ * @tc.name: TestInitTouchManager
+ * @tc.desc: Verify the result of InitTouchManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTouchManagerTest, TestInitTouchManager, Function | SmallTest | Level1)
+{
+    const int32_t upTimeUs = 120000;
+
+    HgmFrameRateManager mgr;
+    mgr.InitTouchManager();
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.voterTouchEffective_.load(), true);
+
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
+
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
+
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
+
+    usleep(upTimeUs);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
+
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    EXPECT_EQ(mgr.voterTouchEffective_, false);
+}
 } // namespace Rosen
 } // namespace OHOS

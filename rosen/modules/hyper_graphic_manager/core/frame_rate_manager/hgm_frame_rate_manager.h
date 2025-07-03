@@ -138,7 +138,6 @@ public:
     void Init(sptr<VSyncController> rsController, sptr<VSyncController> appController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor);
     void SetTimeoutParamsFromConfig(const std::shared_ptr<PolicyConfigData>& configData);
-    void InitTouchManager();
     // called by RSMainThread
     void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
@@ -182,6 +181,7 @@ public:
 private:
     friend class HgmUserDefineImpl;
 
+    void InitTouchManager();
     void InitConfig();
     void Reset();
     void UpdateAppSupportedState();
@@ -246,6 +246,12 @@ private:
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
     void CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate);
+    void CheckForceUpdateCallback(uint32_t refreshRate)
+    {
+        if (needForceUpdateUniRender_ && refreshRate != currRefreshRate_.load() && forceUpdateCallback_) {
+            forceUpdateCallback_(false, true);
+        }
+    }
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
 
@@ -318,6 +324,8 @@ private:
 
     uint32_t lastLTPORefreshRate_ = 0;
     long lastLTPOVoteTime_ = 0;
+
+    bool needForceUpdateUniRender_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
