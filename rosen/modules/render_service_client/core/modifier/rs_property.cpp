@@ -100,11 +100,6 @@ void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNod
     }
 }
 
-bool RSPropertyBase::NeedUpdateExtendModifierForGeometry(const Vector4f& oldValue, const Vector4f& newValue)
-{
-    return (oldValue.z_ != newValue.z_ || oldValue.w_ != newValue.w_);
-}
-
 float RSPropertyBase::GetThresholdByThresholdType(ThresholdType thresholdType) const
 {
     switch (thresholdType) {
