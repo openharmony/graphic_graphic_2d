@@ -3690,8 +3690,7 @@ void RSNode::RemoveChildByNode(SharedPtr child)
         RS_OPTIONAL_TRACE_NAME_FMT("RSNode::RemoveChildByNode id:%" PRIu64 "", child->GetId());
         children_.erase(itr);
     } else {
-        RS_TRACE_NAME_FMT( "RSNode::RemoveChildByNode failed:not children %{public}" PRIu64 "",
-            child->GetId());
+        RS_TRACE_NAME_FMT("RSNode::RemoveChildByNode failed:not children %{public}" PRIu64 "", child->GetId());
     }
 }
 
