@@ -204,7 +204,8 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest001, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0].removeMember("native_glyph_id");
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
-    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(rootLayers_["symbol_layers_grouping"], symbolConfig));
+    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
+        rootLayers_["symbol_layers_grouping"], symbolConfig));
     EXPECT_TRUE(symbolConfig.empty());
 }
 
@@ -217,7 +218,8 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest002, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0]["native_glyph_id"] = "invalid_id";
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
-    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(rootLayers_["symbol_layers_grouping"], symbolConfig));
+    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
+        rootLayers_["symbol_layers_grouping"], symbolConfig));
     EXPECT_TRUE(symbolConfig.empty());
 }
 
@@ -230,7 +232,8 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest003, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0]["render_modes"][0]["render_groups"][0]["default_color"] = "INVALID_COLOR";
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
-    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(rootLayers_["symbol_layers_grouping"], symbolConfig));
+    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
+        rootLayers_["symbol_layers_grouping"], symbolConfig));
     auto& renderGroups = symbolConfig.at(1001).renderModeGroups.begin()->second;
     // default value is 0
     EXPECT_EQ(renderGroups[0].color.r, 0);
@@ -273,7 +276,8 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest006, TestSize.Level0)
 {
     rootLayers_["symbol_layers_grouping"][0]["layers"] = Json::arrayValue;
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
-    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(rootLayers_["symbol_layers_grouping"], symbolConfig));
+    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
+        rootLayers_["symbol_layers_grouping"], symbolConfig));
     EXPECT_TRUE(symbolConfig.at(1001).layers.empty());
 }
 
@@ -285,7 +289,8 @@ HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest006, TestSize.Level0)
 HWTEST_F(SymbolConfigParserTest, SymbolConfigParserTest007, TestSize.Level0)
 {
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfig;
-    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(rootLayers_["symbol_layers_grouping"], symbolConfig));
+    EXPECT_TRUE(OHOS::Rosen::Symbol::SymbolConfigParser::ParseSymbolLayersGrouping(
+        rootLayers_["symbol_layers_grouping"], symbolConfig));
     auto& group = symbolConfig.at(1001);
     EXPECT_EQ(group.symbolGlyphId, 2001);
     EXPECT_EQ(group.layers.size(), 2);
