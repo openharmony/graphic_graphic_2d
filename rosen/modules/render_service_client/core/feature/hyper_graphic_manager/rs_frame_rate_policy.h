@@ -30,6 +30,9 @@ enum TouchStatus : uint32_t {
     TOUCH_DOWN = 2,
     TOUCH_MOVE = 3,
     TOUCH_UP = 4,
+    AXIS_BEGIN = 5,
+    AXIS_UPDATE = 6,
+    AXIS_END = 7,
     TOUCH_BUTTON_DOWN = 8,
     TOUCH_BUTTON_UP = 9,
     TOUCH_PULL_DOWN = 12,
@@ -70,6 +73,7 @@ private:
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
     std::mutex mutex_;
     std::chrono::steady_clock::time_point sendMoveTime_ = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point sendAxisUpdateTime_ = std::chrono::steady_clock::now();
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1368,6 +1368,18 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, TOUCH_BUTTON_UP, 1);
+    
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_BEGIN, 1);
+
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_UPDATE, 1);
+ 
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_END, 1);
 
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
@@ -1376,6 +1388,46 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
     sleep(1);
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
+}
+
+/**
+ * @tc.name: TestHandlePointerTask
+ * @tc.desc: Verify the result of HandlePointerTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    pid_t pid = DEFAULT_PID + 1;
+    int32_t pointerStatus = AXIS_BEGIN;
+    std::string pkg0 = "com.wedobest.fivechess.harm:1002:10110";
+    std::string pkg1 = "com.undefined.pkg:10020:-1";
+
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+    EXPECT_TRUE(mgr.cleanPidCallback_[pid].count(CleanPidCallbackType::TOUCH_EVENT) > 0);
+
+    pid = DEFAULT_PID;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    pointerStatus = AXIS_UPDATE;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    pointerStatus = AXIS_END;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.pkgs_ = {pkg0};
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.pkgs_ = {pkg1};
+    mgr.multiAppStrategy_.strategyConfigMapCache_[mgr.multiAppStrategy_.screenSettingCache_.strategy]
+        .pointerMode = PointerModeType::POINTER_DISENABLED;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.screenSettingCache_.strategy = "undefined";
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+    mgr.pointerManager_.ChangeState(PointerState::POINTER_IDLE_STATE);
+    sleep(1);
 }
 
 /**
