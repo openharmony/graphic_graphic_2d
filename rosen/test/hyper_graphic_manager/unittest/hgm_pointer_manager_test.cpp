@@ -51,7 +51,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmPointerManagerTest, QuickClick, Function | SmallTest | Level1)
+HWTEST_F(HgmPointerManagerTest, QuickClick, Function | SmallTest | Level0)
 {
     int32_t clickNum = 100;
     auto pointerManager = HgmPointerManager();
@@ -70,7 +70,7 @@ HWTEST_F(HgmPointerManagerTest, QuickClick, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmPointerManagerTest, ChangeState, Function | SmallTest | Level1)
+HWTEST_F(HgmPointerManagerTest, ChangeState, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto pointerManager = HgmPointerManager();
@@ -92,7 +92,7 @@ HWTEST_F(HgmPointerManagerTest, ChangeState, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level1)
+HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto pointerManager = HgmPointerManager();
@@ -134,7 +134,7 @@ HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Level1)
+HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto pointerManager = HgmPointerManager();
@@ -165,7 +165,7 @@ HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmPointerManagerTest, HgmSetPointerActiveFPS, Function | SmallTest | Level1)
+HWTEST_F(HgmPointerManagerTest, HgmSetPointerActiveFPS, Function | SmallTest | Level0)
 {
     HgmFrameRateManager frameRateMgr;
     constexpr uint32_t delay_1100Ms = 1100;

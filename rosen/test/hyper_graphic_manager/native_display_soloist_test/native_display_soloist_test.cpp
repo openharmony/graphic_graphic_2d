@@ -68,7 +68,7 @@ namespace {
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_Create by normal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Create001, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Create001, Function | MediumTest | Level0)
 {
     EXPECT_EQ(nullptr, nativeDisplaySoloist);
     nativeDisplaySoloist = OH_DisplaySoloist_Create(false);
@@ -82,7 +82,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Create001, Function | Mediu
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_Start by abnormal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start001, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start001, Function | MediumTest | Level1)
 {
     OH_DisplaySoloist_FrameCallback callback = OnVSync;
     int32_t result = OH_DisplaySoloist_Start(nullptr, callback, nullptr);
@@ -96,7 +96,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start001, Function | Medium
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_Start by normal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start002, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start002, Function | MediumTest | Level0)
 {
     OH_DisplaySoloist_FrameCallback callback = OnVSync;
     int32_t result = OH_DisplaySoloist_Start(nativeDisplaySoloist, callback, nullptr);
@@ -110,7 +110,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start002, Function | Medium
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by abnormal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange001, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange001, Function | MediumTest | Level1)
 {
     DisplaySoloist_ExpectedRateRange validRange = { FRAME_RATE_30_HZ, FRAME_RATE_120_HZ, FRAME_RATE_60_HZ };
     int32_t result1 = OH_DisplaySoloist_SetExpectedFrameRateRange(nullptr, &validRange);
@@ -126,7 +126,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange00
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by abnormal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange002, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange002, Function | MediumTest | Level1)
 {
     DisplaySoloist_ExpectedRateRange invalidRange = { FRAME_RATE_30_HZ, FRAME_RATE_90_HZ, FRAME_RATE_120_HZ };
     int32_t result1 = OH_DisplaySoloist_SetExpectedFrameRateRange(nullptr, &invalidRange);
@@ -142,7 +142,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange00
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by normal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange003, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange003, Function | MediumTest | Level0)
 {
     DisplaySoloist_ExpectedRateRange validRange = { FRAME_RATE_30_HZ, FRAME_RATE_120_HZ, FRAME_RATE_60_HZ };
     int32_t result = OH_DisplaySoloist_SetExpectedFrameRateRange(nativeDisplaySoloist, &validRange);
@@ -156,7 +156,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange00
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_Stop by abnormal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop001, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop001, Function | MediumTest | Level1)
 {
     int32_t result = OH_DisplaySoloist_Stop(nullptr);
     EXPECT_EQ(SOLOIST_ERROR, result);
@@ -169,7 +169,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop001, Function | MediumT
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_Stop by normal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop002, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop002, Function | MediumTest | Level0)
 {
     int32_t result = OH_DisplaySoloist_Stop(nativeDisplaySoloist);
     EXPECT_EQ(EXEC_SUCCESS, result);
@@ -182,7 +182,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop002, Function | MediumT
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_Destroy by abnormal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy001, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy001, Function | MediumTest | Level1)
 {
     int32_t result = OH_DisplaySoloist_Destroy(nullptr);
     EXPECT_EQ(SOLOIST_ERROR, result);
@@ -195,7 +195,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy001, Function | Medi
 * EnvConditions: N/A
 * CaseDescription: 1. call OH_DisplaySoloist_Destroy by normal input
  */
-HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy002, Function | MediumTest | Level2)
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy002, Function | MediumTest | Level0)
 {
     int32_t result = OH_DisplaySoloist_Destroy(nativeDisplaySoloist);
     EXPECT_EQ(EXEC_SUCCESS, result);

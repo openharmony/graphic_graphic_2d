@@ -46,7 +46,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level0)
 {
     int32_t clickNum = 100;
     auto touchManager = HgmTouchManager();
@@ -65,7 +65,7 @@ HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto touchManager = HgmTouchManager();
@@ -105,7 +105,7 @@ HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level0)
 {
     auto touchManager = HgmTouchManager();
     const int32_t rsTimeoutUs = 610000;
@@ -152,7 +152,7 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto touchManager = HgmTouchManager();

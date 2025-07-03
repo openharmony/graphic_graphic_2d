@@ -152,7 +152,7 @@ HgmErrCode HgmMultiAppStrategyTest::GetTouchVoteInfo(VoteInfo& touchVoteInfo)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto& pkgParam = pkgParams_[0]; // first pkg
@@ -204,7 +204,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
@@ -252,7 +252,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
@@ -306,7 +306,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -348,7 +348,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -387,7 +387,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -426,7 +426,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, UseStrategyNum, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, UseStrategyNum, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -452,7 +452,7 @@ HWTEST_F(HgmMultiAppStrategyTest, UseStrategyNum, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, FollowFocus, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, FollowFocus, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -480,7 +480,7 @@ HWTEST_F(HgmMultiAppStrategyTest, FollowFocus, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, UseMax, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, UseMax, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
     PolicyConfigData::StrategyConfig strategyConfig;
@@ -506,7 +506,7 @@ HWTEST_F(HgmMultiAppStrategyTest, UseMax, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -528,7 +528,7 @@ HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -560,7 +560,7 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
             ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
             ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
         }
-        STEP("2. brightness level strategy") {
+        STEP("2. brightness Level strategy") {
             multiAppStrategy_->isLtpo_ = false;
             multiAppStrategy_->lowAmbientStatus_ = true;
             multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::LOW_LEVEL);
@@ -587,7 +587,7 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest | Level0)
 {
     for (bool status : {false, true}) {
         multiAppStrategy_->lowAmbientStatus_ = status;
@@ -608,7 +608,7 @@ HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level0)
 {
     constexpr int32_t gameType0 = 10046;
     PART("CaseDescription") {
@@ -632,7 +632,7 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require: IAHFXD
  */
-HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest | Level0)
 {
     std::vector<std::string> pkgs = { "com.app10", "com.app15" };
     multiAppStrategy_->CheckPackageInConfigList(pkgs);
@@ -645,7 +645,7 @@ HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest
  * @tc.type: FUNC
  * @tc.require: IAHFXD
  */
-HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level0)
 {
     std::vector<std::string> pkgs0 = { "com.app10", "com.app15" };
     std::vector<std::string> pkgs1 = { "com.app10" };
@@ -686,7 +686,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | Level0)
 {
     auto multiAppStrategy = HgmMultiAppStrategy();
     PolicyConfigData::StrategyConfig strategyRes;

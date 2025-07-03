@@ -43,7 +43,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestMergeRangeByPriority, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestMergeRangeByPriority, Function | SmallTest | Level0)
 {
     VoteRange voteRange0 = { OLED_40_HZ, OLED_120_HZ };
     VoteRange voteRange1 = { OLED_30_HZ, OLED_40_HZ };
@@ -79,7 +79,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeRangeByPriority, Function | SmallTest | Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestGetVoteRecord, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestGetVoteRecord, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     const auto& voteRecord = mgr.frameVoter_.GetVoteRecord();
@@ -95,7 +95,7 @@ HWTEST_F(HgmFrameVoterTest, TestGetVoteRecord, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestGetVoters, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestGetVoters, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     const auto& voters = mgr.frameVoter_.GetVoters();
@@ -111,7 +111,7 @@ HWTEST_F(HgmFrameVoterTest, TestGetVoters, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.frameVoter_.voterGamesEffective_ = false;
@@ -126,7 +126,7 @@ HWTEST_F(HgmFrameVoterTest, TestGetVoterGamesEffective, Function | SmallTest | L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.frameVoter_.SetDragScene(false);
@@ -141,7 +141,7 @@ HWTEST_F(HgmFrameVoterTest, TestDragScene, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestCleanVote, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestCleanVote, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
@@ -160,7 +160,7 @@ HWTEST_F(HgmFrameVoterTest, TestCleanVote, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestDeliverVote, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestDeliverVote, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
@@ -213,7 +213,7 @@ HWTEST_F(HgmFrameVoterTest, TestDeliverVote, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
@@ -271,7 +271,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
@@ -328,7 +328,7 @@ HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestProcessVote, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestProcessVote, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
@@ -362,7 +362,7 @@ HWTEST_F(HgmFrameVoterTest, TestProcessVote, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, Callback, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, Callback, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
