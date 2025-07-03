@@ -25,6 +25,7 @@ napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("createLine", JsLineTypeset::CreateLine),
 };
 }
+std::mutex JsLineTypeset::constructorMutex_;
 thread_local napi_ref JsLineTypeset::constructor_ = nullptr;
 
 napi_value JsLineTypeset::Constructor(napi_env env, napi_callback_info info)
@@ -75,6 +76,10 @@ JsLineTypeset::~JsLineTypeset()
 
 napi_value JsLineTypeset::CreateJsLineTypeset(napi_env env, std::unique_ptr<LineTypography> lineTypography)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
     napi_value constructor = nullptr;
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
@@ -103,17 +108,14 @@ napi_value JsLineTypeset::CreateJsLineTypeset(napi_env env, std::unique_ptr<Line
 
 napi_value JsLineTypeset::Init(napi_env env, napi_value exportObj)
 {
-    napi_value constructor = nullptr;
-    napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-        sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to define paragraph, ret %{public}d", status);
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
         return nullptr;
     }
-
-    status = napi_create_reference(env, constructor, 1, &constructor_);
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to create reference, ret %{public}d", status);
+        TEXT_LOGE("Failed to get reference, ret %{public}d", status);
         return nullptr;
     }
 
@@ -123,6 +125,28 @@ napi_value JsLineTypeset::Init(napi_env env, napi_value exportObj)
         return nullptr;
     }
     return exportObj;
+}
+
+bool JsLineTypeset::CreateConstructor(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(constructorMutex_);
+    if (constructor_) {
+        return true;
+    }
+    napi_value constructor = nullptr;
+    napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
+        sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to define class, status %{public}d", status);
+        return false;
+    }
+
+    status = napi_create_reference(env, constructor, 1, &constructor_);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to create reference, status %{public}d", status);
+        return false;
+    }
+    return true;
 }
 
 napi_value JsLineTypeset::GetLineBreak(napi_env env, napi_callback_info info)
