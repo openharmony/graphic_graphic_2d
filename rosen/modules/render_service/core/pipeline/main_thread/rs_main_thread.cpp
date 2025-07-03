@@ -2320,7 +2320,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         !isCachedSurfaceUpdated_ && pointerSkip;
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: needGoDirectComposition:[%d], isDirty:[%d], "
         "isAccessibilityConfigChanged:[%d], isCachedSurfaceUpdated:[%d], pointerSkip:[%d]",
-        needGoDirectComposition, isDirty_.load(), isAccessibilityConfigChanged_, isCachedSurfaceUpdated_, pointerSkip); 
+        needGoDirectComposition, isDirty_.load(), isAccessibilityConfigChanged_, isCachedSurfaceUpdated_, pointerSkip);
     if (needGoDirectComposition) {
         doDirectComposition_ = isHardwareEnabledBufferUpdated_;
         if (!isHardwareEnabledBufferUpdated_) {
