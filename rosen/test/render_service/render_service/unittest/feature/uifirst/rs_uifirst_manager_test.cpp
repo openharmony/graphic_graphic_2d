@@ -1698,6 +1698,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes002, TestSize.Level1)
 {
     uifirstManager_.pendingNodeBehindWindow_.clear();
+    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
     uifirstManager_.SetPurgeEnable(true);
     auto emptyRegion = Occlusion::Region();
     auto visibleRegion = Occlusion::Region({50, 50, 100, 100});
@@ -1736,6 +1737,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes002, TestSize.Level1)
 
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.pendingNodeBehindWindow_.clear();
+    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::SINGLE);
 }
 
 /**

@@ -200,7 +200,7 @@ public:
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
 private:
     struct NodeDataBehindWindow {
-        uint64_t curTime_ = 0;
+        uint64_t curTime = 0;
         bool isFirst = true;
     };
     RSUifirstManager() = default;
