@@ -53,6 +53,9 @@ ohos_source_set("text_ndk") {
     "drawing_typography/drawing_text_typography.cpp",
   ]
 
+  if(ohos_indep_compiler_enable) {
+    include_dirs += [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+  }
   defines = []
   if (use_skia_txt) {
     defines += [ "USE_SKIA_TXT" ]
