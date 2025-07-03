@@ -86,3 +86,9 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(AuroraNoise, Noise, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Noise, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusY, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Colors, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Positions, std::vector<float>);

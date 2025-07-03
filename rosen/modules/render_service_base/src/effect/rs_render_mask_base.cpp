@@ -36,6 +36,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderPixelMapMask>();
         }
     },
+    {RSNGEffectType::RADIAL_GRADIENT_MASK, [] {
+            return std::make_shared<RSNGRenderRadialGradientMask>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGRenderMaskBase> RSNGRenderMaskBase::Create(RSNGEffectType type)

@@ -67,6 +67,12 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing
     geFilter->SetParam(desc, image);
 }
 
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+    const std::string& desc, const std::vector<float>& value)
+{
+    geFilter->SetParam(desc, value);
+}
+
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)
 {
     return std::make_shared<Drawing::GEVisualEffect>(GetEffectTypeString(type), Drawing::DrawingPaintType::BRUSH);

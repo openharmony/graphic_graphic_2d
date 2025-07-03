@@ -46,7 +46,7 @@ public:
 
 protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
-    
+
     virtual void DumpProperties(std::string& out) const {}
 
     size_t GetEffectCount() const
@@ -61,7 +61,7 @@ protected:
     }
 
     std::shared_ptr<Derived> nextEffect_ = nullptr;
-    
+
     template <typename U, typename R>
     friend class RSNGEffectBase;
 
@@ -152,7 +152,7 @@ public:
         if (Base::nextEffect_) {
             return Base::nextEffect_->Marshalling(parcel);
         }
-    
+
         return RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN);
     }
 
@@ -257,6 +257,7 @@ public:
             case RSNGEffectType::WAVY_RIPPLE_LIGHT: return "WavyRippleLight";
             case RSNGEffectType::AURORA_NOISE: return "AuroraNoise";
             case RSNGEffectType::PARTICLE_CIRCULAR_HALO: return "ParticleCircularHalo";
+            case RSNGEffectType::RADIAL_GRADIENT_MASK: return "RadialGradientMask";
             default:
                 return "UNKNOWN";
         }
@@ -284,6 +285,9 @@ private:
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
         const std::string& desc, std::shared_ptr<Media::PixelMap> value);
+
+    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+        const std::string& desc, const std::vector<float>& value);
 };
 
 template <typename Base, RSNGEffectType Type, typename... PropertyTags>

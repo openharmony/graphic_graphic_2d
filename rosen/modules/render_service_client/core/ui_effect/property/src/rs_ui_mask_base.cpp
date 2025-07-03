@@ -38,6 +38,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGPixelMapMask>();
         }
     },
+    {RSNGEffectType::RADIAL_GRADIENT_MASK, [] {
+            return std::make_shared<RSNGRadialGradientMask>();
+        }
+    },
 };
 
 namespace {
@@ -70,11 +74,28 @@ std::shared_ptr<RSNGMaskBase> ConvertPixelMapMaskPara(std::shared_ptr<MaskPara> 
     pixelMapMask->Setter<PixelMapMaskImageTag>(pixelMapMaskPara->GetPixelMap());
     return pixelMapMask;
 }
+
+std::shared_ptr<RSNGMaskBase> ConvertRadialGradientMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::RADIAL_GRADIENT_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto radialGradientMask = std::static_pointer_cast<RSNGRadialGradientMask>(mask);
+    auto radialGradientMaskPara = std::static_pointer_cast<RadialGradientMaskPara>(maskPara);
+    radialGradientMask->Setter<RadialGradientMaskCenterTag>(radialGradientMaskPara->GetCenter());
+    radialGradientMask->Setter<RadialGradientMaskRadiusXTag>(radialGradientMaskPara->GetRadiusX());
+    radialGradientMask->Setter<RadialGradientMaskRadiusYTag>(radialGradientMaskPara->GetRadiusY());
+    radialGradientMask->Setter<RadialGradientMaskColorsTag>(radialGradientMaskPara->GetColors());
+    radialGradientMask->Setter<RadialGradientMaskPositionsTag>(radialGradientMaskPara->GetPositions());
+    return radialGradientMask;
+}
 }
 
 static std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::RIPPLE_MASK, ConvertRippleMaskPara },
     { MaskPara::Type::PIXEL_MAP_MASK, ConvertPixelMapMaskPara },
+    { MaskPara::Type::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskPara },
 };
 
 std::shared_ptr<RSNGMaskBase> RSNGMaskBase::Create(RSNGEffectType type)

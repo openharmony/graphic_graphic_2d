@@ -84,6 +84,14 @@ DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Image)
 );
 
+DECLARE_MASK(RadialGradientMask, RADIAL_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(RadialGradientMask, Center),
+    ADD_PROPERTY_TAG(RadialGradientMask, RadiusX),
+    ADD_PROPERTY_TAG(RadialGradientMask, RadiusY),
+    ADD_PROPERTY_TAG(RadialGradientMask, Colors),
+    ADD_PROPERTY_TAG(RadialGradientMask, Positions)
+);
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_MASK
 
