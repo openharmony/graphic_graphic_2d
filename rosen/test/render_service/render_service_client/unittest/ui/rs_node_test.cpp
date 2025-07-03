@@ -8016,7 +8016,13 @@ HWTEST_F(RSNodeTest, RemoveCrossScreenChild, TestSize.Level1)
 HWTEST_F(RSNodeTest, RemoveChildByNode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    rsNode->RemoveChildByNode(nullptr);
+    EXPECT_EQ(rsNode->children_.empty(), true);
+
     RSNode::SharedPtr child = RSCanvasNode::Create();
+    rsNode->RemoveChildByNode(child);
+    EXPECT_EQ(rsNode->children_.empty(), true);
+
     rsNode->children_.push_back(child);
     rsNode->RemoveChildByNode(child);
     EXPECT_EQ(rsNode->children_.empty(), true);

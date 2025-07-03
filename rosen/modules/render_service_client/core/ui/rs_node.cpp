@@ -3679,12 +3679,19 @@ void RSNode::RemoveCrossScreenChild(SharedPtr child)
 
 void RSNode::RemoveChildByNode(SharedPtr child)
 {
+    if (child == nullptr) {
+        RS_LOGE("RSNode::RemoveChildByNode failed:nullptr");
+        return;
+    }
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    RS_OPTIONAL_TRACE_NAME_FMT("RSNode::RemoveChildByNode id:%" PRIu64 "", child->GetId());
     auto itr = std::find_if(
         children_.begin(), children_.end(), [&](WeakPtr &ptr) -> bool {return ROSEN_EQ<RSNode>(ptr, child);});
     if (itr != children_.end()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSNode::RemoveChildByNode id:%" PRIu64 "", child->GetId());
         children_.erase(itr);
+    } else {
+        RS_TRACE_NAME_FMT( "RSNode::RemoveChildByNode failed:not children %{public}" PRIu64 "",
+            child->GetId());
     }
 }
 
