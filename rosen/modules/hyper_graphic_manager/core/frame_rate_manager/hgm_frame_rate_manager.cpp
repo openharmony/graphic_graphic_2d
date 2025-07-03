@@ -245,9 +245,9 @@ void HgmFrameRateManager::InitTouchManager()
         });
     touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
         [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
-            frameVoter_.SetTouchUpLTPOFirstPeriod(true);
+            frameVoter_.SetIsTouchUpLTPOFirstPeriod(true);
             HgmTaskHandleThread::Instance().PostEvent(UP_TIME_OUT_TASK_ID, [this]() {
-                frameVoter_.SetTouchUpLTPOFirstPeriod(false);
+                frameVoter_.SetIsTouchUpLTPOFirstPeriod(false);
                 startCheck_.store(true);
                 UpdateSoftVSync(false);
             }, FIRST_FRAME_TIME_OUT);
@@ -255,7 +255,7 @@ void HgmFrameRateManager::InitTouchManager()
         });
     touchManager_.RegisterExitStateCallback(TouchState::UP_STATE,
         [this](TouchState lastState, TouchState newState) {
-            frameVoter_.SetTouchUpLTPOFirstPeriod(false);
+            frameVoter_.SetIsTouchUpLTPOFirstPeriod(false);
             HgmTaskHandleThread::Instance().RemoveEvent(UP_TIME_OUT_TASK_ID);
             startCheck_.store(false);
         });

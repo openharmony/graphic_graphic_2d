@@ -39,7 +39,7 @@ public:
 
     bool IsDragScene() const { return isDragScene_; }
     void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
-    void SetTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
+    void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
     {
         isTouchUpLTPOFirstPeriod_ = isTouchUpLTPOFirstPeriod;
     }
