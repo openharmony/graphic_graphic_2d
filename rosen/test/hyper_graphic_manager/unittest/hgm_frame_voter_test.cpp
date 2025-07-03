@@ -276,7 +276,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote02, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote02, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.InitTouchManager();

@@ -221,8 +221,7 @@ void HgmFrameRateManager::SetTimeoutParamsFromConfig(const std::shared_ptr<Polic
 void HgmFrameRateManager::InitTouchManager()
 {
     auto updateTouchToMultiAppStrategy = [this](TouchState newState) {
-        HgmMultiAppStrategy::TouchInfo touchInfo = { .pkgName = touchManager_.GetPkgName(),
-            .touchState = newState, };
+        HgmMultiAppStrategy::TouchInfo touchInfo = { .pkgName = touchManager_.GetPkgName(), .touchState = newState };
         HgmEnergyConsumptionPolicy::Instance().SetTouchState(newState);
         multiAppStrategy_.HandleTouchInfo(touchInfo);
         UpdateSoftVSync(false);
