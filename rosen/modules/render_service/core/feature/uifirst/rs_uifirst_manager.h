@@ -48,22 +48,19 @@ public:
         std::string sceneId;
         std::set<NodeId> disableNodes;
     };
-
-    struct NodeDataBehindWindow {
-        uint64_t curTime_ = 0;
-        bool isFirst = true;
-    };
     
     void AddProcessDoneNode(NodeId id);
     void AddProcessSkippedNode(NodeId id);
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
+    void AddPendingNodeBehindWindow(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
+        MultiThreadCacheType currentFrameCacheType);
 
     bool NeedNextDrawForSkippedNode();
 
     CacheProcessStatus GetNodeStatus(NodeId id);
-    // judge if surfacenode satisfies async subthread rendering condtions for Uifirst
+    // judge if surfacenode satisfies async subthread rendering condtions for Uifirstrender
     void UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation);
     void UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects);
     void PostUifistSubTasks();
@@ -202,6 +199,10 @@ public:
     // get cache state of uifirst root node
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
 private:
+    struct NodeDataBehindWindow {
+        uint64_t curTime_ = 0;
+        bool isFirst = true;
+    };
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
     RSUifirstManager(const RSUifirstManager&);
@@ -231,7 +232,9 @@ private:
     bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRenderNode>& node);
-    bool NeedPurgeByBehindWindow(const std::shared_ptr<RSSurfaceRenderNode>& node, NodeId id);
+    bool NeedPurgeByBehindWindow(NodeId id, bool hasTexture,
+    const std::shared_ptr<RSSurfaceRenderNode>& node);
+    //filter out the nodes by behind window
     void HandlePurgeBehindWindow(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>::iterator& it,
         std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     // filter out the nodes which need to draw in subthread

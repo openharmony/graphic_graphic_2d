@@ -310,7 +310,7 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
 {
     if (std::abs(vVal - V_VAL_LEVEL_BEHINDWINDOW) < 10e-6) {
         int rateBehindWindow = static_cast<int>(ceil(static_cast<double>(rsRefreshRate_) /
-            rsRefreshRateBehindWindow_));
+            RS_REFRESH_RATE_BEHIND_WINDOW));
         RS_LOGD("RSVsyncRateReduceManager::GetRateByBalanceLevel in behind window condition vVal=%{public}.2f, rate=%d",
             vVal, rateBehindWindow);
         return rateBehindWindow;

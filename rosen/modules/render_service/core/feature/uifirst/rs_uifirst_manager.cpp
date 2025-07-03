@@ -590,16 +590,19 @@ bool RSUifirstManager::SubThreadControlFrameRate(NodeId id,
         !drawable->GetRsSubThreadCache().IsSubThreadSkip();
 }
 
-bool RSUifirstManager::NeedPurgeByBehindWindow(const std::shared_ptr<RSSurfaceRenderNode>& node, NodeId id)
+bool RSUifirstManager::NeedPurgeByBehindWindow(NodeId id, bool hasTexture,
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) {
         return false;
     }
-    if (!RSSystemProPerties::GetUIFirstBehindWindowEnabled()) {
+    if (!RSSystemProperties::GetUIFirstBehindWindowEnabled()) {
+        RS_LOGD("Behind window control framerate switch is off");
         return false;
     }
     bool isBehindWindowOcclusion = IsBehindWindowOcclusion(node);
-    return isBehindWindowOcclusion && node->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW;
+    return purgeEnable_ && hasTexture &&
+        node->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW && isBehindWindowOcclusion;
 }
 
 void RSUifirstManager::HandlePurgeBehindWindow(
@@ -613,12 +616,12 @@ void RSUifirstManager::HandlePurgeBehindWindow(
     // control the frequency of purge as the designed time
     if (timeDiffInMilliseconds >= PURGE_BEHIND_WINDOW_TIME || pendingNodeBehindWindow_[id].isFirst) {
         ++it;
-        pendingNodeBehindWindow_[id].curTime_ = currentTime;
+        pendingNodeBehindWindow_[id].curTime = currentTime;
         pendingNodeBehindWindow_[id].isFirst = false;
-        RS_OPTIONAL_TRACE_NAME_FMT("Do not Purge by behind window, node name %s", node->GetName().c_str());
+        RS_OPTIONAL_TRACE_NAME_FMT("Don't Purge by behind window %s", node->GetName().c_str());
     } else {
+        RS_TRACE_NAME_FMT("Purge by behind window %s", node->GetName().c_str());
         it = pendingNode.erase(it);
-        RS_OPTIONAL_TRACE_NAME_FMT("Purge by behind window, node name %s", node->GetName().c_str());
     }
 }
 
@@ -668,7 +671,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
         } else if (SubThreadControlFrameRate(id, drawable, node)) {
             RS_OPTIONAL_TRACE_NAME_FMT("Purge frame drop node name %s", surfaceParams->GetName().c_str());
             it = pendingNode.erase(it);
-        } else if (NeedPurgeByBehindWindow(node, id)) {
+        } else if (NeedPurgeByBehindWindow(id, rsSubThreadCache.HasCachedTexture(), node)) {
             RS_OPTIONAL_TRACE_NAME_FMT("Decide Whether to Purge node by behind window or not");
             HandlePurgeBehindWindow(it, pendingNode);
         } else {
@@ -709,7 +712,7 @@ bool RSUifirstManager::IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRe
 
 uint64_t RSUifirstManager::GetTimeDiffBehindWindow(uint64_t currentTime, NodeId id)
 {
-    uint64_t timeDiff = currentTime - pendingNodeBehindWindow_[id].curTime_;
+    uint64_t timeDiff = currentTime - pendingNodeBehindWindow_[id].curTime;
     RS_OPTIONAL_TRACE_NAME_FMT("timeDiff is %lu", timeDiff);
     return timeDiff;
 }
@@ -1229,18 +1232,27 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
             }
         }
         pendingPostNodes_[id] = node;
-        auto temp_it = pendingNodeBehindWindow_.find(id);
-        if (temp_it == pendingNodeBehindWindow_.end()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("Add to pendingNodeBehindWindow id:%" PRIu64 " name:%s", node->GetId(),
-                node->GetName().c_str());
-            pendingNodeBehindWindow_[id] = NodeDataBehindWindow{.curTime_ = GetMainThreadVsyncTime()};
-        }
+        AddPendingNodeBehindWindow(id, node, currentFrameCacheType);
         RS_OPTIONAL_TRACE_NAME_FMT("Add pending id:%" PRIu64 " size:%d", node->GetId(), pendingPostNodes_.size());
     } else if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) {
         pendingPostCardNodes_[id] = node;
     }
 
     pendingResetNodes_.erase(id); // enable uifirst when waiting for reset
+}
+
+void RSUifirstManager::AddPendingNodeBehindWindow(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
+    MultiThreadCacheType currentFrameCacheType)
+{
+    if (currentFrameCacheType == MultiThreadCacheType::NONFOCUS_WINDOW &&
+        RSSystemProperties::GetUIFirstBehindWindowEnabled()) {
+        auto temp_it = pendingNodeBehindWindow_.find(id);
+        if (temp_it == pendingNodeBehindWindow_.end()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("Add to pendingNodeBehindWindow id:%" PRIu64 " name:%s", node->GetId(),
+                node->GetName().c_str());
+            pendingNodeBehindWindow_[id] = NodeDataBehindWindow{.curTime = GetMainThreadVsyncTime()};
+        }
+    }
 }
 
 NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node)

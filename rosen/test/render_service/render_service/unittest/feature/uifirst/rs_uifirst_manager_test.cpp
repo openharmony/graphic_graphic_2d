@@ -623,7 +623,7 @@ HWTEST_F(RSUifirstManagerTest, UifirstStateChange005, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
     ASSERT_NE(surfaceNode, nullptr);
     uifirstManager_.pendingNodeBehindWindow_[nodeId] = RSUifirstManager::NodeDataBehindWindow{
-        .curTime_ = uifirstManager_.GetMainThreadVsyncTime(),
+        .curTime = uifirstManager_.GetMainThreadVsyncTime(),
         .isFirst = true
     };
 
@@ -1298,22 +1298,37 @@ HWTEST_F(RSUifirstManagerTest, AddPendingPostNode001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddPendingPostNode002
- * @tc.desc: Test AddPendingPostNode
+ * @tc.name: AddPendingNodeBehindWindow001
+ * @tc.desc: Test AddPendingNodeBehindWindow
  * @tc.type: FUNC
  * @tc.require: issueICIXW6
  */
-HWTEST_F(RSUifirstManagerTest, AddPendingPostNode002, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest, AddPendingNodeBehindWindow001, TestSize.Level1)
 {
     NodeId id = 1;
     uifirstManager_.pendingNodeBehindWindow_.clear();
 
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    MultiThreadCacheType currentFrameCacheType = MultiThreadCacheType::NONFOCUS_WINDOW;
-    uifirstManager_.AddPendingPostNode(id, node, currentFrameCacheType);
+    EXPECT_NE(node, nullptr);
+
+    MultiThreadCacheType currentFrameCacheType = MultiThreadCacheType::NONE;
+    uifirstManager_.AddPendingNodeBehindWindow(id, node, currentFrameCacheType);
+    EXPECT_EQ(uifirstManager_.pendingNodeBehindWindow_.size(), 0);
+
+    system::SetParameter("rosen.ui.first.behindwindow.enabled", "0");
+    uifirstManager_.AddPendingNodeBehindWindow(id, node, currentFrameCacheType);
+    EXPECT_EQ(uifirstManager_.pendingNodeBehindWindow_.size(), 0);
+
+    currentFrameCacheType = MultiThreadCacheType::NONFOCUS_WINDOW;
+    uifirstManager_.AddPendingNodeBehindWindow(id, node, currentFrameCacheType);
+    EXPECT_EQ(uifirstManager_.pendingNodeBehindWindow_.size(), 0);
+
+    system::SetParameter("rosen.ui.first.behindwindow.enabled", "1");
+    currentFrameCacheType = MultiThreadCacheType::NONFOCUS_WINDOW;
+    uifirstManager_.AddPendingNodeBehindWindow(id, node, currentFrameCacheType);
     EXPECT_EQ(uifirstManager_.pendingNodeBehindWindow_.size(), 1);
 
-    uifirstManager_.AddPendingPostNode(id, node, currentFrameCacheType);
+    uifirstManager_.AddPendingNodeBehindWindow(id, node, currentFrameCacheType);
     EXPECT_EQ(uifirstManager_.pendingNodeBehindWindow_.size(), 1);
 
     uifirstManager_.pendingNodeBehindWindow_.clear();
@@ -1683,6 +1698,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes002, TestSize.Level1)
 {
     uifirstManager_.pendingNodeBehindWindow_.clear();
+    uifirstManager_.SetPurgeEnable(true);
     auto emptyRegion = Occlusion::Region();
     auto visibleRegion = Occlusion::Region({50, 50, 100, 100});
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
@@ -1693,6 +1709,9 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes002, TestSize.Level1)
     pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
+    adapter->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
+    adapter->GetRsSubThreadCache().isCacheValid_ = true;
+    uifirstManager_.UpdateCompletedSurface(surfaceRenderNode->GetId());
 
     surfaceRenderNode->SetGlobalAlpha(1.f);
     surfaceRenderNode->uifirstContentDirty_ = false;
@@ -1705,7 +1724,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes002, TestSize.Level1)
     surfaceRenderNode->GenerateFullChildrenList();
     surfaceRenderNode->UpdateChildSubSurfaceNodes(appWindow, true);
     uifirstManager_.pendingNodeBehindWindow_[nodeId] = RSUifirstManager::NodeDataBehindWindow{
-        .curTime_ = -30,
+        .curTime = -30,
         .isFirst = false
     };
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
@@ -1729,6 +1748,8 @@ HWTEST_F(RSUifirstManagerTest, NeedPurgeByBehindWindow001, TestSize.Level1)
 {
     auto emptyRegion = Occlusion::Region();
     auto visibleRegion = Occlusion::Region({50, 50, 100, 100});
+    uifirstManager_.SetPurgeEnable(true);
+    bool hasTexture = true;
     NodeId id = 0;
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
@@ -1748,14 +1769,14 @@ HWTEST_F(RSUifirstManagerTest, NeedPurgeByBehindWindow001, TestSize.Level1)
     surfaceNode->UpdateChildSubSurfaceNodes(appWindow, true);
 
     uifirstManager_.SetUiFirstType((int)UiFirstCcmType::SINGLE);
-    ASSERT_FALSE(uifirstManager_.NeedPurgeByBehindWindow(surfaceNode, id));
+    ASSERT_FALSE(uifirstManager_.NeedPurgeByBehindWindow(id, hasTexture, surfaceNode));
 
     uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
     system::SetParameter("rosen.ui.first.behindwindow.enabled", "0");
-    ASSERT_FALSE(uifirstManager_.NeedPurgeByBehindWindow(surfaceNode, id));
+    ASSERT_FALSE(uifirstManager_.NeedPurgeByBehindWindow(id, hasTexture, surfaceNode));
 
     system::SetParameter("rosen.ui.first.behindwindow.enabled", "1");
-    ASSERT_TRUE(uifirstManager_.NeedPurgeByBehindWindow(surfaceNode, id));
+    ASSERT_TRUE(uifirstManager_.NeedPurgeByBehindWindow(id, hasTexture, surfaceNode));
 
     uifirstManager_.SetUiFirstType((int)UiFirstCcmType::SINGLE);
 }
@@ -1771,11 +1792,12 @@ HWTEST_F(RSUifirstManagerTest, HandlePurgeBehindWindow001, TestSize.Level1)
     uifirstManager_.pendingNodeBehindWindow_.clear();
     NodeId nodeId = 1;
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceRenderNode, nullptr);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
     pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
     auto it = pendingNode.begin();
     uifirstManager_.pendingNodeBehindWindow_[nodeId] = RSUifirstManager::NodeDataBehindWindow{
-        .curTime_ = -30,
+        .curTime = -30,
         .isFirst = false
     };
 
@@ -1784,19 +1806,19 @@ HWTEST_F(RSUifirstManagerTest, HandlePurgeBehindWindow001, TestSize.Level1)
 
     it = pendingNode.begin();
     uifirstManager_.pendingNodeBehindWindow_[nodeId].isFirst = true;
-    uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime_ = -30;
+    uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime = -30;
     uifirstManager_.HandlePurgeBehindWindow(it, pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
     it = pendingNode.begin();
     uifirstManager_.pendingNodeBehindWindow_[nodeId].isFirst = true;
-    uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime_ = -29;
+    uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime = -29;
     uifirstManager_.HandlePurgeBehindWindow(it, pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
     it = pendingNode.begin();
     uifirstManager_.pendingNodeBehindWindow_[nodeId].isFirst = false;
-    uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime_ = -29;
+    uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime = -29;
     uifirstManager_.HandlePurgeBehindWindow(it, pendingNode);
     EXPECT_TRUE(pendingNode.empty());
 }
