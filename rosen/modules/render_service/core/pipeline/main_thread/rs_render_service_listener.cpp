@@ -232,7 +232,7 @@ void RSRenderServiceListener::OnTransformChange()
         RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, node->GetId());
         node->SetContentDirty();
         node->SetDoDirectComposition(false);
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disabled directComposition by transformChange",
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by transformChange",
             node->GetName().c_str(), node->GetId());
         if (node->GetRSSurfaceHandler() != nullptr) {
             node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(true);
