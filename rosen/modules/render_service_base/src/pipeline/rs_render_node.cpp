@@ -271,8 +271,10 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
             isOnTheTree_);
         }
     }
-    (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ?
-        SetParentSubTreeDirty() : SetContentDirty();
+    ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ||
+        child->GetNeedUseCmdlistDrawRegion())
+        ? child->SetParentSubTreeDirty()
+        : SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
@@ -371,8 +373,10 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ?
-        SetParentSubTreeDirty() : SetContentDirty();
+    ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ||
+        child->GetNeedUseCmdlistDrawRegion())
+        ? child->SetParentSubTreeDirty()
+        : SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
@@ -824,7 +828,8 @@ void RSRenderNode::ResetParent()
             parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
                 geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
         }
-        (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE)
+        ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE) ||
+            GetNeedUseCmdlistDrawRegion())
             ? SetParentSubTreeDirty()
             : parentNode->SetContentDirty();
         AddSubSurfaceUpdateInfo(nullptr, parentNode);
@@ -1780,7 +1785,8 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         dirtyManager.MergeDirtyRect(oldDirtyRect);
         return;
     }
-    auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
+    auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ :
+        (!absCmdlistDrawRect_.IsEmpty() ? absCmdlistDrawRect_ : absDrawRect_);
     dirtyRect = IsFirstLevelCrossNode() ? dirtyRect : dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -1830,6 +1836,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             isSelfDrawingNode_ || selfDrawRectChanged)) {
             absDrawRectF_ = geoPtr->MapRectWithoutRounding(selfDrawRect_, geoPtr->GetAbsMatrix());
             absDrawRect_ = geoPtr->InflateToRectI(absDrawRectF_);
+            absCmdlistDrawRect_ = GetNeedUseCmdlistDrawRegion() ?
+                geoPtr->MapRect(cmdlistDrawRegion_, geoPtr->GetAbsMatrix()) : RectI(0, 0, 0, 0);
             if (isSelfDrawingNode_) {
                 selfDrawingNodeAbsDirtyRectF_ = geoPtr->MapRectWithoutRounding(
                     selfDrawingNodeDirtyRect_, geoPtr->GetAbsMatrix());
@@ -3027,6 +3035,7 @@ void RSRenderNode::ResetAndApplyModifiers()
         for (auto modifier : slot) {
             if (currentScbPid == -1 || ExtractPid(modifier->GetId()) == currentScbPid) {
                 modifier->ApplyLegacyProperty(GetMutableRenderProperties());
+                CalcCmdlistDrawRegionFromOpItem(modifier);
             }
         }
     }
@@ -3050,6 +3059,27 @@ void RSRenderNode::ResetAndApplyModifiers()
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
+}
+
+void RSRenderNode::CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier)
+{
+    if (!GetNeedUseCmdlistDrawRegion()) {
+        return;
+    }
+
+    auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
+    auto propertyPtr =
+        std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty(propertyType));
+    auto drawCmdlistPtr = propertyPtr ? propertyPtr->Get() : nullptr;
+    if (drawCmdlistPtr == nullptr) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::CalcCmdlistDrawRegionFromOpItem id:%llu drawCmdlistPtr is nullptr",
+            GetId());
+        return;
+    }
+
+    auto rect = drawCmdlistPtr->GetCmdlistDrawRegion();
+    RectF cmdlistDrawRegion = RectF { rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight() };
+    cmdlistDrawRegion_ = cmdlistDrawRegion_.JoinRect(cmdlistDrawRegion);
 }
 
 CM_INLINE void RSRenderNode::ApplyModifiers()
@@ -3889,22 +3919,14 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     SetDirty();
 }
 
-// mark support node
-void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode)
-{
-    // supportFlag is obtained from the child node.
-    // make sure current node is the bottom of the node marked by arkui.
-    opincCache_.OpincSetSupportFlag(opincCache_.OpincGetSupportFlag() && supportFlag &&
-        nodeGroupType_ == RSRenderNode::NodeGroupType::NONE && !isOpincRootNode);
-}
-
 std::string RSRenderNode::QuickGetNodeDebugInfo()
 {
     std::string ret("");
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
-    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d",
+    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d filter:%d effect:%d",
         GetId(), IsSubTreeDirty(), opincCache_.GetNodeCacheState(), opincCache_.GetUnchangeCount(),
-        opincCache_.IsSuggestOpincNode(), OpincGetNodeSupportFlag(), opincCache_.OpincGetRootFlag());
+        opincCache_.IsSuggestOpincNode(), opincCache_.GetCurNodeTreeSupportFlag(), opincCache_.OpincGetRootFlag(),
+        ChildHasVisibleFilter(), ChildHasVisibleEffect());
 #endif
     return ret;
 }
@@ -3915,7 +3937,7 @@ void RSRenderNode::UpdateOpincParam()
         stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
         stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
-        stagingRenderParams_->OpincUpdateSupportFlag(OpincGetNodeSupportFlag());
+        stagingRenderParams_->OpincUpdateSupportFlag(opincCache_.GetCurNodeTreeSupportFlag());
     }
 }
 
@@ -4429,6 +4451,7 @@ void RSRenderNode::ResetDirtyStatus()
     isLastVisible_ = shouldPaint_;
     // The return of GetBoundsGeometry function must not be nullptr
     oldMatrix_ = properties.GetBoundsGeometry()->GetMatrix();
+    cmdlistDrawRegion_.Clear();
 }
 
 NodeId RSRenderNode::GenerateId()
@@ -5612,6 +5635,16 @@ bool RSRenderNode::HasContentStyleModifierOnly() const
         }
     }
     return ret;
+}
+
+void RSRenderNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
+{
+    needUseCmdlistDrawRegion_ = needUseCmdlistDrawRegion;
+}
+
+bool RSRenderNode::GetNeedUseCmdlistDrawRegion()
+{
+    return RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled() && needUseCmdlistDrawRegion_;
 }
 } // namespace Rosen
 } // namespace OHOS

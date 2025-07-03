@@ -1120,7 +1120,7 @@ public:
      */
     void SetFreeMultiWindowStatus(bool enable);
 
-    bool RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback);
+    bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
     /**
      * @brief Register a callback to listen for the state of the buffer held by the DrawSurfaceBuffer OpItem,

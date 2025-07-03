@@ -23,6 +23,7 @@
 
 #include "modifier_ng/geometry/rs_frame_clip_render_modifier.h"
 #include "property/rs_properties.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -56,5 +57,28 @@ HWTEST_F(RSFrameClipRenderModifierNGTypeTest, RSFrameClipRenderModifierTest, Tes
 
     EXPECT_EQ(properties.GetClipToFrame(), false);
     EXPECT_EQ(properties.GetFrameGravity(), Gravity::DEFAULT);
+}
+
+/**
+ * @tc.name: OnSetDirtyTest
+ * @tc.desc: Test the function OnSetDirty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFrameClipRenderModifierNGTypeTest, OnSetDirtyTest, TestSize.Level1)
+{
+    uint64_t id = 0;
+    float value = 0.0f;
+    auto property = std::make_shared<RSRenderProperty<float>>(value, id);
+    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
+        ModifierNG::RSModifierType::CLIP_TO_FRAME, property, id, ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME);
+    modifier->OnSetDirty();
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME));
+
+    NodeId nodeId = 1;
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
+    modifier->target_ = weakPtr;
+    modifier->OnSetDirty();
+    EXPECT_NE(modifier->target_.lock(), nullptr);
 }
 } // namespace OHOS::Rosen

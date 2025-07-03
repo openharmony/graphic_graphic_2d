@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_RENDER_PROPERTY_TAG_H
 
 #include "modifier/rs_render_property.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -85,6 +86,7 @@ enum class RSNGEffectType : int16_t {
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     WAVY_RIPPLE_LIGHT,
     AURORA_NOISE,
+    PARTICLE_CIRCULAR_HALO,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

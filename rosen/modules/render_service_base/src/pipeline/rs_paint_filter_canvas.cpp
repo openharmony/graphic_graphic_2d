@@ -1374,8 +1374,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
     isHdrOn_ = other.isHdrOn_;
-    hdrProperties.hdrBrightness = other.hdrProperties.hdrBrightness;
-    hdrProperties.isHDREnabledVirtualScreen = other.hdrProperties.isHDREnabledVirtualScreen;
+    hdrProperties_ = other.hdrProperties_;
 }
 
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
@@ -1618,6 +1617,16 @@ void RSPaintFilterCanvas::SetOnMultipleScreen(bool multipleScreen)
     multipleScreen_ = multipleScreen;
 }
 
+RSPaintFilterCanvas::ScreenshotType RSPaintFilterCanvas::GetScreenshotType() const
+{
+    return hdrProperties_.screenshotType;
+}
+
+void RSPaintFilterCanvas::SetScreenshotType(RSPaintFilterCanvas::ScreenshotType type)
+{
+    hdrProperties_.screenshotType = type;
+}
+
 ScreenId RSPaintFilterCanvas::GetScreenId() const
 {
     return screenId_;
@@ -1630,12 +1639,12 @@ void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
 
 bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
 {
-    return hdrProperties.isHDREnabledVirtualScreen;
+    return hdrProperties_.isHDREnabledVirtualScreen;
 }
 
 void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen)
 {
-    hdrProperties.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
+    hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
 }
 
 bool RSPaintFilterCanvas::GetHdrOn() const
@@ -1650,17 +1659,17 @@ void RSPaintFilterCanvas::SetHdrOn(bool isHdrOn)
 
 float RSPaintFilterCanvas::GetHDRBrightness() const
 {
-    return hdrProperties.hdrBrightness;
+    return hdrProperties_.hdrBrightness;
 }
 
 void RSPaintFilterCanvas::SetHDRBrightness(float hdrBrightness)
 {
-    hdrProperties.hdrBrightness = hdrBrightness;
+    hdrProperties_.hdrBrightness = hdrBrightness;
 }
 
 const RSPaintFilterCanvas::HDRProperties& RSPaintFilterCanvas::GetHDRProperties() const
 {
-    return hdrProperties;
+    return hdrProperties_;
 }
 
 GraphicColorGamut RSPaintFilterCanvas::GetTargetColorGamut() const

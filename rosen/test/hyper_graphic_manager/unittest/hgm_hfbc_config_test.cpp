@@ -48,7 +48,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level2)
+HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level0)
 {
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
@@ -66,7 +66,7 @@ HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, SetHfbcControlMode, Function | SmallTest | Level2)
+HWTEST_F(HgmHfbcConfigTest, SetHfbcControlMode, Function | SmallTest | Level0)
 {
     g_hfbcConfig.SetHfbcControlMode(true);
     EXPECT_EQ(g_hfbcConfig.isHfbcDisableListMode_, true);
@@ -80,7 +80,7 @@ HWTEST_F(HgmHfbcConfigTest, SetHfbcControlMode, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
+HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level0)
 {
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.banapp", "1" }, { "com.test.banapp2", "1" }
@@ -106,7 +106,7 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level1)
+HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level0)
 {
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }

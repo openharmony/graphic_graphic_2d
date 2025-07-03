@@ -58,8 +58,8 @@ HWTEST_F(RSModifierNGTypeTest, GetPropertyTypeString, TestSize.Level1)
         "Invalid");
     EXPECT_EQ(ModifierNG::RSModifierTypeString::GetPropertyTypeString(static_cast<ModifierNG::RSPropertyType>(-1)),
         "Unknown");
-    // RSPropertyType max value is 153, so test with 154 to ensure it returns "Unknown" for out-of-range values.
-    EXPECT_EQ(ModifierNG::RSModifierTypeString::GetPropertyTypeString(static_cast<ModifierNG::RSPropertyType>(154)),
+    // RSPropertyType max value is 157, so test with 158 to ensure it returns "Unknown" for out-of-range values.
+    EXPECT_EQ(ModifierNG::RSModifierTypeString::GetPropertyTypeString(static_cast<ModifierNG::RSPropertyType>(158)),
         "Unknown");
 }
 }

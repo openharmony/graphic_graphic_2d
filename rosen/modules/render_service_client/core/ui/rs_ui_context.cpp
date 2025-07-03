@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 RSUIContext::RSUIContext(uint64_t token) : token_(token)
 {
-    rsTransactionHandler_ = std::shared_ptr<RSTransactionHandler>(new RSTransactionHandler());
+    rsTransactionHandler_ = std::make_shared<RSTransactionHandler>(token);
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
 }

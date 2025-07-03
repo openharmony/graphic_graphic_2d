@@ -47,7 +47,7 @@ group("common_deps") {
 }
 
 ohos_unittest("texgine_unittest_part3") {
-  module_out_path = text_test_out_path
+  module_out_path = text_ut_out_path
   sources = [ "font_parser_test.cpp" ]
 
   public_configs = [ ":texgine_test_config" ]
@@ -60,7 +60,7 @@ ohos_unittest("texgine_unittest_part3") {
 }
 
 ohos_unittest("texgine_unittest_part7") {
-  module_out_path = text_test_out_path
+  module_out_path = text_ut_out_path
 
   sources = [ "font_descriptor_cache_test.cpp" ]
 

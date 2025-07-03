@@ -32,11 +32,6 @@ public:
         return Type;
     }
 
-    bool OpincGetNodeSupportFlag() override
-    {
-        return false;
-    }
-
     ~RSEffectRenderNode() override;
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;

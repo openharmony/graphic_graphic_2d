@@ -93,7 +93,7 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName001, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName002, Function | SmallTest | Level1)
+HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName002, Function | SmallTest | Level0)
 {
     appPageUrlStrategy_->SetPageUrlConfig(screenSetting_.pageUrlConfig);
     appPageUrlStrategy_->NotifyPageName(DEF_PID, PKG_NAME, PAGE_NAME, true);
@@ -108,7 +108,7 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName002, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange001, Function | SmallTest | Level1)
+HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange001, Function | SmallTest | Level0)
 {
     PolicyConfigData::ScreenSetting screenSetting;
 
@@ -129,7 +129,7 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange001, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange002, Function | SmallTest | Level1)
+HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange002, Function | SmallTest | Level0)
 {
     pid_t pid = 1;
     PolicyConfigData::ScreenSetting screenSetting;

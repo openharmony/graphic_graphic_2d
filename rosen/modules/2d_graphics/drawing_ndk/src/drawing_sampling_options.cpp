@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,16 @@ OH_Drawing_SamplingOptions* OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMo
         return nullptr;
     }
     return (OH_Drawing_SamplingOptions*)new SamplingOptions(static_cast<FilterMode>(fm), static_cast<MipmapMode>(mm));
+}
+
+OH_Drawing_SamplingOptions* OH_Drawing_SamplingOptionsCopy(OH_Drawing_SamplingOptions* cSamplingOptions)
+{
+    SamplingOptions* samplingOptions = CastToSamplingOptions(cSamplingOptions);
+    if (samplingOptions == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    return (OH_Drawing_SamplingOptions*)new SamplingOptions(*samplingOptions);
 }
 
 void OH_Drawing_SamplingOptionsDestroy(OH_Drawing_SamplingOptions* cSamplingOptions)

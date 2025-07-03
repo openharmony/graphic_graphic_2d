@@ -48,7 +48,7 @@ void HgmXmlParserTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: I7DMS1
  */
-HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
+HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level0)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
 
@@ -80,7 +80,7 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require: I7DMS1
  */
-HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
+HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level0)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     int32_t load = parser->LoadConfiguration(config);
@@ -95,7 +95,7 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmXmlParserTest, StringToVector001, Function | SmallTest | Level1)
+HWTEST_F(HgmXmlParserTest, StringToVector001, Function | SmallTest | Level0)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     std::string emptyInput = "";
@@ -109,7 +109,7 @@ HWTEST_F(HgmXmlParserTest, StringToVector001, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmXmlParserTest, StringToVector002, Function | SmallTest | Level1)
+HWTEST_F(HgmXmlParserTest, StringToVector002, Function | SmallTest | Level0)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     std::string spacesBetweenNumbersInput = "1 2   3  45 ";
@@ -124,7 +124,7 @@ HWTEST_F(HgmXmlParserTest, StringToVector002, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level1)
+HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level0)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     std::string invalidInput = "abc";
@@ -138,7 +138,7 @@ HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require: IBCFDD
  */
-HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level1)
+HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
 {
     std::vector<std::pair<std::string, bool>> cases = {
         { "", false },

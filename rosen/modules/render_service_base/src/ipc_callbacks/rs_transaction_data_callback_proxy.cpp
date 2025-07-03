@@ -26,7 +26,7 @@ RSTransactionDataCallbackProxy::RSTransactionDataCallbackProxy(const sptr<IRemot
 {
 }
 
-void RSTransactionDataCallbackProxy::OnAfterProcess(int32_t pid, uint64_t timeStamp)
+void RSTransactionDataCallbackProxy::OnAfterProcess(uint64_t token, uint64_t timeStamp)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -35,8 +35,8 @@ void RSTransactionDataCallbackProxy::OnAfterProcess(int32_t pid, uint64_t timeSt
         ROSEN_LOGE("RSTransactionDataCallbackProxy: OnAfterProcess writeInterfaceToken error");
         return;
     }
-    if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSTransactionDataCallbackProxy: OnAfterProcess write pid error");
+    if (!data.WriteUint64(token)) {
+        ROSEN_LOGE("RSTransactionDataCallbackProxy: OnAfterProcess write multi token error");
         return;
     }
     if (!data.WriteUint64(timeStamp)) {
@@ -46,7 +46,7 @@ void RSTransactionDataCallbackProxy::OnAfterProcess(int32_t pid, uint64_t timeSt
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS);
     RS_LOGD("RSTransactionDataCallbackProxy: OnAfterProcess send data, timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSTransactionDataCallbackProxy: Remote()->SendRequest() error");

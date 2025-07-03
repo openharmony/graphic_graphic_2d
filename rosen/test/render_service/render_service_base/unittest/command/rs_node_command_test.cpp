@@ -475,4 +475,18 @@ HWTEST_F(RSNodeCommandTest, SetEnableHDREffectTest, TestSize.Level1)
     RSNodeCommandHelper::SetEnableHDREffect(context, nodeId, true);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->enableHdrEffect_);
 }
+
+/**
+ * @tc.name: SetNeedUseCmdlistDrawRegion
+ * @tc.desc: SetNeedUseCmdlistDrawRegion test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(1);
+    bool needUseCmdlistDrawRegion = false;
+    RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
+}
 } // namespace OHOS::Rosen

@@ -672,13 +672,6 @@ public:
 
     std::string QuickGetNodeDebugInfo();
 
-    // mark support node
-    void OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode);
-    virtual bool OpincGetNodeSupportFlag()
-    {
-        return false;
-    }
-
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
 
@@ -957,6 +950,9 @@ public:
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
 
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
+    bool GetNeedUseCmdlistDrawRegion();
+
 protected:
     void ResetDirtyStatus();
 
@@ -1193,6 +1189,10 @@ private:
     RectI absDrawRect_;
     RectF absDrawRectF_;
     RectI oldAbsDrawRect_;
+    // map parentMatrix by cmdlist draw region
+    RectI absCmdlistDrawRect_;
+    RectF absCmdlistDrawRectF_;
+    RectI oldAbsCmdlistDrawRect_;
     // round in by absDrawRectF_ or selfDrawingNodeAbsDirtyRectF_, and apply the clip of parent component
     RectI innerAbsDrawRect_;
     RectI oldDirty_;
@@ -1267,6 +1267,9 @@ private:
 
     bool enableHdrEffect_ = false;
 
+    bool needUseCmdlistDrawRegion_ = false;
+    RectF cmdlistDrawRegion_;
+
     void SetParent(WeakPtr parent);
     void ResetParent();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
@@ -1311,6 +1314,8 @@ private:
     void ChildrenListDump(std::string& out) const;
 
     void ResetAndApplyModifiers();
+
+    void CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier);
 
     friend class DrawFuncOpItem;
     friend class RSContext;

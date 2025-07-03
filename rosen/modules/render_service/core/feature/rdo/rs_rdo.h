@@ -11,25 +11,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-
-#include "rs_opinc_manager.h"
-#include "feature_cfg/graphic_feature_param_manager.h"
-
+*/
+#ifndef RS_RDO_H
+#define RS_RDO_H
+ 
 namespace OHOS {
 namespace Rosen {
-
-RSOpincManager& RSOpincManager::Instance()
-{
-    static RSOpincManager instance;
-    return instance;
-}
-
-void RSOpincManager::ReadOPIncCcmParam()
-{
-    isOPIncOn_ = OPIncParam::IsOPIncEnable();
-    RS_LOGI("RSOpincManager::ReadOPIncCcmParam isOPIncOn_=%{public}d", isOPIncOn_);
-    DrawableV2::RSOpincDrawCache::SetAutoCacheEnable(isOPIncOn_);
-}
-}
-}
+ 
+#ifdef RS_ENABLE_RDO
+    int32_t EnableRSCodeCache();
+    void* HelperThreadforBinXO(void* arg);
+#endif
+ 
+} // namespace Rosen
+} // namespace OHOS
+ 
+#endif // RS_RDO_H

@@ -67,6 +67,7 @@ enum RSNodeCommandType : uint16_t {
     SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG = 0x0203,
     SET_UIFIRST_SWITCH = 0x0204,
     SET_ENABLE_HDR_EFFECT = 0x0205,
+    SET_NEED_USE_CMDLIST_DRAW_REGION = 0x0206,
 
     REGISTER_GEOMETRY_TRANSITION = 0x0300,
     UNREGISTER_GEOMETRY_TRANSITION = 0x0301,
@@ -166,6 +167,7 @@ public:
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
     static void SetEnableHDREffect(RSContext &context, NodeId nodeId, bool hdrPresent);
+    static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);
@@ -357,6 +359,10 @@ ADD_COMMAND(RSSetOutOfParent,
 ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
     ARG(PERMISSION_APP, RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
         RSNodeCommandHelper::SetTakeSurfaceForUIFlag, NodeId))
+
+ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
+    ARG(PERMISSION_APP, RS_NODE, SET_NEED_USE_CMDLIST_DRAW_REGION,
+        RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion, NodeId, bool))
 
 ADD_COMMAND(RSSetEnableHDREffect,
     ARG(PERMISSION_APP, RS_NODE, SET_ENABLE_HDR_EFFECT,

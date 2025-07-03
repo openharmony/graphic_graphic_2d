@@ -1048,7 +1048,12 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         surfaceDrawable->DrawBackground(canvas, bounds);
     }
     canvas.SetStencilVal(stencilVal);
-    bool drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    bool drawCacheSuccess = true;
+    if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
+        drawCacheSuccess = DrawUIFirstCacheWithStarting(surfaceDrawable, canvas, surfaceParams.GetUifirstUseStarting());
+    } else {
+        drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    }
     canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);

@@ -24,21 +24,18 @@
 #include "js_native_api_types.h"
 #include "node_api.h"
 #include "pixel_map.h"
-#include "sk_image_chain.h"
 #include "effect_kit_napi_utils.h"
-#include "sk_image_filter_factory.h"
-#include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
 namespace {
     constexpr uint32_t NUM_0 = 0;
     constexpr uint32_t NUM_1 = 1;
     constexpr uint32_t NUM_2 = 2;
-    const std::map<std::string, SkTileMode> STRING_TO_JS_MAP = {
-        { "CLAMP", SkTileMode::kClamp },
-        { "REPEAT", SkTileMode::kRepeat },
-        { "MIRROR", SkTileMode::kMirror },
-        { "DECAL", SkTileMode::kDecal },
+    const std::map<std::string, OHOS::Rosen::Drawing::TileMode> STRING_TO_JS_MAP = {
+        { "CLAMP", OHOS::Rosen::Drawing::TileMode::CLAMP },
+        { "REPEAT", OHOS::Rosen::Drawing::TileMode::REPEAT },
+        { "MIRROR", OHOS::Rosen::Drawing::TileMode::MIRROR },
+        { "DECAL", OHOS::Rosen::Drawing::TileMode::DECAL },
     };
 }
 
@@ -280,17 +277,15 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     return _this;
 }
 
-DrawError FilterNapi::Render(bool forceCPU)
+DrawingError FilterNapi::Render(bool forceCPU)
 {
-    Rosen::SKImageChain skImage(srcPixelMap_);
-    DrawError ret = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
-
-    return ret;
+    EffectImageRender imageRender;
+    return imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
 }
 
-void FilterNapi::AddNextFilter(sk_sp<SkImageFilter> filter)
+void FilterNapi::AddEffectFilter(std::shared_ptr<EffectImageFilter> filter)
 {
-    skFilters_.emplace_back(filter);
+    effectFilters_.emplace_back(filter);
 }
 
 std::shared_ptr<Media::PixelMap> FilterNapi::GetDstPixelMap()
@@ -323,8 +318,8 @@ napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi GetPixelMap CreatPixelMap fail"));
-    DrawError renderRet = thisFilter->Render(forceCPU);
-    EFFECT_NAPI_CHECK_RET_D(renderRet == DrawError::ERR_OK, nullptr,
+    auto renderRet = thisFilter->Render(forceCPU);
+    EFFECT_NAPI_CHECK_RET_D(renderRet == DrawingError::ERR_OK, nullptr,
         EFFECT_LOG_E("FilterNapi GetPixelMap Render fail"));
     return Media::PixelMapNapi::CreatePixelMap(env, thisFilter->GetDstPixelMap());
 }
@@ -363,7 +358,7 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
 
     if (!managerFlag) {
         std::lock_guard<std::mutex> lock2(getPixelMapAsyncExecuteMutex_);
-        if (ctx->filterNapi->Render(ctx->forceCPU) != DrawError::ERR_OK) {
+        if (ctx->filterNapi->Render(ctx->forceCPU) != DrawingError::ERR_OK) {
             ctx->status = ERROR;
             return;
         }
@@ -455,22 +450,28 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
             }
         }
     }
-    SkTileMode tileMode = SkTileMode::kDecal;
+    auto tileMode = Drawing::TileMode::DECAL;
     if (argc == NUM_1) {
-        EFFECT_LOG_D("FilterNapi parsing input with default skTileMode.");
-    } else if (argc == NUM_2) {
-        int32_t skTileMode = 0;
-        EFFECT_NAPI_CHECK_RET_D(napi_get_value_int32(env, argv[1], &skTileMode) == napi_ok,
+        EFFECT_LOG_D("FilterNapi parsing input with default drawingTileMode.");
+    } else if (argc >= NUM_2) {
+        int32_t drawingTileMode = 0;
+        EFFECT_NAPI_CHECK_RET_D(napi_get_value_int32(env, argv[1], &drawingTileMode) == napi_ok,
             nullptr, EFFECT_LOG_E("FilterNapi Blur parsing tileMode fail"));
-        tileMode = static_cast<SkTileMode>(skTileMode);
+        EFFECT_NAPI_CHECK_RET_D(drawingTileMode >= static_cast<int32_t>(Drawing::TileMode::CLAMP) &&
+            drawingTileMode <= static_cast<int32_t>(Drawing::TileMode::DECAL),
+            nullptr, EFFECT_LOG_E("FilterNapi Blur invalid tileMode"));
+        tileMode = static_cast<Drawing::TileMode>(drawingTileMode);
+    } else {
+        // nothing to do
     }
 
     FilterNapi* thisFilter = nullptr;
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Blur napi_unwrap fail"));
-    auto blur = Rosen::SKImageFilterFactory::Blur(radius, tileMode);
-    thisFilter->AddNextFilter(blur);
+
+    auto blur = EffectImageFilter::Blur(radius, tileMode);
+    thisFilter->AddEffectFilter(blur);
     return _this;
 }
 
@@ -499,8 +500,8 @@ napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Brightness napi_unwrap fail"));
-    auto brightness = Rosen::SKImageFilterFactory::Brightness(fBright);
-    thisFilter->AddNextFilter(brightness);
+    auto brightness = EffectImageFilter::Brightness(fBright);
+    thisFilter->AddEffectFilter(brightness);
     return _this;
 }
 
@@ -514,8 +515,8 @@ napi_value FilterNapi::Grayscale(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Grayscale napi_unwrap fail"));
-    auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
-    thisFilter->AddNextFilter(grayscale);
+    auto grayscale = EffectImageFilter::Grayscale();
+    thisFilter->AddEffectFilter(grayscale);
     return _this;
 }
 
@@ -529,12 +530,12 @@ napi_value FilterNapi::Invert(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi Invert napi_unwrap fail"));
-    auto invert = Rosen::SKImageFilterFactory::Invert();
-    thisFilter->AddNextFilter(invert);
+    auto invert = EffectImageFilter::Invert();
+    thisFilter->AddEffectFilter(invert);
     return _this;
 }
 
-static uint32_t ParseColorMatrix(napi_env env, napi_value val, PixelColorMatrix &colorMatrix)
+static uint32_t ParseColorMatrix(napi_env env, napi_value val, Drawing::ColorMatrix &colorMatrix)
 {
     bool isArray = false;
     napi_is_array(env, val, &isArray);
@@ -545,11 +546,12 @@ static uint32_t ParseColorMatrix(napi_env env, napi_value val, PixelColorMatrix 
 
     uint32_t len = 0;
     if (napi_get_array_length(env, val, &len) != napi_ok ||
-        len != PixelColorMatrix::MATRIX_SIZE) {
+        len != Drawing::ColorMatrix::MATRIX_SIZE) {
         EFFECT_LOG_E("Parse color matrix napi_get_array_length fail %{public}u", len);
         return ERR_INVALID_PARAM;
     }
 
+    float matrix[Drawing::ColorMatrix::MATRIX_SIZE] = { 0 };
     for (size_t i = 0; i < len; i++) {
         double itemVal;
         napi_value item;
@@ -558,9 +560,10 @@ static uint32_t ParseColorMatrix(napi_env env, napi_value val, PixelColorMatrix 
             EFFECT_LOG_E("Parsing format in item fail %{public}zu", i);
             return ERR_INVALID_PARAM;
         }
-        colorMatrix.val[i] = static_cast<float>(itemVal);
-        EFFECT_LOG_D("FilterNapi color matrix [%{public}zu] = %{public}f.", i, colorMatrix.val[i]);
+        matrix[i] = static_cast<float>(itemVal);
+        EFFECT_LOG_D("FilterNapi color matrix [%{public}zu] = %{public}f.", i, matrix[i]);
     }
+    colorMatrix.SetArray(matrix);
     return SUCCESS;
 }
 
@@ -572,7 +575,7 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     napi_value _this;
     napi_status status;
     uint32_t res = 0;
-    PixelColorMatrix colorMatrix;
+    Drawing::ColorMatrix colorMatrix;
     EFFECT_JS_ARGS(env, info, status, realArgc, argv, _this);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
         EFFECT_LOG_E("FilterNapi SetColorMatrix parsing input fail"));
@@ -584,8 +587,8 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
         EFFECT_LOG_E("FilterNapi SetColorMatrix napi_unwrap fail"));
-    auto applyColorMatrix = Rosen::SKImageFilterFactory::ApplyColorMatrix(colorMatrix);
-    thisFilter->AddNextFilter(applyColorMatrix);
+    auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(colorMatrix);
+    thisFilter->AddEffectFilter(applyColorMatrix);
     return _this;
 }
 }

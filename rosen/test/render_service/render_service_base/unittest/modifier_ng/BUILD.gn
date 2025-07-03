@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceBaseModifierNGTest") {
   }
   sources = [
     "rs_modifier_ng_type_test.cpp",
+    "rs_render_modifier_ng_test.cpp",
   ]
 
   configs = [

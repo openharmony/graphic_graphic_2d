@@ -63,7 +63,9 @@ private:
     napi_value OnEnumerateCaretOffsets(napi_env env, napi_callback_info info);
     napi_value OnGetAlignmentOffset(napi_env env, napi_callback_info info);
 
+    static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
+    static std::mutex constructorMutex_;
     std::unique_ptr<TextLineBase> textLine_ = nullptr;
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };

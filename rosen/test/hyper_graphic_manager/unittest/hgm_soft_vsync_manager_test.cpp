@@ -121,7 +121,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Function | SmallTest | Level1)
+HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Function | SmallTest | Level0)
 {
     auto softVSyncManager = HgmSoftVSyncManager();
     auto& appVoteData = softVSyncManager.appVoteData_;
@@ -182,7 +182,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window002, Function | SmallTest | Level1)
+HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window002, Function | SmallTest | Level0)
 {
     auto softVSyncManager = HgmSoftVSyncManager();
     auto& appVoteData = softVSyncManager.appVoteData_;
@@ -226,7 +226,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window002, Functi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync001, Function | SmallTest | Level1)
+HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync001, Function | SmallTest | Level0)
 {
     auto softVSyncManager = HgmSoftVSyncManager();
     auto& appVoteData = softVSyncManager.appVoteData_;
@@ -283,7 +283,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Function | SmallTest | Level1)
+HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Function | SmallTest | Level0)
 {
     auto softVSyncManager = HgmSoftVSyncManager();
     auto& appVoteData = softVSyncManager.appVoteData_;
@@ -328,7 +328,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Functio
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, GetVRateMiniFPS, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, GetVRateMiniFPS, Function | SmallTest | Level0)
 {
     HgmSoftVSyncManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
@@ -362,7 +362,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, GetVRateMiniFPS, Function | SmallTest | Level2
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange01, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange01, Function | SmallTest | Level0)
 {
     HgmSoftVSyncManager mgr;
     FrameRateRange finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
@@ -411,7 +411,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange01, Function | SmallTest | L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange02, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange02, Function | SmallTest | Level0)
 {
     HgmSoftVSyncManager mgr;
     FrameRateRange finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
@@ -454,7 +454,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange02, Function | SmallTest | L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate01, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate01, Function | SmallTest | Level0)
 {
     HgmSoftVSyncManager mgr;
     uint32_t refreshRate_60 = 60;
@@ -476,7 +476,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate01, Function | SmallTest | 
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate02, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate02, Function | SmallTest | Level0)
 {
     std::vector<std::pair<std::pair<uint32_t, FrameRateRange>, uint32_t>> inputAndOutput = {
         { { 0, { 0, 120, 60 } }, 0 },
@@ -501,7 +501,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, GetDrawingFrameRate02, Function | SmallTest | 
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTest | Level0)
 {
     HgmSoftVSyncManager mgr;
     InitHgmSoftVSyncManager(mgr);
@@ -530,7 +530,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTe
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, CollectGameRateDiscountChange, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, CollectGameRateDiscountChange, Function | SmallTest | Level0)
 {
     HgmSoftVSyncManager mgr;
     FrameRateRange appExpectedRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };

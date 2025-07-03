@@ -197,9 +197,18 @@ public:
         int envSaveCount = -1;
     };
 
+    enum class ScreenshotType {
+        NON_SHOT = 0,
+        SDR_SCREENSHOT,
+        SDR_WINDOWSHOT,
+        HDR_SCREENSHOT,
+        HDR_WINDOWSHOT,
+    };
+
     struct HDRProperties {
         bool isHDREnabledVirtualScreen = false;
         float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
+        ScreenshotType screenshotType = ScreenshotType::NON_SHOT;
     };
 
     enum SaveType : uint8_t {
@@ -211,6 +220,8 @@ public:
         kAll            = kCanvas | kAlpha | kEnv,
     };
 
+    ScreenshotType GetScreenshotType() const;
+    void SetScreenshotType(ScreenshotType type);
     SaveStatus SaveAllStatus(SaveType type = kAll);
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);
@@ -423,7 +434,7 @@ private:
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
-    HDRProperties hdrProperties;
+    HDRProperties hdrProperties_;
     Drawing::Surface* surface_ = nullptr;
     Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
     Drawing::Rect visibleRect_ = Drawing::Rect();

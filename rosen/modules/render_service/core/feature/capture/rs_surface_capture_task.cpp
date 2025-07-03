@@ -101,7 +101,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
         return false;
     }
-    if (!CopyDataToPixelMap(img, pixelmap, colorSpace)) {
+    if (!CopyDataToPixelMap(img, pixelmap)) {
             RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
             return false;
     }
@@ -176,14 +176,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     return Media::PixelMap::Create(opts);
 }
 
-bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap,
-    std::shared_ptr<Drawing::ColorSpace> colorSpace)
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
     if (!img || !pixelmap) {
         RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap failed, img or pixelmap is nullptr");
         return false;
     }
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+    auto colorType = (pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16) ?
+        Drawing::ColorType::COLORTYPE_RGBA_F16 : Drawing::ColorType::COLORTYPE_RGBA_8888;
 #ifdef ROSEN_OHOS
     int fd = AshmemCreate("RSSurfaceCapture Data", size);
     if (fd < 0) {
@@ -204,8 +205,10 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
         return false;
     }
 
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat format { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
+    auto colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
+    auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
     bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
     bitmap.SetPixels(data);
     if (!img->ReadPixels(bitmap, 0, 0)) {
@@ -223,7 +226,7 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
         return false;
     }
 
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat format { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
     bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
     bitmap.SetPixels(data);
@@ -235,11 +238,6 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
     }
 
     pixelmap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
-    if (colorSpace != nullptr) {
-        pixelmap->InnerSetColorSpace(colorSpace->IsSRGB()?
-            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB):
-            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
-    }
 #endif
     return true;
 }

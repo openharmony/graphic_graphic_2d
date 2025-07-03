@@ -41,7 +41,9 @@ public:
 
     std::shared_ptr<FontCollection> GetFontCollection();
 private:
+    static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
+    static std::mutex constructorMutex_;
     napi_value OnLoadFont(napi_env env, napi_callback_info info);
     napi_value OnUnloadFont(napi_env env, napi_callback_info info);
     napi_value OnUnloadFontAsync(napi_env env, napi_callback_info info);
