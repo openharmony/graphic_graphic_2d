@@ -1899,7 +1899,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
 
     auto screenManager = CreateOrGetScreenManager();
     bool isScreenSwitching = RSSystemProperties::IsFoldScreenFlag() && screenManager != nullptr &&
-        isScreenSwitching = screenManager->IsScreenSwitching();
+        screenManager->IsScreenSwitching();
 
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
