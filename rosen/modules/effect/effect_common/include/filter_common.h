@@ -16,9 +16,8 @@
 #ifndef FILTER_COMMON_H
 #define FILTER_COMMON_H
 
-#include "include/core/SkImageFilter.h"
 #include "pixel_map.h"
-#include "sk_image_chain.h"
+#include "effect_image_render.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,10 +32,10 @@ public:
     static bool SetColorMatrix(std::vector<float> cjcolorMatrix, uint32_t& code);
     static std::shared_ptr<OHOS::Media::PixelMap> GetEffectPixelMap();
     static thread_local std::shared_ptr<FilterCommon> sConstructor_;
-    void AddNextFilter(sk_sp<SkImageFilter> filter);
+    void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
-    Rosen::DrawError Render(bool forceCPU);
-    std::vector<sk_sp<SkImageFilter>> skFilters_;
+    DrawingError Render(bool forceCPU);
+    std::vector<std::shared_ptr<EffectImageFilter>> effectFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
 };

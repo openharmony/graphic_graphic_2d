@@ -27,8 +27,18 @@ config("effect_SKeffectChian_config") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
   ]
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/effect/color_picker/include",
+  ]
+
+  if (!defined(defines)) {
+    defines = []
+  }
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
+  }
 }
 
 config("effect_SKeffectChian_public_config") {
@@ -36,6 +46,7 @@ config("effect_SKeffectChian_public_config") {
     "../egl/include",
     "$graphic_2d_root/utils/log",
     "include",
+    "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
 
   if (is_arkui_x) {
@@ -52,6 +63,7 @@ if (is_arkui_x) {
     public_deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//foundation/arkui/ace_engine/adapter/${target_os}/build:libarkui_${target_os}",
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     ]
 
     if (target_os == "android") {
@@ -79,7 +91,19 @@ if (is_arkui_x) {
       "skia:skia_canvaskit_static",
     ]
 
+    external_deps = [
+      "graphics_effect:graphics_effect_core",
+      "hitrace:hitrace_meter",
+    ]
+
+    deps = [
+      "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
+      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    ]
+
     sources = [
+      "src/effect_image_chain.cpp",
+      "src/effect_image_render.cpp",
       "src/sk_image_chain.cpp",
       "src/sk_image_filter_factory.cpp",
     ]
@@ -95,7 +119,10 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("skeffectchain") {
-    public_deps = [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
+    public_deps = [
+      "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    ]
 
     if (rs_enable_gpu) {
       defines = gpu_defines
@@ -112,6 +139,7 @@ if (is_arkui_x) {
 
     external_deps = [
       "c_utils:utils",
+      "graphics_effect:graphics_effect_core",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
       "image_framework:image",
@@ -124,6 +152,8 @@ if (is_arkui_x) {
     ]
 
     sources = [
+      "src/effect_image_chain.cpp",
+      "src/effect_image_render.cpp",
       "src/sk_image_chain.cpp",
       "src/sk_image_filter_factory.cpp",
     ]
@@ -132,7 +162,10 @@ if (is_arkui_x) {
 
     public_configs = [ ":effect_SKeffectChian_public_config" ]
 
-    deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+    deps = [
+      "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
+      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    ]
 
     cflags_cc = [ "-std=c++17" ]
 
