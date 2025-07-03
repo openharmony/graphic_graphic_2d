@@ -92,12 +92,12 @@ void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHand
     }
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (renderServiceClient_ != nullptr && renderThreadClient_ == nullptr) {
+    if (renderServiceClient_ != nullptr) {
         MoveRemoteCommandByNodeId(transactionHandler, nodeId);
-        return;
     }
-
-    MoveCommonCommandByNodeId(transactionHandler, nodeId);
+    if (renderThreadClient_ != nullptr) {
+        MoveCommonCommandByNodeId(transactionHandler, nodeId);
+    }
 }
 
 void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
