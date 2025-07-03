@@ -37,6 +37,9 @@ const RSForegroundFilterRenderModifier::LegacyPropertyApplierMap
             RSRenderModifier::PropertyApplyHelper<Vector2f, &RSProperties::SetAttractionDstPoint> },
         { RSPropertyType::FOREGROUND_UI_FILTER, RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSRenderFilter>,
                                                     &RSProperties::SetForegroundUIFilter> },
+        { RSPropertyType::FOREGROUND_NG_FILTER,
+            RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
+                &RSProperties::SetForegroundNGFilter> },
     };
 
 void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
@@ -50,6 +53,7 @@ void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetAttractionFraction(0.f);
     properties.SetAttractionDstPoint(Vector2f());
     properties.SetForegroundUIFilter({});
+    properties.SetForegroundNGFilter({});
 }
 
 void RSForegroundFilterRenderModifier::AttachRenderFilterProperty(

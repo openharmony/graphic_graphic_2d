@@ -329,7 +329,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::filterCacheEnabled_) {
+    auto enableCache = (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr &&
+        RSProperties::filterCacheEnabled_ && !filter->GetNGRenderFilter());
+    if (enableCache) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }

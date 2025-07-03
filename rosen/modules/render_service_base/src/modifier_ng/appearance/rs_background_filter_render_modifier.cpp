@@ -54,6 +54,9 @@ const RSBackgroundFilterRenderModifier::LegacyPropertyApplierMap
         { RSPropertyType::GREY_COEF, RSRenderModifier::PropertyApplyHelper<Vector2f, &RSProperties::SetGreyCoef> },
         { RSPropertyType::BACKGROUND_UI_FILTER, RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSRenderFilter>,
                                                     &RSProperties::SetBackgroundUIFilter> },
+        { RSPropertyType::BACKGROUND_NG_FILTER,
+            RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
+                &RSProperties::SetBackgroundNGFilter> },
     };
 
 void RSBackgroundFilterRenderModifier::ResetProperties(RSProperties& properties)
@@ -73,6 +76,7 @@ void RSBackgroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetAlwaysSnapshot(false);
     properties.SetGreyCoef(std::nullopt);
     properties.SetBackgroundUIFilter({});
+    properties.SetBackgroundNGFilter({});
 }
 
 void RSBackgroundFilterRenderModifier::AttachRenderFilterProperty(

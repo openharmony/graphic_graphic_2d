@@ -35,6 +35,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ProgressB, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Color, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Alpha, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Mask, MASK_PTR);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Color, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Position, Vector2f);
@@ -62,11 +63,12 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint11, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Width, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Center, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, WidthCenterOffset, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Offset, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Src, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Dst, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, FillColor, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(PixelMapMask, Image, std::shared_ptr<Media::PixelMap>);
 
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Contour, std::shared_ptr<RSPath>);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Start, float);
@@ -84,3 +86,9 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(AuroraNoise, Noise, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Noise, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusY, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Colors, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Positions, std::vector<float>);

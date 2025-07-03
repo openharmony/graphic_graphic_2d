@@ -28,51 +28,6 @@ namespace Drawing {
     class GEShader;
 } // namespace Drawing
 
-class RSB_EXPORT RSNGRenderShaderHelper {
-public:
-    static std::shared_ptr<Drawing::GEVisualEffect> CreateGEFilter(RSNGEffectType type);
-    static void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge,
-        std::shared_ptr<Drawing::GEVisualEffect> geShader);
-
-    static std::string GetShaderTypeString(RSNGEffectType type)
-    {
-        switch (type) {
-            case RSNGEffectType::INVALID: return "Invalid";
-            case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
-            case RSNGEffectType::WAVY_RIPPLE_LIGHT: return "WavyRippleLight";
-            case RSNGEffectType::AURORA_NOISE: return "AuroraNoise";
-            case RSNGEffectType::PARTICLE_CIRCULAR_HALO: return "ParticleCircularHalo";
-            default:
-                return "UNKNOWN";
-        }
-    }
-
-    template<typename Tag>
-    static void UpdateVisualEffectParam(std::shared_ptr<Drawing::GEVisualEffect> geFilter, const Tag& propTag)
-    {
-        if (!geFilter) {
-            return;
-        }
-        UpdateVisualEffectParamImpl(geFilter, Tag::NAME, propTag.value_->Get());
-    }
-
-private:
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, float value);
-
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, const Vector4f& value);
-
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, const Vector2f& value);
-
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, std::shared_ptr<RSPath> value);
-
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
-};
-
 class RSB_EXPORT RSNGRenderShaderBase : public RSNGRenderEffectBase<RSNGRenderShaderBase> {
 public:
     static std::shared_ptr<RSNGRenderShaderBase> Create(RSNGEffectType type);
@@ -102,14 +57,14 @@ public:
         if (ge == nullptr) {
             return;
         }
-        auto geShader = RSNGRenderShaderHelper::CreateGEFilter(Type);
+        auto geShader = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         std::apply(
             [&geShader](const auto&... propTag) {
-                (RSNGRenderShaderHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
+                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
                     geShader, propTag), ...);
                 },
                 EffectTemplateBase::properties_);
-        RSNGRenderShaderHelper::AppendToGEContainer(ge, geShader);
+        RSNGRenderEffectHelper::AppendToGEContainer(ge, geShader);
         if (EffectTemplateBase::nextEffect_) {
             EffectTemplateBase::nextEffect_->AppendToGEContainer(ge);
         }

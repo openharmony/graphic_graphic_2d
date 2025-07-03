@@ -315,16 +315,16 @@ HWTEST_F(RSRenderFilterBaseTest, SetModifierTypeChain, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpProperty001
- * @tc.desc: Test the DumpProperty method outputs correct filter properties
+ * @tc.name: DumpProperties001
+ * @tc.desc: Test the DumpProperties method outputs correct filter properties
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, DumpProperty001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, DumpProperties001, TestSize.Level1)
 {
     using BlurFilter = RSNGRenderBlurFilter;
     auto filter1 = std::make_shared<BlurFilter>();
     std::string out;
-    filter1->DumpProperty(out);
+    filter1->DumpProperties(out);
     EXPECT_FALSE(out.empty());
 }
 
