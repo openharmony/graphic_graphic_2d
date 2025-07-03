@@ -17,7 +17,7 @@
         "SystemCapability.Graphic.Graphic2D.EGL",
         "SystemCapability.Graphic.Graphic2D.GLES2",
         "SystemCapability.Graphic.Graphic2D.GLES3",
-        "SystemCapability.Graphic.Graphic2D.GL4",
+        "SystemCapability.Graphic.Graphic2D.GL4 = false",
         "SystemCapability.Graphic.Graphic2D.HyperGraphicManager",
         "SystemCapability.Graphic.Graphic2D.NativeBuffer",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
