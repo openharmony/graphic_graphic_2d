@@ -263,10 +263,10 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback04, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::function<void()> callback = []() {};
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = []() {};
-    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
+    rsClient->transactionDataCallbacks_[std::make_pair(token, timeStamp)] = []() {};
+    bool ret = rsClient->RegisterTransactionDataCallback(token, timeStamp, callback);
     EXPECT_FALSE(ret);
 }
 
@@ -278,15 +278,16 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback04, TestSize.Level1)
  */
 HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase01, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     bool callbackInvoked = false;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+    rsClient->transactionDataCallbacks_[std::make_pair(token, timeStamp)] = [&callbackInvoked]() {
         callbackInvoked = true;
     };
-    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    rsClient->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     EXPECT_TRUE(callbackInvoked);
-    EXPECT_EQ(rsClient->transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)), rsClient->transactionDataCallbacks_.end());
+    EXPECT_EQ(rsClient->transactionDataCallbacks_.find(std::make_pair(token, timeStamp)),
+        rsClient->transactionDataCallbacks_.end());
 }
 
 /**
@@ -297,15 +298,15 @@ HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase01, TestSize.Level1
  */
 HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase02, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     bool callbackInvoked = false;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+    rsClient->transactionDataCallbacks_[std::make_pair(token, timeStamp)] = [&callbackInvoked]() {
         callbackInvoked = true;
     };
     rsClient->transactionDataCallbacks_.clear();
 
-    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    rsClient->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     EXPECT_FALSE(callbackInvoked);
     EXPECT_TRUE(rsClient->transactionDataCallbacks_.empty());
 }

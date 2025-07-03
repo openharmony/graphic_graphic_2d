@@ -377,7 +377,7 @@ public:
 
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     ErrCode NotifyScreenSwitched() override;

@@ -122,11 +122,11 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI003, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback001, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    bool res = instance.RegisterTransactionDataCallback(pid, timeStamp, nullptr);
+    bool res = instance.RegisterTransactionDataCallback(token, timeStamp, nullptr);
     EXPECT_TRUE(res == false);
 }
 
@@ -138,12 +138,12 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     std::function<void()> callback = []() {};
-    bool res = instance.RegisterTransactionDataCallback(pid, timeStamp, callback);
+    bool res = instance.RegisterTransactionDataCallback(token, timeStamp, callback);
     EXPECT_TRUE(res == true);
 }
 

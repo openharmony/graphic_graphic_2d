@@ -30,16 +30,16 @@ int RSTransactionDataCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS): {
-            int32_t pid = {};
+            uint64_t multiToken = {};
             uint64_t timeStamp = {};
-            auto readRet = data.ReadInt32(pid) && data.ReadUint64(timeStamp);
+            auto readRet = data.ReadUint64(multiToken) && data.ReadUint64(timeStamp);
             if (!readRet) {
                 ROSEN_LOGE("RSTransactionDataCallbackStub: read remote data error");
                 break;
             }
             RS_LOGD("RSTransactionDataCallbackStub: already decode, timeStamp: %{public}"
-                PRIu64 " pid: %{public}d", timeStamp, pid);
-            OnAfterProcess(pid, timeStamp);
+                PRIu64 " token: %{public}" PRIu64, timeStamp, multiToken);
+            OnAfterProcess(multiToken, timeStamp);
             break;
         }
         default: {
