@@ -3983,6 +3983,14 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
     }
 }
 
+void RSNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSetNeedUseCmdlistDrawRegion>(GetId(), needUseCmdlistDrawRegion);
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+}
+
 void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId, const bool isInSameWindow)
 {
     std::unique_ptr<RSCommand> command =

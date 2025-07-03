@@ -70,6 +70,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIFirstSwitch, Uint64, RSUIFirstSwitch);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawRegion, Uint64, RectFSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetOutOfParent, Uint64, OutOfParentType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRegisterGeometryTransitionNodePair, Uint64, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUnregisterGeometryTransitionNodePair, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSRemoveAllModifiers, Uint64);

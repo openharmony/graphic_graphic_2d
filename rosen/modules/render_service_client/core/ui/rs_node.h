@@ -1594,6 +1594,13 @@ public:
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     /**
+     * @brief Sets if need use the cmdlist drawing region for the node.
+     *
+     * @param needUseCmdlistDrawRegion Whether to need use the cmdlist drawing region for this node.
+     */
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
+
+    /**
      * @brief Mark the node as a group node for rendering pipeline optimization
      *
      * NodeGroup generates off-screen cache containing this node and its entire subtree

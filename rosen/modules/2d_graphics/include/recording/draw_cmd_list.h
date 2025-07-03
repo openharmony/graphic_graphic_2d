@@ -256,6 +256,11 @@ public:
 
     const std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItems() const;
 
+    /**
+     * @brief Get cmdlist draw region from opItem.
+     */
+    RectF GetCmdlistDrawRegion();
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);

@@ -1072,6 +1072,17 @@ HWTEST_F(RSSystemPropertyUnitTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Le
 }
 
 /**
+ * @tc.name: GetOptimizeCanvasDrawRegionEnabled
+ * @tc.desc: GetOptimizeCanvasDrawRegionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesICI6YB
+ */
+HWTEST_F(RSSystemPropertyUnitTest, GetOptimizeCanvasDrawRegionEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled());
+}
+
+/**
  * @tc.name: GetTimeVsyncDisabled
  * @tc.desc: GetTimeVsyncDisabled Test
  * @tc.type:FUNC
