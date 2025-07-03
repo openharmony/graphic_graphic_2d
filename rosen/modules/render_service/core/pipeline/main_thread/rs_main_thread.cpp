@@ -1897,11 +1897,10 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
             return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     });
 
-    bool isScreenSwitching = false;
     auto screenManager = CreateOrGetScreenManager();
-    if (RSSystemProperties::IsFoldScreenFlag() && screenManager != nullptr) {
+    bool isScreenSwitching = RSSystemProperties::IsFoldScreenFlag() && screenManager != nullptr &&
         isScreenSwitching = screenManager->IsScreenSwitching();
-    }
+
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
@@ -1910,11 +1909,9 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
         hasColorFilter || CheckOverlayDisplayEnable() ||
         (isMultiDisplay && !hasProtectedLayer_ && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode));
 
-    RS_TRACE_NAME_FMT("RSMainThread::CheckIfHardwareForcedDisabled isScreenSwitching:%d, isHardwareForcedDisabled_:%d",
-        isScreenSwitching, isHardwareForcedDisabled_);
-    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
-        "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
-        isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
+    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isScreenSwitching:%d "
+        "isHardwareForcedDisabled_:%d doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
+        isScreenSwitching, isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
 
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
