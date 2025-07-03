@@ -1909,9 +1909,9 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
         hasColorFilter || CheckOverlayDisplayEnable() ||
         (isMultiDisplay && !hasProtectedLayer_ && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode));
 
-    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isScreenSwitching:%d "
-        "isHardwareForcedDisabled_:%d doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
-        isScreenSwitching, isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
+    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
+        "isScreenSwitching:%d, doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
+        isHardwareForcedDisabled_, isScreenSwitching, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
 
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
