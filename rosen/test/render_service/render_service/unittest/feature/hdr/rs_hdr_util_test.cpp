@@ -302,5 +302,4 @@ HWTEST_F(RSHdrUtilTest, SetHDRParamTest, TestSize.Level1)
     childNode->SetIsOnTheTree(true);
     RSHdrUtil::SetHDRParam(*childNode, true);
 }
-
 } // namespace OHOS::Rosen

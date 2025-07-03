@@ -14,13 +14,13 @@
  */
 
 #include "gtest/gtest.h"
-#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "params/rs_render_thread_params.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
@@ -625,7 +625,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
     auto rsSurfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
-        std::make_tuple(0, 1, rsSurfaceRenderNode));
+        std::make_tuple(0, 0, rsSurfaceRenderNode));
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 
     auto rsRenderNode = std::make_shared<RSRenderNode>(0);
@@ -633,7 +633,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
     auto surfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsRenderNode);
     surfaceRenderNode->renderParams_ = std::make_unique<RSRenderParams>(0);
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
-        std::make_tuple(0, 1, surfaceRenderNode));
+        std::make_tuple(0, 0, surfaceRenderNode));
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 }
 
@@ -1392,9 +1392,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView002, T
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     auto renderNode = std::make_shared<RSRenderNode>(id);
-    auto displayRenderNodeDrawable = std::make_shared<RSLogicalDisplayRenderNodeDrawable>(renderNode);
-    displayRenderNodeDrawable->cachedImageByCapture_ = nullptr;
-    surfaceParams->sourceDisplayRenderNodeDrawable_ = displayRenderNodeDrawable;
+    auto screenRenderNodeDrawable = std::make_shared<RSScreenRenderNodeDrawable>(renderNode);
+    screenRenderNodeDrawable->cachedImageByCapture_ = nullptr;
+    surfaceParams->sourceScreenRenderNodeDrawable_ = screenRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }
 
@@ -1411,10 +1411,10 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView003, T
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     auto renderNode = std::make_shared<RSRenderNode>(id);
-    auto displayRenderNodeDrawable = std::make_shared<RSLogicalDisplayRenderNodeDrawable>(renderNode);
+    auto screenRenderNodeDrawable = std::make_shared<RSScreenRenderNodeDrawable>(renderNode);
     auto cacheImg = std::make_shared<Drawing::Image>();
-    displayRenderNodeDrawable->cachedImageByCapture_ = cacheImg;
-    surfaceParams->sourceDisplayRenderNodeDrawable_ = displayRenderNodeDrawable;
+    screenRenderNodeDrawable->cachedImageByCapture_ = cacheImg;
+    surfaceParams->sourceScreenRenderNodeDrawable_ = screenRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }
 

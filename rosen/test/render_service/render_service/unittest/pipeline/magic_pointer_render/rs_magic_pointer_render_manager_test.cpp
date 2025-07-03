@@ -116,7 +116,7 @@ HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithImage, TestSize.Level1)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas paintFilterCanvas(&drawingCanvas);
-    auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_COMPOSITE);
 
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
@@ -162,7 +162,7 @@ HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithoutImage, TestSize.Leve
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas paintFilterCanvas(&drawingCanvas);
-    auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_COMPOSITE);
 
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();

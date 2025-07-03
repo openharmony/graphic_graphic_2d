@@ -2129,7 +2129,7 @@
     "messageOption": "TF_SYNC"
   },
   {
-    "testCaseDesc": "CREATE_DISPLAY_NODE_TEST_001",
+    "testCaseDesc": "CREATE_SCREEN_NODE_TEST_001",
     "interfaceName": "CREATE_DISPLAY_NODE",
     "inputParams": "WriteUint64;WriteUint64;WriteUint64;WriteBool",
     "writeInterfaceToken": true,

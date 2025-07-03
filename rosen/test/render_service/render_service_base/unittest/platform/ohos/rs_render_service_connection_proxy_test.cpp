@@ -418,6 +418,35 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveRect, TestSize.Level
 }
 
 /**
+ * @tc.name: SetScreenOffset Test
+ * @tc.desc: SetScreenOffset Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenOffset, TestSize.Level1)
+{
+    ScreenId id = 100;
+    int32_t offsetX = 10;
+    int32_t offsetY = 20;
+    proxy->SetScreenOffset(id, offsetX, offsetY);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
+ * @tc.name: SetScreenFrameGravity Test
+ * @tc.desc: SetScreenFrameGravity Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFrameGravity, TestSize.Level1)
+{
+    ScreenId id = 100;
+    int32_t gravity = 5;
+    proxy->SetScreenOffset(id, gravity);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
  * @tc.name: SetScreenRefreshRate Test
  * @tc.desc: SetScreenRefreshRate Test
  * @tc.type:FUNC

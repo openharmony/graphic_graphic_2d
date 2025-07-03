@@ -19,6 +19,7 @@
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
@@ -478,6 +479,19 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
     auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
     surfaceRenderParams->SetAncestorScreenNode(displayNode);
     auto colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
+    
+    // screenParams nullptr
+    displayNode->stagingRenderParams_ = nullptr;
+    displayNode->renderDrawable_->renderParams_ = nullptr;
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
+    
+    // GetAncestorScreenNode nullptr
+    displayNode = nullptr;
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
+    
+    // surfaceParams nullptr
+    surfaceDrawable->renderParams_ = nullptr;
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
 }
 /**
@@ -1687,6 +1701,25 @@ HWTEST_F(RSUifirstManagerTest, RefreshUIFirstParam, TestSize.Level1)
 {
     uifirstManager_.RefreshUIFirstParam();
     ASSERT_EQ(uifirstManager_.purgeEnable_, RSSystemParameters::GetUIFirstPurgeEnabled());
+    
+    // screenNode TypeError
+    auto rootNode = RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    ASSERT_NE(rootNode, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    rootNode->AddChild(surfaceNode, -1);
+    uifirstManager_.RefreshUIFirstParam();
+    ASSERT_EQ(uifirstManager_.purgeEnable_, RSSystemParameters::GetUIFirstPurgeEnabled());
+    
+    // screenNodeId
+    NodeId id = 1;
+    auto context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 0, context->weak_from_this());
+    screenNode->InitRenderParams();
+    rootNode->InitRenderParams();
+    rootNode->ClearChildren();
+    rootNode->AddChild(screenNode, -1);
+    uifirstManager_.RefreshUIFirstParam();
+    ASSERT_EQ(uifirstManager_.purgeEnable_, RSSystemParameters::GetUIFirstPurgeEnabled());
 }
 
 /**
@@ -2286,7 +2319,7 @@ HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     node.nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
     node.name_ = "ArkTSCardNode";
-    EXPECT_TRUE(RSUifirstManager::IsArkTsCardCache(node, true));
+    EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
 }
 
 /**

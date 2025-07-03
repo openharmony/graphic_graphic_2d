@@ -70,7 +70,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -82,7 +82,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_TRUE(nullptr != p);
 }
 

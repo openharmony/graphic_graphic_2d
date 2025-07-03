@@ -84,7 +84,7 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest002, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvCondition: N/A
- * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,displaynode and output
+ * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,screennode and output
  *                  2. operation: PreAllocateProtectedBuffer
  *                  3. result: surfaceHandler is not nullptr, node has ancestor
  */
@@ -112,7 +112,7 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest003, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvCondition: N/A
- * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,displaynode and output
+ * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer, screenNode and output
  *                  2. operation: PreAllocateProtectedBuffer
  *                  3. result: output, surfaceHandler is not nullptr, node has ancestor
  */
@@ -141,7 +141,7 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest004, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvCondition: N/A
- * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,displaynode and output
+ * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer, screenNode and output
  *                  2. operation: PreAllocateProtectedBuffer
  *                  3. result: output, node has ancestor, surfaceHandler getbuffer is nullptr,
  */

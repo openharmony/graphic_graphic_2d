@@ -23,7 +23,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_occlusion_config.h"
@@ -103,20 +103,12 @@ bool RSCrossRenderNode01FuzzTest(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
-    NodeId mirrorNodeId = GetData<NodeId>();
-    bool isSync = GetData<bool>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId, isSync };
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    RSLogicalDisplayRenderNode displayNode(id, config, context);
+    RSScreenRenderNode screenNode(id, screenId, context);
 
     NodeId childId = GetData<NodeId>();
-    NodeId cloneNodeId = GetData<NodeId>();
-    int index = GetData<int>();
     RSSurfaceRenderNode::SharedPtr child = std::make_shared<RSSurfaceRenderNode>(childId, context);
-    displayNode.AddCrossScreenChild(child, cloneNodeId, index);
-    displayNode.RemoveCrossScreenChild(child);
-
+    screenNode.RemoveCrossScreenChild(child);
     return true;
 }
 

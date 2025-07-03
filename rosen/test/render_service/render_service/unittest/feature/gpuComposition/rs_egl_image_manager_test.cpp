@@ -89,12 +89,13 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
         return;
     }
     NodeId id = 0;
-    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     node->InitRenderParams();
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    auto displayDrawable =
+    auto screenDrawable =
         std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
@@ -102,7 +103,7 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(node, nullptr);
-    if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
+    if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
         sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
         // create cache from buffer directly
         auto ret = eglImageManager_->CreateEglImageCacheFromBuffer(buffer, 0);
@@ -124,12 +125,13 @@ HWTEST_F(RSEglImageManagerTest, MapImageFromSurfaceBuffer001, TestSize.Level1)
         return;
     }
     NodeId id = 0;
-    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     node->InitRenderParams();
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    auto displayDrawable =
+    auto screenDrawable =
         std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;

@@ -110,13 +110,13 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurface001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessDisplaySurface
+ * @tc.name: ProcessScreenSurface
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSVirtualScreenProcessorTest, ProcessDisplaySurface, TestSize.Level1)
+HWTEST_F(RSVirtualScreenProcessorTest, ProcessScreenSurface, TestSize.Level1)
 {
     NodeId id = 0;
     auto rsContext = std::make_shared<RSContext>();

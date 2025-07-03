@@ -61,7 +61,7 @@ void RSDirtyRectsDFXTest::SetUp()
     screenDrawable_ = std::static_pointer_cast<RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(screenRenderNode_));
     if (!screenDrawable_->renderParams_) {
-        RS_LOGE("RSSurfaceRenderNodeDrawableTest: failed to init displayDrawable_.");
+        RS_LOGE("RSSurfaceRenderNodeDrawableTest: failed to init screenDrawable_.");
         return;
     }
     auto displayRenderParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
@@ -369,6 +369,9 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX001, TestSize.Leve
     ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX(*canvas_);
     curAllSurfaceDrawables.clear();
+    
+    screenDrawable_->renderParams_ = nullptr;
+    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX(*canvas_);
 }
 
 /**
@@ -445,6 +448,9 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceDirtyRegionForDFX001, TestSize.Le
     rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX(*canvas_);
     curAllSurfaceDrawables.clear();
     ASSERT_NE(rsDirtyRectsDfx_->targetDrawable_.GetRenderParams(), nullptr);
+    
+    screenDrawable_->renderParams_ = nullptr;
+    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX(*canvas_);
 }
 
 /**
@@ -473,6 +479,9 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceVisibleRegionForDFX001, TestSize.
     rsDirtyRectsDfx_->DrawTargetSurfaceVisibleRegionForDFX(*canvas_);
     curAllSurfaceDrawables.clear();
     ASSERT_NE(rsDirtyRectsDfx_->targetDrawable_.GetRenderParams(), nullptr);
+    
+    screenDrawable_->renderParams_ = nullptr;
+    rsDirtyRectsDfx_->DrawTargetSurfaceVisibleRegionForDFX(*canvas_);
 }
 
 /**

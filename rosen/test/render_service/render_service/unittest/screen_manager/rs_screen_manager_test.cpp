@@ -3702,6 +3702,52 @@ HWTEST_F(RSScreenManagerTest, RemoveScreenChangeCallback, TestSize.Level1)
 }
 
 /*
+ * @tc.name: RegisterScreenNodeListener001
+ * @tc.desc: Test RegisterScreenNodeListener001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, RegisterScreenNodeListener001, TestSize.level1)
+{
+    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+    screenManagerImpl->RegisterScreenNodeListener(nullptr);
+    EXPECT_EQ(screenManagerImpl->screenNodeListener_, nullptr);
+}
+
+/*
+ * @tc.name: SetScreenOffset001
+ * @tc.desc: Test SetScreenOffset001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenOffset001, TestSize.level1)
+{
+    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+    screenManagerImpl->SetScreenOffset(0, 0, 0);
+    auto rsScreen0 = 
+        std::make_shared<impl:: RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, rsScreen0));
+    screenManagerImpl->SetScreenOffset(0, 0, 0);
+}
+
+/*
+ * @tc.name: NotifyScreenNodeChange001
+ * @tc.desc: Test NotifyScreenNodeChange001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, NotifyScreenNodeChange001, TestSize.level1)
+{
+    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+    screenManagerImpl->screenNodeListener_ = nullptr;
+    screenManagerImpl->NotifyScreenNodeChange(0, false);
+}
+
+/*
  * @tc.name: AddScreenChangeCallback001
  * @tc.desc: Test AddScreenChangeCallback001
  * @tc.type: FUNC

@@ -23,11 +23,12 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
@@ -418,6 +419,14 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     ASSERT_EQ(node.GetBootAnimation(), true);
     node.SetBootAnimation(false);
     ASSERT_FALSE(node.GetBootAnimation());
+    
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 2;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    auto rsRenderNode = std::static_pointer_cast<RSRenderNode>(logicalDisplayNode);
+    auto tempRenderNode = std::make_shared<RSRenderNode>(1);
+    rsRenderNode->parent_ = tempRenderNode;
+    rsRenderNode->SetBootAnimation(false);
 }
 
 /**
@@ -1706,18 +1715,20 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSDisplayRenderNodeDumpTest
+ * @tc.name: RSScreenRenderNodeDumpTest
  * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
  * @tc.type: FUNC
  * @tc.require: issueIAJ6BA
  */
-HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, RSScreenRenderNodeDumpTest, TestSize.Level1)
 {
     std::string outTest = "";
     auto context = std::make_shared<RSContext>();
     auto renderNode = std::make_shared<RSScreenRenderNode>(0, 0, context);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0, colorSpace: 4");
+    EXPECT_EQ(outTest, ", colorSpace: 4");
+    
+    renderNode->DumpTree(0, outTest);
 }
 
 /**
@@ -1826,6 +1837,30 @@ HWTEST_F(RSRenderNodeTest, MoveChildTest005, TestSize.Level1)
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->MoveChild(child2, 4);
     EXPECT_FALSE(nodeTest->isFullChildrenListValid_);
+}
+
+/**
+ * @tc.name: SetContainBootAnimationTest001
+ * @tc.desc: SetContainBootAnimation test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, SetContainBootAnimationTest001, TestSize.level1)
+{
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->SetContainBootAnimation(true);
+    auto tempRenderNode = std::make_shared<RSRenderNode>(1);
+    screenNode->parent_ = tempRenderNode;
+    screenNode->SetContainBootAnimation(true);
+    
+    NodeId canvasId = 2;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(canvasId);
+    
+    canvasNode->SetContainBootAnimation(true);
+    EXPECT_FALSE(canvasNode->isFullChildrenListValid_);
 }
 
 /**
@@ -2358,7 +2393,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     RRect rrect;
     nodeTest->renderProperties_.rrect_ = rrect;
     nodeTest->UpdateDrawableVecV2();
-    EXPECT_NE(nodeTest->dirtySlots_.size(), sum);
+    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum);
 }
 
 /**

@@ -1748,12 +1748,12 @@ HWTEST_F(RSSurfaceNodeTest, SetHardwareEnableHint, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSourceVirtualDisplayId
- * @tc.desc: Test function SetSourceVirtualDisplayId
+ * @tc.name: SetSourceVirtualScreenId
+ * @tc.desc: Test function SetSourceVirtualScreenId
  * @tc.type: FUNC
  * @tc.require: issueIBIK1X
  */
-HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualDisplayId, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualScreenId, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);

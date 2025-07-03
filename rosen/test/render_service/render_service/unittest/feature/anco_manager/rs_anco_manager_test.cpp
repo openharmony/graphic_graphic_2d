@@ -53,11 +53,11 @@ HWTEST_F(RSAncoManagerTest, IsAncoOptimize, TestSize.Level2)
 
 /**
  * @tc.name: AncoOptimizeScreenNode
- * @tc.desc: test AncoOptimizeDisplayNode
+ * @tc.desc: test AncoOptimizesScreenNode
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
-HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode_01, TestSize.Level2)
+HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_01, TestSize.Level2)
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = nullptr;

@@ -551,30 +551,30 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
     NodeId screenRenderNodeId = 2;
     ScreenId screenId = 0;
     auto context = std::make_shared<RSContext>();
-    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
 
-    properties.backref_ = displayRenderNode;
-    displayRenderNode->InsertHDRNode(screenRenderNodeId);
-    EXPECT_NE(displayRenderNode->hdrNodeList_.find(screenRenderNodeId), displayRenderNode->hdrNodeList_.end());
+    properties.backref_ = screenRenderNode;
+    screenRenderNode->InsertHDRNode(screenRenderNodeId);
+    EXPECT_NE(screenRenderNode->hdrNodeList_.find(screenRenderNodeId), screenRenderNode->hdrNodeList_.end());
     properties.SetHDRBrightnessFactor(0.5f);
 
     NodeId nodeId1 = 0;
     auto node1 = std::make_shared<RSRenderNode>(nodeId1);
     pid_t pid1 = ExtractPid(nodeId1);
     context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    displayRenderNode->InsertHDRNode(nodeId1);
+    screenRenderNode->InsertHDRNode(nodeId1);
     properties.SetHDRBrightnessFactor(0.6f);
 
     pid_t pid = ExtractPid(screenRenderNodeId);
-    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = displayRenderNode;
+    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = screenRenderNode;
     properties.SetHDRBrightnessFactor(0.8f);
 
     ScreenId screenId2 = 1;
     std::shared_ptr<RSContext> context2;
     auto screenNode2 = std::make_shared<RSScreenRenderNode>(3, screenId2, context2);
     properties.backref_ = screenNode2;
-    displayRenderNode->InsertHDRNode(3);
-    EXPECT_NE(displayRenderNode->hdrNodeList_.find(3), displayRenderNode->hdrNodeList_.end());
+    screenRenderNode->InsertHDRNode(3);
+    EXPECT_NE(screenRenderNode->hdrNodeList_.find(3), screenRenderNode->hdrNodeList_.end());
     properties.SetHDRBrightnessFactor(0.9f);
 }
 

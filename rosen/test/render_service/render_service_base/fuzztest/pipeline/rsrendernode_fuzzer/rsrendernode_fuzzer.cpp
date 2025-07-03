@@ -23,7 +23,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -156,15 +156,16 @@ bool RSCrossRenderNodeFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    RSScreenRenderNode displayNode(id, 1, context);
+    RSScreenRenderNode screenNode(id, screenId, context);
 
     NodeId childId = GetData<NodeId>();
     NodeId cloneNodeId = GetData<NodeId>();
     int index = GetData<int>();
     RSSurfaceRenderNode::SharedPtr child = std::make_shared<RSSurfaceRenderNode>(childId, context);
-    displayNode.AddCrossScreenChild(child, cloneNodeId, index);
-    displayNode.RemoveCrossScreenChild(child);
+    screenNode.AddCrossScreenChild(child, cloneNodeId, index);
+    screenNode.RemoveCrossScreenChild(child);
 
     return true;
 }
@@ -278,7 +279,7 @@ bool RSScreenRenderParamsNodeFuzzTest(const uint8_t* data, size_t size)
     bool isUniRender = GetData<bool>();
     CompositeType type = GetData<CompositeType>();
     bool flag = GetData<bool>();
-    RSScreenRenderNode::SharedPtr displayPtrNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    RSScreenRenderNode::SharedPtr screenPtrNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     uint32_t refreshRate = GetData<uint32_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
     int32_t bufferage = GetData<int32_t>();
@@ -287,15 +288,15 @@ bool RSScreenRenderParamsNodeFuzzTest(const uint8_t* data, size_t size)
     int width = GetData<int>();
     int height = GetData<int>();
     RectI rect(left, top, width, height);
-    RSScreenRenderNode displayNode(id, 1, context);
+    RSScreenRenderNode screenNode(id, 1, context);
 
-    displayNode.CollectSurface(node, vec, isUniRender, false);
-    displayNode.SetCompositeType(type);
-    displayNode.SetForceSoftComposite(flag);
-    displayNode.SetMirrorSource(displayPtrNode);
-    displayNode.SkipFrame(refreshRate, skipFrameInterval);
-    displayNode.UpdateDisplayDirtyManager(bufferage);
-    displayNode.UpdateSurfaceNodePos(id, rect);
+    screenNode.CollectSurface(node, vec, isUniRender, false);
+    screenNode.SetCompositeType(type);
+    screenNode.SetForceSoftComposite(flag);
+    screenNode.SetMirrorSource(screenPtrNode);
+    screenNode.SkipFrame(refreshRate, skipFrameInterval);
+    screenNode.UpdateDisplayDirtyManager(bufferage);
+    screenNode.UpdateSurfaceNodePos(id, rect);
 
     return true;
 }

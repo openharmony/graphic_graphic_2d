@@ -23,8 +23,9 @@ group("unittest") {
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
-    ":RSDisplayRenderNodeDrawableTest",
+    ":RSScreenRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
+    ":RSLogicalDisplayRenderNodeDrawableTest",
     ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",
@@ -210,6 +211,20 @@ ohos_unittest("RSSkpCaptureDFXTest") {
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSRefreshRateDfxTest
+ohos_unittest("RSRefreshRateDfxTest") {
+  module_out_path = module_output_path
+  sources = ["dfx/rs_refresh_rate_dfx_test.cpp"]
+  deps = [ ":rs_test_common"]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native"]
   }
 }
 

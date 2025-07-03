@@ -823,7 +823,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetHwcCrossNodeTest, TestSize.Level1)
 
 /**
  * @tc.name: AncestorDisplayNodeTest
- * @tc.desc: SetAncestorDisplayNode and GetAncestorDisplayNode
+ * @tc.desc: SetAncestorScreenNode and GetAncestorScreenNode
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -2737,18 +2737,18 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Lev
 }
 
 /**
- * @tc.name: GetSourceDisplayRenderNodeId
- * @tc.desc: test Set/GetSourceDisplayRenderNodeId.
+ * @tc.name: GetSourceScreenRenderNodeId
+ * @tc.desc: test Set/GetSourceScreenRenderNodeId.
  * @tc.type: FUNC
  * @tc.require: issueIBJJRI
  */
-HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, GetSourceScreenRenderNodeId, TestSize.Level1)
 {
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
-    NodeId sourceDisplayRenderNodeId = 1;
-    testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
-    ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
+    NodeId sourceScreenRenderNodeId = 1;
+    testNode->SetSourceScreenRenderNodeId(sourceScreenRenderNodeId);
+    ASSERT_EQ(testNode->GetSourceScreenRenderNodeId(), sourceScreenRenderNodeId);
 }
 } // namespace Rosen
 } // namespace OHOS
