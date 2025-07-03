@@ -22,6 +22,7 @@ namespace OHOS {
 namespace Rosen {
 enum class RSISurfaceCaptureCallbackInterfaceCode : CodeUnderlyingType {
     ON_SURFACE_CAPTURE,
+    ON_SURFACE_CAPTURE_HDR,
 };
 } // namespace Rosen
 } // namespace OHOS

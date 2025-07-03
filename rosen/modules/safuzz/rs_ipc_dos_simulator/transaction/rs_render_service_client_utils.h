@@ -263,10 +263,12 @@ class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
 public:
     explicit SurfaceCaptureCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
-    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        Media::PixelMap* pixelmapHDR = nullptr) override
     {
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
-        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture);
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
+        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, surfaceCaptureHDR);
     };
 
 private:

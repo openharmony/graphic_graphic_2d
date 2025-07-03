@@ -1933,6 +1933,7 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
+        !data.WriteBool(captureConfig.isHdrCapture) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||

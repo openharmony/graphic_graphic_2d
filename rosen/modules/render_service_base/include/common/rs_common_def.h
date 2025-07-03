@@ -294,6 +294,7 @@ struct RSSurfaceCaptureConfig {
     Drawing::Rect mainScreenRect = {};
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
+    bool isHdrCapture = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
     Drawing::Rect specifiedAreaRect = {};
     uint32_t backGroundColor = Drawing::Color::COLOR_TRANSPARENT;

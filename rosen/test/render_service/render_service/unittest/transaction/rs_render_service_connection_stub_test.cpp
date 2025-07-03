@@ -95,7 +95,7 @@ public:
     RSSurfaceCaptureCallbackStubMock() = default;
     virtual ~RSSurfaceCaptureCallbackStubMock() = default;
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        Media::PixelMap* pixelmap) override {};
+        Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR = nullptr) override {};
 };
 
 void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)

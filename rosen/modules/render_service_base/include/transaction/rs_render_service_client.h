@@ -503,7 +503,7 @@ public:
     bool ProfilerIsSecureScreen();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<Media::PixelMap> pixelmap);
+        std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
     void TriggerTransactionDataCallbackAndErase(int32_t pid, uint64_t timeStamp);

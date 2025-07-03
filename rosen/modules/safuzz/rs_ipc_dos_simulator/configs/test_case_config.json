@@ -1564,7 +1564,7 @@
   {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE",
-    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
+    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC"
   },

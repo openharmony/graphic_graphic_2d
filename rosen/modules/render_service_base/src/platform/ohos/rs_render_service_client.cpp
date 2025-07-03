@@ -237,7 +237,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-    std::shared_ptr<Media::PixelMap> pixelmap)
+    std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR)
 {
     ROSEN_LOGD("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%{public}" PRIu64 "]", id);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
@@ -259,17 +259,30 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSur
             continue;
         }
         std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR = pixelmapHDR;
         if (i != callbackVector.size() - 1) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
                 surfaceCapture = std::move(pixelmapCopy);
             }
+            if (pixelmapHDR != nullptr) {
+                Media::InitializationOptions options;
+                std::unique_ptr<Media::PixelMap> pixelmapCopyHDR = Media::PixelMap::Create(*pixelmapHDR, options);
+                surfaceCaptureHDR = std::move(pixelmapCopyHDR);
+            }
         }
         if (surfaceCapture) {
             surfaceCapture->SetMemoryName("RSSurfaceCaptureForCallback");
         }
-        callbackVector[i]->OnSurfaceCapture(surfaceCapture);
+        if (surfaceCaptureHDR) {
+            surfaceCaptureHDR->SetMemoryName("RSSurfaceCaptureForCallbackHDR");
+        }
+        if (captureConfig.isHdrCapture) {
+            callbackVector[i]->OnSurfaceCaptureHDR(surfaceCapture, surfaceCaptureHDR);
+        } else {
+            callbackVector[i]->OnSurfaceCapture(surfaceCapture);
+        }
     }
 }
 
@@ -278,10 +291,12 @@ class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub
 public:
     explicit SurfaceCaptureCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
-    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        Media::PixelMap* pixelmapHDR = nullptr) override
     {
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
-        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture);
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
+        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, surfaceCaptureHDR);
     };
 
 private:
