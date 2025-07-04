@@ -48,7 +48,7 @@ public:
         std::string sceneId;
         std::set<NodeId> disableNodes;
     };
-    
+
     void AddProcessDoneNode(NodeId id);
     void AddProcessSkippedNode(NodeId id);
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
@@ -60,7 +60,7 @@ public:
     bool NeedNextDrawForSkippedNode();
 
     CacheProcessStatus GetNodeStatus(NodeId id);
-    // judge if surfacenode satisfies async subthread rendering condtions for Uifirstrender
+    // judge if surfacenode satisfies async subthread rendering condtions for Uifirst
     void UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation);
     void UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects);
     void PostUifistSubTasks();
@@ -234,7 +234,7 @@ private:
     bool IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool NeedPurgeByBehindWindow(NodeId id, bool hasTexture,
     const std::shared_ptr<RSSurfaceRenderNode>& node);
-    //filter out the nodes by behind window
+    // filter out the nodes by behind window
     void HandlePurgeBehindWindow(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>::iterator& it,
         std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     // filter out the nodes which need to draw in subthread
