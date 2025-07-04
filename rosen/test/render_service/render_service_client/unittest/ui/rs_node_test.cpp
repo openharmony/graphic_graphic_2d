@@ -6727,7 +6727,6 @@ HWTEST_F(RSNodeTest, ResetExtendModifierDirty, TestSize.Level1)
     EXPECT_EQ(rsNode->extendModifierIsDirty_, false);
 }
 
-
 /**
  * @tc.name: SetIsCustomTypeface
  * @tc.desc: test results of SetIsCustomTypeface
