@@ -765,5 +765,10 @@ bool RSSystemProperties::GetTypicalResidentProcess()
 void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
 {
 }
+
+bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

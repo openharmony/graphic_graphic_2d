@@ -2270,7 +2270,7 @@ bool RSRenderNode::IsAIBarFilter() const
     return filterDrawable->IsAIBarFilter();
 }
 
-bool RSRenderNode::IsAIBarFilterCacheValid() const
+bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 {
 #ifdef RS_ENABLE_GPU
     if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
@@ -2282,7 +2282,7 @@ bool RSRenderNode::IsAIBarFilterCacheValid() const
     if (filterDrawable == nullptr) {
         return false;
     }
-    return filterDrawable->IsAIBarCacheValid();
+    return filterDrawable->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 #endif
 return false;
 }

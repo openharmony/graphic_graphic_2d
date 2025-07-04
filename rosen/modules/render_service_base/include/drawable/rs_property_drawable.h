@@ -140,7 +140,7 @@ public:
     bool NeedPendingPurge() const;
     bool IsSkippingFrame() const;
     bool IsAIBarFilter() const;
-    bool IsAIBarCacheValid();
+    bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage);
     bool WouldDrawLargeAreaBlur();
     bool WouldDrawLargeAreaBlurPrecisely();
 

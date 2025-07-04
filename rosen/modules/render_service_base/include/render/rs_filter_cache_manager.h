@@ -110,7 +110,7 @@ public:
     void MarkFilterRegionInteractWithDirty();
     void MarkForceClearCacheWithLastFrame();
     void MarkFilterRegionIsLargeArea();
-    bool IsAIBarCacheValid();
+    bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage);
     void MarkEffectNode();
     void MarkNeedClearFilterCache(NodeId nodeId);
     bool NeedPendingPurge() const;

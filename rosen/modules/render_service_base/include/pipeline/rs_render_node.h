@@ -642,7 +642,7 @@ public:
 #endif
     bool IsFilterCacheValid() const;
     bool IsAIBarFilter() const;
-    bool IsAIBarFilterCacheValid() const;
+    bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const;
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 

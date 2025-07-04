@@ -495,12 +495,12 @@ bool RSFilterDrawable::IsAIBarFilter() const
     return stagingCacheManager_->GetFilterType() == RSFilter::AIBAR;
 }
 
-bool RSFilterDrawable::IsAIBarCacheValid()
+bool RSFilterDrawable::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
 {
     if (stagingCacheManager_ == nullptr) {
         return false;
     }
-    return stagingCacheManager_->IsAIBarCacheValid();
+    return stagingCacheManager_->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 }
 
 void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)

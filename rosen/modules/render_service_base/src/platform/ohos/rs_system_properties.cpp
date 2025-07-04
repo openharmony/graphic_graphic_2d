@@ -1621,5 +1621,11 @@ bool RSSystemProperties::GetEarlyZEnable()
 {
     return isEnableEarlyZ_;
 }
+
+bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosend.setaibaropt.enabled", 0) != 0;
+    return isAIBarOptEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS
