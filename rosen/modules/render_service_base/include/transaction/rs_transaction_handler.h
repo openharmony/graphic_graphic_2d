@@ -71,10 +71,7 @@ public:
     }
 
 #ifdef RS_ENABLE_VK
-    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
-    {
-        commitTransactionCallback_ = commitTransactionCallback;
-    }
+    static void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
 #endif
 
     void SetSyncId(const uint64_t syncId)
@@ -120,7 +117,7 @@ private:
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
 #ifdef RS_ENABLE_VK
-    CommitTransactionCallback commitTransactionCallback_ = nullptr;
+    static CommitTransactionCallback commitTransactionCallback_;
 #endif
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};

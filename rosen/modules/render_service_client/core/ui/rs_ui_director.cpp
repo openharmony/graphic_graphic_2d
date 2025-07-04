@@ -64,6 +64,9 @@ std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
+#ifdef RS_ENABLE_VK
+static std::once_flag g_initHybridCallback;
+#endif
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -192,7 +195,9 @@ void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commit
     if (rsUIContext_) {
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr) {
-            transaction->SetCommitTransactionCallback(commitTransactionCallback);
+            std::call_once(g_initHybridCallback, [commitTransactionCallback]() {
+                    RSTransactionHandler::SetCommitTransactionCallback(commitTransactionCallback);
+            });
         }
     } else {
         auto transactionProxy = RSTransactionProxy::GetInstance();

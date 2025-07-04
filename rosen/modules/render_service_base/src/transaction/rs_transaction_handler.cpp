@@ -27,6 +27,9 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_VK
+CommitTransactionCallback RSTransactionHandler::commitTransactionCallback_ = nullptr;
+#endif
 void RSTransactionHandler::SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient)
 {
     if (renderThreadClient != nullptr) {
@@ -121,6 +124,13 @@ void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTa
         "RSTransactionHandler::ExecuteSynchronousTask failed, isRenderServiceTask is %{public}d.", isRenderServiceTask);
 }
 
+#ifdef RS_ENABLE_VK
+void RSTransactionHandler::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
+{
+    RSTransactionHandler::commitTransactionCallback_ = commitTransactionCallback;
+}
+#endif
+
 void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
@@ -157,8 +167,8 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     transactionData->token_ = token_;
 #ifdef RS_ENABLE_VK
     transactionData->tid_ = tid;
-    if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
-        commitTransactionCallback_(renderServiceClient_,
+    if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
+        RSTransactionHandler::commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_);
         return;
     }

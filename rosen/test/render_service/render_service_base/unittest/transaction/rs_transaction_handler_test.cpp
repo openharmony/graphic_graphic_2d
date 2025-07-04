@@ -95,7 +95,7 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender002, Test
     CommitTransactionCallback callback =
         [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
         std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {};
-    transaction->SetCommitTransactionCallback(callback);
+    RSTransactionHandler::SetCommitTransactionCallback(callback);
     transaction->FlushImplicitTransaction(timestamp);
 }
 #endif

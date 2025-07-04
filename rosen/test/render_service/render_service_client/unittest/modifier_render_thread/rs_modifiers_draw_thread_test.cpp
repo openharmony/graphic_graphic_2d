@@ -110,7 +110,7 @@ HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction002, TestSize.Level1
     CommitTransactionCallback callback =
         [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
         std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {};
-    transaction->SetCommitTransactionCallback(callback);
+    RSTransactionHandler::SetCommitTransactionCallback(callback);
     transaction->FlushImplicitTransaction(timestamp);
 }
 #endif
