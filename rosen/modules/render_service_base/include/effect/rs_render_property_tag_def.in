@@ -70,7 +70,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Dst, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, FillColor, Vector4f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(PixelMapMask, Image, std::shared_ptr<Media::PixelMap>);
 
-DECLARE_NONANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Contour, std::shared_ptr<RSPath>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Contour, VectorVector2F);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Start, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Length, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Color, Vector4f);

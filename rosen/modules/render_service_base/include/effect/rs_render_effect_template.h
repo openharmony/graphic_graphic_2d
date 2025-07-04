@@ -281,7 +281,7 @@ private:
         const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, std::shared_ptr<RSPath> value);
+        const std::string& desc, const VectorVector2F& value);
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
         const std::string& desc, std::shared_ptr<Media::PixelMap> value);
