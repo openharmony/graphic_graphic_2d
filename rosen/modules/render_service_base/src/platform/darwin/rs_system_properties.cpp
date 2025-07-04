@@ -708,9 +708,9 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
     return false;
 }
 
-int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
-    return 0;
+    return false;
 }
 
 bool RSSystemProperties::ViewDrawNodeType()

@@ -1783,7 +1783,6 @@ public:
      */
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 
-#ifdef RS_ENABLE_VK
     /**
      * @brief Gets whether the canvas enables hybrid rendering.
      *
@@ -1800,7 +1799,6 @@ public:
      * @param hybridRenderCanvas true to enable hybrid rendering; false otherwise.
      */
     virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
-#endif
 
     /**
      * @brief Gets whether the node is on the tree.
@@ -1849,9 +1847,7 @@ protected:
 
     bool drawContentLast_ = false;
 
-#ifdef RS_ENABLE_VK
     bool hybridRenderCanvas_ = false;
-#endif
 
     /**
      * @brief Called when child nodes are added to this node.

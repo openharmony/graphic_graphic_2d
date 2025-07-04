@@ -664,6 +664,13 @@ enum DrawNodeType : uint32_t {
     GeometryPropertyType
 };
 
+enum class ComponentEnableSwitch : uint8_t {
+    TEXTBLOB = 0,
+    SVG,
+    HMSYMBOL,
+    CANVAS,
+    MAX_VALUE,
+};
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H

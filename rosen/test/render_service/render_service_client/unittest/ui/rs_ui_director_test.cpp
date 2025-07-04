@@ -782,6 +782,101 @@ HWTEST_F(RSUIDirectorTest, ReportUiSkipEventTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsHybridRenderEnabled001
+ * @tc.desc: IsHybridRenderEnabled Test with default param
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, IsHybridRenderEnabled001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderEnabled();
+    bool directorRet = director->IsHybridRenderEnabled();
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch001
+ * @tc.desc: GetHybridRenderSwitch Test with normal param ComponentEnableSwitch::TEXTBLOB
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = ComponentEnableSwitch::TEXTBLOB;
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch002
+ * @tc.desc: GetHybridRenderSwitch Test with abnormal param ComponentEnableSwitch::MAX_VALUE
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = ComponentEnableSwitch::MAX_VALUE;
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch003
+ * @tc.desc: GetHybridRenderSwitch Test with abnormal param -1
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = static_cast<ComponentEnableSwitch>(-1);
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch004
+ * @tc.desc: GetHybridRenderSwitch Test with abnormal param ComponentEnableSwitch::MAX_VALUE + 1
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch004, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = static_cast<ComponentEnableSwitch>(
+        static_cast<uint8_t>(ComponentEnableSwitch::MAX_VALUE) + 1);
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderTextBlobLenCount001
+ * @tc.desc: GetHybridRenderTextBlobLenCount Test with default param
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderTextBlobLenCount001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    uint32_t systemPropertiesRet = RSSystemProperties::GetHybridRenderTextBlobLenCount();
+    uint32_t directorRet = director->GetHybridRenderTextBlobLenCount();
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
  * @tc.name: StartTextureExportTest001
  * @tc.desc: StartTextureExport Test
  * @tc.type: FUNC

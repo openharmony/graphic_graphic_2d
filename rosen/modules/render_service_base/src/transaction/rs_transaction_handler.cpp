@@ -25,11 +25,24 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/syscall.h>
+#include <sys/types.h>
+#define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
+
 namespace OHOS {
 namespace Rosen {
-#ifdef RS_ENABLE_VK
 CommitTransactionCallback RSTransactionHandler::commitTransactionCallback_ = nullptr;
-#endif
 void RSTransactionHandler::SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient)
 {
     if (renderThreadClient != nullptr) {
@@ -124,12 +137,10 @@ void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTa
         "RSTransactionHandler::ExecuteSynchronousTask failed, isRenderServiceTask is %{public}d.", isRenderServiceTask);
 }
 
-#ifdef RS_ENABLE_VK
 void RSTransactionHandler::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
 {
     RSTransactionHandler::commitTransactionCallback_ = commitTransactionCallback;
 }
-#endif
 
 void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)
 {
@@ -139,15 +150,11 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
         return;
     }
     timestamp_ = std::max(timestamp, timestamp_);
-#ifdef RS_ENABLE_VK
     thread_local pid_t tid = gettid();
-#endif
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
         implicitCommonTransactionData_->timestamp_ = timestamp_;
         implicitCommonTransactionData_->token_ = token_;
-#ifdef RS_ENABLE_VK
         implicitCommonTransactionData_->tid_ = tid;
-#endif
         implicitCommonTransactionData_->abilityName_ = abilityName;
         renderThreadClient_->CommitTransaction(implicitCommonTransactionData_);
         implicitCommonTransactionData_ = std::make_unique<RSTransactionData>();
@@ -165,14 +172,12 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     std::swap(implicitRemoteTransactionData_, transactionData);
     transactionData->timestamp_ = timestamp_;
     transactionData->token_ = token_;
-#ifdef RS_ENABLE_VK
     transactionData->tid_ = tid;
     if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
         RSTransactionHandler::commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_);
         return;
     }
-#endif
     renderServiceClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
 }
@@ -202,6 +207,8 @@ void RSTransactionHandler::FlushImplicitTransactionFromRT(uint64_t timestamp)
     std::unique_lock<std::mutex> cmdLock(mutexForRT_);
     if (renderServiceClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
         implicitTransactionDataFromRT_->timestamp_ = timestamp;
+        thread_local pid_t tid = gettid();
+        implicitTransactionDataFromRT_->tid_= tid;
         renderServiceClient_->CommitTransaction(implicitTransactionDataFromRT_);
         implicitTransactionDataFromRT_ = std::make_unique<RSTransactionData>();
     }
@@ -274,6 +281,8 @@ void RSTransactionHandler::Commit(uint64_t timestamp)
     if (!implicitRemoteTransactionDataStack_.empty()) {
         if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
+            thread_local pid_t tid = gettid();
+            implicitRemoteTransactionDataStack_.top()->tid_= tid;
             renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
@@ -284,10 +293,12 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t timestamp, const std::
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     timestamp_ = std::max(timestamp, timestamp_);
+    thread_local pid_t tid = gettid();
     if (!implicitCommonTransactionDataStack_.empty()) {
         if (renderThreadClient_ != nullptr && (!implicitCommonTransactionDataStack_.top()->IsEmpty() ||
                                                   implicitCommonTransactionDataStack_.top()->IsNeedSync())) {
             implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
+            implicitCommonTransactionDataStack_.top()->tid_ = tid;
             implicitCommonTransactionDataStack_.top()->abilityName_ = abilityName;
             implicitCommonTransactionDataStack_.top()->SetSyncId(syncId_);
             renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
@@ -299,6 +310,7 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t timestamp, const std::
         if (renderServiceClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
                                                    implicitRemoteTransactionDataStack_.top()->IsNeedSync())) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
+            implicitRemoteTransactionDataStack_.top()->tid_ = tid;
             implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId_);
             renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
