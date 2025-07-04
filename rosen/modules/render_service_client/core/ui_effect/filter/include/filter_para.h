@@ -59,7 +59,8 @@ public:
         DISPERSION,
         HDR_BRIGHTNESS_RATIO,
         CONTENT_LIGHT,
-        MASK_TRANSITION
+        MASK_TRANSITION,
+        DIRECTION_LIGHT,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;

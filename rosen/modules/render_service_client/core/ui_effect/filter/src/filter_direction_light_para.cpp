@@ -75,10 +75,9 @@ bool DirectionLightPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterP
     if (!parcel.ReadBool(hasMask)) {
         RS_LOGE("[ui_effect] DirectionLightPara OnUnmarshalling read hasMask failed");
         return false;
-    } else {
-        if (hasMask) {
-            isSuccess = MaskPara::Unmarshalling(parcel, maskPara);
-        }
+    }
+    if (hasMask) {
+        isSuccess = MaskPara::Unmarshalling(parcel, maskPara);
     }
     isSuccess = isSuccess && parcel.ReadFloat(lightDirection.x_) &&
         parcel.ReadFloat(lightDirection.y_) && parcel.ReadFloat(lightDirection.z_);

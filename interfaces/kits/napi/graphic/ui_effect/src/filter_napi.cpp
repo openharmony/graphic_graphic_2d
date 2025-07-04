@@ -167,6 +167,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("radiusGradientBlur", SetRadiusGradientBlurPara),
         DECLARE_NAPI_FUNCTION("displacementDistort", SetDisplacementDistort),
         DECLARE_NAPI_FUNCTION("edgeLight", SetEdgeLight),
+        DECLARE_NAPI_FUNCTION("directionLight", SetBumpMaskDirectionLight),
         DECLARE_NAPI_FUNCTION("bezierWarp", SetBezierWarp),
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
@@ -945,6 +946,62 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
+napi_value FilterNapi::SetBumpMaskDirectionLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetBumpMaskDirectionLight failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetBumpMaskDirectionLight failed, is not system app");
+        return nullptr;
+    }
+    static const size_t minArgc = NUM_3;
+    static const size_t maxArgc = NUM_4;
+    size_t realArgc = maxArgc;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[maxArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight parsing input fail"));
+
+    auto para = std::make_shared<DirectionLightPara>();
+
+    Vector3f lightDirection = Vector3f(0.0f, 0.0f, 0.0f);
+    if (!ParseJsVector3f(env, argv[NUM_0], lightDirection)) {
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight parse lightDirection fail");
+        return thisVar;
+    }
+    para->SetLightDirection(lightDirection);
+
+    Vector4f lightColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+    if (!ParseJsRGBAColor(env, argv[NUM_1], lightColor)) {
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight parse lightColor fail");
+        return thisVar;
+    }
+    para->SetLightColor(lightColor);
+
+    float lightIntensity = 0.f;
+    lightIntensity = GetSpecialValue(env, argv[NUM_2]);
+    para->SetLightIntensity(lightIntensity);
+
+    if (realArgc == NUM_4) {
+        Mask* mask = nullptr;
+        status = napi_unwrap(env, argv[NUM_3], reinterpret_cast<void**>(&mask));
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, thisVar,
+            FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight unwrap mask fail"));
+        para->SetMask(mask->GetMaskPara());
+    }
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, thisVar,
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight unwrap filterObj fail"));
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
 napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info info)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
@@ -1050,6 +1107,7 @@ void FilterNapi::RegisterFilterParaUnmarshallingCallback()
     DisplacementDistortPara::RegisterUnmarshallingCallback();
     MaskTransitionPara::RegisterUnmarshallingCallback();
     WaterRipplePara::RegisterUnmarshallingCallback();
+    DirectionLightPara::RegisterUnmarshallingCallback();
 }
 
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)

@@ -196,6 +196,7 @@ template("render_service_client_source_set") {
       "core/ui_effect/effect/src/visual_effect_unmarshalling_singleton.cpp",
       "core/ui_effect/effect/src/visual_effect.cpp",
       "core/ui_effect/filter/src/filter_content_light_para.cpp",
+      "core/ui_effect/filter/src/filter_direction_light_para.cpp",
       "core/ui_effect/filter/src/filter_dispersion_para.cpp",
       "core/ui_effect/filter/src/filter_displacement_distort_para.cpp",
       "core/ui_effect/filter/src/filter_mask_transition_para.cpp",

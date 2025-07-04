@@ -95,6 +95,13 @@ DECLARE_FILTER(BezierWarp, BEZIER_WARP,
     ADD_PROPERTY_TAG(BezierWarp, ControlPoint11)
 );
 
+DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
+    ADD_PROPERTY_TAG(DirectionLight, Mask),
+    ADD_PROPERTY_TAG(DirectionLight, Direction),
+    ADD_PROPERTY_TAG(DirectionLight, Color),
+    ADD_PROPERTY_TAG(DirectionLight, Intensity)
+);
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER
 

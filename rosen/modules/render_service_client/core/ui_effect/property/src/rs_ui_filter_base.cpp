@@ -91,7 +91,7 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
 std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
-    if (filter == nullptr) {
+    if (filter == nullptr || filterPara == nullptr) {
         return nullptr;
     }
     auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
