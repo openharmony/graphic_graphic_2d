@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 using namespace UIEffect;
-CJVisualEffect::CJVisualEffect(int32_t *errCode)
+CJVisualEffect::CJVisualEffect(int32_t* errCode)
 {
     std::shared_ptr<VisualEffect> effectObj = std::make_shared<VisualEffect>();
     if (effectObj == nullptr) {
@@ -28,5 +28,5 @@ CJVisualEffect::CJVisualEffect(int32_t *errCode)
     }
     m_EffectObj = effectObj;
 }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

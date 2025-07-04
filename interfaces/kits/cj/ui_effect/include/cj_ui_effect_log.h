@@ -38,6 +38,6 @@ const int32_t CJ_ERR_NULL_PTR = -2;
 #define FILTER_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define FILTER_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 #endif
-}
-}
+} // namespace Rosen
+} // namespace OHOS
 #endif

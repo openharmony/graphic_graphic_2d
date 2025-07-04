@@ -17,7 +17,7 @@
 namespace OHOS {
 namespace Rosen {
 using namespace UIEffect;
-CJFilter::CJFilter(int32_t *errCode)
+CJFilter::CJFilter(int32_t* errCode)
 {
     std::shared_ptr<Filter> filterObj = std::make_shared<Filter>();
     if (filterObj == nullptr) {
@@ -26,10 +26,9 @@ CJFilter::CJFilter(int32_t *errCode)
         return;
     }
     m_FilterObj = filterObj;
-    SetBlur(0.0, errCode);
 }
 
-void CJFilter::SetBlur(float blur, int32_t *errCode)
+void CJFilter::SetBlur(float blur, int32_t* errCode)
 {
     if (m_FilterObj == nullptr) {
         *errCode = CJ_ERR_NULL_PTR;
@@ -43,5 +42,5 @@ void CJFilter::SetBlur(float blur, int32_t *errCode)
     para->SetRadius(blur);
     m_FilterObj->AddPara(para);
 }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

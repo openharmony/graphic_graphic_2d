@@ -15,12 +15,10 @@
 #ifndef CJ_VISUAL_EFFECT_H
 #define CJ_VISUAL_EFFECT_H
 
-#include <iostream>
-#include <cstdint>
-#include <vector>
 #include "cj_common_ffi.h"
-#include "ffi_remote_data.h"
 #include "cj_ui_effect_log.h"
+#include "ffi_remote_data.h"
+
 #include "effect/include/background_color_effect_para.h"
 #include "effect/include/blender.h"
 #include "effect/include/brightness_blender.h"
@@ -32,12 +30,13 @@ namespace Rosen {
 class CJVisualEffect : public OHOS::FFI::FFIData {
     DECL_TYPE(CJVisualEffect, OHOS::FFI::FFIData)
 public:
-    explicit CJVisualEffect(int32_t *errCode);
+    explicit CJVisualEffect(int32_t* errCode);
     virtual ~CJVisualEffect() override = default;
+
 private:
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };
-}
-}
+} // namespace Rosen
+} // namespace OHOS
 
 #endif

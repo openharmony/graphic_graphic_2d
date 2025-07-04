@@ -12,44 +12,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <hilog/log.h>
-#include <iostream>
-#include <cstdint>
-#include <vector>
 #include "cj_common_ffi.h"
-#include "ffi_remote_data.h"
-#include "cj_visual_effect.h"
 #include "cj_filter.h"
 #include "cj_ui_effect_log.h"
+#include "cj_visual_effect.h"
+#include "ffi_remote_data.h"
 
 extern "C" {
-    FFI_EXPORT int64_t FfiOHOSUiEffectCreateEffect(int32_t* errCode)
-    {
-        auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJVisualEffect>(errCode);
-        if (instance == nullptr) {
-            *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
-            return 0;
-        }
-        return instance->GetID();
+FFI_EXPORT int64_t FfiOHOSUiEffectCreateEffect(int32_t* errCode)
+{
+    auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJVisualEffect>(errCode);
+    if (instance == nullptr) {
+        *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
+        return 0;
     }
+    return instance->GetID();
+}
 
-    FFI_EXPORT int64_t FfiOHOSUiEffectCreateFilter(int32_t* errCode)
-    {
-        auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJFilter>(errCode);
-        if (instance == nullptr) {
-            *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
-            return 0;
-        }
-        return instance->GetID();
+FFI_EXPORT int64_t FfiOHOSUiEffectCreateFilter(int32_t* errCode)
+{
+    auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJFilter>(errCode);
+    if (instance == nullptr) {
+        *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
+        return 0;
     }
+    return instance->GetID();
+}
 
-    FFI_EXPORT void FfiOHOSUiEffectSetBlur(int64_t id, float blur, int32_t* errCode)
-    {
-        auto instance = OHOS::FFI::FFIData::GetData<OHOS::Rosen::CJFilter>(id);
-        if (instance == nullptr) {
-            *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
-            return;
-        }
-        instance->SetBlur(blur, errCode);
+FFI_EXPORT void FfiOHOSUiEffectSetBlur(int64_t id, float blur, int32_t* errCode)
+{
+    auto instance = OHOS::FFI::FFIData::GetData<OHOS::Rosen::CJFilter>(id);
+    if (instance == nullptr) {
+        *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
+        return;
     }
+    instance->SetBlur(blur, errCode);
+}
 }

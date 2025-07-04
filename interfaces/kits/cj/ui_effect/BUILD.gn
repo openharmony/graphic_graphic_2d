@@ -30,9 +30,9 @@ ohos_shared_library("cj_ui_effect_ffi") {
   ]
 
   sources = [
-    "src/ui_effect_ffi.cpp",
+    "src/cj_filter.cpp",
     "src/cj_visual_effect.cpp",
-    "src/cj_filter.cpp"
+    "src/ui_effect_ffi.cpp",
   ]
 
   deps = [
@@ -42,10 +42,8 @@ ohos_shared_library("cj_ui_effect_ffi") {
 
   external_deps = [
     "bundle_framework:appexecfwk_core",
-    "bundle_framework:cj_bundle_manager_ffi",
     "c_utils:utils",
     "hilog:libhilog",
-    "napi:ace_napi",
     "image_framework:cj_image_ffi",
     "image_framework:image_native",
     "napi:cj_bind_ffi",
@@ -60,6 +58,7 @@ ohos_shared_library("cj_ui_effect_ffi") {
 
   cflags_cc = [ "-std=c++17" ]
 
+  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
