@@ -723,7 +723,7 @@ bool VSyncGenerator::NeedPreexecuteAndUpdateTs(
     return false;
 }
 
-VsyncError VSyncGenerator::AddListener(int64_t phase,
+VsyncError VSyncGenerator::AddListener(
     const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, bool isRS, bool isUrgent)
 {
     ScopedBytrace func("AddListener");
@@ -739,7 +739,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase,
         }
     }
     Listener listener;
-    listener.phase_ = phase;
+    listener.phase_ = cb->GetPhaseOffset();
     listener.callback_ = cb;
     listener.lastTime_ = isUrgent ? SystemTime() : SystemTime() - period_ + phase_;
     listener.isRS_ = isRS;

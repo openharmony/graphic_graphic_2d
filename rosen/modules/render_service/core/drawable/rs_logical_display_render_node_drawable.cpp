@@ -862,8 +862,7 @@ void RSLogicalDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
 void RSLogicalDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
 {
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-    RS_LOGI("RSLogicalDisplayRenderNodeDrawable::SetCanvasBlack, set canvas to black"
-        "because of security layer/mute status.");
+    RS_LOGI("DisplayDrawable::SetCanvasBlack");
     curCanvas_->SetDisableFilterCache(false);
 }
 

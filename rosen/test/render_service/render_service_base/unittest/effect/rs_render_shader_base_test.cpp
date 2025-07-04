@@ -66,20 +66,20 @@ HWTEST_F(RSNGRenderShaderBaseTest, Create002, TestSize.Level1)
 
 /**
  * @tc.name: GetShaderTypeString001
- * @tc.desc: Test GetShaderTypeString by valid type and unknown type
+ * @tc.desc: Test GetEffectTypeString by valid type and unknown type
  * @tc.type: FUNC
  */
 HWTEST_F(RSNGRenderShaderBaseTest, GetShaderTypeString001, TestSize.Level1)
 {
     // Valid types
-    EXPECT_EQ(RSNGRenderShaderHelper::GetShaderTypeString(RSNGEffectType::INVALID), "Invalid");
-    EXPECT_EQ(RSNGRenderShaderHelper::GetShaderTypeString(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT),
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::INVALID), "Invalid");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT),
         "ContourDiagonalFlowLight");
-    EXPECT_EQ(RSNGRenderShaderHelper::GetShaderTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT), "WavyRippleLight");
-    EXPECT_EQ(RSNGRenderShaderHelper::GetShaderTypeString(RSNGEffectType::AURORA_NOISE), "AuroraNoise");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT), "WavyRippleLight");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::AURORA_NOISE), "AuroraNoise");
     // Unknown type
     RSNGEffectType unknownType = static_cast<RSNGEffectType>(999); // 999 is random value
-    EXPECT_EQ(RSNGRenderShaderHelper::GetShaderTypeString(unknownType), "UNKNOWN");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(unknownType), "UNKNOWN");
 }
 
 /**
@@ -96,7 +96,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, Dump001, TestSize.Level1)
     shader->Dump(out);
 
     // Should contain the type name followed by ": "
-    std::string typeName = RSNGRenderShaderHelper::GetShaderTypeString(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    std::string typeName = RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
     EXPECT_NE(out.find(typeName + ": "), std::string::npos);
 }
 
@@ -120,7 +120,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, Dump002, TestSize.Level1)
     // Chained output should contain ", " separator
     EXPECT_NE(out.find(", "), std::string::npos);
     // And include the next effect's type name
-    std::string nextName = RSNGRenderShaderHelper::GetShaderTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT);
+    std::string nextName = RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT);
     EXPECT_NE(out.find(nextName), std::string::npos);
 }
 
@@ -134,11 +134,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, AppendToGEContainerTest, TestSize.Level1)
     std::shared_ptr<Drawing::GEVisualEffectContainer> nullContainer = nullptr;
     std::string name = "ge1";
     auto shader = std::make_shared<Drawing::GEVisualEffect>(name);
-    RSNGRenderShaderHelper::AppendToGEContainer(nullContainer, shader);
+    RSNGRenderEffectHelper::AppendToGEContainer(nullContainer, shader);
     SUCCEED();
 
     auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
-    RSNGRenderShaderHelper::AppendToGEContainer(container, shader);
+    RSNGRenderEffectHelper::AppendToGEContainer(container, shader);
 
     EXPECT_EQ(container->filterVec_.size(), 1u);
     EXPECT_EQ(container->filterVec_[0], shader);

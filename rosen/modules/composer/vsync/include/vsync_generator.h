@@ -42,6 +42,7 @@ public:
         virtual void OnPhaseOffsetChanged(int64_t phaseOffset) = 0;
         /* std::pair<id, refresh rate> */
         virtual void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) = 0;
+        virtual int64_t GetPhaseOffset() = 0;
     };
     struct ListenerRefreshRateData {
         sptr<OHOS::Rosen::VSyncGenerator::Callback> cb = nullptr;
@@ -56,7 +57,7 @@ public:
     virtual ~VSyncGenerator() noexcept = default;
     virtual VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) = 0;
     virtual VsyncError AddListener(
-        int64_t phase, const sptr<Callback>& cb, bool isRS = false, bool isUrgent = false) = 0;
+        const sptr<Callback>& cb, bool isRS = false, bool isUrgent = false) = 0;
     virtual VsyncError RemoveListener(const sptr<Callback>& cb) = 0;
     virtual VsyncError ChangePhaseOffset(const sptr<Callback>& cb, int64_t offset) = 0;
     virtual bool IsEnable() = 0;
@@ -112,7 +113,7 @@ public:
     VSyncGenerator &operator=(const VSyncGenerator &) = delete;
     VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) override;
     VsyncError AddListener(
-        int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, bool isRS, bool isUrgent) override;
+        const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, bool isRS, bool isUrgent) override;
     VsyncError RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError ChangePhaseOffset(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, int64_t offset) override;
     bool IsEnable() override;

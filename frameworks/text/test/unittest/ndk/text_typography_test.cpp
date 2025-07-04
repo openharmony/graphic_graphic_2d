@@ -4808,4 +4808,36 @@ HWTEST_F(NdkTypographyTest, TypographyVerticalTest002, TestSize.Level0)
     EXPECT_FALSE(
         ComparePlaceholderRectsBetweenTwoParagraphs(typographyWithPlaceholder, followTypographyWithPlaceholder));
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceExceedMaxLinesTest
+ * @tc.desc: Test for balance strategy exceed maxLines interface when layout line count equal to max line count
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyBalanceStrategy001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 1);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 16
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 16);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "测试: Balance exceed maxLines test";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    EXPECT_FALSE(OH_Drawing_TypographyDidExceedMaxLines(typography));
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
 } // namespace OHOS

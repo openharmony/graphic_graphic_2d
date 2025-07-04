@@ -1318,6 +1318,32 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckNeedUpdateAppOffset, Function | SmallTest
 }
 
 /**
+ * @tc.name: TestCheckForceUpdateCallback
+ * @tc.desc: Verify the result of CheckForceUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestCheckForceUpdateCallback, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.InitTouchManager();
+    mgr.needForceUpdateUniRender_ = true;
+    mgr.currRefreshRate_.store(OLED_120_HZ);
+    mgr.CheckForceUpdateCallback(OLED_60_HZ);
+    EXPECT_EQ(mgr.needForceUpdateUniRender_, true);
+
+    mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) {};
+    mgr.CheckForceUpdateCallback(OLED_60_HZ);
+    mgr.CheckForceUpdateCallback(OLED_120_HZ);
+
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.needForceUpdateUniRender_, false);
+    mgr.CheckForceUpdateCallback(OLED_120_HZ);
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+}
+
+/**
  * @tc.name: TestHandleTouchEvent
  * @tc.desc: Verify the result of HandleTouchEvent
  * @tc.type: FUNC
@@ -1342,6 +1368,18 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, TOUCH_BUTTON_UP, 1);
+    
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_BEGIN, 1);
+
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_UPDATE, 1);
+ 
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_END, 1);
 
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
@@ -1350,6 +1388,46 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
     sleep(1);
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
+}
+
+/**
+ * @tc.name: TestHandlePointerTask
+ * @tc.desc: Verify the result of HandlePointerTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    pid_t pid = DEFAULT_PID + 1;
+    int32_t pointerStatus = AXIS_BEGIN;
+    std::string pkg0 = "com.wedobest.fivechess.harm:1002:10110";
+    std::string pkg1 = "com.undefined.pkg:10020:-1";
+
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+    EXPECT_TRUE(mgr.cleanPidCallback_[pid].count(CleanPidCallbackType::TOUCH_EVENT) > 0);
+
+    pid = DEFAULT_PID;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    pointerStatus = AXIS_UPDATE;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    pointerStatus = AXIS_END;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.pkgs_ = {pkg0};
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.pkgs_ = {pkg1};
+    mgr.multiAppStrategy_.strategyConfigMapCache_[mgr.multiAppStrategy_.screenSettingCache_.strategy]
+        .pointerMode = PointerModeType::POINTER_DISENABLED;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.screenSettingCache_.strategy = "undefined";
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+    mgr.pointerManager_.ChangeState(PointerState::POINTER_IDLE_STATE);
+    sleep(1);
 }
 
 /**
@@ -1397,6 +1475,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level0)
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     mgr.voterTouchEffective_ = true;
     mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
     EXPECT_EQ(mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second, true);
 }
 

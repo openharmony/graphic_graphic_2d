@@ -31,6 +31,8 @@ ohos_fuzztest("VsyncConnectionFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "vsyncconnection_fuzzer.cpp" ]
   deps = [

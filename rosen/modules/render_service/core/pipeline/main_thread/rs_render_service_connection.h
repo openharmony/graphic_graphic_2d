@@ -394,7 +394,7 @@ private:
 
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;

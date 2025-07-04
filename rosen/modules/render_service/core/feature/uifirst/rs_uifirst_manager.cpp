@@ -1188,7 +1188,7 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         }
         support = false;
     }
-    RS_TRACE_NAME_FMT("uifirst_node support:%d, canvasNodeNum:%d, mainwindowNum:%d, startingWindow:%d",
+    RS_TRACE_NAME_FMT("uifirst_node support:%d, canvasNodeNum:%d, mainwindowNum:%d, hasStartingWindow:%d",
         support, canvasNodeNum, mainwindowNum, startingWindow != nullptr);
     if (support && canvasNodeNum == 1 && mainwindowNum > 0 && startingWindow) { // starting window & appwindow
         startingWindow->SetStartingWindowFlag(true);
@@ -1199,6 +1199,18 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         }
         return INVALID_NODEID;
     }
+}
+
+bool RSUifirstManager::HasStartingWindow(RSSurfaceRenderNode& node)
+{
+    auto startingWindowId = LeashWindowContainMainWindowAndStarting(node);
+    if (startingWindowId != INVALID_NODEID) { // has starting window
+        node.SetUifirstUseStarting(startingWindowId);
+        // block first frame callback
+        NotifyUIStartingWindow(node.GetId(), true);
+        return true;
+    }
+    return false;
 }
 
 void RSUifirstManager::AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node)
@@ -1747,7 +1759,11 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
-        ProcessFirstFrameCache(node, MultiThreadCacheType::LEASH_WINDOW);
+        if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE && HasStartingWindow(node)) {
+            UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        } else {
+            ProcessFirstFrameCache(node, MultiThreadCacheType::LEASH_WINDOW);
+        }
         return;
     }
     if (RSUifirstManager::IsNonFocusWindowCache(node, ancestorNodeHasAnimation)) {

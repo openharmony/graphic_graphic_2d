@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr float INCH_2_MM = 25.4f;
+static constexpr auto sendConsecutiveEventInterval = std::chrono::milliseconds(1000);
 }
 
 RSFrameRatePolicy* RSFrameRatePolicy::GetInstance()
@@ -134,14 +135,22 @@ bool RSFrameRatePolicy::GetTouchOrPointerAction(int32_t pointerAction)
     if (pointerAction == TOUCH_CANCEL || pointerAction == TOUCH_DOWN ||
         pointerAction == TOUCH_UP || pointerAction == TOUCH_BUTTON_DOWN ||
         pointerAction == TOUCH_BUTTON_UP || pointerAction == TOUCH_PULL_DOWN ||
-        pointerAction == TOUCH_PULL_UP) {
+        pointerAction == TOUCH_PULL_UP || pointerAction == AXIS_BEGIN ||
+        pointerAction == AXIS_END) {
         return true;
     }
     if (pointerAction == TOUCH_MOVE || pointerAction == TOUCH_PULL_MOVE) {
-        constexpr auto sendMoveDuration = std::chrono::milliseconds(1000);
         auto now = std::chrono::steady_clock::now();
-        if (now - sendMoveTime_ >= sendMoveDuration) {
+        if (now - sendMoveTime_ >= sendConsecutiveEventInterval) {
             sendMoveTime_ = now;
+            return true;
+        }
+        return false;
+    }
+    if (pointerAction == AXIS_UPDATE) {
+        auto now = std::chrono::steady_clock::now();
+        if (now - sendAxisUpdateTime_ >= sendConsecutiveEventInterval) {
+            sendAxisUpdateTime_ = now;
             return true;
         }
         return false;

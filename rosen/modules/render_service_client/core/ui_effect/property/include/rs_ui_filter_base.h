@@ -50,7 +50,8 @@ DECLARE_FILTER(Blur, BLUR,
 );
 
 DECLARE_FILTER(DispDistort, DISPLACEMENT_DISTORT,
-    ADD_PROPERTY_TAG(DispDistort, Factor)
+    ADD_PROPERTY_TAG(DispDistort, Factor),
+    ADD_PROPERTY_TAG(DispDistort, Mask)
 );
 
 DECLARE_FILTER(SoundWave, SOUND_WAVE,

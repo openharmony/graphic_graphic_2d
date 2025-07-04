@@ -628,6 +628,8 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::SHADOW))) {
         dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
+        // adapt to USE_SHADOW_BATCHING
+        dirtySlots.emplace(RSDrawableSlot::CHILDREN);
     }
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::FRAME))) {

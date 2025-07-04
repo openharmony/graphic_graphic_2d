@@ -2227,18 +2227,19 @@ class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
     explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
-    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
         RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
-        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+        client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }
 
 private:
     RSRenderServiceClient* client_;
 };
 
-bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+bool RSRenderServiceClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+    std::function<void()> callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -2251,8 +2252,8 @@ bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_
     }
     {
         std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
-        if (transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)) == std::end(transactionDataCallbacks_)) {
-            transactionDataCallbacks_.emplace(std::make_pair(pid, timeStamp), callback);
+        if (transactionDataCallbacks_.find(std::make_pair(token, timeStamp)) == std::end(transactionDataCallbacks_)) {
+            transactionDataCallbacks_.emplace(std::make_pair(token, timeStamp), callback);
         } else {
             ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback callback exists"
                 " in timeStamp %{public}s", std::to_string(timeStamp).c_str());
@@ -2263,17 +2264,17 @@ bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_
         }
     }
     RS_LOGD("RSRenderServiceClient::RegisterTransactionDataCallback, timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
-    renderService->RegisterTransactionDataCallback(pid, timeStamp, transactionDataCbDirector_);
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    renderService->RegisterTransactionDataCallback(token, timeStamp, transactionDataCbDirector_);
     return true;
 }
 
-void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(int32_t pid, uint64_t timeStamp)
+void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp)
 {
     std::function<void()> callback = nullptr;
     {
         std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
-        auto iter = transactionDataCallbacks_.find(std::make_pair(pid, timeStamp));
+        auto iter = transactionDataCallbacks_.find(std::make_pair(token, timeStamp));
         if (iter != std::end(transactionDataCallbacks_)) {
             callback = iter->second;
             transactionDataCallbacks_.erase(iter);
@@ -2281,7 +2282,7 @@ void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(int32_t pid, 
     }
     if (callback) {
         RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         std::invoke(callback);
     }
 }

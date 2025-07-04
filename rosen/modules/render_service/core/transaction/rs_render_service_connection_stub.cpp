@@ -3611,7 +3611,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK): {
-            auto pid = data.ReadInt32();
+            uint64_t token = data.ReadUint64();
             uint64_t timeStamp = data.ReadUint64();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -3627,8 +3627,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RS_LOGD("RSRenderServiceConnectionStub: already decode unicode, timeStamp: %{public}"
-                PRIu64 " pid: %{public}d", timeStamp, pid);
-            RegisterTransactionDataCallback(pid, timeStamp, callback);
+                PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+            RegisterTransactionDataCallback(token, timeStamp, callback);
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

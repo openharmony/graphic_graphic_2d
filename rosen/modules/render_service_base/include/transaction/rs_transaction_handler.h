@@ -40,6 +40,7 @@ using CommitTransactionCallback =
 class RSB_EXPORT RSTransactionHandler final {
 public:
     RSTransactionHandler() = default;
+    RSTransactionHandler(uint64_t token) : token_(token) {}
     virtual ~RSTransactionHandler() = default;
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
@@ -113,6 +114,7 @@ private:
     std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
+    uint64_t token_ = 0;
 
     bool needSync_ { false };
     uint64_t syncId_ { 0 };

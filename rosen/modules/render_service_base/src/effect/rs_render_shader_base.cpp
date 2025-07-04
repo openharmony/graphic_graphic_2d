@@ -21,7 +21,6 @@
 #include "ge_visual_effect_container.h"
 #include "effect/rs_render_mask_base.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_path.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -45,53 +44,6 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
         }
     }
 };
-
-std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderShaderHelper::CreateGEFilter(RSNGEffectType type)
-{
-    return std::make_shared<Drawing::GEVisualEffect>(GetShaderTypeString(type), Drawing::DrawingPaintType::BRUSH);
-}
-
-void RSNGRenderShaderHelper::AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge,
-    std::shared_ptr<Drawing::GEVisualEffect> geShader)
-{
-    if (ge == nullptr) {
-        return;
-    }
-    ge->AddToChainedFilter(geShader);
-}
-
-void RSNGRenderShaderHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, float value)
-{
-    geFilter->SetParam(desc, value);
-}
-
-void RSNGRenderShaderHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const Vector4f& value)
-{
-    geFilter->SetParam(desc, value);
-}
-
-void RSNGRenderShaderHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const std::shared_ptr<RSPath> value)
-{
-    if (value == nullptr) {
-        return;
-    }
-    geFilter->SetParam(desc, std::make_shared<Drawing::Path>(value->GetDrawingPath()));
-}
-
-void RSNGRenderShaderHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const Vector2f& value)
-{
-    geFilter->SetParam(desc, std::make_pair(value.x_, value.y_));
-}
-
-void RSNGRenderShaderHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value)
-{
-    geFilter->SetParam(desc, value->GenerateGEShaderMask());
-}
 
 std::shared_ptr<RSNGRenderShaderBase> RSNGRenderShaderBase::Create(RSNGEffectType type)
 {
@@ -138,9 +90,9 @@ void RSNGRenderShaderBase::Dump(std::string& out) const
     std::string descStr = ": ";
     std::string splitStr = ", ";
 
-    out += RSNGRenderShaderHelper::GetShaderTypeString(GetType());
+    out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
     out += descStr;
-    DumpProperty(out);
+    DumpProperties(out);
     if (nextEffect_) {
         out += splitStr;
         nextEffect_->Dump(out);

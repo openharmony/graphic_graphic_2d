@@ -4290,7 +4290,6 @@ float RSRenderNode::GetHDRBrightness() const
 {
 #if defined(MODIFIER_NG)
     if (modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::HDR_BRIGHTNESS)].empty()) {
-        RS_LOGD("RSRenderNode::GetHDRBrightness drawCmdModifiers find failed");
         return 1.0f; // 1.0f make sure HDR video is still HDR state if RSNode::SetHDRBrightness not called
     }
     auto modifier = modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::HDR_BRIGHTNESS)].back();
@@ -4298,7 +4297,6 @@ float RSRenderNode::GetHDRBrightness() const
 #else
     auto itr = drawCmdModifiers_.find(RSModifierType::HDR_BRIGHTNESS);
     if (itr == drawCmdModifiers_.end() || itr->second.empty()) {
-        RS_LOGD("RSRenderNode::GetHDRBrightness drawCmdModifiers find failed");
         return 1.0f; // 1.0f make sure HDR video is still HDR state if RSNode::SetHDRBrightness not called
     }
     const auto& modifier = itr->second.back();

@@ -15,11 +15,14 @@
 
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 
+#include <unordered_set>
+
 #include "platform/common/rs_log.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGFilterBase"
@@ -62,6 +65,7 @@ std::shared_ptr<RSNGFilterBase> ConvertDisplacementDistortFilterPara(std::shared
     auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
     auto dispDistortFilterPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
     dispDistortFilter->Setter<DispDistortFactorTag>(dispDistortFilterPara->GetFactor());
+    dispDistortFilter->Setter<DispDistortMaskTag>(RSNGMaskBase::Create(dispDistortFilterPara->GetMask()));
     return dispDistortFilter;
 }
 
@@ -96,6 +100,15 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(std::shared_ptr<FilterPara> filterPara)
 {
     if (!filterPara) {
+        return nullptr;
+    }
+
+    // Disable temporarily, enable after full verification
+    static std::unordered_set<FilterPara::ParaType> forceDisableTypes = {
+        FilterPara::ParaType::DISPLACEMENT_DISTORT,
+        FilterPara::ParaType::EDGE_LIGHT,
+    };
+    if (forceDisableTypes.find(filterPara->GetParaType()) != forceDisableTypes.end()) {
         return nullptr;
     }
 
