@@ -49,6 +49,8 @@ public:
 
     void SetColor(const Vector4f& color);
 
+    void SetRawColor(bool useRawColor);
+
     void SetMask(const std::shared_ptr<RSUIMaskPara>& mask);
 
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter() override;
@@ -74,6 +76,7 @@ private:
     bool CreateRSRenderFilterAlpha(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
     bool CreateRSRenderFilterBloom(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
     bool CreateRSRenderFilterColor(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
+    bool CreateRSRenderFilterUseRawColor(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
     bool CreateRSRenderFilterMask(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
 };
 

@@ -73,8 +73,11 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     }
     auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
     auto edgeLightFilterPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
-    edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor().value_or(Vector4f()));
+    edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor());
     edgeLightFilter->Setter<EdgeLightAlphaTag>(edgeLightFilterPara->GetAlpha());
+    edgeLightFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(edgeLightFilterPara->GetMask()));
+    edgeLightFilter->Setter<EdgeLightBloomTag>(edgeLightFilterPara->GetBloom());
+    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(edgeLightFilterPara->GetUseRawColor());
     return edgeLightFilter;
 }
 }

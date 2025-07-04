@@ -136,6 +136,9 @@ enum class RSUIFilterType : int16_t {
     LIGHT_POSITION,
     LIGHT_COLOR,
     LIGHT_INTENSITY,
+
+    // edge light if use raw color value type
+    EDGE_LIGHT_USE_RAW_COLOR, // bool
 };
 
 using RSUIFilterTypeUnderlying = std::underlying_type<RSUIFilterType>::type;

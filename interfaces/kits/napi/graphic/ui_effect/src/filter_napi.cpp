@@ -865,6 +865,8 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
     Vector4f color;
     if (realArgc >= NUM_2 && ParseJsRGBAColor(env, argv[NUM_1], color)) {
         para->SetColor(color);
+    } else {
+        para->SetUseRawColor(true);
     }
 
     Mask* mask = nullptr;

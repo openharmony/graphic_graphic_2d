@@ -29,7 +29,8 @@ namespace Rosen {
 struct EdgeLightShaderFilterParams {
     float alpha{ 0.f };
     bool bloom{ true };
-    std::optional<Vector4f> color{ std::nullopt };
+    Vector4f color;
+    bool useRawColor{ true };
     std::shared_ptr<RSShaderMask> mask{ nullptr };
 };
 
@@ -44,7 +45,8 @@ public:
 private:
     float alpha_{ 0.f };
     bool bloom_{ true };
-    std::optional<Vector4f> color_{ std::nullopt };
+    Vector4f color_;
+    bool useRawColor_ {true};
     std::shared_ptr<RSShaderMask> mask_{ nullptr };
 };
 } // Rosen
