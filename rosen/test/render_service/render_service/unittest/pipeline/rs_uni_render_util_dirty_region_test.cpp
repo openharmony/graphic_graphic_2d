@@ -394,7 +394,10 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleAdvancedDirtyRegionTest004,
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
     ASSERT_NE(drawable, nullptr);
-    drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto param = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(param, nullptr);
+    param->isLeashorMainWindow_ = true;
+    drawable->renderParams_ = std::move(param);
     auto surfaceDrawable =
         std::shared_ptr<RSSurfaceRenderNodeDrawable>(static_cast<RSSurfaceRenderNodeDrawable*>(drawable));
     ASSERT_NE(surfaceDrawable, nullptr);

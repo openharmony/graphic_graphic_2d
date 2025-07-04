@@ -323,7 +323,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleAdvancedDirtyRegion(
                 "dirty manager is nullptr", surfaceNodeDrawable->GetId());
             continue;
         }
-        if (!surfaceParams->IsAppWindow()) {
+        if (!surfaceParams->IsLeashOrMainWindow()) {
             continue;
         }
         //for cross-display surface, only consider the dirty region on the first display (use global dirty for others).
