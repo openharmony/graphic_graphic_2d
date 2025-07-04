@@ -24,10 +24,10 @@ namespace ColorManager {
 static const std::string COLOR_SPACE_MANAGER_CLS_NAME =
     "L@ohos/graphics/colorSpaceManager/colorSpaceManager/ColorSpaceManagerInner;";
 static const std::string DOUBLE_CLS_NAME = "Lstd/core/Double;";
-static const int32_t INVALID_PARAMETER = 401;
-static const int32_t ABNORMAL_PARAMETER = 18600001;
+static const ani_double INVALID_PARAMETER = 401;
+static const ani_double ABNORMAL_PARAMETER = 18600001;
 
-static ani_error CreateAniError(ani_env* env, std::string&& errMsg, int32_t code)
+static ani_error CreateAniError(ani_env* env, std::string&& errMsg, ani_double code)
 {
     if (!env) {
         return nullptr;
@@ -52,11 +52,11 @@ static ani_error CreateAniError(ani_env* env, std::string&& errMsg, int32_t code
         ACMLOGE("AniError, Cannot create ani error object.");
         return nullptr;
     }
-    if (ANI_OK != env->Object_SetFieldByName_Double(errObj, "code", static_cast<ani_double>(code))) {
+    if (ANI_OK != env->Object_SetFieldByName_Double(errObj, "code", code)) {
         ACMLOGE("AniError, set error code failed");
         return nullptr;
     }
-    if (ANI_OK != env->Object_SetFieldByName_Double(errObj, "code_", static_cast<ani_double>(code))) {
+    if (ANI_OK != env->Object_SetFieldByName_Double(errObj, "code_", code)) {
         ACMLOGE("AniError, set error code_ failed");
         return nullptr;
     }
