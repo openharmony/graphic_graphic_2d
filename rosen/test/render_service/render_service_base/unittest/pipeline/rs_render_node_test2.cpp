@@ -1139,7 +1139,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     auto modifier2 = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
     auto property2 = std::make_shared<RSRenderProperty<float>>();
     modifier2->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property2);
-    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSPropertyType::ALPHA)].emplace_back(modifier2);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier2);
 #else
     std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
         std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
