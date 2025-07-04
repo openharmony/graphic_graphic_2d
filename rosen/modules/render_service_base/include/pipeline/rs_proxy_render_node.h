@@ -37,11 +37,6 @@ public:
         return false;
     }
 
-    bool OpincGetNodeSupportFlag() override
-    {
-        return false;
-    }
-
     ~RSProxyRenderNode() override;
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;

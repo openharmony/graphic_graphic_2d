@@ -207,8 +207,18 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
-    parameter.tmoNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_HDR_NITS :
-        std::clamp(sdrNits * scaler, sdrNits, displayNits);
+    switch (hdrProperties.screenshotType) {
+        case RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT:
+            parameter.tmoNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
+            break;
+        case RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT:
+            parameter.tmoNits = parameter.currentDisplayNits;
+            break;
+        default:
+            parameter.tmoNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_HDR_NITS :
+                std::clamp(sdrNits * scaler, sdrNits, displayNits);
+            break;
+    }
     parameter.currentDisplayNits = hdrProperties.isHDREnabledVirtualScreen ?
         RSLuminanceConst::DEFAULT_CAST_HDR_NITS : displayNits;
     parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;

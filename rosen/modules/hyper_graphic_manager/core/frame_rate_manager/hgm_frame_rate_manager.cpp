@@ -97,12 +97,16 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     InitConfig();
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator, appDistributor);
     multiAppStrategy_.RegisterStrategyChangeCallback([this](const PolicyConfigData::StrategyConfig& strategy) {
+        frameVoter_.SetTouchUpLTPOFirstDynamicMode(strategy.dynamicMode);
         DeliverRefreshRateVote({"VOTER_PACKAGES", strategy.min, strategy.max}, ADD_VOTE);
         touchManager_.SetUpTimeout(strategy.upTimeOut);
         idleFps_ = strategy.idleFps;
         HandleIdleEvent(true);
     });
-    InitTouchManager();
+    static std::once_flag createFlag;
+    std::call_once(createFlag, [this]() {
+        InitTouchManager();
+    });
     hgmCore.SetLtpoConfig();
     multiAppStrategy_.CalcVote();
     appPageUrlStrategy_.RegisterPageUrlVoterCallback([this](pid_t pid,
@@ -216,62 +220,58 @@ void HgmFrameRateManager::SetTimeoutParamsFromConfig(const std::shared_ptr<Polic
 
 void HgmFrameRateManager::InitTouchManager()
 {
-    static std::once_flag createFlag;
-    std::call_once(createFlag, [this]() {
-        auto updateTouchToMultiAppStrategy = [this](TouchState newState) {
-            HgmMultiAppStrategy::TouchInfo touchInfo = { .pkgName = touchManager_.GetPkgName(),
-                .touchState = newState, };
-            HgmEnergyConsumptionPolicy::Instance().SetTouchState(newState);
-            multiAppStrategy_.HandleTouchInfo(touchInfo);
-            UpdateSoftVSync(false);
-        };
-        touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
-            [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
-                updateTouchToMultiAppStrategy(newState);
-                startCheck_.store(false);
-                voterTouchEffective_.store(true);
-                forceUpdateCallback_(false, true);
-            });
-        touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
-            [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
-                SetSchedulerPreferredFps(OLED_60_HZ);
-                startCheck_.store(false);
-                softVSyncManager_.ChangePerformanceFirst(false);
-                updateTouchToMultiAppStrategy(newState);
-                voterTouchEffective_.store(false);
-            });
-        touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
-            [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
-                HgmTaskHandleThread::Instance().PostEvent(UP_TIME_OUT_TASK_ID, [this]() {
-                    startCheck_.store(true);
-                    UpdateSoftVSync(false);
-                }, FIRST_FRAME_TIME_OUT);
-                updateTouchToMultiAppStrategy(newState);
-            });
-        touchManager_.RegisterExitStateCallback(TouchState::UP_STATE,
-            [this](TouchState lastState, TouchState newState) {
-                HgmTaskHandleThread::Instance().RemoveEvent(UP_TIME_OUT_TASK_ID);
-                startCheck_.store(false);
-            });
-    });
+    auto updateTouchToMultiAppStrategy = [this](TouchState newState) {
+        HgmMultiAppStrategy::TouchInfo touchInfo = { .pkgName = touchManager_.GetPkgName(), .touchState = newState };
+        HgmEnergyConsumptionPolicy::Instance().SetTouchState(newState);
+        multiAppStrategy_.HandleTouchInfo(touchInfo);
+        UpdateSoftVSync(false);
+    };
+    touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
+        [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
+            needForceUpdateUniRender_ = true;
+            updateTouchToMultiAppStrategy(newState);
+            startCheck_.store(false);
+            voterTouchEffective_.store(true);
+            needForceUpdateUniRender_ = false;
+        });
+    touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
+        [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
+            SetSchedulerPreferredFps(OLED_60_HZ);
+            startCheck_.store(false);
+            softVSyncManager_.ChangePerformanceFirst(false);
+            updateTouchToMultiAppStrategy(newState);
+            voterTouchEffective_.store(false);
+        });
+    touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
+        [this, updateTouchToMultiAppStrategy](TouchState lastState, TouchState newState) {
+            frameVoter_.SetIsTouchUpLTPOFirstPeriod(true);
+            HgmTaskHandleThread::Instance().PostEvent(UP_TIME_OUT_TASK_ID, [this]() {
+                frameVoter_.SetIsTouchUpLTPOFirstPeriod(false);
+                startCheck_.store(true);
+                UpdateSoftVSync(false);
+            }, FIRST_FRAME_TIME_OUT);
+            updateTouchToMultiAppStrategy(newState);
+        });
+    touchManager_.RegisterExitStateCallback(TouchState::UP_STATE,
+        [this](TouchState lastState, TouchState newState) {
+            frameVoter_.SetIsTouchUpLTPOFirstPeriod(false);
+            HgmTaskHandleThread::Instance().RemoveEvent(UP_TIME_OUT_TASK_ID);
+            startCheck_.store(false);
+        });
     RegisterUpTimeoutAndDownEvent();
 }
 
 void HgmFrameRateManager::RegisterUpTimeoutAndDownEvent()
 {
-    static std::once_flag registerFlag;
-    std::call_once(registerFlag, [this]() {
-        touchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this](TouchEvent event) {
-            SetSchedulerPreferredFps(OLED_120_HZ);
-            touchManager_.ChangeState(TouchState::DOWN_STATE);
-        });
-        touchManager_.RegisterExitStateCallback(TouchState::IDLE_STATE,
-            [this](TouchState lastState, TouchState newState) {
-                softVSyncManager_.ChangePerformanceFirst(true);
-            });
+    touchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this](TouchEvent event) {
+        SetSchedulerPreferredFps(OLED_120_HZ);
+        touchManager_.ChangeState(TouchState::DOWN_STATE);
     });
+    touchManager_.RegisterExitStateCallback(TouchState::IDLE_STATE,
+        [this](TouchState lastState, TouchState newState) {
+            softVSyncManager_.ChangePerformanceFirst(true);
+        });
 }
-
 
 void HgmFrameRateManager::ProcessPendingRefreshRate(
     uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn)
@@ -323,7 +323,8 @@ void HgmFrameRateManager::UpdateAppSupportedState()
 {
     PolicyConfigData::StrategyConfig config;
     if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS &&
-        config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
+        (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED ||
+         config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST)) {
         idleDetector_.SetAppSupportedState(true);
     } else {
         idleDetector_.SetAppSupportedState(false);
@@ -877,7 +878,8 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         return;
     }
     HgmTaskHandleThread::Instance().PostTask([this, pid, touchStatus, touchCnt]() {
-        if (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP) {
+        if (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP ||
+            touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END) {
             HandlePointerTask(pid, touchStatus, touchCnt);
         } else {
             HandleTouchTask(pid, touchStatus, touchCnt);
@@ -929,6 +931,19 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
             HGM_LOGD("[pointer manager] active");
             pointerManager_.HandleTimerReset();
             pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
+        }
+    }
+
+    if (pointerStatus ==  AXIS_BEGIN || pointerStatus == AXIS_UPDATE || pointerStatus == AXIS_END) {
+        PolicyConfigData::StrategyConfig strategyRes;
+        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
+            strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
+            HGM_LOGD("[pointer axis manager] active");
+            if (pointerStatus == AXIS_BEGIN) {
+                pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
+            } else {
+                pointerManager_.HandleTimerReset();
+            }
         }
     }
 }
@@ -1239,6 +1254,8 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     if (refreshRate == currRefreshRate_ && !voterTouchEffective_) {
         return;
     }
+
+    CheckForceUpdateCallback(refreshRate);
 
     // changeGenerator only once in a single vsync period
     if (!changeGeneratorRateValid_.load()) {

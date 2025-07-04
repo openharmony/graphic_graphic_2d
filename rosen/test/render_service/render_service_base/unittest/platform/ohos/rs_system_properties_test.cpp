@@ -1107,6 +1107,17 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetOptimizeCanvasDrawRegionEnabled
+ * @tc.desc: GetOptimizeCanvasDrawRegionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesICI6YB
+ */
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeCanvasDrawRegionEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled());
+}
+
+/**
  * @tc.name: GetTimeVsyncDisabled
  * @tc.desc: GetTimeVsyncDisabled Test
  * @tc.type:FUNC
@@ -1154,8 +1165,8 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Level1)
 {
     RSSystemProperties::SetTypicalResidentProcess(true);
-    bool enbaled = RSSystemProperties::GetHybridRenderEnabled();
-    EXPECT_EQ(enbaled, false);
+    bool enabled = RSSystemProperties::GetHybridRenderEnabled();
+    EXPECT_EQ(enabled, false);
 }
 } // namespace Rosen
 } // namespace OHOS

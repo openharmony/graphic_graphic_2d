@@ -799,7 +799,8 @@ void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool i
 {
 }
 
-bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+bool RSRenderServiceClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+    std::function<void()> callback)
 {
     return false;
 }

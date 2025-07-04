@@ -487,7 +487,7 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
 
 napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info info)
 {
-    #ifdef ROSEN_OHOS
+    #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     size_t argc = ARGC_FIVE;
     napi_value argv[ARGC_FIVE] = { nullptr };
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_FOUR, ARGC_FIVE);

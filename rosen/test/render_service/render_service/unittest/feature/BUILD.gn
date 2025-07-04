@@ -26,7 +26,6 @@ group("unittest") {
     ":RSOcclusionHandlerTest",
     ":RSOcclusionNodeTest",
     ":RSOpincDrawCacheTest",
-    ":RSOpincManagerTest",
     ":RSSubThreadCacheTest",
     ":RSSurfaceCaptureParallelTaskTest",
     ":RSSurfaceCaptureTaskTest",
@@ -44,6 +43,9 @@ group("unittest") {
     ":RSHpaeManagerTest",
     ":RSHpaeBufferTest",
   ]
+  if (graphic_2d_feature_enable_rdo) {
+    deps += [ ":RSRDOTest" ]
+  }
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ ":RSUifirstManagerTest" ]
   }
@@ -382,25 +384,6 @@ ohos_unittest("RSUifirstManagerTest") {
 ohos_unittest("RSOpincDrawCacheTest") {
   module_out_path = module_output_path
   sources = [ "opinc/rs_opinc_draw_cache_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-}
-
-## Build RSOpincManagerTest
-ohos_unittest("RSOpincManagerTest") {
-  module_out_path = module_output_path
-  sources = [ "opinc/rs_opinc_manager_test.cpp" ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -890,6 +873,30 @@ ohos_unittest("RSUniHwcComputeUtilTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+}
+
+## Build RSRDOTest
+ohos_unittest("RSRDOTest") {
+  module_out_path = module_output_path
+  sources = [ "rdo/rs_rdo_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (graphic_2d_feature_enable_rdo) {
+    defines += [ "RS_ENABLE_RDO" ]
   }
 }
 

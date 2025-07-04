@@ -3210,10 +3210,10 @@ ErrCode RSRenderServiceConnection::SetForceRefresh(const std::string &nodeIdStr,
     return ERR_OK;
 }
 
-void RSRenderServiceConnection::RegisterTransactionDataCallback(int32_t pid,
+void RSRenderServiceConnection::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(pid, timeStamp, callback);
+    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 void RSRenderServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)

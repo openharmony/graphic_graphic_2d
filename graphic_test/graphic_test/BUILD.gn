@@ -75,11 +75,15 @@ rs_effect_feature_sources = [
   "rs_effect_feature/effect_background_blender_test.cpp",
   "rs_effect_feature/effect_background_effect_test.cpp",
   "rs_effect_feature/effect_fg_dynamiclightup_test.cpp",
+  "rs_effect_feature/ui_filter_test/ui_filter_test.cpp",
+  "rs_effect_feature/ui_filter_test/ui_filter_test_data_manager.cpp",
+  "rs_effect_feature/ui_filter_test/ui_filter_test_factory.cpp",
 ]
 rs_framework_sources = []
 rs_func_feature_sources = [
   "rs_func_feature/component_capture/demo.cpp",
   "rs_func_feature/color_space_and_hdr/color_space_test.cpp",
+  "rs_func_feature/multi_screen/logical_display_node_test.cpp",
   "rs_func_feature/multi_screen/multi_screen_test.cpp",
   "rs_func_feature/screen_capture/display_node_capture_test.cpp",
   "rs_func_feature/special_layer/security_layer_test.cpp",

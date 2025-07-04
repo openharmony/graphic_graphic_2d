@@ -35,10 +35,14 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "platform/common/rs_log.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
+#include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
 
 namespace OHOS {
 namespace Rosen {
 constexpr uint32_t HIGHEST_Z_ORDER = 999;
+constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
 RSUniRenderProcessor::RSUniRenderProcessor()
     : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
 {
@@ -329,6 +333,61 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetLayerCopybit(layerInfo.copybitTag);
     HandleTunnelLayerParameters(params, layer);
     return layer;
+}
+
+bool RSUniRenderProcessor::ProcessOfflineLayer(
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async)
+{
+    RS_OFFLINE_LOGD("ProcessOfflineLayer(drawable)");
+    uint64_t taskId = RSUniRenderThread::Instance().GetVsyncId();
+    if (!async) {
+        if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(surfaceDrawable, taskId)) {
+            RS_LOGW("RSUniRenderProcessor::ProcessOfflineLayer: post offline task failed, go redraw");
+            return false;
+        }
+    }
+    ProcessOfflineResult processOfflineResult;
+    bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
+        taskId, HPAE_OFFLINE_TIMEOUT, processOfflineResult);
+    if (waitSuccess && processOfflineResult.taskSuccess) {
+        auto layer = uniComposerAdapter_->CreateOfflineLayer(*surfaceDrawable, processOfflineResult);
+        if (layer == nullptr) {
+            RS_LOGE("RSUniRenderProcessor::ProcessOfflineLayer: failed to createLayer for node: %{public}" PRIu64 ")",
+                surfaceDrawable->GetId());
+            return false;
+        }
+        layers_.emplace_back(layer);
+        return true;
+    } else {
+        RS_LOGE("offline processor process failed!");
+        return false;
+    }
+}
+
+bool RSUniRenderProcessor::ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    RS_OFFLINE_LOGD("ProcessOfflineLayer(node)");
+    uint64_t taskId = RSUniRenderThread::Instance().GetVsyncId();
+    if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(node, taskId)) {
+        RS_LOGW("RSUniRenderProcessor::ProcessOfflineLayer: post offline task failed, go redraw");
+        return false;
+    }
+    ProcessOfflineResult processOfflineResult;
+    bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
+        taskId, HPAE_OFFLINE_TIMEOUT, processOfflineResult);
+    if (waitSuccess && processOfflineResult.taskSuccess) {
+        auto layer = uniComposerAdapter_->CreateOfflineLayer(*node, processOfflineResult);
+        if (layer == nullptr) {
+            RS_LOGE("RSUniRenderProcessor::ProcessOfflineLayer: failed to createLayer for node: %{public}" PRIu64 ")",
+                node->GetId());
+            return false;
+        }
+        layers_.emplace_back(layer);
+        return true;
+    } else {
+        RS_LOGE("offline processor process failed!");
+        return false;
+    }
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)

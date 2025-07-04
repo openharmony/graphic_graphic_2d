@@ -939,6 +939,20 @@ void RSNode::UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& paren
     globalPositionY_ = parentGlobalPositionY + localGeometry_->GetY();
 }
 
+bool RSNode::isNeedCallbackNodeChange_ = true;
+void RSNode::SetNeedCallbackNodeChange(bool needCallback)
+{
+    isNeedCallbackNodeChange_ = needCallback;
+}
+
+// Notifies UI observer about page node modifications.
+void RSNode::NotifyPageNodeChanged()
+{
+    if (isNeedCallbackNodeChange_ && propertyNodeChangeCallback_) {
+        propertyNodeChangeCallback_();
+    }
+}
+
 #if defined(MODIFIER_NG)
 template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetPropertyNG(T value)
@@ -954,6 +968,7 @@ void RSNode::SetPropertyNG(T value)
         AddModifier(modifier);
     } else {
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
+        NotifyPageNodeChanged();
     }
 }
 
@@ -1002,6 +1017,7 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
             return;
         }
         property->Set(value);
+        NotifyPageNodeChanged();
         return;
     }
     auto property = std::make_shared<PropertyName>(value);
@@ -1270,7 +1286,6 @@ void RSNode::SetPivot(const Vector2f& pivot)
 #else
     SetProperty<RSPivotModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::PIVOT, pivot);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPivot(float pivotX, float pivotY)
@@ -1307,7 +1322,6 @@ void RSNode::SetPivotX(float pivotX)
     auto pivot = property->Get();
     pivot.x_ = pivotX;
     property->Set(pivot);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPivotY(float pivotY)
@@ -1339,7 +1353,6 @@ void RSNode::SetPivotY(float pivotY)
     auto pivot = property->Get();
     pivot.y_ = pivotY;
     property->Set(pivot);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPivotZ(const float pivotZ)
@@ -1349,7 +1362,6 @@ void RSNode::SetPivotZ(const float pivotZ)
 #else
     SetProperty<RSPivotZModifier, RSAnimatableProperty<float>>(RSModifierType::PIVOT_Z, pivotZ);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetCornerRadius(float cornerRadius)
@@ -1374,7 +1386,6 @@ void RSNode::SetRotation(const Quaternion& quaternion)
 #else
     SetProperty<RSQuaternionModifier, RSAnimatableProperty<Quaternion>>(RSModifierType::QUATERNION, quaternion);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRotation(float degree)
@@ -1384,7 +1395,6 @@ void RSNode::SetRotation(float degree)
 #else
     SetProperty<RSRotationModifier, RSAnimatableProperty<float>>(RSModifierType::ROTATION, degree);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRotation(float degreeX, float degreeY, float degreeZ)
@@ -1401,7 +1411,6 @@ void RSNode::SetRotationX(float degree)
 #else
     SetProperty<RSRotationXModifier, RSAnimatableProperty<float>>(RSModifierType::ROTATION_X, degree);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRotationY(float degree)
@@ -1411,7 +1420,6 @@ void RSNode::SetRotationY(float degree)
 #else
     SetProperty<RSRotationYModifier, RSAnimatableProperty<float>>(RSModifierType::ROTATION_Y, degree);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetCameraDistance(float cameraDistance)
@@ -1430,7 +1438,6 @@ void RSNode::SetTranslate(const Vector2f& translate)
 #else
     SetProperty<RSTranslateModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::TRANSLATE, translate);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
@@ -1469,7 +1476,6 @@ void RSNode::SetTranslateX(float translate)
     auto trans = property->Get();
     trans.x_ = translate;
     property->Set(trans);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetTranslateY(float translate)
@@ -1502,7 +1508,6 @@ void RSNode::SetTranslateY(float translate)
     auto trans = property->Get();
     trans.y_ = translate;
     property->Set(trans);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetTranslateZ(float translate)
@@ -1512,7 +1517,6 @@ void RSNode::SetTranslateZ(float translate)
 #else
     SetProperty<RSTranslateZModifier, RSAnimatableProperty<float>>(RSModifierType::TRANSLATE_Z, translate);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScale(float scale)
@@ -1532,7 +1536,6 @@ void RSNode::SetScale(const Vector2f& scale)
 #else
     SetProperty<RSScaleModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::SCALE, scale);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScaleX(float scaleX)
@@ -1565,7 +1568,6 @@ void RSNode::SetScaleX(float scaleX)
     auto scale = property->Get();
     scale.x_ = scaleX;
     property->Set(scale);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScaleY(float scaleY)
@@ -1598,7 +1600,6 @@ void RSNode::SetScaleY(float scaleY)
     auto scale = property->Get();
     scale.y_ = scaleY;
     property->Set(scale);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScaleZ(float scaleZ)
@@ -1608,7 +1609,6 @@ void RSNode::SetScaleZ(float scaleZ)
 #else
     SetProperty<RSScaleZModifier, RSAnimatableProperty<float>>(RSModifierType::SCALE_Z, scaleZ);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkew(float skew)
@@ -1633,7 +1633,6 @@ void RSNode::SetSkew(const Vector3f& skew)
 #else
     SetProperty<RSSkewModifier, RSAnimatableProperty<Vector3f>>(RSModifierType::SKEW, skew);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkewX(float skewX)
@@ -1666,7 +1665,6 @@ void RSNode::SetSkewX(float skewX)
     auto skew = property->Get();
     skew.x_ = skewX;
     property->Set(skew);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkewY(float skewY)
@@ -1698,7 +1696,6 @@ void RSNode::SetSkewY(float skewY)
     auto skew = property->Get();
     skew.y_ = skewY;
     property->Set(skew);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkewZ(float skewZ)
@@ -1731,7 +1728,6 @@ void RSNode::SetSkewZ(float skewZ)
     auto skew = property->Get();
     skew.z_ = skewZ;
     property->Set(skew);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
@@ -1797,7 +1793,6 @@ void RSNode::SetPersp(const Vector4f& persp)
 #else
     SetProperty<RSPerspModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PERSP, persp);
 #endif
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspX(float perspX)
@@ -1831,7 +1826,6 @@ void RSNode::SetPerspX(float perspX)
     auto persp = property->Get();
     persp.x_ = perspX;
     property->Set(persp);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspY(float perspY)
@@ -1864,7 +1858,6 @@ void RSNode::SetPerspY(float perspY)
     auto persp = property->Get();
     persp.y_ = perspY;
     property->Set(persp);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspZ(float perspZ)
@@ -1896,7 +1889,6 @@ void RSNode::SetPerspZ(float perspZ)
     auto persp = property->Get();
     persp.z_ = perspZ;
     property->Set(persp);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspW(float perspW)
@@ -1928,7 +1920,6 @@ void RSNode::SetPerspW(float perspW)
     auto persp = property->Get();
     persp.w_ = perspW;
     property->Set(persp);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 // Set the foreground color of the control
@@ -2087,13 +2078,15 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 
 void RSNode::SetBackgroundColor(RSColor& color)
 {
+    RSColor colorInP3 = color;
+    colorInP3.ConvertToP3ColorSpace();
 #if defined(MODIFIER_NG)
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
-        color);
+        colorInP3);
 #else
-    SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
+    SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, colorInP3);
 #endif
-    if (color.GetAlpha() > 0) {
+    if (colorInP3.GetAlpha() > 0) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
@@ -2379,12 +2372,21 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
         ROSEN_LOGE("Failed to set backgroundFilter, backgroundFilter is null!");
         return;
     }
-    // To do: generate composed filter here. Now we just set background blur in v1.0.
+    // planning: remove RSUIFilter and generate composed filter as RSNGFilterBase
+    std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
     std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto filterParas = backgroundFilter->GetAllPara();
     for (auto it = filterParas.begin(); it != filterParas.end(); ++it) {
         auto filterPara = *it;
         if (filterPara == nullptr) {
+            continue;
+        }
+        if (auto curFilter = RSNGFilterBase::Create(filterPara)) {
+            if (headFilter) {
+                headFilter->Append(curFilter);
+            } else {
+                headFilter = curFilter; // init headFilter
+            }
             continue;
         }
         switch (filterPara->GetParaType()) {
@@ -2441,6 +2443,7 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
     if (!uiFilter->GetAllTypes().empty()) {
         SetBackgroundUIFilter(uiFilter);
     }
+    SetBackgroundNGFilter(headFilter);
 }
 
 void RSNode::SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter)
@@ -2521,10 +2524,19 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
         return;
     }
     // To do: generate composed filter here. Now we just set foreground blur in v1.0.
+    std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
     std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto& filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara == nullptr) {
+            continue;
+        }
+        if (auto curFilter = RSNGFilterBase::Create(filterPara)) {
+            if (headFilter) {
+                headFilter->Append(curFilter);
+            } else {
+                headFilter = curFilter; // init headFilter
+            }
             continue;
         }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
@@ -2565,6 +2577,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
     if (!uiFilter->GetAllTypes().empty()) {
         SetForegroundUIFilter(uiFilter);
     }
+    SetForegroundNGFilter(headFilter);
 }
 
 void RSNode::SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter)
@@ -2752,35 +2765,35 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
 
 void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgroundFilter)
 {
-#ifndef MODIFIER_NG
+#if defined(MODIFIER_NG)
     if (!backgroundFilter) {
-        ROSEN_LOGW("RSNode::SetBackgroundNGFilter background RSUIFilter is nullptr");
-        auto iter = propertyModifiers_.find(RSModifierType::BACKGROUND_NG_FILTER);
-        if (iter != propertyModifiers_.end()) {
-            RemoveModifier(iter->second);
-            propertyModifiers_.erase(iter);
+        ROSEN_LOGW("RSNode::SetBackgroundNGFilter background filter is nullptr");
+        auto& modifier =
+            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_FILTER)];
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_FILTER);
         }
         return;
     }
-    SetProperty<RSBackgroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
-        RSModifierType::BACKGROUND_NG_FILTER, backgroundFilter);
+    SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+        &ModifierNG::RSBackgroundFilterModifier::SetNGFilterBase>(backgroundFilter);
 #endif
 }
 
 void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter)
 {
-#ifndef MODIFIER_NG
+#if defined(MODIFIER_NG)
     if (!foregroundFilter) {
-        ROSEN_LOGW("RSNode::SetForegroundNGFilter background RSUIFilter is nullptr");
-        auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_NG_FILTER);
-        if (iter != propertyModifiers_.end()) {
-            RemoveModifier(iter->second);
-            propertyModifiers_.erase(iter);
+        ROSEN_LOGW("RSNode::SetForegroundNGFilter background filter is nullptr");
+        auto& modifier =
+            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FOREGROUND_FILTER)];
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::FOREGROUND_NG_FILTER);
         }
         return;
     }
-    SetProperty<RSForegroundNGFilterModifier, RSProperty<std::shared_ptr<RSNGFilterBase>>>(
-        RSModifierType::FOREGROUND_NG_FILTER, foregroundFilter);
+    SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+        &ModifierNG::RSForegroundFilterModifier::SetNGFilterBase>(foregroundFilter);
 #endif
 }
 
@@ -3762,6 +3775,23 @@ void RSNode::ClearAllModifiers()
     properties_.clear();
 }
 
+// Check if the modifierType is a special type.
+void RSNode::CheckModifierType(RSModifierType modifierType)
+{
+    if (modifierType != RSModifierType::BOUNDS && modifierType != RSModifierType::FRAME &&
+        modifierType != RSModifierType::BACKGROUND_COLOR && modifierType != RSModifierType::ALPHA) {
+        SetDrawNode();
+        SetDrawNodeType(DrawNodeType::DrawPropertyType);
+    }
+    if (modifierType == RSModifierType::TRANSLATE || modifierType == RSModifierType::SKEW ||
+        modifierType == RSModifierType::PERSP || modifierType == RSModifierType::SCALE ||
+        modifierType == RSModifierType::PIVOT || modifierType == RSModifierType::ROTATION ||
+        modifierType == RSModifierType::ROTATION_X || modifierType == RSModifierType::ROTATION_Y ||
+        modifierType == RSModifierType::QUATERNION) {
+        SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+    }
+}
+
 void RSNode::DoFlushModifier()
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -4006,6 +4036,14 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         }
 #endif
     }
+}
+
+void RSNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSetNeedUseCmdlistDrawRegion>(GetId(), needUseCmdlistDrawRegion);
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
 }
 
 void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId, const bool isInSameWindow)
@@ -4469,6 +4507,7 @@ bool RSNode::IsRenderServiceNode() const
 
 void RSNode::SetIsOnTheTree(bool flag)
 {
+    NotifyPageNodeChanged();
     if (isOnTheTree_ == flag && isOnTheTreeInit_ == true) {
         return;
     }
@@ -5036,6 +5075,17 @@ void RSNode::SetDrawNodeChangeCallback(DrawNodeChangeCallback callback)
     drawNodeChangeCallback_ = callback;
 }
 
+PropertyNodeChangeCallback RSNode::propertyNodeChangeCallback_ = nullptr;
+
+// Sets the callback function for property node change events.
+void RSNode::SetPropertyNodeChangeCallback(PropertyNodeChangeCallback callback)
+{
+    if (propertyNodeChangeCallback_) {
+        return;
+    }
+    propertyNodeChangeCallback_ = callback;
+}
+
 #if defined(MODIFIER_NG)
 void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 {
@@ -5057,7 +5107,11 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         modifier->GetType() != ModifierNG::RSModifierType::ALPHA) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
+        if (modifier->GetType() == ModifierNG::RSModifierType::TRANSFORM) {
+            SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+        }
     }
+    NotifyPageNodeChanged();
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
     if (NeedForcedSendToRemote()) {
@@ -5104,13 +5158,8 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
     }
-    if (modifier->GetModifierType() > RSModifierType::FRAME &&
-        modifier->GetModifierType() != RSModifierType::BACKGROUND_COLOR &&
-        modifier->GetModifierType() != RSModifierType::ALPHA &&
-        modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-    }
+    NotifyPageNodeChanged();
+    CheckModifierType(modifier->GetModifierType());
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
     if (NeedForcedSendToRemote()) {

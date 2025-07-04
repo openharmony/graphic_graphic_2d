@@ -40,6 +40,7 @@ using CommitTransactionCallback =
 class RSB_EXPORT RSTransactionHandler final {
 public:
     RSTransactionHandler() = default;
+    RSTransactionHandler(uint64_t token) : token_(token) {}
     virtual ~RSTransactionHandler() = default;
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
@@ -70,10 +71,7 @@ public:
     }
 
 #ifdef RS_ENABLE_VK
-    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
-    {
-        commitTransactionCallback_ = commitTransactionCallback;
-    }
+    static void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
 #endif
 
     void SetSyncId(const uint64_t syncId)
@@ -113,12 +111,13 @@ private:
     std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
+    uint64_t token_ = 0;
 
     bool needSync_ { false };
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
 #ifdef RS_ENABLE_VK
-    CommitTransactionCallback commitTransactionCallback_ = nullptr;
+    static CommitTransactionCallback commitTransactionCallback_;
 #endif
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};

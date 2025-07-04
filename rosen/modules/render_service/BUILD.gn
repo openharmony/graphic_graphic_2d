@@ -62,6 +62,9 @@ ohos_shared_library("librender_service") {
     configs = [ ":render_service_link_config" ]
   }
   defines = []
+  if (graphic_2d_feature_enable_rdo) {
+    defines += [ "RS_ENABLE_RDO" ]
+  }
   if (graphic_2d_feature_color_gamut_enable) {
     defines += [ "PADDING_HEIGHT_32" ]
   } else {
@@ -116,6 +119,10 @@ ohos_shared_library("librender_service") {
     "core/feature/hetero_hdr/rs_hdr_manager.cpp",
     "core/feature/hetero_hdr/rs_hdr_surface_render_node_drawable.cpp",
     "core/feature/hetero_hdr/rs_hetero_hdr_util.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_layer.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_processor.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.cpp",
+    "core/feature/hwc/hpae_offline/rs_hpae_offline_thread_manager.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "core/feature/hpae/rs_hpae_buffer.cpp",
     "core/feature/hpae/rs_hpae_manager.cpp",
@@ -248,7 +255,6 @@ ohos_shared_library("librender_service") {
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",
-      "core/feature/opinc/rs_opinc_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_listener.cpp",
       "core/feature/round_corner_display/rs_rcd_render_visitor.cpp",
       "core/feature/round_corner_display/rs_rcd_surface_render_node.cpp",
@@ -272,6 +278,10 @@ ohos_shared_library("librender_service") {
       "core/pipeline/render_thread/rs_uni_render_util.cpp",
       "core/pipeline/render_thread/rs_uni_render_virtual_processor.cpp",
     ]
+  }
+
+  if (graphic_2d_feature_enable_rdo) {
+    sources += [ "core/feature/rdo/rs_rdo.cpp", ]
   }
 
   if (rs_enable_eglimage && rs_enable_gpu) {

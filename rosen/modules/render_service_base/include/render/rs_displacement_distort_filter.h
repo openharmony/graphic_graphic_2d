@@ -36,8 +36,8 @@ public:
     const std::shared_ptr<RSShaderMask>& GetMask() const;
 
 private:
-    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_FACTOR[] = "DISTORT_FACTOR";
-    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_MASK[] = "DISTORT_MASK";
+    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_FACTOR[] = "DispDistort_Factor";
+    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_MASK[] = "DispDistort_Mask";
     std::shared_ptr<RSShaderMask> mask_ = nullptr;
     Vector2f factor_ = {1.f, 1.f};
 };

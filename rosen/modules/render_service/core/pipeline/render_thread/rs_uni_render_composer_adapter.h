@@ -25,6 +25,8 @@
 #include "pipeline/rs_render_node_map.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_base_render_util.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -52,6 +54,12 @@ public:
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
+
+    // hpae offline
+    LayerInfoPtr CreateOfflineLayer(RSSurfaceRenderNode& node, ProcessOfflineResult& processOfflineResult) const;
+    LayerInfoPtr CreateOfflineLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+        ProcessOfflineResult& processOfflineResult) const;
+
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
@@ -89,6 +97,13 @@ private:
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
     bool CheckStatusBeforeCreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
+
+    // hpae offline
+    ComposeInfo BuildOfflineComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+        const ProcessOfflineResult& processOfflineResult) const;
+    ComposeInfo BuildOfflineComposeInfo(RSSurfaceRenderNode& node,
+        const ProcessOfflineResult& processOfflineResult) const;
+    void OfflineLayerRotate(const LayerInfoPtr& layer) const;
 
     std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;

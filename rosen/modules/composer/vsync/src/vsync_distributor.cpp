@@ -769,7 +769,7 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
         std::lock_guard<std::mutex> locker(mutex_);
         if (isFirstSend_) {
             isFirstSend_ = false;
-            VLOGI("First vsync OnVSyncTrigger");
+            VLOGD("F send");
         }
         // Start of DVSync
         DVSyncRecordVSync(now, period, refreshRate, false);

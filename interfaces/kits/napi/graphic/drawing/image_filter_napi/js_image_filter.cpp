@@ -205,7 +205,7 @@ napi_value JsImageFilter::CreateFromColorFilter(napi_env env, napi_callback_info
 
 napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_THREE);

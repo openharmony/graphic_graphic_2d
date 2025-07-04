@@ -944,6 +944,8 @@ Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelF
         case GRAPHIC_PIXEL_FMT_YCRCB_P010:
         case GRAPHIC_PIXEL_FMT_RGBA_1010102:
             return Drawing::ColorType::COLORTYPE_RGBA_1010102;
+        case GRAPHIC_PIXEL_FMT_RGBA_1010108:
+            return Drawing::ColorType::COLORTYPE_RGBA_1010108;
         default:
             return Drawing::ColorType::COLORTYPE_RGBA_8888;
     }

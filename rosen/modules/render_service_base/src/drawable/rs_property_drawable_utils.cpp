@@ -264,16 +264,6 @@ void RSPropertyDrawableUtils::GetDarkColor(RSColor& color)
     }
 }
 
-void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
-{
-    // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
-    // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
-    auto matrix = canvas->GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
-    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
-    canvas->SetMatrix(matrix);
-}
-
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
     NodeId nodeId, const bool isForegroundFilter)
@@ -330,7 +320,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::filterCacheEnabled_) {
+    auto enableCache = (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr &&
+        RSProperties::filterCacheEnabled_ && !filter->GetNGRenderFilter());
+    if (enableCache) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }
@@ -1517,6 +1509,55 @@ float RSPropertyDrawableUtils::GetBlurFilterRadius(const std::shared_ptr<RSFilte
         default:
             return 0;
     }
+}
+
+Drawing::RectI RSPropertyDrawableUtils::GetRectByStrategy(
+    const Drawing::Rect& rect, RoundingStrategyType roundingStrategy)
+{
+    switch (roundingStrategy) {
+        case RoundingStrategyType::ROUND_IN:
+            return Drawing::RectI(std::ceil(rect.GetLeft()), std::ceil(rect.GetTop()), std::floor(rect.GetRight()),
+                std::floor(rect.GetBottom()));
+        case RoundingStrategyType::ROUND_OUT:
+            return Drawing::RectI(std::floor(rect.GetLeft()), std::floor(rect.GetTop()), std::ceil(rect.GetRight()),
+                std::ceil(rect.GetBottom()));
+        case RoundingStrategyType::ROUND_OFF:
+            return Drawing::RectI(std::round(rect.GetLeft()), std::round(rect.GetTop()), std::round(rect.GetRight()),
+                std::round(rect.GetBottom()));
+        case RoundingStrategyType::ROUND_STATIC_CAST_INT:
+            return Drawing::RectI(static_cast<int>(rect.GetLeft()), static_cast<int>(rect.GetTop()),
+                static_cast<int>(rect.GetRight()), static_cast<int>(rect.GetBottom()));
+        default:
+            return Drawing::RectI(std::floor(rect.GetLeft()), std::floor(rect.GetTop()), std::ceil(rect.GetRight()),
+                std::ceil(rect.GetBottom()));
+    }
+}
+
+Drawing::RectI RSPropertyDrawableUtils::GetAbsRectByStrategy(const Drawing::Surface* surface,
+    const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect, RoundingStrategyType roundingStrategy)
+{
+    Drawing::Rect absRect;
+    totalMatrix.MapRect(absRect, relativeRect);
+    Drawing::RectI absRectI = GetRectByStrategy(absRect, roundingStrategy);
+    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    absRectI.Intersect(deviceRect);
+    return absRectI;
+}
+
+std::tuple<Drawing::RectI, Drawing::RectI> RSPropertyDrawableUtils::GetAbsRectByStrategyForImage(
+    const Drawing::Surface* surface, const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect)
+{
+    Drawing::Rect absRect;
+    totalMatrix.MapRect(absRect, relativeRect);
+    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
+
+    Drawing::RectI absImageRect = GetRectByStrategy(absRect, RoundingStrategyType::ROUND_IN);
+    absImageRect.Intersect(deviceRect);
+
+    Drawing::RectI absDrawRect = GetRectByStrategy(absRect, RoundingStrategyType::ROUND_OUT);
+    absDrawRect.Intersect(deviceRect);
+
+    return {absImageRect, absDrawRect};
 }
 
 } // namespace Rosen

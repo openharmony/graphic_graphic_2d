@@ -15,6 +15,8 @@
 
 #include "rs_hdr_util.h"
 
+#include <parameters.h>
+
 #include "display_engine/rs_color_temperature.h"
 #include "hdi_layer_info.h"
 #include "metadata_helper.h"
@@ -293,6 +295,13 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
     }
 }
 
+bool RSHdrUtil::GetRGBA1010108Enabled()
+{
+    static bool isDDGR = system::GetParameter("persist.sys.graphic.GpuApitype", "1") == "2";
+    static bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
+    return isDDGR && rgba1010108;
+}
+
 void RSHdrUtil::SetHDRParam(RSSurfaceRenderNode& node, bool flag)
 {
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
@@ -387,5 +396,48 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const spt
         node.SetFirstFrameOfInit(false);
     }
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+GSError RSHdrUtil::SetMetadata(SurfaceBuffer* buffer,
+    const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo, uint32_t value)
+{
+    if (buffer == nullptr) {
+        RS_LOGE("RSHdrUtil::SetMetadata failed buffer nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    std::vector<uint8_t> metadataType;
+    std::vector<uint8_t> colorSpaceMetadata;
+    metadataType.resize(sizeof(value));
+    colorSpaceMetadata.resize(sizeof(colorspaceInfo));
+    errno_t ret = memcpy_s(metadataType.data(), metadataType.size(), &value, sizeof(value));
+    if (ret != EOK) {
+        RS_LOGE("RSHdrUtil::SetMetadata metadataType memcpy_s failed error number: %{public}d", ret);
+        return GSERROR_INVALID_OPERATING;
+    }
+    ret = memcpy_s(colorSpaceMetadata.data(), colorSpaceMetadata.size(), &colorspaceInfo, sizeof(colorspaceInfo));
+    if (ret != EOK) {
+        RS_LOGE("RSHdrUtil::SetMetadata colorSpaceMetadata memcpy_s failed error number: %{public}d", ret);
+        return GSERROR_INVALID_OPERATING;
+    }
+    GSError setValueErr =
+        buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
+    if (setValueErr != GSERROR_OK) {
+        RS_LOGE("RSHdrUtil::SetMetadata set metadataType failed with %{public}d", setValueErr);
+        return setValueErr;
+    }
+    GSError setColorSpaceErr =
+        buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_COLORSPACE_INFO, colorSpaceMetadata);
+    if (setColorSpaceErr != GSERROR_OK) {
+        RS_LOGE("RSHdrUtil::SetMetadata set colorSpaceMetadata failed with %{public}d", setColorSpaceErr);
+        return setColorSpaceErr;
+    }
+    RS_LOGD("RSHdrUtil::SetMetadata set type %{public}d,"
+        " set colorSpace %{public}d-%{public}d-%{public}d-%{public}d", value,
+        static_cast<int>(colorspaceInfo.primaries), static_cast<int>(colorspaceInfo.transfunc),
+        static_cast<int>(colorspaceInfo.matrix), static_cast<int>(colorspaceInfo.range));
+    return GSERROR_OK;
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

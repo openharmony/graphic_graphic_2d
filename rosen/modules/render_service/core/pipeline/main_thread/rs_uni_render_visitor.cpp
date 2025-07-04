@@ -1648,13 +1648,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
-    auto subTreeDirty = node.GetOpincCache().OpincForcePrepareSubTree(autoCacheEnable_,
-        node.IsSubTreeDirty() || node.IsContentDirty(), node.OpincGetNodeSupportFlag());
-    if (subTreeDirty) {
-        node.SetParentSubTreeDirty();
-    }
     bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
-        ForcePrepareSubTree() || subTreeDirty;
+        ForcePrepareSubTree() || RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_);
 
@@ -1664,7 +1659,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
-    node.GetOpincCache().OpincUpdateRootFlag(unchangeMarkEnable_, node.OpincGetNodeSupportFlag());
+    node.GetOpincCache().OpincUpdateRootFlag(unchangeMarkEnable_,
+        RSOpincManager::Instance().OpincGetNodeSupportFlag(node));
     node.UpdateOpincParam();
     offscreenCanvasNodeId_ = preOffscreenCanvasNodeId;
 
@@ -2049,6 +2045,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     if (prevalidLayers.size() == 0) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniRenderVisitor::PrevalidateHwcNode no hardware layer");
         hwcVisitor_->PrintHiperfCounterLog("counter2", INPUT_HWC_LAYERS);
+        RSHpaeOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
         return;
     }
     // add display layer
@@ -2078,6 +2075,13 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
         RS_LOGI_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode prevalidate failed");
         return;
     }
+    {
+        auto iter = std::find_if(strategy.begin(), strategy.end(),
+            [](const auto& elem) { return elem.second == RequestCompositionType::OFFLINE_DEVICE; });
+        if (iter == strategy.end()) {
+            RSHpaeOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
+        }
+    }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto it : strategy) {
         RS_LOGD_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode id: %{public}" PRIu64 ","
@@ -2091,6 +2095,11 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
         }
         if (it.second == RequestCompositionType::DEVICE_VSCF) {
             node->SetArsrTag(false);
+            continue;
+        }
+        if (it.second == RequestCompositionType::OFFLINE_DEVICE &&
+            RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady()) {
+            node->SetDeviceOfflineEnable(true);
             continue;
         }
         if (node->IsInFixedRotation() || node->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
@@ -2125,8 +2134,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             topLayers.emplace_back(hwcNodePtr);
             continue;
         }
-        if ((curScreenNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty() ||
-            hasFingerprint_) &&
+        if (((curScreenNode_->GetHasUniRenderHdrSurface() && !RSHdrUtil::GetRGBA1010108Enabled()) ||
+            !drmNodes_.empty() || hasFingerprint_) &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64
                 " disabled by Having UniRenderHdrSurface/DRM node",
@@ -2909,7 +2918,10 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
-        nodeParent->OpincUpdateNodeSupportFlag(node.OpincGetNodeSupportFlag(), node.GetOpincCache().OpincGetRootFlag());
+        nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(
+            RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
+            node.GetOpincCache().OpincGetRootFlag(),
+            nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {

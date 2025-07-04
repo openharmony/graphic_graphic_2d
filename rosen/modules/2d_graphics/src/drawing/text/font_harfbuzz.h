@@ -20,6 +20,8 @@
 #include <hb-ot.h>
 
 #include "modules/skshaper/include/SkShaper.h"
+#include "text/font.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {

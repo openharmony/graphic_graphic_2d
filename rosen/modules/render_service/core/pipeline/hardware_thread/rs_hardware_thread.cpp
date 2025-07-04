@@ -30,6 +30,7 @@
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -1089,12 +1090,19 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
         }
 
         auto bufferPixelFormat = buffer->GetFormat();
+        if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010108) {
+            pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+            if (RSHdrUtil::GetRGBA1010108Enabled()) {
+                pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010108;
+                RS_LOGD("ComputeTargetPixelFormat pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108");
+            }
+            break;
+        }
         if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
             RS_LOGD("ComputeTargetPixelFormat pixelformat is set to 1010102 for 10bit buffer");
-            break;
         }
     }
 

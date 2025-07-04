@@ -560,6 +560,15 @@ void DrawRectOpItem::DumpItems(std::string& out) const
     rect_.Dump(out);
 }
 
+Rect DrawRectOpItem::GetOpItemCmdlistDrawRegion()
+{
+    if (rect_.IsEmpty()) {
+        LOGD("GetOpItemCmdlistDrawRegion rect opItem's bounds is null");
+        return { 0, 0, 0, 0 };
+    }
+    return rect_;
+}
+
 /* DrawRoundRectOpItem */
 UNMARSHALLING_REGISTER(DrawRoundRect, DrawOpItem::ROUND_RECT_OPITEM,
     DrawRoundRectOpItem::Unmarshalling, sizeof(DrawRoundRectOpItem::ConstructorHandle));
@@ -801,6 +810,21 @@ void DrawPathOpItem::DumpItems(std::string& out) const
         out += " Path";
         path_->Dump(out);
     }
+}
+
+Rect DrawPathOpItem::GetOpItemCmdlistDrawRegion()
+{
+    if (path_ == nullptr) {
+        LOGD("GetOpItemCmdlistDrawRegion path opItem is nullptr");
+        return { 0, 0, 0, 0 };
+    }
+
+    const auto& bounds = path_->GetBounds();
+    if (bounds.IsEmpty()) {
+        LOGD("GetOpItemCmdlistDrawRegion path opItem's bounds is null");
+        return { 0, 0, 0, 0 };
+    }
+    return bounds;
 }
 
 /* DrawBackgroundOpItem */
@@ -1959,6 +1983,27 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
         out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
         out += ']';
     }
+}
+
+Rect DrawTextBlobOpItem::GetOpItemCmdlistDrawRegion()
+{
+    if (textBlob_ == nullptr) {
+        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem is nullptr");
+        return { 0, 0, 0, 0 };
+    }
+
+    auto bounds = textBlob_->Bounds();
+    if (bounds == nullptr) {
+        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem's bounds is nullptr");
+        return { 0, 0, 0, 0 };
+    }
+
+    if (bounds->IsEmpty()) {
+        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem's bounds is null");
+        return { 0, 0, 0, 0 };
+    }
+    bounds->Offset(x_, y_);
+    return *bounds;
 }
 
 /* DrawSymbolOpItem */

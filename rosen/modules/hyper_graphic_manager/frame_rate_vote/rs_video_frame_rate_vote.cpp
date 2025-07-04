@@ -67,7 +67,6 @@ void RSVideoFrameRateVote::VoteVideoFrameRate(double videoRate)
     if (rate == lastRate_) {
         return;
     }
-    RS_LOGI("video vote surfaceNodeId(%{public}s) rate(%{public}u)", std::to_string(surfaceNodeId_).c_str(), rate);
     DoVoteCallback(rate);
     lastRate_ = rate;
 }

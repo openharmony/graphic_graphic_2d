@@ -37,6 +37,9 @@
 
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
+#include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1677,6 +1680,230 @@ void RSUniRenderComposerAdapter::LayerRotate(
     }
     SetLayerSize(layer, screenInfo_);
     SetLayerTransform(layer, drawable, surface, screenInfo_.rotation);
+}
+
+ComposeInfo RSUniRenderComposerAdapter::BuildOfflineComposeInfo(RSSurfaceRenderNode& node,
+    const ProcessOfflineResult& processOfflineResult) const
+{
+    ComposeInfo info;
+    auto& params = node.GetStagingRenderParams();
+    if (!params) {
+        RS_OFFLINE_LOGE("BuildComposeInfo fail, node params is nullptr");
+        return info;
+    }
+
+    const auto& dstRect = node.GetDstRect();
+    info.srcRect = processOfflineResult.bufferRect;
+    info.dstRect = GraphicIRect {
+        static_cast<int32_t>(static_cast<float>(dstRect.left_) * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(static_cast<float>(dstRect.top_) * screenInfo_.GetRogHeightRatio()),
+        static_cast<int32_t>(static_cast<float>(dstRect.width_) * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(static_cast<float>(dstRect.height_) * screenInfo_.GetRogHeightRatio())
+    };
+    info.zOrder = params->GetLayerInfo().zOrder;
+    info.alpha.enGlobalAlpha = true;
+    info.alpha.gAlpha = node.GetGlobalAlpha() * 255; // map gAlpha from float(0, 1) to uint8_t(0, 255).
+    info.fence = processOfflineResult.acquireFence;
+    info.blendType = node.GetBlendType();
+    info.buffer = processOfflineResult.buffer;
+    info.preBuffer = processOfflineResult.preBuffer;
+    info.needClient = GetComposerInfoNeedClient(info, *params);
+    DealWithNodeGravity(node, info);
+
+    info.dstRect.x -= offsetX_;
+    info.dstRect.y -= offsetY_;
+    info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    const Rect& dirtyRect = processOfflineResult.damageRect;
+    dirtyRects.emplace_back(GraphicIRect {dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h});
+    info.dirtyRects = dirtyRects;
+    auto totalMatrix = node.GetTotalMatrix();
+    info.matrix = GraphicMatrix {totalMatrix.Get(Drawing::Matrix::Index::SCALE_X),
+        totalMatrix.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix.Get(Drawing::Matrix::Index::TRANS_X),
+        totalMatrix.Get(Drawing::Matrix::Index::SKEW_Y), totalMatrix.Get(Drawing::Matrix::Index::SCALE_Y),
+        totalMatrix.Get(Drawing::Matrix::Index::TRANS_Y), totalMatrix.Get(Drawing::Matrix::Index::PERSP_0),
+        totalMatrix.Get(Drawing::Matrix::Index::PERSP_1), totalMatrix.Get(Drawing::Matrix::Index::PERSP_2)};
+
+    const auto& property = node.GetRenderProperties();
+    info.boundRect = { 0, 0,
+        static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};
+
+    const auto& renderParam = static_cast<RSSurfaceRenderParams*>(params.get());
+    info.sdrNit = renderParam->GetSdrNit();
+    info.displayNit = renderParam->GetDisplayNit();
+    info.brightnessRatio = renderParam->GetBrightnessRatio();
+    info.layerLinearMatrix = renderParam->GetLayerLinearMatrix();
+    RS_OFFLINE_LOGD("RSURCA::BuildOfflineInfo(node) sdrNit: %{public}f, displayNit: %{public}f, "
+        "brightnessRatio: %{public}f", info.sdrNit, info.displayNit, info.brightnessRatio);
+    return info;
+}
+
+ComposeInfo RSUniRenderComposerAdapter::BuildOfflineComposeInfo(
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, const ProcessOfflineResult& processOfflineResult) const
+{
+    ComposeInfo info;
+    auto& params = surfaceDrawable.GetRenderParams();
+    if (!params) {
+        RS_OFFLINE_LOGD("RSUniRenderComposerAdapter::BuildCInfo params is nullptr");
+        return info;
+    }
+    const auto& dstRect = params->GetLayerInfo().dstRect;
+    info.srcRect = processOfflineResult.bufferRect;
+    info.dstRect = GraphicIRect { static_cast<int32_t>(static_cast<float>(dstRect.x) * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(static_cast<float>(dstRect.y) * screenInfo_.GetRogHeightRatio()),
+        static_cast<int32_t>(static_cast<float>(dstRect.w) * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(static_cast<float>(dstRect.h) * screenInfo_.GetRogHeightRatio()) };
+    info.zOrder = params->GetLayerInfo().zOrder;
+    info.alpha.enGlobalAlpha = true;
+    info.alpha.gAlpha = params->GetGlobalAlpha() * 255; // map gAlpha from float(0, 1) to uint8_t(0, 255).
+    info.fence = processOfflineResult.acquireFence;
+    info.blendType = params->GetLayerInfo().blendType;
+    info.buffer = processOfflineResult.buffer;
+    info.preBuffer = processOfflineResult.preBuffer;
+    info.needClient = GetComposerInfoNeedClient(info, *params);
+    DealWithNodeGravity(surfaceDrawable, info);
+
+    info.dstRect.x -= offsetX_;
+    info.dstRect.y -= offsetY_;
+    info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    const Rect& dirtyRect = processOfflineResult.damageRect;
+    dirtyRects.emplace_back(GraphicIRect {dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h});
+    info.dirtyRects = dirtyRects;
+    auto totalMatrix = params->GetTotalMatrix();
+    info.matrix = GraphicMatrix {totalMatrix.Get(Drawing::Matrix::Index::SCALE_X),
+        totalMatrix.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix.Get(Drawing::Matrix::Index::TRANS_X),
+        totalMatrix.Get(Drawing::Matrix::Index::SKEW_Y), totalMatrix.Get(Drawing::Matrix::Index::SCALE_Y),
+        totalMatrix.Get(Drawing::Matrix::Index::TRANS_Y), totalMatrix.Get(Drawing::Matrix::Index::PERSP_0),
+        totalMatrix.Get(Drawing::Matrix::Index::PERSP_1), totalMatrix.Get(Drawing::Matrix::Index::PERSP_2)};
+
+    info.boundRect = { 0, 0,
+        static_cast<int32_t>(params->GetBounds().GetWidth()), static_cast<int32_t>(params->GetBounds().GetHeight())};
+
+    const auto& curRenderParam = static_cast<RSSurfaceRenderParams*>(params.get());
+    info.sdrNit = curRenderParam->GetSdrNit();
+    info.displayNit = curRenderParam->GetDisplayNit();
+    info.brightnessRatio = curRenderParam->GetBrightnessRatio();
+    info.layerLinearMatrix = curRenderParam->GetLayerLinearMatrix();
+    RS_OFFLINE_LOGD("RSURCA::BuildOfflineInfo(drawable) sdrNit: %{public}f, displayNit: %{public}f, "
+        "brightnessRatio: %{public}f", info.sdrNit, info.displayNit, info.brightnessRatio);
+    return info;
+}
+
+static void SetOfflineLayerTransform(const LayerInfoPtr& layer,
+    const sptr<IConsumerSurface>& surface, ScreenRotation screenRotation)
+{
+    // screenRotation: anti-clockwise, surfaceTransform: anti-clockwise
+    // layerTransform: clockwise
+    auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(layer->GetSurface(), layer->GetBuffer());
+    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) +
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transform))) % 360;
+    GraphicTransformType rotateEnum =
+        RSBaseRenderUtil::RotateEnumToInt(totalRotation, RSBaseRenderUtil::GetFlipTransform(transform));
+    layer->SetTransform(rotateEnum);
+}
+
+void RSUniRenderComposerAdapter::OfflineLayerRotate(const LayerInfoPtr& layer) const
+{
+    auto surface = layer->GetSurface();
+    if (surface == nullptr) {
+        return;
+    }
+    SetLayerSize(layer, screenInfo_);
+    SetOfflineLayerTransform(layer, surface, screenInfo_.rotation);
+}
+
+LayerInfoPtr RSUniRenderComposerAdapter::CreateOfflineLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+    ProcessOfflineResult& processOfflineResult) const
+{
+    if (!processOfflineResult.buffer) {
+        RS_OFFLINE_LOGE("offline buffer is nullptr");
+        return nullptr;
+    }
+    auto& params = surfaceDrawable.GetRenderParams();
+    if (!params) {
+        RS_OFFLINE_LOGE("CreateOfflineLayer fail, params is nullptr");
+        return nullptr;
+    }
+    ComposeInfo info = BuildOfflineComposeInfo(surfaceDrawable, processOfflineResult);
+    if (IsOutOfScreenRegion(info)) {
+        RS_OFFLINE_LOGD("CreateBufferLayer: node(%{public}" PRIu64
+            ") out of screen region, no need to composite.", surfaceDrawable.GetId());
+        return nullptr;
+    }
+    if (processOfflineResult.buffer) {
+        RS_OFFLINE_LOGD("CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:"
+            "[%{public}s] dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d]"
+            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}d,"
+            " globalZOrder:%{public}d, blendType = %{public}d",
+            surfaceDrawable.GetId(), surfaceDrawable.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w,
+            info.dstRect.h, info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
+            info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), params->GetLayerInfo().zOrder,
+            info.zOrder, info.blendType);
+    }
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
+    SetComposeInfoToLayer(layer, info, processOfflineResult.consumer);
+    OfflineLayerRotate(layer);
+    LayerCrop(layer);
+    const auto& buffer = layer->GetBuffer();
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
+    RS_OFFLINE_LOGD("CreateOfflineLayer scalingMode is %{public}d", scalingMode);
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        LayerScaleDown(layer, surfaceDrawable);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        LayerScaleFit(layer);
+    }
+    auto& layerRect = layer->GetLayerSize();
+    auto& cropRect = layer->GetCropRect();
+    RS_TRACE_NAME_FMT("CreateLayer:%s ScreenId:%llu layerRect XYWH[%d %d %d %d], "
+        "cropRect XYWH[%d %d %d %d], transform:%d", surfaceDrawable.GetName().c_str(), screenInfo_.id,
+        layerRect.x, layerRect.y, layerRect.w, layerRect.h,
+        cropRect.x, cropRect.y, cropRect.w, cropRect.h, layer->GetTransformType());
+    return layer;
+}
+
+LayerInfoPtr RSUniRenderComposerAdapter::CreateOfflineLayer(RSSurfaceRenderNode& node,
+    ProcessOfflineResult& processOfflineResult) const
+{
+    if (!processOfflineResult.buffer) {
+        RS_OFFLINE_LOGE("offline buffer is nullptr");
+        return nullptr;
+    }
+    ComposeInfo info = BuildOfflineComposeInfo(node, processOfflineResult);
+    if (IsOutOfScreenRegion(info)) {
+        RS_OFFLINE_LOGD("CreateOfflineLayer: node(%{public}" PRIu64
+            ") out of screen region, no need to composite.", node.GetId());
+        return nullptr;
+    }
+    RS_TRACE_NAME_FMT("CreateLayer:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
+    if (info.buffer) {
+        RS_OFFLINE_LOGD(
+            "RsDebug CreateOfflineLayer surfaceNode id:%{public}" PRIu64 " name:"
+            "[%{public}s] dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d]"
+            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d],"
+            " globalZOrder:%{public}d, blendType = %{public}d",
+            node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+            info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
+            info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
+            info.zOrder, info.blendType);
+    }
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
+    SetComposeInfoToLayer(layer, info, processOfflineResult.consumer);
+    OfflineLayerRotate(layer);
+    LayerCrop(layer);
+    layer->SetNodeId(node.GetId());
+    const auto& buffer = layer->GetBuffer();
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
+    RS_OFFLINE_LOGD("RSUniRenderComposerAdapter::CreateOfflineLayer scalingMode is %{public}d", scalingMode);
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        LayerScaleDown(layer, node);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        LayerScaleFit(layer);
+    }
+    return layer;
 }
 
 } // namespace Rosen

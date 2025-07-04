@@ -182,7 +182,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t VSYNC_LOG_ENABLED_TIMES_THRESHOLD = 500;
 constexpr uint32_t VSYNC_LOG_ENABLED_STEP_TIMES = 100;
-constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 10;
+constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 20;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
@@ -623,7 +623,7 @@ void RSMainThread::Init()
         renderEngine_ = std::make_shared<RSRenderEngine>();
         renderEngine_->Init();
     }
-    RSOpincManager::Instance().ReadOPIncCcmParam();
+    RSOpincManager::Instance().SetOPIncSwitch(OPIncParam::IsOPIncEnable());
     RSUifirstManager::Instance().ReadUIFirstCcmParam();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
@@ -2519,6 +2519,12 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetOffsetX(0);
                 params->SetOffsetY(0);
                 params->SetRogWidthRatio(1.0f);
+            }
+            if (surfaceNode->GetDeviceOfflineEnable() && processor->ProcessOfflineLayer(surfaceNode)) {
+                // use offline buffer instead of original buffer,
+                // if succeed, params->SetBufferSynced will not be set true,
+                // origianl buffer will be released at next acquirement
+                continue;
             }
             processor->CreateLayer(*surfaceNode, *params);
             // buffer is synced to directComposition

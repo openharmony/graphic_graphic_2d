@@ -199,6 +199,7 @@ private:
 
     std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_ = {};
     uint64_t timestamp_ = 0;
+    uint64_t token_ = 0;
     std::string abilityName_;
     pid_t pid_ = 0;
 #ifdef RS_ENABLE_VK

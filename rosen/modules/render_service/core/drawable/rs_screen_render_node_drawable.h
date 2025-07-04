@@ -163,6 +163,11 @@ private:
     void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 
     void CheckHpaeBlurRun(bool isHdrOn);
+    
+    // hpae offline
+    void CheckAndPostAsyncProcessOfflineTask();
+    bool ProcessOfflineSurfaceDrawable(const std::shared_ptr<RSProcessor>& processor,
+        std::shared_ptr<RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SCREEN_NODE, OnGenerate>;
     static Registrar instance_;

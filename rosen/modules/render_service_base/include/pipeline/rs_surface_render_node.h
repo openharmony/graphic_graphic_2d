@@ -546,6 +546,10 @@ public:
     {
         arsrTag_ = arsrTag;
     }
+    
+    // hpae offline
+    bool GetDeviceOfflineEnable() const { return deviceOfflineEnable_; }
+    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = enabled; }
 
     bool GetCopybitTag() const
     {
@@ -1262,11 +1266,6 @@ public:
         return RSRenderNode::GetUifirstSupportFlag();
     }
 
-    bool OpincGetNodeSupportFlag() override
-    {
-        return false;
-    }
-
     void UpdateSurfaceCacheContentStaticFlag(bool isAccessibilityChanged);
 
     void UpdateSurfaceSubTreeDirtyFlag();
@@ -1759,6 +1758,10 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
     bool arsrTag_ = true;
     bool copybitTag_ = false;
+    
+    // hpae offline
+    bool deviceOfflineEnable_ = false;
+    
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
     RectI skipFrameDirtyRect_;

@@ -21,12 +21,12 @@
 #include <vector>
 
 #include "ani.h"
-#include "include/core/SkImageFilter.h"
 #include "pixel_map_ani.h"
+#include "effect_image_render.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class DrawError;
+enum class DrawingError;
 class AniFilter {
 public:
     static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
@@ -37,9 +37,9 @@ public:
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
 
 private:
-    void AddNextFilter(sk_sp<SkImageFilter> filter);
-    DrawError Render(bool forceCPU);
-    std::vector<sk_sp<SkImageFilter>> skFilters_;
+    void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
+    DrawingError Render(bool forceCPU);
+    std::vector<std::shared_ptr<EffectImageFilter>> effectFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
 };

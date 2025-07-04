@@ -32,8 +32,7 @@
 #include "visitor/rs_node_visitor.h"
 namespace OHOS {
 namespace Rosen {
-bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap,
-    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr);
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(const RSSurfaceCaptureConfig& captureConfig, bool isUniRender);

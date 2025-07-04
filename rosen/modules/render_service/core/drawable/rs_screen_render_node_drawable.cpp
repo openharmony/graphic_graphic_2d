@@ -72,6 +72,9 @@
 #include "c/ffrt_cpu_boost.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
+
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -398,6 +401,11 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
                 surfaceParams->SetOffsetY(0);
                 surfaceParams->SetRogWidthRatio(1.0f);
             }
+            // hpae offline
+            if (surfaceParams->GetLayerInfo().useDeviceOffline &&
+                ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, false)) {
+                continue;
+            }
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
     }
@@ -487,7 +495,7 @@ void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusionFast()
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         SetDrawSkipType(DrawSkipType::SCREEN_MANAGER_NULL);
-        RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw ScreenManager is nullptr");
+        RS_LOGE("RSScreenRenderNodeDrawable::OnDraw ScreenManager is nullptr");
         return;
     }
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
@@ -564,7 +572,11 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::NO_DISPLAY_NODE);
         return;
     }
-
+    auto screenInfo = params->GetScreenInfo();
+    if (screenInfo.state == ScreenState::DISABLED) {
+        SetDrawSkipType(DrawSkipType::SCREEN_STATE_INVALID);
+        return;
+    }
     // [Attention] do not return before layer created set false, otherwise will result in buffer not released
     auto& hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     for (const auto& [screenNodeId, _, drawable] : hardwareDrawables) {
@@ -627,13 +639,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const RectI& dirtyRegion = syncDirtyManager->GetCurrentFrameDirtyRegion();
     const auto& activeSurfaceRect = syncDirtyManager->GetActiveSurfaceRect().IsEmpty() ?
         syncDirtyManager->GetSurfaceRect() : syncDirtyManager->GetActiveSurfaceRect();
-    auto curScreenInfo = params->GetScreenInfo();
     uint32_t vsyncRefreshRate = RSMainThread::Instance()->GetVsyncRefreshRate();
     RS_TRACE_NAME_FMT("RSScreenRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64"] zoomed(%d), "
         "currentFrameDirty(%d, %d, %d, %d), screen(%d, %d), active(%d, %d, %d, %d), vsyncRefreshRate(%u)",
         paramScreenId, GetId(), params->GetZoomed(),
         dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_,
-        curScreenInfo.width, curScreenInfo.height,
+        screenInfo.width, screenInfo.height,
         activeSurfaceRect.left_, activeSurfaceRect.top_, activeSurfaceRect.width_, activeSurfaceRect.height_,
         vsyncRefreshRate);
     RS_LOGD("RSScreenRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
@@ -641,10 +652,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // when set expectedRefreshRate, the vsyncRefreshRate maybe change from 60 to 120
     // so that need change whether equal vsync period and whether use virtual dirty
-    if (curScreenInfo.skipFrameStrategy == SKIP_FRAME_BY_REFRESH_RATE) {
-        bool isEqualVsyncPeriod = (vsyncRefreshRate == curScreenInfo.expectedRefreshRate);
-        if (curScreenInfo.isEqualVsyncPeriod != isEqualVsyncPeriod) {
-            curScreenInfo.isEqualVsyncPeriod = isEqualVsyncPeriod;
+    if (screenInfo.skipFrameStrategy == SKIP_FRAME_BY_REFRESH_RATE) {
+        bool isEqualVsyncPeriod = (vsyncRefreshRate == screenInfo.expectedRefreshRate);
+        if (screenInfo.isEqualVsyncPeriod != isEqualVsyncPeriod) {
+            screenInfo.isEqualVsyncPeriod = isEqualVsyncPeriod;
             screenManager->SetEqualVsyncPeriod(paramScreenId, isEqualVsyncPeriod);
         }
     }
@@ -660,18 +671,17 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
-    if (SkipFrame(vsyncRefreshRate, curScreenInfo)) {
+    if (SkipFrame(vsyncRefreshRate, screenInfo)) {
         SetDrawSkipType(DrawSkipType::SKIP_FRAME);
         RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u", paramScreenId,
-            curScreenInfo.skipFrameStrategy, curScreenInfo.skipFrameInterval, curScreenInfo.expectedRefreshRate);
+            screenInfo.skipFrameStrategy, screenInfo.skipFrameInterval, screenInfo.expectedRefreshRate);
         screenManager->PostForceRefreshTask();
         return;
     }
-    if (!curScreenInfo.isEqualVsyncPeriod) {
+    if (!screenInfo.isEqualVsyncPeriod) {
         uniParam->SetVirtualDirtyRefresh(true);
     }
 
-    auto screenInfo = params->GetScreenInfo();
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     if (!processor) {
         SetDrawSkipType(DrawSkipType::CREATE_PROCESSOR_FAIL);
@@ -751,7 +761,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             std::vector<RectI> damageRegionRects;
             // disable expand screen dirty when isEqualVsyncPeriod is false, because the dirty history is incorrect
             if (uniParam->IsExpandScreenDirtyEnabled() && uniParam->IsVirtualDirtyEnabled() &&
-                curScreenInfo.isEqualVsyncPeriod) {
+                screenInfo.isEqualVsyncPeriod) {
                 int32_t bufferAge = expandProcessor->GetBufferAge();
                 damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(
                     *this, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
@@ -826,11 +836,14 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (filterCacheOcclusionUpdated_) {
         filterCacheOcclusionUpdated_ = false;
     } else {
-        CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
+        CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
     }
     if (isHdrOn) {
-        params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+        params->SetNewPixelFormat(RSHdrUtil::GetRGBA1010108Enabled() ?
+            GRAPHIC_PIXEL_FMT_RGBA_1010108 : GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
+    // hpae offline: post offline task
+    CheckAndPostAsyncProcessOfflineTask();
     RSUniRenderThread::Instance().WaitUntilScreenNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
@@ -1034,6 +1047,11 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 surfaceParams->SetOffsetX(0);
                 surfaceParams->SetOffsetY(0);
                 surfaceParams->SetRogWidthRatio(1.0f);
+            }
+            // hpae offline: wait task and create layer
+            if (surfaceParams->GetLayerInfo().useDeviceOffline &&
+                ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, true)) {
+                continue;
             }
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
@@ -1378,6 +1396,43 @@ bool RSScreenRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo scre
             break;
     }
     return needSkip;
+}
+
+bool RSScreenRenderNodeDrawable::ProcessOfflineSurfaceDrawable(
+    const std::shared_ptr<RSProcessor>& processor,
+    std::shared_ptr<RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async)
+{
+    if (processor->ProcessOfflineLayer(surfaceDrawable, async)) {
+        // use offline layer to display
+        return true;
+    }
+    // reset offline tag, use original layer to display
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    surfaceParams->SetUseDeviceOffline(false);
+    return false;
+}
+
+void RSScreenRenderNodeDrawable::CheckAndPostAsyncProcessOfflineTask()
+{
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    for (const auto& [screenNodeId, _, drawable] : hardwareDrawables) {
+        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
+            continue;
+        }
+        auto params = static_cast<RSScreenRenderParams*>(renderParams_.get());
+        if (screenNodeId != params->GetId()) {
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
+        if (surfaceDrawable->GetRenderParams()->GetHardwareEnabled() &&
+            surfaceDrawable->GetRenderParams()->GetLayerInfo().useDeviceOffline) {
+            if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(
+                surfaceDrawable, RSUniRenderThread::Instance().GetVsyncId())) {
+                RS_LOGW("RSUniRenderProcessor::ProcessSurface: post offline task failed, go redraw");
+            }
+        }
+    }
 }
 
 } // namespace OHOS::Rosen::DrawableV2

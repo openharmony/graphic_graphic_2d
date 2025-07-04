@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -784,6 +784,87 @@ void CanvasFuzzTest016(const uint8_t* data, size_t size)
         str2 = nullptr;
     }
 }
+
+void CanvasFuzzTest017(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    size_t width = GetObject<size_t>() % MAX_ARRAY_MAX;
+    size_t height = GetObject<size_t>() % MAX_ARRAY_MAX;
+    OH_PixelmapInitializationOptions_Create(&options);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, WIDTH_FACTOR);
+    OH_PixelmapInitializationOptions_SetAlphaType(options, ENUM_RANGE_TWO);
+    size_t dataLength = width * height * WIDTH_FACTOR;
+    uint8_t* colorData = new uint8_t[dataLength];
+    for (size_t i = 0; i < width * height; i++) {
+        colorData[i] = GetObject<uint8_t>();
+    }
+    
+    OH_PixelmapNative_CreatePixelmap(colorData, dataLength, options, &pixelMap);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    OH_Drawing_Rect* srcRect =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_Rect* dstRect =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        static_cast<OH_Drawing_FilterMode>(GetObject<uint32_t>() % ENUM_RANGE_TWO),
+        static_cast<OH_Drawing_MipmapMode>(GetObject<uint32_t>() % ENUM_RANGE_THREE));
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, dstRect, samplingOptions,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, dstRect, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(nullptr, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, dstRect, samplingOptions,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, dstRect, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, srcRect, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, drPixelMap, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(canvas, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    OH_Drawing_CanvasDrawPixelMapRectConstraint(nullptr, nullptr, nullptr, nullptr, nullptr,
+        OH_Drawing_SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(srcRect);
+    OH_Drawing_RectDestroy(dstRect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+
+    if (colorData != nullptr) {
+        delete[] colorData;
+        colorData = nullptr;
+    }
+
+    OH_Drawing_CanvasDestroy(canvas);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -808,5 +889,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest014(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest015(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest016(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest017(data, size);
     return 0;
 }

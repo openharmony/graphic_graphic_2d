@@ -83,7 +83,8 @@ class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
         return nullptr;
     }
 
-    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        Media::PixelMap* pixelmapHDR = nullptr) override
     {
         // DO NOTHING
     }

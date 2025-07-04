@@ -390,7 +390,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, DumpAnimationInfo001, TestSize.Level1)
     animation.property_ = property;
     std::string out;
     animation.DumpAnimationInfo(out);
-    EXPECT_EQ(out, "Type:RSRenderKeyframeAnimation, ModifierType: 0");
+    EXPECT_EQ(out, "Type:RSRenderKeyframeAnimation, ModifierType: INVALID");
 }
 
 /**

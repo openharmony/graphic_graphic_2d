@@ -97,6 +97,7 @@ enum class DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
     TOUCH_EXT_ENABLED = 2, // touch extend program
+    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2:touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
 };
 
 enum class MultiAppStrategyType {

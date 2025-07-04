@@ -2041,6 +2041,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     layer.ancoFlags = surfaceParams->GetAncoFlags();
     const Rect& cropRect = surfaceParams->GetAncoSrcCrop();
     layer.ancoCropRect = {cropRect.x, cropRect.y, cropRect.w, cropRect.h};
+    layer.useDeviceOffline = GetDeviceOfflineEnable();
     if (isHardCursorEnable) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {

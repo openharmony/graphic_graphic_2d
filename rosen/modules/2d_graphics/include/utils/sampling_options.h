@@ -60,6 +60,7 @@ public:
     inline explicit SamplingOptions(FilterMode fm) noexcept;
     inline SamplingOptions(FilterMode fm, MipmapMode mm) noexcept;
     inline explicit SamplingOptions(const CubicResampler& c) noexcept;
+    inline SamplingOptions(const SamplingOptions& other) noexcept = default;
 
     inline ~SamplingOptions() {}
 

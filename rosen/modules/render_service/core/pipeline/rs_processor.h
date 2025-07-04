@@ -96,6 +96,11 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
 
+    // hpae offline
+    virtual bool ProcessOfflineLayer(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
+        bool async) { return false; }
+    virtual bool ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNode>& node) { return false; }
+
 protected:
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);

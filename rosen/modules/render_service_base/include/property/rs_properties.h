@@ -674,6 +674,8 @@ private:
     void GenerateRenderFilterDispersion();
     void GenerateForegroundRenderFilter();
     void GenerateContentLightFilter();
+    void ComposeNGRenderFilter(
+        std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter);
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
