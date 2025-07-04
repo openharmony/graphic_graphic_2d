@@ -683,16 +683,11 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
 bool RSUifirstManager::IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
-    
     node->GetAllSubSurfaceNodes(allSubSurfaceNodes);
-    const bool hasSurfaceVisibleDirtyRegion = CurSurfaceHasVisibleDirtyRegion(node);
     auto nodeVisibleRegion = node->GetVisibleRegion();
     auto nodeVisibleRegionBehindWindow = node->GetVisibleRegionBehindWindow();
 
     for (const auto &[subId, subSurfaceNode] : allSubSurfaceNodes) {
-        if (hasSurfaceVisibleDirtyRegion) {
-            break;
-        }
         const auto subNodePtr = subSurfaceNode.lock();
         if (subNodePtr) {
             auto visibleRegion = nodeVisibleRegion.OrSelf(subNodePtr->GetVisibleRegion());
