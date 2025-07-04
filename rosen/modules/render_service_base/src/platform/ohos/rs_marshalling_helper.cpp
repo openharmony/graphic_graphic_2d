@@ -2890,7 +2890,11 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                           \
+<<<<<<< HEAD
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector2f>)                        \
+=======
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector2f>)                        \ 
+>>>>>>> 24b779bec310a1323c3d53a22693c1b98a67bf79
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Media::PixelMap>)             \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
