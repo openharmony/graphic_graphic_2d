@@ -2305,7 +2305,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by uifirst needNextDrawForSkippedNode");
         doDirectComposition_ = false;
     }
-    doDirectComposition_ &= !RSUifirstManager::Instance().NeedNextDrawForSkippedNode(); 
+    doDirectComposition_ &= !RSUifirstManager::Instance().NeedNextDrawForSkippedNode();
 
     // if screen is power-off, DirectComposition should be disabled.
     if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
