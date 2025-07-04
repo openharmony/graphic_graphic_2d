@@ -1159,7 +1159,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
 
 void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
 {
-    std::string splitStr = ", ";
+    const std::string splitStr = ", ";
     std::string modifierDesc = "";
 #if defined(MODIFIER_NG)
     for (auto& slot : modifiersNG_) {
@@ -1192,6 +1192,8 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         }
         if (found) {
             modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
+        } else {
+            return;
         }
         modifierDesc += "]" + splitStr;
     }
@@ -1202,7 +1204,7 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
 
 void RSRenderNode::DumpModifiers(std::string& out) const
 {
-    std::string splitStr = ", ";
+    const std::string splitStr = ", ";
     std::string propertyDesc = "";
 #if defined(MODIFIER_NG)
     for (auto& slot : modifiersNG_) {

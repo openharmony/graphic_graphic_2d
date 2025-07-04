@@ -6647,27 +6647,6 @@ HWTEST_F(RSNodeTest, GetModifier, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateModifierMotionPathOption
- * @tc.desc: test results of UpdateModifierMotionPathOption
- * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
- */
-HWTEST_F(RSNodeTest, UpdateModifierMotionPathOption, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    RSModifierType modifierType = RSModifierType::BOUNDS;
-    PropertyId propertyId = 1;
-    auto value = Vector4f(100.f);
-    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
-    auto modifier = std::make_shared<RSBoundsModifier>(prop);
-    rsNode->modifiers_[propertyId] = modifier;
-    rsNode->propertyModifiers_[modifierType] = modifier;
-    rsNode->UpdateModifierMotionPathOption();
-    EXPECT_EQ(rsNode->modifiers_.empty(), false);
-    EXPECT_EQ(rsNode->propertyModifiers_.empty(), false);
-}
-
-/**
  * @tc.name: GetModifierIds
  * @tc.desc: test results of GetModifierIds
  * @tc.type: FUNC
@@ -6708,6 +6687,34 @@ HWTEST_F(RSNodeTest, MarkAllExtendModifierDirty, TestSize.Level1)
 #endif
 
 /**
+ * @tc.name: UpdateModifierMotionPathOption
+ * @tc.desc: test results of UpdateModifierMotionPathOption
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, UpdateModifierMotionPathOption, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    PropertyId propertyId = 1;
+    auto value = Vector4f(100.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+#if defined(MODIFIER_NG)
+    prop->SetPropertyTypeNG(ModifierNG::RSPropertyType::BOUNDS);
+    rsNode->properties_[propertyId] = prop;
+    EXPECT_EQ(rsNode->properties_[propertyId]->IsPathAnimatable(), true);
+    rsNode->UpdateModifierMotionPathOption();
+    EXPECT_EQ(rsNode->properties_.empty(), false);
+#else
+    auto modifier = std::make_shared<RSBoundsModifier>(prop);
+    rsNode->modifiers_[propertyId] = modifier;
+    rsNode->propertyModifiers_[RSModifierType::BOUNDS] = modifier;
+    rsNode->UpdateModifierMotionPathOption();
+    EXPECT_EQ(rsNode->modifiers_.empty(), false);
+    EXPECT_EQ(rsNode->propertyModifiers_.empty(), false);
+#endif
+}
+
+/**
  * @tc.name: ResetExtendModifierDirty
  * @tc.desc: test results of ResetExtendModifierDirty
  * @tc.type: FUNC
@@ -6719,7 +6726,6 @@ HWTEST_F(RSNodeTest, ResetExtendModifierDirty, TestSize.Level1)
     rsNode->ResetExtendModifierDirty();
     EXPECT_EQ(rsNode->extendModifierIsDirty_, false);
 }
-
 
 /**
  * @tc.name: SetIsCustomTypeface
