@@ -52,12 +52,9 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const std::shared_ptr<RSPath> value)
+    const std::string& desc, const VectorVector2F& value)
 {
-    if (value == nullptr) {
-        return;
-    }
-    geFilter->SetParam(desc, std::make_shared<Drawing::Path>(value->GetDrawingPath()));
+    geFilter->SetParam(desc, value);
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
