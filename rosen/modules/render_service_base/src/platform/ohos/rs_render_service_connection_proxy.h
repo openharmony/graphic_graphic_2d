@@ -404,6 +404,8 @@ public:
     RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
+
+    void ClearUifirstCache(NodeId id) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

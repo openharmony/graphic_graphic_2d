@@ -1217,5 +1217,10 @@ bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return renderServiceClient_->GetBehindWindowFilterEnabled(enabled);
 }
+
+void RSInterfaces::ClearUifirstCache(NodeId id)
+{
+    renderServiceClient_->ClearUifirstCache(id);
+}
 } // namespace Rosen
 } // namespace OHOS

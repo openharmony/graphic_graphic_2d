@@ -585,6 +585,28 @@ bool DoProfilerServiceFuzzTest(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ProfilerIsSecureScreen();
     return true;
 }
+
+bool DoClearUifirstCache(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    NodeId nodeId = GetData<NodeId>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.ClearUifirstCache(nodeId);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -607,5 +629,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoResizeVirtualScreen(data, size);
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoProfilerServiceFuzzTest(data, size);
+    OHOS::Rosen::DoClearUifirstCache(data, size);
     return 0;
 }

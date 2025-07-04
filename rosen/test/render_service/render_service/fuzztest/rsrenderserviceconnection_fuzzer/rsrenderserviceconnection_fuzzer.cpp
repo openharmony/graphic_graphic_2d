@@ -1523,6 +1523,17 @@ bool DoSetWindowExpectedRefreshRate()
     return true;
 }
 
+bool DoClearUifirstCache()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    rsConn_->ClearUifirstCache(id);
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1646,6 +1657,7 @@ void DoFuzzerTest3()
     DoProfilerServiceOpenFile();
     DoProfilerServicePopulateFiles();
     DoProfilerIsSecureScreen();
+    DoClearUifirstCache();
 }
 } // namespace Rosen
 } // namespace OHOS

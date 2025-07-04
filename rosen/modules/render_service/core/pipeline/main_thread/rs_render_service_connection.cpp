@@ -3448,5 +3448,16 @@ bool RSRenderServiceConnection::ProfilerIsSecureScreen()
     return false;
 #endif
 }
+
+void RSRenderServiceConnection::ClearUifirstCache(NodeId id)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [id]() -> void {
+        RSUifirstManager::Instance().AddMarkedClearCacheNode(id);
+    };
+    mainThread_->PostTask(task);
+}
 } // namespace Rosen
 } // namespace OHOS

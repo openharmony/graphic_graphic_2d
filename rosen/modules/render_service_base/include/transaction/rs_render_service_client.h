@@ -501,6 +501,8 @@ public:
     RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
     bool ProfilerIsSecureScreen();
+
+    void ClearUifirstCache(NodeId id);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
