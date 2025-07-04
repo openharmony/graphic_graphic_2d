@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "default_symbol_config.h"
+
 #ifdef _WIN32
 #include "cstdlib"
 #else
@@ -20,7 +23,6 @@
 #endif
 #include <fstream>
 
-#include "default_symbol_config.h"
 #include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
 #include "symbol_resource/symbol_config_parser.h"
 #include "utils/text_log.h"
@@ -82,6 +84,7 @@ std::unique_ptr<char[]> GetDataFromFile(const char* fname, std::streamsize& size
 
     std::ifstream file(tmpPath, std::ios::binary);
     if (!file || !file.good()) {
+        TEXT_LOGE("Invalid file, unable to open file, file: %{public}s", fname);
         size = 0;
         return nullptr;
     }
@@ -89,6 +92,7 @@ std::unique_ptr<char[]> GetDataFromFile(const char* fname, std::streamsize& size
     file.seekg(0, std::ios::end);
     size = file.tellg();
     if (size <= 0) {
+        TEXT_LOGE("Empty File, file: %{public}s", fname);
         size = 0;
         return nullptr;
     }
@@ -98,6 +102,7 @@ std::unique_ptr<char[]> GetDataFromFile(const char* fname, std::streamsize& size
     file.read(data.get(), size);
 
     if (file.gcount() != size) {
+        TEXT_LOGE("Inconsistent file size verification, file: %{public}s", fname);
         size = 0;
         return nullptr;
     }
@@ -175,9 +180,6 @@ OHOS::Rosen::Drawing::DrawingSymbolLayersGroups DefaultSymbolConfig::GetSymbolLa
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);
     OHOS::Rosen::Drawing::DrawingSymbolLayersGroups symbolLayersGroups;
-    if (hmSymbolConfig_.size() == 0) {
-        return symbolLayersGroups;
-    }
     auto iter = hmSymbolConfig_.find(glyphId);
     if (iter != hmSymbolConfig_.end()) {
         symbolLayersGroups = iter->second;
