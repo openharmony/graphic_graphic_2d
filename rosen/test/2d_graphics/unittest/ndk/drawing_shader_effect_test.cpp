@@ -192,10 +192,8 @@ HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreatePixelMapSha
     OH_Drawing_ShaderEffect* effect2 = OH_Drawing_ShaderEffectCreatePixelMapShader(
         drPixelMap, CLAMP, CLAMP, samplingOptions, matrix);
     ASSERT_TRUE(effect2 != nullptr);
-    OH_Drawing_ShaderEffectCreatePixelMapShader(nullptr, CLAMP, CLAMP, samplingOptions, matrix);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, CLAMP, CLAMP, nullptr, matrix);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(nullptr, CLAMP, CLAMP, samplingOptions, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, CLAMP, CLAMP, nullptr, matrix), nullptr);
     EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, static_cast<OH_Drawing_TileMode>(-1),
         CLAMP, samplingOptions, matrix), nullptr);
     EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, static_cast<OH_Drawing_TileMode>(99),
