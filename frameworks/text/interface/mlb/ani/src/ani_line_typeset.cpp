@@ -81,6 +81,7 @@ ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_doubl
     size_t limitSize = lineTypography->GetUnicodeSize();
     if (startIndex < 0 || limitSize <= static_cast<size_t>(startIndex) || count < 0
         || static_cast<size_t>(count + startIndex) > limitSize) {
+        TEXT_LOGE("Params exceeds reasonable range. %{public}f %{public}f %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Params exceeds reasonable range.");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -88,6 +89,7 @@ ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_doubl
     std::unique_ptr<TextLineBase> textLineBase =
         lineTypography->CreateLine(static_cast<size_t>(startIndex), static_cast<size_t>(count));
     if (!textLineBase) {
+        TEXT_LOGE("Failed to create line. %{public}f %{public}f %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Create line failed.");
         return AniTextUtils::CreateAniUndefined(env);
     }
