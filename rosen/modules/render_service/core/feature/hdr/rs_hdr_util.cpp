@@ -15,6 +15,8 @@
 
 #include "rs_hdr_util.h"
 
+#include <parameters.h>
+
 #include "display_engine/rs_color_temperature.h"
 #include "hdi_layer_info.h"
 #include "metadata_helper.h"
@@ -291,6 +293,13 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode HDRService surfaceNode %{public}s is HDR",
             surfaceNode.GetName().c_str());
     }
+}
+
+bool RSHdrUtil::GetRGBA1010108Enabled()
+{
+    static bool isDDGR = system::GetParameter("persist.sys.graphic.GpuApitype", "1") == "2";
+    static bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
+    return isDDGR && rgba1010108;
 }
 
 void RSHdrUtil::SetHDRParam(RSSurfaceRenderNode& node, bool flag)
