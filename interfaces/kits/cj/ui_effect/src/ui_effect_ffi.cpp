@@ -21,7 +21,7 @@
 extern "C" {
 FFI_EXPORT int64_t FfiOHOSUiEffectCreateEffect(int32_t* errCode)
 {
-    auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJVisualEffect>(errCode);
+    auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJVisualEffect>();
     if (instance == nullptr) {
         *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
         return 0;
@@ -31,7 +31,7 @@ FFI_EXPORT int64_t FfiOHOSUiEffectCreateEffect(int32_t* errCode)
 
 FFI_EXPORT int64_t FfiOHOSUiEffectCreateFilter(int32_t* errCode)
 {
-    auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJFilter>(errCode);
+    auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJFilter>();
     if (instance == nullptr) {
         *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
         return 0;

@@ -17,11 +17,10 @@
 namespace OHOS {
 namespace Rosen {
 using namespace UIEffect;
-CJFilter::CJFilter(int32_t* errCode)
+CJFilter::CJFilter()
 {
     std::shared_ptr<Filter> filterObj = std::make_shared<Filter>();
     if (filterObj == nullptr) {
-        *errCode = CJ_ERR_ILLEGAL_INSTANCE;
         FILTER_LOG_E("CJFilter CreateFilter filterObj is nullptr");
         return;
     }

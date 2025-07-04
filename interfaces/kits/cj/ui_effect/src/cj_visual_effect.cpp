@@ -18,11 +18,10 @@
 namespace OHOS {
 namespace Rosen {
 using namespace UIEffect;
-CJVisualEffect::CJVisualEffect(int32_t* errCode)
+CJVisualEffect::CJVisualEffect()
 {
     std::shared_ptr<VisualEffect> effectObj = std::make_shared<VisualEffect>();
     if (effectObj == nullptr) {
-        *errCode = CJ_ERR_NULL_PTR;
         UIEFFECT_LOG_E("CJVisualEffect CreateEffect effectObj is nullptr");
         return;
     }

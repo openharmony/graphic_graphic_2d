@@ -30,7 +30,7 @@ namespace Rosen {
 class CJVisualEffect : public OHOS::FFI::FFIData {
     DECL_TYPE(CJVisualEffect, OHOS::FFI::FFIData)
 public:
-    explicit CJVisualEffect(int32_t* errCode);
+    explicit CJVisualEffect();
     virtual ~CJVisualEffect() override = default;
 
 private:
