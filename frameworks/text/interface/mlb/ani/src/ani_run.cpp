@@ -23,6 +23,7 @@
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "ani_typographic_bounds_converter.h"
+#include "font_ani/ani_font.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -301,14 +302,13 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    Drawing::Font font = run->GetFont();
+    Drawing::AniFont* aniFont = new Drawing::AniFont(run->GetFont());
     ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":V");
-    Drawing::Font* fontPtr = &font;
-    ani_status ret = env->Object_SetFieldByName_Long(fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(fontPtr));
+    ani_status ret = env->Object_SetFieldByName_Long(fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine");
-        delete fontPtr;
-        fontPtr = nullptr;
+        delete aniFont;
+        aniFont = nullptr;
     }
     return fontObj;
 }
