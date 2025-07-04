@@ -17,8 +17,10 @@
 
 #include "drawing_canvas_utils.h"
 #include "drawing_helper.h"
+#include "native_pixel_map_manager.h"
 
 #include "effect/shader_effect.h"
+#include "render/rs_pixel_map_util.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -229,6 +231,39 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
     return CastShaderEffect(ShaderEffect::CreateImageShader(
         CastToImage(*cImage), static_cast<TileMode>(tileX), static_cast<TileMode>(tileY),
         CastToSamplingOptions(*cSampling), *CastToMatrix(cMatrix)));
+}
+
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreatePixelMapShader(OH_Drawing_PixelMap* pixelMap,
+    OH_Drawing_TileMode tileX, OH_Drawing_TileMode tileY, const OH_Drawing_SamplingOptions* samplingOptions,
+    const OH_Drawing_Matrix* matrix)
+{
+#ifdef OHOS_PLATFORM
+    if (pixelMap == nullptr || samplingOptions == nullptr) {
+        return nullptr;
+    }
+    if (tileX < CLAMP || tileX > DECAL || tileY < CLAMP || tileY > DECAL) {
+        return nullptr;
+    }
+
+    std::shared_ptr<Media::PixelMap> pixelMapPtr = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
+    if (!pixelMapPtr) {
+        return nullptr;
+    }
+
+    std::shared_ptr<Drawing::Image> image = RSPixelMapUtil::ExtractDrawingImage(pixelMapPtr);
+    if (!image) {
+        return nullptr;
+    }
+
+    Matrix defaultMatrix;
+    const Matrix& matrixRef = matrix ? *CastToMatrix(matrix) : defaultMatrix;
+
+    return CastShaderEffect(ShaderEffect::CreateImageShader(
+        *image, static_cast<TileMode>(tileX), static_cast<TileMode>(tileY),
+        CastToSamplingOptions(*samplingOptions), matrixRef));
+#else
+    return nullptr;
+#endif
 }
 
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(const OH_Drawing_Point2D* startPt,
