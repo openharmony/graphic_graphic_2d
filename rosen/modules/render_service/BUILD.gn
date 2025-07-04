@@ -109,6 +109,8 @@ ohos_shared_library("librender_service") {
     }
   }
 
+  public_deps = []
+
   sources = [
     "core/feature/anco_manager/rs_anco_manager.cpp",
     "core/feature/capture/rs_surface_capture_task.cpp",
@@ -351,10 +353,13 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/utils/socketpair/export",
   ]
 
+  public_deps += [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+  ]
+
   deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
@@ -426,7 +431,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (rs_enable_gpu) {
-    public_deps = [ "$graphic_2d_root:libvulkan" ]
+    public_deps += [ "$graphic_2d_root:libvulkan" ]
     deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",

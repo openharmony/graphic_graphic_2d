@@ -94,6 +94,7 @@ ohos_unittest("RSProfilerBaseTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
   ]
 
   external_deps = [
@@ -102,6 +103,10 @@ ohos_unittest("RSProfilerBaseTest") {
     "hilog:libhilog",
     "init:libbegetutil",
   ]
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 
   use_exceptions = true
   subsystem_name = "graphic"

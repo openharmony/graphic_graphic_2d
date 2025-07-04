@@ -130,6 +130,9 @@ private:
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
         const DrawImageRectAttributes& attr);
+    void ProfilerLogImageEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer,
+        const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src,
+        const std::shared_ptr<Drawing::Image>& outImage);
     std::string GetFilterTypeString() const;
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters_;

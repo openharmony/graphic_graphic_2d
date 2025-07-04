@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,16 +28,32 @@ using OHOS::Media::AllocatorType;
 
 using ImageData = std::vector<uint8_t>;
 
-struct ImageProperties {
+struct RSB_EXPORT ImageProperties {
     explicit ImageProperties(PixelMap& map);
-    explicit ImageProperties(const ImageInfo& info);
+    explicit ImageProperties(const ImageInfo& info, AllocatorType type);
 
-    Media::PixelFormat format;
+    int16_t format;
+    int8_t allocType;
 
     int32_t width;
     int32_t height;
 
     int32_t stride;
+
+    AllocatorType GetAllocType() const
+    {
+        return static_cast<AllocatorType>(allocType);
+    }
+
+    void SetFormat(Media::PixelFormat pf)
+    {
+        format = static_cast<int16_t>(pf);
+    }
+
+    Media::PixelFormat GetFormat() const
+    {
+        return static_cast<Media::PixelFormat>(format);
+    }
 };
 
 struct TextureHeader {
@@ -75,7 +91,7 @@ private:
     static void PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
     static void PushDmaMemory(uint64_t id, PixelMap& map);
 
-    static void PushImage(AllocatorType allocType, uint64_t id, const ImageData& data, size_t skipBytes,
+    static void PushImage(uint64_t id, const ImageData& data, size_t skipBytes,
         BufferHandle* buffer = nullptr, const ImageProperties* properties = nullptr);
 
     static bool IsSharedMemory(const PixelMap& map);

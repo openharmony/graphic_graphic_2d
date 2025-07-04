@@ -22,6 +22,7 @@
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 #include "surface_buffer_impl.h"
+#include "graphic_common.h"
 
 using namespace testing;
 using namespace testing::ext;

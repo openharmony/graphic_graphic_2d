@@ -44,6 +44,7 @@
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1560,6 +1561,7 @@ pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     MessageParcel& parcel, uint32_t parcelNumber)
 {
+    RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
     auto transactionData = parcel.ReadParcelable<RSTransactionData>();
     if (!transactionData) {
