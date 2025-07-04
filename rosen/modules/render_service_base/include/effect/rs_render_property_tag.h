@@ -80,8 +80,10 @@ enum class RSNGEffectType : int16_t {
     ALWAYS_SNAPSHOT,
     // mask type
     RIPPLE_MASK,
+    DOUBLE_RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
     PIXEL_MAP_MASK,
+    WAVE_GRADIENT_MASK,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     WAVY_RIPPLE_LIGHT,

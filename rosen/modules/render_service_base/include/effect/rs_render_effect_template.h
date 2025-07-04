@@ -252,12 +252,14 @@ public:
             case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
             case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
             case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
+            case RSNGEffectType::DOUBLE_RIPPLE_MASK: return "DoubleRippleMask";
             case RSNGEffectType::PIXEL_MAP_MASK: return "PixelMapMask";
             case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
             case RSNGEffectType::WAVY_RIPPLE_LIGHT: return "WavyRippleLight";
             case RSNGEffectType::AURORA_NOISE: return "AuroraNoise";
             case RSNGEffectType::PARTICLE_CIRCULAR_HALO: return "ParticleCircularHalo";
             case RSNGEffectType::RADIAL_GRADIENT_MASK: return "RadialGradientMask";
+            case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
             default:
                 return "UNKNOWN";
         }

@@ -92,3 +92,15 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusX, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusY, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Colors, std::vector<float>);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Positions, std::vector<float>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, WaveCenter, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, WaveWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, PropagationRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, BlurRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, TurbulenceStrength, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Width, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center1, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center2, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Turbulence, float);

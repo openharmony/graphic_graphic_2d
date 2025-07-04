@@ -21,6 +21,7 @@
 #include "mask/include/mask_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
 #include "mask/include/ripple_mask_para.h"
+#include "mask/include/wave_gradient_mask_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -51,6 +52,7 @@ private:
     static napi_value CreateRippleMask(napi_env env, napi_callback_info info);
     static napi_value CreateRadialGradientMask(napi_env env, napi_callback_info info);
     static napi_value CreatePixelMapMask(napi_env env, napi_callback_info info);
+    static napi_value CreateWaveGradientMask(napi_env env, napi_callback_info info);
 
     static void RegisterMaskParaUnmarshallingCallback();
 };

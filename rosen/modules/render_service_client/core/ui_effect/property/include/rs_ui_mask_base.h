@@ -48,6 +48,14 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
     ADD_PROPERTY_TAG(RippleMask, Offset)
 );
 
+DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
+    ADD_PROPERTY_TAG(DoubleRippleMask, Center1),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Center2),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Radius),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Width),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Turbulence)
+);
+
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
@@ -61,6 +69,14 @@ DECLARE_MASK(RadialGradientMask, RADIAL_GRADIENT_MASK,
     ADD_PROPERTY_TAG(RadialGradientMask, RadiusY),
     ADD_PROPERTY_TAG(RadialGradientMask, Colors),
     ADD_PROPERTY_TAG(RadialGradientMask, Positions)
+);
+
+DECLARE_MASK(WaveGradientMask, WAVE_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(WaveGradientMask, WaveCenter),
+    ADD_PROPERTY_TAG(WaveGradientMask, WaveWidth),
+    ADD_PROPERTY_TAG(WaveGradientMask, PropagationRadius),
+    ADD_PROPERTY_TAG(WaveGradientMask, BlurRadius),
+    ADD_PROPERTY_TAG(WaveGradientMask, TurbulenceStrength)
 );
 
 #undef DECLARE_MASK

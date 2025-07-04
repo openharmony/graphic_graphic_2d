@@ -20,6 +20,7 @@
 #include "ui_effect/mask/include/pixel_map_mask_para.h"
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
+#include "ui_effect/mask/include/wave_gradient_mask_para.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGMaskBase"
@@ -40,6 +41,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
     },
     {RSNGEffectType::RADIAL_GRADIENT_MASK, [] {
             return std::make_shared<RSNGRadialGradientMask>();
+        }
+    },
+    {RSNGEffectType::WAVE_GRADIENT_MASK, [] {
+            return std::make_shared<RSNGWaveGradientMask>();
         }
     },
 };
@@ -90,12 +95,30 @@ std::shared_ptr<RSNGMaskBase> ConvertRadialGradientMaskPara(std::shared_ptr<Mask
     radialGradientMask->Setter<RadialGradientMaskPositionsTag>(radialGradientMaskPara->GetPositions());
     return radialGradientMask;
 }
+
+std::shared_ptr<RSNGMaskBase> ConvertWaveGradientMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::WAVE_GRADIENT_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto waveGradientMask = std::static_pointer_cast<RSNGWaveGradientMask>(mask);
+    auto waveGradientMaskPara = std::static_pointer_cast<WaveGradientMaskPara>(maskPara);
+    waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(waveGradientMaskPara->GetWaveCenter());
+    waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(waveGradientMaskPara->GetWaveWidth());
+    waveGradientMask->Setter<WaveGradientMaskPropagationRadiusTag>(waveGradientMaskPara->GetPropagationRadius());
+    waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(waveGradientMaskPara->GetBlurRadius());
+    waveGradientMask->Setter<WaveGradientMaskTurbulenceStrengthTag>(waveGradientMaskPara->GetTurbulenceStrength());
+
+    return waveGradientMask;
+}
 }
 
 static std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::RIPPLE_MASK, ConvertRippleMaskPara },
     { MaskPara::Type::PIXEL_MAP_MASK, ConvertPixelMapMaskPara },
     { MaskPara::Type::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskPara },
+    { MaskPara::Type::WAVE_GRADIENT_MASK, ConvertWaveGradientMaskPara },
 };
 
 std::shared_ptr<RSNGMaskBase> RSNGMaskBase::Create(RSNGEffectType type)

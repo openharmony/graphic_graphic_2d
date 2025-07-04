@@ -32,12 +32,20 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderRippleMask>();
         }
     },
+    {RSNGEffectType::DOUBLE_RIPPLE_MASK, [] {
+            return std::make_shared<RSNGRenderDoubleRippleMask>();
+        }
+    },
     {RSNGEffectType::PIXEL_MAP_MASK, [] {
             return std::make_shared<RSNGRenderPixelMapMask>();
         }
     },
     {RSNGEffectType::RADIAL_GRADIENT_MASK, [] {
             return std::make_shared<RSNGRenderRadialGradientMask>();
+        }
+    },
+    {RSNGEffectType::WAVE_GRADIENT_MASK, [] {
+            return std::make_shared<RSNGRenderWaveGradientMask>();
         }
     },
 };
