@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -128,7 +129,8 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest001, TestSize.Level1)
     pixelMap->astcrealSize_.height = 1;
     pixelMap->transformData_.scaleX = 1;
     pixelMap->transformData_.scaleY = 1;
-    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas, ImageFit::NONE);
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas, ImageFit::CONTAIN);
     EXPECT_NE(pixelMap, nullptr);
 }
 
@@ -156,7 +158,7 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest002, TestSize.Level1)
     pixelMap->astcrealSize_.height = 1;
     pixelMap->transformData_.scaleX = 1;
     pixelMap->transformData_.scaleY = 1;
-    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas, ImageFit::NONE);
     EXPECT_NE(pixelMap, nullptr);
 }
 
@@ -184,7 +186,7 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest003, TestSize.Level1)
     pixelMap->astcrealSize_.height = 1;
     pixelMap->transformData_.scaleX = 1;
     pixelMap->transformData_.scaleY = 1;
-    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas, ImageFit::NONE);
     EXPECT_NE(pixelMap, nullptr);
 }
 
@@ -212,7 +214,7 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest004, TestSize.Level1)
     pixelMap->astcrealSize_.height = 1;
     pixelMap->transformData_.scaleX = 1;
     pixelMap->transformData_.scaleY = 1;
-    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas, ImageFit::NONE);
     EXPECT_NE(pixelMap, nullptr);
 }
 
@@ -240,7 +242,7 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest005, TestSize.Level1)
     pixelMap->astcrealSize_.height = 1;
     pixelMap->transformData_.scaleX = 1;
     pixelMap->transformData_.scaleY = 1;
-    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas, ImageFit::NONE);
     EXPECT_NE(pixelMap, nullptr);
 }
 
@@ -268,7 +270,7 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest006, TestSize.Level1)
     pixelMap->astcrealSize_.height = 1;
     pixelMap->transformData_.scaleX = 0;
     pixelMap->transformData_.scaleY = 0;
-    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas, ImageFit::NONE);
     EXPECT_NE(pixelMap, nullptr);
 }
 
