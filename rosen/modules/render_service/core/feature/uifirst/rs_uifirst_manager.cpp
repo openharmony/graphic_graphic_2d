@@ -1592,6 +1592,12 @@ bool RSUifirstManager::IsVMSurfaceName(std::string surfaceName)
 // NonFocusWindow, may reuse last image cache
 bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
+    if (RSUifirstManager::Instance().IsExceededWindowsThreshold(node)) {
+        RS_TRACE_NAME_FMT("exceededThreshold id:%" PRIu64 ", threshold:%d, curUifirstWindowNums:%d", node.GetId(),
+            RSUifirstManager::Instance().uifirstWindowsNumThreshold_,
+            RSUifirstManager::Instance().curUifirstWindowNums_);
+        return false;
+    }
     bool isDisplayRotation = RSUifirstManager::Instance().rotationChanged_;
     if ((RSUifirstManager::Instance().GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
@@ -1605,8 +1611,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
-    bool focus = node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
-        node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
+    bool focus = RSUifirstManager::Instance().IsFocusedNode(node);
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
@@ -1752,9 +1757,10 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
     RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
-        " isForceFlag:[%d], hasProtectedLayer:[%d] switch:[%d]", node.GetId(), node.GetName().c_str(),
-        node.GetFirstLevelNodeId(), ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_,
-        node.isForceFlag_, node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED), node.GetUIFirstSwitch());
+        " isForceFlag:[%d], hasProtectedLayer:[%d] switch:[%d] curUifirstWindowNum:[%d] threshold:[%d]", node.GetId(),
+        node.GetName().c_str(), node.GetFirstLevelNodeId(), ancestorNodeHasAnimation, node.GetUifirstSupportFlag(),
+        isUiFirstOn_, node.isForceFlag_, node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED),
+        node.GetUIFirstSwitch(), curUifirstWindowNums_, uifirstWindowsNumThreshold_);
     if (ForceUpdateUifirstNodes(node)) {
         return;
     }
@@ -1804,6 +1810,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             AddCardNodes(node.GetId(), currentFrameCacheType);
             node.SetSubThreadAssignable(true);
             node.SetNeedCacheSurface(false);
+            IncreaseUifirstWindowCount(node);
         } else { // keep disable
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep disable  %" PRIu64, node.GetId());
             node.SetSubThreadAssignable(false);
@@ -1815,6 +1822,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %" PRIu64, node.GetId());
             RS_LOGD("uifirst keep enable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
+            IncreaseUifirstWindowCount(node);
         } else { // switch: enable -> disable
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64, node.GetId());
             RS_LOGI("uifirst enable -> disable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
@@ -1823,6 +1831,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             RemoveCardNodes(node.GetId());
             node.SetSubThreadAssignable(false);
             node.SetNeedCacheSurface(false);
+            DecreaseUifirstWindowCount(node);
         }
     }
     node.SetLastFrameUifirstFlag(currentFrameCacheType);
@@ -1921,8 +1930,10 @@ void RSUifirstManager::ReadUIFirstCcmParam()
     isCardUiFirstOn_ = UIFirstParam::IsCardUIFirstEnable();
 #endif
     SetUiFirstType(UIFirstParam::GetUIFirstType());
+    uifirstWindowsNumThreshold_ = UIFirstParam::GetUIFirstEnableWindowThreshold();
     RS_LOGI("ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-        " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
+        " uifirstType_=%{public}d uiFirstEnableWindowThreshold_=%{public}d",
+        isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -2133,6 +2144,49 @@ void RSUifirstManager::RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const 
     }
     stagingSurfaceParams->RecordDirtyRegionMatrix(matrix);
     node.AddToPendingSyncList();
+}
+
+bool RSUifirstManager::IsFocusedNode(const RSSurfaceRenderNode& node) const
+{
+    return node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
+        node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
+}
+
+void RSUifirstManager::IncreaseUifirstWindowCount(const RSSurfaceRenderNode& node)
+{
+    if (IsFocusedNode(node) || node.IsAbilityComponent()) {
+        return;
+    }
+    curUifirstWindowNums_++;
+}
+
+void RSUifirstManager::DecreaseUifirstWindowCount(const RSSurfaceRenderNode& node)
+{
+    if (IsFocusedNode(node) || node.IsAbilityComponent()) {
+        return;
+    }
+    if (curUifirstWindowNums_ > 0) {
+        curUifirstWindowNums_--;
+    }
+}
+
+bool RSUifirstManager::IsExceededWindowsThreshold(const RSSurfaceRenderNode& node) const
+{
+    // no restriction when threshold is less than or equal to 0
+    if (uifirstWindowsNumThreshold_ <= 0) {
+        return false;
+    }
+
+    // do not count focus window
+    if (IsFocusedNode(node)) {
+        return false;
+    }
+
+    // Non-focus window, Z/V sequence control
+    if (curUifirstWindowNums_ < uifirstWindowsNumThreshold_) {
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
