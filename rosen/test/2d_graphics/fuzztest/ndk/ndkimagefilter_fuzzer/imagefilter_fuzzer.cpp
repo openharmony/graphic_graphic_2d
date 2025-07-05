@@ -131,6 +131,7 @@ void NativeImageFilterTest003(const uint8_t* data, size_t size)
     
     OH_Drawing_ImageFilterDestroy(inputFilter1);
     OH_Drawing_ImageFilterDestroy(inputFilter2);
+    OH_Drawing_RectDestroy(rect);
 }
 
 } // namespace Drawing
