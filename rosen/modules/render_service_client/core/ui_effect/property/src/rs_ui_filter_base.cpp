@@ -20,9 +20,11 @@
 #include "platform/common/rs_log.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
+#include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
+#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #undef LOG_TAG
@@ -56,6 +58,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::DIRECTION_LIGHT, [] {
             return std::make_shared<RSNGDirectionLightFilter>();
+        }
+    },
+    {RSNGEffectType::COLOR_GRADIENT, [] {
+                return std::make_shared<RSNGColorGradientFilter>();
         }
     },
 };
@@ -102,12 +108,45 @@ std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<
     directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());
     return directionLightFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertDispersionFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::DISPERSION);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto dispersionFilter = std::static_pointer_cast<RSNGDispersionFilter>(filter);
+    auto dispersionFilterPara = std::static_pointer_cast<DispersionPara>(filterPara);
+    dispersionFilter->Setter<DispersionMaskTag>(RSNGMaskBase::Create(dispersionFilterPara->GetMask()));
+    dispersionFilter->Setter<DispersionOpacityTag>(dispersionFilterPara->GetOpacity());
+    dispersionFilter->Setter<DispersionRedOffsetTag>(dispersionFilterPara->GetRedOffset());
+    dispersionFilter->Setter<DispersionGreenOffsetTag>(dispersionFilterPara->GetGreenOffset());
+    dispersionFilter->Setter<DispersionBlueOffsetTag>(dispersionFilterPara->GetBlueOffset());
+    return dispersionFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertColorGradientFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::COLOR_GRADIENT);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
+    auto colorGradientFilterPara = std::static_pointer_cast<ColorGradientPara>(filterPara);
+    colorGradientFilter->Setter<ColorGradientColorsTag>(colorGradientFilterPara->GetColors());
+    colorGradientFilter->Setter<ColorGradientPositionsTag>(colorGradientFilterPara->GetPositions());
+    colorGradientFilter->Setter<ColorGradientStrengthsTag>(colorGradientFilterPara->GetStrengths());
+    colorGradientFilter->Setter<ColorGradientMaskTag>(RSNGMaskBase::Create(colorGradientFilterPara->GetMask()));
+    return colorGradientFilter;
+}
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
     { FilterPara::ParaType::DISPLACEMENT_DISTORT, ConvertDisplacementDistortFilterPara },
     { FilterPara::ParaType::EDGE_LIGHT, ConvertEdgeLightFilterPara },
     { FilterPara::ParaType::DIRECTION_LIGHT, ConvertDirectionLightFilterPara },
+    { FilterPara::ParaType::DISPERSION, ConvertDispersionFilterPara },
+    { FilterPara::ParaType::COLOR_GRADIENT, ConvertColorGradientFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
@@ -126,6 +165,8 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(std::shared_ptr<FilterPar
     static std::unordered_set<FilterPara::ParaType> forceDisableTypes = {
         FilterPara::ParaType::DISPLACEMENT_DISTORT,
         FilterPara::ParaType::EDGE_LIGHT,
+        FilterPara::ParaType::DISPERSION,
+        FilterPara::ParaType::COLOR_GRADIENT,
     };
     if (forceDisableTypes.find(filterPara->GetParaType()) != forceDisableTypes.end()) {
         return nullptr;

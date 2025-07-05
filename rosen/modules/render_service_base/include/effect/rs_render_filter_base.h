@@ -130,10 +130,18 @@ DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
 );
 
 DECLARE_FILTER(Dispersion, DISPERSION,
+    ADD_PROPERTY_TAG(Dispersion, Mask),
     ADD_PROPERTY_TAG(Dispersion, Opacity),
     ADD_PROPERTY_TAG(Dispersion, RedOffset),
     ADD_PROPERTY_TAG(Dispersion, GreenOffset),
     ADD_PROPERTY_TAG(Dispersion, BlueOffset)
+);
+
+DECLARE_FILTER(ColorGradient, COLOR_GRADIENT,
+    ADD_PROPERTY_TAG(ColorGradient, Colors),
+    ADD_PROPERTY_TAG(ColorGradient, Positions),
+    ADD_PROPERTY_TAG(ColorGradient, Strengths),
+    ADD_PROPERTY_TAG(ColorGradient, Mask)
 );
 
 DECLARE_FILTER(BezierWarp, BEZIER_WARP,

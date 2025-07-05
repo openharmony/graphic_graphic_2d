@@ -29,10 +29,21 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT RSNGColorGradientFilter : public RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT> {
+class RSC_EXPORT RSNGColorGradientFilter
+    : public RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT, ColorGradientColorsTag, ColorGradientPositionsTag,
+          ColorGradientStrengthsTag, ColorGradientMaskTag> {
 public:
-    RSNGColorGradientFilter() = default;
-    ~RSNGColorGradientFilter() = default;
+    virtual ~RSNGColorGradientFilter() = default;
+
+    void SetColors(std::vector<float> colors);
+    void SetPositions(std::vector<float> positions);
+    void SetStrengths(std::vector<float> strengths);
+};
+
+class RSC_EXPORT RSNGColorGradientFilterImpl : public RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT> {
+public:
+    RSNGColorGradientFilterImpl() = default;
+    ~RSNGColorGradientFilterImpl() = default;
     using Base = RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT>;
 
     std::shared_ptr<RSNGRenderFilterBase> GetRenderEffect() override;
@@ -45,13 +56,13 @@ public:
     void Detach() override;
 
 private:
-    bool SetColors(std::vector<ColorGradientColorTag> colors);
-    bool SetPositions(std::vector<ColorGradientPositionTag> positions);
-    bool SetStrengths(std::vector<ColorGradientStrengthTag> strengths);
+    bool SetColors(std::vector<ColorGradientColorsTag> colors);
+    bool SetPositions(std::vector<ColorGradientPositionsTag> positions);
+    bool SetStrengths(std::vector<ColorGradientStrengthsTag> strengths);
 
-    std::vector<ColorGradientColorTag> colors_;
-    std::vector<ColorGradientPositionTag> positions_;
-    std::vector<ColorGradientStrengthTag> strengths_;
+    std::vector<ColorGradientColorsTag> colors_;
+    std::vector<ColorGradientPositionsTag> positions_;
+    std::vector<ColorGradientStrengthsTag> strengths_;
 };
 
 class RSUIColorGradientFilterPara : public RSUIFilterParaBase {

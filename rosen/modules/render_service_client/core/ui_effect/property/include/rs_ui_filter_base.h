@@ -74,6 +74,7 @@ DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
 );
 
 DECLARE_FILTER(Dispersion, DISPERSION,
+    ADD_PROPERTY_TAG(Dispersion, Mask),
     ADD_PROPERTY_TAG(Dispersion, Opacity),
     ADD_PROPERTY_TAG(Dispersion, RedOffset),
     ADD_PROPERTY_TAG(Dispersion, GreenOffset),

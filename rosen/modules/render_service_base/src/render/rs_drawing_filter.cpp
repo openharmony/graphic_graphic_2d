@@ -55,6 +55,8 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::FLY_OUT, "FlyOut" },
     { RSFilter::DISTORT, "RSDistortionFilter" },
     { RSFilter::EDGE_LIGHT, "EdgeLight" },
+    { RSFilter::DISPERSION, "Dispersion" },
+    { RSFilter::COLOR_GRADIENT, "ColorGradient" },
 };
 }
 

@@ -37,11 +37,12 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Color, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Alpha, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Mask, MASK_PTR);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Color, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Position, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Strength, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Colors, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Positions, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Strengths, std::vector<float>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradient, Mask, MASK_PTR);
 
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Dispersion, Mask, MASK_PTR);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, Opacity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, RedOffset, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, GreenOffset, Vector2f);
