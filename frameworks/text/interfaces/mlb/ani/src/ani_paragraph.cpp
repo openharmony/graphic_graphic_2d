@@ -20,7 +20,7 @@
 #include "ani_line_metrics_converter.h"
 #include "ani_paragraph.h"
 #include "ani_text_utils.h"
-#include "draw/canvas.h"
+#include "canvas_ani/ani_canvas.h"
 #include "font_collection.h"
 #include "text/font_metrics.h"
 #include "typography.h"
@@ -99,13 +99,13 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::Canvas* canvasInternal = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
-    if (canvasInternal == nullptr) {
+    Drawing::AniCanvas* aniCanvas =  AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
         return;
     }
-    typography->Paint(canvasInternal, x, y);
+    typography->Paint(aniCanvas->GetCanvas(), x, y);
 }
 
 void AniParagraph::PaintOnPath(
@@ -117,8 +117,8 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::Canvas* canvasInternal = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
-    if (canvasInternal == nullptr) {
+    Drawing::AniCanvas* aniCanvas =  AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
@@ -129,7 +129,7 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
         return;
     }
-    typography->Paint(canvasInternal, pathInternal, hOffset, vOffset);
+    typography->Paint(aniCanvas->GetCanvas(), pathInternal, hOffset, vOffset);
 }
 
 ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
