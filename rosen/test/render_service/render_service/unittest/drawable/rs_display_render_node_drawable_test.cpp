@@ -185,7 +185,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, Test
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(renderNode_, nullptr);
 
-    auto params = static_cast<RSScreenRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     params->frameRect_ = { 0.f, 0.f, 1.f, 0.f };
     ASSERT_TRUE(params->IsRotationChanged());
 

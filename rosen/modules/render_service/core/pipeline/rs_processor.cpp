@@ -76,6 +76,7 @@ bool RSProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawabl
     screenInfo_.rotation = displayParams->GetNodeRotation();
     // CalculateScreenTransformMatrix
     auto mirroredNodeDrawable = displayParams->GetMirrorSourceDrawable().lock();
+    isMirror_ = mirroredNodeDrawable != nullptr;
     if (mirroredNodeDrawable && mirroredNodeDrawable->GetRenderParams()) {
         auto& mirrorNodeParam = mirroredNodeDrawable->GetRenderParams();
         CalculateMirrorAdaptiveCoefficient(static_cast<float>(params->GetBounds().GetWidth()),

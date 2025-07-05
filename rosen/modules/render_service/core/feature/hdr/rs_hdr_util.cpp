@@ -35,6 +35,11 @@ constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr size_t MATRIX_SIZE = 9;
 static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+const std::vector<uint8_t> HDR_VIVID_METADATA = {
+    1, 0, 23, 93, 111, 186, 221, 240, 26, 189, 83, 29, 128, 0, 82, 142, 25, 156, 3,
+    198, 204, 179, 47, 236, 32, 190, 143, 163, 252, 16, 93, 185, 106, 159, 0, 10,
+    81, 199, 178, 80, 255, 217, 150, 101, 201, 144, 114, 73, 65, 127, 160, 0, 0
+};
 static std::shared_ptr<Drawing::RuntimeEffect> hdrHeadroomShaderEffect_;
 std::unordered_set<uint8_t> aihdrMetadataTypeSet = {
     HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR,
@@ -311,6 +316,17 @@ void RSHdrUtil::SetHDRParam(RSSurfaceRenderNode& node, bool flag)
     node.SetHDRPresent(flag);
 }
 
+ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)
+{
+    ScreenColorGamut screenColorGamut;
+    if (screenManager->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+        RS_LOGD("RSHdrUtil::GetScreenColorGamut get screen color gamut failed.");
+        return COLOR_GAMUT_INVALID;
+    }
+    return screenColorGamut;
+}
+
+
 std::shared_ptr<Drawing::ShaderEffect> RSHdrUtil::MakeHdrHeadroomShader(float hrRatio,
     std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
@@ -397,7 +413,138 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const spt
     }
 }
 
+bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig)
+{
+    if (!screenParams) {
+        RS_LOGD("RSHdrUtil::IsHDRCast screenParams is nullptr");
+        return false;
+    }
+    // current version fix 1010102 format although is not hdr on
+    if (screenParams->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_BT2100_HLG) {
+        renderFrameConfig.format = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        RS_LOGD("RSHdrUtil::IsHDRCast set 1010102 buffer");
+        if (screenParams->GetHDRPresent()) {
+            renderFrameConfig.colorGamut = GRAPHIC_COLOR_GAMUT_BT2100_HLG;
+            return true;
+        }
+    }
+    return false;
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+bool RSHdrUtil::HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
+    const Drawing::SamplingOptions& sampling, std::shared_ptr<Drawing::Surface>& surface,
+    RSPaintFilterCanvas* canvas)
+{
+    if (!canvas) {
+        RS_LOGE("RSHdrUtil::HDRCastProcess canvas nullptr");
+        return false;
+    }
+    if (!surface) {
+        RS_LOGE("RSHdrUtil::HDRCastProcess surface nullptr");
+        return false;
+    }
+    auto gpuContext = canvas->GetGPUContext();
+    if (!gpuContext) {
+        RS_LOGE("RSHdrUtil::HDRCastProcess gpuContext nullptr");
+        return false;
+    }
+    auto canvasSurface = canvas->GetSurface();
+    if (canvasSurface == nullptr) {
+        RS_LOGE("RSHdrUtil::HDRCastProcess canvasSurface nullptr");
+        return false;
+    }
+    // Get color space from main screen canvas
+    auto colorSpace = canvasSurface->GetImageInfo().GetColorSpace();
+    image = std::make_shared<Drawing::Image>();
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
+    Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL };
+    image->BuildFromTexture(*gpuContext, surface->GetBackendTexture().GetTextureInfo(),
+        origin, info, colorSpace);
+    return SetHDRCastShader(image, paint, sampling);
+}
+
+bool RSHdrUtil::SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
+    const Drawing::SamplingOptions& sampling)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    if (!image) {
+        RS_LOGE("RSHdrUtil::SetHDRCastShader image is nullptr");
+        return false;
+    }
+    auto inputShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, sampling, Drawing::Matrix());
+    parameter.inputColorSpace.colorSpaceInfo = RSHDRUtilConst::HDR_CAST_IN_COLORSPACE;
+    parameter.inputColorSpace.metadataType = CM_VIDEO_HDR_VIVID;
+    parameter.outputColorSpace.colorSpaceInfo = RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE;
+    parameter.outputColorSpace.metadataType = CM_VIDEO_HDR_VIVID;
+    parameter.tmoNits = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
+    parameter.currentDisplayNits = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
+    parameter.sdrNits = RSLuminanceConst::DEFAULT_CAST_SDR_NITS;
+    parameter.disableHdrFloatHeadRoom = true; // no need to apply headroom for virtual screen
+
+    std::shared_ptr<Drawing::ShaderEffect> outputShader;
+    auto colorSpaceConverterDisplay = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
+    if (!colorSpaceConverterDisplay) {
+        RS_LOGE("RSHDRUtil::SetHDRCastShader VPE create failed");
+        return false;
+    }
+    auto convRet = colorSpaceConverterDisplay->Process(inputShader, outputShader, parameter);
+    if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
+        RS_LOGE("RSHdrUtil::SetHDRCastShader failed with %{public}u.", convRet);
+        return false;
+    }
+    if (outputShader == nullptr) {
+        RS_LOGE("RSHdrUtil::SetHDRCastShader outputShader is null.");
+        return false;
+    }
+    paint.SetShaderEffect(outputShader);
+    RS_LOGD("RSHdrUtil::SetHDRCastShader succeed to set output shader.");
+    return true;
+}
+
+GSError RSHdrUtil::SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
+    std::unique_ptr<RSRenderFrame>& renderFrame)
+{
+    if (renderFrame == nullptr) {
+        RS_LOGD("RSHdrUtil::SetMetadata renderFrame is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto rsSurface = renderFrame->GetSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("RSHdrUtil::SetMetadata surface is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto buffer = rsSurface->GetCurrentBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("RSHdrUtil::SetMetadata buffer is null.");
+        return GSERROR_NO_BUFFER;
+    }
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    staticMetadata.cta861.maxContentLightLevel = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
+    auto ret = MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSHdrUtil::SetMetadata SetHDRStaticMetadata failed %{public}d", ret);
+        return ret;
+    }
+    ret = MetadataHelper::SetHDRDynamicMetadata(buffer, HDR_VIVID_METADATA);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSHdrUtil::SetMetadata SetHDRDynamicMetadata failed %{public}d", ret);
+        return ret;
+    }
+    std::vector<uint8_t> metadata;
+    metadata.resize(sizeof(colorspaceInfo));
+    errno_t errRet = memcpy_s(metadata.data(), metadata.size(), &colorspaceInfo, sizeof(colorspaceInfo));
+    if (errRet != EOK) {
+        RS_LOGD("RSHdrUtil::SetMetadata colorspace failed %{public}d", errRet);
+        return GSERROR_OUT_OF_RANGE;
+    }
+    RS_LOGD("RSHdrUtil::SetMetadata SetMetadata end");
+    // Metadata will overwrite the metadata in SetColorSpaceForMetadata, BT2020 is wider than P3
+    return buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_COLORSPACE_INFO, metadata);
+}
+
 GSError RSHdrUtil::SetMetadata(SurfaceBuffer* buffer,
     const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo, uint32_t value)
 {
