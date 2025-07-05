@@ -745,7 +745,7 @@ bool RSHardwareThread::IsDropDirtyFrame(const std::vector<LayerInfoPtr>& layerIn
         RS_LOGW("%{public}s: activeRect is empty", __func__);
         return false;
     }
-    GraphicIRect activeRect = {rect.left_, rect.top_, rect.width_, rect.height_};
+    GraphicIRect activeRect = {rect.left_, rect.top_, rect.width_, rect.height_}; 
     if (layerInfos.empty()) {
         RS_LOGI("%{public}s: layerInfos is empty", __func__);
         return false;
