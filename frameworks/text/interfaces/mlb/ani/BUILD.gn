@@ -27,6 +27,7 @@ config("text_config") {
 
   include_dirs = [
     "./include",
+    "$graphic_2d_root/interfaces/kits/ani/drawing",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
@@ -57,6 +58,7 @@ ohos_shared_library("text_engine_ani") {
   }
 
   deps = [
+    "$graphic_2d_root/interfaces/kits/ani/drawing:drawing_ani",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
   ]
