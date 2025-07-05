@@ -15,19 +15,39 @@
 #ifndef UIEFFECT_MASK_PARA_H
 #define UIEFFECT_MASK_PARA_H
 
+#include <memory>
+#include <functional>
+
+#include <parcel.h>
+
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
-class MaskPara {
+class RSC_EXPORT MaskPara {
 public:
     enum Type {
         NONE,
         RIPPLE_MASK,
         RADIAL_GRADIENT_MASK,
         PIXEL_MAP_MASK,
+        WAVE_GRADIENT_MASK,
     };
+
+    static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
+    using UnmarshallingFunc = std::function<bool (Parcel&, std::shared_ptr<MaskPara>&)>;
 
     MaskPara()  = default;
     virtual ~MaskPara() = default;
+
+    virtual bool Marshalling(Parcel& parcel) const;
+
+    static bool RegisterUnmarshallingCallback(uint16_t type, UnmarshallingFunc func);
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
+
+    virtual std::shared_ptr<MaskPara> Clone() const;
+
     Type GetMaskParaType()
     {
         return type_;

@@ -22,6 +22,8 @@
 namespace OHOS {
 namespace Rosen {
 constexpr uint32_t ROI_REGIONS_MAX_CNT = 8;
+constexpr int32_t NO_SPECIAL_LAYER = 0;
+constexpr int32_t HAS_SPECIAL_LAYER = 0;
 struct RoiRegionInfo {
     uint32_t startX = 0;
     uint32_t startY = 0;
@@ -45,9 +47,10 @@ public:
     RSUniRenderVirtualProcessor() = default;
     ~RSUniRenderVirtualProcessor() noexcept override = default;
 
-    bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
+    bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
+    bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable) override;
+    void ProcessScreenSurfaceForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
@@ -83,10 +86,9 @@ public:
     int32_t GetBufferAge() const;
     // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
     GSError SetRoiRegionToCodec(const std::vector<RectI>& damageRegion);
-    bool RequestVirtualFrame(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    bool RequestVirtualFrame(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
+    void CalculateTransform(ScreenRotation rotation);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
-    void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix = Drawing::Matrix(),
         const ScreenInfo& mainScreenInfo = ScreenInfo());
     void ProcessCacheImage(Drawing::Image& cacheImage);
@@ -94,19 +96,20 @@ public:
     {
         drawMirrorCopy_ = drawMirrorCopy;
     }
+    void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& screenDrawable);
+
     bool GetDrawVirtualMirrorCopy() const
     {
         return drawMirrorCopy_;
     }
 private:
-    void SetVirtualScreenSize(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawble,
         const sptr<RSScreenManager>& screenManager);
     bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);
-    void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableVisibleRect();
     bool EnableSlrScale();
-    bool IsHDRCast(RSDisplayRenderParams* displayParams);
+    bool IsHDRCast(RSScreenRenderParams* screenParams);
     GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
 
     static inline const std::map<GraphicColorGamut,
@@ -118,7 +121,6 @@ private:
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
-    bool isExpand_ = false;
     float mirrorWidth_ = 0.f;
     float mirrorHeight_ = 0.f;
     float mainWidth_ = 0.f;

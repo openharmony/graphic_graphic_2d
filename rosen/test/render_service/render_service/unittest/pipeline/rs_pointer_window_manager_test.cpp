@@ -48,10 +48,9 @@ HWTEST_F(RSPointerWindowManagerTest, UpdatePointerDirtyToGlobalDirtyTest, TestSi
 {
     auto rsPointerWindowManager = std::make_shared<RSPointerWindowManager>();
     ASSERT_NE(rsPointerWindowManager, nullptr);
-    RSDisplayNodeConfig config;
     auto rsContext = std::make_shared<RSContext>();
     NodeId id = 1;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, rsContext->weak_from_this());
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     displayNode->InitRenderParams();
     auto node = RSTestUtil::CreateSurfaceNode();
     node->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;

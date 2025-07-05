@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -271,6 +271,7 @@ public:
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
+    static bool GetHeterogComputingHDREnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetUIFirstOptScheduleEnabled();
     static bool GetUIFirstBehindWindowEnabled();
@@ -349,6 +350,7 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
+    static bool GetOptimizeCanvasDrawRegionEnabled();
     static bool GetHpaeBlurUsingAAE();
 
     static bool GetWindowKeyFrameEnabled();
@@ -379,6 +381,7 @@ public:
     static bool GetSubThreadControlFrameRate();
     static int GetSubThreadDropFrameInterval();
     static bool GetCompositeLayerEnabled();
+    static bool GetEarlyZEnable();
 
 private:
     RSSystemProperties() = default;
@@ -390,6 +393,7 @@ private:
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;
     static inline bool isTypicalResidentProcess_ = false;
+    static bool isEnableEarlyZ_;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

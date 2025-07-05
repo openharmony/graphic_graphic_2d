@@ -17,6 +17,12 @@
 #define DRAWING_NATIVE_PIXEL_MAP_MANAGER_H
 #include <mutex>
 #include <unordered_map>
+#include <memory>
+
+#ifdef OHOS_PLATFORM
+#include "drawing_types.h"
+#include "pixel_map.h"
+#endif
 
 enum class NativePixelMapType : uint8_t {
     OBJECT_UNKNOWN,
@@ -42,4 +48,12 @@ private:
     std::unordered_map<void*, NativePixelMapType> mapper_;
     std::mutex mutex_;
 };
+
+namespace OHOS {
+namespace Rosen {
+#ifdef OHOS_PLATFORM
+std::shared_ptr<OHOS::Media::PixelMap> GetPixelMapFromNativePixelMap(OH_Drawing_PixelMap* pixelMap);
+#endif
+} // namespace Rosen
+} // namespace OHOS
 #endif // DRAWING_NATIVE_PIXEL_MAP_MANAGER_H

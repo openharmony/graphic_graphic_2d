@@ -101,7 +101,7 @@ public:
 
     NumeralParameter& operator=(Numeral value)
     {
-        Set(value);
+        this->Set(value);
         return *this;
     }
 };

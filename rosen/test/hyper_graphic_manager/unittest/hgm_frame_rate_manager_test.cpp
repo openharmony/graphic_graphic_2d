@@ -181,7 +181,7 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager& frameRate
  * @tc.type: FUNC
  * @tc.require:
  */
- HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest, Function | SmallTest | Level1)
+ HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest, Function | SmallTest | Level0)
  {
     HgmFrameRateManager frameRateMgr;
     frameRateMgr.curGameNodeName_ = "gameNode";
@@ -239,7 +239,7 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager& frameRate
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest | Level0)
 {
     HgmFrameRateManager frameRateMgr;
     std::vector<std::weak_ptr<RSRenderNode>> uiFwkDirtyNodes;
@@ -295,7 +295,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest 
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | Level0)
 {
     HgmFrameRateManager frameRateMgr;
     std::vector<std::weak_ptr<RSRenderNode>> uiFwkDirtyNodes;
@@ -353,7 +353,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest001, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest001, Function | SmallTest | Level0)
 {
     sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
     PART("HgmConfigCallbackManagerTest") {
@@ -377,7 +377,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest001, Function | SmallT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallTest | Level0)
 {
     sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
     PART("HgmConfigCallbackManagerTest") {
@@ -432,7 +432,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallTest | Level0)
 {
     sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
     pid_t listenerPid = 1;
@@ -484,7 +484,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level0)
 {
     int64_t offset = 0;
     int32_t testThreadNum = 100;
@@ -552,7 +552,7 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleScreenRectFrameRate, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenRectFrameRate, Function | SmallTest | Level0)
 {
     int32_t testThreadNum = 100;
     auto& hgmCore = HgmCore::Instance();
@@ -585,7 +585,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenRectFrameRate, Function | SmallTest | 
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, UpdateGuaranteedPlanVoteTest, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, UpdateGuaranteedPlanVoteTest, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
 
@@ -623,7 +623,7 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateGuaranteedPlanVoteTest, Function | SmallTest
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
     int32_t defaultPid = 0;
@@ -671,7 +671,7 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
 {
     std::string pkg0 = "com.pkg.other:0:-1";
     std::string pkg1 = "com.pkg.other:1:-1";
@@ -730,7 +730,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     VoteInfo resultVoteInfo;
@@ -765,7 +765,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest2, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest2, Function | SmallTest | Level0)
 {
     HgmFrameRateManager frameRateMgr;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
@@ -798,7 +798,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest2, Function | SmallTest 
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Level0)
 {
     HgmFrameRateManager frameRateMgr;
     frameRateMgr.SetAceAnimatorVote(nullptr);
@@ -815,7 +815,7 @@ HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level0)
 {
     auto timer = HgmSimpleTimer("HgmSimpleTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
     ASSERT_NE(timer.handler_, nullptr);
@@ -835,7 +835,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.FrameRateReport();
@@ -860,7 +860,7 @@ HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest, Function | SmallTest | Level2
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
@@ -891,7 +891,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
  * @tc.type: FUNC
  * @tc.require: issueIBX8OW
  */
-HWTEST_F(HgmFrameRateMgrTest, DVSyncTaskProcessor, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, DVSyncTaskProcessor, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = std::make_unique<HgmFrameRateManager>();
@@ -917,7 +917,7 @@ HWTEST_F(HgmFrameRateMgrTest, DVSyncTaskProcessor, Function | SmallTest | Level2
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
@@ -955,7 +955,7 @@ HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, GetAncoLowBrightVec, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, GetAncoLowBrightVec, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
@@ -984,7 +984,7 @@ HWTEST_F(HgmFrameRateMgrTest, GetAncoLowBrightVec, Function | SmallTest | Level2
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, CheckAncoVoterStatus, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, CheckAncoVoterStatus, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     struct AncoVoterStatusTestParams {
@@ -1032,7 +1032,7 @@ HWTEST_F(HgmFrameRateMgrTest, CheckAncoVoterStatus, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
@@ -1060,7 +1060,7 @@ HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
@@ -1095,7 +1095,7 @@ HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Level0)
 {
     ScreenId extraScreenId = 1;
     auto& hgmCore = HgmCore::Instance();
@@ -1160,7 +1160,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, NotifyScreenRectFrameRateChange, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, NotifyScreenRectFrameRateChange, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     Rect activeRect;
@@ -1181,7 +1181,7 @@ HWTEST_F(HgmFrameRateMgrTest, NotifyScreenRectFrameRateChange, Function | SmallT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleScreenExtStrategyChange, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenExtStrategyChange, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
@@ -1199,7 +1199,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenExtStrategyChange, Function | SmallTes
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
@@ -1240,7 +1240,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
@@ -1266,7 +1266,7 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleDynamicModeEvent, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HandleDynamicModeEvent, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
@@ -1283,7 +1283,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleDynamicModeEvent, Function | SmallTest | Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level0)
 {
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     pid_t pid = 0;
@@ -1305,7 +1305,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, TestCheckNeedUpdateAppOffset, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, TestCheckNeedUpdateAppOffset, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.isNeedUpdateAppOffset_ = false;
@@ -1318,12 +1318,38 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckNeedUpdateAppOffset, Function | SmallTest
 }
 
 /**
+ * @tc.name: TestCheckForceUpdateCallback
+ * @tc.desc: Verify the result of CheckForceUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestCheckForceUpdateCallback, Function | SmallTest | Level0)
+{
+    HgmFrameRateManager mgr;
+    mgr.InitTouchManager();
+    mgr.needForceUpdateUniRender_ = true;
+    mgr.currRefreshRate_.store(OLED_120_HZ);
+    mgr.CheckForceUpdateCallback(OLED_60_HZ);
+    EXPECT_EQ(mgr.needForceUpdateUniRender_, true);
+
+    mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) {};
+    mgr.CheckForceUpdateCallback(OLED_60_HZ);
+    mgr.CheckForceUpdateCallback(OLED_120_HZ);
+
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.needForceUpdateUniRender_, false);
+    mgr.CheckForceUpdateCallback(OLED_120_HZ);
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+}
+
+/**
  * @tc.name: TestHandleTouchEvent
  * @tc.desc: Verify the result of HandleTouchEvent
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.touchManager_.eventCallbacks_.clear();
@@ -1342,6 +1368,18 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, TOUCH_BUTTON_UP, 1);
+    
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_BEGIN, 1);
+
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_UPDATE, 1);
+ 
+    mgr.frameVoter_.voterGamesEffective_ = true;
+    mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
+    mgr.HandleTouchEvent(0, AXIS_END, 1);
 
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
@@ -1353,12 +1391,52 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
 }
 
 /**
+ * @tc.name: TestHandlePointerTask
+ * @tc.desc: Verify the result of HandlePointerTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestHandlePointerTask, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    pid_t pid = DEFAULT_PID + 1;
+    int32_t pointerStatus = AXIS_BEGIN;
+    std::string pkg0 = "com.wedobest.fivechess.harm:1002:10110";
+    std::string pkg1 = "com.undefined.pkg:10020:-1";
+
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+    EXPECT_TRUE(mgr.cleanPidCallback_[pid].count(CleanPidCallbackType::TOUCH_EVENT) > 0);
+
+    pid = DEFAULT_PID;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    pointerStatus = AXIS_UPDATE;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    pointerStatus = AXIS_END;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.pkgs_ = {pkg0};
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.pkgs_ = {pkg1};
+    mgr.multiAppStrategy_.strategyConfigMapCache_[mgr.multiAppStrategy_.screenSettingCache_.strategy]
+        .pointerMode = PointerModeType::POINTER_DISENABLED;
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+
+    mgr.multiAppStrategy_.screenSettingCache_.strategy = "undefined";
+    mgr.HandlePointerTask(pid, pointerStatus, 1);
+    mgr.pointerManager_.ChangeState(PointerState::POINTER_IDLE_STATE);
+    sleep(1);
+}
+
+/**
  * @tc.name: TestHandleTouchTask
  * @tc.desc: Verify the result of HandleTouchTask
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchTask, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchTask, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.touchManager_.eventCallbacks_.clear();
@@ -1384,7 +1462,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchTask, Function | SmallTest | Level1
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     mgr.voterTouchEffective_ = true;
@@ -1397,6 +1475,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level1)
     mgr.MarkVoteChange("VOTER_POWER_MODE");
     mgr.voterTouchEffective_ = true;
     mgr.DeliverRefreshRateVote({ "VOTER_POWER_MODE", OLED_60_HZ, OLED_60_HZ, DEFAULT_PID }, true);
+    mgr.MarkVoteChange("VOTER_POWER_MODE");
     EXPECT_EQ(mgr.frameVoter_.voteRecord_["VOTER_POWER_MODE"].second, true);
 }
 
@@ -1406,7 +1485,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, InitTimers, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, InitTimers, Function | SmallTest | Level0)
 {
     HgmTaskHandleThread::Instance().runner_ = AppExecFwk::EventRunner::Create("HgmTaskHandleThread");
     HgmFrameRateManager mgr;

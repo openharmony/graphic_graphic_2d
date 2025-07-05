@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -198,36 +198,36 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDisplayHDRNodeList001
- * @tc.desc: test UpdateDisplayHDRNodeList
+ * @tc.name: UpdateScreenHDRNodeList001
+ * @tc.desc: test UpdateScreenHDRNodeList
  * @tc.type: FUNC
  * @tc.require: #IBPVN9
  */
-HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayHDRNodeList001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, UpdateScreenHDRNodeList001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSCanvasRenderNode node1(nodeId);
-    node1.UpdateDisplayHDRNodeList(false, 0);
+    node1.UpdateScreenHDRNodeList(false, 0);
 
-    NodeId displayRenderNodeId = 1;
+    NodeId screenRenderNodeId = 1;
+    ScreenId screenId = 0;
     auto context = std::make_shared<RSContext>();
     RSCanvasRenderNode node(nodeId, context);
-    node.UpdateDisplayHDRNodeList(false, 1);
+    node.UpdateScreenHDRNodeList(false, 1);
 
     auto& nodeMap = context->GetMutableNodeMap();
-    struct RSDisplayNodeConfig config;
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config);
-    bool res = nodeMap.RegisterRenderNode(displayRenderNode);
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
+    bool res = nodeMap.RegisterRenderNode(screenRenderNode);
     ASSERT_EQ(res, true);
-    node.displayNodeId_ = displayRenderNodeId;
+    node.screenNodeId_ = screenRenderNodeId;
 
-    node.UpdateDisplayHDRNodeList(true, 1);
-    EXPECT_NE(displayRenderNode->hdrNodeList_.find(nodeId), displayRenderNode->hdrNodeList_.end());
+    node.UpdateScreenHDRNodeList(true, 1);
+    EXPECT_NE(screenRenderNode->hdrNodeList_.find(nodeId), screenRenderNode->hdrNodeList_.end());
 
-    node.UpdateDisplayHDRNodeList(false, 1);
-    EXPECT_EQ(displayRenderNode->hdrNodeList_.find(nodeId), displayRenderNode->hdrNodeList_.end());
+    node.UpdateScreenHDRNodeList(false, 1);
+    EXPECT_EQ(screenRenderNode->hdrNodeList_.find(nodeId), screenRenderNode->hdrNodeList_.end());
 
-    displayRenderNode->GetHDRNodeList();
+    screenRenderNode->GetHDRNodeList();
 }
 
 /**
@@ -238,15 +238,16 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayHDRNodeList001, TestSize.Level1)
  */
 HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeList001, TestSize.Level1)
 {
-    NodeId displayRenderNodeId = 1;
-    struct RSDisplayNodeConfig config;
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config);
+    NodeId screenRenderNodeId = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
 
-    auto& hdrNodeList = displayRenderNode->GetHDRNodeList();
+    auto& hdrNodeList = screenRenderNode->GetHDRNodeList();
     EXPECT_TRUE(hdrNodeList.empty());
 
-    displayRenderNode->InsertHDRNode(1);
-    EXPECT_NE(displayRenderNode->hdrNodeList_.find(1), displayRenderNode->hdrNodeList_.end());
+    screenRenderNode->InsertHDRNode(1);
+    EXPECT_NE(screenRenderNode->hdrNodeList_.find(1), screenRenderNode->hdrNodeList_.end());
 }
 
 /**
@@ -485,50 +486,6 @@ HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare001, TestSize.Level1)
 
     visitor = std::make_shared<RSRenderThreadVisitor>();
     rsCanvasRenderNode->QuickPrepare(visitor);
-}
-
-/**
- * @tc.name: OpincGetNodeSupportFlag001
- * @tc.desc: test results of OpincGetNodeSupportFlag
- * @tc.type: FUNC
- * @tc.require: issueI9VPPN
- */
-HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
-{
-    NodeId nodeId = 2;
-    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = true;
-
-    rsCanvasRenderNode->childHasVisibleFilter_ = true;
-    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleFilter_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->childHasVisibleEffect_ = true;
-    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleEffect_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = false;
-
-    rsCanvasRenderNode->childHasVisibleFilter_ = true;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleFilter_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    rsCanvasRenderNode->childHasVisibleEffect_ = true;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-    rsCanvasRenderNode->childHasVisibleEffect_ = false;
-    EXPECT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
-
-    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
-    Color color(255, 0, 0);
-    std::optional<Color> colorBlend = color;
-    property.SetColorBlend(colorBlend);
-    EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
 }
 
 /**

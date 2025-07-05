@@ -27,6 +27,9 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_VK
+CommitTransactionCallback RSTransactionHandler::commitTransactionCallback_ = nullptr;
+#endif
 void RSTransactionHandler::SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient)
 {
     if (renderThreadClient != nullptr) {
@@ -92,12 +95,12 @@ void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHand
     }
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (renderServiceClient_ != nullptr && renderThreadClient_ == nullptr) {
+    if (renderServiceClient_ != nullptr) {
         MoveRemoteCommandByNodeId(transactionHandler, nodeId);
-        return;
     }
-
-    MoveCommonCommandByNodeId(transactionHandler, nodeId);
+    if (renderThreadClient_ != nullptr) {
+        MoveCommonCommandByNodeId(transactionHandler, nodeId);
+    }
 }
 
 void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
@@ -121,6 +124,13 @@ void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTa
         "RSTransactionHandler::ExecuteSynchronousTask failed, isRenderServiceTask is %{public}d.", isRenderServiceTask);
 }
 
+#ifdef RS_ENABLE_VK
+void RSTransactionHandler::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
+{
+    RSTransactionHandler::commitTransactionCallback_ = commitTransactionCallback;
+}
+#endif
+
 void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
@@ -134,6 +144,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
 #endif
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
         implicitCommonTransactionData_->timestamp_ = timestamp_;
+        implicitCommonTransactionData_->token_ = token_;
 #ifdef RS_ENABLE_VK
         implicitCommonTransactionData_->tid_ = tid;
 #endif
@@ -153,10 +164,11 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     auto transactionData = std::make_unique<RSTransactionData>();
     std::swap(implicitRemoteTransactionData_, transactionData);
     transactionData->timestamp_ = timestamp_;
+    transactionData->token_ = token_;
 #ifdef RS_ENABLE_VK
     transactionData->tid_ = tid;
-    if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
-        commitTransactionCallback_(renderServiceClient_,
+    if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
+        RSTransactionHandler::commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_);
         return;
     }

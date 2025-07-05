@@ -29,14 +29,41 @@ namespace Drawing {
 
 class RSB_EXPORT RSNGRenderMaskBase : public RSNGRenderEffectBase<RSNGRenderMaskBase> {
 public:
-    virtual std::shared_ptr<Drawing::GEShaderMask> GenerateGEShaderMask()
-    {
-        return nullptr;
-    }
+    virtual ~RSNGRenderMaskBase() = default;
+
+    static std::shared_ptr<RSNGRenderMaskBase> Create(RSNGEffectType type);
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val);
+
+    virtual std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() { return nullptr; }
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGRenderMaskTemplate = RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...>;
+class RSNGRenderMaskTemplate : public RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...> {
+public:
+    using EffectTemplateBase = RSNGRenderEffectTemplate<RSNGRenderMaskBase, Type, PropertyTags...>;
+
+    RSNGRenderMaskTemplate() : EffectTemplateBase() {}
+    ~RSNGRenderMaskTemplate() override = default;
+    RSNGRenderMaskTemplate(const std::tuple<PropertyTags...>& properties) noexcept
+        : EffectTemplateBase(properties) {}
+
+    std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
+    {
+        auto geMask = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
+        OnGenerateGEVisualEffect(geMask);
+        std::apply([&geMask](const auto&... propTag) {
+                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
+                    geMask, propTag), ...);
+            }, EffectTemplateBase::properties_);
+        // Currently only a single mask is used, so we do not handle the nextEffect_ here.
+        return geMask;
+    }
+
+protected:
+    virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
+};
+
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 
@@ -47,13 +74,38 @@ DECLARE_MASK(RippleMask, RIPPLE_MASK,
     ADD_PROPERTY_TAG(RippleMask, Center),
     ADD_PROPERTY_TAG(RippleMask, Radius),
     ADD_PROPERTY_TAG(RippleMask, Width),
-    ADD_PROPERTY_TAG(RippleMask, WidthCenterOffset)
+    ADD_PROPERTY_TAG(RippleMask, Offset)
 );
 
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
-    ADD_PROPERTY_TAG(PixelMapMask, FillColor)
+    ADD_PROPERTY_TAG(PixelMapMask, FillColor),
+    ADD_PROPERTY_TAG(PixelMapMask, Image)
+);
+
+DECLARE_MASK(RadialGradientMask, RADIAL_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(RadialGradientMask, Center),
+    ADD_PROPERTY_TAG(RadialGradientMask, RadiusX),
+    ADD_PROPERTY_TAG(RadialGradientMask, RadiusY),
+    ADD_PROPERTY_TAG(RadialGradientMask, Colors),
+    ADD_PROPERTY_TAG(RadialGradientMask, Positions)
+);
+
+DECLARE_MASK(WaveGradientMask, WAVE_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(WaveGradientMask, WaveCenter),
+    ADD_PROPERTY_TAG(WaveGradientMask, WaveWidth),
+    ADD_PROPERTY_TAG(WaveGradientMask, PropagationRadius),
+    ADD_PROPERTY_TAG(WaveGradientMask, BlurRadius),
+    ADD_PROPERTY_TAG(WaveGradientMask, TurbulenceStrength)
+);
+
+DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
+    ADD_PROPERTY_TAG(DoubleRippleMask, Center1),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Center2),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Radius),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Width),
+    ADD_PROPERTY_TAG(DoubleRippleMask, Turbulence)
 );
 
 #undef ADD_PROPERTY_TAG

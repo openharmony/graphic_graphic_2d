@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -548,14 +548,14 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
     properties.backref_ = node;
     properties.SetHDRBrightnessFactor(initialFactor);
 
-    NodeId displayRenderNodeId = 2;
-    struct RSDisplayNodeConfig config;
+    NodeId screenRenderNodeId = 2;
+    ScreenId screenId = 0;
     auto context = std::make_shared<RSContext>();
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config, context);
+    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
 
     properties.backref_ = displayRenderNode;
-    displayRenderNode->InsertHDRNode(displayRenderNodeId);
-    EXPECT_NE(displayRenderNode->hdrNodeList_.find(displayRenderNodeId), displayRenderNode->hdrNodeList_.end());
+    displayRenderNode->InsertHDRNode(screenRenderNodeId);
+    EXPECT_NE(displayRenderNode->hdrNodeList_.find(screenRenderNodeId), displayRenderNode->hdrNodeList_.end());
     properties.SetHDRBrightnessFactor(0.5f);
 
     NodeId nodeId1 = 0;
@@ -565,14 +565,14 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
     displayRenderNode->InsertHDRNode(nodeId1);
     properties.SetHDRBrightnessFactor(0.6f);
 
-    pid_t pid = ExtractPid(displayRenderNodeId);
-    context->GetMutableNodeMap().renderNodeMap_[pid][displayRenderNodeId] = displayRenderNode;
+    pid_t pid = ExtractPid(screenRenderNodeId);
+    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = displayRenderNode;
     properties.SetHDRBrightnessFactor(0.8f);
 
-    struct RSDisplayNodeConfig config2;
+    ScreenId screenId2 = 1;
     std::shared_ptr<RSContext> context2;
-    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(3, config2, context2);
-    properties.backref_ = displayNode2;
+    auto screenNode2 = std::make_shared<RSScreenRenderNode>(3, screenId2, context2);
+    properties.backref_ = screenNode2;
     displayRenderNode->InsertHDRNode(3);
     EXPECT_NE(displayRenderNode->hdrNodeList_.find(3), displayRenderNode->hdrNodeList_.end());
     properties.SetHDRBrightnessFactor(0.9f);
@@ -1429,6 +1429,24 @@ HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
 
     properties.GenerateBezierWarpFilter();
     EXPECT_NE(properties.foregroundFilter_, nullptr);
+}
+
+/**
+ * @tc.name: SetShadowColorTest
+ * @tc.desc: test SetShadowColor with shadow mask
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetShadowColorTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Color color(0XFF0000FF); // 0XFF0000FF is RBGA
+    properties.SetShadowColor(color);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+
+    properties.SetShadowMask(2); // mask color blur
+    properties.filterNeedUpdate_ = false;
+    properties.SetShadowColor(color);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
 }
 
 /**

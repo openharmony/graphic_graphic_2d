@@ -39,11 +39,6 @@
 
 namespace OHOS::Rosen {
 namespace {
-constexpr int REQUEST_FRAME_AWARE_ID = 100001;
-constexpr int REQUEST_SET_FRAME_LOAD_ID = 100006;
-constexpr int REQUEST_FRAME_AWARE_LOAD = 85;
-constexpr int REQUEST_FRAME_AWARE_NUM = 4;
-constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
 constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
@@ -111,10 +106,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (ashmemFdWorker) {
             ashmemFdWorker->PushFdsToContainer();
         }
-        SetFrameParam(REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
-        SetFrameLoad(REQUEST_FRAME_AWARE_LOAD);
+        RsFrameReport::GetInstance().ReportUnmarshalData(unmarshalTid_, parcel->GetDataSize());
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel, parcelNumber);
-        SetFrameLoad(REQUEST_FRAME_STANDARD_LOAD);
+        RsFrameReport::GetInstance().ReportUnmarshalData(unmarshalTid_, 0);
         if (ashmemFdWorker) {
             // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
             parcel->FlushBuffer();
@@ -192,22 +186,6 @@ bool RSUnmarshalThread::CachedTransactionDataEmpty()
      * and whether cachedTransactionDataMap_ will be empty later
      */
     return cachedTransactionDataMap_.empty() && !willHaveCachedData_;
-}
-void RSUnmarshalThread::SetFrameParam(int requestId, int load, int frameNum, int value)
-{
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().SetFrameParam(requestId, load, frameNum, value);
-    }
-}
-void RSUnmarshalThread::SetFrameLoad(int load)
-{
-    if (load == REQUEST_FRAME_STANDARD_LOAD && unmarshalLoad_ > REQUEST_FRAME_STANDARD_LOAD) {
-        unmarshalLoad_ = load;
-        SetFrameParam(REQUEST_SET_FRAME_LOAD_ID, load, 0, unmarshalTid_);
-        return;
-    }
-    SetFrameParam(REQUEST_SET_FRAME_LOAD_ID, load, 0, unmarshalTid_);
-    unmarshalLoad_ = load;
 }
 
 void RSUnmarshalThread::Wait()

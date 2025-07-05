@@ -22,10 +22,9 @@
 #include <set>
 #include <utility>
 
-#include "rs_profiler.h"
+#include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
-#include "string_utils.h"
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
@@ -40,8 +39,9 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -57,6 +57,8 @@
 #include "render/rs_render_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+#include "rs_profiler.h"
+#include "string_utils.h"
 
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -156,9 +158,9 @@ bool RSRenderNode::IsContentNode() const
         ((HasContentStyleModifierOnly() && !GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE).empty()) ||
         !HasDrawCmdModifiers());
 #else
-    return ((drawCmdModifiers_.size() == 1 &&
-        (drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE) != drawCmdModifiers_.end())) ||
-        drawCmdModifiers_.empty()) && !GetRenderProperties().isDrawn_;
+    return !GetRenderProperties().isDrawn_ &&
+        ((drawCmdModifiers_.size() == 1 && drawCmdModifiers_.count(RSModifierType::CONTENT_STYLE)) ||
+        drawCmdModifiers_.empty());
 #endif
 }
 
@@ -260,7 +262,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
-            uifirstRootNodeId_, displayNodeId_);
+            uifirstRootNodeId_, screenNodeId_, logicalDisplayNodeId_);
     } else {
         if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
@@ -269,8 +271,10 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
             isOnTheTree_);
         }
     }
-    (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ?
-        SetParentSubTreeDirty() : SetContentDirty();
+    ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ||
+        child->GetNeedUseCmdlistDrawRegion())
+        ? child->SetParentSubTreeDirty()
+        : SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
@@ -278,6 +282,11 @@ void RSRenderNode::SetContainBootAnimation(bool isContainBootAnimation)
 {
     isContainBootAnimation_ = isContainBootAnimation;
     isFullChildrenListValid_ = false;
+    if (GetType() == RSRenderNodeType::SCREEN_NODE) {
+        if (auto parentPtr = GetParent().lock()) {
+            parentPtr->SetContainBootAnimation(isContainBootAnimation);
+        }
+    }
 }
 
 void RSRenderNode::MoveUIExtensionChild(SharedPtr child)
@@ -364,8 +373,10 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ?
-        SetParentSubTreeDirty() : SetContentDirty();
+    ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ||
+        child->GetNeedUseCmdlistDrawRegion())
+        ? child->SetParentSubTreeDirty()
+        : SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
@@ -424,7 +435,7 @@ void RSRenderNode::SetEnableHdrEffect(bool enableHdrEffect)
 }
 
 void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
+    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
 #ifdef RS_ENABLE_GPU
     // We do not need to label a child when the child is removed from a parent that is not on the tree
@@ -447,7 +458,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
                 parentNodeId);
             if (canvasNode->GetHDRPresent()) {
                 SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
-                canvasNode->UpdateDisplayHDRNodeList(flag, displayNodeId);
+                canvasNode->UpdateScreenHDRNodeList(flag, screenNodeId);
             }
             if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
                 SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
@@ -465,7 +476,8 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
 
     isNewOnTree_ = flag && !isOnTheTree_;
     isOnTheTree_ = flag;
-    displayNodeId_ = displayNodeId;
+    screenNodeId_ = screenNodeId;
+    logicalDisplayNodeId_ = logicalDisplayNodeId;
     if (isOnTheTree_) {
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
@@ -505,12 +517,12 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, displayNodeId);
+            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, displayNodeId);
+            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
     }
 #endif
 }
@@ -636,7 +648,8 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_,
+            screenNodeId_, logicalDisplayNodeId_);
     }
     if (child->IsCrossNode()) {
         child->SetDirty();
@@ -815,7 +828,8 @@ void RSRenderNode::ResetParent()
             parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
                 geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
         }
-        (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE)
+        ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE) ||
+            GetNeedUseCmdlistDrawRegion())
             ? SetParentSubTreeDirty()
             : parentNode->SetContentDirty();
         AddSubSurfaceUpdateInfo(nullptr, parentNode);
@@ -849,7 +863,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpNodeType(GetType(), out);
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
-    if (auto displayNode = ReinterpretCastTo<RSDisplayRenderNode>()) {
+    if (auto displayNode = ReinterpretCastTo<RSScreenRenderNode>()) {
         out += ", screenId[" + std::to_string(displayNode->GetScreenId()) + "]";
     }
     if (auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>()) {
@@ -1056,8 +1070,8 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
 void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
 {
     switch (nodeType) {
-        case RSRenderNodeType::DISPLAY_NODE: {
-            out += "DISPLAY_NODE";
+        case RSRenderNodeType::SCREEN_NODE: {
+            out += "SCREEN_NODE";
             break;
         }
         case RSRenderNodeType::RS_NODE: {
@@ -1086,6 +1100,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
         }
         case RSRenderNodeType::EFFECT_NODE: {
             out += "EFFECT_NODE";
+            break;
+        }
+        case RSRenderNodeType::LOGICAL_DISPLAY_NODE: {
+            out += "LOGICAL_DISPLAY_NODE";
             break;
         }
         default: {
@@ -1125,12 +1143,11 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
             std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
         out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
-    } else if (GetType() == RSRenderNodeType::DISPLAY_NODE) {
-        auto displayNode = static_cast<const RSDisplayRenderNode*>(this);
+    } else if (GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+        auto displayNode = static_cast<const RSLogicalDisplayRenderNode*>(this);
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
         out += ", securityExemption: " + std::to_string(displayNode->GetSecurityExemption());
         out += ", virtualScreenMuteStatus: " + std::to_string(displayNode->GetVirtualScreenMuteStatus());
-        out += ", colorSpace: " + std::to_string(displayNode->GetColorSpace());
     } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
         auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
         NodeId linkedRootNodeId = canvasNode->GetLinkedRootNodeId();
@@ -1142,11 +1159,24 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
 
 void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
 {
-    if (drawCmdModifiers_.empty() && modifiersNG_.empty()) {
+    const std::string splitStr = ", ";
+    std::string modifierDesc = "";
+#if defined(MODIFIER_NG)
+    for (auto& slot : modifiersNG_) {
+        for (auto& modifier : slot) {
+            if (!modifier->IsCustom()) {
+                continue;
+            }
+            modifier->Dump(modifierDesc, splitStr);
+        }
+    }
+    if (modifierDesc.empty()) {
         return;
     }
-    std::string splitStr = ", ";
-    std::string modifierDesc = ", DrawCmdModifiers:[";
+#else
+    if (drawCmdModifiers_.empty()) {
+        return;
+    }
     for (auto& [type, modifiers] : drawCmdModifiers_) {
         auto modifierTypeString = std::make_shared<RSModifierTypeString>();
         std::string typeName = modifierTypeString->GetModifierTypeString(type);
@@ -1162,35 +1192,21 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         }
         if (found) {
             modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
+        } else {
+            return;
         }
         modifierDesc += "]" + splitStr;
     }
-    for (auto& slot : modifiersNG_) {
-        for (auto& modifier : slot) {
-            if (!modifier->IsCustom()) {
-                continue;
-            }
-            modifier->Dump(modifierDesc, splitStr);
-        }
-    }
+#endif
+    modifierDesc = ", DrawCmdModifiers2:[" + modifierDesc;
     out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length()) + "]";
 }
 
 void RSRenderNode::DumpModifiers(std::string& out) const
 {
-    if (modifiers_.empty() && modifiersNG_.empty()) {
-        return;
-    }
-    std::string splitStr = ", ";
-    out += ", OtherModifiers:[";
+    const std::string splitStr = ", ";
     std::string propertyDesc = "";
-    for (auto& [type, modifier] : modifiers_) {
-        auto pid = ExtractPid(modifier->GetPropertyId());
-        propertyDesc = propertyDesc + "pid:" + std::to_string(pid) + "->";
-        propertyDesc += modifier->GetModifierTypeString();
-        modifier->Dump(propertyDesc);
-        propertyDesc += splitStr;
-    }
+#if defined(MODIFIER_NG)
     for (auto& slot : modifiersNG_) {
         for (auto& modifier : slot) {
             if (modifier->IsCustom()) {
@@ -1199,7 +1215,22 @@ void RSRenderNode::DumpModifiers(std::string& out) const
             modifier->Dump(propertyDesc, splitStr);
         }
     }
-    out += propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]";
+    if (propertyDesc.empty()) {
+        return;
+    }
+#else
+    if (modifiers_.empty()) {
+        return;
+    }
+    for (auto& [type, modifier] : modifiers_) {
+        auto pid = ExtractPid(modifier->GetPropertyId());
+        propertyDesc = propertyDesc + "pid:" + std::to_string(pid) + "->";
+        propertyDesc += modifier->GetModifierTypeString();
+        modifier->Dump(propertyDesc);
+        propertyDesc += splitStr;
+    }
+#endif
+    out += ", OtherModifiers:[" + propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]";
 }
 
 void RSRenderNode::ResetIsOnlyBasicGeoTransform()
@@ -1756,7 +1787,8 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         dirtyManager.MergeDirtyRect(oldDirtyRect);
         return;
     }
-    auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
+    auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ :
+        (!absCmdlistDrawRect_.IsEmpty() ? absCmdlistDrawRect_ : absDrawRect_);
     dirtyRect = IsFirstLevelCrossNode() ? dirtyRect : dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -1806,6 +1838,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             isSelfDrawingNode_ || selfDrawRectChanged)) {
             absDrawRectF_ = geoPtr->MapRectWithoutRounding(selfDrawRect_, geoPtr->GetAbsMatrix());
             absDrawRect_ = geoPtr->InflateToRectI(absDrawRectF_);
+            absCmdlistDrawRect_ = GetNeedUseCmdlistDrawRegion() ?
+                geoPtr->MapRect(cmdlistDrawRegion_, geoPtr->GetAbsMatrix()) : RectI(0, 0, 0, 0);
             if (isSelfDrawingNode_) {
                 selfDrawingNodeAbsDirtyRectF_ = geoPtr->MapRectWithoutRounding(
                     selfDrawingNodeDirtyRect_, geoPtr->GetAbsMatrix());
@@ -2987,7 +3021,7 @@ void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSR
 
 void RSRenderNode::ResetAndApplyModifiers()
 {
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(shared_from_this());
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(shared_from_this());
     int32_t currentScbPid = displayNode == nullptr ? -1 : displayNode->GetCurrentScbPid();
 #if defined(MODIFIER_NG)
     for (const auto& [modifierType, resetFunc] : ModifierNG::RSRenderModifier::GetResetFuncMap()) {
@@ -3003,6 +3037,7 @@ void RSRenderNode::ResetAndApplyModifiers()
         for (auto modifier : slot) {
             if (currentScbPid == -1 || ExtractPid(modifier->GetId()) == currentScbPid) {
                 modifier->ApplyLegacyProperty(GetMutableRenderProperties());
+                CalcCmdlistDrawRegionFromOpItem(modifier);
             }
         }
     }
@@ -3026,6 +3061,27 @@ void RSRenderNode::ResetAndApplyModifiers()
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
+}
+
+void RSRenderNode::CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier)
+{
+    if (!GetNeedUseCmdlistDrawRegion()) {
+        return;
+    }
+
+    auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
+    auto propertyPtr =
+        std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty(propertyType));
+    auto drawCmdlistPtr = propertyPtr ? propertyPtr->Get() : nullptr;
+    if (drawCmdlistPtr == nullptr) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::CalcCmdlistDrawRegionFromOpItem id:%llu drawCmdlistPtr is nullptr",
+            GetId());
+        return;
+    }
+
+    auto rect = drawCmdlistPtr->GetCmdlistDrawRegion();
+    RectF cmdlistDrawRegion = RectF { rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight() };
+    cmdlistDrawRegion_ = cmdlistDrawRegion_.JoinRect(cmdlistDrawRegion);
 }
 
 CM_INLINE void RSRenderNode::ApplyModifiers()
@@ -3403,6 +3459,16 @@ void RSRenderNode::SetBootAnimation(bool isBootAnimation)
     ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 "isBootAnimation %{public}d",
         GetId(), isBootAnimation);
     isBootAnimation_ = isBootAnimation;
+    if (GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+        if (auto parent = GetParent().lock()) {
+            parent->SetBootAnimation(isBootAnimation);
+        }
+    } else if (GetType() == RSRenderNodeType::SCREEN_NODE) {
+        if (!isBootAnimation) {
+            return;
+        }
+        SetContainBootAnimation(true);
+    }
 }
 
 bool RSRenderNode::GetBootAnimation() const
@@ -3855,22 +3921,14 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     SetDirty();
 }
 
-// mark support node
-void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode)
-{
-    // supportFlag is obtained from the child node.
-    // make sure current node is the bottom of the node marked by arkui.
-    opincCache_.OpincSetSupportFlag(opincCache_.OpincGetSupportFlag() && supportFlag &&
-        nodeGroupType_ == RSRenderNode::NodeGroupType::NONE && !isOpincRootNode);
-}
-
 std::string RSRenderNode::QuickGetNodeDebugInfo()
 {
     std::string ret("");
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
-    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d",
+    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d filter:%d effect:%d",
         GetId(), IsSubTreeDirty(), opincCache_.GetNodeCacheState(), opincCache_.GetUnchangeCount(),
-        opincCache_.IsSuggestOpincNode(), OpincGetNodeSupportFlag(), opincCache_.OpincGetRootFlag());
+        opincCache_.IsSuggestOpincNode(), opincCache_.GetCurNodeTreeSupportFlag(), opincCache_.OpincGetRootFlag(),
+        ChildHasVisibleFilter(), ChildHasVisibleEffect());
 #endif
     return ret;
 }
@@ -3881,7 +3939,7 @@ void RSRenderNode::UpdateOpincParam()
         stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
         stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
-        stagingRenderParams_->OpincUpdateSupportFlag(OpincGetNodeSupportFlag());
+        stagingRenderParams_->OpincUpdateSupportFlag(opincCache_.GetCurNodeTreeSupportFlag());
     }
 }
 
@@ -4234,7 +4292,6 @@ float RSRenderNode::GetHDRBrightness() const
 {
 #if defined(MODIFIER_NG)
     if (modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::HDR_BRIGHTNESS)].empty()) {
-        RS_LOGD("RSRenderNode::GetHDRBrightness drawCmdModifiers find failed");
         return 1.0f; // 1.0f make sure HDR video is still HDR state if RSNode::SetHDRBrightness not called
     }
     auto modifier = modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::HDR_BRIGHTNESS)].back();
@@ -4242,7 +4299,6 @@ float RSRenderNode::GetHDRBrightness() const
 #else
     auto itr = drawCmdModifiers_.find(RSModifierType::HDR_BRIGHTNESS);
     if (itr == drawCmdModifiers_.end() || itr->second.empty()) {
-        RS_LOGD("RSRenderNode::GetHDRBrightness drawCmdModifiers find failed");
         return 1.0f; // 1.0f make sure HDR video is still HDR state if RSNode::SetHDRBrightness not called
     }
     const auto& modifier = itr->second.back();
@@ -4395,6 +4451,7 @@ void RSRenderNode::ResetDirtyStatus()
     isLastVisible_ = shouldPaint_;
     // The return of GetBoundsGeometry function must not be nullptr
     oldMatrix_ = properties.GetBoundsGeometry()->GetMatrix();
+    cmdlistDrawRegion_.Clear();
 }
 
 NodeId RSRenderNode::GenerateId()
@@ -4843,7 +4900,11 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasSandBox(hasSandbox);
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
 #ifdef RS_ENABLE_PREFETCH
+#if defined(MODIFIER_NG)
+    __builtin_prefetch(&boundsModifierNG_, 0, 1);
+#else
     __builtin_prefetch(&boundsModifier_, 0, 1);
+#endif
 #endif
     stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
@@ -5574,6 +5635,16 @@ bool RSRenderNode::HasContentStyleModifierOnly() const
         }
     }
     return ret;
+}
+
+void RSRenderNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
+{
+    needUseCmdlistDrawRegion_ = needUseCmdlistDrawRegion;
+}
+
+bool RSRenderNode::GetNeedUseCmdlistDrawRegion()
+{
+    return RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled() && needUseCmdlistDrawRegion_;
 }
 } // namespace Rosen
 } // namespace OHOS

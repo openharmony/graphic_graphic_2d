@@ -15,6 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#if defined(MODIFIER_NG)
+#include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#endif
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -22,7 +25,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -1112,8 +1115,9 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     nodeTest2->DumpSubClassNode(outTest4);
     EXPECT_EQ(outTest4, OUT_STR4);
 
-    RSDisplayNodeConfig config;
-    std::shared_ptr<RSDisplayRenderNode> nodeTest3 = std::make_shared<RSDisplayRenderNode>(0, config);
+    ScreenId screenId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> nodeTest3 = std::make_shared<RSScreenRenderNode>(0, screenId, rsContext);
     EXPECT_NE(nodeTest3, nullptr);
     std::string outTest5 = "";
     nodeTest3->DumpSubClassNode(outTest5);
@@ -1123,14 +1127,25 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
     std::string outTest6 = "";
     nodeTest->DumpDrawCmdModifiers(outTest6);
-    EXPECT_EQ(outTest6, ", DrawCmdModifier2]");
+    EXPECT_EQ(outTest6, "");
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
         std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     EXPECT_NE(propertyTest, nullptr);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)].emplace_back(modifier);
+    auto modifier2 = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    auto property2 = std::make_shared<RSRenderProperty<float>>();
+    modifier2->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property2);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier2);
+#else
     std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
         std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
     EXPECT_NE(drawCmdModifiersTest, nullptr);
     nodeTest->drawCmdModifiers_[RSModifierType::CHILDREN].emplace_back(drawCmdModifiersTest);
+#endif
     nodeTest->DumpDrawCmdModifiers(outTest6);
     EXPECT_NE(outTest6, "");
 }
@@ -1453,7 +1468,7 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
 
     std::string outTest1 = "";
-    nodeTest->DumpNodeType(RSRenderNodeType::DISPLAY_NODE, outTest1);
+    nodeTest->DumpNodeType(RSRenderNodeType::SCREEN_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::RS_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::SURFACE_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::CANVAS_NODE, outTest1);
@@ -2333,5 +2348,28 @@ HWTEST_F(RSRenderNodeTest2, GenerateIDTest, TestSize.Level1)
     auto id = RSRenderNode::GenerateId();
     ASSERT_EQ(RSRenderNode::GenerateId() - id, 1);
 }
+
+#if defined(MODIFIER_NG)
+/**
+ * @tc.name: DumpModifiersTest
+ * @tc.desc: DumpModifiersTest test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, DumpModifiersTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    std::string outTest = "";
+    nodeTest->DumpModifiers(outTest);
+    EXPECT_EQ(outTest, "");
+    auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier);
+    nodeTest->DumpModifiers(outTest);
+    EXPECT_NE(outTest, "");
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

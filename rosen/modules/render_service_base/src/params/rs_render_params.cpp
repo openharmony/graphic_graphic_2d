@@ -664,13 +664,6 @@ const RSLayerInfo& RSRenderParams::GetLayerInfo() const
     return defaultLayerInfo;
 }
 
-// overrided by displayNode
-const ScreenInfo& RSRenderParams::GetScreenInfo() const
-{
-    static ScreenInfo defalutScreenInfo;
-    return defalutScreenInfo;
-}
-
 const Drawing::Matrix& RSRenderParams::GetTotalMatrix()
 {
     static const Drawing::Matrix defaultMatrix;

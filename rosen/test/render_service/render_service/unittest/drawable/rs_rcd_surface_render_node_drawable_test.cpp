@@ -21,7 +21,7 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_render_listener.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -391,7 +391,7 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ProcessRcdSurfaceRenderNode1, TestS
     std::shared_ptr<RSProcessor> processor = nullptr;
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 
-    processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 
     bottomDrawable->SetSurfaceType(static_cast<uint32_t>(RCDSurfaceType::INVALID));
@@ -426,7 +426,7 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ConsumeAndUpdateBufferTest1, TestSi
     std::shared_ptr<RSProcessor> processor = nullptr;
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 
-    processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_TRUE(!bottomDrawable->ProcessRcdSurfaceRenderNode(processor));
 
     auto renderParams = std::move(bottomDrawable->renderParams_);

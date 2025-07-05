@@ -46,7 +46,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateAndDestroy001, TestSize.Level1)
     // The using of RSProcessorFactory destructor is not suggested, but allowed.
     // Use its static function by :: first.
     RSProcessorFactory f;
-    auto p = f.CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    auto p = f.CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -58,7 +58,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateAndDestroy001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -70,7 +70,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -82,7 +82,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE);
     EXPECT_TRUE(nullptr != p);
 }
 
@@ -94,7 +94,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor004, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     EXPECT_TRUE(nullptr != p);
 }
 
@@ -106,7 +106,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor004, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor005, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
     EXPECT_TRUE(nullptr != p);
 }
 } // namespace OHOS::Rosen

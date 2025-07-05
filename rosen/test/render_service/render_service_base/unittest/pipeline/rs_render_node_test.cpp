@@ -25,7 +25,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -1622,7 +1622,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
 
     std::string outTest1 = "";
-    nodeTest->DumpNodeType(RSRenderNodeType::DISPLAY_NODE, outTest1);
+    nodeTest->DumpNodeType(RSRenderNodeType::SCREEN_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::RS_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::SURFACE_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::CANVAS_NODE, outTest1);
@@ -1701,7 +1701,7 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
-	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
+        "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
         "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0], colorSpace: 4, uifirstColorGamut: 4");
 }
 
@@ -1714,8 +1714,8 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
 {
     std::string outTest = "";
-    RSDisplayNodeConfig config;
-    auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
+    auto context = std::make_shared<RSContext>();
+    auto renderNode = std::make_shared<RSScreenRenderNode>(0, 0, context);
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0, colorSpace: 4");
 }
@@ -1989,9 +1989,8 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossParentChild009, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, AddCrossScreenChild, TestSize.Level1)
 {
     NodeId id = 1;
-    struct RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(id, 0, context);
     EXPECT_NE(displayRenderNode, nullptr);
     auto childTest1 = nullptr;
     displayRenderNode->AddCrossScreenChild(childTest1, 2, -1);
@@ -2329,8 +2328,13 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
 
     nodeTest->UpdateDrawableVecV2();
 
+#if defined(MODIFIER_NG)
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+#else
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::BOUNDS), true);
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::ROTATION_X), true);
+#endif
     std::shared_ptr<DrawableTest> drawableTest1 = std::make_shared<DrawableTest>();
     nodeTest->drawableVec_.at(1) = drawableTest1;
     EXPECT_TRUE(nodeTest->dirtySlots_.empty());
@@ -2340,7 +2344,11 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     auto sum = nodeTest->dirtySlots_.size();
     EXPECT_NE(nodeTest->dirtySlots_.size(), 0);
 
+#if defined(MODIFIER_NG)
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+#else
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::PIVOT), true);
+#endif
     std::shared_ptr<DrawableTest> drawableTest2 = std::make_shared<DrawableTest>();
     nodeTest->drawableVec_.at(4) = drawableTest2;
     RSShadow rsShadow;
@@ -3283,6 +3291,40 @@ HWTEST_F(RSRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
     ScreenId screenId = 1;
     node->hasVirtualScreenWhiteList_[screenId] = false;
     node->UpdateVirtualScreenWhiteListInfo();
+}
+
+/*
+ * @tc.name: CalcCmdlistDrawRegionFromOpItem
+ * @tc.desc: Test function CalcCmdlistDrawRegionFromOpItem
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSRenderNodeTest, CalcCmdlistDrawRegionFromOpItem, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), true);
+    node->SetNeedUseCmdlistDrawRegion(true);
+    ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), true);
+}
+
+/*
+ * @tc.name: GetNeedUseCmdlistDrawRegion
+ * @tc.desc: Test function GetNeedUseCmdlistDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSRenderNodeTest, GetNeedUseCmdlistDrawRegion, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    RectF rect { 1.0f, 1.0f, 1.0f, 1.0f };
+    node->cmdlistDrawRegion_ = rect;
+    ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), false);
+    node->SetNeedUseCmdlistDrawRegion(false);
+    ASSERT_EQ(node->GetNeedUseCmdlistDrawRegion(), false);
+    node->SetNeedUseCmdlistDrawRegion(true);
+    ASSERT_EQ(node->GetNeedUseCmdlistDrawRegion(), true);
 }
 } // namespace Rosen
 } // namespace OHOS

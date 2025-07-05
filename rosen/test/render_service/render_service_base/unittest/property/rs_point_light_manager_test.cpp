@@ -189,12 +189,12 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight002, TestSize.Level1)
     std::vector<std::weak_ptr<RSRenderNode>> dirtyList;
     instance->PrepareLight(map, dirtyList, true);
     EXPECT_TRUE(true);
-	
+
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
     map[1] = sharedRenderNode;
     instance->PrepareLight(map, dirtyList, true);
     EXPECT_TRUE(true);
-	
+
     std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(1);
     dirtyList.push_back(renderNode);
     instance->PrepareLight(map, dirtyList, true);
@@ -261,7 +261,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight004, TestSize.Level1)
     std::vector<std::weak_ptr<RSRenderNode>> dirtyList;
     instance->PrepareLight(map, dirtyList, true);
     EXPECT_TRUE(map.empty());
-	
+
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(0);
     map[0] = sharedRenderNode;
     std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(1);

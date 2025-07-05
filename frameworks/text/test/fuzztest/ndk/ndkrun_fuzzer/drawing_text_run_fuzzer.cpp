@@ -65,9 +65,9 @@ void OHDrawingTextRunTest(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider fdp(data, size);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TypographyCreate* handler =
-        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_GetFontCollectionGlobalInstance());
+    OH_Drawing_TypographyHandlerAddText(handler, "const char *");
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
 
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
@@ -90,7 +90,6 @@ void OHDrawingTextRunTest(const uint8_t* data, size_t size)
     OH_Drawing_BitmapDestroy(bitmap);
     OH_Drawing_CanvasDestroy(canvas);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
-    OH_Drawing_DestroyTextStyle(txtStyle);
 }
 } // namespace OHOS::Rosen::Drawing
 

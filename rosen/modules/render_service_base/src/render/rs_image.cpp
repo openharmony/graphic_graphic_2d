@@ -120,7 +120,11 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
     auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
-    if (LIKELY(!rscanvas.IsOnMultipleScreen() && rscanvas.GetHdrOn() && RSSystemProperties::GetHdrImageEnabled())) {
+    auto shotType = rscanvas.GetScreenshotType();
+    bool isSDRCapture = shotType == RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT ||
+        shotType == RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
+    if (LIKELY(!rscanvas.IsOnMultipleScreen() && !isSDRCapture && rscanvas.GetHdrOn() &&
+        RSSystemProperties::GetHdrImageEnabled())) {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
             rscanvas.GetScreenId(), dynamicRangeMode_, rscanvas.GetHDRProperties());
     } else {
@@ -547,6 +551,9 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
+    if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
+        return;
+    }
     float left = frameRect_.left_;
     float right = frameRect_.GetRight();
     float top = frameRect_.top_;

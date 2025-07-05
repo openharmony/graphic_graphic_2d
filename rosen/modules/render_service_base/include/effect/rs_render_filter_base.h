@@ -25,57 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 
-namespace Drawing {
-class GEVisualEffectContainer;
-class GEVisualEffect;
-} // namespace Drawing
-
-class RSNGRenderMaskBase;
-
-class RSB_EXPORT RSNGRenderFilterHelper {
-public:
-    template<typename Tag>
-    static void UpdateVisualEffectParam(std::shared_ptr<Drawing::GEVisualEffect> geFilter, const Tag& propTag)
-    {
-        if (!geFilter) {
-            return;
-        }
-        UpdateVisualEffectParamImpl(geFilter, Tag::NAME, propTag.value_->Get());
-    }
-
-    static std::string GetFilterTypeString(RSNGEffectType type)
-    {
-        switch (type) {
-            case RSNGEffectType::INVALID: return "Invalid";
-            case RSNGEffectType::NONE: return "None";
-            case RSNGEffectType::BLUR: return "Blur";
-            case RSNGEffectType::DISPLACEMENT_DISTORT: return "DisplacementDistort";
-            case RSNGEffectType::SOUND_WAVE: return "SoundWave";
-            case RSNGEffectType::EDGE_LIGHT: return "EdgeLight";
-            case RSNGEffectType::DISPERSION: return "Dispersion";
-            case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
-            case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
-            default:
-                return "UNKNOWN";
-        }
-    }
-
-    static std::shared_ptr<Drawing::GEVisualEffect> CreateGEFilter(RSNGEffectType type);
-
-private:
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, float value);
-
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, const Vector4f& value);
-
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, const Vector2f& value);
-
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
-};
-
 /**
  * @class RSNGRenderFilterBase
  *
@@ -89,9 +38,7 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderFilterBase>& val);
 
-    void Dump(std::string& out) const;
-
-    virtual void GenerateGEVisualEffect() {}
+    virtual void GenerateGEVisualEffect() {};
 
     virtual void OnSync()
     {
@@ -99,7 +46,7 @@ public:
     }
 
 protected:
-    std::vector<std::shared_ptr<Drawing::GEVisualEffect>> geFilters_;
+    std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
 
 private:
     friend class RSNGFilterBase;
@@ -118,13 +65,13 @@ public:
 
     void GenerateGEVisualEffect() override
     {
-        auto geFilter = RSNGRenderFilterHelper::CreateGEFilter(Type);
+        auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geFilter);
         std::apply([&geFilter](const auto&... propTag) {
-                (RSNGRenderFilterHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
+                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
                     geFilter, propTag), ...);
             }, EffectTemplateBase::properties_);
-        RSNGRenderFilterBase::geFilters_.push_back(geFilter);
+        RSNGRenderFilterBase::geFilter_ = std::move(geFilter);
 
         if (EffectTemplateBase::nextEffect_) {
             EffectTemplateBase::nextEffect_->GenerateGEVisualEffect();
@@ -178,7 +125,8 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
     ADD_PROPERTY_TAG(EdgeLight, Color),
-    ADD_PROPERTY_TAG(EdgeLight, Alpha)
+    ADD_PROPERTY_TAG(EdgeLight, Alpha),
+    ADD_PROPERTY_TAG(EdgeLight, Mask)
 );
 
 DECLARE_FILTER(Dispersion, DISPERSION,
@@ -201,6 +149,13 @@ DECLARE_FILTER(BezierWarp, BEZIER_WARP,
     ADD_PROPERTY_TAG(BezierWarp, ControlPoint9),
     ADD_PROPERTY_TAG(BezierWarp, ControlPoint10),
     ADD_PROPERTY_TAG(BezierWarp, ControlPoint11)
+);
+
+DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
+    ADD_PROPERTY_TAG(DirectionLight, Mask),
+    ADD_PROPERTY_TAG(DirectionLight, Direction),
+    ADD_PROPERTY_TAG(DirectionLight, Color),
+    ADD_PROPERTY_TAG(DirectionLight, Intensity)
 );
 
 #undef ADD_PROPERTY_TAG

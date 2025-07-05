@@ -17,19 +17,22 @@
 #include "filter_para.h"
 #include "ui_effect/mask/include/mask_para.h"
 #include "ui_effect/utils.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 // limits for ripple mask center parameters
 constexpr std::pair<float, float> DISPLACEMENT_DISTORT_FACTOR_LIMITS { 0.0f, 10.0f };
 
-class DisplacementDistortPara : public FilterPara {
+class RSC_EXPORT DisplacementDistortPara : public FilterPara {
 public:
     DisplacementDistortPara()
     {
         this->type_ = FilterPara::ParaType::DISPLACEMENT_DISTORT;
     }
     ~DisplacementDistortPara() override = default;
+
+    DisplacementDistortPara(const DisplacementDistortPara& other);
 
     void SetMask(std::shared_ptr<MaskPara> maskPara)
     {
@@ -50,6 +53,14 @@ public:
     {
         return factor_;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
+
+    std::shared_ptr<FilterPara> Clone() const override;
 
 private:
     std::shared_ptr<MaskPara> maskPara_;

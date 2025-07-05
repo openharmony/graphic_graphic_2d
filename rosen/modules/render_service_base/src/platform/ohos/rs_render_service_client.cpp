@@ -237,7 +237,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-    std::shared_ptr<Media::PixelMap> pixelmap)
+    std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR)
 {
     ROSEN_LOGD("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%{public}" PRIu64 "]", id);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
@@ -259,17 +259,30 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSur
             continue;
         }
         std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR = pixelmapHDR;
         if (i != callbackVector.size() - 1) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
                 surfaceCapture = std::move(pixelmapCopy);
             }
+            if (pixelmapHDR != nullptr) {
+                Media::InitializationOptions options;
+                std::unique_ptr<Media::PixelMap> pixelmapCopyHDR = Media::PixelMap::Create(*pixelmapHDR, options);
+                surfaceCaptureHDR = std::move(pixelmapCopyHDR);
+            }
         }
         if (surfaceCapture) {
             surfaceCapture->SetMemoryName("RSSurfaceCaptureForCallback");
         }
-        callbackVector[i]->OnSurfaceCapture(surfaceCapture);
+        if (surfaceCaptureHDR) {
+            surfaceCaptureHDR->SetMemoryName("RSSurfaceCaptureForCallbackHDR");
+        }
+        if (captureConfig.isHdrCapture) {
+            callbackVector[i]->OnSurfaceCaptureHDR(surfaceCapture, surfaceCaptureHDR);
+        } else {
+            callbackVector[i]->OnSurfaceCapture(surfaceCapture);
+        }
     }
 }
 
@@ -278,10 +291,12 @@ class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub
 public:
     explicit SurfaceCaptureCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
-    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        Media::PixelMap* pixelmapHDR = nullptr) override
     {
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
-        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture);
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
+        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, surfaceCaptureHDR);
     };
 
 private:
@@ -1432,6 +1447,24 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
     return repCode;
 }
 
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->SetScreenOffset(id, offSetX, offSetY);
+}
+
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->SetScreenFrameGravity(id, gravity);
+}
+
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
 {
 public:
@@ -2194,18 +2227,19 @@ class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
     explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
-    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
         RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
-        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+        client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }
 
 private:
     RSRenderServiceClient* client_;
 };
 
-bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+bool RSRenderServiceClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+    std::function<void()> callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -2218,8 +2252,8 @@ bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_
     }
     {
         std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
-        if (transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)) == std::end(transactionDataCallbacks_)) {
-            transactionDataCallbacks_.emplace(std::make_pair(pid, timeStamp), callback);
+        if (transactionDataCallbacks_.find(std::make_pair(token, timeStamp)) == std::end(transactionDataCallbacks_)) {
+            transactionDataCallbacks_.emplace(std::make_pair(token, timeStamp), callback);
         } else {
             ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback callback exists"
                 " in timeStamp %{public}s", std::to_string(timeStamp).c_str());
@@ -2230,17 +2264,17 @@ bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_
         }
     }
     RS_LOGD("RSRenderServiceClient::RegisterTransactionDataCallback, timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
-    renderService->RegisterTransactionDataCallback(pid, timeStamp, transactionDataCbDirector_);
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    renderService->RegisterTransactionDataCallback(token, timeStamp, transactionDataCbDirector_);
     return true;
 }
 
-void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(int32_t pid, uint64_t timeStamp)
+void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp)
 {
     std::function<void()> callback = nullptr;
     {
         std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
-        auto iter = transactionDataCallbacks_.find(std::make_pair(pid, timeStamp));
+        auto iter = transactionDataCallbacks_.find(std::make_pair(token, timeStamp));
         if (iter != std::end(transactionDataCallbacks_)) {
             callback = iter->second;
             transactionDataCallbacks_.erase(iter);
@@ -2248,7 +2282,7 @@ void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(int32_t pid, 
     }
     if (callback) {
         RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         std::invoke(callback);
     }
 }

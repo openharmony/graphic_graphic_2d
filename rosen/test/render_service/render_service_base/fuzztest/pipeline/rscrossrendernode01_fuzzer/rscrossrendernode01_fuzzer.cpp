@@ -23,7 +23,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_occlusion_config.h"
@@ -108,7 +108,7 @@ bool RSCrossRenderNode01FuzzTest(const uint8_t* data, size_t size)
     bool isSync = GetData<bool>();
     RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId, isSync };
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    RSDisplayRenderNode displayNode(id, config, context);
+    RSLogicalDisplayRenderNode displayNode(id, config, context);
 
     NodeId childId = GetData<NodeId>();
     NodeId cloneNodeId = GetData<NodeId>();

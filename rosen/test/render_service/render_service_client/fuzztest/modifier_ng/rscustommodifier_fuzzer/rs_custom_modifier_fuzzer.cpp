@@ -72,7 +72,7 @@ bool RSBackgroundStyleModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->GetType();
     ModifierNG::RSDrawingContext context;
     modifier->Draw(context);
-
+    modifier->GetInnerPropertyType();
     return true;
 }
 
@@ -160,6 +160,7 @@ bool RSTransitionStyleModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->GetType();
     ModifierNG::RSDrawingContext context;
     modifier->Draw(context);
+    modifier->GetInnerPropertyType();
     return true;
 }
 } // namespace Rosen

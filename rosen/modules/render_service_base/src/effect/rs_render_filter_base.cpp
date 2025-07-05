@@ -48,6 +48,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderEdgeLightFilter>();
         }
     },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGRenderDirectionLightFilter>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
@@ -90,60 +94,19 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
     return false;
 }
 
-void RSNGRenderFilterBase::Dump(std::string& out) const
-{
-    std::string descStr = ": ";
-    std::string splitStr = ", ";
-
-    out += RSNGRenderFilterHelper::GetFilterTypeString(GetType());
-    out += descStr;
-    DumpProperty(out);
-    if (nextEffect_) {
-        out += splitStr;
-        nextEffect_->Dump(out);
-    }
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, float value)
-{
-    geFilter->SetParam(desc, value);
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const Vector4f& value)
-{
-    geFilter->SetParam(desc, value.x_);
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const Vector2f& value)
-{
-    geFilter->SetParam(desc, std::make_pair(value.x_, value.y_));
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value)
-{
-    geFilter->SetParam(desc, value->GenerateGEShaderMask());
-}
-
-std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderFilterHelper::CreateGEFilter(RSNGEffectType type)
-{
-    return std::make_shared<Drawing::GEVisualEffect>(GetFilterTypeString(type), Drawing::DrawingPaintType::BRUSH);
-}
-
 void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
     std::shared_ptr<Drawing::GEVisualEffectContainer> container)
 {
-    if (!filter || !container) {
-        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: filter or container nullptr");
+    if (!container) {
+        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: container nullptr");
         return;
     }
 
-    std::for_each(filter->geFilters_.begin(), filter->geFilters_.end(), [&container](const auto& filter) {
-        container->AddToChainedFilter(filter);
-    });
+    auto current = filter;
+    if (current) {
+        container->AddToChainedFilter(current->geFilter_);
+        current = current->nextEffect_;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -18,8 +18,8 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <securec.h>
 #include <memory>
+#include <securec.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -83,7 +83,7 @@ bool RSPerfmonitorReporterFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RSPerfMonitorReporter perfMonitor;
+    auto& perfMonitor = RSPerfMonitorReporter::GetInstance();
 
     NodeId id1 = GetData<NodeId>();
     std::string nodeName = GetStringFromData(STR_LEN);
@@ -97,8 +97,16 @@ bool RSPerfmonitorReporterFuzzTest(const uint8_t* data, size_t size)
     
     int64_t duration = GetData<int64_t>();
     perfMonitor.RecordBlurNode(nodeName, duration, isBlurType);
+    BLUR_CLEAR_CACHE_REASON reason = GetData<BLUR_CLEAR_CACHE_REASON>();
+    perfMonitor.RecordBlurCacheReason(nodeName, reason, isBlurType);
+
+    std::string bundleName = GetStringFromData(STR_LEN);
+    perfMonitor.SetCurrentBundleName(bundleName.c_str());
     perfMonitor.GetCurrentBundleName();
 
+    perfMonitor.SetFocusAppInfo(bundleName.c_str());
+    perfMonitor.ReportAtRsFrameEnd();
+    sleep(1);
     std::chrono::time_point<high_resolution_clock> startTime =
         std::chrono::high_resolution_clock::now() - std::chrono::microseconds(GetData<uint16_t>());
     NodeId id2 = GetData<NodeId>();
@@ -106,6 +114,12 @@ bool RSPerfmonitorReporterFuzzTest(const uint8_t* data, size_t size)
     int updateTimes = GetData<int>();
     perfMonitor.StartRendergroupMonitor();
     perfMonitor.EndRendergroupMonitor(startTime, id2, context, updateTimes);
+    perfMonitor.NeedReportSubHealth(id2, updateTimes, startTime);
+    perfMonitor.CheckAllDrawingCacheDurationTimeout(id2);
+    perfMonitor.MeetReportFrequencyControl(id2, startTime);
+    perfMonitor.GetUpdateCacheTimeTaken(id2);
+    perfMonitor.GetInstanceRootNodeName(id2, context);
+
     perfMonitor.ClearRendergroupDataMap(id2);
 
     std::string bundleName2 = GetStringFromData(STR_LEN);

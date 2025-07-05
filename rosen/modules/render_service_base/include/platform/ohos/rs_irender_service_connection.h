@@ -287,6 +287,10 @@ public:
 
     virtual ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) = 0;
 
+    virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
+
+    virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
+
     virtual ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) = 0;
 
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -414,7 +418,8 @@ public:
 
     virtual ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
-    virtual void RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) = 0;
+    virtual void RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+        sptr<RSITransactionDataCallback> callback) = 0;
 
     virtual ErrCode NotifyScreenSwitched() = 0;
 

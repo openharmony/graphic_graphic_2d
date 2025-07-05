@@ -18,9 +18,13 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_aibar_filter.h"
+#include "render/rs_render_bezier_warp_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
+#include "render/rs_render_light_blur_filter.h"
+#include "ge_visual_effect_container.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -663,4 +667,138 @@ HWTEST_F(RSDrawingFilterTest, GetFilterTypeString, TestSize.Level1)
     EXPECT_TRUE(drawingFilter.GetFilterTypeString() == "RSBlurFilterBlur");
 }
 
+/**
+ * @tc.name: ApplyImageEffect001
+ * @tc.desc: test ApplyImageEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffect001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> nullImage;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+
+    /* image is null */
+    nullImage = nullptr;
+    drawingFilter.ApplyImageEffect(canvas, nullImage, visualEffectContainer, attr);
+
+    /* go to hps branch */
+    int radius = 4;
+    auto kawaseShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
+    drawingFilter.InsertShaderFilter(kawaseShaderFilter);
+    drawingFilter.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    /* go to lightblur branch */
+    int radius0 = 0;
+    auto lightBlurShaderFilter = std::make_shared<RSLightBlurShaderFilter>(radius0);
+    RSDrawingFilter drawingFilter1(lightBlurShaderFilter);
+    lightBlurShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    drawingFilter1.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_FALSE(shaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: ApplyImageEffect002
+ * @tc.desc: test ApplyImageEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffect002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    int radius = 4;
+    int radius0 = 0;
+    auto kawaseShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
+
+    /* go to hps 1.0 kawase ApplyColorFilter branch */
+    auto visualEffectContainer1 = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto kawaseShaderFilter2 = std::make_shared<RSKawaseBlurShaderFilter>(radius0);
+    RSDrawingFilter drawingFilter2(kawaseShaderFilter2);
+    kawaseShaderFilter2->GenerateGEVisualEffect(visualEffectContainer1);
+    auto rsRenderBezierWarpFilterPara = std::make_shared<RSRenderBezierWarpFilterPara>(0);
+    drawingFilter2.InsertShaderFilter(rsRenderBezierWarpFilterPara);
+    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer1);
+    drawingFilter2.ApplyImageEffect(canvas, image, visualEffectContainer1, attr);
+
+    /* go to hps 1.0 kawase branch */
+    auto visualEffectContainer3 = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter drawingFilter3(kawaseShaderFilter);
+    drawingFilter3.InsertShaderFilter(rsRenderBezierWarpFilterPara);
+    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer3);
+    drawingFilter3.ApplyImageEffect(canvas, image, visualEffectContainer3, attr);
+    /* go to ge kawase branch */
+    drawingFilter3.SetFilterType(RSFilter::WATER_RIPPLE);
+    drawingFilter3.ApplyImageEffect(canvas, image, visualEffectContainer3, attr);
+
+    /* go to no blur branch */
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    auto visualEffectContainer4 = std::make_shared<Drawing::GEVisualEffectContainer>();
+    rsAIBarShaderFilter->GenerateGEVisualEffect(visualEffectContainer4);
+    RSDrawingFilter drawingFilter4(rsAIBarShaderFilter);
+    drawingFilter4.ApplyImageEffect(canvas, image, visualEffectContainer4, attr);
+
+    EXPECT_FALSE(kawaseShaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: ApplyHpsImageEffect001
+ * @tc.desc: test ApplyHpsImageEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyHpsImageEffect001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> nullImage;
+    auto image = std::make_shared<Drawing::Image>();
+    auto outImage = std::make_shared<Drawing::Image>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+    Drawing::Brush brush;
+
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+
+    /* normal case */
+    drawingFilter.ApplyHpsImageEffect(canvas, image, outImage, attr, brush);
+
+    /* make outImage nullptr */
+    nullImage = nullptr;
+    drawingFilter.ApplyHpsImageEffect(canvas, nullImage, outImage, attr, brush);
+    EXPECT_FALSE(shaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: DrawKawaseEffect
+ * @tc.desc: test DrawKawaseEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, DrawKawaseEffect, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto outImage = std::make_shared<Drawing::Image>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+    Drawing::Brush brush;
+    int radius = 1;
+    auto kawaseShaderFilter = std::static_pointer_cast<RSRenderFilterParaBase>(
+        std::make_shared<RSKawaseBlurShaderFilter>(radius));
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+
+    /* normal case */
+    drawingFilter.DrawKawaseEffect(canvas, outImage, attr, brush, kawaseShaderFilter);
+
+    /* make blurImage nullptr */
+    outImage = nullptr;
+    drawingFilter.DrawKawaseEffect(canvas, outImage, attr, brush, kawaseShaderFilter);
+
+    EXPECT_FALSE(kawaseShaderFilter == nullptr);
+}
 } // namespace OHOS::Rosen

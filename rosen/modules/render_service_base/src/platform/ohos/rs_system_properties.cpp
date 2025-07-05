@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,8 @@ const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 #endif
+
+bool RSSystemProperties::isEnableEarlyZ_ = system::GetBoolParameter("persist.sys.graphic.ddgrEarlyZ.enabled", true);
 
 int ConvertToInt(const char *originValue, int defaultValue)
 {
@@ -226,10 +228,13 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
+    constexpr int DEFAULT_OPTIMIZE_STATUS = 1;
+    constexpr int DISABLED_STATUS = 0;
+
     static CachedHandle g_Handle = CachedParameterCreate("rosen.animationdelay.optimize.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
+    return ConvertToInt(enable, DEFAULT_OPTIMIZE_STATUS) != DISABLED_STATUS;
 }
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
@@ -898,6 +903,14 @@ bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetHeterogComputingHDREnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.heterog.computing.hdr.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");
@@ -1392,6 +1405,14 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.optimizeCanvasDrawRegion.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetHpaeBlurUsingAAE()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.hpae.blur.aee.enabled", "0");
@@ -1602,6 +1623,11 @@ bool RSSystemProperties::GetCompositeLayerEnabled()
     static bool compositeLayerEnable =
         system::GetBoolParameter("rosen.graphic.composite.layer", false);
     return compositeLayerEnable;
+}
+
+bool RSSystemProperties::GetEarlyZEnable()
+{
+    return isEnableEarlyZ_;
 }
 } // namespace Rosen
 } // namespace OHOS

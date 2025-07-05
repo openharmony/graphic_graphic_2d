@@ -38,7 +38,9 @@ public:
     static napi_value CreateLine(napi_env env, napi_callback_info info);
 
 private:
+    static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
+    static std::mutex constructorMutex_;
     napi_value OnGetLineBreak(napi_env env, napi_callback_info info);
     napi_value OnCreateLine(napi_env env, napi_callback_info info);
     std::shared_ptr<LineTypography> lineTypography_ = nullptr;

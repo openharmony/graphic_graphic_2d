@@ -341,7 +341,7 @@ GSError RSTransactionManager::QueueTransaction(const RSTransactionConfig& config
         transaction->GetFence()->Wait(DUMP_BUFFER_WAIT_FENCE_TIMEOUT_MS);
         sptr<SurfaceBuffer> buffer = transaction->GetBuffer();
         DumpToFileAsync(GetRealPid(), name_, buffer);
-        RS_LOGW("RSTransactionManager::QueueTransaction dump buffer, queueSize:%{public}u, queueId: %{public}" PRIu64
+        RS_LOGW("RSTransactionManager::QueueTransaction dump buffer, queueSize:%{public}zu, queueId: %{public}" PRIu64
             ", name: %{public}s", pendingTransactionQueue_.size(), uniqueId_, name_.c_str());
     }
     return GSERROR_OK;

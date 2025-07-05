@@ -102,6 +102,9 @@ public:
 
     virtual void SetSupportOpaqueOpt(bool supportOpaqueOpt) { return; }
     virtual bool GetSupportOpaqueOpt() const { return false; }
+
+    virtual void SetHeadroom(float headroom) = 0;
+    virtual float GetHeadroom() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

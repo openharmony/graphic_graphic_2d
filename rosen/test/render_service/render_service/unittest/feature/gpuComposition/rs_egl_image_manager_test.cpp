@@ -15,9 +15,11 @@
 #include "gtest/gtest.h"
 #include "surface_buffer_impl.h"
 
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/gpuComposition/rs_egl_image_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_context/render_context.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
@@ -87,12 +89,11 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
         return;
     }
     NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
     node->InitRenderParams();
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node->GetRenderDrawable());
+        std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
     auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -101,7 +102,7 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(node, nullptr);
-    if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
+    if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
         sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
         // create cache from buffer directly
         auto ret = eglImageManager_->CreateEglImageCacheFromBuffer(buffer, 0);
@@ -123,12 +124,11 @@ HWTEST_F(RSEglImageManagerTest, MapImageFromSurfaceBuffer001, TestSize.Level1)
         return;
     }
     NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
     node->InitRenderParams();
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node->GetRenderDrawable());
+        std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
     auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -137,7 +137,7 @@ HWTEST_F(RSEglImageManagerTest, MapImageFromSurfaceBuffer001, TestSize.Level1)
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(node, nullptr);
-    if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
+    if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
         sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
         sptr<SyncFence> acquireFence;
         auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, 0);

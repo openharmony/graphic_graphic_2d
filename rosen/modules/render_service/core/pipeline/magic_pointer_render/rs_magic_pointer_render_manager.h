@@ -18,8 +18,9 @@
 
 #include "feature/gpuComposition/rs_image_manager.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"
+#include "pipeline/rs_screen_render_node.h"
+
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #endif

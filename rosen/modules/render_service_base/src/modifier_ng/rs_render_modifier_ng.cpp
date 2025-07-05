@@ -18,6 +18,7 @@
 #include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
 
+#include "modifier/rs_render_property.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_render_modifier.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
@@ -37,9 +38,11 @@
 #include "modifier_ng/appearance/rs_visibility_render_modifier.h"
 #include "modifier_ng/background/rs_background_color_render_modifier.h"
 #include "modifier_ng/background/rs_background_image_render_modifier.h"
+#include "modifier_ng/background/rs_background_ng_shader_render_modifier.h"
 #include "modifier_ng/background/rs_background_shader_render_modifier.h"
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
 #include "modifier_ng/foreground/rs_foreground_color_render_modifier.h"
+#include "modifier_ng/foreground/rs_foreground_shader_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_clip_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "modifier_ng/geometry/rs_frame_clip_render_modifier.h"
@@ -48,7 +51,6 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
-#include "modifier/rs_render_property.h"
 
 namespace OHOS::Rosen::ModifierNG {
 // RSRenderModifier ==========================================================================
@@ -77,6 +79,8 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::COMPOSITING_FILTER,       RSCompositingFilterRenderModifier::ResetProperties },
     { RSModifierType::BACKGROUND_FILTER,        RSBackgroundFilterRenderModifier::ResetProperties },
     { RSModifierType::FOREGROUND_FILTER,        RSForegroundFilterRenderModifier::ResetProperties },
+    { RSModifierType::BACKGROUND_NG_SHADER,     RSBackgroundNGShaderRenderModifier::ResetProperties },
+    { RSModifierType::FOREGROUND_SHADER,        RSForegroundShaderRenderModifier::ResetProperties },
 };
 
 std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT>
@@ -115,6 +119,8 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT>
         [] { return new RSEnvForegroundColorRenderModifier(); },                        // ENV_FOREGROUND_COLOR
         [] { return new RSHDRBrightnessRenderModifier(); },                             // HDR_BRIGHTNESS
         [] { return new RSBehindWindowFilterRenderModifier(); },                        // BEHIND_WINDOW_FILTER
+        [] { return new RSBackgroundNGShaderRenderModifier(); },                        // BACKGROUND_NG_SHADER
+        [] { return new RSForegroundShaderRenderModifier(); },                          // FOREGROUND_SHADER
         nullptr,                                                                        // CHILDREN
     };
 
@@ -147,7 +153,9 @@ void RSRenderModifier::DetachProperty(RSPropertyType type)
     }
     if (auto node = target_.lock()) {
         DetachRenderFilterProperty(it->second, type);
-        it->second->Detach();
+        if (it->second) {
+            it->second->Detach();
+        }
         node->SetDirty();
         node->AddDirtyType(GetType());
     }

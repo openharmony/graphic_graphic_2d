@@ -33,6 +33,8 @@ ohos_unittest("EffectTest") {
       "filter_common_unittest.cpp",
       "sk_image_chain_unittest.cpp",
       "sk_image_filter_factory_unittest.cpp",
+      "effect_image_chain_unittest.cpp",
+      "effect_image_render_unittest.cpp",
     ]
   }
 
@@ -45,6 +47,8 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
     "$graphic_2d_root/utils/color_manager:color_manager",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
   cflags = [
@@ -60,6 +64,7 @@ ohos_unittest("EffectTest") {
     "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
+    "googletest:gmock_main",
     "hilog:libhilog",
     "image_framework:image",
     "image_framework:image_native",
@@ -77,6 +82,7 @@ config("effect_test_config") {
     "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/utils/color_manager/export",
+    "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
 }
 

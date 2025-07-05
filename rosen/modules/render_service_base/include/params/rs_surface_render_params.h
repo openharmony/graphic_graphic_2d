@@ -51,6 +51,8 @@ struct RSLayerInfo {
     bool copybitTag = false;
     uint32_t ancoFlags = 0;
     GraphicIRect ancoCropRect{};
+    bool useDeviceOffline = false;
+    
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -59,7 +61,8 @@ struct RSLayerInfo {
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
             (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
             (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag) &&
-            (ancoCropRect == layerInfo.ancoCropRect) && (ancoFlags == layerInfo.ancoFlags);
+            (ancoCropRect == layerInfo.ancoCropRect) && (ancoFlags == layerInfo.ancoFlags) &&
+            (useDeviceOffline == layerInfo.useDeviceOffline);
     }
 #endif
 };
@@ -79,6 +82,11 @@ public:
     {
         return isAppWindow_;
     }
+    bool IsLeashOrMainWindow() const
+    {
+        return isLeashorMainWindow_;
+    }
+
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return rsSurfaceNodeType_;
@@ -87,20 +95,20 @@ public:
     {
         return selfDrawingType_;
     }
-    void SetAncestorDisplayNode(const RSRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorScreenNode(const RSRenderNode::WeakPtr& ancestorScreenNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
-        auto node = ancestorDisplayNode.lock();
-        ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
+        ancestorScreenNode_ = ancestorScreenNode;
+        auto node = ancestorScreenNode.lock();
+        ancestorScreenDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
 
-    RSRenderNode::WeakPtr GetAncestorDisplayNode() const
+    RSRenderNode::WeakPtr GetAncestorScreenNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorScreenNode_;
     }
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorDisplayDrawable() const
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorScreenDrawable() const
     {
-        return ancestorDisplayDrawable_;
+        return ancestorScreenDrawable_;
     }
 
     float GetAlpha() const
@@ -130,10 +138,6 @@ public:
     const Color& GetBackgroundColor() const
     {
         return backgroundColor_;
-    }
-    const RectI& GetAbsDrawRect() const override
-    {
-        return absDrawRect_;
     }
     const RRect& GetRRect() const
     {
@@ -388,7 +392,7 @@ public:
     bool GetHwcGlobalPositionEnabled() const;
 
     void SetHwcCrossNode(bool isCrossNode);
-    bool IsDRMCrossNode() const;
+    bool IsHwcCrossNode() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
@@ -739,7 +743,7 @@ public:
         return rsSurfaceNodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
-    const Vector4f& GetRegionToBeMagnified() const
+    const Vector4<int>& GetRegionToBeMagnified() const
     {
         return regionToBeMagnified_;
     }
@@ -747,14 +751,22 @@ public:
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
+    void SetUseDeviceOffline(bool useDeviceOffline)
+    {
+#ifndef ROSEN_CROSS_PLATFORM
+        layerInfo_.useDeviceOffline = useDeviceOffline;
+#endif
+    }
+
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
     bool isAppWindow_ = false;
+    bool isLeashorMainWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
-    RSRenderNode::WeakPtr ancestorDisplayNode_;
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
+    RSRenderNode::WeakPtr ancestorScreenNode_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorScreenDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr sourceDisplayRenderNodeDrawable_;
 
@@ -779,11 +791,10 @@ private:
     RectI dstRect_;
     RectI oldDirtyInSurface_;
     RectI childrenDirtyRect_;
-    RectI absDrawRect_;
     RRect rrect_;
     Rect ancoSrcCrop_{};
     uint32_t ancoFlags_ = 0;
-    Vector4f regionToBeMagnified_;
+    Vector4<int> regionToBeMagnified_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;

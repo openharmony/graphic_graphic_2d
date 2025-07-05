@@ -72,6 +72,7 @@ using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 using ExportTypeChangedCallback = std::function<void(bool)>;
 using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
+using PropertyNodeChangeCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -81,6 +82,7 @@ class RSObjAbsGeometry;
 class RSUIContext;
 class RSUIFilter;
 class RSNGFilterBase;
+class RSNGShaderBase;
 enum class CancelAnimationStatus;
 
 namespace ModifierNG {
@@ -1168,6 +1170,20 @@ public:
     void SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter);
 
     /**
+     * @brief Sets the background shader.
+     *
+     * @param backgroundShader Indicates the background shader to be applied.
+     */
+    void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
+
+    /**
+     * @brief Sets the foreground shader.
+     *
+     * @param foregroundShader Indicates the foreground shader to be applied.
+     */
+    void SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader);
+
+    /**
      * @brief Sets the filter.
      *
      * @param filter Indicates the filter to be applied.
@@ -1370,7 +1386,7 @@ public:
      */
     void SetShadowMask(bool shadowMask);
 
-        /**
+    /**
      * @brief Sets the strategy of the shadow mask.
      *
      * @param strategy Indicates the strategy of the shadow mask.
@@ -1578,6 +1594,13 @@ public:
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     /**
+     * @brief Sets if need use the cmdlist drawing region for the node.
+     *
+     * @param needUseCmdlistDrawRegion Whether to need use the cmdlist drawing region for this node.
+     */
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
+
+    /**
      * @brief Mark the node as a group node for rendering pipeline optimization
      *
      * NodeGroup generates off-screen cache containing this node and its entire subtree
@@ -1712,6 +1735,20 @@ public:
 
     static DrawNodeChangeCallback drawNodeChangeCallback_;
     static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    static PropertyNodeChangeCallback propertyNodeChangeCallback_;
+    /**
+     * @brief Sets the callback function for property node change events
+     *
+     * @param callback Function pointer to the callback handler
+     */
+    static void SetPropertyNodeChangeCallback(PropertyNodeChangeCallback callback);
+
+    /**
+     * @brief Enables or disables property node change callback notifications
+     *
+     * @param needCallback Boolean flag to control callback triggering
+     */
+    static void SetNeedCallbackNodeChange(bool needCallback);
     bool GetIsDrawn();
     void SetDrawNode();
     DrawNodeType GetDrawNodeType() const;
@@ -1799,6 +1836,8 @@ protected:
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
+    void DumpModifiers(std::string& out) const;
+
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
@@ -1885,6 +1924,7 @@ protected:
     void SetIsOnTheTree(bool flag);
 
     std::array<std::shared_ptr<ModifierNG::RSModifier>, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNGCreatedBySetter_;
+    static inline bool isMultiInstanceOpen_ = false;
 
 private:
     static NodeId GenerateId();
@@ -1966,6 +2006,8 @@ private:
     void SetForegroundBlurRadiusY(float blurRadiusY);
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
+    void NotifyPageNodeChanged();
+    void CheckModifierType(RSModifierType modifierType);
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -1998,10 +2040,6 @@ private:
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
-    void AttachProperty(std::shared_ptr<RSPropertyBase> property);
-    void DettachProperty(PropertyId id);
-    void AttachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
-    void DetachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
     void DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
 
     /**
@@ -2030,6 +2068,7 @@ private:
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
+    static bool isNeedCallbackNodeChange_;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;

@@ -128,7 +128,8 @@ public:
 
     void SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
+        NodeId logicalDisplayNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -545,6 +546,10 @@ public:
     {
         arsrTag_ = arsrTag;
     }
+    
+    // hpae offline
+    bool GetDeviceOfflineEnable() const { return deviceOfflineEnable_; }
+    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = enabled; }
 
     bool GetCopybitTag() const
     {
@@ -609,7 +614,7 @@ public:
     bool GetHwcGlobalPositionEnabled() const;
 
     void SetHwcCrossNode(bool isCrossNode);
-    bool IsDRMCrossNode() const;
+    bool IsHwcCrossNode() const;
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetLeashPersistentId(uint64_t leashPersistentId);
@@ -736,7 +741,7 @@ public:
         dstRectWithoutRenderFit_ = Drawing::Rect(rect.left_, rect.top_, rect.GetRight(), rect.GetBottom());
     }
 
-    void SetRegionToBeMagnified(Vector4f regionToBeMagnified)
+    void SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified)
     {
         regionToBeMagnified_ = regionToBeMagnified;
     }
@@ -1071,7 +1076,7 @@ public:
     void AddChildHardwareEnabledNode(WeakPtr childNode);
     const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const;
 
-    bool IsFocusedNode(uint64_t focusedNodeId)
+    bool IsFocusedNode(uint64_t focusedNodeId) const
     {
         return GetId() == focusedNodeId;
     }
@@ -1261,11 +1266,6 @@ public:
         return RSRenderNode::GetUifirstSupportFlag();
     }
 
-    bool OpincGetNodeSupportFlag() override
-    {
-        return false;
-    }
-
     void UpdateSurfaceCacheContentStaticFlag(bool isAccessibilityChanged);
 
     void UpdateSurfaceSubTreeDirtyFlag();
@@ -1313,9 +1313,9 @@ public:
     }
     bool GetNodeIsSingleFrameComposer() const override;
 
-    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorScreenNode(const RSBaseRenderNode::WeakPtr& ancestorScreenNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
+        ancestorScreenNode_ = ancestorScreenNode;
     }
 
     bool SetUifirstNodeEnableParam(MultiThreadCacheType b);
@@ -1334,9 +1334,9 @@ public:
         return uifirstStartTime_;
     }
 
-    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    RSBaseRenderNode::WeakPtr GetAncestorScreenNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorScreenNode_;
     }
     bool QuerySubAssignable(bool isRotation);
     bool QueryIfAllHwcChildrenForceDisabledByFilter();
@@ -1348,7 +1348,7 @@ public:
     void UpdatePartialRenderParams();
     // This function is used for extending visibleRegion by dirty blurfilter node half-obscured
     void UpdateExtendVisibleRegion(Occlusion::Region& region);
-    void UpdateAncestorDisplayNodeInRenderParams();
+    void UpdateAncestorScreenNodeInRenderParams();
 
     void SetNeedDrawFocusChange(bool needDrawFocusChange)
     {
@@ -1758,6 +1758,10 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
     bool arsrTag_ = true;
     bool copybitTag_ = false;
+    
+    // hpae offline
+    bool deviceOfflineEnable_ = false;
+    
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
     RectI skipFrameDirtyRect_;
@@ -1827,13 +1831,13 @@ private:
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
 #endif
-    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
+    RSBaseRenderNode::WeakPtr ancestorScreenNode_;
     RectI clipRegionFromParent_;
     RectI dstRect_;
     RectI srcRect_;
     RectI originalDstRect_;
     RectI originalSrcRect_;
-    Vector4f regionToBeMagnified_;
+    Vector4<int> regionToBeMagnified_;
     Drawing::Rect dstRectWithoutRenderFit_;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     Vector4f overDrawBufferNodeCornerRadius_;

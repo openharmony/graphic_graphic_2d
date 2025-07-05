@@ -484,6 +484,18 @@ public:
     */
     void DrawSingleCharacter(int32_t unicode, const Font& font, scalar x, scalar y);
 
+    /**
+     * @brief Draws a single character with font feature.
+     *
+     * @param str          Indicates the single character encoded in UTF-8.
+     * @param font         Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+     * @param x            Indicates the horizontal offset applied to the single character.
+     * @param y            Indicates the vertical offset applied to the single character.
+     * @param fontFeatures Indicates the pointer to an <b>OH_Drawing_FontFeatures</b> object.
+     */
+    void DrawSingleCharacterWithFeatures(const char* str, const Font& font, scalar x, scalar y,
+        std::shared_ptr<Drawing::DrawingFontFeatures> fontFeatures);
+
     // symbol
     virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate);
 

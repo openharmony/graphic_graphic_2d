@@ -15,11 +15,15 @@
 
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 
+#include <unordered_set>
+
 #include "platform/common/rs_log.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/filter/include/filter_direction_light_para.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGFilterBase"
@@ -50,6 +54,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGEdgeLightFilter>();
         }
     },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGDirectionLightFilter>();
+        }
+    },
 };
 
 namespace {
@@ -62,6 +70,7 @@ std::shared_ptr<RSNGFilterBase> ConvertDisplacementDistortFilterPara(std::shared
     auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
     auto dispDistortFilterPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
     dispDistortFilter->Setter<DispDistortFactorTag>(dispDistortFilterPara->GetFactor());
+    dispDistortFilter->Setter<DispDistortMaskTag>(RSNGMaskBase::Create(dispDistortFilterPara->GetMask()));
     return dispDistortFilter;
 }
 
@@ -75,13 +84,30 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     auto edgeLightFilterPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
     edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor().value_or(Vector4f()));
     edgeLightFilter->Setter<EdgeLightAlphaTag>(edgeLightFilterPara->GetAlpha());
+    edgeLightFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(edgeLightFilterPara->GetMask()));
     return edgeLightFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
+    directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
+    directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
+    directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
+    directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());
+    return directionLightFilter;
 }
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
     { FilterPara::ParaType::DISPLACEMENT_DISTORT, ConvertDisplacementDistortFilterPara },
     { FilterPara::ParaType::EDGE_LIGHT, ConvertEdgeLightFilterPara },
+    { FilterPara::ParaType::DIRECTION_LIGHT, ConvertDirectionLightFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
@@ -93,6 +119,15 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(std::shared_ptr<FilterPara> filterPara)
 {
     if (!filterPara) {
+        return nullptr;
+    }
+
+    // Disable temporarily, enable after full verification
+    static std::unordered_set<FilterPara::ParaType> forceDisableTypes = {
+        FilterPara::ParaType::DISPLACEMENT_DISTORT,
+        FilterPara::ParaType::EDGE_LIGHT,
+    };
+    if (forceDisableTypes.find(filterPara->GetParaType()) != forceDisableTypes.end()) {
         return nullptr;
     }
 

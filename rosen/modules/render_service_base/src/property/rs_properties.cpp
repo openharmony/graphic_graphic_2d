@@ -30,7 +30,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -2074,6 +2074,9 @@ void RSProperties::SetShadowColor(Color color)
         shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetColor(color);
+    if (GetShadowMask() == SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR) {
+        filterNeedUpdate_ = true;
+    }
     SetDirty();
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
@@ -2797,7 +2800,7 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         return;
     }
     hdrBrightnessFactor_ = factor;
-    auto node = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(backref_.lock());
+    auto node = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(backref_.lock());
     if (node == nullptr) {
         return;
     }
@@ -3892,6 +3895,22 @@ void RSProperties::GenerateBezierWarpFilter()
     }
 }
 
+void RSProperties::ComposeNGRenderFilter(
+    std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter)
+{
+    std::shared_ptr<RSDrawingFilter> originDrawingFilter = nullptr;
+    if (!originFilter) {
+        originDrawingFilter = std::make_shared<RSDrawingFilter>();
+    } else {
+        originDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(originFilter);
+    }
+    originDrawingFilter->SetNGRenderFilter(filter);
+    if (filter) {
+        originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    }
+    originFilter = originDrawingFilter;
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -3912,6 +3931,10 @@ void RSProperties::GenerateBackgroundFilter()
 
     if (IsWaterRippleValid()) {
         GenerateWaterRippleFilter();
+    }
+
+    if (bgNGRenderFilter_) {
+        ComposeNGRenderFilter(backgroundFilter_, bgNGRenderFilter_);
     }
 
     if (alwaysSnapshot_ && backgroundFilter_ == nullptr) {
@@ -5184,8 +5207,9 @@ void RSProperties::UpdateForegroundFilter()
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
     } else if (IsHDRUIBrightnessValid()) {
         CreateHDRUIBrightnessFilter();
-    } else if (foregroundRenderFilter_) {
+    } else if (foregroundRenderFilter_ || fgNGRenderFilter_) {
         GenerateForegroundRenderFilter();
+        ComposeNGRenderFilter(foregroundFilter_, fgNGRenderFilter_);
     }
 }
 
@@ -5351,5 +5375,32 @@ void RSProperties::ResetBorder(bool isOutline)
     SetDirty();
     contentDirty_ = true;
 }
+
+void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    bgNGRenderShader_ = renderShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetBackgroundNGShader() const
+{
+    return bgNGRenderShader_;
+}
+
+void RSProperties::SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    fgRenderShader_ = renderShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
+{
+    return fgRenderShader_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

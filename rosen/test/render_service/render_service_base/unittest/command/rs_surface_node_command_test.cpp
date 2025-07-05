@@ -17,7 +17,7 @@
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_surface_render_node.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -436,20 +436,21 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetGlobalPositionEnabled001, TestSize.Level1)
 HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 {
     RSContext context;
+    ScreenId screenId = 1;
     SurfaceNodeCommandHelper::AttachToDisplay(context, -1, 0);
 
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
     context.nodeMap.renderNodeMap_[0][0] = renderNode;
-    std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
-    context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
+    std::shared_ptr<RSScreenRenderNode> screenNodeTest1 = nullptr;
+    context.nodeMap.screenNodeMap_.emplace(0, screenNodeTest1);
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
 
-    RSDisplayNodeConfig config;
-    std::shared_ptr<RSDisplayRenderNode> displayNodeTest2 = std::make_shared<RSDisplayRenderNode>(0, config);
-    displayNodeTest2->screenId_ = 0;
-    context.nodeMap.displayNodeMap_.at(0) = displayNodeTest2;
-    EXPECT_NE(displayNodeTest2, nullptr);
+    std::shared_ptr<RSContext> newContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNodeTest2 = std::make_shared<RSScreenRenderNode>(0, screenId, newContext);
+    screenNodeTest2->screenId_ = 0;
+    context.nodeMap.screenNodeMap_.at(0) = screenNodeTest2;
+    EXPECT_NE(screenNodeTest2, nullptr);
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 0);
 }
@@ -463,19 +464,20 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
 {
     RSContext context;
+    ScreenId screenId = 1;
     SurfaceNodeCommandHelper::DetachToDisplay(context, -1, 0);
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
     context.nodeMap.renderNodeMap_[0][0] = renderNode;
-    std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
-    context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
+    std::shared_ptr<RSScreenRenderNode> screenNodeTest1 = nullptr;
+    context.nodeMap.screenNodeMap_.emplace(0, screenNodeTest1);
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
 
-    RSDisplayNodeConfig config;
-    std::shared_ptr<RSDisplayRenderNode> displayNodeTest2 = std::make_shared<RSDisplayRenderNode>(0, config);
-    displayNodeTest2->screenId_ = 0;
-    context.nodeMap.displayNodeMap_.at(0) = displayNodeTest2;
-    EXPECT_NE(displayNodeTest2, nullptr);
+    std::shared_ptr<RSContext> newContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNodeTest2 = std::make_shared<RSScreenRenderNode>(0, screenId, newContext);
+    screenNodeTest2->screenId_ = 0;
+    context.nodeMap.screenNodeMap_.at(0) = screenNodeTest2;
+    EXPECT_NE(screenNodeTest2, nullptr);
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 0);
 }
@@ -762,7 +764,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetRegionToBeMagnified, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
-    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    Vector4<int> regionToBeMagnified = {0, 0, 200, 200};
     SurfaceNodeCommandHelper::Create(context, nodeId);
     SurfaceNodeCommandHelper::SetRegionToBeMagnified(context, nodeId, regionToBeMagnified);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);

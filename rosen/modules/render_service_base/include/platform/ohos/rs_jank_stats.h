@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ constexpr int64_t TIMESTAMP_INITIAL = -1;
 constexpr int32_t TRACE_ID_INITIAL = -1;
 constexpr float TIMESTAMP_INITIAL_FLOAT = -1.f;
 constexpr float MS_TO_US = 1000.f; // ms to us
+constexpr std::string_view SWITCH_SCENE_NAME = "ABILITY_OR_PAGE_SWITCH";
 
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
@@ -162,6 +163,8 @@ public:
     void AvcodecVideoCollectBegin();
     void AvcodecVideoCollectFinish();
     void AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence);
+    bool GetEarlyZEnableFlag();
+    bool GetFlushEarlyZ();
 
 private:
     RSJankStats() = default;
@@ -280,6 +283,9 @@ private:
         JANK_FRAME_180_FREQ,
         JANK_FRAME_INVALID,
     };
+    bool ddgrEarlyZEnableFlag_ = false;
+    bool isFlushEarlyZ_ = false;
+    int32_t lastReportEarlyZTraceId_ = -1;
 };
 
 } // namespace Rosen

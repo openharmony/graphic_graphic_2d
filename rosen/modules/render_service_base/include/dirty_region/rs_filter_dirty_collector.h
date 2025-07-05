@@ -50,6 +50,7 @@ struct FilterDirtyRegionInfo {
     Occlusion::Region filterDirty_ = Occlusion::Region();
     Occlusion::Region alignedFilterDirty_ = Occlusion::Region();
     Occlusion::Region belowDirty_ = Occlusion::Region();
+    bool isBackgroundFilterClean_ = false;
     bool addToDirty_ = false;
 
     FilterDirtyRegionInfo() = default;
@@ -68,11 +69,27 @@ public:
     FilterDirtyRegionInfoList& GetFilterDirtyRegionInfoList(bool syncToRT);
     void OnSync(RSFilterDirtyCollector& target) const;
     void Clear();
+    void AddPureCleanFilterDirtyRegion(const Occlusion::Region& region)
+    {
+        pureCleanFilterDirtyRegion_.OrSelf(region);
+    }
+    const Occlusion::Region& GetPureCleanFilterDirtyRegion() const
+    {
+        return pureCleanFilterDirtyRegion_;
+    }
+    void ClearPureCleanFilterDirtyRegion()
+    {
+        pureCleanFilterDirtyRegion_.Reset();
+    }
 private:
     // Main thread filters affected by below dirty (may invalidate cache).
     FilterDirtyRegionInfoList filtersWithBelowDirty_;
     // RT thread filters requiring full merge on damage intersection.
     FilterDirtyRegionInfoList pureCleanFilters_;
+
+    //Blur that does not affect the display but intersects with dirty region
+    //Only used to increase the dirty region of the current frame
+    Occlusion::Region pureCleanFilterDirtyRegion_;
 };
 } // namespace Rosen
 } // namespace OHOS

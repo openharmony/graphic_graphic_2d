@@ -31,7 +31,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
@@ -259,11 +259,13 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         RS_LOGE("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
         return false;
     }
+#ifdef RS_PROFILER_ENABLED
     // check if capturing was triggered, if so - add the recording canvas
     if (auto canvasRec = RSCaptureRecorder::GetInstance().TryComponentScreenshotCapture(
         static_cast<float>(canvas.GetWidth()), static_cast<float>(canvas.GetHeight()))) {
         canvas.AddCanvas(canvasRec);
     }
+#endif
     Drawing::Matrix relativeMatrix = Drawing::Matrix();
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
@@ -291,8 +293,10 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         captureConfig_.uiCaptureInRangeParam.endNodeId));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
+#ifdef RS_PROFILER_ENABLED
     // finish capturing if started
     RSCaptureRecorder::GetInstance().EndComponentScreenshotCapture();
+#endif
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);

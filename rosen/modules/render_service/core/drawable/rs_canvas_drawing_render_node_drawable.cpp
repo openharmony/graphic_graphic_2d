@@ -181,7 +181,7 @@ void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
     DrawContent(*canvas_, rect);
-    if (!renderParams_) {
+    if (!renderParams_ || !RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         return;
     }
     SetNeedDraw(false);

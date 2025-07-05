@@ -42,7 +42,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmScreenInfoTest, GetScreenType, Function | SmallTest | Level1)
+HWTEST_F(HgmScreenInfoTest, GetScreenType, Function | SmallTest | Level0)
 {
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     ScreenId id = 0;
@@ -55,7 +55,7 @@ HWTEST_F(HgmScreenInfoTest, GetScreenType, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmScreenInfoTest, IsLtpoType001, Function | SmallTest | Level1)
+HWTEST_F(HgmScreenInfoTest, IsLtpoType001, Function | SmallTest | Level0)
 {
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     HgmScreenType screenType = HgmScreenType::LTPO;
@@ -69,7 +69,7 @@ HWTEST_F(HgmScreenInfoTest, IsLtpoType001, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmScreenInfoTest, IsLtpoType002, Function | SmallTest | Level1)
+HWTEST_F(HgmScreenInfoTest, IsLtpoType002, Function | SmallTest | Level0)
 {
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     HgmScreenType screenType = HgmScreenType::LTPS;
@@ -83,7 +83,7 @@ HWTEST_F(HgmScreenInfoTest, IsLtpoType002, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmScreenInfoTest, Init, Function | SmallTest | Level1)
+HWTEST_F(HgmScreenInfoTest, Init, Function | SmallTest | Level0)
 {
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     ASSERT_NO_FATAL_FAILURE({hgmScreenInfo.Init();});
@@ -95,7 +95,7 @@ HWTEST_F(HgmScreenInfoTest, Init, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmScreenInfoTest, GetPanelInfo, Function | SmallTest | Level1)
+HWTEST_F(HgmScreenInfoTest, GetPanelInfo, Function | SmallTest | Level0)
 {
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     std::string panelInfo;
@@ -108,7 +108,7 @@ HWTEST_F(HgmScreenInfoTest, GetPanelInfo, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmScreenInfoTest, InitPanelTypeMap, Function | SmallTest | Level1)
+HWTEST_F(HgmScreenInfoTest, InitPanelTypeMap, Function | SmallTest | Level0)
 {
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     std::string panelInfo;

@@ -42,9 +42,9 @@
 #include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
 namespace OHOS::Rosen {
@@ -356,7 +356,7 @@ uint64_t RSProfiler::TimePauseGet()
     return g_pauseAfterTime;
 }
 
-std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(const RSContext& context)
+std::shared_ptr<RSScreenRenderNode> RSProfiler::GetScreenNode(const RSContext& context)
 {
     const std::shared_ptr<RSBaseRenderNode>& root = context.GetGlobalRootRenderNode();
     // without these checks device might get stuck on startup
@@ -364,12 +364,12 @@ std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(const RSContext&
         return nullptr;
     }
 
-    return RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(root->GetSortedChildren()->front());
+    return RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(root->GetSortedChildren()->front());
 }
 
 Vector4f RSProfiler::GetScreenRect(const RSContext& context)
 {
-    std::shared_ptr<RSDisplayRenderNode> node = GetDisplayNode(context);
+    std::shared_ptr<RSScreenRenderNode> node = GetScreenNode(context);
     if (!node) {
         return {};
     }
@@ -410,7 +410,7 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
         [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
     EraseIf(
-        map.displayNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
+        map.screenNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
     if (auto fallbackNode = map.GetAnimationFallbackNode()) {
         fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
@@ -863,7 +863,9 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
 
     if (nodeType == RSRenderNodeType::RS_NODE) {
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
-    } else if (nodeType == RSRenderNodeType::DISPLAY_NODE) {
+    } else if (nodeType == RSRenderNodeType::SCREEN_NODE) {
+        RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
+    } else if (nodeType == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::SURFACE_NODE) {
         std::string errReason = CreateRenderSurfaceNode(context, nodeId, isTextureExportNode, data);
@@ -1473,9 +1475,9 @@ bool RSProfiler::ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr c
         return false;
     }
 
-    if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE &&
+    if (parent->GetType() == RSRenderNodeType::SCREEN_NODE &&
         ! (child->GetId() & Utils::ComposeNodeId(Utils::GetMockPid(0), 0))) {
-        // BLOCK LOCK-SCREEN ATTACH TO DISPLAY
+        // BLOCK LOCK-SCREEN ATTACH TO SCREEN
         g_childOfDisplayNodesPostponed.clear();
         g_childOfDisplayNodesPostponed.emplace_back(child);
         return true;

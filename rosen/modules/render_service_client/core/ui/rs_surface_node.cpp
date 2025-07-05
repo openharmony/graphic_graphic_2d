@@ -494,7 +494,9 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
     }
 
     SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode, id));
-    RSNodeMap::MutableInstance().RegisterNode(surfaceNode); // Planning
+    if (!surfaceNode->isMultiInstanceOpen_) {
+        RSNodeMap::MutableInstance().RegisterNode(surfaceNode);
+    }
 
     // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
     surfaceNode->skipDestroyCommandInDestructor_ = true;
@@ -989,13 +991,11 @@ void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
         GetId(), screenId);
 }
 
-void RSSurfaceNode::SetRegionToBeMagnified(const Vector4f& regionToBeMagnified)
+void RSSurfaceNode::SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified)
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetRegionToBeMagnified>(GetId(), regionToBeMagnified);
     AddCommand(command, true);
-    RS_LOGI_LIMIT("RSSurfaceNode::SetRegionToBeMagnified, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
-        regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
 }
 
 bool RSSurfaceNode::IsSelfDrawingNode() const

@@ -55,7 +55,6 @@ HWTEST_F(RSForegroundFilterModifierNGTypeTest, RSForegroundFilterModifierTest, T
     modifier->SetSpherize(2.5f);
     EXPECT_FLOAT_EQ(modifier->GetSpherize(), 2.5f);
 
-
     modifier->SetForegroundEffectRadius(3.5f);
     EXPECT_FLOAT_EQ(modifier->GetForegroundEffectRadius(), 3.5f);
 

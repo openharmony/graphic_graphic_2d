@@ -175,10 +175,10 @@ void RSCanvasNode::FinishRecording()
     }
 
 #if defined(MODIFIER_NG)
-    uint16_t modifierType = static_cast<uint16_t>(
+    auto modifierType = static_cast<uint16_t>(
         drawContentLast_ ? ModifierNG::RSModifierType::FOREGROUND_STYLE : ModifierNG::RSModifierType::CONTENT_STYLE);
 #else
-    uint16_t modifierType =
+    auto modifierType =
         static_cast<uint16_t>(drawContentLast_ ? RSModifierType::FOREGROUND_STYLE : RSModifierType::CONTENT_STYLE);
 #endif
     std::unique_ptr<RSCommand> command =
@@ -208,9 +208,9 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         recording->GenerateCache();
     }
 #if defined(MODIFIER_NG)
-    uint16_t modifierType = static_cast<uint16_t>(ModifierTypeConvertor::ToModifierNGType(type));
+    auto modifierType = static_cast<uint16_t>(ModifierTypeConvertor::ToModifierNGType(type));
 #else
-    uint16_t modifierType = static_cast<uint16_t>(type);
+    auto modifierType = static_cast<uint16_t>(type);
 #endif
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, modifierType);
@@ -332,17 +332,11 @@ void RSCanvasNode::CheckThread()
 // [Attention] Only used in PC window resize scene now
 void RSCanvasNode::SetLinkedRootNodeId(NodeId rootNodeId)
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSCanvasNode::SetLinkedRootNodeId transactionProxy is nullptr");
-        return;
-    }
-
     ROSEN_LOGI("RSCanvasNode::SetLinkedRootNodeId nodeId: %{public}" PRIu64 ", rootNode: %{public}" PRIu64 "",
          GetId(), rootNodeId);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeSetLinkedRootNodeId>(GetId(), rootNodeId);
-    transactionProxy->AddCommand(command, true);
+    AddCommand(command, true);
     linkedRootNodeId_ = rootNodeId;
 }
 

@@ -138,9 +138,11 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_visibility_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_color_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_image_render_modifier.cpp",
+    "src/modifier_ng/background/rs_background_ng_shader_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_shader_render_modifier.cpp",
     "src/modifier_ng/foreground/rs_env_foreground_color_render_modifier.cpp",
     "src/modifier_ng/foreground/rs_foreground_color_render_modifier.cpp",
+    "src/modifier_ng/foreground/rs_foreground_shader_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_bounds_clip_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_bounds_render_modifier.cpp",
     "src/modifier_ng/geometry/rs_frame_clip_render_modifier.cpp",
@@ -234,10 +236,10 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_canvas_render_node.cpp",
     "src/pipeline/rs_context.cpp",
     "src/pipeline/rs_dirty_region_manager.cpp",
-    "src/pipeline/rs_display_render_node.cpp",
     "src/pipeline/rs_draw_cmd.cpp",
     "src/pipeline/rs_draw_cmd_list.cpp",
     "src/pipeline/rs_effect_render_node.cpp",
+    "src/pipeline/rs_logical_display_render_node.cpp",
     "src/pipeline/rs_occlusion_config.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
@@ -251,6 +253,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
+    "src/pipeline/rs_screen_render_node.cpp",
     "src/pipeline/rs_surface_buffer_callback_manager.cpp",
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node.cpp",
@@ -265,7 +268,13 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_trace.cpp",
 
     #effect
+    "src/effect/rs_render_effect_template.cpp",
     "src/effect/rs_render_filter_base.cpp",
+    "src/effect/rs_render_mask_base.cpp",
+    "src/effect/rs_render_shader_base.cpp",
+
+    #hetero_hdr
+    "src/hetero_hdr/rs_hdr_pattern_manager.cpp",
 
     #hpae
     "src/hpae_base/rs_hpae_base_data.cpp",
@@ -384,6 +393,7 @@ ohos_source_set("render_service_base_src") {
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
+    "src/feature/opinc/rs_opinc_manager.cpp",
     "src/feature/single_frame_composer/rs_single_frame_composer.cpp",
     "src/feature/capture/rs_capture_pixelmap_manager.cpp",
 
@@ -413,11 +423,12 @@ ohos_source_set("render_service_base_src") {
 
       #params
       "src/params/rs_canvas_drawing_render_params.cpp",
-      "src/params/rs_display_render_params.cpp",
       "src/params/rs_effect_render_params.cpp",
+      "src/params/rs_logical_display_render_params.cpp",
       "src/params/rs_rcd_render_params.cpp",
       "src/params/rs_render_params.cpp",
       "src/params/rs_render_thread_params.cpp",
+      "src/params/rs_screen_render_params.cpp",
       "src/params/rs_surface_render_params.cpp",
     ]
   }
@@ -816,6 +827,7 @@ ohos_shared_library("librender_service_base") {
   deps += [
     "$rosen_root/modules/platform:platform",
     "$rosen_root/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/utils/color_manager:color_manager_source",
   ]
 
   # for header file

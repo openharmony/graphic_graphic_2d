@@ -15,6 +15,8 @@
 
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
+#include "draw/canvas.h"
+#include "draw/surface.h"
 
 #include "impl_factory.h"
 
@@ -33,7 +35,19 @@ std::shared_ptr<ShaderEffect> RuntimeShaderBuilder::MakeShader(const Matrix* loc
 std::shared_ptr<Image> RuntimeShaderBuilder::MakeImage(GPUContext* gpuContext,
     const Matrix* localMatrix, ImageInfo resultInfo, bool mipmapped)
 {
-    return impl_->MakeImage(gpuContext, localMatrix, resultInfo, mipmapped);
+    return impl_->MakeImage(gpuContext, localMatrix, resultInfo, mipmapped, 1.0f);
+}
+
+std::shared_ptr<Image> RuntimeShaderBuilder::MakeImage(Canvas& canvas,
+    const Matrix* localMatrix, ImageInfo resultInfo, bool mipmapped)
+{
+    float headroom = 1.0f;
+    Surface* surface = canvas.GetSurface();
+    if (surface != nullptr) {
+        headroom = surface->GetHeadroom();
+    }
+    return impl_->MakeImage(canvas.GetGPUContext().get(), localMatrix, resultInfo,
+        mipmapped, headroom);
 }
 
 void RuntimeShaderBuilder::SetChild(const std::string& name, std::shared_ptr<ShaderEffect> shader)

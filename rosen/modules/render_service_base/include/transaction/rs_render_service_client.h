@@ -352,6 +352,10 @@ public:
 
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -484,7 +488,7 @@ public:
 
     bool GetHighContrastTextState();
 
-    bool RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback);
+    bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 
@@ -499,10 +503,10 @@ public:
     bool ProfilerIsSecureScreen();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<Media::PixelMap> pixelmap);
+        std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
-    void TriggerTransactionDataCallbackAndErase(int32_t pid, uint64_t timeStamp);
+    void TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp);
     struct RectHash {
         std::size_t operator()(const Drawing::Rect& rect) const {
             std::size_t h1 = std::hash<Drawing::scalar>()(rect.left_);
@@ -547,7 +551,7 @@ private:
     mutable std::shared_mutex surfaceBufferCallbackMutex_;
 
     sptr<RSITransactionDataCallback> transactionDataCbDirector_;
-    std::map<std::pair<int32_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
+    std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
     std::mutex transactionDataCallbackMutex_;
 
     friend class SurfaceCaptureCallbackDirector;

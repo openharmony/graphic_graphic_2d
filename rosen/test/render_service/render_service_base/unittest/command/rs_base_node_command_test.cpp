@@ -16,7 +16,8 @@
 #include "gtest/gtest.h"
 #include "include/command/rs_base_node_command.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -314,8 +315,8 @@ HWTEST_F(RSBaseNodeCommandText, AddCrossScreenChild, TestSize.Level1)
     context_ = std::make_shared<RSContext>();
     auto& nodeMap = context_->GetMutableNodeMap();
     struct RSDisplayNodeConfig config;
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    bool res = nodeMap.RegisterDisplayRenderNode(displayRenderNode);
+    auto logicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    bool res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(logicalDisplayRenderNode));
     ASSERT_EQ(res, true);
     auto surfaceChildRenderNode = std::make_shared<RSSurfaceRenderNode>(childId);
     res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(surfaceChildRenderNode));

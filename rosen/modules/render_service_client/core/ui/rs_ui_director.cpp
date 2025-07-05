@@ -64,6 +64,9 @@ std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
+#ifdef RS_ENABLE_VK
+static std::once_flag g_initHybridCallback;
+#endif
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -192,7 +195,9 @@ void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commit
     if (rsUIContext_) {
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr) {
-            transaction->SetCommitTransactionCallback(commitTransactionCallback);
+            std::call_once(g_initHybridCallback, [commitTransactionCallback]() {
+                    RSTransactionHandler::SetCommitTransactionCallback(commitTransactionCallback);
+            });
         }
     } else {
         auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -537,21 +542,41 @@ void RSUIDirector::SendMessages()
 
 void RSUIDirector::SendMessages(std::function<void()> callback)
 {
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands With Callback");
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        if (callback != nullptr) {
-            static const int32_t pid = static_cast<int32_t>(getpid());
-            RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
-                PRIu64 " pid: %{public}d", timeStamp_, pid);
-            RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
+    if (rsUIContext_) {
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "multi-intance SendCommands With Callback");
+        RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
+        auto transaction = rsUIContext_->GetRSTransaction();
+        if (transaction != nullptr && !transaction->IsEmpty()) {
+            if (callback != nullptr) {
+                RS_LOGD("RSUIDirector:: multi-intance SendMessages with callback, timeStamp: %{public}"
+                    PRIu64 " token: %{public}" PRIu64, timeStamp_, rsUIContext_->GetToken());
+                RSInterfaces::GetInstance().RegisterTransactionDataCallback(rsUIContext_->GetToken(),
+                    timeStamp_, callback);
+            }
+            transaction->FlushImplicitTransaction(timeStamp_, abilityName_);
+            index_ = transaction->GetTransactionDataIndex();
+        } else {
+            RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector:: multi-intance SendMessages failed, \
+                transaction is nullptr");
         }
-        transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
-        index_ = transactionProxy->GetTransactionDataIndex();
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     } else {
-        RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands With Callback");
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr && !transactionProxy->IsEmpty()) {
+            if (callback != nullptr) {
+                static const uint64_t pid = static_cast<uint64_t>(getpid());
+                RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
+                    PRIu64 " pid: %{public}" PRIu64, timeStamp_, pid);
+                RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
+            }
+            transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+            index_ = transactionProxy->GetTransactionDataIndex();
+        } else {
+            RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
+        }
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 uint32_t RSUIDirector::GetIndex() const

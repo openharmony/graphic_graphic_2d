@@ -243,6 +243,15 @@ bool Image::GetSupportOpaqueOpt() const
     return imageImplPtr->GetSupportOpaqueOpt();
 }
 
+void Image::SetHeadroom(float headroom)
+{
+    imageImplPtr->SetHeadroom(headroom);
+}
+
+float Image::GetHeadroom() const
+{
+    return imageImplPtr->GetHeadroom();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

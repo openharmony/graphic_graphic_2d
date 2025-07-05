@@ -16,13 +16,13 @@
 #include "modifier_ng/rs_modifier_ng.h"
 
 #include "sandbox_utils.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
 
 #include "command/rs_node_command.h"
 #include "modifier/rs_property.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_node.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 
 namespace OHOS::Rosen::ModifierNG {
 constexpr int PID_SHIFT = 32;
@@ -240,7 +240,8 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
         // not attached yet
         return;
     }
-    if (node->motionPathOption_ != nullptr && property->IsPathAnimatable()) {
+    auto shouldSetOption = node->motionPathOption_ != nullptr && property->IsPathAnimatable();
+    if (shouldSetOption) {
         property->SetMotionPathOption(node->motionPathOption_);
     }
     property->Attach(*node, weak_from_this());
@@ -263,6 +264,7 @@ void RSModifier::DetachProperty(RSPropertyType type)
     }
     auto property = it->second;
     properties_.erase(it);
+    // actually do the detach
     property->Detach();
     auto node = node_.lock();
     if (!node) {
@@ -293,7 +295,8 @@ void RSModifier::OnAttach(RSNode& node)
     }
     auto weakPtr = weak_from_this();
     for (auto& [_, property] : properties_) {
-        if (node.motionPathOption_ != nullptr && property->IsPathAnimatable()) {
+        auto shouldSetOption = node.motionPathOption_ != nullptr && property->IsPathAnimatable();
+        if (shouldSetOption) {
             property->SetMotionPathOption(node.motionPathOption_);
         }
         property->Attach(node, weakPtr);

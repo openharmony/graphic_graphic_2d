@@ -127,6 +127,11 @@ public:
     virtual void Purge() {}
 
     size_t GetOpSize();
+
+    virtual Rect GetOpItemCmdlistDrawRegion()
+    {
+        return Rect { 0, 0, 0, 0 };
+    }
 };
 
 class DRAWING_API UnmarshallingHelper {
@@ -327,6 +332,7 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     virtual void DumpItems(std::string& out) const override;
+    Rect GetOpItemCmdlistDrawRegion() override;
 private:
     Rect rect_;
 };
@@ -498,6 +504,7 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void DumpItems(std::string& out) const override;
+    Rect GetOpItemCmdlistDrawRegion() override;
 private:
     std::shared_ptr<Path> path_;
 };
@@ -917,6 +924,7 @@ public:
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
     uint64_t GetTypefaceId();
+    Rect GetOpItemCmdlistDrawRegion() override;
 protected:
     void DrawHighContrast(Canvas* canvas, bool offSreen = false) const;
     void DrawHighContrastEnabled(Canvas* canvas) const;

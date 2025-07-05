@@ -33,10 +33,10 @@ void RSUniRenderListener::OnBufferAvailable()
 {
     auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("OnBufferAvailable surfaceHandler is nullptr");
+        RS_LOGE("RSUniRenderListener::OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
-    RS_LOGD("OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
+    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
     surfaceHandler->IncreaseAvailableBuffer();
 }
 }

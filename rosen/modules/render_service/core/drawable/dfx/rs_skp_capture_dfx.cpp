@@ -35,9 +35,9 @@ void RSSkpCaptureDfx::TryCapture() const
     }
     if (!RSSystemProperties::GetRecordingEnabled()) {
 #ifdef RS_PROFILER_ENABLED
-        const auto width = static_cast<float>(curCanvas_->GetWidth());
-        const auto height = static_cast<float>(curCanvas_->GetHeight());
-        if (auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(width, height)) {
+        if (auto canvas =
+            RSCaptureRecorder::GetInstance().TryInstantCapture(static_cast<float>(curCanvas_->GetWidth()),
+                static_cast<float>(curCanvas_->GetHeight()), SkpCaptureType::DEFAULT)) {
             curCanvas_->AddCanvas(canvas);
         }
 #endif
@@ -57,7 +57,7 @@ void RSSkpCaptureDfx::EndCapture() const
     }
 #endif
 #ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::GetInstance().EndInstantCapture();
+    RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::DEFAULT);
 #endif
     return;
 }

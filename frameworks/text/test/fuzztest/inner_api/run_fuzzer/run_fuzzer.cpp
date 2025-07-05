@@ -38,6 +38,8 @@ void RunFuzzTest(const uint8_t* data, size_t size)
     if (runs.empty()) {
         return;
     }
+    Drawing::Canvas canvas;
+    float x;
     const auto& run = runs[0];
     run->GetGlyphCount();
     run->GetGlyphs();
@@ -45,8 +47,13 @@ void RunFuzzTest(const uint8_t* data, size_t size)
     run->GetOffsets();
     run->GetImageBounds();
     run->GetFont();
+    run->GetGlyphs(fdp.ConsumeIntegral<int64_t>(), fdp.ConsumeIntegral<int64_t>());
+    run->GetPositions(fdp.ConsumeIntegral<int64_t>(), fdp.ConsumeIntegral<int64_t>());
+    run->GetAdvances(fdp.ConsumeIntegral<int64_t>(), fdp.ConsumeIntegral<int64_t>());
     run->GetStringIndices(fdp.ConsumeIntegral<int64_t>(), fdp.ConsumeIntegral<int64_t>());
-    run->Paint(nullptr, fdp.ConsumeFloatingPoint<double>(), fdp.ConsumeFloatingPoint<double>());
+    run->Paint(&canvas, fdp.ConsumeFloatingPoint<double>(), fdp.ConsumeFloatingPoint<double>());
+    run->Paint(nullptr, 0, 0);
+    run->GetTypographicBounds(&x, &x, &x);
     run->GetTypographicBounds(nullptr, nullptr, nullptr);
 }
 } // namespace Rosen

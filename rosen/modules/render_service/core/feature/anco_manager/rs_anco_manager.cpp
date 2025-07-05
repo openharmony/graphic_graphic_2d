@@ -75,7 +75,7 @@ bool RSAncoManager::IsAncoOptimize(ScreenRotation rotation)
     return true;
 }
 
-bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+bool RSAncoManager::AncoOptimizeScreenNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
     std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes,
     ScreenRotation rotation, uint32_t width, uint32_t height)
 {
@@ -93,7 +93,7 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
         isHebc = false;
     }
 
-    // process displayNode rect
+    // process ScreenNode rect
     uint32_t minArea = width * height / 2;
     if (minArea == 0) {
         return false;

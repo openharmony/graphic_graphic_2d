@@ -109,14 +109,14 @@ void TextAnimationConfig::OnDrawTextEffect(RSCanvas* canvas,
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
     brush.SetColor(color_.CastToColorQuad());
+    canvas->AttachBrush(brush);
     for (const auto& effectElement : effectElements) {
         ClearTextAnimation(effectElement.uniqueId);
         auto path = effectElement.path;
         path.Offset(effectElement.offset.GetX(), effectElement.offset.GetY());
-        canvas->AttachBrush(brush);
         canvas->DrawPath(path);
-        canvas->DetachBrush();
     }
+    canvas->DetachBrush();
 }
 
 void TextAnimationConfig::ClearTextAnimation(uint64_t uniqueId)

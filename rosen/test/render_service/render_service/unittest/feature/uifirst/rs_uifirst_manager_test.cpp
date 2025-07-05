@@ -62,7 +62,7 @@ void RSUifirstManagerTest::TearDownTestCase()
     renderNodeMap.renderNodeMap_.clear();
     renderNodeMap.surfaceNodeMap_.clear();
     renderNodeMap.residentSurfaceNodeMap_.clear();
-    renderNodeMap.displayNodeMap_.clear();
+    renderNodeMap.screenNodeMap_.clear();
     renderNodeMap.canvasDrawingNodeMap_.clear();
     renderNodeMap.uiExtensionSurfaceNodes_.clear();
 
@@ -244,8 +244,8 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
 {
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, context->weak_from_this());
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
     ASSERT_NE(surfaceNode, nullptr);
@@ -473,10 +473,10 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
     ASSERT_NE(surfaceDrawable, nullptr);
     surfaceDrawable->GetRsSubThreadCache().SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     NodeId id = 10;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, context->weak_from_this());
     auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
-    surfaceRenderParams->SetAncestorDisplayNode(displayNode);
+    surfaceRenderParams->SetAncestorScreenNode(displayNode);
     auto colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
 }
@@ -786,15 +786,15 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     uifirstManager_.isRecentTaskScene_ = false;
 
     // 3. cardNode
-    RSDisplayNodeConfig displayConfig;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(10, 0, rsContext->weak_from_this());
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = ++RSTestUtil::id;
     surfaceConfig.name = "ArkTSCardNode";
     auto surfaceNode3 = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode3->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
     surfaceNode3->firstLevelNodeId_ = surfaceNode3->GetId();
-    surfaceNode3->SetAncestorDisplayNode(displayNode);
+    surfaceNode3->SetAncestorScreenNode(displayNode);
     uifirstManager_.entryViewNodeId_ = 1;
     uifirstManager_.negativeScreenNodeId_ = 1;
     surfaceNode3->instanceRootNodeId_ = 1;
@@ -802,6 +802,43 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     surfaceNode3->SetSubThreadAssignable(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode3, false);
     ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::ARKTS_CARD);
+}
+
+/**
+ * @tc.name: UpdateUifirstNodesPhone003
+ * @tc.desc: Test enable uifirst and use starting window on phone
+ * @tc.type: FUNC
+ * @tc.require: issueICJIR8
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone003, TestSize.Level1)
+{
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashWindow->firstLevelNodeId_ = leashWindow->GetId();
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+
+    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    // no starting window
+    uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+
+    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    // no starting window
+    uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+
+    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto startingWindow = std::make_shared<RSCanvasRenderNode>(1);
+    startingWindow->stagingRenderParams_ = std::make_unique<RSRenderParams>(1);
+    std::vector<std::shared_ptr<RSRenderNode>> children;
+    children.push_back(appWindow);
+    children.push_back(startingWindow);
+    leashWindow->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+    // use starting window
+    uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
 }
 
 /**
@@ -899,10 +936,10 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     auto visitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(visitor, nullptr);
     visitor->ancestorNodeHasAnimation_ = true;
-    visitor->curDisplayDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
-    NodeId displayNodeId = 2;
-    RSDisplayNodeConfig config;
-    visitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+    visitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    NodeId screenNodeId = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    visitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
 
     // case01: shouldpaint of parent node is false
     rsCanvasRenderNode->shouldPaint_ = false;
@@ -2503,8 +2540,8 @@ HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
 {
     RSSurfaceRenderNode node(100);
     RSDisplayNodeConfig displayConfig;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig);
-    node.SetAncestorDisplayNode(displayNode);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(10, displayConfig);
+    node.SetAncestorScreenNode(displayNode);
 
     // leash window doesn't
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
@@ -2610,5 +2647,159 @@ HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
     uifirstManager_.subthreadProcessSkippedNode_.clear();
+}
+
+/**
+ * @tc.name: HasStartingWindowTest
+ * @tc.desc: Test HasStartingWindow
+ * @tc.type: FUNC
+ * @tc.require: issueICJIR8
+ */
+HWTEST_F(RSUifirstManagerTest, HasStartingWindowTest, TestSize.Level1)
+{
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    ASSERT_FALSE(uifirstManager_.HasStartingWindow(*leashWindow));
+
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto startingWindow = std::make_shared<RSCanvasRenderNode>(1);
+    startingWindow->stagingRenderParams_ = std::make_unique<RSRenderParams>(1);
+    std::vector<std::shared_ptr<RSRenderNode>> children;
+    children.push_back(appWindow);
+    children.push_back(startingWindow);
+    leashWindow->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+    ASSERT_TRUE(uifirstManager_.HasStartingWindow(*leashWindow));
+}
+
+/**
+ * @tc.name: IsNonFocusWindowCacheTest
+ * @tc.desc: Test uifirst not enabled when exceed window threshold
+ * @tc.type: FUNC
+ * @tc.require: issueICJJK9
+ */
+HWTEST_F(RSUifirstManagerTest, IsNonFocusWindowCacheTest, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    uifirstManager_.uifirstWindowsNumThreshold_ = 0;
+    ASSERT_FALSE(RSUifirstManager::Instance().IsNonFocusWindowCache(*surfaceNode, true));
+
+    RSMainThread::Instance()->focusNodeId_ = 0;
+    RSMainThread::Instance()->focusLeashWindowId_ = 0;
+    uifirstManager_.curUifirstWindowNums_ = 1;
+    uifirstManager_.uifirstWindowsNumThreshold_ = 1;
+    ASSERT_FALSE(RSUifirstManager::Instance().IsNonFocusWindowCache(*surfaceNode, true));
+}
+
+/**
+ * @tc.name: IsFocusedNodeTest
+ * @tc.desc: Test if node is focused node
+ * @tc.type: FUNC
+ * @tc.require: issueICJJK9
+ */
+HWTEST_F(RSUifirstManagerTest, IsFocusedNodeTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    mainThread->focusNodeId_ = surfaceNode->GetId();
+    mainThread->focusLeashWindowId_ = 0;
+    ASSERT_TRUE(uifirstManager_.IsFocusedNode(*surfaceNode));
+
+    mainThread->focusNodeId_ = 0;
+    mainThread->focusLeashWindowId_ = surfaceNode->GetId();
+    ASSERT_TRUE(uifirstManager_.IsFocusedNode(*surfaceNode));
+
+    mainThread->focusNodeId_ = 0;
+    mainThread->focusLeashWindowId_ = 0;
+    ASSERT_FALSE(uifirstManager_.IsFocusedNode(*surfaceNode));
+}
+
+/**
+ * @tc.name: IncreaseUifirstWindowCountTest
+ * @tc.desc: Test increase current uifirst window count
+ * @tc.type: FUNC
+ * @tc.require: issueICJJK9
+ */
+HWTEST_F(RSUifirstManagerTest, IncreaseUifirstWindowCountTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    mainThread->focusNodeId_ = surfaceNode->GetId();
+    mainThread->focusLeashWindowId_ = 0;
+    uifirstManager_.curUifirstWindowNums_ = 0;
+    // focus window don't count
+    uifirstManager_.IncreaseUifirstWindowCount(*surfaceNode);
+    ASSERT_EQ(uifirstManager_.curUifirstWindowNums_, 0);
+
+    mainThread->focusNodeId_ = 0;
+    mainThread->focusLeashWindowId_ = 0;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    // ArkTsCard node don't count
+    uifirstManager_.IncreaseUifirstWindowCount(*surfaceNode);
+    ASSERT_EQ(uifirstManager_.curUifirstWindowNums_, 0);
+
+    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    uifirstManager_.IncreaseUifirstWindowCount(*surfaceNode);
+    ASSERT_EQ(uifirstManager_.curUifirstWindowNums_, 1);
+}
+
+/**
+ * @tc.name: DecreaseUifirstWindowCountTest
+ * @tc.desc: Test decrease current uifirst window count
+ * @tc.type: FUNC
+ * @tc.require: issueICJJK9
+ */
+HWTEST_F(RSUifirstManagerTest, DecreaseUifirstWindowCountTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    mainThread->focusNodeId_ = surfaceNode->GetId();
+    mainThread->focusLeashWindowId_ = 0;
+    uifirstManager_.curUifirstWindowNums_ = 1;
+    // focus window don't count
+    uifirstManager_.DecreaseUifirstWindowCount(*surfaceNode);
+    ASSERT_EQ(uifirstManager_.curUifirstWindowNums_, 1);
+
+    mainThread->focusNodeId_ = 0;
+    mainThread->focusLeashWindowId_ = 0;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    // ArkTsCard node don't count
+    uifirstManager_.DecreaseUifirstWindowCount(*surfaceNode);
+    ASSERT_EQ(uifirstManager_.curUifirstWindowNums_, 1);
+
+    uifirstManager_.curUifirstWindowNums_ = 1;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    uifirstManager_.DecreaseUifirstWindowCount(*surfaceNode);
+    ASSERT_EQ(uifirstManager_.curUifirstWindowNums_, 0);
+
+    uifirstManager_.curUifirstWindowNums_ = 0;
+    uifirstManager_.DecreaseUifirstWindowCount(*surfaceNode);
+    ASSERT_EQ(uifirstManager_.curUifirstWindowNums_, 0);
+}
+
+/**
+ * @tc.name: IsExceededWindowsThresholdTest
+ * @tc.desc: Test if exceed window threshold
+ * @tc.type: FUNC
+ * @tc.require: issueICJJK9
+ */
+HWTEST_F(RSUifirstManagerTest, IsExceededWindowsThresholdTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    uifirstManager_.uifirstWindowsNumThreshold_ = 0;
+    ASSERT_FALSE(uifirstManager_.IsExceededWindowsThreshold(*surfaceNode));
+    
+    uifirstManager_.uifirstWindowsNumThreshold_ = 1;
+    mainThread->focusNodeId_ = surfaceNode->GetId();
+    ASSERT_FALSE(uifirstManager_.IsExceededWindowsThreshold(*surfaceNode));
+
+    mainThread->focusNodeId_ = 0;
+    mainThread->focusLeashWindowId_ = 0;
+    uifirstManager_.curUifirstWindowNums_ = 0;
+    ASSERT_FALSE(uifirstManager_.IsExceededWindowsThreshold(*surfaceNode));
+
+    uifirstManager_.curUifirstWindowNums_ = 1;
+    ASSERT_TRUE(uifirstManager_.IsExceededWindowsThreshold(*surfaceNode));
 }
 }

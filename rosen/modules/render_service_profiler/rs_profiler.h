@@ -29,7 +29,7 @@
 #include "common/rs_vector4.h"
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_render_node.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "recording/draw_cmd_list.h"
 
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
@@ -98,7 +98,8 @@
 #define RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets)
 #define RS_PROFILER_EXECUTE_COMMAND(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
-#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) Media::PixelMap::Unmarshalling(parcel, readSafeFdFunc)
+#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) \
+    Media::PixelMap::UnmarshallingWithIsDisplay(parcel, readSafeFdFunc, true)
 #define RS_PROFILER_SKIP_PIXELMAP(parcel) false
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
@@ -143,7 +144,7 @@ class RSRenderNode;
 class RSRenderModifier;
 class RSProperties;
 class RSContext;
-class RSDisplayRenderNode;
+class RSScreenRenderNode;
 class RSRenderNodeMap;
 class RSAnimationManager;
 class RSRenderAnimation;
@@ -319,7 +320,7 @@ private:
 
     RSB_EXPORT static bool IsSecureScreen();
 
-    RSB_EXPORT static std::shared_ptr<RSDisplayRenderNode> GetDisplayNode(const RSContext& context);
+    RSB_EXPORT static std::shared_ptr<RSScreenRenderNode> GetScreenNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 
     // RSRenderNodeMap
@@ -484,6 +485,9 @@ private:
     static void SaveSkp(const ArgList& args);
     static void SaveOffscreenSkp(const ArgList& args);
     static void SaveComponentSkp(const ArgList& args);
+    static void SaveSkpImgCache(const ArgList& args);
+    static void SaveSkpOnCapture(const ArgList& args);
+    static void SaveSkpExtended(const ArgList& args);
     static void SaveRdc(const ArgList& args);
     static void DrawingCanvasRedrawEnable(const ArgList& args);
     static void RenderNodeKeepDrawCmd(const ArgList& args);

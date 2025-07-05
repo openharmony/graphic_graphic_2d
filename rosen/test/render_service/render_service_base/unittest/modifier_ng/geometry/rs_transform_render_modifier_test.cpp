@@ -23,6 +23,7 @@
 
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "property/rs_properties.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -66,5 +67,28 @@ HWTEST_F(RSTransformRenderModifierNGTypeTest, RSTransformRenderModifierTest, Tes
     EXPECT_EQ(properties.GetScaleZ(), 1.f);
     EXPECT_EQ(properties.GetSkew(), Vector3f());
     EXPECT_EQ(properties.GetPersp(), Vector4f(0.f, 0.f, 0.f, 1.f));
+}
+
+/**
+ * @tc.name: OnSetDirtyTest
+ * @tc.desc: Test the function OnSetDirty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransformRenderModifierNGTypeTest, OnSetDirtyTest, TestSize.Level1)
+{
+    uint64_t id = 0;
+    float value = 0.0f;
+    auto property = std::make_shared<RSRenderProperty<float>>(value, id);
+    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
+        ModifierNG::RSModifierType::TRANSFORM, property, id, ModifierNG::RSPropertyType::POSITION_Z);
+    modifier->OnSetDirty();
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::POSITION_Z));
+
+    NodeId nodeId = 1;
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
+    modifier->target_ = weakPtr;
+    modifier->OnSetDirty();
+    EXPECT_NE(modifier->target_.lock(), nullptr);
 }
 } // namespace OHOS::Rosen

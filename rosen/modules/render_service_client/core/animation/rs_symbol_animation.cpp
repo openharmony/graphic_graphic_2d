@@ -956,16 +956,14 @@ bool RSSymbolAnimation::SetClipAnimation(const std::shared_ptr<RSNode>& rsNode,
     GroupDrawing(canvasNodeLine, symbolNode, offsets, false);
     // set animation to clip layer
     if (createNewNode) {
-        std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
-        std::shared_ptr<RSAnimatableProperty<Vector2f>> translateRatioProperty = nullptr;
-        TranslateAnimationBase(canvasNode, translateRatioProperty, parameters[0], groupAnimation);
-        // 1: the second section of parameters
-        TranslateAnimationBase(canvasNode, translateRatioProperty, parameters[1], groupAnimation);
-
-        std::vector<std::shared_ptr<RSAnimation>> groupAnimation1 = {};
-        std::shared_ptr<RSAnimatableProperty<Vector2f>> clipProperty = nullptr;
-        // 2: the third section of parameters
-        TranslateAnimationBase(canvasNodeLine, clipProperty, parameters[2], groupAnimation1);
+        std::vector<Drawing::DrawingPiecewiseParameter> firstParameters;
+        uint32_t n = parameters.size() - 1; // the max index of parameters
+        for (uint32_t i = 0; i < n; i++) {
+            firstParameters.push_back(parameters[i]);
+        }
+        SpliceAnimation(canvasNode, firstParameters);
+        std::vector<Drawing::DrawingPiecewiseParameter> secondParameters = { parameters[n] };
+        SpliceAnimation(canvasNodeLine, secondParameters);
     }
     return true;
 }

@@ -498,7 +498,7 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, DumpAnimationInfo001, TestSiz
     animation.property_ = property;
     std::string out;
     animation.DumpAnimationInfo(out);
-    EXPECT_EQ(out, "Type:RSRenderInterpolatingSpringAnimation, ModifierType: 0, StartValue: , EndValue: ");
+    EXPECT_EQ(out, "Type:RSRenderInterpolatingSpringAnimation, ModifierType: INVALID, StartValue: , EndValue: ");
 }
 
 /**

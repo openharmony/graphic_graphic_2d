@@ -126,10 +126,10 @@ public:
     static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
     static void SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion);
     static void SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable);
+    static void SetRegionToBeMagnified(RSContext& context, NodeId nodeId, const Vector4<int>& regionToBeMagnified);
     static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
-    static void SetRegionToBeMagnified(RSContext& context, NodeId nodeId, Vector4f regionToBeMagnified);
     static void SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled);
     static void SetAncoSrcCrop(RSContext& context, NodeId nodeId, const Rect& srcCrop);
 };
@@ -242,6 +242,9 @@ ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW,
         SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetRegionToBeMagnified,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED,
+        SurfaceNodeCommandHelper::SetRegionToBeMagnified, NodeId, Vector4<int>))
 ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED,
         SurfaceNodeCommandHelper::SetWatermarkEnabled, NodeId, std::string, bool))
@@ -263,9 +266,6 @@ ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
 ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
         SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
-ADD_COMMAND(RSSurfaceNodeSetRegionToBeMagnified,
-    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED,
-        SurfaceNodeCommandHelper::SetRegionToBeMagnified, NodeId, Vector4f))
 ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,
         SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled, NodeId, bool))

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,6 +57,24 @@ extern "C" {
  */
 OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateBlur(float sigmaX, float sigmaY, OH_Drawing_TileMode,
     OH_Drawing_ImageFilter*);
+
+/**
+ * @brief Creates an <b>OH_Drawing_ImageFilter</b> object that blurs its input by the separate x and y sigmas.
+ * Supports an optional crop rectangle to restrict the blur effect to a specific region of the input.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param sigmaX Indicates the Gaussian sigma value for blurring along the x axis.
+ * @param sigmaY Indicates the Gaussian sigma value for blurring along the y axis.
+ * @param tileMode Indicates the tile mode applied at edges.
+ * @param input Indicates the input filter that is blurred, uses source bitmap if this is null.
+ * @param rect Indicates optional rectangle that crops the input and output.
+ *             If rect is null, the blur effect applies to the entire input image.
+ * @return Returns the pointer to the <b>OH_Drawing_ImageFilter</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateBlurWithCrop(float sigmaX, float sigmaY,
+    OH_Drawing_TileMode tileMode, OH_Drawing_ImageFilter* input, const OH_Drawing_Rect* rect);
 
 /**
  * @brief Creates an <b>OH_Drawing_ImageFilter</b> object that applies the color filter to the input.

@@ -259,6 +259,10 @@ public:
 
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
 
+    void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY) override;
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -373,7 +377,7 @@ public:
 
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     ErrCode NotifyScreenSwitched() override;

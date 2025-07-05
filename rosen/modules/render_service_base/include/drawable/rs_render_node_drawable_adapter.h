@@ -38,7 +38,7 @@
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSRenderParams;
-class RSDisplayRenderNode;
+class RSScreenRenderNode;
 class RSSurfaceRenderNode;
 class RSSurfaceHandler;
 class RSContext;
@@ -97,7 +97,7 @@ enum class DrawSkipType : uint8_t {
     WIRED_SCREEN_PROJECTION = 18,
     EXPAND_PROCESSOR_NULL = 19,
     MIRROR_DRAWABLE_SKIP = 20,
-    DISPLAY_NODE_SKIP = 21,
+    SCREEN_NODE_SKIP = 21,
     REQUEST_FRAME_FAIL = 22,
     SURFACE_NULL = 23,
     GENERATE_EFFECT_DATA_ON_DEMAND_FAIL = 24,
@@ -109,6 +109,9 @@ enum class DrawSkipType : uint8_t {
     RENDER_SKIP_IF_SCREEN_SWITCHING = 30,
     UI_FIRST_CACHE_FAIL = 31,
     SURFACE_SKIP_IN_MIRROR = 32,
+    NO_DISPLAY_NODE = 33,
+    HARDWARE_HDR_CACHE_SKIP = 34,
+    SCREEN_STATE_INVALID = 35,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -359,7 +362,7 @@ private:
     std::atomic<bool> isOnDraw_ = false;
 
     friend class OHOS::Rosen::RSRenderNode;
-    friend class OHOS::Rosen::RSDisplayRenderNode;
+    friend class OHOS::Rosen::RSScreenRenderNode;
     friend class OHOS::Rosen::RSSurfaceRenderNode;
     friend class RSRenderNodeShadowDrawable;
     friend class RSUseEffectDrawable;

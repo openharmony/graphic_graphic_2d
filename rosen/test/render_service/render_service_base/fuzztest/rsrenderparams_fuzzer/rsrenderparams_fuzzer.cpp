@@ -143,7 +143,6 @@ bool DoSetShadowRect(const uint8_t* data, size_t size)
     rsRenderParams.SetParentSurfaceMatrix(matrix);
     rsRenderParams.GetParentSurfaceMatrix();
     rsRenderParams.GetLayerInfo();
-    rsRenderParams.GetScreenInfo();
     rsRenderParams.GetTotalMatrix();
     rsRenderParams.GetMirrorSourceDrawable();
     return true;

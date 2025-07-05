@@ -304,6 +304,8 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest002, TestSize.Level1)
     std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
     EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
+    foregroundFilterRestoreDrawable->needSync_ = true;
+    foregroundFilterRestoreDrawable->OnSync();
     std::shared_ptr<RSFilter> stagingForegroundFilter = std::make_shared<RSFilter>();
     EXPECT_NE(stagingForegroundFilter, nullptr);
     foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;

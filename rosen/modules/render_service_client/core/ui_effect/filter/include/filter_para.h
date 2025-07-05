@@ -16,7 +16,14 @@
 #define UIEFFECT_FILTER_PARA_H
 
 #include <iostream>
+#include <memory>
 #include <map>
+#include <functional>
+#include <mutex>
+
+#include <parcel.h>
+
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,7 +41,7 @@ const std::map<std::string, TileMode> STRING_TO_JS_MAP = {
     { "DECAL", TileMode::DECAL },
 };
 
-class FilterPara {
+class RSC_EXPORT FilterPara {
 public:
     enum ParaType {
         NONE,
@@ -52,10 +59,24 @@ public:
         DISPERSION,
         HDR_BRIGHTNESS_RATIO,
         CONTENT_LIGHT,
+        MASK_TRANSITION,
+        DIRECTION_LIGHT,
     };
+
+    static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
+    using UnmarshallingFunc = std::function<bool (Parcel&, std::shared_ptr<FilterPara>&)>;
 
     FilterPara()  = default;
     virtual ~FilterPara() = default;
+
+    virtual bool Marshalling(Parcel& parcel) const;
+
+    static bool RegisterUnmarshallingCallback(uint16_t type, UnmarshallingFunc func);
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
+
+    virtual std::shared_ptr<FilterPara> Clone() const;
+
     ParaType GetParaType()
     {
         return type_;

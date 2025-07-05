@@ -25,7 +25,7 @@ class RSDrmUtil {
 public:
     RSDrmUtil() = default;
     ~RSDrmUtil() = default;
-    using DrawablesVec = std::vector<std::pair<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
+    using DrawablesVec = std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     static void ClearDrmNodes();
     static void CollectDrmNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
