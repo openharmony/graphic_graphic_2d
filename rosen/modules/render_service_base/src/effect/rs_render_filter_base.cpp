@@ -48,6 +48,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderEdgeLightFilter>();
         }
     },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGRenderDirectionLightFilter>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)

@@ -47,6 +47,11 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, RedOffset, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, GreenOffset, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, BlueOffset, Vector2f);
 
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DirectionLight, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Direction, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Intensity, float);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint0, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint1, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint2, Vector2f);

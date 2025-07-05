@@ -22,6 +22,7 @@
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #undef LOG_TAG
@@ -53,6 +54,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGEdgeLightFilter>();
         }
     },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGDirectionLightFilter>();
+        }
+    },
 };
 
 namespace {
@@ -82,11 +87,27 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     edgeLightFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(edgeLightFilterPara->GetMask()));
     return edgeLightFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
+    directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
+    directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
+    directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
+    directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());
+    return directionLightFilter;
+}
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
     { FilterPara::ParaType::DISPLACEMENT_DISTORT, ConvertDisplacementDistortFilterPara },
     { FilterPara::ParaType::EDGE_LIGHT, ConvertEdgeLightFilterPara },
+    { FilterPara::ParaType::DIRECTION_LIGHT, ConvertDirectionLightFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
