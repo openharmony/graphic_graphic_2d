@@ -60,6 +60,7 @@ constexpr float V_VAL_LEVEL_3 = 0.6f;
 constexpr float V_VAL_LEVEL_4 = 0.4f;
 constexpr float V_VAL_LEVEL_5 = 0.2f;
 constexpr float V_VAL_LEVEL_6 = 0.1f;
+constexpr float V_VAL_LEVEL_BEHINDWINDOW = -1.0f;
 // ratio of area, such as biggest Rect and total visible Area
 constexpr float CONTINUOUS_RATIO_LEVEL_0 = 4.0f / 8.0f;
 constexpr float CONTINUOUS_RATIO_LEVEL_1 = 3.0f / 8.0f;
@@ -166,6 +167,7 @@ void RSVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenI
     vRateInfo.name = nodeName;
     vRateInfo.nodeId = nodeId;
     vRateInfo.visibleRegion = surfaceNode.GetVisibleRegion();
+    vRateInfo.visibleRegionBehindWindow = surfaceNode.GetVisibleRegionBehindWindow();
     vRateInfo.appWindowArea = width * height;
     surfaceVRateMap_.emplace(nodeId, std::move(vRateInfo));
 }
@@ -246,8 +248,11 @@ void RSVsyncRateReduceManager::CalcRates()
     for (const auto& [nodeId, vRateInfo]: surfaceVRateMap_) {
         double vVal = 0;
         int visArea = vRateInfo.visibleRegion.Area();
+        const bool visibleRegionBehindWindowEmpty = vRateInfo.visibleRegionBehindWindow.IsEmpty();
         if (vRateInfo.visibleRegion.IsEmpty()) {
             vVal = V_VAL_MIN;
+        } else if (visibleRegionBehindWindowEmpty) {
+            vVal = V_VAL_LEVEL_BEHINDWINDOW;
         } else if (nodeId == focusedNodeId_ ||
             visArea >= std::round(vRateInfo.appWindowArea * CONTINUOUS_RATIO_LEVEL_0)) {
             vVal = V_VAL_LEVEL_1;
@@ -303,6 +308,13 @@ void RSVsyncRateReduceManager::NotifyVRates()
 }
 int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
 {
+    if (std::abs(vVal - V_VAL_LEVEL_BEHINDWINDOW) < 10e-6) {
+        int rateBehindWindow = static_cast<int>(ceil(static_cast<double>(rsRefreshRate_) /
+            RS_REFRESH_RATE_BEHIND_WINDOW));
+        RS_LOGD("RSVsyncRateReduceManager::GetRateByBalanceLevel in behind window condition vVal=%{public}.2f, rate=%d",
+            vVal, rateBehindWindow);
+        return rateBehindWindow;
+    }
     if (vVal <= 0) {
         return INVISBLE_WINDOW_VSYNC_RATIO;
     }

@@ -72,7 +72,8 @@ const uint8_t DO_NOTIFY_PAGE_NAME = 46;
 const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 47;
 const uint8_t DO_SET_COLOR_FOLLOW = 48;
 const uint8_t DO_SET_FORCE_REFRESH = 49;
-const uint8_t TARGET_SIZE = 50;
+const uint8_t DO_CLEAR_UIFIRST_CACHE = 50;
+const uint8_t TARGET_SIZE = 51;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -273,6 +274,9 @@ void DoTakeSelfSurfaceCapture()
 
 void DoSetColorFollow()
 {}
+
+void DoClearUifirstCache()
+{}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -434,6 +438,9 @@ if (!OHOS::Rosen::Init(data, size)) {
             break;
         case OHOS::Rosen::DO_SET_COLOR_FOLLOW:
             OHOS::Rosen::DoSetColorFollow();
+            break;
+        case OHOS::Rosen::DO_CLEAR_UIFIRST_CACHE:
+            OHOS::Rosen::DoClearUifirstCache();
             break;
         default:
             return -1;

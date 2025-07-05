@@ -852,5 +852,9 @@ int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 {
     return {};
 }
+
+void RSRenderServiceClient::ClearUifirstCache(NodeId id)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

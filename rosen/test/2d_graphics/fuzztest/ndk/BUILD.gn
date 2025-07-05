@@ -45,5 +45,7 @@ group("fuzztest") {
     "ndksurface_fuzzer:fuzztest",
     "ndktextblob_fuzzer:fuzztest",
     "ndktypeface_fuzzer:fuzztest",
+    "ndkdrawing_canvas_utils_fuzzer:fuzztest",
+    "ndkdrawing_gpu_context_fuzzer:fuzztest",
   ]
 }

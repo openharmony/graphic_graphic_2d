@@ -590,6 +590,41 @@ bool RSUifirstManager::SubThreadControlFrameRate(NodeId id,
         !drawable->GetRsSubThreadCache().IsSubThreadSkip();
 }
 
+bool RSUifirstManager::NeedPurgeByBehindWindow(NodeId id, bool hasTexture,
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) {
+        return false;
+    }
+    if (!RSSystemProperties::GetUIFirstBehindWindowEnabled()) {
+        RS_LOGD("Behind window control framerate switch is off");
+        return false;
+    }
+    bool isBehindWindowOcclusion = IsBehindWindowOcclusion(node);
+    return purgeEnable_ && hasTexture &&
+        node->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW && isBehindWindowOcclusion;
+}
+
+void RSUifirstManager::HandlePurgeBehindWindow(
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>::iterator& it,
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode)
+{
+    auto id = it->first;
+    auto node = it->second;
+    uint64_t currentTime = GetMainThreadVsyncTime();
+    uint64_t timeDiffInMilliseconds = GetTimeDiffBehindWindow(currentTime, id);
+    // control the frequency of purge as the designed time
+    if (timeDiffInMilliseconds >= PURGE_BEHIND_WINDOW_TIME || pendingNodeBehindWindow_[id].isFirst) {
+        ++it;
+        pendingNodeBehindWindow_[id].curTime = currentTime;
+        pendingNodeBehindWindow_[id].isFirst = false;
+        RS_OPTIONAL_TRACE_NAME_FMT("Don't Purge by behind window %s", node->GetName().c_str());
+    } else {
+        RS_TRACE_NAME_FMT("Purge by behind window %s", node->GetName().c_str());
+        it = pendingNode.erase(it);
+    }
+}
+
 void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
     std::shared_ptr<RSSurfaceRenderNode>>& pendingNode)
 {
@@ -636,10 +671,53 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
         } else if (SubThreadControlFrameRate(id, drawable, node)) {
             RS_OPTIONAL_TRACE_NAME_FMT("Purge frame drop node name %s", surfaceParams->GetName().c_str());
             it = pendingNode.erase(it);
+        } else if (NeedPurgeByBehindWindow(id, rsSubThreadCache.HasCachedTexture(), node)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("Decide Whether to Purge node by behind window or not");
+            HandlePurgeBehindWindow(it, pendingNode);
         } else {
             ++it;
         }
     }
+}
+
+bool RSUifirstManager::IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
+    node->GetAllSubSurfaceNodes(allSubSurfaceNodes);
+    auto nodeVisibleRegion = node->GetVisibleRegion();
+    auto nodeVisibleRegionBehindWindow = node->GetVisibleRegionBehindWindow();
+
+    for (const auto &[subId, subSurfaceNode] : allSubSurfaceNodes) {
+        const auto subNodePtr = subSurfaceNode.lock();
+        if (subNodePtr) {
+            auto visibleRegion = nodeVisibleRegion.OrSelf(subNodePtr->GetVisibleRegion());
+            auto visibleRegionBehindWindow =
+                nodeVisibleRegionBehindWindow.OrSelf(subNodePtr->GetVisibleRegionBehindWindow());
+            RS_OPTIONAL_TRACE_NAME_FMT("visibleRegion is [%s], visibleRegionBehindWindow is [%s]",
+                visibleRegion.GetRegionInfo().c_str(),
+                visibleRegionBehindWindow.GetRegionInfo().c_str());
+            
+            if (visibleRegionBehindWindow.IsEmpty() && !visibleRegion.IsEmpty()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+uint64_t RSUifirstManager::GetTimeDiffBehindWindow(uint64_t currentTime, NodeId id)
+{
+    uint64_t timeDiff = currentTime - pendingNodeBehindWindow_[id].curTime;
+    RS_OPTIONAL_TRACE_NAME_FMT("timeDiff is %lu", timeDiff);
+    return timeDiff;
+}
+
+uint64_t RSUifirstManager::GetMainThreadVsyncTime()
+{
+    uint64_t mainThreadVsyncTime = RSMainThread::Instance()->GetCurrentVsyncTime();
+    uint64_t mainThreadVsyncTimeMS = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::nanoseconds(mainThreadVsyncTime)).count());
+    return mainThreadVsyncTimeMS;
 }
 
 void RSUifirstManager::PurgePendingPostNodes()
@@ -647,6 +725,7 @@ void RSUifirstManager::PurgePendingPostNodes()
     RS_OPTIONAL_TRACE_NAME_FMT("PurgePendingPostNodes");
     DoPurgePendingPostNodes(pendingPostNodes_);
     DoPurgePendingPostNodes(pendingPostCardNodes_);
+    ProcessMarkedNodeSubThreadCache();
     for (auto& node : markForceUpdateByUifirst_) {
         node->SetForceUpdateByUifirst(false);
     }
@@ -1149,12 +1228,27 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
             }
         }
         pendingPostNodes_[id] = node;
+        AddPendingNodeBehindWindow(id, node, currentFrameCacheType);
         RS_OPTIONAL_TRACE_NAME_FMT("Add pending id:%" PRIu64 " size:%d", node->GetId(), pendingPostNodes_.size());
     } else if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) {
         pendingPostCardNodes_[id] = node;
     }
 
     pendingResetNodes_.erase(id); // enable uifirst when waiting for reset
+}
+
+void RSUifirstManager::AddPendingNodeBehindWindow(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
+    MultiThreadCacheType currentFrameCacheType)
+{
+    if (currentFrameCacheType == MultiThreadCacheType::NONFOCUS_WINDOW &&
+        RSSystemProperties::GetUIFirstBehindWindowEnabled()) {
+        auto temp_it = pendingNodeBehindWindow_.find(id);
+        if (temp_it == pendingNodeBehindWindow_.end()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("Add to pendingNodeBehindWindow id:%" PRIu64 " name:%s", node->GetId(),
+                node->GetName().c_str());
+            pendingNodeBehindWindow_[id] = NodeDataBehindWindow{.curTime = GetMainThreadVsyncTime()};
+        }
+    }
 }
 
 NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node)
@@ -1592,6 +1686,12 @@ bool RSUifirstManager::IsVMSurfaceName(std::string surfaceName)
 // NonFocusWindow, may reuse last image cache
 bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
+    if (RSUifirstManager::Instance().IsExceededWindowsThreshold(node)) {
+        RS_TRACE_NAME_FMT("exceededThreshold id:%" PRIu64 ", threshold:%d, curUifirstWindowNums:%d", node.GetId(),
+            RSUifirstManager::Instance().uifirstWindowsNumThreshold_,
+            RSUifirstManager::Instance().curUifirstWindowNums_);
+        return false;
+    }
     bool isDisplayRotation = RSUifirstManager::Instance().rotationChanged_;
     if ((RSUifirstManager::Instance().GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
@@ -1605,8 +1705,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
-    bool focus = node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
-        node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
+    bool focus = RSUifirstManager::Instance().IsFocusedNode(node);
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
@@ -1752,9 +1851,10 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
     RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
-        " isForceFlag:[%d], hasProtectedLayer:[%d] switch:[%d]", node.GetId(), node.GetName().c_str(),
-        node.GetFirstLevelNodeId(), ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_,
-        node.isForceFlag_, node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED), node.GetUIFirstSwitch());
+        " isForceFlag:[%d], hasProtectedLayer:[%d] switch:[%d] curUifirstWindowNum:[%d] threshold:[%d]", node.GetId(),
+        node.GetName().c_str(), node.GetFirstLevelNodeId(), ancestorNodeHasAnimation, node.GetUifirstSupportFlag(),
+        isUiFirstOn_, node.isForceFlag_, node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED),
+        node.GetUIFirstSwitch(), curUifirstWindowNums_, uifirstWindowsNumThreshold_);
     if (ForceUpdateUifirstNodes(node)) {
         return;
     }
@@ -1804,6 +1904,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             AddCardNodes(node.GetId(), currentFrameCacheType);
             node.SetSubThreadAssignable(true);
             node.SetNeedCacheSurface(false);
+            IncreaseUifirstWindowCount(node);
         } else { // keep disable
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep disable  %" PRIu64, node.GetId());
             node.SetSubThreadAssignable(false);
@@ -1815,6 +1916,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %" PRIu64, node.GetId());
             RS_LOGD("uifirst keep enable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
+            IncreaseUifirstWindowCount(node);
         } else { // switch: enable -> disable
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64, node.GetId());
             RS_LOGI("uifirst enable -> disable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
@@ -1823,6 +1925,14 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             RemoveCardNodes(node.GetId());
             node.SetSubThreadAssignable(false);
             node.SetNeedCacheSurface(false);
+
+            auto tempNodeToClear = pendingNodeBehindWindow_.find(node.GetId());
+            if (tempNodeToClear != pendingNodeBehindWindow_.end()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("clear node in pendingNodeBehindWindow %{public}s id:%{public}" PRIu64,
+                    node.GetName().c_str(), node.GetId());
+                pendingNodeBehindWindow_.erase(tempNodeToClear);
+            }
+            DecreaseUifirstWindowCount(node);
         }
     }
     node.SetLastFrameUifirstFlag(currentFrameCacheType);
@@ -1921,8 +2031,10 @@ void RSUifirstManager::ReadUIFirstCcmParam()
     isCardUiFirstOn_ = UIFirstParam::IsCardUIFirstEnable();
 #endif
     SetUiFirstType(UIFirstParam::GetUIFirstType());
+    uifirstWindowsNumThreshold_ = UIFirstParam::GetUIFirstEnableWindowThreshold();
     RS_LOGI("ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-        " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
+        " uifirstType_=%{public}d uiFirstEnableWindowThreshold_=%{public}d",
+        isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -2133,6 +2245,83 @@ void RSUifirstManager::RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const 
     }
     stagingSurfaceParams->RecordDirtyRegionMatrix(matrix);
     node.AddToPendingSyncList();
+}
+
+bool RSUifirstManager::IsFocusedNode(const RSSurfaceRenderNode& node) const
+{
+    return node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
+        node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
+}
+
+void RSUifirstManager::IncreaseUifirstWindowCount(const RSSurfaceRenderNode& node)
+{
+    if (IsFocusedNode(node) || node.IsAbilityComponent()) {
+        return;
+    }
+    curUifirstWindowNums_++;
+}
+
+void RSUifirstManager::DecreaseUifirstWindowCount(const RSSurfaceRenderNode& node)
+{
+    if (IsFocusedNode(node) || node.IsAbilityComponent()) {
+        return;
+    }
+    if (curUifirstWindowNums_ > 0) {
+        curUifirstWindowNums_--;
+    }
+}
+
+bool RSUifirstManager::IsExceededWindowsThreshold(const RSSurfaceRenderNode& node) const
+{
+    // no restriction when threshold is less than or equal to 0
+    if (uifirstWindowsNumThreshold_ <= 0) {
+        return false;
+    }
+
+    // do not count focus window
+    if (IsFocusedNode(node)) {
+        return false;
+    }
+
+    // Non-focus window, Z/V sequence control
+    if (curUifirstWindowNums_ < uifirstWindowsNumThreshold_) {
+        return false;
+    }
+    return true;
+}
+
+void RSUifirstManager::AddMarkedClearCacheNode(NodeId id)
+{
+    RS_TRACE_NAME_FMT("AddMarkedClearCacheNode %" PRIu64, id);
+    RS_LOGI("AddMarkedClearCacheNode %{public}" PRIu64, id);
+    if (id == INVALID_NODEID) {
+        return;
+    }
+
+    markedClearCacheNodes_.insert(id);
+}
+
+void RSUifirstManager::ProcessMarkedNodeSubThreadCache()
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache size:%d", markedClearCacheNodes_.size());
+    for (auto& markedNode : markedClearCacheNodes_) {
+        if (subthreadProcessingNode_.find(markedNode) == subthreadProcessingNode_.end()) {
+            auto drawable = GetSurfaceDrawableByID(markedNode);
+            if (!drawable) {
+                RS_LOGE("ProcessMarkedNodeSubThreadCache drawable is null. id:%{public}" PRIu64, markedNode);
+                continue;
+            }
+            if ((pendingPostNodes_.find(markedNode) != pendingPostNodes_.end()) ||
+                (pendingPostCardNodes_.find(markedNode) != pendingPostCardNodes_.end())) {
+                continue;
+            }
+            RS_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache id:%" PRIu64, markedNode);
+            RS_LOGI("ProcessMarkedNodeSubThreadCache id:%{public}" PRIu64, markedNode);
+            auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
+            rsSubThreadCache.ClearCacheSurfaceOnly();
+        }
+    }
+    markedClearCacheNodes_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

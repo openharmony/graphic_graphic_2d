@@ -1081,7 +1081,7 @@ public:
     void AddChildHardwareEnabledNode(WeakPtr childNode);
     const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const;
 
-    bool IsFocusedNode(uint64_t focusedNodeId)
+    bool IsFocusedNode(uint64_t focusedNodeId) const
     {
         return GetId() == focusedNodeId;
     }
