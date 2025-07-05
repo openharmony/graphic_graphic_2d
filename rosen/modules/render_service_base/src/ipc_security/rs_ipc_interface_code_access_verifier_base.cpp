@@ -233,6 +233,16 @@ bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string
     RS_LOGE("%{public}s ipc interface code access denied: GetNativeTokenInfo error", callingCode.c_str());
     return false;
 }
+
+bool RSInterfaceCodeAccessVerifierBase::IsTaskManagerCalling(const std::string& callingCode) const
+{
+    static constexpr uint32_t TASK_MANAGER_SERVICE_UID = 7005;
+    bool isTaskManagerCalling = (OHOS::IPCSkeleton::GetCallingUid() == TASK_MANAGER_SERVICE_UID);
+    if (!isTaskManagerCalling) {
+        RS_LOGE("%{public}s ipc interface code access denied: not taskmanager calling", callingCode.c_str());
+    }
+    return isTaskManagerCalling;
+}
 #else
 bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */)
 {
@@ -256,6 +266,11 @@ void RSInterfaceCodeAccessVerifierBase::GetAccessType(bool& isTokenTypeValid, bo
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string& callingCode) const
+{
+    return true;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsTaskManagerCalling(const std::string& callingCode) const
 {
     return true;
 }

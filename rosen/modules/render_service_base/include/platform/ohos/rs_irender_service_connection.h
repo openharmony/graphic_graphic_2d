@@ -450,6 +450,8 @@ public:
     virtual RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
     virtual bool ProfilerIsSecureScreen() = 0;
+
+    virtual void ClearUifirstCache(NodeId id) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

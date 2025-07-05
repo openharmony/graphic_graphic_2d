@@ -1084,4 +1084,22 @@ HWTEST_F(RSRenderServiceConnectionStubTest, ProfilerServicePopulateFilesTest, Te
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
 }
+
+/**
+ * @tc.name: ClearUifirstCacheTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, ClearUifirstCacheTest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE);
+    data.WriteUint64(0);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
 } // namespace OHOS::Rosen

@@ -725,6 +725,7 @@ void RSUifirstManager::PurgePendingPostNodes()
     RS_OPTIONAL_TRACE_NAME_FMT("PurgePendingPostNodes");
     DoPurgePendingPostNodes(pendingPostNodes_);
     DoPurgePendingPostNodes(pendingPostCardNodes_);
+    ProcessMarkedNodeSubThreadCache();
     for (auto& node : markForceUpdateByUifirst_) {
         node->SetForceUpdateByUifirst(false);
     }
@@ -2287,6 +2288,40 @@ bool RSUifirstManager::IsExceededWindowsThreshold(const RSSurfaceRenderNode& nod
         return false;
     }
     return true;
+}
+
+void RSUifirstManager::AddMarkedClearCacheNode(NodeId id)
+{
+    RS_TRACE_NAME_FMT("AddMarkedClearCacheNode %" PRIu64, id);
+    RS_LOGI("AddMarkedClearCacheNode %{public}" PRIu64, id);
+    if (id == INVALID_NODEID) {
+        return;
+    }
+
+    markedClearCacheNodes_.insert(id);
+}
+
+void RSUifirstManager::ProcessMarkedNodeSubThreadCache()
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache size:%d", markedClearCacheNodes_.size());
+    for (auto& markedNode : markedClearCacheNodes_) {
+        if (subthreadProcessingNode_.find(markedNode) == subthreadProcessingNode_.end()) {
+            auto drawable = GetSurfaceDrawableByID(markedNode);
+            if (!drawable) {
+                RS_LOGE("ProcessMarkedNodeSubThreadCache drawable is null. id:%{public}" PRIu64, markedNode);
+                continue;
+            }
+            if ((pendingPostNodes_.find(markedNode) != pendingPostNodes_.end()) ||
+                (pendingPostCardNodes_.find(markedNode) != pendingPostCardNodes_.end())) {
+                continue;
+            }
+            RS_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache id:%" PRIu64, markedNode);
+            RS_LOGI("ProcessMarkedNodeSubThreadCache id:%{public}" PRIu64, markedNode);
+            auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
+            rsSubThreadCache.ClearCacheSurfaceOnly();
+        }
+    }
+    markedClearCacheNodes_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

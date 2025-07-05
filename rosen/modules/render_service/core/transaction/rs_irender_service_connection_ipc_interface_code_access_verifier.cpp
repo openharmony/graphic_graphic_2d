@@ -587,6 +587,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_IS_SECURE_SCREEN");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CLEAR_UIFIRST_CACHE): {
+            hasPermission = IsTaskManagerCalling(codeEnumTypeName_ + "::CLEAR_UIFIRST_CACHE");
+            break;
+        }
         default: {
             break;
         }

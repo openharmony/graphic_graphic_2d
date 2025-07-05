@@ -1323,5 +1323,18 @@ HWTEST_F(RSClientTest, ProfilerServicePopulateFilesTest, TestSize.Level1)
     ASSERT_NE(rsClient, nullptr);
     ASSERT_EQ(res, RET_HRP_SERVICE_ERR_UNSUPPORTED);
 }
+
+/**
+ * @tc.name: ClearUifirstCache Test
+ * @tc.desc: ClearUifirstCache
+ * @tc.type:FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSClientTest, ClearUifirstCacheTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    NodeId nodeId = 1;
+    rsClient->ClearUifirstCache(nodeId);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -3877,6 +3877,27 @@ bool DoProfilerIsSecureScreen(const uint8_t* data, size_t size)
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
+
+bool DoClearUifirstCache(const uint8_t* data, size_t size)
+{
+    NodeId nodeId = GetData<NodeId>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(nodeId)) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -4009,5 +4030,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerServiceOpenFile(data, size);
     OHOS::Rosen::DoProfilerServicePopulateFiles(data, size);
     OHOS::Rosen::DoProfilerIsSecureScreen(data, size);
+    OHOS::Rosen::DoClearUifirstCache(data, size);
     return 0;
 }

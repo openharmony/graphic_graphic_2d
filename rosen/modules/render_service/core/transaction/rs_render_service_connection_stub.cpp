@@ -3778,6 +3778,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteBool(retValue);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE) : {
+            NodeId nodeId = {};
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CLEAR_UIFIRST_CACHE : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ClearUifirstCache(nodeId);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

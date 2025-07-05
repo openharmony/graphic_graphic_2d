@@ -207,6 +207,8 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     PROFILER_SERVICE_POPULATE_FILES = 0x014001,
     PROFILER_IS_SECURE_SCREEN = 0x014002,
 
+    CLEAR_UIFIRST_CACHE = 0X15000,
+
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

@@ -1456,5 +1456,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ProfilerIsSecureScreenTest, TestSiz
     proxy->ProfilerIsSecureScreen();
     ASSERT_TRUE(proxy);
 }
+
+/**
+ * @tc.name: ClearUifirstCache Test
+ * @tc.desc: ClearUifirstCache Test
+ * @tc.type:FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, ClearUifirstCacheTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    proxy->ClearUifirstCache(nodeId);
+    ASSERT_TRUE(proxy);
+}
 } // namespace Rosen
 } // namespace OHOS

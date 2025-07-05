@@ -2802,4 +2802,69 @@ HWTEST_F(RSUifirstManagerTest, IsExceededWindowsThresholdTest, TestSize.Level1)
     uifirstManager_.curUifirstWindowNums_ = 1;
     ASSERT_TRUE(uifirstManager_.IsExceededWindowsThreshold(*surfaceNode));
 }
+
+/**
+ * @tc.name: AddMarkedClearCacheNodeTest
+ * @tc.desc: Test AddMarkedClearCacheNode
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSUifirstManagerTest, AddMarkedClearCacheNodeTest, TestSize.Level1)
+{
+    uifirstManager_.markedClearCacheNodes_.clear();
+    uifirstManager_.AddMarkedClearCacheNode(0);
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
+
+    uifirstManager_.AddMarkedClearCacheNode(1);
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 1);
+}
+
+/**
+ * @tc.name: ProcessMarkedNodeSubThreadCacheTest
+ * @tc.desc: Test ProcessMarkedNodeSubThreadCache
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessMarkedNodeSubThreadCacheTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    uifirstManager_.AddMarkedClearCacheNode(nodeId);
+    uifirstManager_.subthreadProcessingNode_.insert({nodeId, nullptr});
+    // node is processing, do not clear
+    uifirstManager_.ProcessMarkedNodeSubThreadCache();
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
+
+    uifirstManager_.subthreadProcessingNode_.clear();
+    uifirstManager_.AddMarkedClearCacheNode(nodeId);
+    // node not processing, but drawable is null
+    uifirstManager_.ProcessMarkedNodeSubThreadCache();
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
+
+    uifirstManager_.AddMarkedClearCacheNode(nodeId);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    auto& rsSubThreadCache = surfaceDrawable->GetRsSubThreadCache();
+    rsSubThreadCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+    uifirstManager_.pendingPostNodes_.insert({nodeId, nullptr});
+    // node in pendingPostNodes, do not clear
+    uifirstManager_.ProcessMarkedNodeSubThreadCache();
+    ASSERT_TRUE(rsSubThreadCache.cacheSurface_ != nullptr);
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
+
+    uifirstManager_.AddMarkedClearCacheNode(nodeId);
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.insert({nodeId, nullptr});
+    // node in pendingPostCardNodes, do not clear
+    uifirstManager_.ProcessMarkedNodeSubThreadCache();
+    ASSERT_TRUE(rsSubThreadCache.cacheSurface_ != nullptr);
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
+
+    uifirstManager_.AddMarkedClearCacheNode(nodeId);
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    // clear cachesurface
+    uifirstManager_.ProcessMarkedNodeSubThreadCache();
+    ASSERT_TRUE(rsSubThreadCache.cacheSurface_ == nullptr);
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);}
 }

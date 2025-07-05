@@ -100,7 +100,8 @@ const uint8_t DO_NOTIFY_PAGE_NAME = 46;
 const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 47;
 const uint8_t DO_SET_COLOR_FOLLOW = 48;
 const uint8_t DO_SET_FORCE_REFRESH = 49;
-const uint8_t TARGET_SIZE = 50;
+const uint8_t DO_CLEAR_UIFIRST_CACHE = 50;
+const uint8_t TARGET_SIZE = 51;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -1097,6 +1098,18 @@ void DoSetColorFollow()
     dataParcel.WriteBool(isColorFollow);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+void DoClearUifirstCache()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    NodeId id = GetData<NodeId>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBool(id);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -1272,6 +1285,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_COLOR_FOLLOW:
             OHOS::Rosen::DoSetColorFollow();
+            break;
+        case OHOS::Rosen::DO_CLEAR_UIFIRST_CACHE:
+            OHOS::Rosen::DoClearUifirstCache();
             break;
         default:
             return -1;

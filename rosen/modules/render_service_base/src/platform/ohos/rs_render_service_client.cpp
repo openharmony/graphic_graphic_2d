@@ -2467,5 +2467,13 @@ bool RSRenderServiceClient::ProfilerIsSecureScreen()
     return false;
 }
 
+void RSRenderServiceClient::ClearUifirstCache(NodeId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return;
+    }
+    renderService->ClearUifirstCache(id);
+}
 } // namespace Rosen
 } // namespace OHOS

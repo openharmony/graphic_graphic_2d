@@ -199,6 +199,8 @@ public:
     void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
     // get cache state of uifirst root node
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
+    void AddMarkedClearCacheNode(NodeId id);
+    void ProcessMarkedNodeSubThreadCache();
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
@@ -382,6 +384,8 @@ private:
     int uifirstWindowsNumThreshold_ = 0;
     // current uifirst window count
     int curUifirstWindowNums_ = 0;
+    // uifirst mem opt.
+    std::set<NodeId> markedClearCacheNodes_;
 };
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:
