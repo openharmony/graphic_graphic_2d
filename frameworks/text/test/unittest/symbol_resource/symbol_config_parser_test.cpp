@@ -22,6 +22,151 @@
 using namespace testing;
 using namespace testing::ext;
 
+namespace {
+const char* ROOT_LAYERS_JSON_STR = R"({
+    "symbol_layers_grouping": [
+        {
+            "native_glyph_id": 1001,
+            "symbol_glyph_id": 2001,
+            "layers": [
+                { "components": [1, 2, 3] },
+                { "components": [4, 5] }
+            ],
+            "render_modes": [
+                {
+                    "mode": "monochrome",
+                    "render_groups": [
+                        {
+                            "group_indexes": [ { "layer_indexes": [0] } ],
+                            "default_color": "#FF00FF",
+                            "fix_alpha": 0.5
+                        }
+                    ]
+                }
+            ],
+            "animation_settings": [
+                {
+                    "animation_types": ["scale"],
+                    "group_settings": [
+                        {
+                            "group_indexes": [ { "layer_indexes": [0] } ],
+                            "animation_index": 2
+                        }
+                    ]
+                },
+                {
+                    "animation_types": ["disable"],
+                    "common_sub_type": "up",
+                    "slope": -1.0000001192092896,
+                    "group_settings": [{
+                        "animation_index": -1,
+                        "group_indexes": [{
+                            "layer_indexes": [0]
+                        }]
+                    }, {
+                        "animation_index": 0,
+                        "group_indexes": [{
+                            "mask_indexes": [1]
+                        }]
+                    }, {
+                        "animation_index": 0,
+                        "group_indexes": [{
+                            "layer_indexes": [2]
+                        }]
+                    }]
+                }
+            ]
+        }
+    ]
+})";
+
+const char* ROOT_ANIMATIONS_JSON_STR = R"({
+    "animations": [
+        {
+            "animation_type": "scale",
+            "animation_parameters": [
+                {
+                    "animation_mode": 1,
+                    "common_sub_type": "up",
+                    "group_parameters": [
+                        [
+                            { "curve": "spring", "duration": 200 }
+                        ]
+                    ]
+                }
+            ]
+        },
+        {
+            "animation_type": "disable",
+            "animation_parameters": [
+                {
+                    "animation_mode": 0,
+                    "common_sub_type": "up",
+                    "group_parameters": [
+                        [
+                            {
+                                "curve": "friction",
+                                "curve_args": {
+                                    "ctrlX1": 0.2,
+                                    "ctrlY1": 0,
+                                    "ctrlX2": 0.2,
+                                    "ctrlY2": 1
+                                },
+                                "duration": 200,
+                                "delay": 0,
+                                "properties": {
+                                    "sx": [
+                                        1,
+                                        0.9
+                                    ],
+                                    "sy": [
+                                        1,
+                                        0.9
+                                    ]
+                                }
+                            },
+                            {
+                                "curve": "friction",
+                                "curve_args": {
+                                    "ctrlX1": 0.2,
+                                    "ctrlY1": 0,
+                                    "ctrlX2": 0.2,
+                                    "ctrlY2": 1
+                                },
+                                "duration": 150,
+                                "delay": 200,
+                                "properties": {
+                                    "sx": [
+                                        0.9,
+                                        1.07
+                                    ],
+                                    "sy": [
+                                        0.9,
+                                        1.07
+                                    ]
+                                }
+                            }
+                        ]
+                    ]
+                },
+                {
+                    "animation_mode": 0,
+                    "common_sub_type": "down",
+                    "group_parameters": []
+                }
+            ]
+        }
+    ]
+})";
+
+const char* ROOT_INVALID_JSON_STR = R"({
+    "test": [],
+    "common_animations": {},
+    "special_animations": {},
+    "symbol_layers_grouping": {}
+})";
+}
+
 class SymbolConfigParserTest : public testing::Test {
 public:
     void SetUp() override
@@ -38,160 +183,20 @@ public:
 private:
     void BuildValidLayersGroupingJson()
     {
-        const char* jsonStr = R"({
-            "symbol_layers_grouping": [
-                {
-                    "native_glyph_id": 1001,
-                    "symbol_glyph_id": 2001,
-                    "layers": [
-                        { "components": [1, 2, 3] },
-                        { "components": [4, 5] }
-                    ],
-                    "render_modes": [
-                        {
-                            "mode": "monochrome",
-                            "render_groups": [
-                                {
-                                    "group_indexes": [ { "layer_indexes": [0] } ],
-                                    "default_color": "#FF00FF",
-                                    "fix_alpha": 0.5
-                                }
-                            ]
-                        }
-                    ],
-                    "animation_settings": [
-                        {
-                            "animation_types": ["scale"],
-                            "group_settings": [
-                                {
-                                    "group_indexes": [ { "layer_indexes": [0] } ],
-                                    "animation_index": 2
-                                }
-                            ]
-                        },
-                        {
-                            "animation_types": ["disable"],
-                            "common_sub_type": "up",
-                            "slope": -1.0000001192092896,
-                            "group_settings": [{
-                                "animation_index": -1,
-                                "group_indexes": [{
-                                    "layer_indexes": [0]
-                                }]
-                            }, {
-                                "animation_index": 0,
-                                "group_indexes": [{
-                                    "mask_indexes": [1]
-                                }]
-                            }, {
-                                "animation_index": 0,
-                                "group_indexes": [{
-                                    "layer_indexes": [2]
-                                }]
-                            }]
-                        }
-                    ]
-                }
-            ]
-        })";
         Json::Reader reader;
-        EXPECT_TRUE(reader.parse(jsonStr, rootLayers_));
+        EXPECT_TRUE(reader.parse(ROOT_LAYERS_JSON_STR, rootLayers_));
     }
 
     void BuildValidAnimationsJson()
     {
-        const char* jsonStr = R"({
-            "animations": [
-                {
-                    "animation_type": "scale",
-                    "animation_parameters": [
-                        {
-                            "animation_mode": 1,
-                            "common_sub_type": "up",
-                            "group_parameters": [
-                                [
-                                    { "curve": "spring", "duration": 200 }
-                                ]
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "animation_type": "disable",
-                    "animation_parameters": [
-                        {
-                            "animation_mode": 0,
-                            "common_sub_type": "up",
-                            "group_parameters": [
-                                [
-                                    {
-                                        "curve": "friction",
-                                        "curve_args": {
-                                            "ctrlX1": 0.2,
-                                            "ctrlY1": 0,
-                                            "ctrlX2": 0.2,
-                                            "ctrlY2": 1
-                                        },
-                                        "duration": 200,
-                                        "delay": 0,
-                                        "properties": {
-                                            "sx": [
-                                                1,
-                                                0.9
-                                            ],
-                                            "sy": [
-                                                1,
-                                                0.9
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "curve": "friction",
-                                        "curve_args": {
-                                            "ctrlX1": 0.2,
-                                            "ctrlY1": 0,
-                                            "ctrlX2": 0.2,
-                                            "ctrlY2": 1
-                                        },
-                                        "duration": 150,
-                                        "delay": 200,
-                                        "properties": {
-                                            "sx": [
-                                                0.9,
-                                                1.07
-                                            ],
-                                            "sy": [
-                                                0.9,
-                                                1.07
-                                            ]
-                                        }
-                                    }
-                                ]
-                            ]
-                        },
-                        {
-                            "animation_mode": 0,
-                            "common_sub_type": "down",
-                            "group_parameters": []
-                        }
-                    ]
-                }
-            ]
-        })";
         Json::Reader reader;
-        EXPECT_TRUE(reader.parse(jsonStr, rootAnimations_));
+        EXPECT_TRUE(reader.parse(ROOT_ANIMATIONS_JSON_STR, rootAnimations_));
     }
 
     void BuildInvalidJson()
     {
-        const char* jsonStr = R"({
-            "test": [],
-            "common_animations": {},
-            "special_animations": {},
-            "symbol_layers_grouping": {}
-        })";
         Json::Reader reader;
-        EXPECT_TRUE(reader.parse(jsonStr, rootInvalid_));
+        EXPECT_TRUE(reader.parse(ROOT_INVALID_JSON_STR, rootInvalid_));
     }
 };
 
