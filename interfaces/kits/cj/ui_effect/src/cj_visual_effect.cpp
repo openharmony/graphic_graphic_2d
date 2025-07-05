@@ -14,6 +14,9 @@
  */
 
 #include "cj_visual_effect.h"
+#include "effect/include/background_color_effect_para.h"
+#include "effect/include/blender.h"
+#include "effect/include/brightness_blender.h"
 
 namespace OHOS {
 namespace Rosen {

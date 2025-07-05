@@ -25,9 +25,9 @@ namespace Rosen {
 class CJFilter : public OHOS::FFI::FFIData {
     DECL_TYPE(CJFilter, OHOS::FFI::FFIData)
 public:
-    explicit CJFilter();
+    CJFilter();
     virtual ~CJFilter() override = default;
-    void SetBlur(float blur, int32_t* errCode);
+    int32_t SetBlur(float blur);
 
 private:
     std::shared_ptr<Filter> m_FilterObj = nullptr;

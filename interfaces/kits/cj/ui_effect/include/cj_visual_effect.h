@@ -18,10 +18,6 @@
 #include "cj_common_ffi.h"
 #include "cj_ui_effect_log.h"
 #include "ffi_remote_data.h"
-
-#include "effect/include/background_color_effect_para.h"
-#include "effect/include/blender.h"
-#include "effect/include/brightness_blender.h"
 #include "effect/include/visual_effect.h"
 #include "effect/include/visual_effect_para.h"
 
@@ -30,7 +26,7 @@ namespace Rosen {
 class CJVisualEffect : public OHOS::FFI::FFIData {
     DECL_TYPE(CJVisualEffect, OHOS::FFI::FFIData)
 public:
-    explicit CJVisualEffect();
+    CJVisualEffect();
     virtual ~CJVisualEffect() override = default;
 
 private:

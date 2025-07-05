@@ -46,6 +46,6 @@ FFI_EXPORT void FfiOHOSUiEffectSetBlur(int64_t id, float blur, int32_t* errCode)
         *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
         return;
     }
-    instance->SetBlur(blur, errCode);
+    *errCode = instance->SetBlur(blur);
 }
 }

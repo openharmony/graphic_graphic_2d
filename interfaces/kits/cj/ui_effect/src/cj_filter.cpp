@@ -29,11 +29,10 @@ CJFilter::CJFilter()
     m_FilterObj = filterObj;
 }
 
-void CJFilter::SetBlur(float blur, int32_t* errCode)
+int32_t CJFilter::SetBlur(float blur)
 {
     if (m_FilterObj == nullptr) {
-        *errCode = CJ_ERR_NULL_PTR;
-        return;
+        return CJ_ERR_NULL_PTR;
     }
     std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
     para->SetRadius(blur);
