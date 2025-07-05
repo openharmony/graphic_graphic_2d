@@ -811,7 +811,14 @@ HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    director->SetTypicalResidentProcess(true);
-    EXPECT_EQ(RSSystemProperties::isTypicalResidentProcess_, true);
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
+    director->SetTypicalResidentProcess(!enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    director->SetTypicalResidentProcess(enabled);
+    // isTypicalResidentProcess_ will only be set once
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    // recover isTypicalResidentProcess_
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
 } // namespace OHOS::Rosen
