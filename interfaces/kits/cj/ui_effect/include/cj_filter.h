@@ -26,7 +26,7 @@ class CJFilter : public OHOS::FFI::FFIData {
     DECL_TYPE(CJFilter, OHOS::FFI::FFIData)
 public:
     CJFilter();
-    virtual ~CJFilter() override = default;
+    ~CJFilter() override = default;
     int32_t SetBlur(float blur);
 
 private:

@@ -39,13 +39,12 @@ FFI_EXPORT int64_t FfiOHOSUiEffectCreateFilter(int32_t* errCode)
     return instance->GetID();
 }
 
-FFI_EXPORT void FfiOHOSUiEffectSetBlur(int64_t id, float blur, int32_t* errCode)
+FFI_EXPORT int32_t FfiOHOSUiEffectSetBlur(int64_t id, float blur)
 {
     auto instance = OHOS::FFI::FFIData::GetData<OHOS::Rosen::CJFilter>(id);
     if (instance == nullptr) {
-        *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
-        return;
+        return OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
     }
-    *errCode = instance->SetBlur(blur);
+    return instance->SetBlur(blur);
 }
 }

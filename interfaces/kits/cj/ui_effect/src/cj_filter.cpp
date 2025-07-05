@@ -25,8 +25,7 @@ namespace Rosen {
 using namespace UIEffect;
 CJFilter::CJFilter()
 {
-    std::shared_ptr<Filter> filterObj = std::make_shared<Filter>();
-    m_FilterObj = filterObj;
+    m_FilterObj = std::make_shared<Filter>();
 }
 
 int32_t CJFilter::SetBlur(float blur)

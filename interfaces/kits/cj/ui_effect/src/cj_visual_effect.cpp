@@ -23,8 +23,7 @@ namespace Rosen {
 using namespace UIEffect;
 CJVisualEffect::CJVisualEffect()
 {
-    std::shared_ptr<VisualEffect> effectObj = std::make_shared<VisualEffect>();
-    m_EffectObj = effectObj;
+    m_EffectObj = std::make_shared<VisualEffect>();
 }
 } // namespace Rosen
 } // namespace OHOS

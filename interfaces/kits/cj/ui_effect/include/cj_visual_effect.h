@@ -27,7 +27,7 @@ class CJVisualEffect : public OHOS::FFI::FFIData {
     DECL_TYPE(CJVisualEffect, OHOS::FFI::FFIData)
 public:
     CJVisualEffect();
-    virtual ~CJVisualEffect() override = default;
+    ~CJVisualEffect() override = default;
 
 private:
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
