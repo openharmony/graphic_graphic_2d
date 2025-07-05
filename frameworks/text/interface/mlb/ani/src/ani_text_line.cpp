@@ -25,6 +25,7 @@
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "ani_typographic_bounds_converter.h"
+#include "canvas_ani/ani_canvas.h"
 #include "text_line_base.h"
 #include "typography.h"
 #include "typography_types.h"
@@ -201,13 +202,13 @@ void AniTextLine::Paint(ani_env* env, ani_object object, ani_object canvas, ani_
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::Canvas* canvasInternal = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
-    if (canvasInternal == nullptr) {
+    Drawing::AniCanvas* aniCanvas =  AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Failed to get canvas");
         return;
     }
 
-    textline->Paint(canvasInternal, x, y);
+    textline->Paint(aniCanvas->GetCanvas(), x, y);
 }
 
 ani_object AniTextLine::CreateTruncatedLine(

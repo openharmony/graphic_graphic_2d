@@ -23,6 +23,7 @@
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "ani_typographic_bounds_converter.h"
+#include "canvas_ani/ani_canvas.h"
 #include "font_ani/ani_font.h"
 #include "utils/text_log.h"
 
@@ -321,13 +322,13 @@ void AniRun::Paint(ani_env* env, ani_object object, ani_object canvas, ani_doubl
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::Canvas* canvasInternal = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
-    if (canvasInternal == nullptr) {
+    Drawing::AniCanvas* aniCanvas =  AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Failed to get canvas");
         return;
     }
 
-    run->Paint(canvasInternal, x, y);
+    run->Paint(aniCanvas->GetCanvas(), x, y);
 }
 
 ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object range)
