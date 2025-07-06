@@ -22,7 +22,7 @@ using namespace UIEffect;
 CJVisualEffect::CJVisualEffect()
 {
     m_EffectObj = std::make_shared<VisualEffect>();
-    UIEFFECT_LOG_D("CJVisualEffect create VisualEffect success.")
+    UIEFFECT_LOG_D("CJVisualEffect create VisualEffect success.");
 }
 } // namespace Rosen
 } // namespace OHOS
