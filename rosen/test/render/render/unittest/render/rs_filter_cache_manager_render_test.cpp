@@ -852,24 +852,24 @@ HWTEST_F(RSFilterCacheManagerRenderTest, TestRecordFilterInfos, TestSize.Level1)
 }
 
 /**
- * @tc.name: TestIsAIBarCacheValid
- * @tc.desc: Verify function IsAIBarCacheValid
+ * @tc.name: TestCheckAndUpdateAIBarCacheStatus
+ * @tc.desc: Verify function CheckAndUpdateAIBarCacheStatus
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFilterCacheManagerRenderTest, TestIsAIBarCacheValid, TestSize.Level1)
+HWTEST_F(RSFilterCacheManagerRenderTest, TestCheckAndUpdateAIBarCacheStatus, TestSize.Level1)
 {
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     EXPECT_NE(rsFilterCacheManager, nullptr);
 
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->cacheUpdateInterval_ = 1;
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = true;
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
-    EXPECT_TRUE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
 }
 
 /**

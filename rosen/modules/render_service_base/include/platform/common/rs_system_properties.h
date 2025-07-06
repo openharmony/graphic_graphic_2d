@@ -382,6 +382,7 @@ public:
     static int GetSubThreadDropFrameInterval();
     static bool GetCompositeLayerEnabled();
     static bool GetEarlyZEnable();
+    static bool GetAIBarOptEnabled();
 
 private:
     RSSystemProperties() = default;
