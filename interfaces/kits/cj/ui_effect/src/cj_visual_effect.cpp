@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "cj_visual_effect.h"
 #include "cj_ui_effect_log.h"
+#include "cj_visual_effect.h"
 #include "effect/include/brightness_blender.h"
 
 namespace OHOS {

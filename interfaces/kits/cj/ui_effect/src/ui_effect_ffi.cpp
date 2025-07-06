@@ -24,7 +24,6 @@ FFI_EXPORT int64_t FfiOHOSUiEffectCreateEffect(int32_t* errCode)
     auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJVisualEffect>();
     if (instance == nullptr) {
         *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
-        UIEFFECT_LOG_E("effect instance is nullptr");
         return 0;
     }
     return instance->GetID();
@@ -35,7 +34,6 @@ FFI_EXPORT int64_t FfiOHOSUiEffectCreateFilter(int32_t* errCode)
     auto instance = OHOS::FFI::FFIData::Create<OHOS::Rosen::CJFilter>();
     if (instance == nullptr) {
         *errCode = OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
-        FILTER_LOG_E("filter instance is nullptr.");
         return 0;
     }
     return instance->GetID();
@@ -46,7 +44,6 @@ FFI_EXPORT int32_t FfiOHOSUiEffectSetBlur(int64_t id, float blur)
     auto instance = OHOS::FFI::FFIData::GetData<OHOS::Rosen::CJFilter>(id);
     if (instance == nullptr) {
         return OHOS::Rosen::CJ_ERR_ILLEGAL_INSTANCE;
-        FILTER_LOG_E("filter instance is nullptr.");
     }
     return instance->SetBlur(blur);
 }
