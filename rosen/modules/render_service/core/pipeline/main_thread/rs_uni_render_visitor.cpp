@@ -87,7 +87,6 @@ constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint64_t INPUT_HWC_LAYERS = 3;
-constexpr uint32_t HIGHEST_Z_ORDER = 999;
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -2172,15 +2171,15 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     }
     std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = pointWindow->GetMutableRSSurfaceHandler();
     if (pointSurfaceHandler) {
-        // globalZOrder_ + 2 is screenNode layer, point window must be at the top.
-        pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
+        // globalZOrder_  is screenNode layer, point window must be at the top.
+        pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
         if (!curScreenNode_) {
             return;
         }
         bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curScreenNode_->GetScreenId());
         if (isHardCursor) {
             // Set the highest z-order for hardCursor
-            pointSurfaceHandler->SetGlobalZOrder(HIGHEST_Z_ORDER);
+            pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
         }
         pointWindow->SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by pointWindow and pointSurfaceHandler",

@@ -4502,12 +4502,11 @@ HWTEST_F(RSUniRenderVisitorTest, UpdatePointWindowDirtyStatus001, TestSize.Level
     surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceNode->name_ = "pointer window";
 
-    // globalZOrder_ + 2 is displayNode layer
     ASSERT_NE(surfaceNode->GetMutableRSSurfaceHandler(), nullptr);
-    auto displayLayerZoder = surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_ + 2;
 
     rsUniRenderVisitor->UpdatePointWindowDirtyStatus(surfaceNode);
-    ASSERT_EQ(displayLayerZoder, surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_);
+    ASSERT_EQ(
+        static_cast<float>(TopLayerZOrder::POINTER_WINDOW), surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_);
 }
 
 /*
@@ -5064,7 +5063,43 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId001, TestSize.Level2)
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
     EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
 }
- 
+
+/*
+ * @tc.name: UpdateTopLayersDirtyStatusTest
+ * @tc.desc: Test UpdateTopLayersDirtyStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateTopLayersDirtyStatusTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+
+    RSSurfaceRenderNodeConfig config;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1, 0, rsContext);
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
+    topLayers.emplace_back(surfaceNode);
+    rsUniRenderVisitor->UpdateTopLayersDirtyStatus(topLayers);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    EXPECT_EQ(surfaceHandler->GetGlobalZOrder(), 1);
+    topLayers.clear();
+
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    surfaceNode1->SetLayerTop(true);
+    surfaceNode1->SetTopLayerZOrder(2);
+    surfaceNode1->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode1->GetId());
+    topLayers.emplace_back(surfaceNode1);
+    rsUniRenderVisitor->UpdateTopLayersDirtyStatus(topLayers);
+    auto surfaceHandler1 = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler1, nullptr);
+    EXPECT_EQ(surfaceHandler1->GetGlobalZOrder(), 2);
+}
+
 /*
  * @tc.name: HandleTunnelLayerId002
  * @tc.desc: Test HandleTunnelLayerId002

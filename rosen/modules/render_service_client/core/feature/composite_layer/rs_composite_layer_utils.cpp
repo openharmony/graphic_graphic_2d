@@ -32,6 +32,10 @@ RSCompositeLayerUtils::RSCompositeLayerUtils(std::shared_ptr<RSNode> rootNode, u
 {
     rootNode_ = rootNode;
     topLayerZOrder_ = zOrder;
+    if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
+        rsUiDirector_ = RSUIDirector::Create();
+        rsUiDirector_->Init(true, true);
+    }
 }
 
 RSCompositeLayerUtils::~RSCompositeLayerUtils() {}
@@ -45,7 +49,12 @@ bool RSCompositeLayerUtils::CreateCompositeLayer()
     if (auto surfaceNode = rootNode_->ReinterpretCastTo<RSSurfaceNode>()) {
         RSSurfaceNodeConfig config;
         config.SurfaceNodeName = surfaceNode->GetName();
-        compositeNode_ = RSSurfaceNode::Create(config, false);
+        if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
+            compositeNode_ = RSSurfaceNode::Create(config, false, rsUiDirector_->GetRSUIContext());
+            rsUiDirector_->SetRSSurfaceNode(compositeNode_);
+        } else {
+            compositeNode_ = RSSurfaceNode::Create(config, false);
+        }
     }
 
     if (compositeNode_ == nullptr) {
@@ -60,16 +69,20 @@ bool RSCompositeLayerUtils::CreateCompositeLayer()
     }
     auto bounds = rootNode_->GetStagingProperties().GetBounds();
     compositeNode_->SetBounds({bounds.x_, bounds.y_, bounds.z_, bounds.w_});
+    if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
+        rsUiDirector_->SendMessages();
+    }
 
 #ifndef ROSEN_CROSS_PLATFORM
     parent->AddChild(compositeNode_);
     rootNode_->RemoveFromTree();
-    auto surfaceId = compositeNode_->GetSurface()->GetUniqueId();
-    compositeNode_->GetSurface()->SetQueueSize(COMPOSITE_SURFACE_SIZE);
-    textureExport_ = std::make_shared<RSTextureExport>(rootNode_, surfaceId);
-    if (!textureExport_) {
+    auto surface = compositeNode_->GetSurface();
+    if (!surface) {
         return false;
     }
+    auto surfaceId = surface->GetUniqueId();
+    surface->SetQueueSize(COMPOSITE_SURFACE_SIZE);
+    textureExport_ = std::make_shared<RSTextureExport>(rootNode_, surfaceId);
     textureExport_->DoTextureExport();
     RSInterfaces::GetInstance().SetLayerTopForHWC(compositeNode_->GetName(), true, topLayerZOrder_);
     return true;
@@ -85,6 +98,9 @@ void RSCompositeLayerUtils::UpdateVirtualNodeBounds(const Vector4f& bounds)
     }
     if (compositeNode_) {
         compositeNode_->SetBounds({bounds.x_, bounds.y_, bounds.z_, bounds.w_});
+    }
+    if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
+        rsUiDirector_->SendMessages();
     }
 }
 
