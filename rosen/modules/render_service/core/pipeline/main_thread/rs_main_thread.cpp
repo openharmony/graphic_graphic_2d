@@ -3813,7 +3813,7 @@ void RSMainThread::SendCommands()
             }
             app->OnTransaction(transactionPtr);
         }
-        RS_LOGI("RS send to %{public}s", dfxString.c_str());
+        RS_LOGD("RS send to %{public}s", dfxString.c_str());
         RS_TRACE_NAME_FMT("RSMainThread::SendCommand to %s", dfxString.c_str());
     });
 }

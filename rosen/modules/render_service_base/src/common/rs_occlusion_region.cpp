@@ -70,7 +70,7 @@ Rect::Rect(int l, int t, int r, int b, bool checkValue)
     }
     CheckAndCorrectValue();
     if (left_ != l || top_ != t || right_ != r || bottom_ != b) {
-        RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
+        RS_LOGD("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
             "%{public}d], should in range [%{public}d, %{public}d]",
             l, t, r, b, MIN_REGION_VALUE, MAX_REGION_VALUE);
     }
@@ -84,7 +84,7 @@ Rect::Rect(const RectI& r, bool checkValue)
     }
     CheckAndCorrectValue();
     if (left_ != r.left_ || top_ != r.top_ || right_ != r.GetRight() || bottom_ != r.GetBottom()) {
-        RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
+        RS_LOGD("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
             "%{public}d], should in range [%{public}d, %{public}d]",
             r.left_, r.top_, r.GetRight(), r.GetBottom(), MIN_REGION_VALUE, MAX_REGION_VALUE);
     }
