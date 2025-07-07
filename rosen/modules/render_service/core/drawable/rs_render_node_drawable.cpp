@@ -26,6 +26,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 #include "string_utils.h"
@@ -98,6 +99,8 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (SkipCulledNodeOrEntireSubtree(canvas, bounds)) {
         return;
     }
+
+    UpdateFilterDisplayHeadroom(canvas);
 
     DrawBackground(canvas, bounds);
 
@@ -977,6 +980,28 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
     auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
     RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, ctx, updateTimes);
+}
+
+void RSRenderNodeDrawable::UpdateFilterDisplayHeadroom(Drawing::Canvas& canvas)
+{
+    if (canvas.GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
+        return;
+    }
+
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    NodeId screenId = paintFilterCanvas->GetScreenId();
+    auto headroom = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenId);
+
+    const auto& params = GetRenderParams();
+    if (!params) {
+        return;
+    }
+    if (params->GetForegroundFilterCache()) {
+        params->GetForegroundFilterCache()->SetDisplayHeadroom(headroom);
+    }
+    if (params->GetBackgroundFilter()) {
+        params->GetBackgroundFilter()->SetDisplayHeadroom(headroom);
+    }
 }
 
 int RSRenderNodeDrawable::GetTotalProcessedNodeCount()

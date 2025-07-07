@@ -47,6 +47,8 @@ public:
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter() override;
 
     virtual std::vector<std::shared_ptr<RSPropertyBase>> GetLeafProperties() override;
+
+    virtual bool CheckEnableHdrEffect() override;
 };
 } // namespace Rosen
 } // namespace OHOS

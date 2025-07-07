@@ -23,6 +23,7 @@ ohos_unittest("RSAibarShaderFilterTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_effect_luminance_manager_test.cpp",
     "rs_render_aibar_filter_test.cpp",
     "rs_attraction_effect_filter_test.cpp",
     "rs_blur_filter_test.cpp",

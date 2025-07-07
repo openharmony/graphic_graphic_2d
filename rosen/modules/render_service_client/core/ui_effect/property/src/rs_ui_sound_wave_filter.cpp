@@ -51,6 +51,8 @@ void RSUISoundWaveFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBa
             other == nullptr ? -1 : static_cast<int>(other->GetType()));
         return;
     }
+    SetStagingEnableHdrEffect(other->GetEnableHdrEffect());
+
     auto soundWaveProperty = std::static_pointer_cast<RSUISoundWaveFilterPara>(other);
     if (!soundWaveProperty) {
         ROSEN_LOGW("RSUISoundWaveFilterPara::SetProperty soundWaveProperty NG!");
@@ -220,6 +222,28 @@ std::vector<std::shared_ptr<RSPropertyBase>> RSUISoundWaveFilterPara::GetLeafPro
         out.emplace_back(v);
     }
     return out;
+}
+
+bool RSUISoundWaveFilterPara::CheckEnableHdrEffect()
+{
+    auto colorAProperty =
+        std::static_pointer_cast<RSProperty<Vector4f>>(GetRSProperty(RSUIFilterType::SOUND_WAVE_COLOR_A));
+    auto colorBProperty =
+        std::static_pointer_cast<RSProperty<Vector4f>>(GetRSProperty(RSUIFilterType::SOUND_WAVE_COLOR_B));
+    auto colorCProperty =
+        std::static_pointer_cast<RSProperty<Vector4f>>(GetRSProperty(RSUIFilterType::SOUND_WAVE_COLOR_C));
+    bool isValid = colorAProperty && colorBProperty && colorCProperty;
+    if (!isValid) {
+        return false;
+    }
+ 
+    Vector4f colorA = colorAProperty->Get();
+    Vector4f colorB = colorBProperty->Get();
+    Vector4f colorC = colorCProperty->Get();
+    enableHdrEffect_ = ROSEN_GNE(colorA.x_, 1.0f) || ROSEN_GNE(colorA.y_, 1.0f) || ROSEN_GNE(colorA.z_, 1.0f) ||
+                       ROSEN_GNE(colorB.x_, 1.0f) || ROSEN_GNE(colorB.y_, 1.0f) || ROSEN_GNE(colorB.z_, 1.0f) ||
+                       ROSEN_GNE(colorC.x_, 1.0f) || ROSEN_GNE(colorC.y_, 1.0f) || ROSEN_GNE(colorC.z_, 1.0f);
+    return enableHdrEffect_ || stagingEnableHdrEffect_;
 }
 } // namespace ROSEN
 } // namespace OHOS

@@ -1271,6 +1271,13 @@ public:
     void SetFgBrightnessFract(const float& fract);
 
     /**
+     * @brief Sets the hdr using for foreground brightness.
+     *
+     * @param hdr Indicates the hdr using for foreground brightness.
+     */
+    void SetFgBrightnessHdr(const bool hdr);
+
+    /**
      * @brief Sets the parameters for background brightness.
      *
      * @param params Indicates the parameters for background brightness.
@@ -1529,7 +1536,7 @@ public:
     void SetUseEffectType(UseEffectType useEffectType);
     void SetAlwaysSnapshot(bool enable);
 
-    void SetEnableHDREffect(bool enableHdrEffect);
+    void SetEnableHDREffect(uint32_t type, bool enableHdrEffect);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -2073,7 +2080,7 @@ private:
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::weak_ptr<RSUIContext> rsUIContext_;
 
-    bool enableHdrEffect_ = false;
+    uint32_t hdrEffectType_ = 0;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

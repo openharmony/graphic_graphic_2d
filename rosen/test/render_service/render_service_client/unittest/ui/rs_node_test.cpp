@@ -5742,6 +5742,9 @@ HWTEST_F(RSNodeTest, SetBlender, TestSize.Level1)
     BrightnessBlender brightnessBlender;
     rsNode->SetBlender(&brightnessBlender);
     EXPECT_NE(rsNode, nullptr);
+    brightnessBlender.SetHdr(true);
+    rsNode->SetBlender(&brightnessBlender);
+    EXPECT_TRUE(rsNode->hdrEffectType_ > 0);
 }
 
 /**
@@ -8025,9 +8028,12 @@ HWTEST_F(RSNodeTest, SetEnableHDREffect, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     ASSERT_NE(rsNode, nullptr);
 
-    rsNode->SetEnableHDREffect(true);
-    rsNode->SetEnableHDREffect(true); // different branch if call again
-    EXPECT_EQ(rsNode->enableHdrEffect_, true);
+    rsNode->SetEnableHDREffect(1, true);
+    EXPECT_EQ(rsNode->hdrEffectType_, 1);
+
+    rsNode->SetEnableHDREffect(1, false);
+    rsNode->SetEnableHDREffect(2, false); // different branch if call again
+    EXPECT_EQ(rsNode->hdrEffectType_, 0);
 }
 
 /**

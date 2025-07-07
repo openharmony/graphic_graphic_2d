@@ -1513,7 +1513,7 @@ HWTEST_F(PropertiesTest, SetEnableHDREffectTest, TestSize.Level1)
     properties.SetEnableHDREffect(true); // different branch if call again
     EXPECT_EQ(properties.GetEnableHDREffect(), true);
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.needFilter_);
+    EXPECT_FALSE(properties.needFilter_);
 }
 } // namespace Rosen
 } // namespace OHOS

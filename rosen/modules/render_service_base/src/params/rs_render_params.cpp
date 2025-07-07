@@ -519,6 +519,20 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
     needSync_ = true;
 }
 
+const std::shared_ptr<RSFilter>& RSRenderParams::GetBackgroundFilter() const
+{
+    return backgroundFilter_;
+}
+
+void RSRenderParams::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
+{
+    if (backgroundFilter_ == backgroundFilter) {
+        return;
+    }
+    backgroundFilter_ = backgroundFilter;
+    needSync_ = true;
+}
+
 RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
 {
     return surfaceParams_;
@@ -570,6 +584,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasGlobalCorner_ = hasGlobalCorner_;
     target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
+    target->backgroundFilter_ = backgroundFilter_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
     target->isOpincSupportFlag_ = isOpincSupportFlag_;
@@ -614,6 +629,9 @@ std::string RSRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
     if (foregroundFilterCache_ != nullptr) {
         ret += foregroundFilterCache_->GetDescription();
+    }
+    if (backgroundFilter_ != nullptr) {
+        ret += backgroundFilter_->GetDescription();
     }
     return ret;
 }

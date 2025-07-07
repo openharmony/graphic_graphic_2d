@@ -199,6 +199,9 @@ private:
 
     // Used to skip nodes or entire subtree that were culled by the control-level occlusion.
     bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
+
+    // update hdr brightness for all effect filter applied
+    void UpdateFilterDisplayHeadroom(Drawing::Canvas& canvas);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

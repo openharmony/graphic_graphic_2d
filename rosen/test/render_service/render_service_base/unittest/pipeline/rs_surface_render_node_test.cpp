@@ -2368,6 +2368,13 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     EXPECT_TRUE(childNode->GetHDRPresent());
     childNode->ReduceHDRNum(HDRComponentType::UICOMPONENT);
     EXPECT_FALSE(childNode->GetHDRPresent());
+
+    childNode->IncreaseHDRNum(HDRComponentType::EFFECT);
+    EXPECT_TRUE(childNode->IsHdrEffectColorGamut());
+    childNode->ReduceHDRNum(HDRComponentType::EFFECT);
+    EXPECT_FALSE(childNode->IsHdrEffectColorGamut());
+    childNode->ReduceHDRNum(HDRComponentType::EFFECT); // different branch if call again
+    EXPECT_FALSE(childNode->IsHdrEffectColorGamut());
 }
 
 /**

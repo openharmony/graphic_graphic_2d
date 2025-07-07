@@ -75,6 +75,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::FG_BRIGHTNESS_POSCOEFF, ThresholdType::COARSE },
     { RSPropertyType::FG_BRIGHTNESS_NEGCOEFF, ThresholdType::COARSE },
     { RSPropertyType::FG_BRIGHTNESS_FRACTION, ThresholdType::COARSE },
+    { RSPropertyType::FG_BRIGHTNESS_HDR, ThresholdType::ZERO },
     { RSPropertyType::BG_BRIGHTNESS_RATES, ThresholdType::COARSE },
     { RSPropertyType::BG_BRIGHTNESS_SATURATION, ThresholdType::COARSE },
     { RSPropertyType::BG_BRIGHTNESS_POSCOEFF, ThresholdType::COARSE },

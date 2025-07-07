@@ -580,5 +580,15 @@ void RSDrawingFilter::PostProcess(Drawing::Canvas& canvas)
         }
     });
 }
+
+void RSDrawingFilter::SetDisplayHeadroom(float headroom)
+{
+    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
+        ROSEN_LOGD("RSDrawingFilter::SetDisplayHeadroom headroom is %{public}f", headroom);
+        if (filter) {
+            filter->SetDisplayHeadroom(headroom);
+        }
+    });
+}
 } // namespace Rosen
 } // namespace OHOS

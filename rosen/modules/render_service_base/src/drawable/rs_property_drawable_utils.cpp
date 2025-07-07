@@ -22,6 +22,7 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_color_picker.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
@@ -734,6 +735,7 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightness
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender");
     builder->SetUniform("ubo_rate", params.rates_.z_);
     builder->SetUniform("ubo_degree", params.rates_.w_);
+    builder->SetUniform("ubo_headroom", params.enableHdr_ ? EFFECT_MAX_LUMINANCE : 1.0f);
     return builder->MakeBlender();
 }
 
@@ -749,12 +751,13 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_negr;
         uniform half ubo_negg;
         uniform half ubo_negb;
+        uniform half ubo_headroom;
 
         const half3 baseVec = half3(0.2412016, 0.6922296, 0.0665688);
         half3 sat(half3 inColor, half3 pos, half3 neg) {
             half3 delta = dot(inColor, baseVec) - inColor;
             half3 v = mix(neg, pos, step(0, delta));
-            return saturate(delta * v + inColor);
+            return clamp(inColor + delta * v, half3(0.0), half3(ubo_headroom));
         }
 
         half4 main(half4 src, half4 dst) {
@@ -789,7 +792,8 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_negr;
         uniform half ubo_negg;
         uniform half ubo_negb;
-
+        uniform half ubo_headroom;
+ 
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
         const half eps = 1e-5;
         half3 getUnpremulRGB(half4 color) {
@@ -804,7 +808,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
             half base = dot(r, baseVec);
             half3 delta = base - r;
             half3 v = mix(neg, pos, step(0, delta));
-            return saturate(inColor + delta * v);
+            return clamp(inColor + delta * v, half3(0.0), half3(ubo_headroom));
         }
 
         half4 main(half4 src, half4 dst) {

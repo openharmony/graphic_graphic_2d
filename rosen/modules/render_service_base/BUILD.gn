@@ -302,6 +302,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_dot_matrix_shader.cpp",
     "src/render/rs_drawing_filter.cpp",
     "src/render/rs_edge_light_shader_filter.cpp",
+    "src/render/rs_effect_luminance_manager.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_filter_cache_manager.cpp",
     "src/render/rs_flow_light_sweep_shader.cpp",
