@@ -26,18 +26,18 @@ const int32_t CJ_ERR_ILLEGAL_INSTANCE = -1;
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001405
 
-#ifdef CJ_VISUAL_EFFECT_H
-#undef LOG_TAG
-#define LOG_TAG "UiEffect_Effect"
-#define UIEFFECT_LOG_D(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
-#define UIEFFECT_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
-#define UIEFFECT_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
-#else
+#ifdef CJ_FILTER_H
 #undef LOG_TAG
 #define LOG_TAG "UiEffect_Filter"
 #define FILTER_LOG_D(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
 #define FILTER_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define FILTER_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
+#else
+#undef LOG_TAG
+#define LOG_TAG "UiEffect_Effect"
+#define UIEFFECT_LOG_D(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
+#define UIEFFECT_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
+#define UIEFFECT_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 #endif
 } // namespace Rosen
 } // namespace OHOS
