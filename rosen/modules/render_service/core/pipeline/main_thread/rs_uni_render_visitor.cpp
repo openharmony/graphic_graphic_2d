@@ -87,7 +87,6 @@ constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint64_t INPUT_HWC_LAYERS = 3;
-constexpr uint32_t HIGHEST_Z_ORDER = 999;
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -845,6 +844,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
         needRequestNextVsync_ = false;
     }
 
+    rsScreenNodeChildNum_ = 0;
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
 
@@ -873,6 +873,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     curScreenNode_->ResetMirroredScreenChangedFlag();
     PrepareForMultiScreenViewDisplayNode(node);
     node.ResetDirtyFlag();
+    RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareScreenRenderNode childNumber: %d", rsScreenNodeChildNum_);
 }
 
 bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node)
@@ -926,7 +927,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
     node.UpdateCurCornerRadius(curCornerRadius_);
     node.UpdateRotation();
-    RSUifirstManager::Instance().SetRotationChanged(displayNodeRotationChanged_ || isScreenRotationAnimating_);
+    RSUifirstManager::Instance().PreStatusProcess(displayNodeRotationChanged_ || isScreenRotationAnimating_);
 
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     QuickPrepareChildren(node);
@@ -1736,6 +1737,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             if (!child) {
                 return;
             }
+            rsScreenNodeChildNum_++;
             auto containerDirty = curContainerDirty_;
             curDirty_ = child->IsDirty();
             curContainerDirty_ = curContainerDirty_ || child->IsDirty();
@@ -1752,6 +1754,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             if (!child) {
                 return;
             }
+            rsScreenNodeChildNum_++;
             curDirty_ = child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
             child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
@@ -2172,15 +2175,15 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     }
     std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = pointWindow->GetMutableRSSurfaceHandler();
     if (pointSurfaceHandler) {
-        // globalZOrder_ + 2 is screenNode layer, point window must be at the top.
-        pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
+        // globalZOrder_  is screenNode layer, point window must be at the top.
+        pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
         if (!curScreenNode_) {
             return;
         }
         bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curScreenNode_->GetScreenId());
         if (isHardCursor) {
             // Set the highest z-order for hardCursor
-            pointSurfaceHandler->SetGlobalZOrder(HIGHEST_Z_ORDER);
+            pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
         }
         pointWindow->SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by pointWindow and pointSurfaceHandler",

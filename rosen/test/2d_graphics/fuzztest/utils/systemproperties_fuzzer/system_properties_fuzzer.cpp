@@ -37,6 +37,10 @@ void SystemPropertiesFuzzTest000(const uint8_t* data, size_t size)
     SystemProperties::IsUseVulkan();
     SystemProperties::GetHMSymbolEnable();
     SystemProperties::GetSystemGraphicGpuType();
+    SystemProperties::IsUseGl();
+#ifdef ROSEN_OHOS
+    SystemProperties::IsVkImageDfxEnabled();
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

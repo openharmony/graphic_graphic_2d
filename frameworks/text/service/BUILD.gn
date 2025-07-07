@@ -57,6 +57,7 @@ ohos_source_set("rosen_text_skia") {
     "global_config/text_global_config.cpp",
     "skia_txt/convert.cpp",
     "skia_txt/custom_symbol_config.cpp",
+    "skia_txt/default_symbol_config.cpp",
     "skia_txt/font_collection.cpp",
     "skia_txt/line_typography.cpp",
     "skia_txt/run_impl.cpp",

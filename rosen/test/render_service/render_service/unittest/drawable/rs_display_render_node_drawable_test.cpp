@@ -184,7 +184,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Lev
     RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(true);
 
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    params->isRotationChanged_ = true;
+
     params->frameRect_ = { 0.f, 0.f, 1.f, 0.f };
     screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
     ASSERT_FALSE(params->IsRotationChanged());

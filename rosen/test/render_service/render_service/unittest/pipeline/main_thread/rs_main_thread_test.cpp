@@ -5699,4 +5699,56 @@ HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
         frameRateMgr->isAdaptive_.store(status.load());
     }
 }
+
+/**
+ * @tc.name: DumpMem001
+ * @tc.desc: Test DumpMem
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    std::unordered_set<std::u16string> args;
+    std::string dumpString;
+    std::string type = "";
+    pid_t pid = 0;
+
+    // prepare nodes
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    RSRenderNodeMap& nodeMap = context->GetMutableNodeMap();
+    ASSERT_NE(rootNode, nullptr);
+
+    //prepare nodemap
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    node1->SetIsOnTheTree(true);
+    nodeMap.renderNodeMap_[pid].insert({ config.id, node1 });
+
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->SetIsOnTheTree(false);
+    node2->instanceRootNodeId_ = INVALID_NODEID;
+    nodeMap.renderNodeMap_[pid].insert({ config.id, node2 });
+
+    config.id = 3;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node3, nullptr);
+    node3->SetIsOnTheTree(true);
+    node3->instanceRootNodeId_ = 1;
+    nodeMap.renderNodeMap_[pid].insert({ config.id, node3 });
+    nodeMap.renderNodeMap_[pid].insert({ 4, nullptr });
+    mainThread->DumpMem(args, dumpString, type, pid);
+
+    // rootNode == nullptr
+    context->globalRootRenderNode_ = nullptr;
+    mainThread->DumpMem(args, dumpString, type, pid);
+}
 } // namespace OHOS::Rosen

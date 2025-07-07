@@ -173,6 +173,6 @@ HWTEST_F(RSTransformModifierNGTypeTest, ApplyGeometryTest, TestSize.Level1)
     modifier->SetTranslate(translateValue);
     modifier->SetTranslateZ(translateZValue);
     modifier->ApplyGeometry(geometry);
-    EXPECT_NE(geometry, nullptr);
+    EXPECT_FLOAT_EQ(geometry->GetPivotX(), 1.0f);
 }
 } // namespace OHOS::Rosen

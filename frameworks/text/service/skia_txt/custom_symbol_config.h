@@ -27,6 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace Symbol {
 class CustomSymbolConfig {
 public:
     static CustomSymbolConfig* GetInstance();
@@ -45,7 +46,7 @@ private:
     std::unordered_map<std::string, std::unordered_map<uint16_t, RSSymbolLayersGroups>> symbolConfig_;
     std::shared_mutex mutex_;
 };
+} // namespace Symbol
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // CUSTOM_SYMBOL_CONFIG_H

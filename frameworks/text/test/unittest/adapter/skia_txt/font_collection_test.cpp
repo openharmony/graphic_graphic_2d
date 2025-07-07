@@ -32,6 +32,7 @@ private:
     std::vector<uint8_t> GetFileData(const std::string& path);
 
     const char* symbolFile_ = "/system/fonts/HMSymbolVF.ttf";
+    const char* symbolConfigFile_ = "/system/fonts/hm_symbol_config_next.json";
     const char* cjkFile_ = "/system/fonts/NotoSansCJK-Regular.ttc";
     const char* sansFile_ = "/system/fonts/NotoSans[wdth,wght].ttf";
     const char* mathFile_ = "/system/fonts/NotoSansMath-Regular.ttf";
@@ -457,6 +458,33 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSi
     OHOS::Rosen::Drawing::Typeface::UnRegisterCallBackFunc(nullptr);
     EXPECT_FALSE(fontCollection_->UnloadFont(""));
     EXPECT_FALSE(fontCollection_->UnloadFont("Noto Sans"));
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest014
+ * @tc.desc: test for load symbol config
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest014, TestSize.Level0)
+{
+    std::ifstream fileStream(symbolConfigFile_);
+    fileStream.seekg(0, std::ios::end);
+    uint32_t bufferSize = fileStream.tellg();
+    fileStream.seekg(0, std::ios::beg);
+    std::unique_ptr buffer = std::make_unique<uint8_t[]>(bufferSize);
+    fileStream.read(reinterpret_cast<char*>(buffer.get()), bufferSize);
+    fileStream.close();
+
+    fontCollection_->ClearThemeFont();
+    LoadSymbolErrorCode res = fontCollection_->LoadSymbolJson("testCustomSymbol", nullptr, 0);
+    EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
+
+    uint8_t invalidBuffer[] = { 0, 0, 0, 0, 0 };
+    res = fontCollection_->LoadSymbolJson("testCustomSymbol", invalidBuffer, sizeof(invalidBuffer));
+    EXPECT_EQ(res, LoadSymbolErrorCode::JSON_ERROR);
+
+    res = fontCollection_->LoadSymbolJson("testCustomSymbol", buffer.get(), bufferSize);
+    EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

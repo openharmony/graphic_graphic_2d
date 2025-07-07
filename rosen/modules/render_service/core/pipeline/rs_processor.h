@@ -125,6 +125,7 @@ protected:
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;
+    bool isMirror_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

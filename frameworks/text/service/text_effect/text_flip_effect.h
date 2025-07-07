@@ -74,7 +74,7 @@ private:
     std::vector<uint16_t> lastAllBlobGlyphIds_;
     std::vector<uint16_t> currentBlobGlyphIds_;
     size_t currentGlyphIndex_{0};
-    size_t changeNumber_{0};
+    int changeNumber_{0};
 
     struct FlipAttributeFunction {
         FlipAttributeFunction() = default;

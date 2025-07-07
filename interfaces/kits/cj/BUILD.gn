@@ -17,5 +17,6 @@ group("ffi_packages") {
   deps = [
     "color_manager:cj_color_manager_ffi",
     "effect_kit:cj_effect_kit_ffi",
+    "ui_effect:cj_ui_effect_ffi",
   ]
 }

@@ -1159,8 +1159,10 @@ HWTEST_F(RSHardwareThreadTest, IsDropDirtyFrame, TestSize.Level1)
     hardwareThread.Start();
     SetUp();
 
-    OutputPtr output = nullptr;
-    ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+    std::vector<LayerInfoPtr> layers;
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layers.emplace_back(layer);
+    ASSERT_EQ(hardwareThread.IsDropDirtyFrame(layers, screenId_), false);
 }
 
 /*

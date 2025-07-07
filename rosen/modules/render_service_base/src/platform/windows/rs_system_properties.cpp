@@ -712,9 +712,9 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
     return false;
 }
 
-int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
-    return 0;
+    return false;
 }
 
 bool RSSystemProperties::GetVKImageUseEnabled()
@@ -763,6 +763,11 @@ bool RSSystemProperties::GetTypicalResidentProcess()
 
 void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
 {
+}
+
+bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -64,7 +64,7 @@ HWTEST_F(RSRenderModifierNGTest, AttachPropertyTest, TestSize.Level1)
     RSCanvasDrawingRenderNode node(nodeId);
     modifier->OnAttachModifier(node);
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
-    EXPECT_NE(property, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
 }
 
 /**
@@ -76,7 +76,7 @@ HWTEST_F(RSRenderModifierNGTest, DetachPropertyTest, TestSize.Level1)
 {
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->DetachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE);
-    EXPECT_NE(modifier, nullptr);
+    EXPECT_FALSE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
 
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     drawCmdList->SetWidth(1024);
@@ -88,7 +88,7 @@ HWTEST_F(RSRenderModifierNGTest, DetachPropertyTest, TestSize.Level1)
     modifier->OnAttachModifier(node);
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     modifier->DetachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE);
-    EXPECT_NE(property, nullptr);
+    EXPECT_FALSE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
 }
 
 /**
@@ -132,7 +132,7 @@ HWTEST_F(RSRenderModifierNGTest, SetDirtyTest, TestSize.Level1)
     std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
     modifier->target_ = weakPtr;
     modifier->SetDirty();
-    EXPECT_NE(modifier->target_.lock(), nullptr);
+    EXPECT_TRUE(modifier->dirty_);
 }
 
 /**
@@ -172,7 +172,7 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
     auto property = std::make_shared<RSRenderProperty<float>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
     modifier->ApplyLegacyProperty(properties);
-    EXPECT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::ALPHA));
 }
 
 /**
@@ -192,11 +192,10 @@ HWTEST_F(RSRenderModifierNGTest, RSCustomRenderModifier_Apply_Test, TestSize.Lev
         ModifierNG::RSModifierType::CONTENT_STYLE, property, id, ModifierNG::RSPropertyType::CONTENT_STYLE);
     RSProperties properties;
     modifier->Apply(nullptr, properties);
-    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     modifier->Apply(&paintFilterCanvas, properties);
-    EXPECT_NE(&paintFilterCanvas, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
 }
 
 /**
@@ -212,6 +211,6 @@ HWTEST_F(RSRenderModifierNGTest, RSCustomRenderModifier_OnSetDirty_Test, TestSiz
     std::weak_ptr<RSRenderNode> weakPtr = nodePtr;
     modifier->target_ = weakPtr;
     modifier->OnSetDirty();
-    EXPECT_NE(modifier->target_.lock(), nullptr);
+    EXPECT_TRUE(nodePtr->isContentDirty_);
 }
 }

@@ -3146,7 +3146,7 @@ ErrCode RSRenderServiceConnection::SetLayerTopForHWC(const std::string &nodeIdSt
             [&nodeIdStr, &isTop, &zOrder](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
                 (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-                surfaceNode->SetLayerTop(isTop);
+                surfaceNode->SetLayerTop(isTop, false);
                 surfaceNode->SetTopLayerZOrder(zOrder);
                 return;
             }
@@ -3447,6 +3447,17 @@ bool RSRenderServiceConnection::ProfilerIsSecureScreen()
 #else
     return false;
 #endif
+}
+
+void RSRenderServiceConnection::ClearUifirstCache(NodeId id)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [id]() -> void {
+        RSUifirstManager::Instance().AddMarkedClearCacheNode(id);
+    };
+    mainThread_->PostTask(task);
 }
 } // namespace Rosen
 } // namespace OHOS

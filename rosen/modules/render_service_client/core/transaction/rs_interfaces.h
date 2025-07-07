@@ -1219,6 +1219,12 @@ public:
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+
+    /**
+     * @brief clear uifirst node cache
+     * @param id surface node id
+     */
+    void ClearUifirstCache(NodeId id);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

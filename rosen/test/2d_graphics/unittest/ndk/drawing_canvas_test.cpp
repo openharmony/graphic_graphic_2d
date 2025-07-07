@@ -1752,6 +1752,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapRectConstr
     OH_Drawing_RectDestroy(srcRect);
     OH_Drawing_RectDestroy(dstRect);
     OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_Drawing_CanvasDestroy(canvas);
 }
 
 /*
@@ -1978,6 +1979,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateBlurW
     OH_Drawing_ImageFilterDestroy(imagefilter);
     OH_Drawing_ImageFilterDestroy(imagefilterWithCrop1);
     OH_Drawing_ImageFilterDestroy(imagefilterWithCrop2);
+    OH_Drawing_RectDestroy(rect);
 }
 
 /*

@@ -70,6 +70,7 @@ protected:
     bool IsFoundationCalling(const std::string& callingCode) const;
     bool CheckPermission(CodeUnderlyingType code) const;
     bool IsStylusServiceCalling(const std::string& callingCode) const;
+    bool IsTaskManagerCalling(const std::string& callingCode) const;
 
 private:
     DISALLOW_COPY_AND_MOVE(RSInterfaceCodeAccessVerifierBase);

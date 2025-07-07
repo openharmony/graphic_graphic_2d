@@ -33,6 +33,7 @@
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
+#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "modifier/rs_extended_modifier.h"
@@ -6175,7 +6176,6 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 
-#ifdef RS_ENABLE_VK
 /**
  * @tc.name: HybridRender001
  * @tc.desc: Test SetHybridRenderCanvas and IsHybridRenderCanvas
@@ -6214,7 +6214,6 @@ HWTEST_F(RSNodeTest, Dump001, TestSize.Level1)
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
 }
-#endif
 
 /**
  * @tc.name: SetTakeSurfaceForUIFlag
@@ -8029,6 +8028,56 @@ HWTEST_F(RSNodeTest, SetEnableHDREffect, TestSize.Level1)
     rsNode->SetEnableHDREffect(true);
     rsNode->SetEnableHDREffect(true); // different branch if call again
     EXPECT_EQ(rsNode->enableHdrEffect_, true);
+}
+
+/**
+ * @tc.name: AddCompositeNodeChildTest
+ * @tc.desc: test AddCompositeNodeChild
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, AddCompositeNodeChildTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    std::shared_ptr<RSCanvasNode> child = nullptr;
+    EXPECT_FALSE(rsNode->AddCompositeNodeChild(child, -1));
+
+    child = RSCanvasNode::Create();
+    ASSERT_NE(child, nullptr);
+    EXPECT_FALSE(rsNode->AddCompositeNodeChild(child, -1));
+
+    RSSurfaceNodeConfig c;
+    std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_FALSE(rsNode->AddCompositeNodeChild(surfaceNode, -1));
+
+    surfaceNode->compositeLayerUtils_ =
+        std::make_shared<RSCompositeLayerUtils>(surfaceNode, static_cast<uint32_t>(TopLayerZOrder::POINTER_WINDOW));
+    EXPECT_FALSE(rsNode->AddCompositeNodeChild(surfaceNode, -1));
+
+    surfaceNode->compositeLayerUtils_->compositeNode_ = RSSurfaceNode::Create(c);
+    EXPECT_TRUE(rsNode->AddCompositeNodeChild(surfaceNode, -1));
+}
+
+/**
+ * @tc.name: AddChildTest
+ * @tc.desc: test AddChild
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, AddChildTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    c.isTextureExportNode = true;
+    std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->compositeLayerUtils_ =
+        std::make_shared<RSCompositeLayerUtils>(surfaceNode, static_cast<uint32_t>(TopLayerZOrder::POINTER_WINDOW));
+    surfaceNode->compositeLayerUtils_->compositeNode_ = RSSurfaceNode::Create(c);
+
+    auto node = RSCanvasNode::Create();
+    node->AddChild(surfaceNode);
+    EXPECT_TRUE(node->AddCompositeNodeChild(surfaceNode, -1));
 }
 
 HWTEST_F(RSNodeTest, DetachUIFilterPropertiesTest, TestSize.Level1)

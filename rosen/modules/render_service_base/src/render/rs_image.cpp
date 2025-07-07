@@ -181,7 +181,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                                  isFitMatrixValid_ ;
         Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
         }
         rectForDrawShader_ = dst_;
         if (isFitMatrixValid_) {
@@ -532,7 +532,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
 
             if (isAstc) {
-                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
             }
             rectForDrawShader_ = dst_;
             if (isOrientationValid_) {

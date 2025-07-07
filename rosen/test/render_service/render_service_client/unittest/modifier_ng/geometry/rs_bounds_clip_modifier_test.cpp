@@ -65,7 +65,7 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipRectWithRadiusTest, TestSize.Lev
     Vector4f clipRect(100.0f);
     Vector4f clipRadius(50.0f);
     modifier->SetClipRectWithRadius(clipRect, clipRadius);
-    EXPECT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CLIP_RRECT));
 }
 
 /**
@@ -78,7 +78,7 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipRRectTest, TestSize.Level1)
     auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
     auto rrect = std::make_shared<RRect>();
     modifier->SetClipRRect(rrect);
-    EXPECT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CLIP_RRECT));
 }
 
 /**
@@ -91,7 +91,7 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipBoundsTest, TestSize.Level1)
     auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
     auto clipToBounds = std::make_shared<RSPath>();
     modifier->SetClipBounds(clipToBounds);
-    EXPECT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CLIP_BOUNDS));
 }
 
 /**
@@ -104,6 +104,6 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipToBoundsTest, TestSize.Level1)
     auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
     bool clipToBounds = false;
     modifier->SetClipToBounds(clipToBounds);
-    EXPECT_NE(modifier, nullptr);
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CLIP_TO_BOUNDS));
 }
 } // namespace OHOS::Rosen

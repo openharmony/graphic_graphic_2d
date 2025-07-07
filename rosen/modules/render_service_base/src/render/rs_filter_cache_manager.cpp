@@ -513,13 +513,15 @@ void RSFilterCacheManager::UpdateFlags(FilterCacheType type, bool cacheValid)
     stagingIsAIBarInteractWithHWC_ = false;
 }
 
-bool RSFilterCacheManager::IsAIBarCacheValid()
+bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
 {
     if (filterType_ != RSFilter::AIBAR) {
         return false;
     }
-    stagingIsAIBarInteractWithHWC_ = true;
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsAIBarCacheValid \
+    if (intersectHwcDamage) {
+        stagingIsAIBarInteractWithHWC_ = true;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus \
         cacheUpdateInterval_:%d forceClearCacheForLastFrame_:%d",
         cacheUpdateInterval_, stagingForceClearCacheForLastFrame_);
     if (cacheUpdateInterval_ == 0 || stagingForceClearCacheForLastFrame_) {

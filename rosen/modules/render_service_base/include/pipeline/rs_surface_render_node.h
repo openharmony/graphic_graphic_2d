@@ -188,11 +188,16 @@ public:
     bool GetHardCursorStatus() const;
     bool GetHardCursorLastStatus() const;
 
-    void SetLayerTop(bool isTop);
+    void SetLayerTop(bool isTop, bool isTopLayerForceRefresh = true);
 
     bool IsLayerTop() const
     {
         return isLayerTop_;
+    }
+
+    bool IsTopLayerForceRefresh() const
+    {
+        return isTopLayerForceRefresh_;
     }
 
     void SetForceRefresh(bool isForceRefresh);
@@ -1076,7 +1081,7 @@ public:
     void AddChildHardwareEnabledNode(WeakPtr childNode);
     const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const;
 
-    bool IsFocusedNode(uint64_t focusedNodeId)
+    bool IsFocusedNode(uint64_t focusedNodeId) const
     {
         return GetId() == focusedNodeId;
     }
@@ -1673,6 +1678,7 @@ private:
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     uint32_t topLayerZOrder_ = 0;
     bool isLayerTop_ = false;
+    bool isTopLayerForceRefresh_ = false;
     bool isForceRefresh_ = false; // the self-drawing node need force refresh
     // Specifying hardware enable is only a 'hint' to RS that
     // the self-drawing node use hardware composer in some condition,

@@ -39,24 +39,7 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
-    void SetCanvasBlack(RSProcessor& processor);
-    void SetSecurityMask(RSProcessor& processor);
-    void CheckDirtyRefresh(CompositeType type, bool hasSecLayerInVisibleRect);
-    void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
-
-    void WiredScreenProjection(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    using DrawFuncPtr = void(RSLogicalDisplayRenderNodeDrawable::*)(Drawing::Canvas&);
-    void DrawMirror(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
-        DrawFuncPtr drawFunc, RSRenderThreadParams& uniParam);
-    void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
-        std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
-    void DrawWiredMirrorCopy(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
-    void DrawWiredMirrorOnDraw(
-        RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogicalDisplayRenderParams& params);
-    void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     int32_t GetSpecialLayerType(RSLogicalDisplayRenderParams& params, bool isSecLayerInVisibleRect = true);
-    void UpdateSlrScale(ScreenInfo& screenInfo, RSScreenRenderParams* params = nullptr);
-    void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
     void SetOriginScreenRotation(const ScreenRotation& rotate)
     {
         originScreenRotation_ = rotate;
@@ -73,13 +56,32 @@ public:
         return isFirstTimeToProcessor_;
     }
 
-    void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
 protected:
     explicit RSLogicalDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 
 private:
-    void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize);
-    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, bool isSamplingOn);
+    void SetCanvasBlack(RSProcessor& processor);
+    void SetSecurityMask(RSProcessor& processor);
+    void CheckDirtyRefresh(CompositeType type, bool hasSecLayerInVisibleRect);
+    void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
+    void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
+    void WiredScreenProjection(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
+    using DrawFuncPtr = void(RSLogicalDisplayRenderNodeDrawable::*)(Drawing::Canvas&);
+    void DrawMirror(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
+        DrawFuncPtr drawFunc, RSRenderThreadParams& uniParam);
+    void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
+        std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
+    void DrawWiredMirrorCopy(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorOnDraw(
+        RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogicalDisplayRenderParams& params);
+    void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
+    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params);
+    void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
+        bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
+    void UpdateSlrScale(ScreenInfo& screenInfo, RSScreenRenderParams* params = nullptr);
+    void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
+    void ClearTransparentBeforeSaveLayer();
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         RSScreenRenderNodeDrawable& curScreenDrawable, Drawing::Matrix canvasMatrix);
     std::vector<RectI> CalculateVirtualDirty(std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
@@ -87,7 +89,9 @@ private:
         Drawing::Matrix canvasMatrix);
     void UpdateDisplayDirtyManager(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
         int32_t bufferage, bool useAlignedDirtyRegion = false);
-    
+    std::shared_ptr<Drawing::ShaderEffect> MakeBrightnessAdjustmentShader(const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio);
+
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSLogicalDisplayRenderParams& params);
     void DrawAdditionalContent(RSPaintFilterCanvas& canvas);
     void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas);
@@ -129,6 +133,7 @@ private:
     Drawing::Matrix visibleClipRectMatrix_;
     Drawing::Matrix lastCanvasMatrix_;
     Drawing::Matrix lastMirrorMatrix_;
+    static std::shared_ptr<Drawing::RuntimeEffect> brightnessAdjustmentShaderEffect_;
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::LOGICAL_DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

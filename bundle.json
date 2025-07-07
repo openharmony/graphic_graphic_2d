@@ -162,6 +162,7 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
+            "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
             "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
             "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]
@@ -436,6 +437,14 @@
                   "js_hdr_format_utils.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/hdr_capability/hdr_capability_utils"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
+            "header": {
+            "header_files": [],
+            "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect/include"
             }
           },
           {

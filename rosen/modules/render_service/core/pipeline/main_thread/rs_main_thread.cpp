@@ -1901,17 +1901,23 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
             return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     });
 
+    // In the process of cutting the state, the self-drawing layer with the size before the cut state is probably
+    // sent, resulting in abnormal display, and this problem is solved by disabling HWC in the cutting state
+    auto screenManager = CreateOrGetScreenManager();
+    bool isFoldScreenSwitching = RSSystemProperties::IsFoldScreenFlag() && screenManager != nullptr &&
+        screenManager->IsScreenSwitching();
+
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
-    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ ||
+    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
         hasColorFilter || CheckOverlayDisplayEnable() ||
         (isMultiDisplay && !hasProtectedLayer_ && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode));
 
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
-        "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
-        isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
+        "isFoldScreenSwitching:%d doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
+        isHardwareForcedDisabled_, isFoldScreenSwitching, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
 
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
@@ -3813,7 +3819,7 @@ void RSMainThread::SendCommands()
             }
             app->OnTransaction(transactionPtr);
         }
-        RS_LOGI("RS send to %{public}s", dfxString.c_str());
+        RS_LOGD("RS send to %{public}s", dfxString.c_str());
         RS_TRACE_NAME_FMT("RSMainThread::SendCommand to %s", dfxString.c_str());
     });
 }
@@ -4213,6 +4219,19 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 
     RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
     RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
+    dumpString.append("---------------RenderServiceTreeDump-Begin---------------\n");
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (rootNode != nullptr) {
+        rootNode->DumpTree(0, dumpString);
+    }
+    const auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraversalNodes([&dumpString](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr || !node->IsOnTheTree()) {
+            return;
+        }
+        node->DumpTree(0, dumpString, true);
+    });
+    dumpString.append("---------------RenderServiceTreeDump-End---------------\n");
 #else
     dumpString.append("No GPU in this device");
 #endif

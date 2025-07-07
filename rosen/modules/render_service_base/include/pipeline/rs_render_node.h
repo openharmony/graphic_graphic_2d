@@ -257,7 +257,7 @@ public:
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
     std::list<WeakPtr> GetChildrenList() const;
 
-    void DumpTree(int32_t depth, std::string& ou) const;
+    void DumpTree(int32_t depth, std::string& ou, bool dumpSingleNode = false) const;
     void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
@@ -642,7 +642,7 @@ public:
 #endif
     bool IsFilterCacheValid() const;
     bool IsAIBarFilter() const;
-    bool IsAIBarFilterCacheValid() const;
+    bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const;
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 

@@ -48,8 +48,8 @@ public:
 HWTEST_F(RSCustomModifierHelperTest, CreateDrawingContextTest, TestSize.Level1)
 {
     std::shared_ptr<RSNode> node = nullptr;
-    RSCustomModifierHelper::CreateDrawingContext(node);
-    EXPECT_EQ(node, nullptr);
+    ModifierNG::RSDrawingContext context = RSCustomModifierHelper::CreateDrawingContext(node);
+    EXPECT_EQ(context.canvas, nullptr);
 
     RSDisplayNodeConfig config;
     std::shared_ptr<RSDisplayNode> node2 = RSDisplayNode::Create(config);
@@ -57,8 +57,8 @@ HWTEST_F(RSCustomModifierHelperTest, CreateDrawingContextTest, TestSize.Level1)
     EXPECT_FALSE(node2->IsInstanceOf<RSCanvasNode>());
 
     std::shared_ptr<RSNode> node3 = RSCanvasNode::Create();
-    ModifierNG::RSDrawingContext context = RSCustomModifierHelper::CreateDrawingContext(node3);
-    EXPECT_NE(context.canvas, nullptr);
+    ModifierNG::RSDrawingContext context3 = RSCustomModifierHelper::CreateDrawingContext(node3);
+    EXPECT_NE(context3.canvas, nullptr);
 }
 
 /**

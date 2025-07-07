@@ -41,7 +41,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr uint32_t HIGHEST_Z_ORDER = 999;
 constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
 RSUniRenderProcessor::RSUniRenderProcessor()
     : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
@@ -318,7 +317,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
         // Set the highest z-order for hardCursor
-        layer->SetZorder(HIGHEST_Z_ORDER);
+        layer->SetZorder(static_cast<int32_t>(TopLayerZOrder::POINTER_WINDOW));
     }
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
         layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X),

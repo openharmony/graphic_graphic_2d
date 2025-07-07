@@ -15,6 +15,7 @@
 
 #include "hm_symbol_run.h"
 #include "custom_symbol_config.h"
+#include "default_symbol_config.h"
 #include "draw/path.h"
 #include "hm_symbol_node_build.h"
 #include "include/pathops/SkPathOps.h"
@@ -171,7 +172,7 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
     symbolLayersGroups_.symbolGlyphId = glyphId;
     // Obtaining Symbol Preset LayerGroups Parameters
     if (symbolTxt_.GetSymbolType() == SymbolType::SYSTEM) {
-        auto groups = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
+        auto groups = OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetSymbolLayersGroups(glyphId);
         if (groups.renderModeGroups.empty()) {
             TEXT_LOGD("Failed to get system symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};
@@ -179,7 +180,8 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
         }
         symbolLayersGroups_ = groups;
     } else {
-        auto groups = CustomSymbolConfig::GetInstance()->GetSymbolLayersGroups(symbolTxt_.familyName_, glyphId);
+        auto groups = OHOS::Rosen::Symbol::CustomSymbolConfig::GetInstance()->GetSymbolLayersGroups(
+            symbolTxt_.familyName_, glyphId);
         if (!groups.has_value()) {
             TEXT_LOGD("Failed to get custom symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};

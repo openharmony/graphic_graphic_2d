@@ -90,7 +90,6 @@ HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction001, TestSize.Level1
     system::SetParameter("const.graphics.hybridrenderenable", hybridrenderEnable);
 }
 
-#ifdef RS_ENABLE_VK
 /**
  * @tc.name: FlushImplicitTransaction002
  * @tc.desc: test func FlushImplicitTransaction when hybridCallback is not null
@@ -113,7 +112,6 @@ HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction002, TestSize.Level1
     RSTransactionHandler::SetCommitTransactionCallback(callback);
     transaction->FlushImplicitTransaction(timestamp);
 }
-#endif
 
 /**
  * @tc.name: GetInstanceTest001

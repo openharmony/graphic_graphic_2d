@@ -249,6 +249,7 @@ public:
             case RSNGEffectType::SOUND_WAVE: return "SoundWave";
             case RSNGEffectType::EDGE_LIGHT: return "EdgeLight";
             case RSNGEffectType::DISPERSION: return "Dispersion";
+            case RSNGEffectType::DIRECTION_LIGHT: return "DirectionLight";
             case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
             case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
             case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
@@ -280,10 +281,13 @@ private:
         const std::string& desc, const Vector2f& value);
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+        const std::string& desc, const Vector3f& value);
+
+    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
         const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, std::shared_ptr<RSPath> value);
+        const std::string& desc, const VectorVector2F& value);
 
     static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
         const std::string& desc, std::shared_ptr<Media::PixelMap> value);

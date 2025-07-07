@@ -127,7 +127,7 @@ void SymbolLineGradient::SetAngle(float rangle)
     rangle_ = rangle;
 }
 
-float SymbolLineGradient::GetAngle()
+float SymbolLineGradient::GetAngle() const
 {
     return rangle_;
 }
@@ -256,19 +256,24 @@ void SymbolRadialGradient::SetRadius(float radius)
     isRadiusRatio_ = false;
 }
 
-Drawing::Point SymbolRadialGradient::GetCenterPoint()
+Drawing::Point SymbolRadialGradient::GetCenterPoint() const
 {
     return centerPtRatio_;
 }
 
-float SymbolRadialGradient::GetRadius()
+float SymbolRadialGradient::GetRadius() const
 {
     return radius_;
 }
 
-float SymbolRadialGradient::GetRadiusRatio()
+float SymbolRadialGradient::GetRadiusRatio() const
 {
     return radiusRatio_;
+}
+
+bool SymbolRadialGradient::IsRadiusRatio() const
+{
+    return isRadiusRatio_;
 }
 
 void SymbolRadialGradient::Make(const Drawing::Rect& bounds)

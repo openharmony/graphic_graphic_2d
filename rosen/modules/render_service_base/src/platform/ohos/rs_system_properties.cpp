@@ -871,6 +871,14 @@ bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetUIFirstDirtyEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dirty.enabled", "1");
@@ -1540,23 +1548,23 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
     isTypicalResidentProcess_ = isTypicalResidentProcess;
 }
 
-int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     static int isAccessToVulkanConfigFile = access(VULKAN_CONFIG_FILE_PATH, F_OK);
     if (isAccessToVulkanConfigFile == -1) {
         ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
-        return 0;
+        return false;
     }
     char* endPtr = nullptr;
     static uint32_t hybridRenderFeatureSwitch =
         std::strtoul(system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00").c_str(), &endPtr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
-    if (bitSeq >= ComponentEnableSwitch::SWITCH_MAX) {
-        return 0;
+    if (bitSeq < ComponentEnableSwitch::TEXTBLOB || bitSeq >= ComponentEnableSwitch::MAX_VALUE) {
+        return false;
     }
     if (!GetHybridRenderEnabled()) {
-        return 0;
+        return false;
     }
 
     hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)] =
@@ -1613,13 +1621,19 @@ int RSSystemProperties::GetSubThreadDropFrameInterval()
 bool RSSystemProperties::GetCompositeLayerEnabled()
 {
     static bool compositeLayerEnable =
-        system::GetBoolParameter("rosen.graphic.composite.layer", false);
+        system::GetBoolParameter("rosen.graphic.composite.layer", true);
     return compositeLayerEnable;
 }
 
 bool RSSystemProperties::GetEarlyZEnable()
 {
     return isEnableEarlyZ_;
+}
+
+bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 1) != 0;
+    return isAIBarOptEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

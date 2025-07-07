@@ -52,6 +52,7 @@
 #include "modifier_ng/background/rs_background_image_modifier.h"
 #include "modifier_ng/background/rs_background_shader_modifier.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
+#include "modifier_ng/custom/rs_node_modifier.h"
 #include "modifier_ng/foreground/rs_env_foreground_color_modifier.h"
 #include "modifier_ng/foreground/rs_foreground_color_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
@@ -493,6 +494,27 @@ HWTEST_F(RSNodeTest2, SetMagnifierParamsTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddModifier
+ * @tc.desc: test results of AddModifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, AddModifier, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    EXPECT_TRUE(node->modifiersNG_.empty());
+    node->AddModifier(nullptr);
+    EXPECT_TRUE(node->modifiersNG_.empty());
+    auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    node->AddModifier(alphaModifier);
+    EXPECT_EQ(node->modifiersNG_.size(), 1);
+    node->AddModifier(alphaModifier);
+    EXPECT_EQ(node->modifiersNG_.size(), 1);
+    auto nodeModifier = std::make_shared<ModifierNG::RSNodeModifier>();
+    node->AddModifier(nodeModifier);
+    EXPECT_EQ(node->modifiersNG_.size(), 1);
+}
+
+/**
  * @tc.name: RemoveModifier
  * @tc.desc: test results of RemoveModifier
  * @tc.type: FUNC
@@ -501,14 +523,21 @@ HWTEST_F(RSNodeTest2, RemoveModifier, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<ModifierNG::RSModifier> modifierNull = nullptr;
+    EXPECT_TRUE(rsNode->modifiersNG_.empty());
     rsNode->RemoveModifier(modifierNull);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
+    EXPECT_TRUE(rsNode->modifiersNG_.empty());
 
     auto para = std::make_shared<RSMagnifierParams>();
     rsNode->SetMagnifierParams(para);
+    EXPECT_FALSE(rsNode->modifiersNG_.empty());
     auto modifier = rsNode->GetModifierByType(ModifierNG::RSBackgroundFilterModifier::Type);
     rsNode->RemoveModifier(modifier);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
+    EXPECT_TRUE(rsNode->modifiersNG_.empty());
+
+    auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    EXPECT_TRUE(rsNode->modifiersNG_.empty());
+    rsNode->RemoveModifier(alphaModifier);
+    EXPECT_TRUE(rsNode->modifiersNG_.empty());
 }
 
 /**

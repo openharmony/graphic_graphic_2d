@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #include "ge_visual_effect.h"
+#include "ge_visual_effect_impl.h"
 #include "ge_visual_effect_container.h"
 
 #include "effect/rs_render_mask_base.h"
@@ -46,6 +47,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::EDGE_LIGHT, [] {
             return std::make_shared<RSNGRenderEdgeLightFilter>();
+        }
+    },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGRenderDirectionLightFilter>();
+        }
+    },
+    {RSNGEffectType::COLOR_GRADIENT, [] {
+            return std::make_shared<RSNGRenderColorGradientFilter>();
         }
     },
 };
@@ -90,6 +99,12 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
     return false;
 }
 
+void RSNGRenderFilterBase::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
+                                           std::shared_ptr<Drawing::GEVisualEffect> dest)
+{
+    RSUIFilterHelper::UpdateCacheData(src, dest);
+}
+
 void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
     std::shared_ptr<Drawing::GEVisualEffectContainer> container)
 {
@@ -99,10 +114,35 @@ void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>
     }
 
     auto current = filter;
-    if (current) {
+    while (current) {
         container->AddToChainedFilter(current->geFilter_);
         current = current->nextEffect_;
     }
 }
+
+void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
+                                       std::shared_ptr<Drawing::GEVisualEffect> dest)
+{
+    if (src == nullptr) {
+        RS_LOGE("RSUIFilterHelper::UpdateCacheData: src is nullptr");
+        return;
+    }
+    if (dest == nullptr) {
+        RS_LOGE("RSUIFilterHelper::UpdateCacheData: dest is nullptr");
+        return;
+    }
+    auto srcImpl = src->GetImpl();
+    auto destImpl = dest->GetImpl();
+    if (srcImpl == nullptr || destImpl == nullptr || srcImpl->GetFilterType() != destImpl->GetFilterType()) {
+        RS_LOGE("RSUIFilterHelper::UpdateCacheData: effect impl type mismatch");
+        return;
+    }
+
+    auto cache = srcImpl->GetCache();
+    if (cache != nullptr) {
+        destImpl->SetCache(cache);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

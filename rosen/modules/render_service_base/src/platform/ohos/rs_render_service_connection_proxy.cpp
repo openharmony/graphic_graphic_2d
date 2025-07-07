@@ -5714,5 +5714,27 @@ bool RSRenderServiceConnectionProxy::ProfilerIsSecureScreen()
     }
     return retValue;
 }
+
+void RSRenderServiceConnectionProxy::ClearUifirstCache(NodeId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearUifirstCache: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("ClearUifirstCache: WriteUint64 id err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearUifirstCache sendrequest error : %{public}d", err);
+        return;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

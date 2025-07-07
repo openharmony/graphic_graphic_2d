@@ -32,6 +32,7 @@ public:
      * @param   SVG        svg type
      * @param   HMSYMBOL   HMSymbol type
      * @param   CANVAS     canvasDrawingNode type
+     * @param   TYPE_MAX   max type
      * @detail  enable type for Hybrid Render
      */
     enum class HybridRenderType : uint32_t {
@@ -39,7 +40,8 @@ public:
         TEXT,
         SVG,
         HMSYMBOL,
-        CANVAS
+        CANVAS,
+        TYPE_MAX
     };
 
     /**

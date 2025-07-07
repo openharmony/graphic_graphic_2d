@@ -24,21 +24,36 @@ namespace OHOS {
 namespace Rosen {
 
 #undef LOG_TAG
-#define LOG_TAG "RSNGColorGradientFilter"
+#define LOG_TAG "RSNGColorGradientFilterImpl"
 
-std::shared_ptr<RSNGRenderFilterBase> RSNGColorGradientFilter::GetRenderEffect()
+void RSNGColorGradientFilter::SetColors(std::vector<float> colors)
+{
+    Setter<ColorGradientColorsTag>(colors);
+}
+
+void RSNGColorGradientFilter::SetPositions(std::vector<float> positions)
+{
+    Setter<ColorGradientPositionsTag>(positions);
+}
+
+void RSNGColorGradientFilter::SetStrengths(std::vector<float> strengths)
+{
+    Setter<ColorGradientStrengthsTag>(strengths);
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RSNGColorGradientFilterImpl::GetRenderEffect()
 {
     return nullptr;
 }
 
-bool RSNGColorGradientFilter::SetValue(
+bool RSNGColorGradientFilterImpl::SetValue(
     const std::shared_ptr<RSNGFilterBase>& other, RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
 {
     if (other == nullptr || GetType() != other->GetType()) {
         return false;
     }
 
-    auto otherDown = std::static_pointer_cast<RSNGColorGradientFilter>(other);
+    auto otherDown = std::static_pointer_cast<RSNGColorGradientFilterImpl>(other);
     bool updateFlag = SetColors(otherDown->colors_) &&
         SetPositions(otherDown->positions_) &&
         SetStrengths(otherDown->strengths_);
@@ -49,7 +64,7 @@ bool RSNGColorGradientFilter::SetValue(
     return Base::SetValue(other, node, modifier);
 }
 
-void RSNGColorGradientFilter::Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
+void RSNGColorGradientFilterImpl::Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
 {
     std::for_each(colors_.begin(), colors_.end(), [&node, &modifier](const auto& propTag) {
         (RSNGEffectUtils::Attach(propTag.value_, node, modifier));
@@ -63,7 +78,7 @@ void RSNGColorGradientFilter::Attach(RSNode& node, const std::weak_ptr<ModifierN
     Base::Attach(node, modifier);
 }
 
-void RSNGColorGradientFilter::Detach()
+void RSNGColorGradientFilterImpl::Detach()
 {
     std::for_each(colors_.begin(), colors_.end(), [](const auto& propTag) {
         (RSNGEffectUtils::Detach(propTag.value_));
@@ -77,7 +92,7 @@ void RSNGColorGradientFilter::Detach()
     Base::Detach();
 }
 
-bool RSNGColorGradientFilter::SetColors(std::vector<ColorGradientColorTag> colors)
+bool RSNGColorGradientFilterImpl::SetColors(std::vector<ColorGradientColorsTag> colors)
 {
     size_t colorSize = colors.size();
     if (colorSize != colors_.size()) {
@@ -90,7 +105,7 @@ bool RSNGColorGradientFilter::SetColors(std::vector<ColorGradientColorTag> color
     return true;
 }
 
-bool RSNGColorGradientFilter::SetPositions(std::vector<ColorGradientPositionTag> positions)
+bool RSNGColorGradientFilterImpl::SetPositions(std::vector<ColorGradientPositionsTag> positions)
 {
     size_t positionSize = positions.size();
     if (positionSize != positions_.size()) {
@@ -103,7 +118,7 @@ bool RSNGColorGradientFilter::SetPositions(std::vector<ColorGradientPositionTag>
     return true;
 }
 
-bool RSNGColorGradientFilter::SetStrengths(std::vector<ColorGradientStrengthTag> strengths)
+bool RSNGColorGradientFilterImpl::SetStrengths(std::vector<ColorGradientStrengthsTag> strengths)
 {
     size_t strengthSize = strengths.size();
     if (strengthSize != strengths_.size()) {

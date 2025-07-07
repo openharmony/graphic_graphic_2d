@@ -799,15 +799,15 @@ HWTEST_F(RSRenderNodeTest2, IsFilterCacheValid002, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAIBarFilterCacheValid
+ * @tc.name: CheckAndUpdateAIBarCacheStatus
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require: issueI9V3BK
  */
-HWTEST_F(RSRenderNodeTest2, IsAIBarFilterCacheValid, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, CheckAndUpdateAIBarCacheStatus, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    ASSERT_EQ(node.IsAIBarFilterCacheValid(), false);
+    ASSERT_EQ(node.CheckAndUpdateAIBarCacheStatus(false), false);
 }
 
 /**

@@ -44,7 +44,7 @@ private:
     inline static bool isCardUIFirstEnable_ = true;
     inline static bool isCacheOptimizeRotateEnable_ = false;
     inline static bool isFreeMultiWindowEnable_ = false;
-    inline static int uiFirstEnableWindowThreshold_ = 1;
+    inline static int uiFirstEnableWindowThreshold_ = 0;
     inline static int uiFirstType_ = 1;
 
     friend class UIFirstParamParse;

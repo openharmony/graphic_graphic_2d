@@ -44,7 +44,7 @@ using RSRenderAnimatablePropertyTag  = RenderPropertyTagBase<Name, RSRenderAnima
 
 class RSNGRenderMaskBase; // forward declaration, impl in rs_render_mask_base.h
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
-
+using VectorVector2F = std::vector<Vector2f>;
 #include "effect/rs_render_property_tag_def.in"
 
 #undef MASK_PTR
@@ -67,6 +67,7 @@ enum class RSNGEffectType : int16_t {
     EDGE_LIGHT,
     BEZIER_WARP,
     DISPERSION,
+    DIRECTION_LIGHT,
 
     AIBAR,
     GREY,

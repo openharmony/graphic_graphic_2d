@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 import("render_service_client.gni")
@@ -196,6 +197,7 @@ template("render_service_client_source_set") {
       "core/ui_effect/effect/src/visual_effect_unmarshalling_singleton.cpp",
       "core/ui_effect/effect/src/visual_effect.cpp",
       "core/ui_effect/filter/src/filter_content_light_para.cpp",
+      "core/ui_effect/filter/src/filter_direction_light_para.cpp",
       "core/ui_effect/filter/src/filter_dispersion_para.cpp",
       "core/ui_effect/filter/src/filter_displacement_distort_para.cpp",
       "core/ui_effect/filter/src/filter_mask_transition_para.cpp",
@@ -275,7 +277,10 @@ template("render_service_client_source_set") {
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+      deps += [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$rosen_text_root:rosen_text",
+      ]
       if (rs_enable_gpu) {
         defines += [ "RS_ENABLE_GPU" ]
       }
@@ -331,6 +336,10 @@ template("render_service_client_source_set") {
       external_deps += [ "hilog:libhilog" ]
     } else {
       external_deps = [ "hilog:libhilog" ]
+    }
+
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      external_deps += [ "jsoncpp:jsoncpp" ]
     }
 
     external_deps += [ "graphic_surface:surface_headers" ]

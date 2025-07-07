@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "utils/system_properties.h"
 
@@ -133,14 +134,6 @@ enum class DdgrOpincType {
 enum class DdgrOpincDfxType {
     OPINC_DFX_NONE,
     OPINC_DFX_AUTO,
-};
-
-enum class ComponentEnableSwitch {
-    TEXTBLOB = 0,
-    SVG,
-    HMSYMBOL,
-    CANVAS,
-    SWITCH_MAX,
 };
 
 struct GetComponentSwitch {
@@ -274,6 +267,7 @@ public:
     static bool GetHeterogComputingHDREnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetUIFirstOptScheduleEnabled();
+    static bool GetUIFirstBehindWindowEnabled();
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
@@ -367,7 +361,7 @@ public:
     static bool GetHybridRenderMemeoryReleaseEnabled();
     static bool GetHybridRenderSystemEnabled();
     static int32_t GetHybridRenderCcmEnabled();
-    static int32_t GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
+    static bool GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
     static bool GetHybridRenderTextBlobEnabled();
     static bool GetHybridRenderSvgEnabled();
     static bool GetHybridRenderHmsymbolEnabled();
@@ -381,6 +375,7 @@ public:
     static int GetSubThreadDropFrameInterval();
     static bool GetCompositeLayerEnabled();
     static bool GetEarlyZEnable();
+    static bool GetAIBarOptEnabled();
 
 private:
     RSSystemProperties() = default;

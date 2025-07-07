@@ -1606,10 +1606,45 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_003, TestSi
     auto node = std::make_shared<RSRenderNode>(id);
     nodeMap.renderNodeMap_[pid][id] = node;
     ASSERT_NE(node, nullptr);
-    ASSERT_FALSE(node->IsAIBarFilterCacheValid());
+    ASSERT_FALSE(node->CheckAndUpdateAIBarCacheStatus(false));
 
     rsUniHwcVisitor->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
     EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_004
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when rendernode is not null and Intersect with node.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    std::vector<std::pair<NodeId, RectI>> cleanFilter;
+    auto& properties = surfaceNode->GetMutableRenderProperties();
+    auto offset = std::nullopt;
+    Drawing::Matrix matrix;
+    matrix.SetScale(100, 100);
+    properties.UpdateGeometryByParent(&matrix, offset);
+    constexpr NodeId id = 1;
+    cleanFilter.emplace_back(NodeId(id), RectI(50, 50, 100, 100));
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    pid_t pid = ExtractPid(id);
+    auto node = std::make_shared<RSRenderNode>(id);
+    nodeMap.renderNodeMap_[pid][id] = node;
+
+    ASSERT_NE(surfaceNode->renderProperties_.boundsGeo_, nullptr);
+    surfaceNode->renderProperties_.boundsGeo_->absRect_ = RectI(60, 60, 80, 80);
+
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
 }
 
 /**

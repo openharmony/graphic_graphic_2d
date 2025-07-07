@@ -3409,11 +3409,15 @@ void RSNode::SetTakeSurfaceForUIFlag()
     auto transaction = GetRSTransaction();
     if (transaction != nullptr) {
         transaction->AddCommand(command, IsRenderServiceNode());
+        ROSEN_LOGW("OffScreenIsSync SetTakeSurfaceForUIFlag AddCommand be processed. nodeId: [%{public}" PRIu64 "]"
+            ", IsRenderServiceNode: [%{public}s]", GetId(), IsRenderServiceNode() ? "true" : "false");
         transaction->FlushImplicitTransaction();
     } else {
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());
+            ROSEN_LOGW("OffScreenIsSync SetTakeSurfaceForUIFlag AddCommand be processed. nodeId:[%{public}" PRIu64 "]"
+                ", IsRenderServiceNode: [%{public}s] (Proxy)", GetId(), IsRenderServiceNode() ? "true" : "false");
             transactionProxy->FlushImplicitTransaction();
         }
     }
@@ -4937,10 +4941,8 @@ void RSNode::Dump(std::string& out) const
         out += "null";
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
-#ifdef RS_ENABLE_VK
     out += "], hybridRenderCanvas[";
     out += hybridRenderCanvas_ ? "true" : "false";
-#endif
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {
         out += "{id:" + std::to_string(id);
@@ -5064,29 +5066,33 @@ void RSNode::SetPropertyNodeChangeCallback(PropertyNodeChangeCallback callback)
 #if defined(MODIFIER_NG)
 void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 {
-    if (modifier == nullptr) {
-        RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, GetId());
-        return;
-    }
-    if (modifiersNG_.count(modifier->GetId())) {
-        return;
-    }
-    modifiersNG_.emplace(modifier->GetId(), modifier);
-    modifier->OnAttach(*this); // Attach properties of modifier here
-    if (modifier->GetType() == ModifierNG::RSModifierType::NODE_MODIFIER) {
-        return;
-    }
-    if (modifier->GetType() != ModifierNG::RSModifierType::BOUNDS &&
-        modifier->GetType() != ModifierNG::RSModifierType::FRAME &&
-        modifier->GetType() != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
-        modifier->GetType() != ModifierNG::RSModifierType::ALPHA) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-        if (modifier->GetType() == ModifierNG::RSModifierType::TRANSFORM) {
-            SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        if (modifier == nullptr) {
+            RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, GetId());
+            return;
         }
+        if (modifiersNG_.count(modifier->GetId())) {
+            return;
+        }
+        modifier->OnAttach(*this); // Attach properties of modifier here
+        if (modifier->GetType() == ModifierNG::RSModifierType::NODE_MODIFIER) {
+            return;
+        }
+        if (modifier->GetType() != ModifierNG::RSModifierType::BOUNDS &&
+            modifier->GetType() != ModifierNG::RSModifierType::FRAME &&
+            modifier->GetType() != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
+            modifier->GetType() != ModifierNG::RSModifierType::ALPHA) {
+            SetDrawNode();
+            SetDrawNodeType(DrawNodeType::DrawPropertyType);
+            if (modifier->GetType() == ModifierNG::RSModifierType::TRANSFORM) {
+                SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+            }
+        }
+        NotifyPageNodeChanged();
+        modifiersNG_.emplace(modifier->GetId(), modifier);
     }
-    NotifyPageNodeChanged();
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
     if (NeedForcedSendToRemote()) {
@@ -5098,12 +5104,16 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 
 void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 {
-    if (modifier == nullptr || !modifiersNG_.count(modifier->GetId())) {
-        RS_LOGE("RSNode::RemoveModifier: null modifier or modifier not exist.");
-        return;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        if (modifier == nullptr || !modifiersNG_.count(modifier->GetId())) {
+            RS_LOGE("RSNode::RemoveModifier: null modifier or modifier not exist.");
+            return;
+        }
+        modifiersNG_.erase(modifier->GetId());
     }
     modifier->OnDetach(); // Detach properties of modifier here
-    modifiersNG_.erase(modifier->GetId());
     DetachUIFilterProperties(modifier);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRemoveModifierNG>(GetId(), modifier->GetType(), modifier->GetId());

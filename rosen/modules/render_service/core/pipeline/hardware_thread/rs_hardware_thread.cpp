@@ -282,7 +282,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu,%s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
             GetSurfaceNameInLayersForTrace(layers).c_str());
-        RS_LOGI("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
+        RS_LOGD("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
             size:%{public}zu, %{public}s", currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
             GetSurfaceNameInLayersForTrace(layers).c_str());
         bool isScreenPoweringOff = false;
@@ -292,7 +292,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
-        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(output);
+        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers, output->GetScreenId());
         if (!shouldDropFrame) {
             hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, param.rate);
             hgmHardwareUtils_.PerformSetActiveMode(
@@ -730,13 +730,9 @@ void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
     hgmHardwareUtils_.SetScreenVBlankIdle(screenId);
 }
 
-bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
+bool RSHardwareThread::IsDropDirtyFrame(const std::vector<LayerInfoPtr>& layerInfos, uint32_t screenId)
 {
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
-        return false;
-    }
-    if (output == nullptr) {
-        RS_LOGW("%{public}s: output is null", __func__);
         return false;
     }
     auto screenManager = CreateOrGetScreenManager();
@@ -745,15 +741,12 @@ bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
         return false;
     }
 
-    auto screenId = output->GetScreenId();
     auto rect = screenManager->QueryScreenInfo(screenId).activeRect;
     if (rect.IsEmpty()) {
         RS_LOGW("%{public}s: activeRect is empty", __func__);
         return false;
     }
     GraphicIRect activeRect = {rect.left_, rect.top_, rect.width_, rect.height_};
-    std::vector<LayerInfoPtr> layerInfos;
-    output->GetLayerInfos(layerInfos);
     if (layerInfos.empty()) {
         RS_LOGI("%{public}s: layerInfos is empty", __func__);
         return false;

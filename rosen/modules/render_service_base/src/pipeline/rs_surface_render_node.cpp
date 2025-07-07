@@ -1472,10 +1472,11 @@ void RSSurfaceRenderNode::SetTopLayerZOrder(uint32_t zOrder)
     topLayerZOrder_ = zOrder;
 }
 
-void RSSurfaceRenderNode::SetLayerTop(bool isTop)
+void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
 {
 #ifdef RS_ENABLE_GPU
     isLayerTop_ = isTop;
+    isTopLayerForceRefresh_ = isTopLayerForceRefresh;
     SetContentDirty();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {

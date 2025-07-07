@@ -1014,15 +1014,21 @@ bool RSSurfaceNode::SetCompositeLayer(TopLayerZOrder zOrder)
     }
     RS_TRACE_NAME_FMT("RSSurfaceNode::SetCompositeLayer %llu zOrder: %u", GetId(), zOrder);
     uint32_t topLayerZOrder = static_cast<uint32_t>(zOrder);
-
-    compositeLayerUtils_ = std::make_shared<RSCompositeLayerUtils>(shared_from_this(), topLayerZOrder);
-    if (zOrder == TopLayerZOrder::CHARGE_3D_MOTION && GetChildren().size() == 1) {
-        bool ret = compositeLayerUtils_->DealWithSelfDrawCompositeNode(GetChildren()[0].lock(), topLayerZOrder);
-        compositeLayerUtils_ = nullptr;
-        return ret;
+    if (IsSelfDrawingNode()) {
+        RS_LOGI("RSSurfaceNode::SetCompositeLayer selfDrawingNode %{public}" PRIu64 " setLayerTop directly", GetId());
+        RSInterfaces::GetInstance().SetLayerTopForHWC(GetName(), true, topLayerZOrder);
+        return true;
     }
-
     name_ = "compositeLayer_" + std::to_string(GetId());
+    compositeLayerUtils_ = std::make_shared<RSCompositeLayerUtils>(shared_from_this(), topLayerZOrder);
+    if (zOrder == TopLayerZOrder::CHARGE_3D_MOTION) {
+        if (GetChildren().size() == 1) {
+            bool ret = compositeLayerUtils_->DealWithSelfDrawCompositeNode(GetChildren()[0].lock(), topLayerZOrder);
+            compositeLayerUtils_ = nullptr;
+            return ret;
+        }
+        return false;
+    }
     return compositeLayerUtils_->CreateCompositeLayer();
 }
 

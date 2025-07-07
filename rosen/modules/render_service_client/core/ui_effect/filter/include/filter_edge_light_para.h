@@ -63,22 +63,27 @@ public:
     }
 
     // color: red, green, blue, alpha
-    void SetColor(const std::optional<Vector4f>& color)
+    void SetColor(const Vector4f& color)
     {
         color_ = color;
     }
 
     // return: red, green, blue, alpha
-    const std::optional<Vector4f>& GetColor() const
+    const Vector4f& GetColor() const
     {
         return color_;
     }
 
+    void SetUseRawColor(bool useRawColor) { useRawColor_ = useRawColor; }
+
+    bool GetUseRawColor() const { return useRawColor_; }
+
 private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
-    std::optional<Vector4f> color_ = std::nullopt;
+    Vector4f color_;
     float alpha_ = 0.f;
     bool bloom_ = true;
+    bool useRawColor_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
