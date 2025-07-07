@@ -74,11 +74,12 @@ namespace {
     constexpr const char FOLD_2 = '3';
     constexpr const char MIDDLE = '2';
     constexpr const float DEFAULT_SIZE_RATIO = 1.0f;
-    constexpr const float EXPAND_MIDDLE_SIZE_RATIO = 2.0/3.0f;
-    constexpr const float FOLD_SIZE_RATIO = 1.0/3.0f;
-    constexpr const float FOLD_X_OFFSET = 1.0/3.0f;
-    constexpr const float MIDDLE_X_OFFSET = 1.0/6.0f; 
+    constexpr const float EXPAND_MIDDLE_SIZE_RATIO = 2.0 / 3.0f;
+    constexpr const float FOLD_SIZE_RATIO = 1.0 / 3.0f;
+    constexpr const float FOLD_X_OFFSET = 1.0 / 3.0f;
+    constexpr const float MIDDLE_X_OFFSET = 1.0 / 6.0f; 
     constexpr const float DEGREE = 90.0f;
+    constexpr const int DOULBE_TIMES = 2;
 }
 
 void BootCompileProgress::Init(const BootAnimationConfig& config)
@@ -96,7 +97,7 @@ void BootCompileProgress::Init(const BootAnimationConfig& config)
     windowHeight_ = modeInfo.GetScreenHeight();
     fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? FONT_SIZE_OTHER : FONT_SIZE_PHONE);
     currentRadius_ = isWearable_ ? RADIUS_WEARABLE :
-        TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * 2 : RADIUS);
+        TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * DOULBE_TIMES : RADIUS);
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
     tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
@@ -348,14 +349,14 @@ void BootCompileProgress::SetFrame()
             case FOLD_1:
             case FOLD_2:
                 sizeRatio = FOLD_SIZE_RATIO;
-                rsCanvasNode_->SetFrame(0-windowHeight_ * FOLD_X_OFFSET, windowWidth_ , windowHeight_,
+                rsCanvasNode_->SetFrame(0-windowHeight_ * FOLD_X_OFFSET, windowWidth_, windowHeight_,
                     windowWidth_ * HEIGHT_PERCENT);
                 break;
             case MIDDLE:
                 sizeRatio = EXPAND_MIDDLE_SIZE_RATIO;
                 rsCanvasNode_->SetFrame(windowHeight_ * MIDDLE_X_OFFSET, windowWidth_, windowHeight_,
                     windowWidth_ * HEIGHT_PERCENT);
-              break;
+                break;
             default:
                 int32_t maxLength = std::max(windowWidth_, windowHeight_);
                 rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
