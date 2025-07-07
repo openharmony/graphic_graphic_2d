@@ -1159,18 +1159,6 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCompositeLayerEnabledTest
- * @tc.desc: GetCompositeLayerEnabledTest
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSystemPropertiesTest, GetCompositeLayerEnabledTest, TestSize.Level1)
-{
-    bool enabled = RSSystemProperties::GetCompositeLayerEnabled();
-    EXPECT_EQ(enabled, true);
-}
-
-/**
  * @tc.name: SetTypicalResidentProcessTest001
  * @tc.desc: set isTypicalResidentProcess_ to true and GetHybridRenderEnabled
  * @tc.type:FUNC

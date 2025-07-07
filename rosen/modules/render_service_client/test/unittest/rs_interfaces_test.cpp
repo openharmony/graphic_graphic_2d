@@ -2589,20 +2589,6 @@ HWTEST_F(RSInterfacesTest, SetColorFollow002, Function | SmallTest | Level2)
 }
 
 /*
- * @tc.name: SetLayerTopForHWCTest
- * @tc.desc: Test SetLayerTopForHWC
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, SetLayerTopForHWCTest, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    RSSurfaceNodeConfig c;
-    auto node = RSSurfaceNode::Create(c);
-    std::string nodeIdStr = std::to_string(node->GetId());
-    rsInterfaces->SetLayerTopForHWC(nodeIdStr, true, static_cast<uint32_t>(TopLayerZOrder::CHARGE_ACTION_TEXT));
-}
-
-/*
  * @tc.name: ClearUifirstCache
  * @tc.desc: Test ClearUifirstCache
  * @tc.type: FUNC

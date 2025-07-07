@@ -3146,7 +3146,7 @@ ErrCode RSRenderServiceConnection::SetLayerTopForHWC(const std::string &nodeIdSt
             [&nodeIdStr, &isTop, &zOrder](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
                 (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-                surfaceNode->SetLayerTop(isTop, false);
+                surfaceNode->SetLayerTop(isTop);
                 surfaceNode->SetTopLayerZOrder(zOrder);
                 return;
             }

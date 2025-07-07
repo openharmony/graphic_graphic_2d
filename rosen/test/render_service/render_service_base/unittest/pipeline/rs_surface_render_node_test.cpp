@@ -2750,23 +2750,5 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
-
-/**
- * @tc.name: SetTopLayerZOrderTest
- * @tc.desc: Test SetTopLayerZOrder
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetTopLayerZOrderTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->isLayerTop_ = false;
-    node->SetTopLayerZOrder(1);
-    EXPECT_NE(node->GetTopLayerZOrder(), 1);
-
-    node->isLayerTop_ = true;
-    node->SetTopLayerZOrder(1);
-    EXPECT_EQ(node->GetTopLayerZOrder(), 1);
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -18,37 +18,6 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path =
     "graphic_2d/graphic_2d/rosen_engine/render_service_client/feature"
 
-##############################  RSCompositeLayerUtilsTest  ##################################
-ohos_unittest("RSCompositeLayerUtilsTest") {
-  module_out_path = module_output_path
-  sources = [
-    "composite_layer/rs_composite_layer_utils_test.cpp"
-  ]
-
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
-
-  configs = [
-    ":ui_test",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
-  ]
-
-  cflags = [
-    "-Dprivate = public",
-    "-Dprotected = public",
-  ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-  ]
-
-  subsystem_name = "graphic"
-  external_deps = [
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-  ]
-}
-
 ##############################  RSExtNodeOperationTest  ##################################
 ohos_unittest("RSExtNodeOperationTest") {
   module_out_path = module_output_path

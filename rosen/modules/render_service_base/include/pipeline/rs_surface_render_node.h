@@ -188,16 +188,11 @@ public:
     bool GetHardCursorStatus() const;
     bool GetHardCursorLastStatus() const;
 
-    void SetLayerTop(bool isTop, bool isTopLayerForceRefresh = true);
+    void SetLayerTop(bool isTop);
 
     bool IsLayerTop() const
     {
         return isLayerTop_;
-    }
-
-    bool IsTopLayerForceRefresh() const
-    {
-        return isTopLayerForceRefresh_;
     }
 
     void SetForceRefresh(bool isForceRefresh);
@@ -1678,7 +1673,6 @@ private:
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     uint32_t topLayerZOrder_ = 0;
     bool isLayerTop_ = false;
-    bool isTopLayerForceRefresh_ = false;
     bool isForceRefresh_ = false; // the self-drawing node need force refresh
     // Specifying hardware enable is only a 'hint' to RS that
     // the self-drawing node use hardware composer in some condition,

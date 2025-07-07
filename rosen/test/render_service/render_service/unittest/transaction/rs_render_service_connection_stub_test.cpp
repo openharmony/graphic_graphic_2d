@@ -391,9 +391,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK)),
         ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER)),
-        ERR_INVALID_DATA);
-    EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP)), ERR_INVALID_STATE);
     EXPECT_EQ(OnRemoteRequestTest(
                   static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST)),
@@ -1086,27 +1083,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, ProfilerServicePopulateFilesTest, Te
     data.WriteUint32(0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
-}
-
-/**
- * @tc.name: SetLayerTopForHWCTest
- * @tc.desc: Test SetLayerTopForHWC
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetLayerTopForHWCTest, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteString("13456");
-    data.WriteBool(true);
-    data.WriteUint32(1);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
 }
 
 /**

@@ -1621,7 +1621,7 @@ int RSSystemProperties::GetSubThreadDropFrameInterval()
 bool RSSystemProperties::GetCompositeLayerEnabled()
 {
     static bool compositeLayerEnable =
-        system::GetBoolParameter("rosen.graphic.composite.layer", true);
+        system::GetBoolParameter("rosen.graphic.composite.layer", false);
     return compositeLayerEnable;
 }
 

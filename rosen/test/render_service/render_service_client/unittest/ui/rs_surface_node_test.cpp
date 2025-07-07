@@ -15,7 +15,6 @@
 
 #include "gtest/gtest.h"
 #include "parameters.h"
-#include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 #include "limit_number.h"
 
@@ -1324,71 +1323,6 @@ HWTEST_F(RSSurfaceNodeTest, SetTextureExport, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetTextureExport(true);
     surfaceNode->SetTextureExport(false);
-}
-
-/**
- * @tc.name: SetHidePrivacyContentTest
- * @tc.desc: test SetHidePrivacyContent
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceNodeTest, SetHidePrivacyContentTest, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_NE(surfaceNode, nullptr);
-    EXPECT_EQ(surfaceNode->SetHidePrivacyContent(true), RSInterfaceErrorCode::NO_ERROR);
-}
-
-/**
- * @tc.name: IsSelfDrawingNodeTest
- * @tc.desc: test IsSelfDrawingNode
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceNodeTest, IsSelfDrawingNodeTest, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_NE(surfaceNode, nullptr);
-    EXPECT_FALSE(surfaceNode->IsSelfDrawingNode());
-
-    RSSurfaceNode::SharedPtr surfaceNode1 = RSSurfaceNode::Create(c, false);
-    ASSERT_NE(surfaceNode1, nullptr);
-    EXPECT_FALSE(surfaceNode1->IsSelfDrawingNode());
-}
-
-/**
- * @tc.name: SetCompositeLayerTest
- * @tc.desc: test SetCompositeLayer
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceNodeTest, SetCompositeLayerTest, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_NE(surfaceNode, nullptr);
-    EXPECT_FALSE(surfaceNode->SetCompositeLayer(TopLayerZOrder::CHARGE_3D_MOTION));
-    EXPECT_FALSE(surfaceNode->SetCompositeLayer(TopLayerZOrder::CHARGE_ACTION_TEXT));
-
-    auto child = RSCanvasNode::Create();
-    surfaceNode->AddChild(child, -1);
-    EXPECT_FALSE(surfaceNode->SetCompositeLayer(TopLayerZOrder::CHARGE_3D_MOTION));
-}
-
-/**
- * @tc.name: GetCompositeLayerUtilsTest
- * @tc.desc: test GetCompositeLayerUtils
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceNodeTest, GetCompositeLayerUtilsTest, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_NE(surfaceNode, nullptr);
-    EXPECT_EQ(surfaceNode->GetCompositeLayerUtils(), nullptr);
 }
 
 /**
