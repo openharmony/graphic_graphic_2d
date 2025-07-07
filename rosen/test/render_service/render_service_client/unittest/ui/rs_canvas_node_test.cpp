@@ -3701,7 +3701,6 @@ HWTEST_F(RSCanvasNodeTest, UnMarshalling002, TestSize.Level1)
     EXPECT_EQ(canvasNodeUm->GetId(), canvasNode->GetId());
 }
 
-#ifdef RS_ENABLE_VK
 /**
  * @tc.name: GetBitmap001
  * @tc.desc: Test GetBitmap
@@ -3800,9 +3799,12 @@ HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetHybridRenderCanvas(true);
     auto ret = canvasNode->ResetSurface(0, 0);
+#ifdef RS_ENABLE_VK
     EXPECT_EQ(ret, true);
-}
+#else
+    EXPECT_EQ(ret, false);
 #endif
+}
 
 /**
  * @tc.name: SetRSUIContextTest001

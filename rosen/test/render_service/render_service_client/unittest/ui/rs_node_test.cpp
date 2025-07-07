@@ -6176,7 +6176,6 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 
-#ifdef RS_ENABLE_VK
 /**
  * @tc.name: HybridRender001
  * @tc.desc: Test SetHybridRenderCanvas and IsHybridRenderCanvas
@@ -6215,7 +6214,6 @@ HWTEST_F(RSNodeTest, Dump001, TestSize.Level1)
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
 }
-#endif
 
 /**
  * @tc.name: SetTakeSurfaceForUIFlag

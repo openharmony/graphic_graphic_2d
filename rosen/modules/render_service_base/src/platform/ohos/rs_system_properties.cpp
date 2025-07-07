@@ -1548,23 +1548,23 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
     isTypicalResidentProcess_ = isTypicalResidentProcess;
 }
 
-int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     static int isAccessToVulkanConfigFile = access(VULKAN_CONFIG_FILE_PATH, F_OK);
     if (isAccessToVulkanConfigFile == -1) {
         ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
-        return 0;
+        return false;
     }
     char* endPtr = nullptr;
     static uint32_t hybridRenderFeatureSwitch =
         std::strtoul(system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00").c_str(), &endPtr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
-    if (bitSeq >= ComponentEnableSwitch::SWITCH_MAX) {
-        return 0;
+    if (bitSeq < ComponentEnableSwitch::TEXTBLOB || bitSeq >= ComponentEnableSwitch::MAX_VALUE) {
+        return false;
     }
     if (!GetHybridRenderEnabled()) {
-        return 0;
+        return false;
     }
 
     hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)] =

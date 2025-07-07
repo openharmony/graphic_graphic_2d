@@ -4937,10 +4937,8 @@ void RSNode::Dump(std::string& out) const
         out += "null";
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
-#ifdef RS_ENABLE_VK
     out += "], hybridRenderCanvas[";
     out += hybridRenderCanvas_ ? "true" : "false";
-#endif
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {
         out += "{id:" + std::to_string(id);

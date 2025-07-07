@@ -64,9 +64,7 @@ std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
-#ifdef RS_ENABLE_VK
 static std::once_flag g_initHybridCallback;
-#endif
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -110,9 +108,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance)
     } else {
         // force fallback animaiions send to RS if no render thread
         RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
-#ifdef RS_ENABLE_VK
         InitHybridRender();
-#endif
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
@@ -140,9 +136,9 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
     }
 }
 
-#ifdef RS_ENABLE_VK
 void RSUIDirector::InitHybridRender()
 {
+#ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         if (!cacheDir_.empty()) {
             RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
@@ -188,6 +184,7 @@ void RSUIDirector::InitHybridRender()
         };
         SetCommitTransactionCallback(callback);
     }
+#endif
 }
 
 void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
@@ -206,7 +203,21 @@ void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commit
         }
     }
 }
-#endif
+
+bool RSUIDirector::IsHybridRenderEnabled()
+{
+    return RSSystemProperties::GetHybridRenderEnabled();
+}
+
+bool RSUIDirector::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+{
+    return RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+}
+
+uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
+{
+    return RSSystemProperties::GetHybridRenderTextBlobLenCount();
+}
 
 void RSUIDirector::StartTextureExport()
 {

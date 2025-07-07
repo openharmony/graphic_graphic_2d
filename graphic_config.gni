@@ -348,11 +348,6 @@ if (exec_script(check_graphic_ext_file_script,
   }
 }
 
-if (graphic_2d_feature_enable_vulkan &&
-    defined(graphic_2d_modifiers_draw_configs.vendor_root)) {
-  gpu_defines += [ "ACE_ENABLE_HYBRID_RENDER" ]
-}
-
 flutter_root = "//third_party/flutter"
 ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"

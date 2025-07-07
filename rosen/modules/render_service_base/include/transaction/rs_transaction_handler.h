@@ -33,10 +33,8 @@ namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-#ifdef RS_ENABLE_VK
 using CommitTransactionCallback =
     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
-#endif
 class RSB_EXPORT RSTransactionHandler final {
 public:
     RSTransactionHandler() = default;
@@ -70,9 +68,7 @@ public:
         flushEmptyCallback_ = flushEmptyCallback;
     }
 
-#ifdef RS_ENABLE_VK
     static void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
-#endif
 
     void SetSyncId(const uint64_t syncId)
     {
@@ -116,9 +112,7 @@ private:
     bool needSync_ { false };
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
-#ifdef RS_ENABLE_VK
     static CommitTransactionCallback commitTransactionCallback_;
-#endif
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};
 };
