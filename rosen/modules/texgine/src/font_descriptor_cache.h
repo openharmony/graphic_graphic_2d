@@ -22,6 +22,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "font_config.h"
 #include "font_parser.h"
 
 namespace OHOS::Rosen {
@@ -35,19 +36,19 @@ public:
     void ClearFontFileCache();
     void Dump();
     void GetFontDescSharedPtrByFullName(const std::string& fullName,
-        const int32_t& systemFontType, FontDescSharedPtr& result);
+        const int32_t& systemFontType, FontDescSharedPtr& result) const;
     void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
 
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
     bool ParserInstallFontsPathList(std::vector<std::string>& fontPathList);
-    bool ParserInstallFontsPathList(std::unordered_map<std::string, std::string>& fontPathList);
-    bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
-    bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result);
+    static bool ParserInstallFontsPathList(TextEngine::FullNameToPath& fontPathList);
+    static bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
+    bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result) const;
     std::unordered_set<std::string> GetInstallFontList();
     std::unordered_set<std::string> GetStylishFontList();
     std::unordered_set<std::string> GetGenericFontList();
-    int32_t WeightAlignment(int32_t weight);
+    static int32_t WeightAlignment(int32_t weight);
 
 private:
     TextEngine::FontParser parser_;

@@ -101,21 +101,24 @@ public:
 
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = ENGLISH);
     std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
-        const std::string& path, const std::string& locale = ENGLISH);
+        const std::string& path, const std::string& locale = ENGLISH) const;
+    std::shared_ptr<FontDescriptor> ParserFontDescriptorFromPath(
+        const std::string& path, size_t index, const std::string& locale = ENGLISH) const;
+    std::shared_ptr<FontDescriptor> CreateFontDescriptor(
+        const std::shared_ptr<Drawing::Typeface>& typeface, unsigned int languageId) const;
     std::vector<std::shared_ptr<FontDescriptor>> CreateFontDescriptors(
-        const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces,
-        const std::string& locale = ENGLISH);
+        const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces, const std::string& locale = ENGLISH) const;
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
         FontDescriptor& fontDescriptor);
     static void ProcessCmapTable(const struct CmapTables* cmapTable, FontDescriptor& fontDescriptor);
-    int ProcessNameTable(const struct NameTable* nameTable, FontDescriptor& fontDescriptor) const;
+    static int ProcessNameTable(const struct NameTable* nameTable, FontDescriptor& fontDescriptor);
     static void ProcessPostTable(const struct PostTable* postTable, FontDescriptor& fontDescriptor);
-    int ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
-    int ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    static int ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    static int ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    static int ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    static int ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
     int SetFontDescriptor(const unsigned int languageId);
     std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(const std::string& fontName,
         const unsigned int languageId);
@@ -123,7 +126,7 @@ private:
         const std::string& nameString);
     static void SetNameString(FontParser::FontDescriptor& fontDescriptor, std::string& field, unsigned int& fieldLid,
         unsigned int languageId, const std::string& nameString);
-    int GetLanguageId(const std::string& locale)
+    int GetLanguageId(const std::string& locale) const
     {
         std::string localeLower = locale;
         transform(localeLower.begin(), localeLower.end(), localeLower.begin(), tolower);
@@ -142,8 +145,6 @@ private:
         const std::string& targetType);
 #endif
 
-    const char* data_;
-    unsigned int length_;
     std::vector<std::string> fontSet_;
     std::vector<FontDescriptor> visibilityFonts_;
 };

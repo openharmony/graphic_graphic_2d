@@ -20,7 +20,7 @@
 #include <nocopyable.h>
 #endif
 
-#include <mutex>
+#include <shared_mutex>
 
 #include "font_descriptor_cache.h"
 #include "font_parser.h"
@@ -47,7 +47,7 @@ private:
     FontDescriptorMgr();
 
     FontDescriptorCache descCache_;
-    std::mutex parserMtx_;
+    std::shared_mutex parserMtx_;
 };
 } // namespace OHOS::Rosen
 #define FontDescriptorMgrInstance OHOS::Rosen::FontDescriptorMgr::GetInstance()
