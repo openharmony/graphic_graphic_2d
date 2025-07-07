@@ -118,7 +118,7 @@ void RSScreenRenderNodeDrawableTest::SetUp()
         std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(displayRenderNode_->GetRenderDrawable()).get();
     mirroredDisplayDrawable_ =
         std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(mirroredDisplayNode_->GetRenderDrawable()).get();
-    if (!screenDrawable_ ||！mirroredScreenDrawable_ || !displayDrawable_ || !mirroredDisplayDrawable_) {
+    if (!screenDrawable_ || !mirroredScreenDrawable_ || !displayDrawable_ || !mirroredDisplayDrawable_) {
         RS_LOGE("RSScreenRenderNodeDrawableTest: failed to create drawable.");
         return;
     }
