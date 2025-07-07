@@ -5062,33 +5062,31 @@ void RSNode::SetPropertyNodeChangeCallback(PropertyNodeChangeCallback callback)
 #if defined(MODIFIER_NG)
 void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
 {
-    if (modifier == nullptr) {
-        RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, GetId());
-        return;
-    }
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        if (modifier == nullptr) {
+            RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, GetId());
+            return;
+        }
         if (modifiersNG_.count(modifier->GetId())) {
             return;
         }
-    }
-    modifier->OnAttach(*this); // Attach properties of modifier here
-    if (modifier->GetType() == ModifierNG::RSModifierType::NODE_MODIFIER) {
-        return;
-    }
-    if (modifier->GetType() != ModifierNG::RSModifierType::BOUNDS &&
-        modifier->GetType() != ModifierNG::RSModifierType::FRAME &&
-        modifier->GetType() != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
-        modifier->GetType() != ModifierNG::RSModifierType::ALPHA) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-        if (modifier->GetType() == ModifierNG::RSModifierType::TRANSFORM) {
-            SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+        modifier->OnAttach(*this); // Attach properties of modifier here
+        if (modifier->GetType() == ModifierNG::RSModifierType::NODE_MODIFIER) {
+            return;
         }
-    }
-    NotifyPageNodeChanged();
-    {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (modifier->GetType() != ModifierNG::RSModifierType::BOUNDS &&
+            modifier->GetType() != ModifierNG::RSModifierType::FRAME &&
+            modifier->GetType() != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
+            modifier->GetType() != ModifierNG::RSModifierType::ALPHA) {
+            SetDrawNode();
+            SetDrawNodeType(DrawNodeType::DrawPropertyType);
+            if (modifier->GetType() == ModifierNG::RSModifierType::TRANSFORM) {
+                SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+            }
+        }
+        NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
@@ -5104,6 +5102,7 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
 {
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
         if (modifier == nullptr || !modifiersNG_.count(modifier->GetId())) {
             RS_LOGE("RSNode::RemoveModifier: null modifier or modifier not exist.");
             return;
