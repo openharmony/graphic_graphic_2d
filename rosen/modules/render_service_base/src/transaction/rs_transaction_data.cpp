@@ -16,6 +16,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "command/rs_node_command.h"
 #include "common/rs_optional_trace.h"
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
@@ -132,7 +133,17 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(
                 TRACE_LEVEL_THREE, "RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
 #endif
+            bool isUiCapSyncCmd = ((command->GetType() == RSCommandType::RS_NODE) &&
+                (command->GetSubType() == RSNodeCommandType::SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG));
+            if (isUiCapSyncCmd) {
+                RS_LOGW("OffScreenIsSync RSTransactionData::Marshalling, nodeId:[%{public}" PRIu64 "] start",
+                    command->GetNodeId());
+            }
             success = success && command->Marshalling(parcel);
+            if (isUiCapSyncCmd) {
+                RS_LOGW("OffScreenIsSync RSTransactionData::Marshalling, nodeId:[%{public}" PRIu64 "] "
+                    "%{public}s", command->GetNodeId(), success ? "success" : "failed");
+            }
             if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
                 RS_LOGE("RSTransactionData::Marshalling failed to write end position marshallingIndex:%{public}zu",
                     marshallingIndex_);
@@ -326,6 +337,12 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             RS_OPTIONAL_TRACE_NAME_FMT("UnmarshallingCommand [nodeId:%zu], cmd is [%s]", command->GetNodeId(),
                 command->PrintType().c_str());
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
+            bool isUiCapSyncCmd = ((commandType == RSCommandType::RS_NODE) &&
+                (commandSubType == RSNodeCommandType::SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG));
+            if (isUiCapSyncCmd) {
+                RS_LOGW("OffScreenIsSync RSTransactionData::UnmarshallingCmd finished, cmdSize: [%{public}d], "
+                    "nodeId:[%{public}" PRIu64 "]", commandSize, command->GetNodeId());
+            }
             payloadLock.unlock();
         } else {
             continue;
