@@ -77,15 +77,15 @@ public:
             thread_.join();
         }
         system("param set persist.graphic.profiler.enabled 0");
-        while (!message_queue_.empty()) {
-            message_queue_.pop();
+        while (!messageQueue_.empty()) {
+            messageQueue_.pop();
         }
     }
 
     void SendCommand(const std::string command)
     {
-        std::unique_lock lock(queue_mutex_);
-        message_queue_.push(command);
+        std::unique_lock lock(queueMutex_);
+        messageQueue_.push(command);
     }
 
     bool IsSocketActive() const
@@ -132,23 +132,24 @@ private:
         runnig_ = true;
         while (runnig_) {
             {
-                std::unique_lock lock(queue_mutex_);
+                std::unique_lock lock(queueMutex_);
                 cv_.wait_for(lock, std::chrono::milliseconds(SOCKET_REFRESH_TIME), [this] { return !runnig_; });
             }
             SendMessage();
             RecieveMessage();
         }
         close(socket_);
+        socket_ = -1
     }
 
     void SendMessage()
     {
         std::string message;
         {
-            std::lock_guard<std::mutex> lock(queue_mutex_);
-            if (!message_queue_.empty()) {
-                message = message_queue_.front();
-                message_queue_.pop();
+            std::lock_guard<std::mutex> lock(queueMutex_);
+            if (!messageQueue_.empty()) {
+                message = messageQueue_.front();
+                messageQueue_.pop();
             }
         }
         if (message.empty()) {
@@ -229,9 +230,9 @@ private:
 private:
     int32_t socket_ = -1;
     std::thread thread_;
-    std::queue<std::string> message_queue_;
+    std::queue<std::string> messageQueue_;
     bool runnig_ = false;
-    std::mutex queue_mutex_;
+    std::mutex queueMutex_;
     std::condition_variable cv_;
 };
 
