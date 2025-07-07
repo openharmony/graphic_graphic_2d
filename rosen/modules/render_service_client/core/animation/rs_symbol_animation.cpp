@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+#include "animation/rs_symbol_animation.h"
+
 #include <cmath>
 
 #include "animation/rs_keyframe_animation.h"
-#include "animation/rs_symbol_animation.h"
-#include "skia_txt/default_symbol_config.h"
 #include "draw/paint.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
@@ -25,6 +25,7 @@
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "platform/common/rs_log.h"
+#include "skia_txt/default_symbol_config.h"
 #include "utils/point.h"
 
 namespace OHOS {
@@ -476,7 +477,8 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
     animationLevelNum = animationLevelNum + 1;
 
     // get animation group paramaters
-    if (std::count(upAndDownSupportAnimations_.begin(), upAndDownSupportAnimations_.end(), effectStrategy) != 0) {
+    auto it = std::find(upAndDownSupportAnimations_.begin(), upAndDownSupportAnimations_.end(), effectStrategy);
+    if (it != upAndDownSupportAnimations_.end()) {
         parameters = OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetGroupParameters(
             Drawing::DrawingAnimationType(effectStrategy), static_cast<uint16_t>(animationLevelNum),
             symbolAnimationConfig->animationMode, symbolAnimationConfig->commonSubType);
