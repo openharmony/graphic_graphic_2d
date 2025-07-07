@@ -77,7 +77,7 @@ namespace {
     constexpr const float EXPAND_MIDDLE_SIZE_RATIO = 2.0 / 3.0f;
     constexpr const float FOLD_SIZE_RATIO = 1.0 / 3.0f;
     constexpr const float FOLD_X_OFFSET = 1.0 / 3.0f;
-    constexpr const float MIDDLE_X_OFFSET = 1.0 / 6.0f; 
+    constexpr const float MIDDLE_X_OFFSET = 1.0 / 6.0f;
     constexpr const float DEGREE = 90.0f;
     constexpr const int DOULBE_TIMES = 2;
 }
