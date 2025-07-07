@@ -46,6 +46,7 @@ private:
     void DrawMarginBrush(Rosen::Drawing::RecordingCanvas* canvas);
     void RecordDeviceType();
     void SetFrame();
+    void GetScreenStatus();
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
