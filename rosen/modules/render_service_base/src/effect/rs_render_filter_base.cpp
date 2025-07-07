@@ -124,11 +124,11 @@ void RSUIFilterHelper::SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
     const Drawing::Canvas& canvas, float geoWidth, float geoHeight)
 {
     auto current = filter;
+    auto dst = canvas.GetDeviceClipBounds();
+    Drawing::CanvasInfo info { std::ceil(geoWidth), std::ceil(geoHeight),
+        dst.GetLeft(), dst.GetTop(), canvas.GetTotalMatrix() };
     while (current) {
         if (current->geFilter_) {
-            auto dst = canvas.GetDeviceClipBounds();
-            Drawing::CanvasInfo info { std::ceil(geoWidth), std::ceil(geoHeight),
-                dst.GetLeft(), dst.GetTop(), canvas.GetTotalMatrix() };
             // note: need calculte hash here when reopen filter cache
             current->geFilter_->SetCanvasInfo(info);
         }

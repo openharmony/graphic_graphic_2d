@@ -61,7 +61,7 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     geFilter.SetParam(desc, geMask);
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const VectorVector2F& value)
 {
     geFilter.SetParam(desc, value);

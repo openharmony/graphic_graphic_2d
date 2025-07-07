@@ -53,8 +53,8 @@ HWTEST_F(RSRenderFilterBaseTest, SetGeometry, TestSize.Level1)
     filter->GenerateGEVisualEffect();
     RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
     EXPECT_NE(filter->geFilter_, nullptr);
-    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoWidth, testValue);
-    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoHeight, testValue);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoWidth_, testValue);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoHeight_, testValue);
 }
 
 /**
