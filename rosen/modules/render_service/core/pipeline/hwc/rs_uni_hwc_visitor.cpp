@@ -44,7 +44,8 @@ bool GetSolidLayerEnabled()
 
 bool IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
 {
-    bool isIntersect = false;
+    // Intersection judgment of layer boundaries has already been conducted
+    bool isIntersect = true;
 #ifndef ROSEN_CROSS_PLATFORM
     if (RSSystemProperties::GetAIBarOptEnabled()) {
         auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(hwcNode.GetStagingRenderParams().get());
