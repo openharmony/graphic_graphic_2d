@@ -65,9 +65,14 @@ ohos_shared_library("uieffect_napi") {
   ]
 
   if (rosen_is_ohos) {
-    defines = [ "ENABLE_IPC_SECURITY" ]
+    defines = [
+      "ENABLE_IPC_SECURITY",
+      "IMAGE_NAPI_ENABLE"
+    ]
     external_deps += [
       "access_token:libaccesstoken_sdk",
+      "image_framework:image",
+      "image_framework:image_native",
       "ipc:ipc_core",
     ]
   }

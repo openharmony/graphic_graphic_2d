@@ -12,15 +12,67 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "mask_napi.h"
+#include "common/rs_vector4.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
+#include "mask_napi.h"
 #include "mask/include/pixel_map_mask_para.h"
+#include "pixel_map.h"
 #include "ui_effect_napi_utils.h"
-#include "common/rs_vector4.h"
+
+#ifdef IMAGE_NAPI_ENABLE
+#include "pixel_map_napi.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
+
+namespace {
+bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef IMAGE_NAPI_ENABLE
+    napi_value constructor = nullptr;
+    napi_value global = nullptr;
+    bool isInstance = false;
+    napi_status ret = napi_invalid_arg;
+
+    napi_get_global(env, &global);
+
+    ret = napi_get_named_property(env, global, "PixelMap", &constructor);
+    if (ret != napi_ok) {
+        MASK_LOG_E("Get PixelMapNapi property failed!");
+        return false;
+    }
+
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, argv, &res);
+    Media::PixelMapNapi* tempPixelMap = nullptr;
+    if (res == napi_object) {
+        if (napi_unwrap(env, argv, reinterpret_cast<void**>(&tempPixelMap)) != napi_ok) {
+            MASK_LOG_E("Get PixelMapNapi napi_unwrap failed!");
+            return false;
+        }
+        if (tempPixelMap == nullptr) {
+            MASK_LOG_E("Get PixelMapNapi tempPixelMap is nullptr!");
+            return false;
+        }
+        pixelMap = tempPixelMap->GetPixelNapiInner();
+        return true;
+    }
+
+    ret = napi_instanceof(env, argv, constructor, &isInstance);
+    if (ret == napi_ok && isInstance) {
+        pixelMap = Media::PixelMapNapi::GetPixelMap(env, argv);
+        return true;
+    }
+
+    MASK_LOG_E("InValued type! ret: %{public}d, isInstance: %{public}d", ret, isInstance);
+#else
+    MASK_LOG_E("ImageNapi disabled, parse pixel map failed");
+#endif
+    return false;
+}
+}
 
 using namespace UIEffect;
 
@@ -336,6 +388,13 @@ static bool ParsePixelMapMask(napi_env env, napi_value* argv, size_t realArgc, s
     if (!para) {
         return false;
     }
+
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    if (!ParsePixelMap(env, argv[NUM_0], pixelMap)) {
+        MASK_LOG_E("ParsePixelMapMask parse pixelMap failed");
+        return false;
+    }
+    para->SetPixelMap(pixelMap);
 
     Vector4f src;
     if (!ParseJsLTRBRect(env, argv[NUM_1], src)) {
