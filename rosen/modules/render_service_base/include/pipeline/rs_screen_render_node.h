@@ -291,7 +291,7 @@ public:
 
     bool GetHasUniRenderHdrSurface() const
     {
-        return hasUniRenderHdrSurface_;
+        return hasUniRenderHdrSurface_ && !GetForceCloseHdr();
     }
 
     void SetIsLuminanceStatusChange(bool isLuminanceStatusChange)
@@ -445,7 +445,13 @@ public:
 
     HdrStatus GetDisplayHdrStatus() const
     {
+        lastDisplayTotalHdrStatus_ = displayTotalHdrStatus_;
         return displayTotalHdrStatus_;
+    }
+
+    HdrStatus GetLastDisplayHDRStatus() const
+    {
+        return lastDisplayTotalHdrStatus_;
     }
 
     void InsertHDRNode(NodeId id)
@@ -531,6 +537,7 @@ private:
     int32_t currentScbPid_ = -1;
     int32_t lastScbPid_ = -1;
     HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
+    mutable HdrStatus lastDisplayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
     RectI screenRect_;
     // save children hdr canvasNode id

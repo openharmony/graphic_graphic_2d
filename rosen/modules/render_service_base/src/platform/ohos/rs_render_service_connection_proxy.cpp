@@ -2850,6 +2850,41 @@ ErrCode RSRenderServiceConnectionProxy::SetScreenHDRFormat(ScreenId id, int32_t 
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnectionProxy::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRStatus WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRStatus WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRStatus SendRequest error(%{public}d)", err);
+        return RS_CONNECTION_ERROR;
+    }
+    if (!reply.ReadInt32(resCode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRStatus Read resCode failed");
+        return READ_PARCEL_ERR;
+    }
+    if (resCode == SUCCESS) {
+        uint32_t readHdrStatus{0};
+        if (!reply.ReadUint32(readHdrStatus)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRStatus Read HDR status failed");
+            return READ_PARCEL_ERR;
+        }
+        hdrStatus = static_cast<HdrStatus>(readHdrStatus);
+    }
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces(
     ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode)
 {

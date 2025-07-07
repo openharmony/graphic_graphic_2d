@@ -164,6 +164,8 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_BITMAP = 0x00800C,
     GET_PIXELMAP = 0x00800D,
 
+    GET_SCREEN_HDR_STATUS = 0x00800E,
+
     SHOW_WATERMARK = 0x009000,
     SET_WATERMARK = 0x009001,
     REGISTER_TRANSACTION_DATA_CALLBACK = 0x009002,

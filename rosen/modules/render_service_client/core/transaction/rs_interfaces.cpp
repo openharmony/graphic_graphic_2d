@@ -748,6 +748,11 @@ int32_t RSInterfaces::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat
     return renderServiceClient_->GetScreenHDRFormat(id, hdrFormat);
 }
 
+int32_t RSInterfaces::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
+{
+    return renderServiceClient_->GetScreenHDRStatus(id, hdrStatus);
+}
+
 int32_t RSInterfaces::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
 {
     return renderServiceClient_->SetScreenHDRFormat(id, modeIdx);

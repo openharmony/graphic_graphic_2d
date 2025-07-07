@@ -607,6 +607,32 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ClearUifirstCache(nodeId);
     return true;
 }
+
+bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    static std::vector<HdrStatus> statusVec = { HdrStatus::NO_HDR, HdrStatus::HDR_PHOTO, HdrStatus::HDR_VIDEO,
+        HdrStatus::AI_HDR_VIDEO, HdrStatus::HDR_EFFECT };
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    HdrStatus hdrStatus = statusVec[GetData<uint8_t>() % statusVec.size()];
+    int32_t resCode = GetData<int32_t>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.GetScreenHDRStatus(screenId, hdrStatus, resCode);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -630,5 +656,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoProfilerServiceFuzzTest(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
+    OHOS::Rosen::DoGetScreenHDRStatus(data, size);
     return 0;
 }

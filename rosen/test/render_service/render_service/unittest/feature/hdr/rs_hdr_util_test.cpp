@@ -280,8 +280,10 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatWithSelfDrawingNodeTest, TestSize.Level1
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_NE(screenNode, nullptr);
+    screenNode->SetIsLuminanceStatusChange(true);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
     surfaceNode->SetIsOnTheTree(false);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
     surfaceNode->SetIsOnTheTree(true);
@@ -307,11 +309,18 @@ HWTEST_F(RSHdrUtilTest, SetHDRParamTest, TestSize.Level1)
     id = 1;
     auto childNode = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(childNode, nullptr);
+    ScreenId screenId = 0;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(3, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
     childNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     parentNode->AddChild(childNode);
     parentNode->SetIsOnTheTree(true);
     childNode->SetIsOnTheTree(true);
-    RSHdrUtil::SetHDRParam(*childNode, true);
+    screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f); // GetForceCloseHdr false
+    RSHdrUtil::SetHDRParam(*screenNode, *childNode, true);
+    screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f); // GetForceCloseHdr true
+    RSHdrUtil::SetHDRParam(*screenNode, *childNode, true);
 }
 
 } // namespace OHOS::Rosen

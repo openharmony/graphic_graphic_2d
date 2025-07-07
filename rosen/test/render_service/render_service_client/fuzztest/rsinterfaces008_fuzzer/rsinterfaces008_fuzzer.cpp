@@ -37,6 +37,7 @@ const uint8_t DO_SET_SCREEN_SKIP_FRAME_INTERVAL = 11;
 const uint8_t DO_GET_BITMAP = 12;
 const uint8_t DO_GET_PIXELMAP = 13;
 const uint8_t TARGET_SIZE = 14;
+const uint8_t DO_GET_SCREEN_HDR_STATUS = 15;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -129,6 +130,16 @@ void DoGetBitmap()
 
 void DoGetPixelmap()
 {}
+
+void DoGetScreenHDRStatus()
+{
+    static std::vector<HdrStatus> statusVec = { HdrStatus::NO_HDR, HdrStatus::HDR_PHOTO, HdrStatus::HDR_VIDEO,
+        HdrStatus::AI_HDR_VIDEO, HdrStatus::HDR_EFFECT };
+    ScreenId screenId = GetData<ScreenId>();
+    HdrStatus hdrStatus = statusVec[GetData<uint8_t>() % statusVec.size()];
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenHDRStatus(screenId, hdrStatus);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -182,6 +193,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_PIXELMAP:
             OHOS::Rosen::DoGetPixelmap();
+            break;
+        case OHOS::Rosen::DO_GET_SCREEN_HDR_STATUS:
+            OHOS::Rosen::DoGetScreenHDRStatus();
             break;
         default:
             return -1;
