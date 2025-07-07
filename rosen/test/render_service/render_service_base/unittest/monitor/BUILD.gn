@@ -15,8 +15,39 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path =
-    "graphic_2d/graphic_2d/rosen_engine/render_service_base/monitor"
+module_output_path = "graphic_2d/graphic_2d/rosen_engine/render_service_base/monitor"
+
+##############################  ApsMonitorImplTest  ##################################
+ohos_unittest("ApsMonitorImplTest") {
+  module_out_path = module_output_path
+
+  sources = [ "aps_monitor_impl_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/graphic/graphic_2d/rosen/include",
+    "$graphic_2d_root/graphic/graphic_2d/rosen/test/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+
+  subsystem_name = "graphic"
+}
 
 ##############################  SelfDrawingNodeMonitorTest  ##################################
 ohos_unittest("SelfDrawingNodeMonitorTest") {
@@ -35,21 +66,27 @@ ohos_unittest("SelfDrawingNodeMonitorTest") {
     "$graphic_2d_root/graphic/graphic_2d/rosen/include",
     "$graphic_2d_root/graphic/graphic_2d/rosen/test/include",
   ]
-  configs = [ "$graphic_2d_root/rosen/modules/composer:composer_public_config" ]
+
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
+
+  subsystem_name = "graphic"
 }
+
+###############################################################################
 
 group("unittest") {
   testonly = true
 
-  deps = [ ":SelfDrawingNodeMonitorTest" ]
+  deps = [
+    ":ApsMonitorImplTest",
+    ":SelfDrawingNodeMonitorTest"
+  ]
 }

@@ -16,28 +16,34 @@
 #ifndef RENDER_SERVICE_BASE_APS_MONITOR_IMPL_H
 #define RENDER_SERVICE_BASE_APS_MONITOR_IMPL_H
 
+#include <map>
 #include <string>
 #include <set>
 
 namespace OHOS {
 namespace Rosen {
-using SetBoundChangeFunc = void (*)(std::string pkgName, std::string sceneName, std::string state);
-using SetSurfaceDestroyFunc = void (*)(std::string id);
 
 class ApsMonitorImpl {
 public:
-    ApsMonitorImpl() = default;
-    ~ApsMonitorImpl();
     void SetApsSurfaceBoundChange(std::string height, std::string width, std::string id);
     void SetApsSurfaceDestroyedInfo(std::string id);
+    void SetApsSurfaceNodeTreeChange(bool onTree, std::string name);
+    static ApsMonitorImpl& GetInstance();
+    using SendApsEventFunc = void (*)(int32_t, std::map<std::string, std::string>);
+    using SetBoundChangeFunc = void (*)(std::string height, std::string width, std::string id);
+    using SetSurfaceDestroyedFunc = void (*)(std::string id);
 
 private:
-    void LoadApsFuncOnce();
-    static const std::set<std::string> apsScenes;
-    void* loadfilehandle_ = nullptr;
+    ApsMonitorImpl() = default;
+    ~ApsMonitorImpl();
+    bool IsCloseAps();
+    void LoadApsFuncsOnce();
+    void* loadFileHandle_ = nullptr;
+    SendApsEventFunc sendApsEventFunc_ = nullptr;
     SetBoundChangeFunc setBoundChangeFunc_ = nullptr;
-    SetSurfaceDestroyFunc setSurfaceDestroyFunc_ = nullptr;
-    bool isloadapsfunc_ = false;
+    SetSurfaceDestroyedFunc setSurfaceDestroyedFunc_ = nullptr;
+    bool isApsFuncsAvailable_ = true;
+    bool isApsFuncsLoad_ = false;
 };
 
 } // namespace Rosen
