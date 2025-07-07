@@ -69,10 +69,10 @@ namespace {
         { { 0.5f, 0.2f }, { 0.2f, 1.0f }, { 1.0f, 0.5f } },
         { { 1.0f, 0.5f }, { 0.5f, 0.2f }, { 0.2f, 1.0f } },
     };
-    constexpr const int EXPAND = 0;
-    constexpr const int FOLD_1 = 1;
-    constexpr const int FOLD_2 = 3;
-    constexpr const int MIDDLE = 2;
+    constexpr const char EXPAND = '0';
+    constexpr const char FOLD_1 = '1';
+    constexpr const char FOLD_2 = '3';
+    constexpr const char MIDDLE = '2';
     constexpr const float DEFAULT_SIZE_RATIO = 1.0f;
     constexpr const float EXPAND_MIDDLE_SIZE_RATIO = 2.0/3.0f;
     constexpr const float FOLD_SIZE_RATIO = 1.0/3.0f;
@@ -88,7 +88,7 @@ void BootCompileProgress::Init(const BootAnimationConfig& config)
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
     if (!config.screenStatus.empty()) {
-        screenStatus_ = atoi(config.screenStatus.c_str());
+        screenStatus_ = config.screenStatus;
     }
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
@@ -338,9 +338,9 @@ void BootCompileProgress::SetFrame()
     if (isWearable_) {
         rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
     } else {
-        LOGI("screenStatus: %{public}d", screenStatus_);
+        LOGI("screenStatus: %{public}s", screenStatus_.c_str());
         float sizeRatio = DEFAULT_SIZE_RATIO;
-        switch (screenStatus_) {
+        switch (screenStatus_.c_str()[0]) {
             case EXPAND:
                 sizeRatio = EXPAND_MIDDLE_SIZE_RATIO;
                 rsCanvasNode_->SetFrame(0, windowWidth_, windowHeight_, windowWidth_ * HEIGHT_PERCENT);
