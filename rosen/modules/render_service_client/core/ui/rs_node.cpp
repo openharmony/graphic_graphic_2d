@@ -3409,11 +3409,15 @@ void RSNode::SetTakeSurfaceForUIFlag()
     auto transaction = GetRSTransaction();
     if (transaction != nullptr) {
         transaction->AddCommand(command, IsRenderServiceNode());
+        ROSEN_LOGW("OffScreenIsSync SetTakeSurfaceForUIFlag AddCommand be processed. nodeId: [%{public}" PRIu64 "]"
+            ", IsRenderServiceNode: [%{public}s]", GetId(), IsRenderServiceNode() ? "true" : "false");
         transaction->FlushImplicitTransaction();
     } else {
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());
+            ROSEN_LOGW("OffScreenIsSync SetTakeSurfaceForUIFlag AddCommand be processed. nodeId:[%{public}" PRIu64 "]"
+                ", IsRenderServiceNode: [%{public}s] (Proxy)", GetId(), IsRenderServiceNode() ? "true" : "false");
             transactionProxy->FlushImplicitTransaction();
         }
     }

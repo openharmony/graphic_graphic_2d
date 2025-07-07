@@ -225,7 +225,7 @@ std::shared_ptr<RSDisplayNode> RSUiCaptureTaskParallelTest::displayNode_ = nullp
  * @tc.desc: Test TakeSurfaceCaptureForUI with invalid surface
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiInvalidSurface, Function | SmallTest | Level2)
 {
     RSSurfaceNodeConfig config;
@@ -245,7 +245,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiInvalidSurface, Fun
  * @tc.desc: Test TakeSurfaceCaptureForUI with surface node
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSurfaceNode, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -264,7 +264,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSurfaceNode, Functi
  * @tc.desc: Test TakeSurfaceCaptureForUI with canvas node
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode001, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -283,7 +283,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode001, Func
  * @tc.desc: Test TakeSurfaceCaptureForUI with canvas node bounds inf
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Function | SmallTest | Level2)
 {
     auto canvasNode = RSCanvasNode::Create();
@@ -306,7 +306,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Func
  * @tc.desc: Test TakeSurfaceCaptureForUI with canvas node valid rect
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode003, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -326,7 +326,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode003, Func
  * @tc.desc: Test TakeSurfaceCaptureForUI with canvasdrawing node
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasDrawingNode, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -345,7 +345,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasDrawingNode, 
  * @tc.desc: Test TakeSurfaceCaptureForUI with proxy node
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiProxyNode, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -367,7 +367,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiProxyNode, Function
  * @tc.desc: Test TakeSurfaceCaptureForUI sync is false
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync001, Function | SmallTest | Level2)
 {
     auto canvasNode = RSCanvasNode::Create();
@@ -388,7 +388,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync001, Function |
  * @tc.desc: Test TakeSurfaceCaptureForUI sync is true
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync002, Function | SmallTest | Level2)
 {
     auto canvasNode = RSCanvasNode::Create();
@@ -409,7 +409,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync002, Function |
  * @tc.desc: Test TakeSurfaceCaptureForUI scale
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale001, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -428,7 +428,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale001, Function 
  * @tc.desc: Test TakeSurfaceCaptureForUI scale
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale002, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -447,7 +447,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale002, Function 
  * @tc.desc: Test TakeSurfaceCaptureForUI scale
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale003, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -466,7 +466,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale003, Function 
  * @tc.desc: Test TakeSurfaceCaptureForUI with node not on tree
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function | SmallTest | Level2)
 {
     SetUpSurface();
@@ -488,7 +488,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
  * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources001, Function | SmallTest | Level2)
 {
     NodeId id = -1; // invalid id
@@ -511,7 +511,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources001, Function | SmallTest |
  * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources002, Function | SmallTest | Level2)
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
@@ -542,7 +542,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources002, Function | SmallTest |
  * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest | Level2)
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
@@ -586,7 +586,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest |
  * @tc.desc: Test RSUiCaptureTaskParallel::IsRectValid
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid001, Function | SmallTest | Level2)
 {
     NodeId id = -1; // invalid id
@@ -602,7 +602,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid001, Fu
  * @tc.desc: Test RSUiCaptureTaskParallel::IsRectValid
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid002, Function | SmallTest | Level2)
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
@@ -621,7 +621,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid002, Fu
  * @tc.desc: Test RSUiCaptureTaskParallel::IsRectValid
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid003, Function | SmallTest | Level2)
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
@@ -642,7 +642,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid003, Fu
  * @tc.desc: Test RSUiCaptureTaskParallel::CreatePixelMapByRect
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByRect, Function | SmallTest | Level2)
 {
     NodeId id = -1; // invalid id
@@ -658,7 +658,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByRe
  * @tc.desc: Test RSUiCaptureTaskParallel::Run
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, Run001, Function | SmallTest | Level2)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
@@ -679,7 +679,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, Run001, Function | SmallTest | Level2)
  * @tc.desc: Test RSUiCaptureTaskParallel::Run
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, Run002, Function | SmallTest | Level2)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
@@ -703,7 +703,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, Run002, Function | SmallTest | Level2)
  * @tc.desc: Test RSUiCaptureTaskParallel::CreatePixelMapByNode
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByNode, Function | SmallTest | Level2)
 {
     NodeId id = -1; // invalid id
@@ -718,7 +718,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByNo
  * @tc.desc: Test RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask, Function | SmallTest | Level2)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
@@ -747,7 +747,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncC
  * @tc.desc: CreateClientPixelMap
  * @tc.type: FUNC
  * @tc.require:
-*/
+ */
 HWTEST_F(RSUiCaptureTaskParallelTest, CreateClientPixelMap, Function | SmallTest | Level2)
 {
     // TEST0: Vail CaputreSzie and alloc shrae mem
