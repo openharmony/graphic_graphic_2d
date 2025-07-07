@@ -172,7 +172,7 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
     auto property = std::make_shared<RSRenderProperty<float>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
     modifier->ApplyLegacyProperty(properties);
-    EXPECT_FALSE(modifier->HasProperty(ModifierNG::RSPropertyType::ALPHA));
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::ALPHA));
 }
 
 /**
