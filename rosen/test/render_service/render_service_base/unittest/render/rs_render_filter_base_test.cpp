@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
-
+#include "ge_visual_effect_impl.h"
 #include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_render_filter_base.h"
@@ -62,6 +62,34 @@ HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType001, TestSize.Level1)
     EXPECT_EQ(invalidFilter, nullptr);
     auto noneFilter = RSNGRenderFilterBase::Create(RSNGEffectType::NONE);
     EXPECT_EQ(noneFilter, nullptr);
+}
+
+/**
+ * @tc.name: UpdateCacheData
+ * @tc.desc: Test the UpdateCacheData method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, UpdateCacheData, TestSize.Level1)
+{
+    auto src = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
+    auto dest = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
+    auto other = std::make_shared<Drawing::GEVisualEffect>("MESA_BLUR");
+    RSUIFilterHelper::UpdateCacheData(src, dest);
+    EXPECT_EQ(dest->GetImpl()->GetCache(), nullptr);
+    src->GetImpl()->SetCache(std::make_shared<std::any>(std::make_any<float>(1.0)));
+    std::shared_ptr<Drawing::GEVisualEffect> null = nullptr;
+    RSUIFilterHelper::UpdateCacheData(null, null);
+    EXPECT_EQ(null, nullptr);
+    RSUIFilterHelper::UpdateCacheData(null, dest);
+    RSUIFilterHelper::UpdateCacheData(src, null);
+    EXPECT_EQ(null, nullptr);
+    ASSERT_NE(src->GetImpl()->GetFilterType(), other->GetImpl()->GetFilterType());
+    RSUIFilterHelper::UpdateCacheData(src, other);
+    EXPECT_EQ(other->GetImpl()->GetCache(), nullptr);
+    RSUIFilterHelper::UpdateCacheData(src, dest);
+    auto cachePtr = dest->GetImpl()->GetCache();
+    auto cache = std::any_cast<float>(*cachePtr);
+    EXPECT_EQ(cache, 1.0);
 }
 
 /**

@@ -47,6 +47,9 @@ public:
 
 protected:
     std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
+    static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
+                                std::shared_ptr<Drawing::GEVisualEffect> dest);
+ 
 
 private:
     friend class RSNGFilterBase;
@@ -71,6 +74,7 @@ public:
                 (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
                     geFilter, propTag), ...);
             }, EffectTemplateBase::properties_);
+        RSNGRenderFilterBase::UpdateCacheData(RSNGRenderFilterBase::geFilter_, geFilter);
         RSNGRenderFilterBase::geFilter_ = std::move(geFilter);
 
         if (EffectTemplateBase::nextEffect_) {
@@ -93,6 +97,9 @@ public:
 
     static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
         std::shared_ptr<Drawing::GEVisualEffectContainer> container);
+
+    static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
+                                std::shared_ptr<Drawing::GEVisualEffect> target);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
