@@ -148,7 +148,11 @@ void RSUIDirector::InitHybridRender()
             std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
             auto task = [renderServiceClient, transactionData = std::move(rsTransactionData),
                 &transactionDataIndex]() mutable {
-                renderServiceClient->CommitTransaction(RSModifiersDrawThread::ConvertTransaction(transactionData));
+                bool isNeedCommit = true;
+                RSModifiersDrawThread::ConvertTransaction(transactionData, renderServiceClient, isNeedCommit);
+                if (isNeedCommit) {
+                    renderServiceClient->CommitTransaction(transactionData);
+                }
                 transactionDataIndex = transactionData->GetIndex();
                 // destroy semaphore after commitTransaction for which syncFence was duped
                 RSModifiersDraw::DestroySemaphore();
