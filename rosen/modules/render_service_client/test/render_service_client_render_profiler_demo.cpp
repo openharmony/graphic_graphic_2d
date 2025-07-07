@@ -27,14 +27,6 @@
 #include <sys/un.h>
 #include <securec.h>
 
-#include "rs_graphic_test_profiler_thread.h"
-#include "transaction/rs_interfaces.h"
-#include "transaction/rs_transaction.h"
-#include "ui/rs_display_node.h"
-#include "ui/rs_root_node.h"
-#include "ui/rs_surface_node.h"
-#include "ui/rs_ui_context.h"
-#include "ui/rs_ui_director.h"
 #include "rs_graphic_test_utils.h"
 #include "rs_profiler_packet.h"
 
