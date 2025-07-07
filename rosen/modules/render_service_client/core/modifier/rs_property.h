@@ -326,6 +326,16 @@ struct RSRenderPropertyTraits {
 };
 
 template<>
+struct RSRenderPropertyTraits<std::shared_ptr<RSNGFilterBase>> {
+    using Type = RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>;
+};
+
+template<>
+struct RSRenderPropertyTraits<std::shared_ptr<RSNGShaderBase>> {
+    using Type = RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>;
+};
+
+template<>
 struct RSRenderPropertyTraits<std::shared_ptr<RSNGMaskBase>> {
     using Type = RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>;
 };
@@ -994,6 +1004,9 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::UpdateToRender(
     const std::shared_ptr<RSNGShaderBase>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const;
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);

@@ -93,6 +93,9 @@ public:
 
     static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
         std::shared_ptr<Drawing::GEVisualEffectContainer> container);
+    
+    static void SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
+        const Drawing::Canvas& canvas, float geoWidth, float geoHeight);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

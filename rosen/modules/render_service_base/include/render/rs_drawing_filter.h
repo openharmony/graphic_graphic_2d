@@ -81,6 +81,9 @@ public:
     {
         return renderFilter_;
     }
+
+    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+
     bool CanSkipFrame() const
     {
         return canSkipFrame_;
