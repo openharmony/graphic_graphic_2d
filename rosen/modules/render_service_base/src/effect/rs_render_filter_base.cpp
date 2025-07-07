@@ -120,6 +120,22 @@ void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>
     }
 }
 
+void RSUIFilterHelper::SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
+    const Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+{
+    auto current = filter;
+    while (current) {
+        if (current->geFilter_) {
+            auto dst = canvas.GetDeviceClipBounds();
+            Drawing::CanvasInfo info { std::ceil(geoWidth), std::ceil(geoHeight),
+                dst.GetLeft(), dst.GetTop(), canvas.GetTotalMatrix() };
+            // note: need calculte hash here when reopen filter cache
+            current->geFilter_->SetCanvasInfo(info);
+        }
+        current = current->nextEffect_;
+    }
+}
+
 void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
                                        std::shared_ptr<Drawing::GEVisualEffect> dest)
 {

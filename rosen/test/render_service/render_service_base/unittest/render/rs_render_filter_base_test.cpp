@@ -37,6 +37,27 @@ void RSRenderFilterBaseTest::SetUp() {}
 void RSRenderFilterBaseTest::TearDown() {}
 
 /**
+ * @tc.name: SetGeometry
+ * @tc.desc: Test the SetGeometry method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, SetGeometry, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSNGRenderBlurFilter>();
+    Drawing::Canvas canvas;
+    float testValue = 20.f;
+    RSUIFilterHelper::SetGeometry(nullptr, canvas, testValue, testValue);
+    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    EXPECT_EQ(filter->geFilter_, nullptr);
+
+    filter->GenerateGEVisualEffect();
+    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    EXPECT_NE(filter->geFilter_, nullptr);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoWidth, testValue);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoHeight, testValue);
+}
+
+/**
  * @tc.name: CreateAndGetType001
  * @tc.desc: Test the factory method can create filter with correct type
  * @tc.type: FUNC
