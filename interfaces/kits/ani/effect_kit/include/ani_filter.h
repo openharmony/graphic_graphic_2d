@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,25 +16,38 @@
 #ifndef OHOS_ANI_FILTER_H
 #define OHOS_ANI_FILTER_H
 
+#include <ani.h>
+#include "effect/shader_effect.h"
+#include "include/core/SkImageFilter.h"
 #include <memory>
 #include <mutex>
+#include "pixel_map_taihe_ani.h"
 #include <vector>
 
-#include "ani.h"
-#include "include/core/SkImageFilter.h"
-#include "pixel_map_ani.h"
 
 namespace OHOS {
 namespace Rosen {
 enum class DrawError;
 class AniFilter {
 public:
-    static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
-    static ani_object GetEffectPixelMap(ani_env* env, ani_object obj);
-    static ani_object CreateEffect(ani_env* env, ani_object para);
+    AniFilter();
+    ~AniFilter();
+
     static ani_status Init(ani_env* env);
+
+    static ani_object CreateEffect(ani_env* env, ani_object para);
+    static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
+    static ani_object Grayscale(ani_env* env, ani_object obj);
+    static ani_object GetEffectPixelMap(ani_env* env, ani_object obj);
+
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
+    
+    static ani_object Blur(ani_env* env, ani_object obj, ani_double param,  ani_enum_item enumItem);
+    static ani_object Brightness(ani_env* env, ani_object obj, ani_double param);
+    static ani_object Invert(ani_env* env, ani_object obj);
+    static ani_object SetColorMatrix(ani_env* env, ani_object obj, ani_object arrayObj);
+    static ani_object GetPixelMap(ani_env* env, ani_object obj);
 
 private:
     void AddNextFilter(sk_sp<SkImageFilter> filter);
@@ -45,4 +58,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // OHOS_ANI_FILTER_H
+#endif //OHOS_ANI_FILTER_H

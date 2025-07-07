@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#include "ani_color_picker.h"
 #include "ani_effect_kit_module.h"
+#include "ani_filter.h"
 #include "effect_utils.h"
 
 extern "C" {
@@ -21,23 +23,28 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
 {
     ani_env* env;
     if (vm->GetEnv(ANI_VERSION_1, &env) != ANI_OK) {
-        EFFECT_LOG_E("[ANI_Constructor] Unsupported ANI_VERSION_1");
+        EFFECT_LOG_I("[ANI_Constructor] Unsupported ANI_VERSION_1");
         return ANI_ERROR;
     }
 
     static const char* staticClassName = "L@ohos/effectKit/effectKit;";
     ani_namespace effectKitNamespace;
     if (env->FindNamespace(staticClassName, &effectKitNamespace) != ANI_OK) {
-        EFFECT_LOG_E("[ANI_Constructor] FindNamespace failed");
+        EFFECT_LOG_I("[ANI_Constructor] FindNamespace failed");
         return ANI_ERROR;
     }
     std::array staticMethods = {
-        ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniFilter::CreateEffect) }
+        ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniFilter::CreateEffect) },
+        ani_native_function { "createColorPickerNormal", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::CreateColorPickerNormal) },
+        ani_native_function { "createColorPickerWithRegion", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::CreateColorPickerWithRegion) },
     };
     if (env->Namespace_BindNativeFunctions(effectKitNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
-        EFFECT_LOG_E("[ANI_Constructor] Namespace_BindNativeFunctions failed");
+        EFFECT_LOG_I("[ANI_Constructor] Namespace_BindNativeFunctions failed");
         return ANI_ERROR;
     };
+    OHOS::Rosen::AniColorPicker::Init(env);
     OHOS::Rosen::AniFilter::Init(env);
     *result = ANI_VERSION_1;
     return ANI_OK;

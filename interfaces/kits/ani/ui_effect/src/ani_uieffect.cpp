@@ -16,6 +16,56 @@
 #include "ani_uieffect.h"
 namespace OHOS {
 namespace Rosen {
+ani_status AniEffect::BindVisualEffectMethod(ani_env* env)
+{
+    static const char* visualEffectClassName = "L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;";
+    ani_class visualEffectClass;
+    if (env->FindClass(visualEffectClassName, &visualEffectClass) != ANI_OK) {
+        UIEFFECT_LOG_E("Not found %{public}s", visualEffectClassName);
+        return ANI_NOT_FOUND;
+    };
+    std::array visualEffectMethods = {
+        ani_native_function { "backgroundColorBlenderNative",
+            "L@ohos/graphics/uiEffect/uiEffect/BrightnessBlender;:L@ohos/graphics/uiEffect/uiEffect/VisualEffect;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::BackgroundColorBlender) },
+    };
+    ani_status ret = env->Class_BindNativeMethods(visualEffectClass,
+        visualEffectMethods.data(), visualEffectMethods.size());
+    if (ret != ANI_OK) {
+        UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
+        return ANI_ERROR;
+    };
+    return ret;
+}
+
+ani_status AniEffect::BindFilterMethod(ani_env* env)
+{
+    static const char* filterClassName = "L@ohos/graphics/uiEffect/uiEffect/FilterInternal;";
+    ani_class filterClass;
+    if (env->FindClass(filterClassName, &filterClass) != ANI_OK) {
+        UIEFFECT_LOG_E("Not found %{public}s", filterClassName);
+        return ANI_NOT_FOUND;
+    };
+    std::array filterMethods = {
+        ani_native_function { "pixelStretchNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::PixelStretch) },
+        ani_native_function { "blurNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::Blur) },
+        ani_native_function { "flyInFlyOutEffectNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::FlyInFlyOutEffect) },
+        ani_native_function { "waterRippleNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::WaterRipple) },
+        ani_native_function { "distortNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::Distort) },
+    };
+    ani_status ret = env->Class_BindNativeMethods(filterClass, filterMethods.data(), filterMethods.size());
+    if (ret != ANI_OK) {
+        UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
+        return ANI_ERROR;
+    };
+    return ret;
+}
+
 ani_object AniEffect::CreateAniObject(ani_env* env, std::string name, const char* signature, ani_long addr)
 {
     ani_class cls;
@@ -33,7 +83,7 @@ ani_object AniEffect::CreateAniObject(ani_env* env, std::string name, const char
         UIEFFECT_LOG_E("create object failed '%{public}s'", name.c_str());
         return obj;
     };
-    UIEFFECT_LOG_I("create object success '%{public}s'", name.c_str());
+    UIEFFECT_LOG_E("create object success '%{public}s'", name.c_str());
     return obj;
 }
 
@@ -90,14 +140,19 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
     env->Object_GetPropertyByName_Double(para_obj, "fraction", &fractionAni);
     env->Object_GetPropertyByName_Ref(para_obj, "positiveCoefficient", &positiveCoefficientAni);
     env->Object_GetPropertyByName_Ref(para_obj, "negativeCoefficient", &negativeCoefficientAni);
-    const auto positiveCoefficientAniArray = reinterpret_cast<ani_array_double>(positiveCoefficientAni);
-    const auto negativeCoefficientAniArray = reinterpret_cast<ani_array_double>(negativeCoefficientAni);
+    const auto positiveCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(positiveCoefficientAni);
+    const auto negativeCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(negativeCoefficientAni);
     ani_double posCoefNativeBuffer[3U] = { 0.0 };
     ani_double negCoefNativeBuffer[3U] = { 0.0 };
-    const ani_size offset = 0;
-    const ani_size len = 5;
-    env->Array_GetRegion_Double(positiveCoefficientAniArray, offset, len, posCoefNativeBuffer);
-    env->Array_GetRegion_Double(negativeCoefficientAniArray, offset, len, negCoefNativeBuffer);
+    const ani_size len3 = 3;
+    for (ani_size idx = 0; idx < len3; ++idx) {
+        if (env->TupleValue_GetItem_Double(positiveCoefficientAniTuple, idx, &posCoefNativeBuffer[idx]) != ANI_OK) {
+            UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double pos error");
+        }
+        if (env->TupleValue_GetItem_Double(negativeCoefficientAniTuple, idx, &negCoefNativeBuffer[idx]) != ANI_OK) {
+            UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double neg error");
+        }
+    }
     const int xIndex = 0;
     const int yIndex = 1;
     const int zIndex = 2;
@@ -115,9 +170,9 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
 
 ani_object AniEffect::CreateEffect(ani_env* env)
 {
+    ani_object retVal {};
     auto effectObj = std::make_unique<VisualEffect>();
-    auto retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr,
-        reinterpret_cast<ani_long>(effectObj.release()));
+    retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj.release()));
     return retVal;
 }
 
@@ -164,6 +219,187 @@ ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_o
     retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj));
     return retVal;
 }
+
+ani_object AniEffect::CreateFilter(ani_env* env)
+{
+    ani_object retVal {};
+    auto filterObj = std::make_unique<Filter>();
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj.release()));
+    return retVal;
+}
+
+ani_object AniEffect::FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double degree, ani_enum_item flyMode)
+{
+    ani_object retVal {};
+
+    ani_size flyModeIndex;
+    if (ANI_OK != env->EnumItem_GetIndex(flyMode, &flyModeIndex)) {
+        UIEFFECT_LOG_E("get flyModeIndex failed");
+        return retVal;
+    }
+    auto flyOutPara = std::make_shared<FlyOutPara>();
+
+    if (degree < -3.4E+38 || degree > 3.4E+38) {
+        UIEFFECT_LOG_E("degree out of float range");
+        return retVal;
+    }
+    flyOutPara->SetDegree(static_cast<float>(degree));
+    flyOutPara->SetFlyMode(static_cast<uint32_t>(flyModeIndex));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(flyOutPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
+
+ani_object AniEffect::WaterRipple(ani_env* env, ani_object obj, ani_object waterPara)
+{
+    ani_object retVal {};
+    ani_double progress;
+    ani_int waveCount;
+    ani_double x;
+    ani_double y;
+    ani_ref rippleMode;
+
+    if (ANI_OK != env->Object_GetPropertyByName_Double(waterPara, "progress", &progress)) {
+        UIEFFECT_LOG_E("get progress failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Int(waterPara, "waveCount", &waveCount)) {
+        UIEFFECT_LOG_E("get waveCount failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Double(waterPara, "x", &x)) {
+        UIEFFECT_LOG_E("get x failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Double(waterPara, "y", &y)) {
+        UIEFFECT_LOG_E("get y failed");
+        return retVal;
+    }
+
+    if (ANI_OK != env->Object_GetPropertyByName_Ref(waterPara, "rippleMode", &rippleMode)) {
+        UIEFFECT_LOG_E("get rippleMode failed");
+        return retVal;
+    }
+    
+    ani_enum_item rippleModeEnum = static_cast<ani_enum_item>(rippleMode);
+    ani_size rippleModeIndex;
+    if (ANI_OK != env->EnumItem_GetIndex(rippleModeEnum, &rippleModeIndex)) {
+        UIEFFECT_LOG_E("get rippleModeIndex failed");
+        return retVal;
+    }
+    auto waterRipplePara = std::make_shared<WaterRipplePara>();
+    waterRipplePara->SetProgress(static_cast<float>(progress));
+    waterRipplePara->SetWaveCount(static_cast<uint32_t>(waveCount));
+    waterRipplePara->SetRippleCenterX(static_cast<float>(x));
+    waterRipplePara->SetRippleCenterY(static_cast<float>(y));
+    waterRipplePara->SetRippleMode(static_cast<uint32_t>(rippleModeIndex));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(waterRipplePara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
+
+ani_object AniEffect::Distort(ani_env* env, ani_object obj, ani_double distortionK)
+{
+    ani_object retVal {};
+
+    auto distortPara = std::make_shared<DistortPara>();
+    distortPara->SetDistortionK(static_cast<float>(distortionK));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(distortPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
+
+ani_object AniEffect::PixelStretch(ani_env* env, ani_object obj, ani_object arrayObj, ani_enum_item enumItem)
+{
+    ani_object retVal {};
+
+    ani_size enumIndex;
+    env->EnumItem_GetIndex(enumItem, &enumIndex);
+    Drawing::TileMode tileMode = static_cast<Drawing::TileMode>(enumIndex);
+
+    auto pixelStretchPara = std::make_shared<PixelStretchPara>();
+    pixelStretchPara->SetTileMode(tileMode);
+
+    ani_double length;
+    if (ANI_OK != env->Object_GetPropertyByName_Double(arrayObj, "length", &length)) {
+        UIEFFECT_LOG_E("get stretchSizes length failed");
+        return retVal;
+    }
+
+    Vector4f stretchPercent;
+    // 4 mean Vector4f length
+    int vectorLen = 4;
+    for (int i = 0; i < int(length) && i < vectorLen; i++) {
+        ani_float floatValue;
+        if (ANI_OK != env->Object_CallMethodByName_Float(arrayObj, "$_get", "I:F", &floatValue, (ani_int)i)) {
+            UIEFFECT_LOG_E("stretchSizes Object_CallMethodByName_Float_A failed");
+            return retVal;
+        }
+        stretchPercent[i] = static_cast<float>(floatValue);
+    }
+    pixelStretchPara->SetStretchPercent(stretchPercent);
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(pixelStretchPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
+
+ani_object AniEffect::Blur(ani_env* env, ani_object obj, ani_double radius)
+{
+    ani_object retVal {};
+    auto filterBlurPara = std::make_shared<FilterBlurPara>();
+    filterBlurPara->SetRadius(static_cast<float>(radius));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(filterBlurPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -184,29 +420,24 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     std::array staticMethods = {
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateEffect) },
         ani_native_function { "createBrightnessBlender", nullptr,
-            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateBrightnessBlender) }
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateBrightnessBlender) },
+        ani_native_function { "createFilter", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateFilter) },
     };
     if (env->Namespace_BindNativeFunctions(uiEffectNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
         UIEFFECT_LOG_E("[ANI_Constructor] Namespace_BindNativeFunctions failed");
         return ANI_ERROR;
     };
-    static const std::string ani_class_VisualEffect = "L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;";
-    static const char* className = ani_class_VisualEffect.c_str();
-    ani_class cls;
-    if (env->FindClass(className, &cls) != ANI_OK) {
-        UIEFFECT_LOG_E("Not found L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;");
-        return ANI_NOT_FOUND;
-    };
-    std::array methods = {
-        ani_native_function { "backgroundColorBlenderNative",
-            "L@ohos/graphics/uiEffect/uiEffect/BrightnessBlender;:L@ohos/graphics/uiEffect/uiEffect/VisualEffect;",
-            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::BackgroundColorBlender) }
-    };
-    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
-    if (ret != ANI_OK) {
-        UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
-        return ANI_ERROR;
-    };
+
+    ani_status status = OHOS::Rosen::AniEffect::BindVisualEffectMethod(env);
+    if (status != ANI_OK) {
+        return status;
+    }
+
+    status = OHOS::Rosen::AniEffect::BindFilterMethod(env);
+    if (status != ANI_OK) {
+        return status;
+    }
+
     *result = ANI_VERSION_1;
     return ANI_OK;
 }
