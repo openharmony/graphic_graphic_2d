@@ -120,9 +120,9 @@ namespace effectKit {
     /**
      * Adds the blur effect to the filter linked list, and returns the head node of the linked list.
      * @param { number } radius - Blur radius, in pixels. The blur effect is proportional to the configured value.
-     *  A larger value indicates a more obvious effect.
+     * A larger value indicates a more obvious effect.
      * @param { TileMode } tileMode - Tile mode of the shader effect. The blur effect of image edges is affected. Currently,
-     *  only CPU rendering is supported. Therefore, the tile mode supports only DECAL.
+     * only CPU rendering is supported. Therefore, the tile mode supports only DECAL.
      * @returns { Filter } Final image effect.
      * @syscap SystemCapability.Multimedia.Image.Core
      * @since 14
@@ -213,7 +213,7 @@ namespace effectKit {
     private nativeObj: long = 0;
 
     constructor(context:long) {
-		this.nativeObj = context;
+      this.nativeObj = context;
     }
 
     public native blurNative(radius: number): Filter;
@@ -352,6 +352,8 @@ namespace effectKit {
           let colorpicker = ret as ColorPicker;
           resolve(colorpicker);
         }
+      }).catch((err: NullishType) => {
+        reject(err as BusinessError<string>);   
       });
     });
   }
@@ -372,6 +374,8 @@ namespace effectKit {
           let colorpicker = ret as ColorPicker;
           resolve(colorpicker);
         }
+      }).catch((err: NullishType) => {
+        reject(err as BusinessError<string>);
       });
     });
   }
@@ -424,9 +428,6 @@ namespace effectKit {
       callback(error, undefined);
     }
   }
-
-
-
 }
 
 export default effectKit;

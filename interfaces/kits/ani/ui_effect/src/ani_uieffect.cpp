@@ -144,8 +144,8 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
     const auto negativeCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(negativeCoefficientAni);
     ani_double posCoefNativeBuffer[3U] = { 0.0 };
     ani_double negCoefNativeBuffer[3U] = { 0.0 };
-    const ani_size len3 = 3;
-    for (ani_size idx = 0; idx < len3; ++idx) {
+    const ani_size len = 3;
+    for (ani_size idx = 0; idx < len; ++idx) {
         if (env->TupleValue_GetItem_Double(positiveCoefficientAniTuple, idx, &posCoefNativeBuffer[idx]) != ANI_OK) {
             UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double pos error");
         }
@@ -193,6 +193,9 @@ ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object para)
         UIEFFECT_LOG_E("create object failed '%{public}s'", ANI_UIEFFECT_BRIGHTNESS_BLENDER.c_str());
         return {};
     };
+    auto brightnessObj = std::make_unique<BrightnessBlender>();
+    retVal = CreateAniObject(env, ANI_UIEFFECT_BRIGHTNESS_BLENDER, nullptr,
+        reinterpret_cast<ani_long>(brightnessObj.release()));
     if (!CheckCreateBrightnessBlender(env, para, retVal)) {
         UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
         return {};
@@ -203,7 +206,13 @@ ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object para)
 ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_object para)
 {
     ani_object retVal {};
-    auto blender = std::make_shared<BrightnessBlender>();
+    ani_long nativeBrightObj;
+    if (env->Object_GetFieldByName_Long(obj, "brightnessBlenderNativeObj", &nativeBrightObj) != ANI_OK) {
+        UIEFFECT_LOG_E("get generator brightnessBlenderNativeObj failed");
+        return retVal;
+    }
+    BrightnessBlender* brightnessBlenderObj = reinterpret_cast<BrightnessBlender*>(nativeBrightObj);
+    std::shared_ptr<BrightnessBlender> blender(brightnessBlenderObj);
     ParseBrightnessBlender(env, para, blender);
 
     auto bgColorEffectPara = std::make_shared<BackgroundColorEffectPara>();

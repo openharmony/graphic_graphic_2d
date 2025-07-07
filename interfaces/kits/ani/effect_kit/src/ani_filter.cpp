@@ -206,7 +206,7 @@ ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object ar
     }
     
     PixelColorMatrix colormatrix;
-    int matrixLen = 20;
+    int matrixLen = PixelColorMatrix::MATRIX_SIZE;
     for (int i = 0; i < int(length) && i < matrixLen; ++i) {
         ani_float floatValue;
         if (ANI_OK != env->Object_CallMethodByName_Float(arrayObj, "$_get", "I:F", &floatValue, (ani_int)i)) {
@@ -269,7 +269,7 @@ ani_status AniFilter::Init(ani_env* env)
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        EFFECT_LOG_I("Class_BindNativeMethods failed: %{public}d", ret);
+        EFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
         return ANI_ERROR;
     }
     return ANI_OK;
