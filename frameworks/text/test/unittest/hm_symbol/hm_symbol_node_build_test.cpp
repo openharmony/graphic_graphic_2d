@@ -652,6 +652,22 @@ HWTEST_F(OHHmSymbolNodeBuildTest, CreateGradient001, TestSize.Level0)
     result = SymbolNodeBuild::CreateGradient(gradient3);
     EXPECT_NE(result, nullptr);
 }
+
+/*
+ * @tc.name: CreateGradientTestRadialGradient
+ * @tc.desc: test CreateGradient width RadialGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, CreateGradientTestRadialGradient, TestSize.Level0)
+{
+    // test input radial gradient
+    Drawing::Point centerPt = Drawing::Point(0.5f, 0.5f); // 0.5f: x, 0.5f: y
+    float radiusRatio = 0.6f; // 0.6f is radius
+    auto  gradient= std::make_shared<SymbolRadialGradient>(centerPt, radiusRatio);
+    gradient->SetRadius(123); // 123 is random value of radius
+    auto result = SymbolNodeBuild::CreateGradient(gradient);
+    EXPECT_NE(result, nullptr);
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

@@ -211,6 +211,7 @@ private:
     // true that it contains at least one mask layer, false there is none
     bool isMaskSymbol_ = false;
     Vector4f symbolBounds_;
+    std::optional<FrameRateRange> range_;
 };
 } // namespace Rosen
 } // namespace OHOS

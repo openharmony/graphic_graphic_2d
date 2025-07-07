@@ -285,15 +285,15 @@ std::shared_ptr<SymbolGradient> SymbolNodeBuild::CreateGradient(
     if (gradient->GetGradientType() == GradientType::LINE_GRADIENT) {
         auto lineGradient = std::static_pointer_cast<SymbolLineGradient>(gradient);
         outGradient = std::make_shared<SymbolLineGradient>(lineGradient->GetAngle());
-    }
-
-    if (gradient->GetGradientType() == GradientType::RADIAL_GRADIENT) {
+    } else if (gradient->GetGradientType() == GradientType::RADIAL_GRADIENT) {
         auto radiaGradient = std::static_pointer_cast<SymbolRadialGradient>(gradient);
-        outGradient = std::make_shared<SymbolRadialGradient>(radiaGradient->GetCenterPoint(),
+        auto newRadiaGradient = std::make_shared<SymbolRadialGradient>(radiaGradient->GetCenterPoint(),
             radiaGradient->GetRadiusRatio());
-    }
-
-    if (outGradient == nullptr) {
+        if (!radiaGradient->IsRadiusRatio()) {
+            newRadiaGradient->SetRadius(radiaGradient->GetRadius());
+        }
+        outGradient = newRadiaGradient;
+    } else {
         outGradient = std::make_shared<SymbolGradient>();
     }
 

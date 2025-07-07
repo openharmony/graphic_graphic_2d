@@ -446,6 +446,7 @@ void RSSymbolAnimation::InitSupportAnimationTable(
                                        Drawing::DrawingEffectStrategy::DISABLE};
     }
 
+    range_ = std::nullopt;
     Vector4f bounds = rsNode_->GetStagingProperties().GetBounds();
     symbolBounds_ = Vector4f(0.0f, 0.0f, bounds.z_, bounds.w_);
     isMaskSymbol_ = false;
@@ -639,6 +640,8 @@ bool RSSymbolAnimation::SetTextFlipAnimation(
         return false;
     }
 
+    FrameRateRange range = {60, 60, 60}; // The fixed frame rate is 60 of text flip animation
+    range_ = range;
     if (!symbolAnimationConfig->currentAnimationHasPlayed) {
         SetFlipDisappear(symbolAnimationConfig, rsNode_);
     }
@@ -1323,6 +1326,9 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
     SymbolAnimation::CreateAnimationTimingCurve(scaleParameter.curveType, scaleParameter.curveArgs, scaleCurve);
 
     RSAnimationTimingProtocol scaleprotocol;
+    if (range_.has_value()) {
+        scaleprotocol.SetFrameRateRange(range_.value());
+    }
     scaleprotocol.SetStartDelay(scaleParameter.delay);
     if (scaleParameter.duration > 0) {
         scaleprotocol.SetDuration(scaleParameter.duration);
@@ -1367,6 +1373,9 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
 
     // set animation protocol and curve
     RSAnimationTimingProtocol alphaProtocol;
+    if (range_.has_value()) {
+        alphaProtocol.SetFrameRateRange(range_.value());
+    }
     alphaProtocol.SetStartDelay(alphaParameter.delay);
     if (alphaParameter.duration > 0) {
         alphaProtocol.SetDuration(alphaParameter.duration);
@@ -1416,6 +1425,9 @@ void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rs
     SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
 
     RSAnimationTimingProtocol protocol;
+    if (range_.has_value()) {
+        protocol.SetFrameRateRange(range_.value());
+    }
     protocol.SetStartDelay(parameter.delay);
     if (parameter.duration > 0) {
         protocol.SetDuration(parameter.duration);
@@ -1461,6 +1473,9 @@ void RSSymbolAnimation::BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
 
     RSAnimationTimingProtocol protocol;
+    if (range_.has_value()) {
+        protocol.SetFrameRateRange(range_.value());
+    }
     protocol.SetStartDelay(parameter.delay);
     if (parameter.duration > 0) {
         protocol.SetDuration(parameter.duration);
