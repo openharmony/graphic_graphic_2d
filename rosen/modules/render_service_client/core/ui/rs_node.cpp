@@ -201,6 +201,11 @@ RSNode::~RSNode()
     // break current (ui) parent-child relationship.
     // render nodes will check if its child is expired and remove it, no need to manually remove it here.
     SharedPtr parentPtr = parent_.lock();
+    if (parentPtr) {
+        parentPtr->children_.erase(std::remove_if(parentPtr->children_.begin(), parentPtr->children_.end(),
+                                                  [](const auto& child) { return child.expired(); }),
+            parentPtr->children_.end());
+    }
     auto rsUIContext = rsUIContext_.lock();
     if (rsUIContext != nullptr) {
         // tell RT/RS to destroy related render node
@@ -234,12 +239,6 @@ RSNode::~RSNode()
             command = std::make_unique<RSBaseNodeDestroy>(id_);
             transactionProxy->AddCommand(command, !IsRenderServiceNode());
         }
-    }
-    if (parentPtr) {
-        parentPtr->children_.erase(std::remove_if(parentPtr->children_.begin(),
-                                                  parentPtr->children_.end(),
-                                                  [](const auto& child) { return child.expired(); }),
-                                   parentPtr->children_.end());
     }
 }
 
