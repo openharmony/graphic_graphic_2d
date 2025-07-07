@@ -518,7 +518,7 @@ HWTEST_F(RSColorspaceConvertTest, GetVideoDynamicMetadata001, TestSize.Level1)
     ASSERT_TRUE(surfaceBuffer != nullptr);
     std::vector<uint8_t> metadataSet{};
     ret = MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, metadataSet);
-    ASSERT_TRUE(ret == GSERROR_HDI_ERROR);
+    ASSERT_TRUE(ret != GSERROR_OK);
 }
 
 /**

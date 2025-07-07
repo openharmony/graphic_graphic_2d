@@ -518,9 +518,9 @@ HWTEST_F(RSColorspaceConvertRenderTest, TestGetFovMetadata02, TestSize.Level1)
     std::vector<uint8_t> metadataSet{1, 18, 119, 33, 196, 253, 112, 171, 74, 230, 99, 23, 0, 244, 82,
         138, 13, 158, 100, 41, 50, 189, 111, 144, 3, 153, 75, 210, 243, 237, 19, 12, 128};
     ret = MetadataHelper::SetAdaptiveFOVMetadata(surfaceBuffer, metadataSet);
-    ASSERT_TRUE(ret == GSERROR_OK || ret == GSERROR_HDI_ERROR);
+    ASSERT_TRUE(ret == GSERROR_OK);
     VPEParameter parameter;
     RSColorSpaceConvert::Instance().GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
-    ASSERT_TRUE(ret == GSERROR_OK || ret == GSERROR_HDI_ERROR);
+    ASSERT_TRUE(ret == GSERROR_OK);
 }
 } // namespace OHOS::Rosen
