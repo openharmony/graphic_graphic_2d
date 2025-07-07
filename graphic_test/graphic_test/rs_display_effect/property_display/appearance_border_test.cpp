@@ -179,6 +179,182 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Tes
     RegisterNode(testNodeFourStyle);
 }
 
+// style and color, all different
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_2)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 2, 0, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff67c23a, 0xff909399, 0x80e6a23c, 0x7ff56c6c);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, LT same
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_3)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(2, 2, 0, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff67c23a, 0xff67c23a, 0x80e6a23c, 0x7ff56c6c);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, TR same
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_4)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 2, 2, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff909399, 0xff67c23a, 0xff67c23a, 0x7ff56c6c);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, RB same
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_5)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 2, 0, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff67c23a, 0xff909399, 0x80e6a23c, 0x80e6a23c);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, BL same
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_6)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 2, 0, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff67c23a, 0xff909399, 0x80e6a23c, 0xff67c23a);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, RB same, LT same
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_7)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(1, 1, 0, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff909399, 0xff909399, 0x80e6a23c, 0x80e6a23c);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, TR same, BL same
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_8)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 1, 1, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0x80e6a23c, 0xff909399, 0xff909399, 0x80e6a23c);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, only LEFT different
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_9)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(1, 2, 2, 2);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0x80e6a23c, 0xff909399, 0xff909399, 0xff909399);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, only TOP different
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_10)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 2, 0, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff67c23a, 0xff909399, 0xff67c23a, 0xff67c23a);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, only RIGHT different
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_11)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 0, 2, 0);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff909399, 0xff909399, 0x80e6a23c, 0xff909399);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
+// style and color, only BOTTOM different
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Test_12)
+{
+    const int nodeSize = 500;
+    const int borderWidth = 5;
+    int posX = 0, posY = 0;
+
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ posX, posY, nodeSize, nodeSize });
+    testNodeFourStyle->SetBorderStyle(0, 0, 0, 1);
+    testNodeFourStyle->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+    testNodeFourStyle->SetBorderColor(0xff909399, 0xff909399, 0xff909399, 0x80e6a23c);
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
+}
+
 // Dash Width
 GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashWidth_Test_1)
 {
