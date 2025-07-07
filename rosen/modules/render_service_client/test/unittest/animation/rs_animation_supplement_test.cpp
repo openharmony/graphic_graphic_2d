@@ -593,24 +593,39 @@ public:
     {
         RSTransition::OnStart();
     }
+
+    void SetIsCustom(bool isCustom)
+    {
+        RSTransition::SetIsCustom(isCustom);
+    }
 };
 
 /**
- * @tc.name: AnimationSupplementTest009
- * @tc.desc: Verify the setcallback of Animation
+ * @tc.name: RSTransitionTest001
+ * @tc.desc: Verify the RSTransition
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest009, TestSize.Level1)
+HWTEST_F(RSAnimationTest, RSTransitionTest001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest009 start";
-    /**
-     * @tc.steps: step1. init
-     */
     std::shared_ptr<const RSTransitionEffect> effect;
     auto animation = std::make_shared<RSTransitionMock>(effect, true);
-    EXPECT_TRUE(animation != nullptr);
+    ASSERT_NE(animation, nullptr);
     animation->OnStart();
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest009 end";
+}
+
+/**
+ * @tc.name: RSTransitionTest001
+ * @tc.desc: Verify the RSTransition
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, RSTransitionTest002, TestSize.Level1)
+{
+    std::shared_ptr<const RSTransitionEffect> effect;
+    auto animation = std::make_shared<RSTransitionMock>(effect, true);
+    ASSERT_NE(animation, nullptr);
+    animation->SetIsCustom(true);
+    EXPECT_TRUE(animation->isCustom_);
+    animation->OnStart();
 }
 
 /**
