@@ -742,12 +742,6 @@ bool RSFilterCacheManager::WouldDrawLargeAreaBlurPrecisely()
         " stagingUpdateInterval:%d stagingLastCacheType:%d", stagingIsLargeArea_,
         stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_, stagingFilterInteractWithDirty_,
         stagingFilterRegionChanged_, cacheUpdateInterval_, lastCacheType_);
-    ROSEN_LOGD("wouldDrawLargeAreaBlurPrecisely stagingIsLargeArea:%{public}d stagingForceClearCache:%{public}d"
-        " canSkipFrame:%{public}d stagingFilterHashChanged:%{public}d stagingFilterInteractWithDirty:%{public}d"
-        " stagingFilterRegionChanged:%{public}d stagingUpdateInterval:%{public}d stagingLastCacheType:%{public}d",
-        stagingIsLargeArea_, stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_,
-        stagingFilterInteractWithDirty_, stagingFilterRegionChanged_, cacheUpdateInterval_,
-        static_cast<int>(lastCacheType_));
     if (!stagingIsLargeArea_) {
         return false;
     }
