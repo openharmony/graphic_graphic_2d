@@ -14,25 +14,26 @@
  */
 
 #include <parameters.h>
-#include "drawable/rs_logical_display_render_node_drawable.h"
-#include "drawable/rs_screen_render_node_drawable.h"
 
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "gtest/gtest.h"
+
+#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_logical_display_render_node.h"
-#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "platform/drawing/rs_surface_converter.h"
 #include "render/rs_pixel_map_util.h"
@@ -170,52 +171,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CreateDisplayRenderNodeDrawable, TestSi
     ASSERT_NE(drawable, nullptr);
 }
 
-/**
- * @tc.name: PrepareOffscreenRender001
- * @tc.desc: Test PrepareOffscreenRender, if offscreenWidth/offscreenHeight were not initialized.
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(renderNode_, nullptr);
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
 
-    auto type = RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable();
-    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(true);
-
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-
-    params->frameRect_ = { 0.f, 0.f, 1.f, 0.f };
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
-    ASSERT_FALSE(params->IsRotationChanged());
-
-    params->frameRect_ = { 0.f, 0.f, 1.f, 1.f };
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
-    ASSERT_FALSE(screenDrawable_->curCanvas_->GetSurface());
-
-    auto surface = std::make_shared<Drawing::Surface>();
-    screenDrawable_->curCanvas_->surface_ = surface.get();
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
-    ASSERT_TRUE(screenDrawable_->curCanvas_->GetSurface());
-    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(type);
-}
-
-/**
- * @tc.name: PrepareOffscreenRender002
- * @tc.desc: Test PrepareOffscreenRender, offscreenWidth/offscreenHeight is/are correctly initialized.
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, PrepareOffscreenRender002, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(renderNode_, nullptr);
-    renderNode_->GetMutableRenderProperties().SetFrameWidth(DEFAULT_CANVAS_SIZE);
-    renderNode_->GetMutableRenderProperties().SetFrameHeight(DEFAULT_CANVAS_SIZE);
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
-}
 
 /**
  * @tc.name: ClearTransparentBeforeSaveLayer
@@ -805,35 +761,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_->Init();
     screenDrawable_->OnDraw(canvas);
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
-}
-
-/**
- * @tc.name: CalculateVirtualDirty
- * @tc.desc: Test CalculateVirtualDirty
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
-    ASSERT_NE(mirroredNode_, nullptr);
-
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.GetRSRenderThreadParams()) {
-        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
-    }
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    if (mirroredNode_->GetRenderDrawable() == nullptr) {
-        mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
-    }
-    params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    Drawing::Matrix matrix;
-    sleep(1);
 }
 
 /**
@@ -1890,60 +1817,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, EnablescRGBForP3AndUiFirst_P3, TestSize
     ASSERT_NE(screenDrawable_, nullptr);
     bool result = screenDrawable_->EnablescRGBForP3AndUiFirst(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     EXPECT_EQ(result, false);
-}
-
-/**
- * @tc.name: PrepareOffscreenRender_InvalidSize
- * @tc.desc: Test PrepareOffscreenRender WITH Invalid SCREEN Size
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, PrepareOffscreenRender_InvalidSize, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    ScreenInfo& screenInfo = params->screenInfo_;
-    screenInfo.width = 0;
-    screenInfo.height = 0;
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_, false, false);
-}
-
-/**
- * @tc.name: PrepareOffscreenRender_ValidSize
- * @tc.desc: Test PrepareOffscreenRender WITH Invalid SCREEN Size
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, PrepareOffscreenRender_ValidSize, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    ScreenInfo& screenInfo = params->screenInfo_;
-    screenInfo.width = 100;
-    screenInfo.height = 100;
-    screenDrawable_->curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_, false, false);
-}
-
-/**
- * @tc.name: PrepareOffscreenRender_NullSurface
- * @tc.desc: Test PrepareOffscreenRender when current surface is null
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, PrepareOffscreenRender_NullSurface, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    ScreenInfo& screenInfo = params->screenInfo_;
-    screenInfo.width = 100;
-    screenInfo.height = 100;
-    auto drawingCanvas = std::make_unique<Drawing::Canvas>(100, 100);
-    screenDrawable_->curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_, false, false);
 }
 
 /**
