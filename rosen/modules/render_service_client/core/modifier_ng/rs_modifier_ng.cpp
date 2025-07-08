@@ -207,7 +207,6 @@ void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
     property->SetIsCustom(IsCustom());
     property->AttachModifier(shared_from_this());
     if (node_.expired()) {
-        RS_LOGE("Attach property, node expired.");
         return;
     }
     property->target_ = node_;
