@@ -159,7 +159,7 @@ private:
     // environment, we don't need to attempt to reattach SkImages.
     void CheckCachedImages(RSPaintFilterCanvas& canvas);
 
-    const char* GetCacheState() const;
+    std::string GetCacheState() const;
 
     void UpdateFlags(FilterCacheType type, bool cacheValid);
     void ClearFilterCache();

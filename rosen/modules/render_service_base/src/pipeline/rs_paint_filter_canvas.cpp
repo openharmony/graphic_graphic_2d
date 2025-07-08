@@ -1558,6 +1558,19 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Dr
     : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
 {}
 
+std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
+{
+    // std::shared_ptr<Drawing::Image> cachedImage = cachedImage_;
+    if (cachedImage_ == nullptr) {
+        return "No valid cacheImage found.";
+    }
+    std::string ss;
+    ss += " cachedRect: " + cachedRect_.ToString() +
+        ", CacheImageWidth: " + std::to_string(cachedImage_->GetWidth()) +
+        ", CacheImageHeight: " + std::to_string(cachedImage_->GetHeight());
+    return ss;
+}
+
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 {
     isParallelCanvas_ = isParallel;

@@ -124,15 +124,33 @@ void RSFilterCacheManagerTest::TearDown()
  * @tc.type: FUNC
  * @tc.require: issueIA5FLZ
  */
-HWTEST_F(RSFilterCacheManagerTest, GetCacheStateTest, TestSize.Level1)
+ HWTEST_F(RSFilterCacheManagerTest, GetCacheStateTest, TestSize.Level1)
 {
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bmp.Build(300, 300, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bmp);
+    Drawing::RectI CACHEDRECTSIZE {0, 0, 300, 300};
+    std::string ss1, ss2;
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "No valid cache found.");
     rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_EQ(
         rsFilterCacheManager->GetCacheState(), "Snapshot found in cache. Generating filtered image using cached data.");
+    rsFilterCacheManager->cachedSnapshot_->cachedImage_ = image;
+    rsFilterCacheManager->cachedSnapshot_->cachedRect_ = CACHEDRECTSIZE;
+    ss1 += "Snapshot found in cache. Generating filtered image using cached data"
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss1);
     rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "Filtered image found in cache. Reusing cached result.");
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_ = image;
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedRect_ = CACHEDRECTSIZE;
+    ss2 += "Filtered image found in cache. Reusing cached result."
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss2);
 }
 
 /**

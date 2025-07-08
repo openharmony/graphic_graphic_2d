@@ -52,12 +52,15 @@ RSFilterCacheManager::RSFilterCacheManager()
 {
     hpaeCacheManager_ = std::make_shared<RSHpaeFilterCacheManager>();
 }
-const char* RSFilterCacheManager::GetCacheState() const
+
+std::string RSFilterCacheManager::GetCacheState() const
 {
     if (cachedFilteredSnapshot_ != nullptr) {
-        return "Filtered image found in cache. Reusing cached result.";
+        return "Filtered image found in cache. Reusing cached result." +
+            cachedFilteredSnapshot_->GetInfo();
     } else if (cachedSnapshot_ != nullptr) {
-        return "Snapshot found in cache. Generating filtered image using cached data.";
+        return "Snapshot found in cache. Generating filtered image using cached data"+
+            cachedSnapshot_->GetInfo();
     } else {
         return "No valid cache found.";
     }
@@ -218,7 +221,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         return;
     }
 
-    RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState());
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState().c_str());
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     }
@@ -246,7 +249,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     if (src.IsEmpty() || dst.IsEmpty()) {
         return nullptr;
     }
-    RS_TRACE_NAME_FMT("RSFilterCacheManager::GeneratedCachedEffectData status: %s", GetCacheState());
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::GeneratedCachedEffectData status: %s", GetCacheState().c_str());
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     } else if (snapshotNeedUpdate_) {
