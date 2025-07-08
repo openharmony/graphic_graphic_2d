@@ -55,6 +55,7 @@ struct FilterDirtyRegionInfo {
 
     FilterDirtyRegionInfo() = default;
     FilterDirtyRegionInfo(const FilterDirtyRegionInfo& info) = default;
+    FilterDirtyRegionInfo& operator=(const FilterDirtyRegionInfo& info) = default;
 };
 
 typedef std::list<FilterDirtyRegionInfo> FilterDirtyRegionInfoList;
