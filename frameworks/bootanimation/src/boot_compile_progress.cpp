@@ -69,6 +69,17 @@ namespace {
         { { 0.5f, 0.2f }, { 0.2f, 1.0f }, { 1.0f, 0.5f } },
         { { 1.0f, 0.5f }, { 0.5f, 0.2f }, { 0.2f, 1.0f } },
     };
+    constexpr const char EXPAND = '0';
+    constexpr const char FOLD_1 = '1';
+    constexpr const char FOLD_2 = '3';
+    constexpr const char MIDDLE = '2';
+    constexpr const float DEFAULT_SIZE_RATIO = 1.0f;
+    constexpr const float EXPAND_MIDDLE_SIZE_RATIO = 2.0 / 3.0f;
+    constexpr const float FOLD_SIZE_RATIO = 1.0 / 3.0f;
+    constexpr const float FOLD_X_OFFSET = 1.0 / 3.0f;
+    constexpr const float MIDDLE_X_OFFSET = 1.0 / 6.0f;
+    constexpr const float DEGREE = 90.0f;
+    constexpr const int DOULBE_TIMES = 2;
 }
 
 void BootCompileProgress::Init(const BootAnimationConfig& config)
@@ -77,11 +88,16 @@ void BootCompileProgress::Init(const BootAnimationConfig& config)
     RecordDeviceType();
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
+    if (!config.screenStatus.empty()) {
+        screenStatus_ = config.screenStatus;
+    }
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
     fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? FONT_SIZE_OTHER : FONT_SIZE_PHONE);
+    currentRadius_ = isWearable_ ? RADIUS_WEARABLE :
+        TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * DOULBE_TIMES : RADIUS);
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
     tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
@@ -238,13 +254,11 @@ void BootCompileProgress::DrawCompileProgress()
     DrawMarginBrush(canvas);
 
     int32_t freqNum = times_++;
-    float currentRadius = isWearable_ ? RADIUS_WEARABLE :
-        TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * 2 : RADIUS);
     for (int i = 0; i < CIRCLE_NUM; i++) {
         canvas->AttachBrush(DrawProgressPoint(i, freqNum));
-        int pointX = windowWidth_/2.0f + 4 * currentRadius * (i - 1);
-        int pointY = rsCanvasNode_->GetPaintHeight() - currentRadius;
-        canvas->DrawCircle({pointX, pointY}, currentRadius);
+        int pointX = windowWidth_/2.0f + 4 * currentRadius_ * (i - 1);
+        int pointY = rsCanvasNode_->GetPaintHeight() - currentRadius_;
+        canvas->DrawCircle({pointX, pointY}, currentRadius_);
         canvas->DetachBrush();
     }
 
@@ -319,14 +333,39 @@ void BootCompileProgress::RecordDeviceType()
     }
 }
 
+
 void BootCompileProgress::SetFrame()
 {
     if (isWearable_) {
         rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
-    } else {
-        int32_t maxLength = std::max(windowWidth_, windowHeight_);
-        rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
-            maxLength * HEIGHT_PERCENT);
+        return;
     }
+    LOGI("screenStatus: %{public}s", screenStatus_.c_str());
+    float sizeRatio = DEFAULT_SIZE_RATIO;
+    switch (screenStatus_.c_str()[0]) {
+        case EXPAND:
+            sizeRatio = EXPAND_MIDDLE_SIZE_RATIO;
+            rsCanvasNode_->SetFrame(0, windowWidth_, windowHeight_, windowWidth_ * HEIGHT_PERCENT);
+            break;
+        case FOLD_1:
+        case FOLD_2:
+            sizeRatio = FOLD_SIZE_RATIO;
+            rsCanvasNode_->SetFrame(0-windowHeight_ * FOLD_X_OFFSET, windowWidth_, windowHeight_,
+                windowWidth_ * HEIGHT_PERCENT);
+            break;
+        case MIDDLE:
+            sizeRatio = EXPAND_MIDDLE_SIZE_RATIO;
+            rsCanvasNode_->SetFrame(windowHeight_ * MIDDLE_X_OFFSET, windowWidth_, windowHeight_,
+                windowWidth_ * HEIGHT_PERCENT);
+            break;
+        default:
+            int32_t maxLength = std::max(windowWidth_, windowHeight_);
+            rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
+                maxLength * HEIGHT_PERCENT);
+            return;
+    }
+    fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_PHONE) * sizeRatio;
+    currentRadius_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), RADIUS) * sizeRatio;
+    rsCanvasNode_->SetRotation(DEGREE);
 }
 } // namespace OHOS
