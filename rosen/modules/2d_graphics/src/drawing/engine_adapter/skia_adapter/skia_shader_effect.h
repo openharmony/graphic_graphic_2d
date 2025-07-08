@@ -21,6 +21,10 @@
 #include "impl_interface/shader_effect_impl.h"
 #include "include/effects/SkRuntimeEffect.h"
 
+#ifdef RS_ENABLE_GPU
+#include "image/gpu_context.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -29,7 +33,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
     SkiaShaderEffect() noexcept;
-    ~SkiaShaderEffect() override {};
+    ~SkiaShaderEffect() override;
 
     AdapterType GetType() const override
     {
@@ -70,10 +74,17 @@ public:
      */
     void SetSkShader(const sk_sp<SkShader>& skShader);
 
+#ifdef RS_ENABLE_GPU
+    void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) override;
+#endif
+
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkShader> shader_;
+#ifdef RS_ENABLE_GPU
+    std::shared_ptr<GPUContext> gpuContext_ = nullptr;
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen
