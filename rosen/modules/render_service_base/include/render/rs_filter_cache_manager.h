@@ -20,7 +20,6 @@
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
 
-#include "event_handler.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "utils/rect.h"
