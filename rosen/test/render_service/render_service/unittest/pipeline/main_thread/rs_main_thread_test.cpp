@@ -153,7 +153,7 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
     ScreenId screenId = 0xFFFF;
     NodeId displayId = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, context);
-    aut screenManager = CreateOrGetScreenManger();
+    auto screenManager = CreateOrGetScreenManager();
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     if (hdiOutput == nullptr) {
         return screenNode;
@@ -5409,11 +5409,11 @@ HWTEST_F(RSMainThreadTest, OnScreenConnectTest, TestSize.Level2)
     uint64_t screenId = 1;
     displayNode1->SetScreenId(screenId);
     displayNode1->waitToSetOnTree_ = true;
-    mainThread1->context_->nodeMap.logicaldisplayNodeMap_.insert({displayNodeId1, displayNode1});
+    mainThread1->context_->nodeMap.logicalDisplayNodeMap_.insert({displayNodeId1, displayNode1});
 
     NodeId displayNodeId2 = 2;
     auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
-    mainThread1->context_->nodeMap.logicaldisplayNodeMap_.insert({displayNodeId2, displayNode2});
+    mainThread1->context_->nodeMap.logicalDisplayNodeMap_.insert({displayNodeId2, displayNode2});
 
     auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
@@ -5434,7 +5434,7 @@ HWTEST_F(RSMainThreadTest, OnScreenDisconnectTest, TestSize.Level2)
 
     auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
-    screenManager->screenNodeListener_->OnScreenDisConnect(0);
+    screenManager->screenNodeListener_->OnScreenDisconnect(0);
 }
 /**
  * @tc.name: IsFastComposeVsyncTimeSync001
