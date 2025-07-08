@@ -60,7 +60,7 @@ PropertyId GeneratePropertyId()
 RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 {}
 
-void RSPropertyBase::MarkModifierDirty()
+void RSPropertyBase::MarkCustomModifierDirty()
 {
 #if defined(MODIFIER_NG)
     if (auto modifier = modifierNG_.lock()) {

@@ -200,11 +200,18 @@ ModifierId RSModifier::GenerateModifierId()
 
 void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
 {
-    if (property != nullptr) {
-        property->target_ = node_;
-        property->SetIsCustom(true);
-        property->AttachModifier(shared_from_this());
-        property->MarkModifierDirty();
+    if (property == nullptr) {
+        RS_LOGE("Failed to attach property, property is null.");
+        return;
+    }
+    property->SetIsCustom(IsCustom());
+    property->AttachModifier(shared_from_this());
+    if (node_.expired()) {
+        return;
+    }
+    property->target_ = node_;
+    if (IsCustom()) {
+        property->MarkCustomModifierDirty();
     }
 }
 

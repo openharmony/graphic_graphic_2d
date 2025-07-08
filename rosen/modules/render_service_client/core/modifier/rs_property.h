@@ -226,7 +226,7 @@ protected:
         modifierNG_ = modifier;
     }
 
-    void MarkModifierDirty();
+    void MarkCustomModifierDirty();
 
     void MarkNodeDirty();
 
@@ -379,7 +379,7 @@ public:
         MarkNodeDirty();
         UpdateExtendModifierForGeometry(node);
         if (isCustom_) {
-            MarkModifierDirty();
+            MarkCustomModifierDirty();
         } else {
             UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
         }
@@ -756,7 +756,7 @@ protected:
             }
         } else {
             showingValue_ = value;
-            RSProperty<T>::MarkModifierDirty();
+            RSProperty<T>::MarkCustomModifierDirty();
             if (renderProperty_ != nullptr) {
                 renderProperty_->Set(value);
             } else {
@@ -781,7 +781,7 @@ protected:
         if (renderProperty != nullptr) {
             showingValue_ = renderProperty->Get();
             NotifyPropertyChange();
-            RSProperty<T>::MarkModifierDirty();
+            RSProperty<T>::MarkCustomModifierDirty();
         }
     }
 
