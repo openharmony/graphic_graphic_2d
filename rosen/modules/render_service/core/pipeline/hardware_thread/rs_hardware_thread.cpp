@@ -732,6 +732,10 @@ void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
 
 bool RSHardwareThread::IsDropDirtyFrame(const std::vector<LayerInfoPtr>& layerInfos, uint32_t screenId)
 {
+#ifdef ROSEN_EMULATOR
+    RS_LOGD("emulator device do not need drop dirty frame");
+    return false;
+#endif
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
         return false;
     }
