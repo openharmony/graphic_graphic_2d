@@ -154,8 +154,8 @@ HWTEST_F(RSFilterCacheManagerTest, GetCacheStateTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCacheStateTest
- * @tc.desc: test results of GetCacheState
+ * @tc.name: CacheInfoTest
+ * @tc.desc: test results of CacheInfo
  * @tc.type: FUNC
  * @tc.require: issueIA5FLZ
  */
