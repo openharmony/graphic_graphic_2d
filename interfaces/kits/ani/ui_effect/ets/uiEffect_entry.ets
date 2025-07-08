@@ -16,13 +16,13 @@
 import uiEffect from './@ohos.graphics.uiEffect';
  
 function main() {
-  console.println('Test uiEffect start');
+  console.log('Test uiEffect start');
   
   let visualEffect: uiEffect.VisualEffect = uiEffect.createEffect();
   if (visualEffect == undefined) {
-    console.println('createEffect failed');
+    console.log('createEffect failed');
   } else {
-    console.println('createEffect SUCCEED');
+    console.log('createEffect SUCCEED');
   }
   let brightnessBlender: uiEffect.BrightnessBlender = uiEffect.createBrightnessBlender({
     cubicRate: 0.5,
@@ -35,54 +35,54 @@ function main() {
     fraction: 0.5
   });
   if (brightnessBlender == undefined) {
-    console.println('createBrightnessBlender failed');
+    console.log('createBrightnessBlender failed');
   } else {
-    console.println('createBrightnessBlender SUCCEED, value is correct');
+    console.log('createBrightnessBlender SUCCEED, value is correct');
   }
   let result: uiEffect.VisualEffect = visualEffect.backgroundColorBlender(brightnessBlender);
   if (result == undefined) {
-    console.println('backgroundColorBlender failed');
+    console.log('backgroundColorBlender failed');
   } else {
-    console.println('backgroundColorBlender SUCCEED');
+    console.log('backgroundColorBlender SUCCEED');
   }  
   let filter: uiEffect.Filter = uiEffect.createFilter();
   if (filter == undefined) {
-    console.println('createFilter failed');
+    console.log('createFilter failed');
   } else {
-    console.println('createFilter succ');
+    console.log('createFilter succ');
   }
   let blurResult: uiEffect.Filter = filter.blur(0.5);
   if (blurResult == undefined) {
-    console.println('blur failed');
+    console.log('blur failed');
   } else {
-    console.println('blur succ');
+    console.log('blur succ');
   }
   let pixelStretchResult: uiEffect.Filter = filter.pixelStretch([0.2, 0.2, 0.2, 0.2], uiEffect.TileMode.CLAMP);
   if (pixelStretchResult == undefined) {
-    console.println('pixelStretch failed');
+    console.log('pixelStretch failed');
   } else {
-    console.println('pixelStretch succ');
+    console.log('pixelStretch succ');
   }
 
   let flyResult: uiEffect.Filter = filter.flyInFlyOutEffect(0.5, uiEffect.FlyMode.TOP);
   if (flyResult == undefined) {
-    console.println('fly failed');
+    console.log('fly failed');
   } else {
-    console.println('fly succ');
+    console.log('fly succ');
   }
   let waterRippleResult: uiEffect.Filter = filter.waterRipple(0.2, 0.2, 0.2, 0.2,
     uiEffect.WaterRippleMode.SMALL2MEDIUM_RECV);
   if (waterRippleResult == undefined) {
-    console.println('waterRipple failed');
+    console.log('waterRipple failed');
   } else {
-    console.println('waterRipple succ');
+    console.log('waterRipple succ');
   }  
   let distortResult: uiEffect.Filter = filter.distort(0.5);
   if (distortResult == undefined) {
-    console.println('distort failed');
+    console.log('distort failed');
   } else {
-    console.println('distort succ');
+    console.log('distort succ');
   }  
   
-  console.println('Test uiEffect end');
+  console.log('Test uiEffect end');
 }

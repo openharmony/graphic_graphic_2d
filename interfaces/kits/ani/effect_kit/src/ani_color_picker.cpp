@@ -338,7 +338,7 @@ ani_status AniColorPicker::Init(ani_env *env)
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        EFFECT_LOG_I("Class_BindNativeMethods failed: %{public}d", ret);
+        EFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
         return ANI_ERROR;
     }
     return ANI_OK;
