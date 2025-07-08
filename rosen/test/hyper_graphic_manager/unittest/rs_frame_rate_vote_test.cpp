@@ -54,6 +54,8 @@ HWTEST_F(RSFrameRateVoteTest, SetTransactionFlags001, Function | SmallTest | Lev
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_, transactionFlags);
 }
 
+//
+
 /**
  * @tc.name: CheckSurfaceAndUi001
  * @tc.desc: Verify the result of CheckSurfaceAndUi function

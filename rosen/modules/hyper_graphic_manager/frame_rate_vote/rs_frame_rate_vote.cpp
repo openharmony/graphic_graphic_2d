@@ -51,6 +51,7 @@ void RSFrameRateVote::SetTransactionFlags(const std::string& transactionFlags)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     transactionFlags_ = transactionFlags;
+    //
 }
 
 bool RSFrameRateVote::CheckSurfaceAndUi(OHSurfaceSource sourceType)
