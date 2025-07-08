@@ -513,6 +513,12 @@ CoreCanvas& CoreCanvas::AttachPaint(const Paint& paint)
 {
     paintBrush_.Disable();
     paintPen_ = paint;
+#ifdef RS_ENABLE_GPU
+    auto shaderEffect = paintPen_.GetShaderEffect();
+    if (shaderEffect != nullptr) {
+        shaderEffect->SetGPUContext(GetGPUContext());
+    }
+#endif
     return *this;
 }
 

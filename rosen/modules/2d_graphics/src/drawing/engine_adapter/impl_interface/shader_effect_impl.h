@@ -37,6 +37,9 @@ namespace Drawing {
 class Data;
 class Image;
 class ShaderEffect;
+#ifdef RS_ENABLE_GPU
+class GPUContext;
+#endif
 enum class TileMode;
 class ShaderEffectImpl : public BaseImpl {
 public:
@@ -69,6 +72,10 @@ public:
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix) = 0;
 
     virtual void InitWithSdf(const SDFShapeBase& shape) = 0;
+
+#ifdef RS_ENABLE_GPU
+    virtual void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) = 0;
+#endif
 
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
