@@ -239,9 +239,6 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
 
 void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool needMap)
 {
-    if (!node.HasRemovedChild()) {
-        return;
-    }
     RectI dirtyRect = RSSystemProperties::GetOptimizeParentNodeRegionEnabled() ?
         node.GetRemovedChildrenRect() : node.GetChildrenRect();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curScreenDirtyManager_;
@@ -1656,7 +1653,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto preOffscreenCanvasNodeId = offscreenCanvasNodeId_;
     globalShouldPaint_ &= node.ShouldPaint();
     CheckFilterCacheNeedForceClearOrSave(node);
-    if (IsAccessibilityConfigChanged()) {
+    bool isAccessibilityConfigChanged = IsAccessibilityConfigChanged();
+    if (isAccessibilityConfigChanged) {
         node.SetIsAccessibilityConfigChanged(true);
     }
     UpdateDrawingCacheInfoBeforeChildren(node);
@@ -1670,7 +1668,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     // 4. the node is marked as a root node of opinc and the high-contrast state change
     auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
         node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
-        (node.GetOpincCache().OpincGetRootFlag() && IsAccessibilityConfigChanged());
+        (node.GetOpincCache().OpincGetRootFlag() && isAccessibilityConfigChanged);
     node.GetOpincCache().OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_, isSelfDirty);
     node.UpdateOpincParam();
     RectI prepareClipRect = prepareClipRect_;
@@ -1771,7 +1769,9 @@ bool RSUniRenderVisitor::NeedPrepareChindrenInReverseOrder(RSRenderNode& node) c
 
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
-    MergeRemovedChildDirtyRegion(node, true);
+    if (UNLIKELY(node.HasRemovedChild())) {
+        MergeRemovedChildDirtyRegion(node, true);
+    }
     if (node.LastFrameSubTreeSkipped() && curSurfaceDirtyManager_) {
         node.ForceMergeSubTreeDirtyRegion(*curSurfaceDirtyManager_, prepareClipRect_);
     }
@@ -2943,15 +2943,8 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         node.SetGlobalAlpha(curAlpha_);
     }
     CollectEffectInfo(node);
-    node.MapAndUpdateChildrenRect();
-    node.UpdateSubTreeInfo(prepareClipRect_);
-    node.UpdateLocalDrawRect();
-    node.UpdateAbsDrawRect();
-    node.ResetChangeState();
-    node.SetHasUnobscuredUEC();
-    if (curSurfaceNode_ == nullptr) {
-        node.UpdateVirtualScreenWhiteListInfo();
-    }
+    node.NodePostPrepare(curSurfaceNode_, prepareClipRect_);
+
     if (isDrawingCacheEnabled_) {
         bool isInBlackList = false;
         if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {

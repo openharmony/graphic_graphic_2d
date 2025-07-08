@@ -624,18 +624,6 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
     }
 }
 
-void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
-{
-    auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
-    if (geoPtr == nullptr) {
-        return;
-    }
-    lastFrameHasChildrenOutOfRect_ = HasChildrenOutOfRect();
-    oldChildrenRect_ = childrenRect_;
-    oldClipRect_ = clipRect;
-    oldAbsMatrix_ = geoPtr->GetAbsMatrix();
-}
-
 void RSRenderNode::ClearCloneCrossNode()
 {
     if (cloneCrossNodeVec_.size() == 0) {
@@ -1323,33 +1311,6 @@ void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManag
     lastFrameSubTreeSkipped_ = false;
 }
 
-void RSRenderNode::SubTreeSkipPrepare(
-    RSDirtyRegionManager& dirtyManager, bool isDirty, bool accumGeoDirty, const RectI& clipRect)
-{
-    // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
-    if ((isDirty || accumGeoDirty) && (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_)) {
-        auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
-        if (geoPtr == nullptr) {
-            return;
-        }
-        auto oldDirtyRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
-        auto oldDirtyRectClip = oldDirtyRect.IntersectRect(oldClipRect_);
-        auto dirtyRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
-        auto dirtyRectClip = dirtyRect.IntersectRect(clipRect);
-        dirtyRectClip = dirtyRectClip.JoinRect(oldDirtyRectClip);
-        IsFirstLevelCrossNode() ?
-            dirtyManager.MergeDirtyRect(dirtyRect.JoinRect(oldDirtyRect)) : dirtyManager.MergeDirtyRect(dirtyRectClip);
-        UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
-    }
-    if (isDirty && GetChildrenCount() == 0) {
-        ClearSubtreeParallelNodes();
-        ResetChildRelevantFlags();
-    }
-    SetGeoUpdateDelay(accumGeoDirty);
-    UpdateSubTreeInfo(clipRect);
-    lastFrameSubTreeSkipped_ = true;
-}
-
 // attention: current all base node's dirty ops causing content dirty
 void RSRenderNode::SetContentDirty()
 {
@@ -1474,26 +1435,6 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 #endif
 }
 
-bool RSRenderNode::IsUifirstArkTsCardNode()
-{
-    if (nodeGroupType_ == NodeGroupType::NONE) {
-        return false;
-    }
-    for (auto& child : *GetChildren()) {
-        if (!child) {
-            continue;
-        }
-        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (!surfaceChild) {
-            continue;
-        }
-        if (surfaceChild->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 {
     auto foregroundFilterCache = GetRenderProperties().GetForegroundFilterCache();
@@ -1516,31 +1457,6 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetDrawingCacheIncludeProperty(nodeGroupIncludeProperty_);
 #endif
-}
-
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
-{
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
-        " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
-        IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
-    if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
-        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    } else if (isInBlackList) {
-        stagingRenderParams_->SetNodeGroupHasChildInBlackList(true);
-    }
-    if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
-        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
-        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    }
-#ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
-#endif
-    if (GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
-        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter id:%llu cacheType:%d childHasVisibleFilter:%d " \
-            "childHasVisibleEffect:%d",
-            GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
-    }
-    AddToPendingSyncList();
 }
 
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -2259,48 +2175,6 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
     }
 }
 
-void RSRenderNode::MapAndUpdateChildrenRect()
-{
-    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-    if (!shouldPaint_ || geoPtr == nullptr) {
-        return;
-    }
-    auto childRect = selfDrawRect_;
-    // all child must map to its direct parent
-    if (!childrenRect_.IsEmpty()) {
-        // clean subtree means childrenRect maps to parent already
-        childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
-    }
-    // map before update parent, if parent has clip property, use clipped children rect instead.
-    // node with sharedTransitionParam should recalculate childRelativeToParentMatrix from absMatrix due to sandbox.
-    if (auto parentNode = parent_.lock()) {
-        const auto& parentProperties = parentNode->GetRenderProperties();
-        const auto& sandbox = GetRenderProperties().GetSandBox();
-        RectI childRectMapped;
-        if (LIKELY(!sandbox.has_value())) {
-            childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
-        } else {
-            Drawing::Matrix invertAbsParentMatrix;
-            const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
-            if (parentGeoPtr && parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {
-                auto childRelativeToParentMatrix = geoPtr->GetAbsMatrix();
-                childRelativeToParentMatrix.PostConcat(invertAbsParentMatrix);
-                childRectMapped = geoPtr->MapRect(childRect, childRelativeToParentMatrix);
-            } else {
-                childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
-            }
-        }
-        if (parentProperties.GetClipToBounds() || parentProperties.GetClipToFrame()) {
-            childRectMapped = parentNode->GetSelfDrawRect().ConvertTo<int>().IntersectRect(childRectMapped);
-        }
-        parentNode->UpdateChildrenRect(childRectMapped);
-        // check each child is inside of parent
-        childRect = childRectMapped.ConvertTo<float>();
-        if (!childRect.IsInsideOf(parentNode->GetSelfDrawRect())) {
-            parentNode->UpdateChildrenOutOfRectFlag(true);
-        }
-    }
-}
 
 void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const
 {
@@ -5033,6 +4907,18 @@ void RSRenderNode::UpdateRenderParams()
 #endif
 }
 
+void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
+{
+    auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+    if (geoPtr == nullptr) {
+        return;
+    }
+    lastFrameHasChildrenOutOfRect_ = HasChildrenOutOfRect();
+    oldChildrenRect_ = childrenRect_;
+    oldClipRect_ = clipRect;
+    oldAbsMatrix_ = geoPtr->GetAbsMatrix();
+}
+
 void RSRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_)
 {
     stagingRenderParams_->SetCrossNodeOffScreenStatus(isCrossNodeOffscreenOn_);
@@ -5746,6 +5632,135 @@ void RSRenderNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
 bool RSRenderNode::GetNeedUseCmdlistDrawRegion()
 {
     return RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled() && needUseCmdlistDrawRegion_;
+}
+
+void RSRenderNode::SubTreeSkipPrepare(
+    RSDirtyRegionManager& dirtyManager, bool isDirty, bool accumGeoDirty, const RectI& clipRect)
+{
+    // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
+    if ((isDirty || accumGeoDirty) && (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_)) {
+        auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+        if (geoPtr == nullptr) {
+            return;
+        }
+        auto oldDirtyRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
+        auto oldDirtyRectClip = oldDirtyRect.IntersectRect(oldClipRect_);
+        auto dirtyRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
+        auto dirtyRectClip = dirtyRect.IntersectRect(clipRect);
+        dirtyRectClip = dirtyRectClip.JoinRect(oldDirtyRectClip);
+        IsFirstLevelCrossNode() ?
+            dirtyManager.MergeDirtyRect(dirtyRect.JoinRect(oldDirtyRect)) : dirtyManager.MergeDirtyRect(dirtyRectClip);
+        UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
+    }
+    if (isDirty && GetChildrenCount() == 0) {
+        ClearSubtreeParallelNodes();
+        ResetChildRelevantFlags();
+    }
+    SetGeoUpdateDelay(accumGeoDirty);
+    UpdateSubTreeInfo(clipRect);
+    lastFrameSubTreeSkipped_ = true;
+}
+
+void RSRenderNode::MapAndUpdateChildrenRect()
+{
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    if (!shouldPaint_ || geoPtr == nullptr) {
+        return;
+    }
+    auto childRect = selfDrawRect_;
+    // all child must map to its direct parent
+    if (!childrenRect_.IsEmpty()) {
+        // clean subtree means childrenRect maps to parent already
+        childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
+    }
+    // map before update parent, if parent has clip property, use clipped children rect instead.
+    // node with sharedTransitionParam should recalculate childRelativeToParentMatrix from absMatrix due to sandbox.
+    if (auto parentNode = parent_.lock()) {
+        const auto& parentProperties = parentNode->GetRenderProperties();
+        const auto& sandbox = GetRenderProperties().GetSandBox();
+        RectI childRectMapped;
+        if (LIKELY(!sandbox.has_value())) {
+            childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
+        } else {
+            Drawing::Matrix invertAbsParentMatrix;
+            const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
+            if (parentGeoPtr && parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {
+                auto childRelativeToParentMatrix = geoPtr->GetAbsMatrix();
+                childRelativeToParentMatrix.PostConcat(invertAbsParentMatrix);
+                childRectMapped = geoPtr->MapRect(childRect, childRelativeToParentMatrix);
+            } else {
+                childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
+            }
+        }
+        if (parentProperties.GetClipToBounds() || parentProperties.GetClipToFrame()) {
+            childRectMapped = parentNode->GetSelfDrawRect().ConvertTo<int>().IntersectRect(childRectMapped);
+        }
+        parentNode->UpdateChildrenRect(childRectMapped);
+        // check each child is inside of parent
+        childRect = childRectMapped.ConvertTo<float>();
+        if (!childRect.IsInsideOf(parentNode->GetSelfDrawRect())) {
+            parentNode->UpdateChildrenOutOfRectFlag(true);
+        }
+    }
+}
+
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
+{
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
+        " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
+        IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
+    if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
+        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    } else if (isInBlackList) {
+        stagingRenderParams_->SetNodeGroupHasChildInBlackList(true);
+    }
+    if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
+        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
+#endif
+    if (GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter id:%llu cacheType:%d childHasVisibleFilter:%d " \
+            "childHasVisibleEffect:%d",
+            GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
+    }
+    AddToPendingSyncList();
+}
+
+bool RSRenderNode::IsUifirstArkTsCardNode()
+{
+    if (nodeGroupType_ == NodeGroupType::NONE) {
+        return false;
+    }
+    for (auto& child : *GetChildren()) {
+        if (!child) {
+            continue;
+        }
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceChild) {
+            continue;
+        }
+        if (surfaceChild->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void RSRenderNode::NodePostPrepare(
+    std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect)
+{
+    MapAndUpdateChildrenRect();
+    UpdateSubTreeInfo(clipRect);
+    UpdateLocalDrawRect();
+    UpdateAbsDrawRect();
+    ResetChangeState();
+    SetHasUnobscuredUEC();
+    if (curSurfaceNode == nullptr) {
+        UpdateVirtualScreenWhiteListInfo();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

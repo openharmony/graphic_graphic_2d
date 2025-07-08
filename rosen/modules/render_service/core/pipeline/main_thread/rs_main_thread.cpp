@@ -407,7 +407,6 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
-    RSAnimationFraction::Init();
     return &instance;
 }
 
@@ -713,6 +712,7 @@ void RSMainThread::Init()
             RequestNextVSync("OverDrawUpdate");
         });
     });
+    RSAnimationFraction::Init();
     RS_LOGI("RSOverdrawController init");
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
