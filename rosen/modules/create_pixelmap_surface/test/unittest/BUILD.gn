@@ -64,7 +64,7 @@ ohos_static_library("pixel_map_test_common") {
 
   public_external_deps = [
     "c_utils:utils",
-    "googletest:gmock_main",
+    "googletest:gmock",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "image_framework:image_native",
