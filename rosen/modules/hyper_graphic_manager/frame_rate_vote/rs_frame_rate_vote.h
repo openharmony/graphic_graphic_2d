@@ -50,7 +50,7 @@ private:
 private:
     bool isSwitchOn_{ false };
     pid_t lastVotedPid_{ DEFAULT_PID };
-    uint32_t lastVotedRate_{ OLED_NULL_HZ };
+    std::atomic<uint32_t> lastVotedRate_{ OLED_NULL_HZ };
     bool isVoted_{ false };
     std::atomic<uint64_t> lastSurfaceNodeId_ {0};
     uint64_t currentUpdateTime_{ 0 };
