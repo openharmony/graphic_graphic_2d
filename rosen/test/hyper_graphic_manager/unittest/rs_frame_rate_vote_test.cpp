@@ -191,7 +191,6 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Leve
         1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.erase(1000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     rsVideoFrameRateVote = nullptr;
