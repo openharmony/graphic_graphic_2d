@@ -14,16 +14,21 @@
  */
 
 #include <parameters.h>
-
-#include "feature/uifirst/rs_uifirst_manager.h"
-#include "gtest/gtest.h"
-
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+
+#include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
+#include "graphic_feature_param_manager.h"
+#include "gtest/gtest.h"
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -32,10 +37,7 @@
 #include "platform/drawing/rs_surface_converter.h"
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen.h"
-// xml parser
-#include "feature/anco_manager/rs_anco_manager.h"
-#include "feature/hpae/rs_hpae_manager.h"
-#include "graphic_feature_param_manager.h"
+
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
