@@ -25,10 +25,10 @@
 using namespace testing;
 using namespace testing::ext;
 
-#ifndef MODIFIER_NG
 namespace OHOS::Rosen {
+#ifndef MODIFIER_NG
 constexpr static float FLOAT_DATA_INIT = 0.5f;
-
+#endif
 class RSModifierTest : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -59,7 +59,7 @@ HWTEST_F(RSModifierTest, Modifier001, TestSize.Level1)
     ASSERT_EQ(modifier->GetPropertyId(), prop->GetId());
 }
 
-
+#ifndef MODIFIER_NG
 /**
  * @tc.name: Modifier002
  * @tc.desc:
@@ -1956,5 +1956,5 @@ HWTEST_F(RSModifierTest, MaskModifier002, TestSize.Level1)
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetMask(), value);
 }
-} // namespace OHOS::Rosen
 #endif
+} // namespace OHOS::Rosen
