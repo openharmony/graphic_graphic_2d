@@ -274,6 +274,7 @@ template("render_service_client_source_set") {
 
     if (is_arkui_x) {
       defines += [ "ARKUI_X_ENABLE" ]
+      deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
     }
 
     if (rosen_is_ohos) {
