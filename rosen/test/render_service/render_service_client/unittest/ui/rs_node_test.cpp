@@ -8881,4 +8881,44 @@ HWTEST_F(RSNodeTest, SetSepia, TestSize.Level1)
     rsNode->SetHueRotate(1.0f);
     ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
 }
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+/**
+ * @tc.name: MarkRepaintBoundary001
+ * @tc.desc: test results of MarkRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSNodeTest, MarkRepaintBoundary001, TestSize.Level1)
+{
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsNode = RSCanvasNode::Create();
+    std::string tag = "ListItem";
+    rsNode->SetFrameNodeInfo(0, tag);
+    std::string strResult = rsNode->GetFrameNodeTag();
+    const char* cTag = tag.c_str();
+    const char* cResult = strResult.c_str();
+    int result = strcmp(cTag, cResult);
+    EXPECT_EQ(result, 0);
+    EXPECT_FALSE(RSTransactionProxy::GetInstance()->IsEmpty());
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+}
+
+/**
+ * @tc.name: MarkRepaintBoundary002
+ * @tc.desc: test results of MarkRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSNodeTest, MarkRepaintBoundary002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkRepaintBoundary("GridItem");
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    transactionProxy->Destroy();
+    ASSERT_FALSE(transactionProxy->instance_);
+    rsNode->MarkRepaintBoundary("ListItem");
+    EXPECT_TRUE(rsNode->isRepaintBoundary_);
+}
+#endif
 } // namespace OHOS::Rosen

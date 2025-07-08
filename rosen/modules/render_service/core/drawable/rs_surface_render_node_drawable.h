@@ -181,7 +181,12 @@ private:
 
     int GetMaxRenderSizeForRotationOffscreen(int& offscreenWidth, int& offscreenHeight);
     void ApplyCanvasScalingIfDownscaleEnabled();
+    void SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas, const RSSurfaceRenderParams* surfaceParams);
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+    bool QuickDraw(Drawing::Canvas& canvas, Drawing::Region& curSurfaceDrawRegion,
+        RSSurfaceRenderParams* surfaceParams);
+#endif
     std::string name_;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM

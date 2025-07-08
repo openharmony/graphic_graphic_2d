@@ -314,6 +314,22 @@ ohos_shared_library("librender_service") {
     ]
   }
 
+  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable) {
+    sources += [
+      "$graphic_2d_ext_root/subtree/container/rs_parallel_container.cpp",
+      "$graphic_2d_ext_root/subtree/container/rs_parallel_data.cpp",
+      "$graphic_2d_ext_root/subtree/executor/multiwin/rs_parallel_executor_manager_multiwin.cpp",
+      "$graphic_2d_ext_root/subtree/executor/multiwin/rs_parallel_executor_multiwin.cpp",
+      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_executor_manager_rb.cpp",
+      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_executor_rb.cpp",
+      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_task_pool.cpp",
+      "$graphic_2d_ext_root/subtree/policy/rs_parallel_rb_policy.cpp",
+      "$graphic_2d_ext_root/subtree/policy/rs_parallel_multiwin_policy.cpp",
+      "$graphic_2d_ext_root/subtree/policy/rs_parallel_policy.cpp",
+      "$graphic_2d_ext_root/subtree/rs_parallel_manager.cpp",
+    ]
+  }
+
   if (use_memmgr_plugin || use_memmgr) {
     sources += [ "core/memory/rs_app_state_listener.cpp" ]
   }
@@ -357,6 +373,12 @@ ohos_shared_library("librender_service") {
   public_deps += [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
+
+  if (graphic_2d_feature_subtree_parallel_enable) {
+    include_dirs += [ "$graphic_2d_ext_root/subtree" ]
+    include_dirs += [ "$graphic_2d_ext_root/subtree/executor" ]
+    include_dirs += [ "$graphic_2d_ext_root/subtree/policy" ]
+  }
 
   deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
@@ -481,6 +503,13 @@ ohos_shared_library("librender_service") {
   if (use_video_processing_engine) {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
+
+  if (graphic_2d_feature_subtree_parallel_enable) {
+    external_deps += [ 
+      "ffrt:libffrt",
+     ]
+  }
+
   if (tp_feature_enable) {
     external_deps += [ "drivers_interface_tp_extra:libtp_proxy_1.1"]
   }
@@ -586,6 +615,10 @@ ohos_executable("render_service") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
+
+  if (graphic_2d_feature_subtree_parallel_enable) {
+    external_deps += [ "ffrt:libffrt" ]
+  }
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

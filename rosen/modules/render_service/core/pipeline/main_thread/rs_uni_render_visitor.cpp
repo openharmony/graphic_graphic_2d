@@ -68,6 +68,10 @@
 #include "feature/round_corner_display/rs_message_bus.h"
 
 #include "rs_profiler.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#endif
+
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
 #endif
@@ -885,6 +889,11 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     curScreenNode_->UpdateScreenRenderParams();
     UpdateColorSpaceAfterHwcCalc(node);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(node);
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+    RSParallelManager::Singleton().HitPolicy(node);
+#endif
+
     HandleColorGamuts(node);
     HandlePixelFormat(node);
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
@@ -1210,6 +1219,10 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
     PrepareForUIFirstNode(node);
     PrepareForCrossNode(node);
+    if (node.GetSubThreadAssignable() || (!node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) &&
+        !node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()))) {
+        node.ClearSubtreeParallelNodes();
+    }
     node.UpdateInfoForClonedNode(clonedSourceNodeId_);
     node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
@@ -1700,6 +1713,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
         RSOpincManager::Instance().OpincGetNodeSupportFlag(node));
     node.UpdateOpincParam();
     offscreenCanvasNodeId_ = preOffscreenCanvasNodeId;
+    node.UpdateSubTreeParallelNodes();
 
     // [Attention] Only used in PC window resize scene now
     NodeId linedRootNodeId = node.GetLinkedRootNodeId();
@@ -1760,14 +1774,14 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     if (node.LastFrameSubTreeSkipped() && curSurfaceDirtyManager_) {
         node.ForceMergeSubTreeDirtyRegion(*curSurfaceDirtyManager_, prepareClipRect_);
     }
-    // Collect prepared node into the control-level occlusion culling handler.
-    CollectNodeForOcclusion(node);
+    CollectNodeForOcclusion(node); // Collect prepared node into the control-level occlusion culling handler.
     bool animationBackup = ancestorNodeHasAnimation_;
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation();
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
+    node.ClearSubtreeParallelNodes();
+    node.ResetRepaintBoundaryInfo();
     auto children = node.GetSortedChildren();
-
     if (NeedPrepareChindrenInReverseOrder(node)) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
         curFrameInfoDetail.curFrameReverseChildren = true;
@@ -1785,6 +1799,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
             child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this());
+            node.MergeSubtreeParallelNodes(*child);
             curContainerDirty_ = containerDirty;
         });
     } else {
@@ -1800,6 +1815,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
             child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this());
+            node.MergeSubtreeParallelNodes(*child);
         });
     }
     ancestorNodeHasAnimation_ = animationBackup;
@@ -2952,6 +2968,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
             node.GetOpincCache().OpincGetRootFlag(),
             nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
+        nodeParent->UpdateRepaintBoundaryInfo(node);
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {

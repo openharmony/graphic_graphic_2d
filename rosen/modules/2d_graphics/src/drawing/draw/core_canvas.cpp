@@ -147,6 +147,11 @@ RectI CoreCanvas::GetDeviceClipBounds() const
     return impl_->GetDeviceClipBounds();
 }
 
+void CoreCanvas::RecordState(Canvas* canvas)
+{
+    impl_->RecordState(canvas);
+}
+
 RectI CoreCanvas::GetRoundInDeviceClipBounds() const
 {
     return impl_->GetRoundInDeviceClipBounds();
@@ -824,6 +829,11 @@ void CoreCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
 void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
 {
     impl_->BuildNoDraw(width, height);
+}
+
+void CoreCanvas::BuildStateRecord(int32_t width, int32_t height)
+{
+    impl_->BuildStateRecord(width, height);
 }
 
 void CoreCanvas::BuildStateInherite(int32_t width, int32_t height)

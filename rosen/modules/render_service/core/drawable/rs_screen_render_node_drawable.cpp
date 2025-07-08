@@ -72,6 +72,9 @@
 #include "c/ffrt_cpu_boost.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#endif
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 
@@ -893,12 +896,16 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSOpincDrawCache::SetScreenRectInfo({0, 0, screenInfo.width, screenInfo.height});
     }
 #endif
+    UpdateSurfaceDrawRegion(curCanvas_, params);
+
     // canvas draw
     {
         {
             RSSkpCaptureDfx capture(curCanvas_);
             Drawing::AutoCanvasRestore acr(*curCanvas_, true);
-
+#ifdef SUBTREE_PARALLEL_ENABLE
+            RSParallelManager::Singleton().Reset(curCanvas_, params, needOffscreen, vsyncRefreshRate);
+#endif
             if (uniParam->IsOpDropped()) {
                 if (uniParam->IsDirtyAlignEnabled()) {
                     RS_TRACE_NAME_FMT("dirty align enabled and no clip operation");
@@ -910,6 +917,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             } else {
                 curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             }
+            curCanvas_->SetWeakSurface(drSurface);
 
             curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
             ClearCanvasStencil(*curCanvas_, *params, *uniParam);
@@ -961,6 +969,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
         RS_LOGI("Drawing Performance Flush start %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
     }
+#ifdef SUBTREE_PARALLEL_ENABLE
+    RSParallelManager::Singleton().WaitUntilSubTreeFinish(curCanvas_);
+#endif
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable Flush");
     RsFrameReport::GetInstance().CheckBeginFlushPoint();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
@@ -1063,6 +1074,21 @@ void RSScreenRenderNodeDrawable::DrawCurtainScreen() const
     }
     RS_TRACE_FUNC();
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+}
+
+void RSScreenRenderNodeDrawable::UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
+    RSScreenRenderParams* params)
+{
+    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaceDrawables();
+ 
+    for (auto& renderNodeDrawable : curAllSurfaces) {
+        if (renderNodeDrawable != nullptr &&
+            renderNodeDrawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
+            auto surfaceNodeDrawable =
+                std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(renderNodeDrawable);
+            surfaceNodeDrawable->UpdateSurfaceDirtyRegion(mainCanvas);
+        }
+    }
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

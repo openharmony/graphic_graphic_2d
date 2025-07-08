@@ -63,6 +63,8 @@ declare_args() {
   } else {
     is_cross_platform = false
   }
+
+  graphic_2d_feature_subtree_parallel_enable = false
 }
 
 declare_args() {
@@ -139,6 +141,13 @@ if (graphic_2d_feature_ace_enable_gpu) {
 if (graphic_2d_feature_enable_vulkan &&
     graphic_2d_feature_vkqueue_priority_enable) {
   gpu_defines += [ "RS_ENABLE_VKQUEUE_PRIORITY" ]
+}
+
+if (graphic_2d_feature_subtree_parallel_enable) {
+  gpu_defines += [
+    "SUBTREE_PARALLEL_ENABLE",
+    "RS_ENABLE_FFRT"
+  ]
 }
 
 if (graphic_2d_feature_parallel_upload_enable &&

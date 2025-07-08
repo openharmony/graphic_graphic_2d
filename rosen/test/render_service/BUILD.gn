@@ -252,4 +252,8 @@ group("test") {
   if (graphic_2d_feature_rs_enable_profiler) {
     deps += [ "render_service_profiler/unittest:unittest" ]
   }
+
+  if (defined(ddgr_feature_enable_batchsubmit) && ddgr_feature_enable_batchsubmit) {
+    deps += [ "render_service/unittest/subtree:unittest" ]
+  }
 }

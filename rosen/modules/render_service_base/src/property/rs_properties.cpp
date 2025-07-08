@@ -2520,6 +2520,11 @@ bool RSProperties::NeedHwcFilter() const
     return needHwcFilter_;
 }
 
+bool RSProperties::NeedSkipSubtreeParallel() const
+{
+    return foregroundFilter_ || mask_ || IsColorBlendModeValid();
+}
+
 bool RSProperties::NeedClip() const
 {
     return clipToBounds_ || clipToFrame_;

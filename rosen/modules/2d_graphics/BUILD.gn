@@ -306,6 +306,10 @@ template("graphics2d_source_set") {
         "-Wno-profile-instr-out-of-date",
         "-Wno-profile-instr-unprofiled",
       ]
+      external_deps += [ 
+        "skia:skia_canvaskit",
+        "freetype:freetype_static",
+      ]
     }
 
     if (enable_text_gine) {

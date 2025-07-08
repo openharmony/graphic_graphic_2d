@@ -98,7 +98,7 @@ protected:
     void GenUniqueId(uint32_t id);
     void UploadGpu(Drawing::Canvas& canvas);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
+    void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext, Drawing::Canvas& canvas);
     bool SetCompressedDataForASTC();
 #if defined(RS_ENABLE_VK)
     void BindPixelMapToDrawingImage(Drawing::Canvas& canvas);

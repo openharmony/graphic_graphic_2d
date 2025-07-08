@@ -851,6 +851,21 @@ CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffScreenStatu
     return static_cast<CrossNodeOffScreenRenderDebugType>(ConvertToInt(type, 1));
 }
 
+bool RSSystemProperties::GetSubtreeParallelEnable()
+{
+    static const bool subtreeParallelEnable = std::atoi((system::GetParameter(
+        "persist.sys.graphic.subtreeParallelEnable", "1")).c_str()) != 0;
+    return subtreeParallelEnable;
+}
+
+bool RSSystemProperties::GetSubtreeLogEnabled()
+{
+    static const bool subtreeLogEnabled = std::atoi((system::GetParameter(
+        "persist.sys.graphic.subtreeLogEnabled", "1")).c_str()) != 0;
+    return subtreeLogEnabled;
+}
+
+
 bool RSSystemProperties::GetUIFirstEnabled()
 {
 #ifdef ROSEN_EMULATOR
@@ -1035,6 +1050,13 @@ bool RSSystemProperties::IsSmallFoldDevice()
 {
     static std::string foldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
     return foldType == "2,0,0,0" || foldType == "4,2,0,0";
+}
+
+bool RSSystemProperties::GetTimeVsyncDisabled()
+{
+    static bool timeVsyncDisabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.timeVsyncDisabled", "0")).c_str()) != 0;
+    return timeVsyncDisabled;
 }
 
 bool RSSystemProperties::GetCacheCmdEnabled()
@@ -1434,13 +1456,6 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
     static auto groupedByUIEnabled =
         system::GetBoolParameter("const.graphic.enable_grouped_by_ui", false);
     return groupedByUIEnabled;
-}
-
-bool RSSystemProperties::GetTimeVsyncDisabled()
-{
-    static bool timeVsyncDisabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.timeVsyncDisabled", "0")).c_str()) != 0;
-    return timeVsyncDisabled;
 }
 
 bool RSSystemProperties::GetTextureExportDFXEnabled()

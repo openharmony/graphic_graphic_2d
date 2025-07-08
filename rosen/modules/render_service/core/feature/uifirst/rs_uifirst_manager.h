@@ -201,6 +201,10 @@ public:
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
     void AddMarkedClearCacheNode(NodeId id);
     void ProcessMarkedNodeSubThreadCache();
+    bool IsUiFirstWorking() const
+    {
+        return !subthreadProcessingNode_.empty();
+    }
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;

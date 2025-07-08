@@ -489,4 +489,21 @@ HWTEST_F(RSNodeCommandTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
     RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
 }
+
+/**
+ * @tc.name: MarkRepaintBoundary
+ * @tc.desc: test results of MarkRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSNodeCommandTest, MarkRepaintBoundary002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    RSNodeCommandHelper::MarkRepaintBoundary(context, nodeId, true);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->isRepaintBoundary_, true);
+
+    nodeId = 1;
+    RSNodeCommandHelper::MarkRepaintBoundary(context, nodeId, false);
+}
 } // namespace OHOS::Rosen

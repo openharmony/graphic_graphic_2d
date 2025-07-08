@@ -411,6 +411,49 @@ void RSRenderNode::SetHasUnobscuredUEC()
     stagingRenderParams_->SetHasUnobscuredUEC(hasUnobscuredUEC);
 }
 
+void RSRenderNode::ClearSubtreeParallelNodes()
+{
+    subtreeParallelNodes_.clear();
+}
+
+void RSRenderNode::ResetRepaintBoundaryInfo()
+{
+    isAllChildRepaintBoundary_ = true;
+    repaintBoundaryWeight_ = 0;
+}
+
+void RSRenderNode::UpdateRepaintBoundaryInfo(RSRenderNode& node)
+{
+    isAllChildRepaintBoundary_ = isAllChildRepaintBoundary_ && node.IsRepaintBoundary();
+    repaintBoundaryWeight_ += node.GetRepaintBoundaryWeight() + 1;
+}
+
+uint32_t RSRenderNode::GetRepaintBoundaryWeight()
+{
+    return repaintBoundaryWeight_;
+}
+
+void RSRenderNode::UpdateSubTreeParallelNodes()
+{
+    static constexpr size_t RB_POLICY_CHILDREN_NUMBER = 4;
+    if (!isRepaintBoundary_ || GetChildrenCount() <= RB_POLICY_CHILDREN_NUMBER || !isAllChildRepaintBoundary_
+        || ChildHasVisibleEffect() || GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
+        return;
+    }
+    subtreeParallelNodes_.emplace(id_);
+}
+
+void RSRenderNode::MergeSubtreeParallelNodes(RSRenderNode& childNode)
+{
+    auto& childSubtreeParallelNodes = childNode.GetSubtreeParallelNodes();
+    subtreeParallelNodes_.insert(childSubtreeParallelNodes.begin(), childSubtreeParallelNodes.end());
+}
+
+std::unordered_set<NodeId>& RSRenderNode::GetSubtreeParallelNodes()
+{
+    return subtreeParallelNodes_;
+}
+
 void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType)
 {
     auto context = GetContext().lock();
@@ -3324,6 +3367,9 @@ void RSRenderNode::UpdateDisplayList()
         // If the end drawable exist, return its index, otherwise return -1
         return drawableVec_[endIndex] != nullptr ? stagingDrawCmdList_.size() - 1 : -1;
     };
+    // Update index of TRANSITION
+    stagingDrawCmdIndex_.transitionIndex_ = AppendDrawFunc(RSDrawableSlot::TRANSITION);
+
     // Update index of ENV_FOREGROUND_COLOR
     stagingDrawCmdIndex_.envForeGroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::ENV_FOREGROUND_COLOR);
 
@@ -3333,6 +3379,10 @@ void RSRenderNode::UpdateDisplayList()
     AppendDrawFunc(RSDrawableSlot::OUTLINE);
     stagingDrawCmdIndex_.renderGroupBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
+
+    stagingDrawCmdIndex_.bgSaveBoundsIndex_ = AppendDrawFunc(RSDrawableSlot::BG_SAVE_BOUNDS);
+    // Update index of CLIP_TO_BOUNDS
+    stagingDrawCmdIndex_.clipToBoundsIndex_ = AppendDrawFunc(RSDrawableSlot::CLIP_TO_BOUNDS);
 
     // Update index of BACKGROUND_COLOR
     stagingDrawCmdIndex_.backgroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::BACKGROUND_COLOR);
@@ -3346,9 +3396,25 @@ void RSRenderNode::UpdateDisplayList()
     // Update index of USE_EFFECT
     stagingDrawCmdIndex_.useEffectIndex_ = AppendDrawFunc(RSDrawableSlot::USE_EFFECT);
 
-    AppendDrawFunc(RSDrawableSlot::BG_RESTORE_BOUNDS);
+    // Update index of BACKGROUND_STYLE
+    stagingDrawCmdIndex_.backgroudStyleIndex_ = AppendDrawFunc(RSDrawableSlot::BACKGROUND_STYLE);
+
+    // Update index of ENV_FOREGROUND_COLOR_STRATEGY
+    stagingDrawCmdIndex_.envForegroundColorStrategyIndex_ = AppendDrawFunc(
+        RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY);
+
+    stagingDrawCmdIndex_.bgRestoreBoundsIndex_ = AppendDrawFunc(RSDrawableSlot::BG_RESTORE_BOUNDS);
 
     if (drawableVecStatus_ & FRAME_NOT_EMPTY) {
+        // Update index of FRAME_OFFSET
+        stagingDrawCmdIndex_.frameOffsetIndex_ = AppendDrawFunc(RSDrawableSlot::FRAME_OFFSET);
+
+        // Update index of CLIP_TO_FRAME
+        stagingDrawCmdIndex_.clipToFrameIndex_ = AppendDrawFunc(RSDrawableSlot::CLIP_TO_FRAME);
+
+        // Update index of CUSTOM_CLIP_TO_FRAME
+        stagingDrawCmdIndex_.customClipToFrameIndex_ = AppendDrawFunc(RSDrawableSlot::CUSTOM_CLIP_TO_FRAME);
+
         // Update index of CONTENT_STYLE
         stagingDrawCmdIndex_.contentIndex_ = AppendDrawFunc(RSDrawableSlot::CONTENT_STYLE);
 

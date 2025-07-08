@@ -77,7 +77,7 @@ void RSEffectRenderNodeDrawableTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST(RSEffectRenderNodeDrawableTest, CreateEffectRenderNodeDrawable, TestSize.Level1)
+HWTEST_F(RSEffectRenderNodeDrawableTest, CreateEffectRenderNodeDrawable, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     NodeId id = 1;
@@ -127,4 +127,22 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw, TestSize.Level1)
     effectDrawable_->OnDraw(*drawingCanvas_);
 }
 
+/**
+ * @tc.name: OnDraw002
+ * @tc.desc: Test OnDraw
+ * @tc.type: FUNC
+ * @tc.require: #ICEF7K
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest002, TestSize.Level1)
+{
+    ASSERT_NE(effectDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    // default case, shouldpaint == false
+    effectDrawable_->OnDraw(*drawingCanvas_);
+
+    // if should paint
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+    effectDrawable_->OnDraw(*drawingCanvas_);
+}
 }

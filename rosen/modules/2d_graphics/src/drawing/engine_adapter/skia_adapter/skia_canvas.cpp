@@ -127,7 +127,15 @@ void SkiaCanvas::InheriteState(Canvas* canvas)
 {
 }
 
+void SkiaCanvas::RecordState(Canvas* canvas)
+{
+}
+
 void SkiaCanvas::SetParallelRender(bool parallelEnable)
+{
+}
+
+void SkiaCanvas::BuildStateRecord(int32_t width, int32_t height)
 {
 }
 

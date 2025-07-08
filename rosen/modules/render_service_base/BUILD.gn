@@ -643,6 +643,10 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
+  if (graphic_2d_feature_subtree_parallel_enable) {
+    include_dirs += [ "$graphic_2d_ext_root/subtree" ]
+  }
+
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [

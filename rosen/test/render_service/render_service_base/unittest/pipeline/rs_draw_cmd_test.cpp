@@ -18,6 +18,8 @@
 #include "image_source.h"
 #include "pixel_map.h"
 #include "surface_buffer_impl.h"
+#include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 
 #include "pipeline/rs_draw_cmd.h"
 
@@ -625,6 +627,30 @@ HWTEST_F(RSDrawCmdTest, Playback010, TestSize.Level1)
     drawHybridPixelMapOpItem.Playback(&canvas, &rect);
     drawHybridPixelMapOpItem.objectHandle_ = nullptr;
     drawHybridPixelMapOpItem.Playback(&canvas, &rect);
+}
+
+/**
+ * @tc.name: GetRsImageCache
+ * @tc.desc: test results of GetRsImageCache
+ * @tc.type:FUNC
+ * @tc.require:issueIC3UZH
+ */
+HWTEST_F(RSDrawCmdTest, GetRsImageCacheTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    Drawing::Canvas canvas;
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = false;
+    std::shared_ptr<Media::PixelMap> pixelMapT = Media::PixelMap::Create(opts);
+    ASSERT_TRUE(pixelMapT);
+    OHOS::SurfaceBuffer* surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_TRUE(surfaceBuffer);
+    auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMapT);
+    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
+    extendImageObject.image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMapT);
+    extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, colorSpace);
 }
 #endif
 } // namespace OHOS::Rosen

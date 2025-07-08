@@ -16,6 +16,7 @@
 #include "ui/rs_node.h"
 
 #include <algorithm>
+#include <vector>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -136,6 +137,7 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
 };
+
 std::once_flag flag_;
 
 #ifndef MODIFIER_NG
@@ -4155,7 +4157,7 @@ void RSNode::MarkRepaintBoundary(const std::string& tag)
         return;
     }
     isRepaintBoundary_ = isRepaintBoundary;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkRepaintBoundary>(id_, isRepaintBoundary_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkRepaintBoundary>(GetId(), isRepaintBoundary_);
     AddCommand(command, IsRenderServiceNode());
 }
 

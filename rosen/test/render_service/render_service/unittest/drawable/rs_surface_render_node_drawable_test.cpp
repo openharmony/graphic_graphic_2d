@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature_param/performance_feature/rotateoffscreen_param.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -1597,4 +1598,196 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawMagnificationRegionTest, TestSize.
     surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     surfaceDrawable_->DrawMagnificationRegion(canvas, *surfaceParams);
 }
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+/**
+ * @tc.name: OnDraw004
+ * @tc.desc: Test OnDraw
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    NodeId id = 1;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->isMirrorScreen_ = false;
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_TRUE(surfaceParams);
+    surfaceParams->IsUnobscuredUIExtension_ = false;
+    std::unordered_set<NodeId> blackList = { surfaceParams->GetId() };
+    auto displayRenderNodeDrawable = std::make_shared<RSScreenRenderNodeDrawable>(renderNode);
+    surfaceParams->sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    ASSERT_FALSE(surfaceParams->sourceScreenRenderNodeDrawable_.lock());
+    surfaceParams->cloneSourceDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    ASSERT_FALSE(surfaceParams->cloneSourceDrawable_.lock());
+
+    surfaceParams->isCloneNode_ = false;
+    surfaceParams->isSkipDraw_ = false;
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    canvas_->SetIsParallelCanvas(true);
+    surfaceParams->isHardCursor_ = false;
+    canvas_->SetQuickDraw(true);
+    surfaceDrawable_->OnDraw(*canvas_);
+    canvas_->SetQuickDraw(false);
+    surfaceDrawable_->OnDraw(*canvas_);
+    canvas_->canvas_->gpuContext_ = nullptr;
+    surfaceDrawable_->OnDraw(*canvas_);
+    RSUniRenderThread::Instance().SetBlackList({});
+}
+
+/**
+ * @tc.name: CalculateVisibleDirtyRegion002
+ * @tc.desc: Test CalculateVisibleDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetWindowInfo(false, true, false);
+    Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
+    ASSERT_FALSE(result.IsEmpty());
+
+    surfaceParams->SetWindowInfo(true, false, false);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
+    ASSERT_FALSE(result.IsEmpty());
+
+    Occlusion::Region region;
+    surfaceParams->SetVisibleRegion(region);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
+    ASSERT_TRUE(result.IsEmpty());
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetOcclusionEnabled(true);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
+    ASSERT_TRUE(result.IsEmpty());
+
+    surfaceParams->isFirstLevelCrossNode_ = true;
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
+    ASSERT_TRUE(result.IsEmpty());
+
+    Occlusion::Region region1(DEFAULT_RECT);
+    surfaceParams->SetVisibleRegion(region1);
+    surfaceDrawable_->globalDirtyRegion_ = region1;
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
+    ASSERT_TRUE(result.IsEmpty());
+
+    params = nullptr;
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
+    ASSERT_TRUE(result.IsEmpty());
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest003, TestSize.Level1)
+{
+    ASSERT_NE(drawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    surfaceParams->isHardwareEnabled_ = true;
+    surfaceParams->SetNeedMakeImage(true);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(*canvas_, *surfaceParams);
+}
+
+/**
+ * @tc.name: QuickDraw
+ * @tc.desc: Test QuickDraw
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, QuickDrawTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+    Drawing::Region region;
+    auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    canvas_->SetQuickDraw(false);
+    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+
+    canvas_->SetQuickDraw(true);
+    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+
+    params->windowInfo_.isMainWindowType_ = true;
+    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    ASSERT_EQ(params->needOffscreen_, false);
+
+    params->needOffscreen_ = true;
+    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+
+    RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(false);
+    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    ASSERT_EQ(canvas_->GetDisableFilterCache(), false);
+
+    params->isOcclusionCullingOn_ = true;
+    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+}
+
+/**
+ * @tc.name: UpdateSurfaceDirtyRegion
+ * @tc.desc: Test UpdateSurfaceDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, UpdateSurfaceDirtyRegionTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+
+    surfaceDrawable_->renderParams_->shouldPaint_ = true;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+
+    surfaceParams->isSkipDraw_ = false;
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+
+    surfaceParams->isSkipDraw_ = true;
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+
+    surfaceDrawable_->renderParams_ = nullptr;
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+}
+
+/**
+ * @tc.name: GetSurfaceDrawRegion
+ * @tc.desc: Test GetSurfaceDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetSurfaceDrawRegionTest, TestSize.Level1)
+{
+    Drawing::Region region;
+    surfaceDrawable_->SetSurfaceDrawRegion(region);
+    ASSERT_EQ(surfaceDrawable_->GetSurfaceDrawRegion(), region);
+}
+
+/**
+ * @tc.name: DrawBufferForRotationFixed
+ * @tc.desc: Test DrawBufferForRotationFixed
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixedTest, TestSize.Level1)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams);
+    ASSERT_TRUE(canvas_->envStack_.top().hasOffscreenLayer_);
+}
+#endif
 }

@@ -343,10 +343,12 @@ ohos_unittest("RSImageCacheTest") {
     "skia:skia_canvaskit",
   ]
 
+  defines = [ "IMAGE_COLORSPACE_FLAG" ]
+
   if (use_video_processing_engine) {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
-    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 

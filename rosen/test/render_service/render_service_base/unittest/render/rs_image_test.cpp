@@ -409,6 +409,53 @@ HWTEST_F(RSImageTest, UploadGpuTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UploadGpuTest002
+ * @tc.desc: Verify function UploadGpu
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, UploadGpuTest002, TestSize.Level1)
+{
+    auto image = std::make_shared<RSImage>();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    image->isYUVImage_ = false;
+    image->compressData_ = std::make_shared<Drawing::Data>();
+    image->pixelMap_ = std::make_shared<Media::PixelMap>();
+    image->UploadGpu(canvas);
+    EXPECT_EQ(image->compressData_, nullptr);
+
+    image->compressData_ = std::make_shared<Drawing::Data>();
+    Media::InitializationOptions opts;
+    opts.size.width = 20;
+    opts.size.height = 20;
+    opts.pixelFormat = Media::PixelFormat::ASTC_4x4;
+    image->pixelMap_ = Media::PixelMap::Create(opts);
+    image->pixelMap_->grColorSpace_ =
+        std::make_shared<OHOS::ColorManager::ColorSpace>(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3);
+    image->pixelMap_->SetAstcRealSize({ 20, 20 });
+    image->UploadGpu(canvas);
+    EXPECT_EQ(image->compressData_, nullptr);
+
+    image->compressData_ = std::make_shared<Drawing::Data>();
+    opts.pixelFormat = Media::PixelFormat::ASTC_6x6;
+    image->pixelMap_ = Media::PixelMap::Create(opts);
+    image->pixelMap_->grColorSpace_ =
+        std::make_shared<OHOS::ColorManager::ColorSpace>(OHOS::ColorManager::ColorSpaceName::LINEAR_SRGB);
+    image->pixelMap_->SetAstcRealSize({ 20, 20 });
+    image->UploadGpu(canvas);
+    EXPECT_EQ(image->compressData_, nullptr);
+
+    image->compressData_ = std::make_shared<Drawing::Data>();
+    opts.pixelFormat = Media::PixelFormat::ASTC_8x8;
+    image->pixelMap_ = Media::PixelMap::Create(opts);
+    image->pixelMap_->grColorSpace_ =
+        std::make_shared<OHOS::ColorManager::ColorSpace>(OHOS::ColorManager::ColorSpaceName::LINEAR_P3);
+    image->pixelMap_->SetAstcRealSize({ 20, 20 });
+    image->UploadGpu(canvas);
+    EXPECT_EQ(image->compressData_, nullptr);
+}
+
+/**
  * @tc.name: DrawImageRepeatRectTest001
  * @tc.desc: Verify function DrawImageRepeatRect
  * @tc.type:FUNC

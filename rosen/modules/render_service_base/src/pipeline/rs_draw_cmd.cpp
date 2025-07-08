@@ -48,6 +48,9 @@
 #else
 #include "include/gpu/GrDirectContext.h"
 #endif
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_misc.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -323,9 +326,14 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
         return false;
     }
     std::shared_ptr<Drawing::Image> imageCache = nullptr;
+#ifdef SUBTREE_PARALLEL_ENABLE
+    pid_t threadId = RSParallelMisc::GetThreadIndex(canvas);
+#else
+    pid_t threadId = gettid();
+#endif
     if (!pixelMap->IsEditable()) {
         imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
-            rsImage_->GetUniqueId(), gettid());
+            rsImage_->GetUniqueId(), threadId);
     }
     if (imageCache) {
         this->image_ = imageCache;
@@ -335,7 +343,7 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
         if (ret && image_ && !pixelMap->IsEditable()) {
             SKResourceManager::Instance().HoldResource(image_);
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
-                rsImage_->GetUniqueId(), image_, gettid());
+                rsImage_->GetUniqueId(), image_, threadId);
         }
         return ret;
     }
@@ -495,7 +503,8 @@ RSExtendImageObject::~RSExtendImageObject()
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+        pid_t targetTid = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR ? 0 : tid_;
+        RSTaskDispatcher::GetInstance().PostTask(targetTid, [nativeWindowBuffer = nativeWindowBuffer_,
             cleanupHelper = cleanUpHelper_]() {
             if (nativeWindowBuffer != nullptr) {
                 DestroyNativeWindowBuffer(nativeWindowBuffer);

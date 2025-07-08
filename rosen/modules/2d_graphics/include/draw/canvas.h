@@ -167,6 +167,25 @@ public:
     }
 };
 
+class DRAWING_API StateRecordCanvas : public Canvas {
+public:
+    StateRecordCanvas(int32_t width, int32_t height)
+    {
+        BuildStateRecord(width, height);
+    }
+    ~StateRecordCanvas() override = default;
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::STATE_RECORD;
+    }
+#ifdef RS_ENABLE_GPU
+    std::shared_ptr<GPUContext> GetGPUContext() override
+    {
+        return nullptr;
+    }
+#endif
+};
+
 class AutoCanvasRestore {
 public:
     AutoCanvasRestore(Canvas& canvas, bool doSave) : canvas_(canvas)

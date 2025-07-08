@@ -36,6 +36,9 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_misc.h"
+#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "native_buffer_inner.h"
@@ -73,9 +76,9 @@ RSImageBase::~RSImageBase()
             }
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+    if (RSSystemProperties::IsUseVulkan()) {
+        pid_t targetTid = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR ? 0 : tid_;
+        RSTaskDispatcher::GetInstance().PostTask(targetTid, [nativeWindowBuffer = nativeWindowBuffer_,
             cleanupHelper = cleanUpHelper_]() {
             if (nativeWindowBuffer != nullptr) {
                 DestroyNativeWindowBuffer(nativeWindowBuffer);
@@ -529,14 +532,22 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
 #endif
     if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !isYUVImage_) {
 #if defined(ROSEN_OHOS)
-            image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, tid);
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
+            } else {
+                image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+            }
 #else
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
 #endif
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
 #if defined(ROSEN_OHOS)
-            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, tid);
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
+            } else {
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+            }
 #else
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
 #endif
@@ -560,12 +571,20 @@ void RSImageBase::GenUniqueId(uint32_t id)
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext)
+void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext, Drawing::Canvas& canvas)
 {
     if (!gpuContext) {
         return;
     }
-    auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+
+    std::shared_ptr<Drawing::Image> cache;
+#ifdef SUBTREE_PARALLEL_ENABLE
+    pid_t threadId = RSParallelMisc::GetThreadIndex(canvas);
+#else
+    pid_t threadId = gettid();
+#endif
+    cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);
+
     std::lock_guard<std::mutex> lock(mutex_);
     if (cache) {
         image_ = cache;
@@ -576,7 +595,7 @@ void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContex
     if (image) {
         image_ = image;
         SKResourceManager::Instance().HoldResource(image);
-        RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
+        RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, threadId);
     } else {
         RS_LOGE("make yuv image %{public}d (%{public}d, %{public}d) failed",
             (int)uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
@@ -687,8 +706,13 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 {
     if (pixelMap_ && !pixelMap_->IsAstc()) {
         std::shared_ptr<Drawing::Image> imageCache = nullptr;
+#ifdef SUBTREE_PARALLEL_ENABLE
+        pid_t threadId = RSParallelMisc::GetThreadIndex(canvas);
+#else
+        pid_t threadId = gettid();
+#endif
         if (!pixelMap_->IsEditable()) {
-            imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+            imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);
         }
         if (imageCache) {
             image_ = imageCache;
@@ -696,7 +720,7 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
             image_ = MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd()));
             if (image_) {
                 SKResourceManager::Instance().HoldResource(image_);
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, threadId);
             }
         }
     }
@@ -786,7 +810,7 @@ void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
         return;
     }
     if (isYUVImage_) {
-        ProcessYUVImage(canvas.GetGPUContext());
+        ProcessYUVImage(canvas.GetGPUContext(), canvas);
     }
 #endif
 }
