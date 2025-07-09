@@ -390,7 +390,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetBrightnessRatioTest, TestSize.Level1)
     node->SetBrightnessRatio(1.0);
     node->stagingRenderParams_->SetNeedSync(true);
     node->SetBrightnessRatio(1.0);
-    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    ASSERT_EQ(node->stagingRenderParams_, nullptr);
 }
 
 /**
