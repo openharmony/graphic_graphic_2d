@@ -21,6 +21,8 @@
 
 #include "effect_errors.h"
 #include "effect_utils.h"
+#include "sk_image_chain.h"
+#include "sk_image_filter_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,9 +41,9 @@ struct CMFilterContext {
 
 thread_local std::shared_ptr<FilterCommon> FilterCommon::sConstructor_ = nullptr;
 
-void FilterCommon::AddNextFilter(std::shared_ptr<EffectImageFilter> filter)
+void FilterCommon::AddNextFilter(sk_sp<SkImageFilter> filter)
 {
-    effectFilters_.emplace_back(filter);
+    skFilters_.emplace_back(filter);
 }
 
 std::shared_ptr<FilterCommon> FilterCommon::CreateEffect(const std::shared_ptr<PixelMap>& pixmap, uint32_t& errorCode)
@@ -64,8 +66,8 @@ std::shared_ptr<FilterCommon> FilterCommon::CreateEffect(const std::shared_ptr<P
 
 bool FilterCommon::Blur(float radius)
 {
-    Drawing::TileMode tileMode = Drawing::TileMode::DECAL;
-    auto blur = EffectImageFilter::Blur(radius, tileMode);
+    SkTileMode tileMode = SkTileMode::kDecal;
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius, tileMode);
     if (!blur) {
         EFFECT_LOG_E("[FilterCommon]blur is nullptr.");
         return false;
@@ -76,7 +78,7 @@ bool FilterCommon::Blur(float radius)
 
 bool FilterCommon::Invert()
 {
-    auto invert = EffectImageFilter::Invert();
+    auto invert = Rosen::SKImageFilterFactory::Invert();
     if (!invert) {
         EFFECT_LOG_E("[FilterCommon]invert is nullptr.");
         return false;
@@ -87,7 +89,7 @@ bool FilterCommon::Invert()
 
 bool FilterCommon::Brightness(float bright)
 {
-    auto brightness = EffectImageFilter::Brightness(bright);
+    auto brightness = Rosen::SKImageFilterFactory::Brightness(bright);
     if (!brightness) {
         EFFECT_LOG_E("[FilterCommon]brightness is nullptr.");
         return false;
@@ -98,7 +100,7 @@ bool FilterCommon::Brightness(float bright)
 
 bool FilterCommon::Grayscale()
 {
-    auto grayscale = EffectImageFilter::Grayscale();
+    auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
     if (!grayscale) {
         EFFECT_LOG_E("[FilterCommon]grayscale is nullptr.");
         return false;
@@ -107,21 +109,19 @@ bool FilterCommon::Grayscale()
     return true;
 }
 
-static uint32_t ParseColorMatrix(std::vector<float> inputColorMatrix, Drawing::ColorMatrix& colorMatrix)
+static uint32_t ParseColorMatrix(std::vector<float> inputColorMatrix, PixelColorMatrix& colorMatrix)
 {
-    float matrix[Drawing::ColorMatrix::MATRIX_SIZE] = { 0 };
     size_t len = inputColorMatrix.size();
     for (size_t i = 0; i < len; i++) {
-        matrix[i] = inputColorMatrix[i];
+        colorMatrix.val[i] = inputColorMatrix[i];
     }
-    colorMatrix.SetArray(matrix);
     return SUCCESS;
 }
 
 bool FilterCommon::SetColorMatrix(std::vector<float> inputcolorMatrix, uint32_t& code)
 {
     uint32_t res = 0;
-    Drawing::ColorMatrix colorMatrix;
+    PixelColorMatrix colorMatrix;
     res = ParseColorMatrix(inputcolorMatrix, colorMatrix);
     if (res != SUCCESS) {
         EFFECT_LOG_E("[FilterCommon]Color matrix mismatch");
@@ -129,7 +129,7 @@ bool FilterCommon::SetColorMatrix(std::vector<float> inputcolorMatrix, uint32_t&
         return false;
     }
 
-    auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(colorMatrix);
+    auto applyColorMatrix = Rosen::SKImageFilterFactory::ApplyColorMatrix(colorMatrix);
     if (!applyColorMatrix) {
         EFFECT_LOG_E("[FilterCommon]applyColorMatrix is nullptr.");
         return false;
@@ -138,10 +138,10 @@ bool FilterCommon::SetColorMatrix(std::vector<float> inputcolorMatrix, uint32_t&
     return true;
 }
 
-DrawingError FilterCommon::Render(bool forceCPU)
+DrawError FilterCommon::Render(bool forceCPU)
 {
-    EffectImageRender imageRender;
-    return imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
+    Rosen::SKImageChain skImage(srcPixelMap_);
+    return skImage.Render(skFilters_, forceCPU, dstPixelMap_);
 }
 
 std::shared_ptr<Media::PixelMap> FilterCommon::GetDstPixelMap()
@@ -153,7 +153,7 @@ std::shared_ptr<OHOS::Media::PixelMap> FilterCommon::GetEffectPixelMap()
 {
     std::unique_ptr<CMFilterContext> ctx = std::make_unique<CMFilterContext>();
     ctx->filter = sConstructor_;
-    if (ctx->filter->Render(ctx->forceCPU) != DrawingError::ERR_OK) {
+    if (ctx->filter->Render(ctx->forceCPU) != DrawError::ERR_OK) {
         EFFECT_LOG_E("[FilterCommon]Render fail");
         return nullptr;
     }

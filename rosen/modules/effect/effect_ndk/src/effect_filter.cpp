@@ -16,6 +16,8 @@
 #include "effect_filter.h"
 
 #include "filter/filter.h"
+#include "sk_image_chain.h"
+#include "sk_image_filter_factory.h"
 
 #include "utils/log.h"
 
@@ -63,8 +65,8 @@ EffectErrorCode OH_Filter_Blur(OH_Filter* filter, float radius)
 
 EffectErrorCode OH_Filter_BlurWithTileMode(OH_Filter* filter, float radius, EffectTileMode tileMode)
 {
-    Drawing::TileMode drawingTileMode = static_cast<Drawing::TileMode>(tileMode);
-    if (!filter || !(CastToFilter(filter)->Blur(radius, drawingTileMode))) {
+    SkTileMode skTileMode = static_cast<SkTileMode>(tileMode);
+    if (!filter || !(CastToFilter(filter)->Blur(radius, skTileMode))) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;
@@ -99,12 +101,10 @@ EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatri
     if (!filter || !matrix) {
         return EFFECT_BAD_PARAMETER;
     }
-    Drawing::ColorMatrix colorMatrix;
-    float matrixArr[Drawing::ColorMatrix::MATRIX_SIZE] = { 0 };
-    for (size_t i = 0; i < Drawing::ColorMatrix::MATRIX_SIZE; i++) {
-        matrixArr[i] = matrix->val[i];
+    PixelColorMatrix colorMatrix;
+    for (size_t i = 0; i < colorMatrix.MATRIX_SIZE; i++) {
+        colorMatrix.val[i] = matrix->val[i];
     }
-    colorMatrix.SetArray(matrixArr);
     if (!(CastToFilter(filter)->SetColorMatrix(colorMatrix))) {
         return EFFECT_BAD_PARAMETER;
     }
@@ -117,18 +117,6 @@ EffectErrorCode OH_Filter_GetEffectPixelMap(OH_Filter* filter, OH_PixelmapNative
         return EFFECT_BAD_PARAMETER;
     }
     *pixelmap = new OH_PixelmapNative(CastToFilter(filter)->GetPixelMap());
-    if (*pixelmap == nullptr) {
-        return EFFECT_BAD_PARAMETER;
-    }
-    return EFFECT_SUCCESS;
-}
-
-EffectErrorCode OH_Filter_GetEffectPixelMapExt(OH_Filter* filter, OH_PixelmapNative** pixelmap, bool useCpuRender)
-{
-    if (!pixelmap || !filter) {
-        return EFFECT_BAD_PARAMETER;
-    }
-    *pixelmap = new OH_PixelmapNative(CastToFilter(filter)->GetPixelMap(useCpuRender));
     if (*pixelmap == nullptr) {
         return EFFECT_BAD_PARAMETER;
     }
