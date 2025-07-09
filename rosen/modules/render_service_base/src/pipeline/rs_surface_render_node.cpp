@@ -3900,5 +3900,14 @@ bool RSSurfaceRenderNode::isForcedClipHole() const
     }
     return (tvPlayerBundleName == bundleName_);
 }
+
+bool RSSurfaceRenderNode::IsCollaborationForcedHwc() const
+{
+    const std::string& collaborationBundleName = RsCommonHook::Instance().GetCollaborationBundleName();
+    if (collaborationBundleName.empty()) {
+        return false;
+    }
+    return (collaborationBundleName == bundleName_);
+}
 } // namespace Rosen
 } // namespace OHOS

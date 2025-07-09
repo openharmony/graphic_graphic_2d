@@ -42,16 +42,16 @@ public:
         positionZ_ = positionZ;
     }
 
-    void SetZOrderForHwcEnableByFilter(int32_t zOrderForHwcEnableByFilter)
+    void SetZOrderForHwcEnableByFilter(uint32_t zOrderForHwcEnableByFilter)
     {
         zOrderForHwcEnableByFilter_ = zOrderForHwcEnableByFilter;
     }
-    int32_t GetZOrderForHwcEnableByFilter() const { return zOrderForHwcEnableByFilter_; }
+    uint32_t GetZOrderForHwcEnableByFilter() const { return zOrderForHwcEnableByFilter_; }
 
 private:
     bool isBlendWithBackground_ = false;
     bool isForegroundColorValid_ = false;
-    int32_t zOrderForHwcEnableByFilter_ = 0;
+    uint32_t zOrderForHwcEnableByFilter_ = 0;
     float positionZ_ = 0.0f;
     bool zOrderChanged_ = false;
 };

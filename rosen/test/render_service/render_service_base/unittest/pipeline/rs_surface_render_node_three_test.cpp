@@ -999,5 +999,26 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, IsHardwareForcedDisabledTest002, TestSize
     node->SetGlobalAlpha(0.05f);
     EXPECT_EQ(node->IsHardwareForcedDisabled(), false);
 }
+
+/**
+ * @tc.name: IsCollaborationForcedHwcTest
+ * @tc.desc: IsCollaborationForcedHwc test
+ * @tc.type: FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, IsCollaborationForcedHwcTest, TestSize.Level1)
+{
+    const std::string collaborationBundleName = "com.huawei.hmos.devicecollaboration";
+
+    RSSurfaceRenderNodeConfig config{};
+    config.id = ++id;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.bundleName = collaborationBundleName;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_FALSE(node->IsCollaborationForcedHwc());
+
+    RsCommonHook::Instance().SetCollaborationBundleName(collaborationBundleName);
+    ASSERT_TRUE(node->IsCollaborationForcedHwc());
+}
 } // namespace Rosen
 } // namespace OHOS

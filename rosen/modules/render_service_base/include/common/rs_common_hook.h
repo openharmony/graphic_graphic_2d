@@ -40,6 +40,9 @@ public:
     void SetTvPlayerBundleName(const std::string& bundleName);
     std::string GetTvPlayerBundleName() const;
 
+    void SetCollaborationBundleName(const std::string& bundleName);
+    const std::string& GetCollaborationBundleName() const;
+
     // use in updating hwcnode hardware state with background alpha
     void SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
@@ -59,6 +62,7 @@ private:
     std::atomic<bool> isAdaptiveColorGamutEnable_{false};
 
     std::string tvPlayerBundleName_;
+    std::string collaborationBundleName_;
 
     // use in updating hwc node hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};

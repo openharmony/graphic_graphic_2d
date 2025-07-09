@@ -108,4 +108,13 @@ std::string RsCommonHook::GetTvPlayerBundleName() const
     return tvPlayerBundleName_;
 }
 
+void RsCommonHook::SetCollaborationBundleName(const std::string& bundleName)
+{
+    collaborationBundleName_ = bundleName;
+}
+
+const std::string& RsCommonHook::GetCollaborationBundleName() const
+{
+    return collaborationBundleName_;
+}
 } // namespace OHOS::Rosen

@@ -1569,7 +1569,7 @@ public:
     void ResetSurfaceNodeStates();
 
     bool IsUIBufferAvailable();
-
+    bool IsCollaborationForcedHwc() const;
     bool GetUIExtensionUnobscured() const;
 
     std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()

@@ -842,6 +842,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     globalZOrder_ = 0.0f;
     appWindowZOrder_ = 0;
     hasSkipLayer_ = false;
+    hwcVisitor_->curZOrderForHwcEnableByFilter_ = 0;
     node.GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
     if (!(RSMainThread::Instance()->IsRequestedNextVSync())) {
         RS_OPTIONAL_TRACE_NAME_FMT("do not request next vsync");

@@ -107,4 +107,18 @@ HWTEST_F(RsCommonHookTest, SetAndGetBundleNameTest, TestSize.Level1)
     auto result = RsCommonHook::Instance().GetTvPlayerBundleName();
     EXPECT_EQ(result, testBundleName);
 }
+
+/**
+ * @tc.name: SetAndGetBundleNameTest
+ * @tc.desc: test results of SetCollaborationBundleName and GetCollaborationBundleName
+ * @tc.type:FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RsCommonHookTest, SetAndGetCollaborationBundleNameTest, TestSize.Level1)
+{
+    const std::string collaborationBundleName = "com.huawei.hmos.devicecollaboration";
+    RsCommonHook::Instance().SetCollaborationBundleName(collaborationBundleName);
+    auto result = RsCommonHook::Instance().GetCollaborationBundleName();
+    EXPECT_EQ(result, collaborationBundleName);
+}
 } // namespace OHOS::Rosen

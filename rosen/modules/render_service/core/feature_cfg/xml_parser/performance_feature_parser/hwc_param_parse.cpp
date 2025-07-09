@@ -78,6 +78,9 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode
         if (name == "TvPlayerBundleName") {
             RsCommonHook::Instance().SetTvPlayerBundleName(val);
             RS_LOGI("parse TvPlayerBundleName ok");
+        } else if (name == "CollaborationBundleName") {
+            RsCommonHook::Instance().SetCollaborationBundleName(val);
+            RS_LOGI("parse CollaborationBundleName ok");
         }
     }
 
