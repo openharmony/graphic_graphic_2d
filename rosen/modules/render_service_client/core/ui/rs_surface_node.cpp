@@ -494,9 +494,7 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
     }
 
     SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode, id));
-    if (!surfaceNode->isMultiInstanceOpen_) {
-        RSNodeMap::MutableInstance().RegisterNode(surfaceNode);
-    }
+    RSNodeMap::MutableInstance().RegisterNode(surfaceNode);
 
     // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
     surfaceNode->skipDestroyCommandInDestructor_ = true;
