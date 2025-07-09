@@ -453,7 +453,21 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
 
     // Need to count upeer or lower trees of HDR nodes
     if (GetType() == RSRenderNodeType::CANVAS_NODE) {
-        SetIsOnTheTreeCanvasNode(flag, instanceRootNodeId, screenNodeId);
+        auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
+        if (canvasNode != nullptr &&
+            (canvasNode->GetHDRPresent() || canvasNode->GetRenderProperties().IsHDRUIBrightnessValid())) {
+            NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
+            ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDRClient canvasNode[id:%{public}" PRIu64 " name:%{public}s]"
+                       " parent'S id:%{public}" PRIu64 " ",
+                canvasNode->GetId(), canvasNode->GetNodeName().c_str(), parentNodeId);
+            if (canvasNode->GetHDRPresent()) {
+                SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
+                canvasNode->UpdateScreenHDRNodeList(flag, screenNodeId);
+            }
+            if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
+                SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
+            }
+        }
     }
 
     if (enableHdrEffect_) {
@@ -493,40 +507,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         uifirstRootNodeId_ = uifirstRootNodeId;
     }
 
-    SetupStagingRenderParams();
-    SetIsOnTheTreeChildren(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId,
-        screenNodeId, logicalDisplayNodeId);
-#endif
-}
-
-void RSRenderNode::SetIsOnTheTreeCanvasNode(bool flag, NodeId instanceRootNodeId, NodeId screenNodeId)
-{
-#ifdef RS_ENABLE_GPU
-    if (GetType() != RSRenderNodeType::CANVAS_NODE) {
-        return;
-    }
-
-    auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
-    if (canvasNode != nullptr && (canvasNode->GetHDRPresent() ||
-        canvasNode->GetRenderProperties().IsHDRUIBrightnessValid())) {
-        NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
-        ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDRClient canvasNode[id:%{public}" PRIu64 " name:%{public}s]"
-            " parent'S id:%{public}" PRIu64 " ", canvasNode->GetId(), canvasNode->GetNodeName().c_str(),
-            parentNodeId);
-        if (canvasNode->GetHDRPresent()) {
-            SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
-            canvasNode->UpdateScreenHDRNodeList(flag, screenNodeId);
-        }
-        if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
-            SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
-        }
-    }
-#endif
-}
-
-void RSRenderNode::SetupStagingRenderParams()
-{
-#ifdef RS_ENABLE_GPU
     if (stagingRenderParams_) {
         bool ret = stagingRenderParams_->SetFirstLevelNode(firstLevelNodeId_);
         ret |= stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_);
@@ -535,13 +515,7 @@ void RSRenderNode::SetupStagingRenderParams()
         }
         stagingRenderParams_->SetIsOnTheTree(isOnTheTree_);
     }
-#endif
-}
 
-void RSRenderNode::SetIsOnTheTreeChildren(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
-{
-#ifdef RS_ENABLE_GPU
     for (auto& weakChild : children_) {
         auto child = weakChild.lock();
         if (child == nullptr) {
@@ -550,13 +524,13 @@ void RSRenderNode::SetIsOnTheTreeChildren(bool flag, NodeId instanceRootNodeId, 
         if (isOnTheTree_) {
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
-        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId, screenNodeId,
+            logicalDisplayNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
-        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId, screenNodeId,
+            logicalDisplayNodeId);
     }
 #endif
 }

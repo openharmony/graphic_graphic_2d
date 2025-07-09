@@ -1310,10 +1310,6 @@ private:
     void RecordCloneCrossNode(SharedPtr node);
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
-    void SetIsOnTheTreeChildren(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId, NodeId cacheNodeId,
-        NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId);
-    void SetIsOnTheTreeCanvasNode(bool flag, NodeId instanceRootNodeId, NodeId displayNodeId);
-    void SetupStagingRenderParams();
 
     void ChildrenListDump(std::string& out) const;
 
