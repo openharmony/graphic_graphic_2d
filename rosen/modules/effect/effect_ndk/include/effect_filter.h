@@ -148,19 +148,6 @@ EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatri
  */
 EffectErrorCode OH_Filter_GetEffectPixelMap(OH_Filter* filter, OH_PixelmapNative** pixelmap);
 
-/**
- * @brief Get a pixelmap with the filter effect.
- *
- * @syscap SystemCapability.Multimedia.Image.Core
- * @param filter The OH_Filter pointer will be operated.
- * @param pixelmap The pixelmap pointer will be operated which requires the user to release after using it.
- * @param useCpuRender Whether to use cpu or gpu to render, if true, use cpu, else use gpu.
- * @return Returns {@link EffectErrorCode}.
- * @since 20
- * @version 1.0
- */
-EffectErrorCode OH_Filter_GetEffectPixelMapExt(OH_Filter* filter, OH_PixelmapNative** pixelmap, bool useCpuRender);
-
 #ifdef __cplusplus
 }
 #endif

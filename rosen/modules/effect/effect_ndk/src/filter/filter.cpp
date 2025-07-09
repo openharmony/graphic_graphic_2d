@@ -15,6 +15,7 @@
 
 #include "filter.h"
 
+#include "sk_image_chain.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -27,27 +28,27 @@ bool Filter::Render(bool forceCPU)
     if (srcPixelMap_ == nullptr) {
         return false;
     }
-    EffectImageRender imageRender;
-    auto error = imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
-    return error == DrawingError::ERR_OK;
+    Rosen::SKImageChain skImage(srcPixelMap_);
+    DrawError error = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
+    return error == DrawError::ERR_OK;
 }
 
-void Filter::AddNextFilter(std::shared_ptr<EffectImageFilter> filter)
+void Filter::AddNextFilter(sk_sp<SkImageFilter> filter)
 {
-    effectFilters_.emplace_back(filter);
+    skFilters_.emplace_back(filter);
 }
 
-std::shared_ptr<OHOS::Media::PixelMap> Filter::GetPixelMap(bool useCpuRender)
+std::shared_ptr<OHOS::Media::PixelMap> Filter::GetPixelMap()
 {
-    if (!Render(useCpuRender)) {
+    if (!Render(false)) {
         return nullptr;
     }
     return dstPixelMap_;
 }
 
-bool Filter::Blur(float radius, Drawing::TileMode tileMode)
+bool Filter::Blur(float radius, SkTileMode skTileMode)
 {
-    auto blur = EffectImageFilter::Blur(radius, tileMode);
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius, skTileMode);
     if (!blur) {
         return false;
     }
@@ -57,7 +58,7 @@ bool Filter::Blur(float radius, Drawing::TileMode tileMode)
 
 bool Filter::Brightness(float brightness)
 {
-    auto bright = EffectImageFilter::Brightness(brightness);
+    auto bright = Rosen::SKImageFilterFactory::Brightness(brightness);
     if (!bright) {
         return false;
     }
@@ -67,7 +68,7 @@ bool Filter::Brightness(float brightness)
 
 bool Filter::Grayscale()
 {
-    auto grayscale = EffectImageFilter::Grayscale();
+    auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
     if (!grayscale) {
         return false;
     }
@@ -77,7 +78,7 @@ bool Filter::Grayscale()
 
 bool Filter::Invert()
 {
-    auto invert = EffectImageFilter::Invert();
+    auto invert = Rosen::SKImageFilterFactory::Invert();
     if (!invert) {
         return false;
     }
@@ -85,9 +86,9 @@ bool Filter::Invert()
     return true;
 }
 
-bool Filter::SetColorMatrix(const Drawing::ColorMatrix& matrix)
+bool Filter::SetColorMatrix(const PixelColorMatrix& matrix)
 {
-    auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(matrix);
+    auto applyColorMatrix = Rosen::SKImageFilterFactory::ApplyColorMatrix(matrix);
     if (!applyColorMatrix) {
         return false;
     }

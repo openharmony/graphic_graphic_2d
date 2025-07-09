@@ -166,8 +166,6 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_BlurWithTileMode, TestSize.Level1)
     ASSERT_TRUE(OH_Filter_BlurWithTileMode(filter, 0.5f, CLAMP) == EFFECT_SUCCESS);
     // 0.5 for test
     ASSERT_TRUE(OH_Filter_BlurWithTileMode(nullptr, 0.5, CLAMP) == EFFECT_BAD_PARAMETER);
-    // -1 for test
-    ASSERT_TRUE(OH_Filter_BlurWithTileMode(filter, -1.0, CLAMP) == EFFECT_BAD_PARAMETER);
     ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
     OH_PixelmapNative_Release(*pixMap);
 }
@@ -317,30 +315,6 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectPixelMap003, TestSize.Level1)
 
     OH_PixelmapNative *pixelMap1 = nullptr;
     ASSERT_TRUE(OH_Filter_GetEffectPixelMap(nullptr, &pixelMap1) == EFFECT_BAD_PARAMETER);
-    OH_PixelmapNative_Release(pixelMap1);
-}
-
-/**
- * @tc.name: OH_Filter_GetEffectPixelMapExt001
- * @tc.desc: Get a pixelmap created by the filter.
- */
-HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectPixelMapExt001, TestSize.Level1)
-{
-    ASSERT_TRUE(OH_Filter_GetEffectPixelMapExt(nullptr, nullptr, true) == EFFECT_BAD_PARAMETER);
-
-    OH_PixelmapNative* pixmap = nullptr;
-    OH_PixelmapNative** pixMap = &pixmap;
-    ASSERT_TRUE(OH_Filter_GetEffectPixelMapExt(nullptr, pixMap, true) == EFFECT_BAD_PARAMETER);
-
-    CreatePixelMap(&pixMap);
-    ASSERT_TRUE(*pixMap != nullptr);
-    OH_Filter* filter = nullptr;
-    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
-    ASSERT_TRUE(OH_Filter_Invert(filter) == EFFECT_SUCCESS);
-    OH_PixelmapNative* pixelMap1 = nullptr;
-    ASSERT_TRUE(OH_Filter_GetEffectPixelMapExt(filter, &pixelMap1, false) == EFFECT_SUCCESS);
-    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
-    OH_PixelmapNative_Release(*pixMap);
     OH_PixelmapNative_Release(pixelMap1);
 }
 
