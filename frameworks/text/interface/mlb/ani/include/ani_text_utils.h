@@ -52,6 +52,7 @@ public:
 
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
+    static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
     static ani_status ReadOptionalU16StringField(
         ani_env* env, ani_object obj, const char* fieldName, std::u16string& str);

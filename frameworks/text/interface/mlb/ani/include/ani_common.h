@@ -19,12 +19,18 @@
 
 namespace OHOS::Text::ANI {
 /**
+ * define namespace
+ */
+constexpr const char* ANI_NAMESPACE_TEXT = "L@ohos/graphics/text/text;";
+
+/**
  * define ani
  */
 constexpr const char* NATIVE_OBJ = "nativeObj";
 constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
 constexpr const char* ANI_INT = "Lstd/core/Int;";
 constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
+constexpr const char* ANI_STRING = "Lstd/core/String;";
 constexpr const char* ANI_MAP = "Lescompat/Map;";
 constexpr const char* ANI_ARRAY = "Lescompat/Array;";
 /**
@@ -36,6 +42,7 @@ constexpr const char* ANI_INTERFACE_FONT_FEATURE = "L@ohos/graphics/text/text/Fo
 constexpr const char* ANI_INTERFACE_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariation;";
 constexpr const char* ANI_INTERFACE_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadow;";
 constexpr const char* ANI_INTERFACE_RECT_STYLE = "L@ohos/graphics/text/text/RectStyle;";
+constexpr const char* ANI_INTERFACE_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptor;";
 constexpr const char* ANI_INTERFACE_TEXT_BOX = "L@ohos/graphics/text/text/TextBox;";
 constexpr const char* ANI_INTERFACE_RANGE = "L@ohos/graphics/text/text/Range;";
 constexpr const char* ANI_INTERFACE_PLACEHOLDER_SPAN = "L@ohos/graphics/text/text/PlaceholderSpan;";
@@ -62,6 +69,8 @@ constexpr const char* ANI_CLASS_FONT = "L@ohos/graphics/drawing/drawing/Font;";
 constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadowInternal;";
 constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyleInternal;";
 constexpr const char* ANI_CLASS_DECORATION = "L@ohos/graphics/text/text/DecorationInternal;";
+constexpr const char* ANI_CLASS_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptorInternal;";
+
 constexpr const char* ANI_CLASS_POINT = "L@ohos/graphics/text/text/PointInternal;";
 constexpr const char* ANI_CLASS_COLOR = "L@ohos/graphics/text/text/ColorInternal;";
 constexpr const char* ANI_CLASS_TEXT_BOX = "L@ohos/graphics/text/text/TextBoxInternal;";
@@ -83,6 +92,7 @@ constexpr const char* ANI_ENUM_TEXT_BASELINE = "L@ohos/graphics/text/text/TextBa
 constexpr const char* ANI_ENUM_ELLIPSIS_MODE = "L@ohos/graphics/text/text/EllipsisMode;";
 constexpr const char* ANI_ENUM_TEXT_DECORATION_TYPE = "L@ohos/graphics/text/text/TextDecorationType;";
 constexpr const char* ANI_ENUM_TEXT_DECORATION_STYLE = "L@ohos/graphics/text/text/TextDecorationStyle;";
+constexpr const char* ANI_ENUM_SYSTEM_FONT_TYPE = "L@ohos/graphics/text/text/SystemFontType;";
 constexpr const char* ANI_ENUM_RECT_WIDTH_STYLE = "L@ohos/graphics/text/text/RectWidthStyle;";
 constexpr const char* ANI_ENUM_RECT_HEIGHT_STYLE = "L@ohos/graphics/text/text/RectHeightStyle;";
 constexpr const char* ANI_ENUM_TEXT_DIRECTION = "L@ohos/graphics/text/text/TextDirection;";
