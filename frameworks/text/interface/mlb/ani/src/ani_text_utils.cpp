@@ -267,6 +267,17 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     return result;
 }
 
+
+ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "intValue", ":I", &value);
+    }
+    return result;
+}
+
 ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str)
 {
     ani_ref ref = nullptr;

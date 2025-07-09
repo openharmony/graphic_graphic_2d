@@ -19,12 +19,18 @@
 
 namespace OHOS::Text::ANI {
 /**
+ * define namespace
+ */
+constexpr const char* ANI_NAMESPACE_TEXT = "L@ohos/graphics/text/text;";
+
+/**
  * define ani
  */
 constexpr const char* NATIVE_OBJ = "nativeObj";
 constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
 constexpr const char* ANI_INT = "Lstd/core/Int;";
 constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
+constexpr const char* ANI_STRING = "Lstd/core/String;";
 constexpr const char* ANI_MAP = "Lescompat/Map;";
 constexpr const char* ANI_ARRAY = "Lescompat/Array;";
 /**
@@ -36,6 +42,7 @@ constexpr const char* ANI_INTERFACE_FONT_FEATURE = "L@ohos/graphics/text/text/Fo
 constexpr const char* ANI_INTERFACE_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariation;";
 constexpr const char* ANI_INTERFACE_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadow;";
 constexpr const char* ANI_INTERFACE_RECT_STYLE = "L@ohos/graphics/text/text/RectStyle;";
+constexpr const char* ANI_INTERFACE_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptor;";
 /**
  * define class
  */
@@ -54,6 +61,8 @@ constexpr const char* ANI_CLASS_FONT_METRICS = "L@ohos/graphics/drawing/drawing/
 constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadowInternal;";
 constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyleInternal;";
 constexpr const char* ANI_CLASS_DECORATION = "L@ohos/graphics/text/text/DecorationInternal;";
+constexpr const char* ANI_CLASS_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptorInternal;";
+
 /**
  * define enum
  */
@@ -63,6 +72,7 @@ constexpr const char* ANI_ENUM_TEXT_BASELINE = "L@ohos/graphics/text/text/TextBa
 constexpr const char* ANI_ENUM_ELLIPSIS_MODE = "L@ohos/graphics/text/text/EllipsisMode;";
 constexpr const char* ANI_ENUM_TEXT_DECORATION_TYPE = "L@ohos/graphics/text/text/TextDecorationType;";
 constexpr const char* ANI_ENUM_TEXT_DECORATION_STYLE = "L@ohos/graphics/text/text/TextDecorationStyle;";
+constexpr const char* ANI_ENUM_SYSTEM_FONT_TYPE = "L@ohos/graphics/text/text/SystemFontType;";
 
 enum class TextErrorCode : int32_t {
     OK = 0,

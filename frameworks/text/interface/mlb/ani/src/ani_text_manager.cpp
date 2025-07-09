@@ -18,6 +18,7 @@
 
 #include "ani_common.h"
 #include "ani_font_collection.h"
+#include "ani_fontdescriptor.h"
 #include "ani_line_typeset.h"
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
@@ -34,7 +35,8 @@ namespace OHOS::Text::ANI {
 #define STRUCT_LIST(...) using AniTypes = std::tuple<__VA_ARGS__>
 
 // add new struct in this macro
-STRUCT_LIST(AniFontCollection, AniParagraph, AniParagraphBuilder, AniLineTypeset, AniTextLine, AniRun);
+STRUCT_LIST(
+    AniFontCollection, AniParagraph, AniParagraphBuilder, AniLineTypeset, AniTextLine, AniRun, AniFontDescriptor);
 
 template <typename T>
 static ani_status InitOneStruct(ani_vm* vm, uint32_t* result)
