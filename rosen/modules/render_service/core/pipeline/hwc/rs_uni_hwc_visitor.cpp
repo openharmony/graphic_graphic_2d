@@ -1195,8 +1195,7 @@ void RSUniHwcVisitor::UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
     canvas->ConcatMatrix(absMatrix);
 
     const auto& dstRect = node.GetDstRect();
-    Drawing::RectI dst = { std::round(dstRect.GetLeft()), std::round(dstRect.GetTop()), std::round(dstRect.GetRight()),
-                           std::round(dstRect.GetBottom()) };
+    Drawing::RectI dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom() };
     node.UpdateSrcRect(*canvas.get(), dst);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         RSUniHwcComputeUtil::UpdateRealSrcRect(node, absRect);
