@@ -51,7 +51,7 @@ constexpr size_t MAX_OBJECTNUM = 512;
 constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 const uint32_t MAX_VOTER_SIZE = 100;
-constexpr int MAX_PID_SIZE_NUMBER = 100000;
+constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
@@ -3559,7 +3559,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             RectConstraint constraint;
             if (size > MAX_PID_SIZE_NUMBER) {
-                ROSEN_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK,"
+                ROSEN_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK "
                            "size number is too large.");
                 break;
             }
