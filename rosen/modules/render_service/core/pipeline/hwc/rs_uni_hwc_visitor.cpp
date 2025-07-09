@@ -132,13 +132,13 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
     }
     auto offsetX = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curScreenNode_->GetScreenOffsetX() : 0;
     auto offsetY = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curScreenNode_->GetScreenOffsetY() : 0;
-    dstRect.left_ = static_cast<int>(std::round(dstRect.left_ *
+    dstRect.left_ = static_cast<int32_t>(std::floor(dstRect.left_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()) + offsetX);
-    dstRect.top_ = static_cast<int>(std::round(dstRect.top_ *
+    dstRect.top_ = static_cast<int32_t>(std::floor(dstRect.top_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()) + offsetY);
-    dstRect.width_ = static_cast<int>(std::round(dstRect.width_ *
+    dstRect.width_ = static_cast<int32_t>(std::ceil(dstRect.width_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()));
-    dstRect.height_ = static_cast<int>(std::round(dstRect.height_ *
+    dstRect.height_ = static_cast<int32_t>(std::ceil(dstRect.height_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()));
 
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&

@@ -223,10 +223,10 @@ void RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(RSSurfaceRenderNode& nod
     newDstRect.Intersect(Drawing::RectI(
         dstRect.left_, dstRect.top_, dstRect.width_ + dstRect.left_, dstRect.height_ + dstRect.top_));
     auto localRect = canvas->GetLocalClipBounds();
-    int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
-    int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);
-    int width = std::clamp<int>(localRect.GetWidth(), 0, frameWidth - left);
-    int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
+    int32_t left = std::clamp<int32_t>(localRect.GetLeft(), 0, frameWidth);
+    int32_t top = std::clamp<int32_t>(localRect.GetTop(), 0, frameHeight);
+    int32_t width = std::clamp<int32_t>(localRect.GetWidth(), 0, frameWidth - left);
+    int32_t height = std::clamp<int32_t>(localRect.GetHeight(), 0, frameHeight - top);
  
     node.SetDstRect({newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()});
     node.SetSrcRect({left, top, width, height});
@@ -324,7 +324,7 @@ void RSUniHwcComputeUtil::LayerRotate(RSSurfaceRenderNode& node, const ScreenInf
     }
 }
 
-void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
+void RSUniHwcComputeUtil::floorSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
     if (node.GetHwcGlobalPositionEnabled()) {
         return;
@@ -346,12 +346,12 @@ void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo&
         return;
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
-    srcRect.left_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
+    srcRect.left_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::floor((resDstRect.left_ - dstRectI.left_) *
         originSrcRect.width_ / dstRectI.width_);
-    srcRect.top_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
+    srcRect.top_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::floor((resDstRect.top_ - dstRectI.top_) *
         originSrcRect.height_ / dstRectI.height_);
-    srcRect.width_ = dstRectI.IsEmpty() ? 0 : originSrcRect.width_ * resDstRect.width_ / dstRectI.width_;
-    srcRect.height_ = dstRectI.IsEmpty() ? 0 : originSrcRect.height_ * resDstRect.height_ / dstRectI.height_;
+    srcRect.width_ = dstRectI.IsEmpty() ? 0 : std::ceil(originSrcRect.width_ * resDstRect.width_ / dstRectI.width_);
+    srcRect.height_ = dstRectI.IsEmpty() ? 0 : std::ceil(originSrcRect.height_ * resDstRect.height_ / dstRectI.height_);
     node.SetDstRect(dstRect);
     node.SetSrcRect(srcRect);
 }
