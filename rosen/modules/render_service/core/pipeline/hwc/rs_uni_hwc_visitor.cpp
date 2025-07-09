@@ -1244,10 +1244,7 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
             return;
         }
     }
-    const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
-    apiCompatibleVersion >= API18 ?
-        UpdateSrcRect(node, absMatrix) :
-        UpdateTopSurfaceSrcRect(node, absMatrix, absRect);
+    UpdateSrcRect(node, absMatrix);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
     UpdateHwcNodeByTransform(node, absMatrix);
     UpdateHwcNodeEnableByBufferSize(node);
