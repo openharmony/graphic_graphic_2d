@@ -324,7 +324,7 @@ void RSUniHwcComputeUtil::LayerRotate(RSSurfaceRenderNode& node, const ScreenInf
     }
 }
 
-void RSUniHwcComputeUtil::LayerCrop(SurfaceRenderNode& node, const ScreenInfo& screenInfo)
+void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
     if (node.GetHwcGlobalPositionEnabled()) {
         return;
