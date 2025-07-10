@@ -230,5 +230,5 @@ int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen)
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
-    return image->consumer->SetDropBufferSwitch(isOpen);
+    return image->consumer->SetDropBufferMode(isOpen);
 }
