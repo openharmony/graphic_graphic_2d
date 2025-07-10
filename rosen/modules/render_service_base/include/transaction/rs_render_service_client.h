@@ -443,7 +443,7 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
-    void SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder);
+    void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 

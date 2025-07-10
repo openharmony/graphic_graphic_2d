@@ -1102,7 +1102,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetLayerTopForHWCTest, TestSize.Leve
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteString("13456");
+    data.WriteUint64(0);
     data.WriteBool(true);
     data.WriteUint32(1);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);

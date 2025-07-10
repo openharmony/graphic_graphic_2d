@@ -3482,15 +3482,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER) : {
-            std::string nodeIdStr;
+            NodeId nodeId = {};
             bool isTop{false};
             uint32_t topLayerZOrder = 0;
-            if (!data.ReadString(nodeIdStr) || !data.ReadBool(isTop) || !data.ReadUint32(topLayerZOrder)) {
+            if (!data.ReadUint64(nodeId) || !data.ReadBool(isTop) || !data.ReadUint32(topLayerZOrder)) {
                 RS_LOGE("RSRenderServiceConntionStub::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER Read parcel failed");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SetLayerTopForHWC(nodeIdStr, isTop, topLayerZOrder);
+            SetLayerTopForHWC(nodeId, isTop, topLayerZOrder);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
