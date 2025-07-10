@@ -55,6 +55,8 @@ config("effect_SKeffectChian_public_config") {
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
       "//foundation/graphic/graphic_2d/utils/color_manager/export",
       "//base/hiviewdfx/hilog/interfaces/native/innerkits",
+      "//foundation/graphic/graphics_effect/include",
+      "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
     ]
   }
 }
@@ -91,13 +93,8 @@ if (is_arkui_x) {
       "skia:skia_canvaskit_static",
     ]
 
-    external_deps = [
-      "graphics_effect:graphics_effect_core",
-      "hitrace:hitrace_meter",
-    ]
-
     deps = [
-      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
     ]
 
     sources = [
