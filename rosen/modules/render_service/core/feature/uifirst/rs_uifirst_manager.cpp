@@ -240,11 +240,6 @@ void RSUifirstManager::MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRend
         " curDirtyRegion[%d %d %d %d], uifirstDirtyRegion[%d %d %d %d]",
         node->GetId(), curDirtyRegion.left_, curDirtyRegion.top_, curDirtyRegion.width_, curDirtyRegion.height_,
         uifirstDirtyRegion.left_, uifirstDirtyRegion.top_, uifirstDirtyRegion.width_, uifirstDirtyRegion.height_);
-    RS_LOGD("MergeOldDirtyToDirtyManager %{public}" PRIu64","
-        " curDirtyRegion[%{public}d %{public}d %{public}d %{public}d],"
-        " uifirstDirtyRegion[%{public}d %{public}d %{public}d %{public}d]",
-        node->GetId(), curDirtyRegion.left_, curDirtyRegion.top_, curDirtyRegion.width_, curDirtyRegion.height_,
-        uifirstDirtyRegion.left_, uifirstDirtyRegion.top_, uifirstDirtyRegion.width_, uifirstDirtyRegion.height_);
     if (!uifirstDirtyRegion.IsEmpty()) {
         node->AddToPendingSyncList();
     }

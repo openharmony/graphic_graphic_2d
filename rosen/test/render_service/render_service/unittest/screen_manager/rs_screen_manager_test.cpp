@@ -2445,6 +2445,30 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList007, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenBlackList008
+ * @tc.desc: Test SetVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require: issueICHZO3
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList008, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 10;
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    std::vector<uint64_t> blackList1 = {1, 2, 3, 4};
+    ASSERT_EQ(screenManager->SetVirtualScreenBlackList(id, blackList1), StatusCode::SUCCESS);
+    ASSERT_EQ(screenManager->GetVirtualScreenBlackList(id).size(), blackList1.size());
+
+    std::vector<uint64_t> blackList2 = {1, 2, 3};
+    ASSERT_EQ(screenManager->SetVirtualScreenBlackList(id, blackList2), StatusCode::SUCCESS);
+    ASSERT_EQ(screenManager->GetVirtualScreenBlackList(id).size(), blackList2.size());
+}
+
+/*
  * @tc.name: SetVirtualScreenSecurityExemptionList001
  * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal param
  * @tc.type: FUNC
@@ -2805,6 +2829,36 @@ HWTEST_F(RSScreenManagerTest, GetBlackListVirtualScreenByNode001, TestSize.Level
     ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
 
     ASSERT_EQ(screenManagerImpl.GetBlackListVirtualScreenByNode(1).empty(), false);
+}
+
+/*
+ * @tc.name: GetBlackListVirtualScreenByNode002
+ * @tc.desc: Test GetBlackListVirtualScreenByNode
+ * @tc.type: FUNC
+ * @tc.require: issueICHZO3
+ */
+HWTEST_F(RSScreenManagerTest, GetBlackListVirtualScreenByNode002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.blackListInVirtualScreen_.clear();
+
+    const std::vector<uint64_t>& blackList = { 1, 2, 3, 4 };
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(INVALID_SCREEN_ID, blackList), StatusCode::SUCCESS);
+    ASSERT_EQ(screenManagerImpl.GetBlackListVirtualScreenByNode(2).empty(), true);
+
+    ScreenId id = 10;
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_EQ(screenManagerImpl.GetBlackListVirtualScreenByNode(2).empty(), true);
+
+    ScreenId virtualScreenId = 100;
+    screenManagerImpl.screens_[virtualScreenId] = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_EQ(screenManagerImpl.GetBlackListVirtualScreenByNode(2).empty(), true);
+
+    screenManagerImpl.screens_[virtualScreenId]->SetCastScreenEnableSkipWindow(true);
+    ASSERT_EQ(screenManagerImpl.GetBlackListVirtualScreenByNode(2).empty(), false);
 }
 
 /*

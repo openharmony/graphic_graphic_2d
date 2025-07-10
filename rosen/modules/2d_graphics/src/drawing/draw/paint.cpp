@@ -277,15 +277,6 @@ void Paint::SetAntiAlias(bool aa)
     antiAlias_ = aa;
 }
 
-#ifdef RS_ENABLE_GPU
-void Paint::SetGPUContext(std::shared_ptr<GPUContext> gpuContext) const
-{
-    if (shaderEffect_ != nullptr) {
-        shaderEffect_->SetGPUContext(gpuContext);
-    }
-}
-#endif
-
 void Paint::Reset()
 {
     antiAlias_ = false;

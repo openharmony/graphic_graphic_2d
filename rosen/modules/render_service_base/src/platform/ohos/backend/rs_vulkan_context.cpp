@@ -671,17 +671,19 @@ void RsVulkanContext::InitVulkanContextForUniRender(const std::string& cacheDir)
 std::unique_ptr<RsVulkanContext>& RsVulkanContext::GetRecyclableSingletonPtr(const std::string& cacheDir)
 {
     std::lock_guard<std::recursive_mutex> lock(recyclableSingletonMutex_);
-    static std::string cacheDirInit = cacheDir;
-    static std::unique_ptr<RsVulkanContext> recyclableSingleton = std::make_unique<RsVulkanContext>(cacheDirInit);
-    if (recyclableSingleton == nullptr) {
-        recyclableSingleton = std::make_unique<RsVulkanContext>(cacheDirInit);
-    }
+    static std::unique_ptr<RsVulkanContext> recyclableSingleton = std::make_unique<RsVulkanContext>(cacheDir);
     return recyclableSingleton;
 }
 
 RsVulkanContext& RsVulkanContext::GetRecyclableSingleton(const std::string& cacheDir)
 {
-    return *RsVulkanContext::GetRecyclableSingletonPtr(cacheDir);
+    std::lock_guard<std::recursive_mutex> lock(recyclableSingletonMutex_);
+    static std::string cacheDirInit = cacheDir;
+    std::unique_ptr<RsVulkanContext>& recyclableSingleton = GetRecyclableSingletonPtr(cacheDirInit);
+    if (recyclableSingleton == nullptr) {
+        recyclableSingleton = std::make_unique<RsVulkanContext>(cacheDirInit);
+    }
+    return *recyclableSingleton;
 }
 
 RsVulkanContext& RsVulkanContext::GetSingleton(const std::string& cacheDir)

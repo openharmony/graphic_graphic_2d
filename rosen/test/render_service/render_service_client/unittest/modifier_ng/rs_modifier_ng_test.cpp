@@ -22,6 +22,11 @@
 #include "gtest/hwext/gtest-tag.h"
 #include "message_parcel.h"
 
+#include "modifier_ng/appearance/rs_alpha_modifier.h"
+#include "modifier_ng/overlay/rs_overlay_style_modifier.h"
+#include "recording/draw_cmd_list.h"
+#include "ui/rs_canvas_node.h"
+
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS::Rosen {
@@ -46,5 +51,35 @@ void RSModifierNGTest::TearDown() {}
 HWTEST_F(RSModifierNGTest, RSDisplayListModifierUpdaterTest, TestSize.Level1)
 {
     EXPECT_NE(1, 0);
+}
+
+/**
+ * @tc.name: AttachPropertyTest
+ * @tc.desc: AttachProperty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierNGTest, AttachPropertyTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    std::shared_ptr<RSProperty<float>> property = nullptr;
+    modifier->AttachProperty(property);
+    ASSERT_TRUE(property == nullptr);
+
+    property = std::make_shared<RSProperty<float>>(1.f);
+    modifier->AttachProperty(property);
+    ASSERT_EQ(property->target_.lock(), nullptr);
+
+    auto node = std::make_shared<RSCanvasNode>(1);
+    property = std::make_shared<RSProperty<float>>(0.5f);
+    modifier->node_ = node;
+    modifier->AttachProperty(property);
+    ASSERT_NE(property->target_.lock(), nullptr);
+
+    auto overlayModifier = std::make_shared<ModifierNG::RSOverlayStyleModifier>();
+    auto indexProperty = std::make_shared<RSProperty<int16_t>>();
+    overlayModifier->node_ = node;
+    overlayModifier->AttachProperty(indexProperty);
+    ASSERT_NE(indexProperty->target_.lock(), nullptr);
+    ASSERT_TRUE(overlayModifier->IsCustom());
 }
 } // namespace OHOS::Rosen

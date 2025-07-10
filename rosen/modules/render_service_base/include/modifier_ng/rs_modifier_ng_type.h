@@ -152,6 +152,7 @@ public:
             case RSPropertyType::FG_BRIGHTNESS_POSCOEFF: return "FgBrightnessPoscoeff";
             case RSPropertyType::FG_BRIGHTNESS_NEGCOEFF: return "FgBrightnessNegcoeff";
             case RSPropertyType::FG_BRIGHTNESS_FRACTION: return "FgBrightnessFraction";
+            case RSPropertyType::FG_BRIGHTNESS_HDR: return "FgBrightnessHdr";
             case RSPropertyType::BG_BRIGHTNESS_RATES: return "BgBrightnessRates";
             case RSPropertyType::BG_BRIGHTNESS_SATURATION: return "BgBrightnessSaturation";
             case RSPropertyType::BG_BRIGHTNESS_POSCOEFF: return "BgBrightnessPoscoeff";

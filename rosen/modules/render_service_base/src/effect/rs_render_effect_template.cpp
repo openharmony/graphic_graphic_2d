@@ -23,57 +23,61 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, float value)
 {
-    geFilter->SetParam(desc, value);
+    geFilter.SetParam(desc, value);
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, bool value)
+{
+    geFilter.SetParam(desc, value);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const Vector4f& value)
 {
-    geFilter->SetParam(desc, value);
+    geFilter.SetParam(desc, value);
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const Vector3f& value)
 {
-    geFilter->SetParam(desc, value);
+    geFilter.SetParam(desc, value);
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const Vector2f& value)
 {
-    geFilter->SetParam(desc, std::make_pair(value.x_, value.y_));
+    geFilter.SetParam(desc, std::make_pair(value.x_, value.y_));
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value)
 {
-    auto geVisualEffect = value->GenerateGEVisualEffect();
-    if (!geVisualEffect) {
-        return;
-    }
-    geFilter->SetParam(desc, geVisualEffect->GenerateShaderMask());
+    std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = value ? value->GenerateGEVisualEffect() : nullptr;
+    std::shared_ptr<Drawing::GEShaderMask> geMask = geVisualEffect ? geVisualEffect->GenerateShaderMask() : nullptr;
+    geFilter.SetParam(desc, geMask);
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const VectorVector2F& value)
 {
-    geFilter->SetParam(desc, value);
+    geFilter.SetParam(desc, value);
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, std::shared_ptr<Media::PixelMap> value)
 {
     auto image = RSPixelMapUtil::ExtractDrawingImage(value);
-    geFilter->SetParam(desc, image);
+    geFilter.SetParam(desc, image);
 }
 
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const std::vector<float>& value)
 {
-    geFilter->SetParam(desc, value);
+    geFilter.SetParam(desc, value);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

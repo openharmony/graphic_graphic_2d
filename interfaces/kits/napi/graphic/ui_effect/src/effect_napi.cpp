@@ -36,6 +36,7 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createEffect", CreateEffect),
         DECLARE_NAPI_STATIC_FUNCTION("createBrightnessBlender", CreateBrightnessBlender),
+        DECLARE_NAPI_STATIC_FUNCTION("createHdrBrightnessBlender", CreateHdrBrightnessBlender),
     };
  
     napi_value constructor = nullptr;
@@ -207,6 +208,51 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
         nullptr, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender wrap fail"));
+
+    return nativeObj;
+}
+
+napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateHdrBrightnessBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateHdrBrightnessBlender failed, is not system app");
+        return nullptr;
+    }
+
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[NUM_1];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender parsing input fail"));
+
+    napi_value nativeObj = argv[0];
+    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender nativeObj is nullptr"));
+
+    BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender blender is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckCreateBrightnessBlender(env, nativeObj) &&
+        ParseBrightnessBlender(env, nativeObj, blender), nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender fail"));
+
+    blender->SetHdr(true);
+
+    status = napi_wrap(
+        env, nativeObj, blender,
+        [](napi_env env, void* data, void* hint) {
+            BrightnessBlender* blenderObj = (BrightnessBlender*)data;
+            delete blenderObj;
+        },
+        nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender wrap fail"));
 
     return nativeObj;
 }

@@ -27,6 +27,7 @@ struct BootAnimationConfig {
     std::string soundPath;
     std::string videoDefaultPath;
     std::string videoExtraPath;
+    std::string screenStatus;
     int32_t rotateScreenId = -1;
     int32_t rotateDegree = 0;
     Rosen::ScreenId screenId = Rosen::INVALID_SCREEN_ID;

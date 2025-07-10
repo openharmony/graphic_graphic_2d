@@ -461,6 +461,24 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_impl",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_ffi",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/effect_kit:cj_effect_kit_ffi",
             "header": {
               "header_files": [],

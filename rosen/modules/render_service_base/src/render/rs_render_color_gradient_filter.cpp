@@ -19,12 +19,17 @@
 #include "ge_visual_effect_container.h"
 
 #include "platform/common/rs_log.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "render/rs_render_radial_gradient_mask.h"
 #include "render/rs_render_ripple_mask.h"
 #include "render/rs_shader_mask.h"
 
 namespace OHOS {
 namespace Rosen {
+
+namespace {
+    constexpr uint32_t COLOR_PROPS_NUM = 4;
+}
 
 void RSRenderColorGradientFilterPara::CalculateHash()
 {
@@ -275,7 +280,7 @@ void RSRenderColorGradientFilterPara::GenerateGEVisualEffect(
     }
     auto colorGradientFilter = std::make_shared<Drawing::GEVisualEffect>("COLOR_GRADIENT",
         Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
-    colorGradientFilter->SetParam("COLOR", colors_);
+    colorGradientFilter->SetParam("COLOR", CalcColorsIfHdrEffect());
     colorGradientFilter->SetParam("POSITION", positions_);
     colorGradientFilter->SetParam("STRENGTH", strengths_);
     if (mask_) {
@@ -303,6 +308,35 @@ const std::vector<float> RSRenderColorGradientFilterPara::GetStrengths() const
 const std::shared_ptr<RSShaderMask>& RSRenderColorGradientFilterPara::GetMask() const
 {
     return mask_;
+}
+
+std::vector<float> RSRenderColorGradientFilterPara::CalcColorsIfHdrEffect()
+{
+    bool hdrEnable = false;
+    float highColor = 1.0f;
+    for (size_t indexColors = 0; indexColors < colors_.size(); indexColors++) {
+        if ((indexColors + 1) % COLOR_PROPS_NUM == 0) {
+            continue;
+        }
+        if (ROSEN_GNE(colors_[indexColors], highColor)) {
+            hdrEnable = true;
+            highColor = colors_[indexColors];
+        }
+    }
+    if (!hdrEnable) {
+        return colors_;
+    }
+
+    float compressRatio = RSEffectLuminanceManager::GetBrightnessMapping(maxHeadroom_, highColor) / highColor;
+    std::vector<float> colors;
+    for (size_t indexColors = 0; indexColors < colors_.size(); indexColors++) {
+        if ((indexColors + 1) % COLOR_PROPS_NUM == 0) {
+            colors.push_back(colors_[indexColors]);
+            continue;
+        }
+        colors.push_back(colors_[indexColors] * compressRatio);
+    }
+    return colors;
 }
 
 } // namespace Rosen

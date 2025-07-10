@@ -20,7 +20,6 @@
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
 
-#include "event_handler.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "utils/rect.h"
@@ -159,7 +158,7 @@ private:
     // environment, we don't need to attempt to reattach SkImages.
     void CheckCachedImages(RSPaintFilterCanvas& canvas);
 
-    const char* GetCacheState() const;
+    std::string GetCacheState() const;
 
     void UpdateFlags(FilterCacheType type, bool cacheValid);
     void ClearFilterCache();

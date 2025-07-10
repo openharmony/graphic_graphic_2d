@@ -306,6 +306,8 @@ public:
     Vector4f GetFgBrightnessNegCoeff() const;
     void SetFgBrightnessFract(const float& fraction);
     float GetFgBrightnessFract() const;
+    void SetFgBrightnessHdr(const bool enableHdr);
+    bool GetFgBrightnessHdr() const;
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
 

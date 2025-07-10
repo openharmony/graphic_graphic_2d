@@ -279,7 +279,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, GetLeafProperties001, TestSize.Level1)
 HWTEST_F(RSUIEdgeLightFilterTest, CheckEnableHdrEffect001, TestSize.Level1)
 {
     auto edgeLightPara = std::make_shared<EdgeLightPara>();
-;
+
     auto maskPara = std::make_shared<MaskPara>();
     maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
     edgeLightPara->SetMask(maskPara);

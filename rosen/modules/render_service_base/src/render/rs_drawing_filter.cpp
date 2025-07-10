@@ -217,6 +217,14 @@ Drawing::Brush RSDrawingFilter::GetBrush(float brushAlpha) const
     return brush;
 }
 
+void RSDrawingFilter::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+{
+    for (const auto& shaderFilter : shaderFilters_) {
+        shaderFilter->SetGeometry(canvas, geoWidth, geoHeight);
+    }
+    RSUIFilterHelper::SetGeometry(renderFilter_, canvas, geoWidth, geoHeight);
+}
+
 bool RSDrawingFilter::CanSkipFrame(float radius)
 {
     constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
@@ -577,6 +585,16 @@ void RSDrawingFilter::PostProcess(Drawing::Canvas& canvas)
     std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
         if ((!canSkipMaskColor_) || (!(filter->GetType() == RSUIFilterType::MASK_COLOR))) {
             filter->PostProcess(canvas);
+        }
+    });
+}
+
+void RSDrawingFilter::SetDisplayHeadroom(float headroom)
+{
+    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
+        ROSEN_LOGD("RSDrawingFilter::SetDisplayHeadroom headroom is %{public}f", headroom);
+        if (filter) {
+            filter->SetDisplayHeadroom(headroom);
         }
     });
 }

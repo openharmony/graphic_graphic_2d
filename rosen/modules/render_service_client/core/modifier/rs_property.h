@@ -226,7 +226,7 @@ protected:
         modifierNG_ = modifier;
     }
 
-    void MarkModifierDirty();
+    void MarkCustomModifierDirty();
 
     void MarkNodeDirty();
 
@@ -326,6 +326,16 @@ struct RSRenderPropertyTraits {
 };
 
 template<>
+struct RSRenderPropertyTraits<std::shared_ptr<RSNGFilterBase>> {
+    using Type = RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>;
+};
+
+template<>
+struct RSRenderPropertyTraits<std::shared_ptr<RSNGShaderBase>> {
+    using Type = RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>;
+};
+
+template<>
 struct RSRenderPropertyTraits<std::shared_ptr<RSNGMaskBase>> {
     using Type = RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>;
 };
@@ -379,7 +389,7 @@ public:
         MarkNodeDirty();
         UpdateExtendModifierForGeometry(node);
         if (isCustom_) {
-            MarkModifierDirty();
+            MarkCustomModifierDirty();
         } else {
             UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
         }
@@ -756,7 +766,7 @@ protected:
             }
         } else {
             showingValue_ = value;
-            RSProperty<T>::MarkModifierDirty();
+            RSProperty<T>::MarkCustomModifierDirty();
             if (renderProperty_ != nullptr) {
                 renderProperty_->Set(value);
             } else {
@@ -781,7 +791,7 @@ protected:
         if (renderProperty != nullptr) {
             showingValue_ = renderProperty->Get();
             NotifyPropertyChange();
-            RSProperty<T>::MarkModifierDirty();
+            RSProperty<T>::MarkCustomModifierDirty();
         }
     }
 
@@ -994,6 +1004,9 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::UpdateToRender(
     const std::shared_ptr<RSNGShaderBase>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const;
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);

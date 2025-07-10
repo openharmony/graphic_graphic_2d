@@ -1554,6 +1554,23 @@ HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessFract001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNGetFgBrightnessHdr001
+ * @tc.desc: test results of SetNGetFgBrightnessHdr001
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessHdr001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFgBrightnessHdr(false);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    properties.SetFgBrightnessHdr(true);
+    auto valueGet = properties.GetFgBrightnessHdr();
+    EXPECT_EQ(valueGet, true);
+}
+
+/**
  * @tc.name: SetNGetFgBrightnessParams002
  * @tc.desc: test results of SetNGetFgBrightnessParams002
  * @tc.type:FUNC

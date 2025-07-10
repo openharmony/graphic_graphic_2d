@@ -472,6 +472,52 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CaptureSurface008
+ * @tc.desc: Test sub window has a blacklist in UIFirst scenario
+ * @tc.type: FUNC
+ * @tc.require: issueICHZO3
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    RSSpecialLayerManager slManager;
+    surfaceParams->specialLayerManager_ = slManager;
+
+    auto virtualScreenId = 1;
+    CaptureParam captureParam;
+    captureParam.isMirror_ = true;
+    captureParam.virtualScreenId_ = virtualScreenId;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->blackListIds_[virtualScreenId].insert(renderNode_->GetId());
+    ASSERT_EQ(surfaceParams->HasBlackListByScreenId(virtualScreenId), true);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    RSUniRenderThread::GetCaptureParam().isMirror_ = false;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->blackListIds_[virtualScreenId].clear();
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::NONE;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->blackListIds_[virtualScreenId].insert(renderNode_->GetId());
+    ASSERT_EQ(surfaceParams->HasBlackListByScreenId(virtualScreenId), true);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+}
+
+/**
  * @tc.name: CrossDisplaySurfaceDirtyRegionConversion
  * @tc.desc: Test CrossDisplaySurfaceDirtyRegionConversion, if node is cross-display, the surface dirty will be offset.
  * @tc.type: FUNC

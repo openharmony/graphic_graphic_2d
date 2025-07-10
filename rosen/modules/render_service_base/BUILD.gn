@@ -41,7 +41,7 @@ if (enable_compiler_rust) {
     sources = [ "rust/src/lib.rs" ]
   }
 
-  ohos_rust_static_ffi("particle_cxx_rust") {
+  ohos_rust_shared_ffi("particle_cxx_rust") {
     sources = [ "rust/src/lib.rs" ]
     external_deps = [ "rust_cxx:lib" ]
     part_name = "graphic_2d"
@@ -302,6 +302,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_dot_matrix_shader.cpp",
     "src/render/rs_drawing_filter.cpp",
     "src/render/rs_edge_light_shader_filter.cpp",
+    "src/render/rs_effect_luminance_manager.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_filter_cache_manager.cpp",
     "src/render/rs_flow_light_sweep_shader.cpp",
@@ -519,7 +520,9 @@ ohos_source_set("render_service_base_src") {
     "-fvisibility=hidden",
     "-DIMAGE_COLORSPACE_FLAG",
   ]
-
+  if (is_ohos && is_clang && target_cpu == "arm64") {
+    cflags += [ "-mno-fix-cortex-a53-843419" ]
+  }
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
@@ -789,6 +792,10 @@ config("render_service_base_link_config") {
         ]
       }
     }
+    ldflags += [
+      "-Wl,--emit-relocs",
+      "-Wl,--no-relax"
+    ]
   }
 }
 

@@ -304,6 +304,52 @@ void SetPropertyNGTest(T value1, T value2)
     ASSERT_TRUE(modifier != nullptr);
 };
 
+/**
+ * @tc.name: SetVisualEffect003
+ * @tc.desc: test results of SetVisualEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffect003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    VisualEffect* effectObj = new(std::nothrow) VisualEffect();
+    std::shared_ptr<BrightnessBlender> blender = std::make_shared<BrightnessBlender>();
+    blender->SetFraction(floatData[1]);
+    blender->SetHdr(true);
+    std::shared_ptr<BackgroundColorEffectPara> para = std::make_shared<BackgroundColorEffectPara>();
+    para->SetBlender(blender);
+    effectObj->AddPara(para);
+    rsNode->SetVisualEffect(effectObj);
+    EXPECT_EQ(rsNode->hdrEffectType_, 2);
+    if (effectObj != nullptr) {
+        delete effectObj;
+        effectObj = nullptr;
+    }
+}
+
+/**
+ * @tc.name: SetVisualEffect004
+ * @tc.desc: test results of SetVisualEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffect004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    VisualEffect* effectObj = new(std::nothrow) VisualEffect();
+    std::shared_ptr<BrightnessBlender> blender = std::make_shared<BrightnessBlender>();
+    blender->SetFraction(floatData[0]);
+    blender->SetHdr(true);
+    std::shared_ptr<BackgroundColorEffectPara> para = std::make_shared<BackgroundColorEffectPara>();
+    para->SetBlender(blender);
+    effectObj->AddPara(para);
+    rsNode->SetVisualEffect(effectObj);
+    EXPECT_EQ(rsNode->hdrEffectType_, 0);
+    if (effectObj != nullptr) {
+        delete effectObj;
+        effectObj = nullptr;
+    }
+}
+
 template<typename ModifierType, auto Setter, typename T>
 void SetAnimatablePropertyNGTest(T value1, T value2, bool animatable)
 {

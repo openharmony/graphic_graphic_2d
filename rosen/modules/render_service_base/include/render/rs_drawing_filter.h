@@ -81,6 +81,9 @@ public:
     {
         return renderFilter_;
     }
+
+    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+
     bool CanSkipFrame() const
     {
         return canSkipFrame_;
@@ -105,6 +108,8 @@ public:
 
     void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha);
+
+    void SetDisplayHeadroom(float headroom) override;
 
 private:
     struct DrawImageRectAttributes {

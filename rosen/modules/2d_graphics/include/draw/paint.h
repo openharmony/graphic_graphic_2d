@@ -101,10 +101,6 @@ public:
     void SetAntiAlias(bool aa);
     bool IsAntiAlias() const { return antiAlias_; }
 
-#ifdef RS_ENABLE_GPU
-    void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) const;
-#endif
-
     void Reset();
     void Disable();
 

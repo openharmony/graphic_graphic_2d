@@ -1,0 +1,115 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+group("cj_drawing") {
+  deps = [
+    ":cj_drawing_ffi",
+    ":cj_drawing_impl",
+  ]
+}
+
+config("drawing_config") {
+  include_dirs = [ "../drawing" ]
+}
+
+config("local_drawing_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "../drawing",
+    "$graphic_2d_root/frameworks/text/adapter/skia",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+}
+
+ohos_shared_library("cj_drawing_ffi") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  sources = [ "cj_drawing_ffi.cpp" ]
+
+  configs = [
+    ":drawing_config",
+    ":local_drawing_config",
+  ]
+
+  deps = [ ":cj_drawing_impl" ]
+
+  external_deps = [
+    "hilog:libhilog",
+    "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
+    "skia:skia_canvaskit",
+  ]
+
+  innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+ohos_shared_library("cj_drawing_impl") {
+  sources = [
+    "cj_drawing_util.cpp",
+    "matrix_impl/cj_matrix.cpp",
+  ]
+  defines = []
+  configs = [ ":local_drawing_config" ]
+  public_configs = [ ":drawing_config" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
+  ]
+
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    sanitize = {
+      boundary_sanitize = true
+      integer_overflow = true
+      ubsan = true
+      cfi = true
+      cfi_cross_dso = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
+    external_deps += [ "hilog:libhilog" ]
+    deps += [ "$graphic_2d_root/utils:libgraphic_utils" ]
+    defines += [ "ROSEN_OHOS" ]
+    cflags_cc = [ "-std=c++17" ]
+  } else {
+    defines += [ "MODULE_DRAWING" ]
+    cflags_cc = [ "-std=c++17" ]
+  }
+
+  if (current_os == "mingw") {
+    defines += [ "WINDOWS_PLATFORM" ]
+  }
+
+  innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
