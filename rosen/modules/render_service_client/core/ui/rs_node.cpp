@@ -985,6 +985,7 @@ void RSNode::SetPropertyNG(T value, bool animatable)
         AddModifier(modifier);
     } else {
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+        NotifyPageNodeChanged();
     }
 }
 
