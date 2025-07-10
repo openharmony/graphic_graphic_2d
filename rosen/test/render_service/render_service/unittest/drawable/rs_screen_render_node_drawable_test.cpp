@@ -207,7 +207,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
 
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    auto result = screenDrawable_->HardCursorCreateLayer(processor);
+    auto result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
@@ -354,10 +354,10 @@ HWTEST_F(RSscreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest,
     vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> allSurfaceDrawable { surfaceDrawableAdapter };
     params->SetAllMainAndLeashSurfaceDrawables(allSurfaceDrawable);
 
-    surfaceParams->isMainWindowType_ = false;
+    surfaceParams->windowInfo_.isMainWindowType_ = false;
     RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
 
-    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = true;
     RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
 }
 
@@ -630,7 +630,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     ASSERT_NE(screenDrawable_, nullptr);
     Drawing::Canvas canvas;
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    params->mirrorSourceDrawable_.reset();
     params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
 
     screenDrawable_->OnDraw(canvas);
@@ -1057,7 +1056,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrameTest002, TestSize.Level1)
  * @tc.require:
  * CaseDescription: 1. preSetup: refreshRate is 60hz
  *                  2. operation: test SkipFrame interface with irregular refresh rate --- 1hz
- *                  3. result: actual refresh rate is about 1hz(20% fluctuation is allowed)
+ *                  3. result: actual refresh rate is about 1hz
  */
 HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest001, TestSize.Level1)
 {
@@ -1560,11 +1559,14 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnCapture, TestSize.Level1)
     ASSERT_NE(screenDrawable_->renderParams_, nullptr);
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFileterCanvas(&canvas);
+    screenDrawable_->OnCapture(paintFileterCanvas);
+
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
     screenDrawable_->OnCapture(paintFileterCanvas);
+
     RSUniRenderThread::GetCaptureParam().isMirror_ = false;
     screenDrawable_->OnCapture(paintFileterCanvas);
-    Drawing::SamplingOptions sampling;
+    
     ASSERT_FALSE( RSUniRenderThread::GetCaptureParam().isMirror_);
 }
 
