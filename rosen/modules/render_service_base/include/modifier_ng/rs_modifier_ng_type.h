@@ -158,6 +158,7 @@ public:
             case RSPropertyType::BG_BRIGHTNESS_POSCOEFF: return "BgBrightnessPoscoeff";
             case RSPropertyType::BG_BRIGHTNESS_NEGCOEFF: return "BgBrightnessNegcoeff";
             case RSPropertyType::BG_BRIGHTNESS_FRACTION: return "BgBrightnessFraction";
+            case RSPropertyType::SHADOW_BLENDER_PARAMS: return "ShadowBlenderParams";
             case RSPropertyType::FRAME_GRAVITY: return "FrameGravity";
             case RSPropertyType::CLIP_RRECT: return "ClipRrect";
             case RSPropertyType::CLIP_BOUNDS: return "ClipBounds";

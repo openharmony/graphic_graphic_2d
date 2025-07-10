@@ -5745,6 +5745,9 @@ HWTEST_F(RSNodeTest, SetBlender, TestSize.Level1)
     brightnessBlender.SetHdr(true);
     rsNode->SetBlender(&brightnessBlender);
     EXPECT_TRUE(rsNode->hdrEffectType_ > 0);
+    ShadowBlender shadowBlender;
+    rsNode->SetBlender(&shadowBlender);
+    EXPECT_NE(rsNode, nullptr);
 }
 
 /**

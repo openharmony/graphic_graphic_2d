@@ -1515,5 +1515,35 @@ HWTEST_F(PropertiesTest, SetEnableHDREffectTest, TestSize.Level1)
     properties.UpdateFilter();
     EXPECT_FALSE(properties.needFilter_);
 }
+
+/**
+ * @tc.name: ShadowBlenderTest
+ * @tc.desc: test ShadowBlender SetParams, GetParams, Invalid and Description.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ShadowBlenderTest, TestSize.Level1)
+{
+    RSProperties properties;
+    std::optional<RSShadowBlenderPara> paramsNull = std::nullopt;
+    properties.SetShadowBlenderParams(paramsNull);
+    EXPECT_FALSE(properties.isDrawn_);
+    std::string description = "shadowBlenderParams_ is nullopt";
+    EXCEPT_EQ(description, properties.GetShadowBlenderDescription());
+
+    float cubic = 0;
+    float quadratic = 0;
+    float linear = 0;
+    float constant = 0;
+    auto params = std::optional<RSShadowBlenderPara>({ cubic, quadratic, linear, constant });
+    properties.SetShadowBlenderParams(params);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.GetShadowBlenderParams().has_value());
+    EXPECT_TRUE(properties.IsShadowBlenderValid());
+    description = "ShadowBlender, cubic: " + std::to_string(cubic) +
+        ", quadratic: " + std::to_string(quadratic) +
+        ", linear: " + std::to_string(linear) +
+        ", constant: " + std::to_string(constant);
+    EXCEPT_EQ(description, properties.GetShadowBlenderDescription());
+}
 } // namespace Rosen
 } // namespace OHOS
