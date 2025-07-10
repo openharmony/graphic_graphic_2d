@@ -128,7 +128,7 @@ bool ParseWaveGradientMask(
         MASK_LOG_E("ParseWaveGradientMask: waveGradientMask is nullptr");
         return false;
     }
-    int parseTimes = 0;
+    uint32_t parseTimes = 0;
     double point[NUM_2] = { 0.0 };
     if (ConvertFromJsPoint(env, argv[NUM_0], point, NUM_2)) {
         Vector2f center(static_cast<float>(point[NUM_0]), static_cast<float>(point[NUM_1]));
