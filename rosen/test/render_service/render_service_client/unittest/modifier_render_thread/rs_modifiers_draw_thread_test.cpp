@@ -25,6 +25,8 @@
 #include "command/rs_command.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_handler.h"
+#include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_ui_director.h"
 
 #ifdef RS_ENABLE_VK
 #include "src/platform/ohos/backend/rs_vulkan_context.h"
@@ -345,8 +347,10 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
         nodeId, nullptr, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
 #endif
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
+    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
-        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
     ASSERT_NE(transactionData, nullptr);
 }
 
@@ -660,5 +664,31 @@ HWTEST_F(RSModifiersDrawThreadTest, GetIsFirstFrame002, TestSize.Level1)
 {
     RSModifiersDrawThread::SetIsFirstFrame(true);
     ASSERT_EQ(RSModifiersDrawThread::Instance().GetIsFirstFrame(), true);
+}
+
+/**
+ * @tc.name: CreateDrawingContext001
+ * @tc.desc: test results of GetRecyclableSingletonPtr while reset singleton
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSModifiersDrawThreadTest, CreateDrawingContext001, TestSize.Level2)
+{
+    auto& singletonPtr = RsVulkanContext::GetRecyclableSingletonPtr("");
+    singletonPtr.reset();
+    (void)RsVulkanContext::GetRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
+}
+
+/**
+ * @tc.name: CreateDrawingContext002
+ * @tc.desc: test results of GetRecyclableSingletonPtr after GetRecyclableSingleton()
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSModifiersDrawThreadTest, CreateDrawingContext002, TestSize.Level2)
+{
+    (void)RsVulkanContext::GetRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 }
 } // namespace OHOS::Rosen
