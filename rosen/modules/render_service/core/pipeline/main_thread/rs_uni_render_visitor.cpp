@@ -2254,7 +2254,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfac
 
 void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
 {
-    UpdateDisplayDirtyAndExtendVisibleRegion();
     auto& curMainAndLeashSurfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
     // this is used to record mainAndLeash surface accumulatedDirtyRegion by Pre-order traversal
     Occlusion::Region accumulatedDirtyRegion;
@@ -2285,7 +2284,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         // 4. for cross-display node, process its filter (which is not collected during prepare).
         CollectFilterInCrossDisplayWindow(surfaceNode, accumulatedDirtyRegion);
         // 5. accumulate dirty region of this surface.
-        AccumulateSurfaceDirtyRegion(surfaceNode, accumulatedDirtyRegion);
+        UpdateVisibilityAndAccumulateSurfaceDirtyRegion(surfaceNode, accumulatedDirtyRegion);
         hasMainAndLeashSurfaceDirty |=
             dirtyManager && dirtyManager->IsCurrentFrameDirty() &&
             surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
@@ -2743,9 +2742,15 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRen
     }
 }
 
-void RSUniRenderVisitor::AccumulateSurfaceDirtyRegion(
-    std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion) const
+void RSUniRenderVisitor::UpdateVisibilityAndAccumulateSurfaceDirtyRegion(
+    std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion)
 {
+    Occlusion::Region extendRegion;
+    bool needUpdateVisibleRegion = surfaceNode->IsMainWindowType() && !surfaceNode->GetVisibleRegion().IsEmpty();
+    if (needUpdateVisibleRegion) {
+        ProcessFilterNodeObscured(surfaceNode, extendRegion, accumulatedDirtyRegion);
+    }
+    surfaceNode->UpdateExtendVisibleRegion(extendRegion);
     auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
     if (!surfaceNode->GetDirtyManager() || !geoPtr) {
         return;
@@ -2761,35 +2766,10 @@ void RSUniRenderVisitor::AccumulateSurfaceDirtyRegion(
     accumulatedDirtyRegion.OrSelf(surfaceVisibleDirtyRegion);
 }
 
-void RSUniRenderVisitor::UpdateDisplayDirtyAndExtendVisibleRegion()
-{
-    if (curScreenNode_ == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::UpdateDisplayDirtyAndExtendVisibleRegion curScreenNode_ is nullptr");
-        return;
-    }
-    auto& curMainAndLeashSurfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
-        [this, &nodeMap](RSBaseRenderNode::SharedPtr& nodePtr) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
-        if (surfaceNode == nullptr) {
-            RS_LOGE("RSUniRenderVisitor::UpdateDisplayDirtyAndExtendVisibleRegion surfaceNode is nullptr");
-            return;
-        }
-        if (!surfaceNode->IsMainWindowType()) {
-            return;
-        }
-        Occlusion::Region extendRegion;
-        if (!surfaceNode->GetVisibleRegion().IsEmpty()) {
-            ProcessFilterNodeObscured(surfaceNode, extendRegion, nodeMap);
-        }
-        surfaceNode->UpdateExtendVisibleRegion(extendRegion);
-    });
-}
-
 void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-    Occlusion::Region& extendRegion, const RSRenderNodeMap& nodeMap)
+    Occlusion::Region& extendRegion, const Occlusion::Region& accumulatedDirtyRegion)
 {
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     const auto& visibleFilterChild = surfaceNode->GetVisibleFilterChild();
     auto visibleRegion = surfaceNode->GetVisibleRegion();
     auto currentFrameDirtyRegion = surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
@@ -2812,7 +2792,11 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
             continue;
         }
         auto filterRegion = Occlusion::Region{ Occlusion::Rect{ filterRect } };
-        extendRegion = extendRegion.Or(filterRegion);
+        Occlusion::Region allDirtyRegion = accumulatedDirtyRegion;
+        allDirtyRegion.OrSelf(Occlusion::Rect(currentFrameDirtyRegion));
+        if (!allDirtyRegion.And(filterRegion).IsEmpty()) {
+            extendRegion = extendRegion.Or(filterRegion);
+        }
         if (!isTransparent && filterRect.Intersect(currentFrameDirtyRegion)) {
             curScreenNode_->GetDirtyManager()->MergeDirtyRect(filterRect);
         }

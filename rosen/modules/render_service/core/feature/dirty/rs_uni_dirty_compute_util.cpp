@@ -79,7 +79,7 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
             surfaceCurrentFrameDirtyRegion.GetRight(), surfaceCurrentFrameDirtyRegion.GetBottom() } };
         Occlusion::Region damageRegion = currentFrameDirtyRegion.And(visibleRegion);
         damageRegions.OrSelf(damageRegion);
-        auto surfaceFilterCollector = surfaceDirtyManager->GetFilterCollector();
+        auto& surfaceFilterCollector = surfaceDirtyManager->GetFilterCollector();
         damageRegions.OrSelf(surfaceFilterCollector.GetPureCleanFilterDirtyRegion());
         surfaceFilterCollector.ClearPureCleanFilterDirtyRegion();
     }
@@ -87,7 +87,7 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
     if (screenDirtyManager == nullptr) {
         return {};
     }
-    auto screenFilterCollector = screenDirtyManager->GetFilterCollector();
+    auto& screenFilterCollector = screenDirtyManager->GetFilterCollector();
     damageRegions.OrSelf(screenFilterCollector.GetPureCleanFilterDirtyRegion());
     screenFilterCollector.ClearPureCleanFilterDirtyRegion();
     auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegions, screenInfo);
