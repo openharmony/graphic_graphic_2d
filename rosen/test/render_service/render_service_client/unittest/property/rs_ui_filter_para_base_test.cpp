@@ -91,9 +91,17 @@ HWTEST_F(RSUIFilterParaBaseTest, RSNGFilterBaseCreate002, TestSize.Level1)
     auto filter4 = RSNGFilterBase::Create(para4);
     EXPECT_NE(filter4, nullptr);
 
-    auto para5 = std::make_shared<VariableRadiusBlurPara>();
+    auto para5 = std::make_shared<DispersionPara>();
     auto filter5 = RSNGFilterBase::Create(para5);
-    EXPECT_NE(filter5, nullptr);
+    EXPECT_EQ(filter5, nullptr);
+
+    auto para6 = std::make_shared<ColorGradientPara>();
+    auto filter6 = RSNGFilterBase::Create(para6);
+    EXPECT_EQ(filter6, nullptr);
+
+    auto para7 = std::make_shared<VariableRadiusBlurPara>();
+    auto filter7 = RSNGFilterBase::Create(para7);
+    EXPECT_NE(filter7, nullptr);
 }
 
 /**
