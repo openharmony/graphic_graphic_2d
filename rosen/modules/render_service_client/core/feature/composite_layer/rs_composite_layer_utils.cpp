@@ -84,7 +84,7 @@ bool RSCompositeLayerUtils::CreateCompositeLayer()
     surface->SetQueueSize(COMPOSITE_SURFACE_SIZE);
     textureExport_ = std::make_shared<RSTextureExport>(rootNode_, surfaceId);
     textureExport_->DoTextureExport();
-    RSInterfaces::GetInstance().SetLayerTopForHWC(compositeNode_->GetName(), true, topLayerZOrder_);
+    RSInterfaces::GetInstance().SetLayerTopForHWC(compositeNode_->GetId(), true, topLayerZOrder_);
     return true;
 #else
     return false;
@@ -125,7 +125,7 @@ bool RSCompositeLayerUtils::DealWithSelfDrawCompositeNode(std::shared_ptr<RSNode
     }
     auto surfaceNode = child->ReinterpretCastTo<RSSurfaceNode>();
     if (surfaceNode && surfaceNode->IsSelfDrawingNode()) {
-        RSInterfaces::GetInstance().SetLayerTopForHWC(surfaceNode->GetName(), true, zOrder);
+        RSInterfaces::GetInstance().SetLayerTopForHWC(surfaceNode->GetId(), true, zOrder);
         return true;
     }
     return false;

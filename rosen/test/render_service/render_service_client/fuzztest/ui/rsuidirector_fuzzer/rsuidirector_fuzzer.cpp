@@ -303,6 +303,7 @@ void DoRecvMessages002(const uint8_t* data, size_t size)
     NodeId id = GetData<NodeId>();
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     cmds->AddCommand(command, id, FollowType::FOLLOW_TO_SELF);
+    
     director->RecvMessages(cmds);
 }
 

@@ -21,35 +21,35 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <fuzzer/FuzzedDataProvider.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 #include <unistd.h>
 #include <unordered_map>
 
-#include "accesstoken_kit.h"
-#ifdef SUPPORT_ACCESS_TOKEN
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
-#endif
-#include "ipc_object_proxy.h"
-#include "ipc_object_stub.h"
-#include "iremote_object.h"
 #include "message_parcel.h"
 #include "securec.h"
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
-#endif
-#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
-#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
-#include "platform/ohos/rs_render_service_connect_hub.cpp"
-#include "screen_manager/rs_screen_manager.h"
-#include "transaction/rs_render_service_client.h"
+#include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
+DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
+auto g_pid = getpid();
+auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+auto mainThread_ = RSMainThread::Instance();
+sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+
+DVSyncFeatureParam dvsyncParam;
+auto generator = CreateVSyncGenerator();
+auto appVSyncController = new VSyncController(generator, 0);
+sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
+sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
 const uint8_t DO_NOTIFY_LIGHT_FACTOR_STATUS = 0;
 const uint8_t DO_NOTIFY_PACKAGE_EVENT = 1;
@@ -125,31 +125,187 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 } // namespace Mock
 
 void DoNotifyLightFactorStatus()
-{}
+{
+    int32_t lightFactorStatus = GetData<int32_t>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    dataP.WriteInt32(lightFactorStatus);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifyPackageEvent()
-{}
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t listSize = GetData<uint32_t>();
+    auto package = GetData<std::string>();
+    dataP.WriteUint32(listSize);
+    dataP.WriteString(package);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifyRefreshRateEvent()
-{}
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    std::string eventName = GetData<std::string>();
+    bool eventStatus = GetData<bool>();
+    uint32_t minRefreshRate = GetData<uint32_t>();
+    uint32_t maxRefreshRate = GetData<uint32_t>();
+    std::string description = GetData<std::string>();
+    dataP.WriteString(eventName);
+    dataP.WriteBool(eventStatus);
+    dataP.WriteUint32(minRefreshRate);
+    dataP.WriteUint32(maxRefreshRate);
+    dataP.WriteString(description);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifyDynamicModeEvent()
-{}
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    bool enableDynamicMode = GetData<bool>();
+    dataP.WriteBool(enableDynamicMode);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifySoftVsyncEvent()
-{}
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    uint32_t pid = GetData<uint32_t>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    dataP.WriteUint32(pid);
+    dataP.WriteUint32(rateDiscount);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifyAppStrategyConfigChangeEvent()
-{}
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    auto pkgName = GetData<std::string>();
+    uint32_t listSize = GetData<uint32_t>();
+    auto configKey = GetData<std::string>();
+    auto configValue = GetData<std::string>();
+    dataP.WriteString(pkgName);
+    dataP.WriteUint32(listSize);
+    dataP.WriteString(configKey);
+    dataP.WriteString(configValue);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifyHgmConfigEvent()
-{}
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    std::string eventName = GetData<std::string>();
+    bool state = GetData<bool>();
+    dataP.WriteString(eventName);
+    dataP.WriteBool(state);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifyScreenSwitched()
-{}
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoNotifySoftVsyncRateDiscountEvent()
-{}
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    uint32_t pid = GetData<uint32_t>();
+    std::string name = GetData<std::string>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint32(pid);
+    dataParcel.WriteString(name);
+    dataParcel.WriteUint32(rateDiscount);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 

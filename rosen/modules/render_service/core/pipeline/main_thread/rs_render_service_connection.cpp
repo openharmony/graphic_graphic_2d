@@ -3131,26 +3131,23 @@ ErrCode RSRenderServiceConnection::UnregisterSurfaceBufferCallback(pid_t pid, ui
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnection::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+ErrCode RSRenderServiceConnection::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
     if (mainThread_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeIdStr, isTop, zOrder]() -> void {
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeId, isTop, zOrder]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (connection == nullptr || connection->mainThread_ == nullptr) {
             return;
         }
         auto& context = connection->mainThread_->GetContext();
-        context.GetNodeMap().TraverseSurfaceNodes(
-            [&nodeIdStr, &isTop, &zOrder](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
-                (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-                surfaceNode->SetLayerTop(isTop, false);
-                surfaceNode->SetTopLayerZOrder(zOrder);
-                return;
-            }
-        });
+        auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+        if (surfaceNode == nullptr) {
+            return;
+        }
+        surfaceNode->SetLayerTop(isTop, false);
+        surfaceNode->SetTopLayerZOrder(zOrder);
         // It can be displayed immediately after layer-top changed.
         connection->mainThread_->SetDirtyFlag();
         connection->mainThread_->RequestNextVSync();

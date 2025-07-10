@@ -1656,7 +1656,7 @@ private:
     bool isForcedClipHole() const;
 
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
-    void SendSurfaceNodeTreeStatus(bool onTree);
+    void UpdateSurfaceNodeTreeStatusForAps(bool onTree);
     void SendSurfaceNodeBoundChange();
 #endif
 #ifndef ROSEN_CROSS_PLATFORM

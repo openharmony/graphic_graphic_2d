@@ -132,13 +132,13 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
     }
     auto offsetX = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curScreenNode_->GetScreenOffsetX() : 0;
     auto offsetY = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curScreenNode_->GetScreenOffsetY() : 0;
-    dstRect.left_ = static_cast<int>(std::round(dstRect.left_ *
+    dstRect.left_ = static_cast<int32_t>(std::floor(dstRect.left_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()) + offsetX);
-    dstRect.top_ = static_cast<int>(std::round(dstRect.top_ *
+    dstRect.top_ = static_cast<int32_t>(std::floor(dstRect.top_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()) + offsetY);
-    dstRect.width_ = static_cast<int>(std::round(dstRect.width_ *
+    dstRect.width_ = static_cast<int32_t>(std::ceil(dstRect.width_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()));
-    dstRect.height_ = static_cast<int>(std::round(dstRect.height_ *
+    dstRect.height_ = static_cast<int32_t>(std::ceil(dstRect.height_ *
         uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()));
 
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&
@@ -1195,8 +1195,7 @@ void RSUniHwcVisitor::UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
     canvas->ConcatMatrix(absMatrix);
 
     const auto& dstRect = node.GetDstRect();
-    Drawing::RectI dst = { std::round(dstRect.GetLeft()), std::round(dstRect.GetTop()), std::round(dstRect.GetRight()),
-                           std::round(dstRect.GetBottom()) };
+    Drawing::RectI dst = { dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom() };
     node.UpdateSrcRect(*canvas.get(), dst);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         RSUniHwcComputeUtil::UpdateRealSrcRect(node, absRect);
@@ -1245,10 +1244,7 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
             return;
         }
     }
-    const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
-    apiCompatibleVersion >= API18 ?
-        UpdateSrcRect(node, absMatrix) :
-        UpdateTopSurfaceSrcRect(node, absMatrix, absRect);
+    UpdateSrcRect(node, absMatrix);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
     UpdateHwcNodeByTransform(node, absMatrix);
     UpdateHwcNodeEnableByBufferSize(node);
