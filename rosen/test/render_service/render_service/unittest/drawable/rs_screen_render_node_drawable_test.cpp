@@ -1558,15 +1558,15 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnCapture, TestSize.Level1)
     ASSERT_NE(screenDrawable_, nullptr);
     ASSERT_NE(screenDrawable_->renderParams_, nullptr);
     Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFileterCanvas(&canvas);
-    screenDrawable_->OnCapture(paintFileterCanvas);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    screenDrawable_->OnCapture(paintFilterCanvas);
 
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    screenDrawable_->OnCapture(paintFileterCanvas);
+    screenDrawable_->OnCapture(paintFilterCanvas);
 
     RSUniRenderThread::GetCaptureParam().isMirror_ = false;
-    screenDrawable_->OnCapture(paintFileterCanvas);
-    
+    screenDrawable_->OnCapture(paintFilterCanvas);
+
     ASSERT_FALSE( RSUniRenderThread::GetCaptureParam().isMirror_);
 }
 
