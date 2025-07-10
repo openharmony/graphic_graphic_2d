@@ -50,7 +50,7 @@ void HgmCommandTest::SetUp()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     hgmCore.InitXmlConfig();
@@ -111,7 +111,7 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level0)
 {
     auto dynamicSettingMap = visitor_->GetAceSceneDynamicSettingMap();
     EXPECT_NE(dynamicSettingMap.find("aaa"), dynamicSettingMap.end());
@@ -130,7 +130,7 @@ HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, GetRefreshRateModeName, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, GetRefreshRateModeName, Function | SmallTest | Level0)
 {
     std::vector<std::pair<int32_t, int32_t>> testCase = {
         // <refreshRateModeId, fps>
@@ -150,7 +150,7 @@ HWTEST_F(HgmCommandTest, GetRefreshRateModeName, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, XmlModeId2SettingModeId, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, XmlModeId2SettingModeId, Function | SmallTest | Level0)
 {
     const std::vector<std::pair<std::string, std::optional<int32_t>>> TestCase = {
         // <xmlModeId, settingModeId>
@@ -172,7 +172,7 @@ HWTEST_F(HgmCommandTest, XmlModeId2SettingModeId, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, SetSettingModeId, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, SetSettingModeId, Function | SmallTest | Level0)
 {
     visitor_->SetSettingModeId(0);
     EXPECT_EQ(visitor_->settingModeId_, 0);
@@ -197,7 +197,7 @@ HWTEST_F(HgmCommandTest, SetSettingModeId, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level0)
 {
     visitor_->screenConfigType_ = "unknown";
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());
@@ -216,7 +216,7 @@ HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, GetAppStrategyConfig, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, GetAppStrategyConfig, Function | SmallTest | Level0)
 {
     int32_t appType = 111;
     int32_t appType1 = 222;

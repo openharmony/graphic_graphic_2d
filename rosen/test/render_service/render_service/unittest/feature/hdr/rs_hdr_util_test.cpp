@@ -165,6 +165,17 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRGBA1010108Enabled
+ * @tc.desc: Test GetRGBA1010108Enabled
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, GetRGBA1010108EnabledTest, TestSize.Level1)
+{
+    EXPECT_FALSE(RSHdrUtil::GetRGBA1010108Enabled());
+}
+
+/**
  * @tc.name: UpdateSurfaceNodeNit001
  * @tc.desc: Test UpdateSurfaceNodeNit
  * @tc.type: FUNC

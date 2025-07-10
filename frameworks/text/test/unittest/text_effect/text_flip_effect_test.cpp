@@ -228,6 +228,8 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest005, TestSize.Level0)
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level1)
 {
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
+    EXPECT_CALL(*mockTypography_, GetAnimation()).Times(1);
     TypographyConfig config = CreateConfig();
     effect_->AppendTypography({config});
     std::vector<TextBlobRecordInfo> records;
@@ -285,7 +287,6 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest007, TestSize.Level1)
     EXPECT_NE(effect_->currentGlyphIndex_, 0);
 }
 
-
 /*
  * @tc.name: TextFlipEffectTest008
  * @tc.desc: Test for DrawTextFlipElements action
@@ -331,6 +332,8 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest008, TestSize.Level1)
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest009, TestSize.Level1)
 {
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(2);
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
     TypographyConfig config = CreateConfig();
     effect_->AppendTypography({config});
     effect_->ClearTypography();
@@ -412,25 +415,20 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest011, TestSize.Level1)
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest012, TestSize.Level0)
 {
-    OHOS::Rosen::TypographyStyle typographyStyle0;
-    typographyStyle0.enableAutoSpace = false;
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
-        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
-        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
-    std::u16string text = u"88";
-    typographyCreate->AppendText(text);
-    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate->CreateTypography();
-    double maxWidth = 1500;
-    typography0->Layout(maxWidth);
+    double x = 100.0;
+    double y = 200.0;
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
+    EXPECT_CALL(*mockTypography_, HasSkipTextBlobDrawing()).Times(1);
+    EXPECT_CALL(*mockTypography_, SetSkipTextBlobDrawing(false)).Times(2);
+    EXPECT_CALL(*mockTypography_, Paint(mockCanvas_.get(), x, y)).Times(1);
 
-    std::shared_ptr<Typography> typography(typography0.release());
-    TypographyConfig config = { typography, {0, text.length()} };
+    TypographyConfig config = CreateConfig();
     effect_->AppendTypography({config});
-    effect_->NoEffect(mockCanvas_.get(), 100.0, 200.0);
+    effect_->NoEffect(mockCanvas_.get(), x, y);
     EXPECT_TRUE(effect_->lastAllBlobGlyphIds_.empty());
 
     effect_->RemoveTypography({config});
-    effect_->NoEffect(mockCanvas_.get(), 100.0, 200.0);
+    effect_->NoEffect(mockCanvas_.get(), x, y);
     EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
 }

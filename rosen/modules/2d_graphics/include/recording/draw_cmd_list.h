@@ -32,6 +32,7 @@ public:
      * @param   SVG        svg type
      * @param   HMSYMBOL   HMSymbol type
      * @param   CANVAS     canvasDrawingNode type
+     * @param   TYPE_MAX   max type
      * @detail  enable type for Hybrid Render
      */
     enum class HybridRenderType : uint32_t {
@@ -39,7 +40,8 @@ public:
         TEXT,
         SVG,
         HMSYMBOL,
-        CANVAS
+        CANVAS,
+        TYPE_MAX
     };
 
     /**
@@ -255,6 +257,11 @@ public:
     bool IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight);
 
     const std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItems() const;
+
+    /**
+     * @brief Get cmdlist draw region from opItem.
+     */
+    RectF GetCmdlistDrawRegion();
 
 private:
     void ClearCache();

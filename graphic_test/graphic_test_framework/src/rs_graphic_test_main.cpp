@@ -202,7 +202,10 @@ int main(int argc, char **argv)
         }
     }
 
-    RSParameterParse::Instance().SetSkipCapture(true);
+    if (argc == ARGS_ONE) {
+        RSParameterParse::Instance().SetSkipCapture(true);
+    }
+
     RSGraphicTestDirector::Instance().Run();
     testing::GTEST_FLAG(output) = "xml:./";
     testing::InitGoogleTest(&argc, argv);

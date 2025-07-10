@@ -170,6 +170,24 @@ public:
     void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes);
     bool GetNeedForceUpdateHwcNodes() const;
 
+    void SetSlrMatrix(Drawing::Matrix matrix)
+    {
+        slrMatrix_ = matrix;
+    }
+    Drawing::Matrix GetSlrMatrix() const
+    {
+        return slrMatrix_;
+    }
+
+    void SetHdrBrightnessRatio(float hdrBrightnessRatio)
+    {
+        hdrBrightnessRatio_ = hdrBrightnessRatio;
+    }
+    float GetHdrBrightnessRatio() const
+    {
+        return hdrBrightnessRatio_;
+    }
+
     void SetDrawnRegion(const Occlusion::Region& region);
     const Occlusion::Region& GetDrawnRegion() const;
 
@@ -205,9 +223,11 @@ private:
     bool isAccumulatedDirty_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;
     float brightnessRatio_ = 1.0f;
+    float hdrBrightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
     bool hasMirrorScreen_ = false;
+    Drawing::Matrix slrMatrix_;
     // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;

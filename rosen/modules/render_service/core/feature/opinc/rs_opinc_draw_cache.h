@@ -26,15 +26,7 @@ public:
     RSOpincDrawCache() = default;
     ~RSOpincDrawCache() = default;
 
-    static void SetAutoCacheEnable(bool autoCacheEnable)
-    {
-        autoCacheEnable_ = autoCacheEnable;
-    }
-
-    static bool IsAutoCacheEnable()
-    {
-        return autoCacheEnable_;
-    }
+    static bool IsAutoCacheEnable();
 
     static void SetScreenRectInfo(RectI info)
     {
@@ -123,8 +115,6 @@ public:
         return opCanCache_;
     }
 protected:
-    // opinc global state
-    static inline bool autoCacheEnable_ = false;
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 private:

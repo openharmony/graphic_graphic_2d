@@ -250,8 +250,8 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext003, TestSize.Level2)
 HWTEST_F(RSVulkanContextTest, GetRecyclableSingleton001, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
+    (void)RsVulkanContext::ReleaseRecyclableSingleton();
     ASSERT_NE(&RsVulkanContext::GetRecyclableSingleton(), nullptr);
-
     // reset recyclable singleton
     RsVulkanContext::ReleaseRecyclableSingleton();
     RsVulkanContext::SetRecyclable(false);
@@ -267,6 +267,7 @@ HWTEST_F(RSVulkanContextTest, GetRecyclableSingletonPtr001, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
     RsVulkanContext::ReleaseRecyclableSingleton();
+    (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
     // reset recyclable singleton
@@ -284,9 +285,8 @@ HWTEST_F(RSVulkanContextTest, GetRecyclableSingletonPtr002, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
     RsVulkanContext::ReleaseRecyclableSingleton();
-    // GetRecyclableSingletonPtr init singleton
-    RsVulkanContext::GetRecyclableSingletonPtr();
     // GetRecyclableSingletonPtr return the same singleton
+    (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
     // reset recyclable singleton
@@ -582,6 +582,7 @@ HWTEST_F(RSVulkanContextTest, RSVulkanContextDestruction, TestSize.Level2)
 {
     // create recyclable vulkan context
     RsVulkanContext::SetRecyclable(true);
+    (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
     RsVulkanContext::ReleaseRecyclableSingleton();
@@ -716,6 +717,22 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext006, TestSize.Level2)
 
     // restore
     RsVulkanContext::ReleaseDrawingContextMap();
+}
+
+/**
+ * @tc.name: CreateDrawingContext007
+ * @tc.desc: test results of CreateDrawingContext while protectedDrawingContext isn't nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext007, TestSize.Level2)
+{
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().SetIsProtected(true);
+    auto& singletonPtr = RsVulkanContext::GetRecyclableSingletonPtr("");
+    singletonPtr.reset();
+    auto& context = RsVulkanContext::GetRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

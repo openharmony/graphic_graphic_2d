@@ -60,6 +60,7 @@ void FontDescriptorCache::ClearFontFileCache()
 
 void FontDescriptorCache::ParserSystemFonts()
 {
+    std::lock_guard guard(mutex_);
     // System fonts have already been parsed
     if (!fullNameMap_.empty()) {
         return;
@@ -72,6 +73,7 @@ void FontDescriptorCache::ParserSystemFonts()
 
 void FontDescriptorCache::ParserStylishFonts()
 {
+    std::lock_guard guard(mutex_);
     // Stylish fonts have already been parsed
     if (!stylishFullNameMap_.empty()) {
         return;
@@ -325,9 +327,8 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         return;
     }
     if ((fontCategory & TextEngine::FontParser::SystemFontType::CUSTOMIZED)) {
-        auto it = dynamicFullNameMap_.find(fullName);
-        if (it != dynamicFullNameMap_.end()) {
-            result = dynamicFullNameMap_[fullName];
+        if (dynamicFullNameMap_.count(fullName)) {
+            result = dynamicFullNameMap_.at(fullName);
             return;
         }
     }
@@ -555,7 +556,7 @@ void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::s
     result = std::move(finishRet);
 }
 
-void FontDescriptorCache::Dump()
+void FontDescriptorCache::Dump() const
 {
     TEXT_LOGD("allFontDescriptor size: %{public}zu, fontFamilyMap size: %{public}zu, fullNameMap size: %{public}zu \
         postScriptNameMap size: %{public}zu, fontSubfamilyNameMap size: %{public}zu, boldCache size: %{public}zu \

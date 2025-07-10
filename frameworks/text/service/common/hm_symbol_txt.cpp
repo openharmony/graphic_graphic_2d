@@ -41,7 +41,7 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colo
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
-    for (auto color : colorList) {
+    for (const auto& color : colorList) {
         auto gradient = std::make_shared<SymbolGradient>();
         std::vector<Drawing::ColorQuad> colors;
         Drawing::Color color1;

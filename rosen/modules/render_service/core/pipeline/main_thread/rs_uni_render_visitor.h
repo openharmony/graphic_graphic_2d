@@ -469,6 +469,8 @@ private:
 
     // record OffscreenCanvas's NodeId
     NodeId offscreenCanvasNodeId_ = INVALID_NODEID;
+
+    int32_t rsScreenNodeChildNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

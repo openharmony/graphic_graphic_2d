@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
@@ -41,8 +42,14 @@ ohos_fuzztest("HmSymbolConfigOhosFuzzTest") {
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-  external_deps = [ "bounds_checking_function:libsec_shared" ]
+  deps = [
+    "$rosen_text_root:rosen_text",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+  ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "jsoncpp:jsoncpp",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

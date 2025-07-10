@@ -57,6 +57,13 @@ DECLARE_SHADER(AuroraNoise, AURORA_NOISE,
     ADD_PROPERTY_TAG(AuroraNoise, Noise)
 );
 
+DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
+    ADD_PROPERTY_TAG(ParticleCircularHalo, Center),
+    ADD_PROPERTY_TAG(ParticleCircularHalo, Radius),
+    ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
+);
+
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHADER
 

@@ -30,6 +30,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -271,8 +272,10 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
             isOnTheTree_);
         }
     }
-    (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ?
-        SetParentSubTreeDirty() : SetContentDirty();
+    ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ||
+        child->GetNeedUseCmdlistDrawRegion())
+        ? child->SetParentSubTreeDirty()
+        : SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
@@ -371,8 +374,10 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ?
-        SetParentSubTreeDirty() : SetContentDirty();
+    ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && child->GetType() == RSRenderNodeType::SURFACE_NODE) ||
+        child->GetNeedUseCmdlistDrawRegion())
+        ? child->SetParentSubTreeDirty()
+        : SetContentDirty();
     isFullChildrenListValid_ = false;
 }
 
@@ -824,7 +829,8 @@ void RSRenderNode::ResetParent()
             parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
                 geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
         }
-        (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE)
+        ((RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE) ||
+            GetNeedUseCmdlistDrawRegion())
             ? SetParentSubTreeDirty()
             : parentNode->SetContentDirty();
         AddSubSurfaceUpdateInfo(nullptr, parentNode);
@@ -839,7 +845,7 @@ bool RSRenderNode::IsFirstLevelNode()
     return id_ == firstLevelNodeId_;
 }
 
-void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
+void RSRenderNode::DumpTree(int32_t depth, std::string& out, bool dumpSingleNode) const
 {
     // Exceed max depth for dumping render node tree, refuse to continue and add a warning.
     // Possible reason: loop in the render node tree
@@ -979,7 +985,10 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
     ChildrenListDump(out);
-
+    if (dumpSingleNode) {
+        return;
+    }
+    
     for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
@@ -1154,7 +1163,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
 
 void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
 {
-    std::string splitStr = ", ";
+    const std::string splitStr = ", ";
     std::string modifierDesc = "";
 #if defined(MODIFIER_NG)
     for (auto& slot : modifiersNG_) {
@@ -1187,6 +1196,8 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         }
         if (found) {
             modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
+        } else {
+            return;
         }
         modifierDesc += "]" + splitStr;
     }
@@ -1197,7 +1208,7 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
 
 void RSRenderNode::DumpModifiers(std::string& out) const
 {
-    std::string splitStr = ", ";
+    const std::string splitStr = ", ";
     std::string propertyDesc = "";
 #if defined(MODIFIER_NG)
     for (auto& slot : modifiersNG_) {
@@ -1351,7 +1362,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     // stop visit invisible or clean without filter subtree
     // Exception: If cross-display node is fully invisible under current visited display, its subtree can't be skipped,
     // since it may be visible on other displays, and it is only prepared once.
-    if (!shouldPaint_) {
+    if (!shouldPaint_ || (isOccluded && !IsFirstLevelCrossNode())) {
         // when subTreeOccluded, need to applyModifiers to node's children
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint [%d], isOccluded [%d], "
             "CrossDisplay: %d", GetId(), shouldPaint_, isOccluded, IsFirstLevelCrossNode());
@@ -1703,6 +1714,17 @@ void RSRenderNode::UpdateBufferDirtyRegion()
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
         auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
+        bool isUseSelfDrawingDirtyRegion = buffer->GetSurfaceBufferWidth() == rect.w &&
+            buffer->GetSurfaceBufferHeight() == rect.h;
+        if (isUseSelfDrawingDirtyRegion) {
+            Rect selfDrawingDirtyRect;
+            bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
+            if (isDirtyRectValid) {
+                rect = { selfDrawingDirtyRect.x, selfDrawingDirtyRect.y,
+                    selfDrawingDirtyRect.w, selfDrawingDirtyRect.h };
+                RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]", rect.x, rect.y, rect.w, rect.h);
+            }
+        }
         auto matrix = surfaceNode->GetBufferRelMatrix();
         auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
             RectF(rect.x, rect.y, rect.w, rect.h), matrix).ConvertTo<float>();
@@ -1780,7 +1802,8 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         dirtyManager.MergeDirtyRect(oldDirtyRect);
         return;
     }
-    auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
+    auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ :
+        (!absCmdlistDrawRect_.IsEmpty() ? absCmdlistDrawRect_ : absDrawRect_);
     dirtyRect = IsFirstLevelCrossNode() ? dirtyRect : dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -1830,6 +1853,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             isSelfDrawingNode_ || selfDrawRectChanged)) {
             absDrawRectF_ = geoPtr->MapRectWithoutRounding(selfDrawRect_, geoPtr->GetAbsMatrix());
             absDrawRect_ = geoPtr->InflateToRectI(absDrawRectF_);
+            absCmdlistDrawRect_ = GetNeedUseCmdlistDrawRegion() ?
+                geoPtr->MapRect(cmdlistDrawRegion_, geoPtr->GetAbsMatrix()) : RectI(0, 0, 0, 0);
             if (isSelfDrawingNode_) {
                 selfDrawingNodeAbsDirtyRectF_ = geoPtr->MapRectWithoutRounding(
                     selfDrawingNodeDirtyRect_, geoPtr->GetAbsMatrix());
@@ -2262,7 +2287,7 @@ bool RSRenderNode::IsAIBarFilter() const
     return filterDrawable->IsAIBarFilter();
 }
 
-bool RSRenderNode::IsAIBarFilterCacheValid() const
+bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 {
 #ifdef RS_ENABLE_GPU
     if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
@@ -2274,7 +2299,7 @@ bool RSRenderNode::IsAIBarFilterCacheValid() const
     if (filterDrawable == nullptr) {
         return false;
     }
-    return filterDrawable->IsAIBarCacheValid();
+    return filterDrawable->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 #endif
 return false;
 }
@@ -2555,10 +2580,6 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
 
     RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d,"
         " forceClearWithoutNextVsync:%d, filterRegion: %s",
-        GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
-        filterRegion_.ToString().c_str());
-    ROSEN_LOGD("MarkFilterCacheFlags:node[%{public}" PRIu64 "], NeedPendingPurge:%{public}d,"
-        " forceClearWithoutNextVsync:%{public}d, filterRegion: %{public}s",
         GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
         filterRegion_.ToString().c_str());
     // force update if last frame use cache because skip-frame and current frame background is not dirty
@@ -3027,6 +3048,7 @@ void RSRenderNode::ResetAndApplyModifiers()
         for (auto modifier : slot) {
             if (currentScbPid == -1 || ExtractPid(modifier->GetId()) == currentScbPid) {
                 modifier->ApplyLegacyProperty(GetMutableRenderProperties());
+                CalcCmdlistDrawRegionFromOpItem(modifier);
             }
         }
     }
@@ -3050,6 +3072,27 @@ void RSRenderNode::ResetAndApplyModifiers()
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
+}
+
+void RSRenderNode::CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier)
+{
+    if (!GetNeedUseCmdlistDrawRegion()) {
+        return;
+    }
+
+    auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
+    auto propertyPtr =
+        std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty(propertyType));
+    auto drawCmdlistPtr = propertyPtr ? propertyPtr->Get() : nullptr;
+    if (drawCmdlistPtr == nullptr) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::CalcCmdlistDrawRegionFromOpItem id:%llu drawCmdlistPtr is nullptr",
+            GetId());
+        return;
+    }
+
+    auto rect = drawCmdlistPtr->GetCmdlistDrawRegion();
+    RectF cmdlistDrawRegion = RectF { rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight() };
+    cmdlistDrawRegion_ = cmdlistDrawRegion_.JoinRect(cmdlistDrawRegion);
 }
 
 CM_INLINE void RSRenderNode::ApplyModifiers()
@@ -3889,22 +3932,14 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     SetDirty();
 }
 
-// mark support node
-void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode)
-{
-    // supportFlag is obtained from the child node.
-    // make sure current node is the bottom of the node marked by arkui.
-    opincCache_.OpincSetSupportFlag(opincCache_.OpincGetSupportFlag() && supportFlag &&
-        nodeGroupType_ == RSRenderNode::NodeGroupType::NONE && !isOpincRootNode);
-}
-
 std::string RSRenderNode::QuickGetNodeDebugInfo()
 {
     std::string ret("");
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
-    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d",
+    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d filter:%d effect:%d",
         GetId(), IsSubTreeDirty(), opincCache_.GetNodeCacheState(), opincCache_.GetUnchangeCount(),
-        opincCache_.IsSuggestOpincNode(), OpincGetNodeSupportFlag(), opincCache_.OpincGetRootFlag());
+        opincCache_.IsSuggestOpincNode(), opincCache_.GetCurNodeTreeSupportFlag(), opincCache_.OpincGetRootFlag(),
+        ChildHasVisibleFilter(), ChildHasVisibleEffect());
 #endif
     return ret;
 }
@@ -3915,7 +3950,7 @@ void RSRenderNode::UpdateOpincParam()
         stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
         stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
-        stagingRenderParams_->OpincUpdateSupportFlag(OpincGetNodeSupportFlag());
+        stagingRenderParams_->OpincUpdateSupportFlag(opincCache_.GetCurNodeTreeSupportFlag());
     }
 }
 
@@ -4268,7 +4303,6 @@ float RSRenderNode::GetHDRBrightness() const
 {
 #if defined(MODIFIER_NG)
     if (modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::HDR_BRIGHTNESS)].empty()) {
-        RS_LOGD("RSRenderNode::GetHDRBrightness drawCmdModifiers find failed");
         return 1.0f; // 1.0f make sure HDR video is still HDR state if RSNode::SetHDRBrightness not called
     }
     auto modifier = modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::HDR_BRIGHTNESS)].back();
@@ -4276,7 +4310,6 @@ float RSRenderNode::GetHDRBrightness() const
 #else
     auto itr = drawCmdModifiers_.find(RSModifierType::HDR_BRIGHTNESS);
     if (itr == drawCmdModifiers_.end() || itr->second.empty()) {
-        RS_LOGD("RSRenderNode::GetHDRBrightness drawCmdModifiers find failed");
         return 1.0f; // 1.0f make sure HDR video is still HDR state if RSNode::SetHDRBrightness not called
     }
     const auto& modifier = itr->second.back();
@@ -4429,6 +4462,7 @@ void RSRenderNode::ResetDirtyStatus()
     isLastVisible_ = shouldPaint_;
     // The return of GetBoundsGeometry function must not be nullptr
     oldMatrix_ = properties.GetBoundsGeometry()->GetMatrix();
+    cmdlistDrawRegion_.Clear();
 }
 
 NodeId RSRenderNode::GenerateId()
@@ -4891,6 +4925,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
     stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
     stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
+    stagingRenderParams_->SetBackgroundFilter(GetRenderProperties().GetBackgroundFilter());
     stagingRenderParams_->SetNeedFilter(GetRenderProperties().NeedFilter());
     stagingRenderParams_->SetHDRBrightness(GetHDRBrightness() *
         GetRenderProperties().GetCanvasNodeHDRBrightnessFactor());
@@ -5612,6 +5647,16 @@ bool RSRenderNode::HasContentStyleModifierOnly() const
         }
     }
     return ret;
+}
+
+void RSRenderNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
+{
+    needUseCmdlistDrawRegion_ = needUseCmdlistDrawRegion;
+}
+
+bool RSRenderNode::GetNeedUseCmdlistDrawRegion()
+{
+    return RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled() && needUseCmdlistDrawRegion_;
 }
 } // namespace Rosen
 } // namespace OHOS

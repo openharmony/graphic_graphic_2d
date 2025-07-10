@@ -36,6 +36,7 @@ namespace OHOS {
 namespace Rosen {
 class RSNGRenderFilterBase;
 class RSNGRenderShaderBase;
+class RSNGRenderMaskBase;
 class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
@@ -110,6 +111,7 @@ enum class RSPropertyType : uint8_t {
     DYNAMIC_BRIGHTNESS_PARA,
     RS_RENDER_FILTER,
     VECTOR_FLOAT,
+    VECTOR_VECTOR2F,
     RS_NG_RENDER_FILTER_BASE,
     RS_NG_RENDER_MASK_BASE,
     RS_NG_RENDER_SHADER_BASE,
@@ -580,6 +582,8 @@ template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Dump(std::string& out) const;
 
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -628,7 +632,21 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnAttac
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnDetach();
 template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
+    const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type);
+template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType();
+
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnDetach();
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
+    const std::shared_ptr<RSNGRenderMaskBase>& value, PropertyUpdateType type);
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnSetModifierType();
 
 #if defined(_WIN32)
 #define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderProperty<T>

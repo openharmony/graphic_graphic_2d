@@ -91,7 +91,7 @@ private:
         int64_t currTime);
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
     void EndCheck(RSTimer timer);
-    bool IsDropDirtyFrame(OutputPtr output);
+    bool IsDropDirtyFrame(const std::vector<LayerInfoPtr>& layerInfos, uint32_t screenId);
     void ContextRegisterPostTask();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();

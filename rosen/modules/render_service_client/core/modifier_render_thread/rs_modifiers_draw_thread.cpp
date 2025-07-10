@@ -34,6 +34,7 @@ namespace OHOS {
 namespace Rosen {
 std::atomic<bool> RSModifiersDrawThread::isStarted_ = false;
 std::recursive_mutex RSModifiersDrawThread::transactionDataMutex_;
+bool RSModifiersDrawThread::isFirstFrame_ = true;
 
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr uint32_t HYBRID_MAX_PIXELMAP_WIDTH = 8192;  // max width value from PhysicalDeviceProperties
@@ -270,10 +271,30 @@ bool RSModifiersDrawThread::LimitEnableHybridOpCnt(std::unique_ptr<RSTransaction
         (enableTextHybridOpCnt <= HYBRID_MAX_TEXT_ENABLE_OP_CNT);
 }
 
-std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
-    std::unique_ptr<RSTransactionData>& transactionData)
+bool RSModifiersDrawThread::GetIsFirstFrame()
 {
-    if (!LimitEnableHybridOpCnt(transactionData)) {
+    if (!isFirstFrame_) {
+        return false;
+    }
+    return true;
+}
+
+void RSModifiersDrawThread::SetIsFirstFrame(bool isFirstFrame)
+{
+    isFirstFrame_ = isFirstFrame;
+}
+
+std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
+    std::unique_ptr<RSTransactionData>& transactionData,
+    std::shared_ptr<RSIRenderClient> renderServiceClient,
+    bool& isNeedCommit)
+{
+    bool isEnableHybridByOpCnt = LimitEnableHybridOpCnt(transactionData);
+    if (!isEnableHybridByOpCnt && RSModifiersDrawThread::GetIsFirstFrame()) {
+        renderServiceClient->CommitTransaction(transactionData);
+        // still need playback when firstFrame is true
+        isNeedCommit = false;
+    } else if (!isEnableHybridByOpCnt) {
         return transactionData;
     }
     static std::unique_ptr<ffrt::queue> queue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "ModifiersDraw",

@@ -37,6 +37,7 @@ public:
     void SetFgBrightnessPosCoeff(const Vector4f& coeff);
     void SetFgBrightnessNegCoeff(const Vector4f& coeff);
     void SetFgBrightnessFract(float fract);
+    void SetFgBrightnessHdr(bool hdr);
 
     RSColorBlendMode GetColorBlendMode() const;
     RSColorBlendApplyType GetColorBlendApplyType() const;
@@ -45,6 +46,7 @@ public:
     Vector4f GetFgBrightnessPosCoeff() const;
     Vector4f GetFgBrightnessNegCoeff() const;
     float GetFgBrightnessFract() const;
+    bool GetFgBrightnessHdr() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_BLEND_MODIFIER_H

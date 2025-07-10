@@ -145,6 +145,7 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
     std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange)
 {
     bool mergeSuccess = false;
+    bool existVoterLTPO = false;
     // [VOTER_LTPO, VOTER_IDLE)
     for (; voterIter != voters_.end() - 1; voterIter++) {
         if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
@@ -165,8 +166,11 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-        if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
+        if ((isDragScene_ || NeedSkipVoterTouch(existVoterLTPO)) && curVoteInfo.voterName == "VOTER_TOUCH") {
             continue;
+        }
+        if (curVoteInfo.voterName == "VOTER_LTPO") {
+            existVoterLTPO = true;
         }
         ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {

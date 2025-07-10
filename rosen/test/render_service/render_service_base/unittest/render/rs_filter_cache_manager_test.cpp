@@ -127,12 +127,44 @@ void RSFilterCacheManagerTest::TearDown()
 HWTEST_F(RSFilterCacheManagerTest, GetCacheStateTest, TestSize.Level1)
 {
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bmp.Build(300, 300, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bmp);
+    Drawing::RectI cachedRectSize {0, 0, 300, 300};
+    std::string ss1, ss2;
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "No valid cache found.");
     rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_EQ(
         rsFilterCacheManager->GetCacheState(), "Snapshot found in cache. Generating filtered image using cached data.");
+    rsFilterCacheManager->cachedSnapshot_->cachedImage_ = image;
+    rsFilterCacheManager->cachedSnapshot_->cachedRect_ = cachedRectSize;
+    ss1 += "Snapshot found in cache. Generating filtered image using cached data"
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss1);
     rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "Filtered image found in cache. Reusing cached result.");
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_ = image;
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedRect_ = cachedRectSize;
+    ss2 += "Filtered image found in cache. Reusing cached result."
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss2);
+}
+
+/**
+ * @tc.name: CacheInfoTest
+ * @tc.desc: test results of CacheInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, CacheInfoTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_ = nullptr;
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "No valid cacheImage found.");
 }
 
 /**
@@ -892,24 +924,25 @@ HWTEST_F(RSFilterCacheManagerTest, RecordFilterInfosTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAIBarCacheValid
- * @tc.desc: test results of IsAIBarCacheValid
+ * @tc.name: CheckAndUpdateAIBarCacheStatus
+ * @tc.desc: test results of CheckAndUpdateAIBarCacheStatus
  * @tc.type: FUNC
  * @tc.require: issueIA5FLZ
  */
-HWTEST_F(RSFilterCacheManagerTest, IsAIBarCacheValidTest, TestSize.Level1)
+HWTEST_F(RSFilterCacheManagerTest, CheckAndUpdateAIBarCacheStatusTest, TestSize.Level1)
 {
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     EXPECT_NE(rsFilterCacheManager, nullptr);
 
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->cacheUpdateInterval_ = 1;
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = true;
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
-    EXPECT_TRUE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(true));
 }
 
 /**

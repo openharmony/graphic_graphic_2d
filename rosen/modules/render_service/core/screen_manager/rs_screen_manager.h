@@ -494,9 +494,7 @@ private:
 
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> castScreenBlackList_ = {};
-
     // a blacklist node may exist in multiple virtual screens
-    mutable std::mutex blackListScreenMutex_;
     std::unordered_map<uint64_t, std::unordered_set<ScreenId>> blackListInVirtualScreen_ = {};
 
     mutable std::mutex typeBlackListMutex_;

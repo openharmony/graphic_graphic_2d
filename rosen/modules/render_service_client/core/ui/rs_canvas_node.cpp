@@ -259,13 +259,13 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
   boundsChangedCallback_ = callback;
 }
 
-#ifdef RS_ENABLE_VK
 bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
     if (!IsHybridRenderCanvas()) {
         return false;
     }
     bool ret = false;
+#ifdef RS_ENABLE_VK
     RSModifiersDrawThread::Instance().PostSyncTask([this, &bitmap, &ret]() {
         auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (pixelMap == nullptr) {
@@ -280,6 +280,7 @@ bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::D
         }
         ret = true;
     });
+#endif
     return ret;
 }
 
@@ -294,6 +295,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         return false;
     }
     bool ret = false;
+#ifdef RS_ENABLE_VK
     RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
         auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (srcPixelMap == nullptr) {
@@ -310,6 +312,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         }
         ret = true;
     });
+#endif
     return ret;
 }
 
@@ -318,9 +321,11 @@ bool RSCanvasNode::ResetSurface(int width, int height)
     if (!IsHybridRenderCanvas()) {
         return false;
     }
+#ifdef RS_ENABLE_VK
     return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
-}
 #endif
+    return false;
+}
 
 void RSCanvasNode::CheckThread()
 {

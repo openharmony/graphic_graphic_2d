@@ -540,7 +540,7 @@ HWTEST_F(RSRenderSpringAnimationTest, DumpAnimationInfo001, TestSize.Level1)
     animation.property_ = property;
     std::string out;
     animation.DumpAnimationInfo(out);
-    EXPECT_EQ(out, "Type:RSRenderSpringAnimation, ModifierType: 0, StartValue: , EndValue: ");
+    EXPECT_EQ(out, "Type:RSRenderSpringAnimation, ModifierType: INVALID, StartValue: , EndValue: ");
 }
 
 /**

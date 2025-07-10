@@ -215,6 +215,36 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync006, Function | MediumTest| Level
 }
 
 /*
+* Function: RequestNextVSync007
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSync
+ */
+HWTEST_F(VSyncDistributorTest, RequestNextVSync007, Function | MediumTest| Level3)
+{
+    {
+        vsyncDistributor->isRs_ = true;
+        auto conn = new VSyncConnection(vsyncDistributor, "rs");
+        vsyncDistributor->AddConnection(conn);
+        EXPECT_EQ(vsyncDistributor->RequestNextVSync(conn, "RequestNextVSync007", 0, 1000000000),
+            VSYNC_ERROR_OK);
+        EXPECT_EQ(conn->requestVsyncTimestamp_.size(), 1);
+        EXPECT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    }
+
+    {
+        vsyncDistributor->isRs_ = false;
+        auto conn = new VSyncConnection(vsyncDistributor, "NoRs");
+        vsyncDistributor->AddConnection(conn);
+        EXPECT_EQ(vsyncDistributor->RequestNextVSync(conn, "RequestNextVSync007", 0, 1000000000),
+            VSYNC_ERROR_OK);
+        EXPECT_EQ(conn->requestVsyncTimestamp_.size(), 0);
+        EXPECT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    }
+}
+
+/*
 * Function: SetVSyncRate001
 * Type: Function
 * Rank: Important(2)
@@ -606,6 +636,46 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest003, Function | MediumTest| Lev
 }
 
 /*
+ * Function: OnVSyncTriggerTest004
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test OnVSyncTrigger
+ */
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest004, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+
+    sptr<VSyncConnection> conn1 = new VSyncConnection(vsyncDistributor, "Test_1");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn1, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->RequestNextVSync(conn1, "Test_1"), GSERROR_OK);
+    conns.emplace_back(conn1);
+
+    sptr<VSyncConnection> conn2 = new VSyncConnection(vsyncDistributor, "Test_2");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn2, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->RequestNextVSync(conn2, "Test_2", 0, 100000000), GSERROR_OK);
+    conns.emplace_back(conn2);
+
+    sptr<VSyncConnection> conn3 = new VSyncConnection(vsyncDistributor, "Test_3");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn3, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->RequestNextVSync(conn3, "Test_3"), GSERROR_OK);
+    ASSERT_EQ(vsyncDistributor->RequestNextVSync(conn3, "Test_3", 0, 100000000), GSERROR_OK);
+    conns.emplace_back(conn3);
+
+    sptr<VSyncConnection> conn4 = new VSyncConnection(vsyncDistributor, "Test_4");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn4, 1), VSYNC_ERROR_OK);
+    conns.emplace_back(conn4);
+
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_; // record
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPO;
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPO, 360);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+    vsyncDistributor->vsyncMode_ = vsyncMode;
+}
+
+/*
 * Function: SetQosVSyncRateByPidTest001
 * Type: Function
 * Rank: Important(2)
@@ -856,7 +926,7 @@ HWTEST_F(VSyncDistributorTest, TriggerNextConnPostEventTest001, Function | Mediu
     conn->requestVsyncTimestamp_.clear();
     vsyncDistributor->TriggerNext(conn);
     vsyncDistributor->ConnPostEvent(conn, 10000000, 8333333, 1);
-    ASSERT_EQ(conn->requestVsyncTimestamp_.size() != 0, true);
+    ASSERT_EQ(conn->requestVsyncTimestamp_.size(), 0);
 }
 
 /*
@@ -1130,7 +1200,11 @@ HWTEST_F(VSyncDistributorTest, AddRequestVsyncTimestamp001, Function | MediumTes
     vsyncConnection->requestVsyncTimestamp_.clear();
     int64_t timestamp = 1;
     vsyncConnection->AddRequestVsyncTimestamp(timestamp);
-    ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 1);
+    if (vsyncConnection->isRsConn_) {
+        ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 1);
+    } else {
+        ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 0);
+    }
 }
 
 /*
@@ -1146,7 +1220,11 @@ HWTEST_F(VSyncDistributorTest, RemoveTriggeredVsync001, Function | MediumTest | 
     vsyncConnection->requestVsyncTimestamp_.insert(100);
     int64_t currentTime = 1000;
     vsyncConnection->RemoveTriggeredVsync(currentTime);
-    ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 0);
+    if (vsyncConnection->isRsConn_) {
+        ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 0);
+    } else {
+        ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 1);
+    }
 }
 
 /*
@@ -1161,9 +1239,18 @@ HWTEST_F(VSyncDistributorTest, NeedTriggeredVsync001, Function | MediumTest | Le
     vsyncConnection->requestVsyncTimestamp_.clear();
     vsyncConnection->requestVsyncTimestamp_.insert(100);
     int64_t currentTime = 1000;
-    ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
+    if (vsyncConnection->isRsConn_) {
+        ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
+    } else {
+        ASSERT_FALSE(vsyncConnection->NeedTriggeredVsync(currentTime));
+    }
+
     currentTime = 10;
-    ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
+    if (vsyncConnection->isRsConn_) {
+        ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
+    } else {
+        ASSERT_FALSE(vsyncConnection->NeedTriggeredVsync(currentTime));
+    }
 }
 
 /*

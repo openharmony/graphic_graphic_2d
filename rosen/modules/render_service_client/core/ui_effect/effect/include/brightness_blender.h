@@ -111,6 +111,16 @@ public:
         return fraction_;
     }
 
+    void SetHdr(bool enableHdr)
+    {
+        enableHdr_ = enableHdr;
+    }
+
+    bool GetHdr() const
+    {
+        return enableHdr_;
+    }
+
 private:
     float cubicRate_ = 0.0f;
     float quadRate_ = 0.0f;
@@ -120,6 +130,7 @@ private:
     Vector3f positiveCoeff_;
     Vector3f negativeCoeff_;
     float fraction_ = 1.0f;
+    bool enableHdr_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

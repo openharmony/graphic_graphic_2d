@@ -25,7 +25,6 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "draw/path.h"
-#include "include/text/hm_symbol_config_ohos.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
 #include "symbol_animation_config.h"
@@ -211,6 +210,7 @@ private:
     // true that it contains at least one mask layer, false there is none
     bool isMaskSymbol_ = false;
     Vector4f symbolBounds_;
+    std::optional<FrameRateRange> range_;
 };
 } // namespace Rosen
 } // namespace OHOS

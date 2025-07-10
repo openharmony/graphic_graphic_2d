@@ -543,11 +543,16 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
     return ret;
 }
 
-SurfaceError SurfaceImage::SetDropBufferSwitch(bool isOpen)
+SurfaceError SurfaceImage::SetDropBufferMode(bool enableDrop)
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    BLOGI("SetDropBufferSwitch switch: %{public}d", isOpen);
-    dropFrameMode_ = isOpen;
+    BLOGI("SetDropBufferMode switch: %{public}d", enableDrop);
+    SurfaceError ret = ConsumerSurface::SetDropBufferMode(enableDrop);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("ConsumerSurface::SetDropBufferMode ret: %{public}d", ret);
+        return ret;
+    }
+    dropFrameMode_ = enableDrop;
     return SURFACE_ERROR_OK;
 }
 } // namespace OHOS

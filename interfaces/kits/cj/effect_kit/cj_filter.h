@@ -21,7 +21,6 @@
 #include "include/core/SkImageFilter.h"
 #include "pixel_map.h"
 #include "pixel_map_impl.h"
-#include "sk_image_chain.h"
 
 namespace OHOS {
 namespace CJEffectKit {

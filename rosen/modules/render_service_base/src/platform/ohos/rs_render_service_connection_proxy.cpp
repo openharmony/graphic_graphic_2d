@@ -1933,6 +1933,7 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
+        !data.WriteBool(captureConfig.isHdrCapture) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
@@ -5131,7 +5132,7 @@ void RSRenderServiceConnectionProxy::SetFreeMultiWindowStatus(bool enable)
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetFreeMultiWindowStatus: Send Request err.");
     }
 }
-void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid,
+void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
     if (callback == nullptr) {
@@ -5147,12 +5148,12 @@ void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     static_assert(std::is_same_v<int32_t, pid_t>, "pid_t is not int32_t on this platform.");
-    if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write int32 val err.");
+    if (!data.WriteUint64(token)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write multi token val err.");
         return;
     }
     if (!data.WriteUint64(timeStamp)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write uint64 val err.");
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write timeStamp val err.");
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
@@ -5162,7 +5163,7 @@ void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
     RS_LOGD("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: Send Request err.");
@@ -5237,7 +5238,7 @@ ErrCode RSRenderServiceConnectionProxy::UnregisterSurfaceBufferCallback(pid_t pi
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnectionProxy::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+ErrCode RSRenderServiceConnectionProxy::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -5247,7 +5248,7 @@ ErrCode RSRenderServiceConnectionProxy::SetLayerTopForHWC(const std::string &nod
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    if (data.WriteString(nodeIdStr) && data.WriteBool(isTop) && data.WriteUint32(zOrder)) {
+    if (data.WriteUint64(nodeId) && data.WriteBool(isTop) && data.WriteUint32(zOrder)) {
         uint32_t code =
             static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
         int32_t err = SendRequest(code, data, reply, option);
@@ -5712,6 +5713,28 @@ bool RSRenderServiceConnectionProxy::ProfilerIsSecureScreen()
         return false;
     }
     return retValue;
+}
+
+void RSRenderServiceConnectionProxy::ClearUifirstCache(NodeId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearUifirstCache: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("ClearUifirstCache: WriteUint64 id err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearUifirstCache sendrequest error : %{public}d", err);
+        return;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

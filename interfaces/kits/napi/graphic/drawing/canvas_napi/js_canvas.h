@@ -18,7 +18,7 @@
 
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "pixel_map.h"
 #endif
 
@@ -165,7 +165,7 @@ private:
     static thread_local napi_ref constructor_;
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     std::shared_ptr<Media::PixelMap> mPixelMap_ = nullptr;
 #endif
 };

@@ -59,6 +59,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DRAW_CMD_LIST_NG = 0x0120,
     UPDATE_MODIFIER_NG_FILTER_BASE_PTR = 0X0121,
     UPDATE_MODIFIER_NG_SHADER_BASE_PTR = 0X0122,
+    UPDATE_MODIFIER_NG_MASK_BASE_PTR = 0X0123,
 
 
     SET_FREEZE = 0x0200,
@@ -67,6 +68,7 @@ enum RSNodeCommandType : uint16_t {
     SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG = 0x0203,
     SET_UIFIRST_SWITCH = 0x0204,
     SET_ENABLE_HDR_EFFECT = 0x0205,
+    SET_NEED_USE_CMDLIST_DRAW_REGION = 0x0206,
 
     REGISTER_GEOMETRY_TRANSITION = 0x0300,
     UNREGISTER_GEOMETRY_TRANSITION = 0x0301,
@@ -166,6 +168,7 @@ public:
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
     static void SetEnableHDREffect(RSContext &context, NodeId nodeId, bool hdrPresent);
+    static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);
@@ -235,6 +238,10 @@ ADD_COMMAND(RSUpdatePropertyNGShaderBase,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_SHADER_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderShaderBase>>,
         NodeId, std::shared_ptr<RSNGRenderShaderBase>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyNGMaskBase,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_MASK_BASE_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderMaskBase>>,
+        NodeId, std::shared_ptr<RSNGRenderMaskBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyImage,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSImage>>,
@@ -357,6 +364,10 @@ ADD_COMMAND(RSSetOutOfParent,
 ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
     ARG(PERMISSION_APP, RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
         RSNodeCommandHelper::SetTakeSurfaceForUIFlag, NodeId))
+
+ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
+    ARG(PERMISSION_APP, RS_NODE, SET_NEED_USE_CMDLIST_DRAW_REGION,
+        RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion, NodeId, bool))
 
 ADD_COMMAND(RSSetEnableHDREffect,
     ARG(PERMISSION_APP, RS_NODE, SET_ENABLE_HDR_EFFECT,

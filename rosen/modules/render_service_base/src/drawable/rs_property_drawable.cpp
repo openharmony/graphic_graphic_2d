@@ -282,9 +282,7 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
             if (rect) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                for (const auto& shaderFilter : filter->GetShaderFilters()) {
-                    shaderFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
-                }
+                filter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
             }
             int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
@@ -495,12 +493,12 @@ bool RSFilterDrawable::IsAIBarFilter() const
     return stagingCacheManager_->GetFilterType() == RSFilter::AIBAR;
 }
 
-bool RSFilterDrawable::IsAIBarCacheValid()
+bool RSFilterDrawable::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
 {
     if (stagingCacheManager_ == nullptr) {
         return false;
     }
-    return stagingCacheManager_->IsAIBarCacheValid();
+    return stagingCacheManager_->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 }
 
 void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)

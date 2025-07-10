@@ -25,6 +25,7 @@
 #include "surface_type.h"
 
 #include "common/rs_optional_trace.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -41,7 +42,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr uint32_t HIGHEST_Z_ORDER = 999;
 constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
 RSUniRenderProcessor::RSUniRenderProcessor()
     : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>())
@@ -300,6 +300,14 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         const auto& bufferDamage = params.GetBufferDamage();
         GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
             bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
+        Rect selfDrawingDirtyRect;
+        bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
+        if (isDirtyRectValid) {
+            dirtyRect = { selfDrawingDirtyRect.x, selfDrawingDirtyRect.y,
+                selfDrawingDirtyRect.w, selfDrawingDirtyRect.h };
+            RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]",
+                dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h);
+        }
         auto intersectRect = RSUniDirtyComputeUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
         RS_OPTIONAL_TRACE_NAME_FMT("intersectRect:[%d, %d, %d, %d]",
             intersectRect.x, intersectRect.y, intersectRect.w, intersectRect.h);
@@ -318,7 +326,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
         // Set the highest z-order for hardCursor
-        layer->SetZorder(HIGHEST_Z_ORDER);
+        layer->SetZorder(static_cast<int32_t>(TopLayerZOrder::POINTER_WINDOW));
     }
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
         layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X),

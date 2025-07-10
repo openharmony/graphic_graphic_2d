@@ -35,6 +35,7 @@ private:
     std::shared_ptr<RSNode> rootNode_;
     std::shared_ptr<RSTextureExport> textureExport_;
     std::shared_ptr<RSSurfaceNode> compositeNode_;
+    std::shared_ptr<RSUIDirector> rsUiDirector_ = nullptr;
     uint32_t topLayerZOrder_ = 0;
 };
 } // namespace Rosen

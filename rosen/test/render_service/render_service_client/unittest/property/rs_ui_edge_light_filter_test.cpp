@@ -67,6 +67,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, Dump001, TestSize.Level1)
     edgeLightPara->SetBloom(true);
     Vector4f color = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara->SetColor(color);
+    edgeLightPara->SetUseRawColor(false);
 
     auto rsUIEdgeLightFilterPara = std::make_shared<RSUIEdgeLightFilterPara>();
     rsUIEdgeLightFilterPara->SetEdgeLight(edgeLightPara);
@@ -78,6 +79,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, Dump001, TestSize.Level1)
     rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_ALPHA] = nullptr;
     rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_BLOOM] = nullptr;
     rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_COLOR] = nullptr;
+    rsUIEdgeLightFilterPara->properties_[RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR] = nullptr;
 
     rsUIEdgeLightFilterPara->Dump(out);
     EXPECT_NE(temp, out);
@@ -97,6 +99,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, SetProperty001, TestSize.Level1)
     edgeLightPara1->SetBloom(true);
     Vector4f color1 = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara1->SetColor(color1);
+    edgeLightPara1->SetUseRawColor(false);
 
     auto edgeLightPara2 = std::make_shared<EdgeLightPara>();
     auto maskPara2 = std::make_shared<MaskPara>();
@@ -105,6 +108,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, SetProperty001, TestSize.Level1)
     edgeLightPara2->SetBloom(true);
     Vector4f color2 = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara2->SetColor(color2);
+    edgeLightPara2->SetUseRawColor(false);
 
     auto rsUIEdgeLightFilterPara1 = std::make_shared<RSUIEdgeLightFilterPara>();
     rsUIEdgeLightFilterPara1->SetEdgeLight(edgeLightPara1);
@@ -137,6 +141,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, SetProperty002, TestSize.Level1)
     edgeLightPara->SetBloom(true);
     Vector4f color = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara->SetColor(color);
+    edgeLightPara->SetUseRawColor(false);
 
     auto rsUIEdgeLightFilterPara = std::make_shared<RSUIEdgeLightFilterPara>();
     rsUIEdgeLightFilterPara->SetEdgeLight(edgeLightPara);
@@ -216,6 +221,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, CreateRSRenderFilter001, TestSize.Level1)
     edgeLightPara->SetBloom(true);
     Vector4f color = Vector4f(0.5f, 0.5f, 0.5f, 0.5f);
     edgeLightPara->SetColor(color);
+    edgeLightPara->SetUseRawColor(false);
 
     auto rsUIEdgeLightFilterPara = std::make_shared<RSUIEdgeLightFilterPara>();
     rsUIEdgeLightFilterPara->SetEdgeLight(edgeLightPara);
@@ -273,7 +279,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, GetLeafProperties001, TestSize.Level1)
 HWTEST_F(RSUIEdgeLightFilterTest, CheckEnableHdrEffect001, TestSize.Level1)
 {
     auto edgeLightPara = std::make_shared<EdgeLightPara>();
-;
+
     auto maskPara = std::make_shared<MaskPara>();
     maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
     edgeLightPara->SetMask(maskPara);

@@ -120,7 +120,11 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
     auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
-    if (LIKELY(!rscanvas.IsOnMultipleScreen() && rscanvas.GetHdrOn() && RSSystemProperties::GetHdrImageEnabled())) {
+    auto shotType = rscanvas.GetScreenshotType();
+    bool isSDRCapture = shotType == RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT ||
+        shotType == RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
+    if (LIKELY(!rscanvas.IsOnMultipleScreen() && !isSDRCapture && rscanvas.GetHdrOn() &&
+        RSSystemProperties::GetHdrImageEnabled())) {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
             rscanvas.GetScreenId(), dynamicRangeMode_, rscanvas.GetHDRProperties());
     } else {
@@ -177,7 +181,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                                  isFitMatrixValid_ ;
         Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
         }
         rectForDrawShader_ = dst_;
         if (isFitMatrixValid_) {
@@ -528,7 +532,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
 
             if (isAstc) {
-                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
             }
             rectForDrawShader_ = dst_;
             if (isOrientationValid_) {

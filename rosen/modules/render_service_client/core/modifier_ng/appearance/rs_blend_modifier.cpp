@@ -85,4 +85,14 @@ float RSBlendModifier::GetFgBrightnessFract() const
 {
     return Getter(RSPropertyType::FG_BRIGHTNESS_FRACTION, 1.f);
 }
+
+void RSBlendModifier::SetFgBrightnessHdr(bool hdr)
+{
+    Setter<RSProperty>(RSPropertyType::FG_BRIGHTNESS_HDR, hdr);
+}
+
+bool RSBlendModifier::GetFgBrightnessHdr() const
+{
+    return Getter(RSPropertyType::FG_BRIGHTNESS_HDR, false);
+}
 } // namespace OHOS::Rosen::ModifierNG

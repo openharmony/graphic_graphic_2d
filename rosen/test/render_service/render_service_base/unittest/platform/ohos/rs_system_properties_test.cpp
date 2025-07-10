@@ -1107,6 +1107,17 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetOptimizeCanvasDrawRegionEnabled
+ * @tc.desc: GetOptimizeCanvasDrawRegionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesICI6YB
+ */
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeCanvasDrawRegionEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled());
+}
+
+/**
  * @tc.name: GetTimeVsyncDisabled
  * @tc.desc: GetTimeVsyncDisabled Test
  * @tc.type:FUNC
@@ -1142,7 +1153,21 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
     bool enabled = RSSystemProperties::GetTypicalResidentProcess();
     RSSystemProperties::SetTypicalResidentProcess(!enabled);
     EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    // recover isTypicalResidentProcess_
     RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
+}
+
+/**
+ * @tc.name: GetCompositeLayerEnabledTest
+ * @tc.desc: GetCompositeLayerEnabledTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetCompositeLayerEnabledTest, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetCompositeLayerEnabled();
+    EXPECT_EQ(enabled, true);
 }
 
 /**
@@ -1153,9 +1178,12 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Level1)
 {
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
     RSSystemProperties::SetTypicalResidentProcess(true);
-    bool enabled = RSSystemProperties::GetHybridRenderEnabled();
-    EXPECT_EQ(enabled, false);
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderEnabled(), false);
+    // recover isTypicalResidentProcess_
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
 } // namespace Rosen
 } // namespace OHOS

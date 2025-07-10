@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,10 +24,7 @@
 #include "drawing_canvas_utils.h"
 #include "drawing_font_utils.h"
 #include "drawing_helper.h"
-#include "image_pixel_map_mdk.h"
-#include "native_pixel_map.h"
 #include "native_pixel_map_manager.h"
-#include "pixelmap_native_impl.h"
 #include "recording/recording_canvas.h"
 #include "utils/log.h"
 
@@ -146,17 +143,7 @@ OH_Drawing_Canvas* OH_Drawing_CanvasCreateWithPixelMap(OH_Drawing_PixelMap* pixe
     if (pixelMap == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<Media::PixelMap> p = nullptr;
-    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
-        case NativePixelMapType::OBJECT_FROM_C:
-            p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
-            break;
-        case NativePixelMapType::OBJECT_FROM_JS:
-            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
-            break;
-        default:
-            break;
-    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
 
     Bitmap bitmap;
     if (!DrawingCanvasUtils::ExtractDrawingBitmap(p, bitmap)) {
@@ -504,19 +491,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* cCanva
     if (canvas == nullptr || pixelMap == nullptr || dst == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
-    std::shared_ptr<Media::PixelMap> p = nullptr;
-    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
-        case NativePixelMapType::OBJECT_FROM_C:
-            if (pixelMap) {
-                p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
-            }
-            break;
-        case NativePixelMapType::OBJECT_FROM_JS:
-            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
-            break;
-        default:
-            break;
-    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
     OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapNine(canvas, p,
         CastToRect(center), CastToRect(dst), static_cast<FilterMode>(mode));
     auto iter = g_canvasMap.find(canvas);
@@ -533,19 +508,7 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
     const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions)
 {
 #ifdef OHOS_PLATFORM
-    std::shared_ptr<Media::PixelMap> p = nullptr;
-    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
-        case NativePixelMapType::OBJECT_FROM_C:
-            if (pixelMap) {
-                p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
-            }
-            break;
-        case NativePixelMapType::OBJECT_FROM_JS:
-            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
-            break;
-        default:
-            break;
-    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
     DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas), p,
         reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
         reinterpret_cast<const Drawing::SamplingOptions*>(cSampingOptions));
@@ -553,6 +516,30 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
     if (iter != g_canvasMap.end() && iter->second != nullptr) {
         iter->second->MarkDirty();
     }
+#endif
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapRectConstraint(OH_Drawing_Canvas* cCanvas,
+    OH_Drawing_PixelMap* pixelMap, const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst,
+    const OH_Drawing_SamplingOptions* cSamplingOptions, OH_Drawing_SrcRectConstraint cConstraint)
+{
+#ifdef OHOS_PLATFORM
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || pixelMap == nullptr || dst == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
+    OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapRectConstraint(CastToCanvas(cCanvas), p,
+        reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
+        reinterpret_cast<const Drawing::SamplingOptions*>(cSamplingOptions),
+        static_cast<SrcRectConstraint>(cConstraint));
+    auto iter = g_canvasMap.find(cCanvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+    return errorCode;
+#else
+    return OH_DRAWING_SUCCESS;
 #endif
 }
 

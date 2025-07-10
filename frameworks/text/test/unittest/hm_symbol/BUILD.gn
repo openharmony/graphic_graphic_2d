@@ -16,13 +16,13 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("hm_symbol_engine_test") {
-  module_out_path = text_test_out_path
+  module_out_path = text_ut_out_path
   configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
   sources = [
+    "default_symbol_config_test.cpp",
     "hm_symbol_node_build_test.cpp",
     "hm_symbol_run_test.cpp",
     "hm_symbol_txt_test.cpp",
-    "symbol_default_config_parser_test.cpp",
     "text_animation_config_test.cpp",
     "symbol_gradient_test.cpp",
   ]

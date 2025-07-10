@@ -190,4 +190,23 @@ HWTEST_F(RSUIColorGradientFilterTest, CreateRSRenderFilter001, TestSize.Level1)
     rsRenderFilterParaBase = filterPara1->CreateRSRenderFilter();
     EXPECT_NE(rsRenderFilterParaBase, nullptr);
 }
+
+/**
+ * @tc.name: CheckEnableHdrEffect001
+ * @tc.desc: Test CheckEnableHdrEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIColorGradientFilterTest, CheckEnableHdrEffect001, TestSize.Level1)
+{
+    auto filterPara = std::make_shared<RSUIColorGradientFilterPara>();
+    EXPECT_FALSE(filterPara->CheckEnableHdrEffect());
+
+    std::vector<float> colors = { 0.5, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 1.0};
+    auto mask = std::make_shared<MaskPara>();
+
+    auto colorGradientPara =  std::make_shared<ColorGradientPara>();
+    colorGradientPara->SetColors(colors);
+    filterPara->SetColorGradient(colorGradientPara);
+    EXPECT_TRUE(filterPara->CheckEnableHdrEffect());
+}
 } // namespace OHOS::Rosen

@@ -81,9 +81,14 @@ bool FontParser::CheckFullNameParamInvalid(FontParser::FontDescriptor& fontDescr
         return true;
     }
     if (fontDescriptor.requestedLid != LANGUAGE_DEFAULT) {
-        if (!fontDescriptor.fullName.empty()) {
+        if (fontDescriptor.fullName.empty()) {
+            return false;
+        }
+
+        if (fontDescriptor.requestedLid == fontDescriptor.fullNameLid) {
             return true;
         }
+
         if (fontDescriptor.requestedLid != languageId) {
             return true;
         }

@@ -212,6 +212,24 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
     OH_Drawing_TileMode tileX, OH_Drawing_TileMode tileY, const OH_Drawing_SamplingOptions*, const OH_Drawing_Matrix*);
 
 /**
+ * @brief Creates an <b>OH_Drawing_ShaderEffect</b> that generates a pixel map shader.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pixelMap Indicates the pointer to an <b>OH_Drawing_PixelMap</b> object.
+ * @param tileX tileX Indicates the horizontal tile mode.
+ * @param tileY tileY Indicates the vertical tile mode.
+ * @param samplingOptions Indicates the pointer to an <b>OH_Drawing_SamplingOptions</b> object. It cannot be null.
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ *                          If matrix is nullptr, defaults to the identity matrix.
+ * @return Returns the pointer to the <b>OH_Drawing_ShaderEffect</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreatePixelMapShader(OH_Drawing_PixelMap* pixelMap,
+    OH_Drawing_TileMode tileX, OH_Drawing_TileMode tileY, const OH_Drawing_SamplingOptions* samplingOptions,
+    const OH_Drawing_Matrix* matrix);
+
+/**
  * @brief Creates an <b>OH_Drawing_ShaderEffect</b> that generates a conical gradient given two circles.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

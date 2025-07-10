@@ -240,7 +240,7 @@ void RSRenderServiceListener::OnTransformChange()
 
 bool RSRenderServiceListener::ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node)
 {
-    if (node->IsLayerTop()) {
+    if (node->IsLayerTop() && node->IsTopLayerForceRefresh()) {
         // Ensure that ......
         RSMainThread::Instance()->ForceRefreshForUni();
         return true;

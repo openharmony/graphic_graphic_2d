@@ -77,4 +77,30 @@ HWTEST_F(RSBoundsModifierNGTypeTest, RSBoundsModifierTest, TestSize.Level1)
     modifier->SetBoundsPositionY(positionY);
     EXPECT_EQ(modifier->GetBoundsPositionY(), positionY);
 }
+
+/**
+ * @tc.name: ApplyGeometryTest
+ * @tc.desc: Test the function ApplyGeometry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsModifierNGTypeTest, ApplyGeometryTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    std::shared_ptr<RSObjAbsGeometry> geometry = nullptr;
+    modifier->ApplyGeometry(geometry);
+    EXPECT_EQ(geometry, nullptr);
+
+    // geometry and property is not null
+    Vector4f bounds(100.0f);
+    modifier->SetBounds(bounds);
+    geometry = std::make_shared<RSObjAbsGeometry>();
+    modifier->ApplyGeometry(geometry);
+    EXPECT_FLOAT_EQ(geometry->GetHeight(), 100.0f);
+
+    // property is null, geometry is not null
+    auto modifier2 = std::make_shared<ModifierNG::RSBoundsModifier>();
+    auto geometry2 = std::make_shared<RSObjAbsGeometry>();
+    modifier2->ApplyGeometry(geometry2);
+    EXPECT_FALSE(modifier2->HasProperty(ModifierNG::RSPropertyType::BOUNDS));
+}
 } // namespace OHOS::Rosen

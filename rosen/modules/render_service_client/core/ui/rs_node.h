@@ -1271,6 +1271,13 @@ public:
     void SetFgBrightnessFract(const float& fract);
 
     /**
+     * @brief Sets the hdr using for foreground brightness.
+     *
+     * @param hdr Indicates the hdr using for foreground brightness.
+     */
+    void SetFgBrightnessHdr(const bool hdr);
+
+    /**
      * @brief Sets the parameters for background brightness.
      *
      * @param params Indicates the parameters for background brightness.
@@ -1529,7 +1536,7 @@ public:
     void SetUseEffectType(UseEffectType useEffectType);
     void SetAlwaysSnapshot(bool enable);
 
-    void SetEnableHDREffect(bool enableHdrEffect);
+    void SetEnableHDREffect(uint32_t type, bool enableHdrEffect);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -1592,6 +1599,13 @@ public:
      * @param rect Indicates a rectF object representing the drawing region.
      */
     void SetDrawRegion(std::shared_ptr<RectF> rect);
+
+    /**
+     * @brief Sets if need use the cmdlist drawing region for the node.
+     *
+     * @param needUseCmdlistDrawRegion Whether to need use the cmdlist drawing region for this node.
+     */
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
 
     /**
      * @brief Mark the node as a group node for rendering pipeline optimization
@@ -1776,7 +1790,6 @@ public:
      */
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 
-#ifdef RS_ENABLE_VK
     /**
      * @brief Gets whether the canvas enables hybrid rendering.
      *
@@ -1793,7 +1806,6 @@ public:
      * @param hybridRenderCanvas true to enable hybrid rendering; false otherwise.
      */
     virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
-#endif
 
     /**
      * @brief Gets whether the node is on the tree.
@@ -1842,9 +1854,7 @@ protected:
 
     bool drawContentLast_ = false;
 
-#ifdef RS_ENABLE_VK
     bool hybridRenderCanvas_ = false;
-#endif
 
     /**
      * @brief Called when child nodes are added to this node.
@@ -2070,7 +2080,7 @@ private:
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::weak_ptr<RSUIContext> rsUIContext_;
 
-    bool enableHdrEffect_ = false;
+    uint32_t hdrEffectType_ = 0;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

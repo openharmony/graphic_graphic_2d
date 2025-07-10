@@ -935,6 +935,44 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat001, TestSize.Level1)
 }
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/*
+ * @tc.name: ComputeTargetPixelFormat
+ * @tc.desc: Test RSHardwareThreadTest.ComputeTargetPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issuesIBLTM5
+ */
+HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat002, TestSize.Level1)
+{
+    std::vector<LayerInfoPtr> layers;
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layers.emplace_back(layer);
+    EXPECT_NE(layers.size(), 0);
+
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(3);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    requestConfig.format = GRAPHIC_PIXEL_FMT_RGBA_1010108;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    layer->SetBuffer(buffer, requestFence);
+    GraphicPixelFormat pixelFormat = hardwareThread.ComputeTargetPixelFormat(layers);
+    EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+
+    requestConfig.format = GRAPHIC_PIXEL_FMT_RGBA16_FLOAT;
+    ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    layer->SetBuffer(buffer, requestFence);
+    GraphicPixelFormat pixelFormat2 = hardwareThread.ComputeTargetPixelFormat(layers);
+    EXPECT_EQ(pixelFormat2, GRAPHIC_PIXEL_FMT_RGBA_8888);
+}
+#endif
+
 /*
  * @tc.name: ChangeLayersForActiveRectOutside001
  * @tc.desc: Test RSHardwareThreadTest.ChangeLayersForActiveRectOutside
@@ -1121,8 +1159,10 @@ HWTEST_F(RSHardwareThreadTest, IsDropDirtyFrame, TestSize.Level1)
     hardwareThread.Start();
     SetUp();
 
-    OutputPtr output = nullptr;
-    ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+    std::vector<LayerInfoPtr> layers;
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layers.emplace_back(layer);
+    ASSERT_EQ(hardwareThread.IsDropDirtyFrame(layers, screenId_), false);
 }
 
 /*

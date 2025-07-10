@@ -21,7 +21,10 @@ module_output_path = "graphic_2d/graphic_2d/render_service_base/dirty_region"
 ohos_unittest("RSRenderServiceBaseDirtyRegionTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_filter_dirty_collector_test.cpp" ]
+  sources = [ 
+    "rs_filter_dirty_collector_test.cpp",
+    "rs_gpu_dirty_collector_test.cpp",
+  ]
 
   configs = [
     ":render_test",

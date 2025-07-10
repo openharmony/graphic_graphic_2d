@@ -1374,8 +1374,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
     isHdrOn_ = other.isHdrOn_;
-    hdrProperties.hdrBrightness = other.hdrProperties.hdrBrightness;
-    hdrProperties.isHDREnabledVirtualScreen = other.hdrProperties.isHDREnabledVirtualScreen;
+    hdrProperties_ = other.hdrProperties_;
 }
 
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
@@ -1559,6 +1558,19 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Dr
     : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
 {}
 
+std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
+{
+    // std::shared_ptr<Drawing::Image> cachedImage = cachedImage_;
+    if (cachedImage_ == nullptr) {
+        return "No valid cacheImage found.";
+    }
+    std::string ss;
+    ss += " cachedRect: " + cachedRect_.ToString() +
+        ", CacheImageWidth: " + std::to_string(cachedImage_->GetWidth()) +
+        ", CacheImageHeight: " + std::to_string(cachedImage_->GetHeight());
+    return ss;
+}
+
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 {
     isParallelCanvas_ = isParallel;
@@ -1618,6 +1630,16 @@ void RSPaintFilterCanvas::SetOnMultipleScreen(bool multipleScreen)
     multipleScreen_ = multipleScreen;
 }
 
+RSPaintFilterCanvas::ScreenshotType RSPaintFilterCanvas::GetScreenshotType() const
+{
+    return hdrProperties_.screenshotType;
+}
+
+void RSPaintFilterCanvas::SetScreenshotType(RSPaintFilterCanvas::ScreenshotType type)
+{
+    hdrProperties_.screenshotType = type;
+}
+
 ScreenId RSPaintFilterCanvas::GetScreenId() const
 {
     return screenId_;
@@ -1630,12 +1652,12 @@ void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
 
 bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
 {
-    return hdrProperties.isHDREnabledVirtualScreen;
+    return hdrProperties_.isHDREnabledVirtualScreen;
 }
 
 void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen)
 {
-    hdrProperties.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
+    hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
 }
 
 bool RSPaintFilterCanvas::GetHdrOn() const
@@ -1650,17 +1672,17 @@ void RSPaintFilterCanvas::SetHdrOn(bool isHdrOn)
 
 float RSPaintFilterCanvas::GetHDRBrightness() const
 {
-    return hdrProperties.hdrBrightness;
+    return hdrProperties_.hdrBrightness;
 }
 
 void RSPaintFilterCanvas::SetHDRBrightness(float hdrBrightness)
 {
-    hdrProperties.hdrBrightness = hdrBrightness;
+    hdrProperties_.hdrBrightness = hdrBrightness;
 }
 
 const RSPaintFilterCanvas::HDRProperties& RSPaintFilterCanvas::GetHDRProperties() const
 {
-    return hdrProperties;
+    return hdrProperties_;
 }
 
 GraphicColorGamut RSPaintFilterCanvas::GetTargetColorGamut() const

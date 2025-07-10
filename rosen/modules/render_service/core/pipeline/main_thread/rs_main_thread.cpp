@@ -182,7 +182,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t VSYNC_LOG_ENABLED_TIMES_THRESHOLD = 500;
 constexpr uint32_t VSYNC_LOG_ENABLED_STEP_TIMES = 100;
-constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 10;
+constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 20;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
 constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
@@ -226,7 +226,7 @@ constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status"
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
-constexpr int64_t ONE_SECOND_TIMESTAMP = 1e9;
+constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 
 #ifdef RS_ENABLE_GL
@@ -623,7 +623,7 @@ void RSMainThread::Init()
         renderEngine_ = std::make_shared<RSRenderEngine>();
         renderEngine_->Init();
     }
-    RSOpincManager::Instance().ReadOPIncCcmParam();
+    RSOpincManager::Instance().SetOPIncSwitch(OPIncParam::IsOPIncEnable());
     RSUifirstManager::Instance().ReadUIFirstCcmParam();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
@@ -744,27 +744,31 @@ void RSMainThread::GetFrontBufferDesiredPresentTimeStamp(
     const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp)
 {
     if (consumer == nullptr) {
+        desiredPresentTimeStamp = 0;
         return;
     }
     bool isAutoTimeStamp = false;
     int64_t fronDesiredPresentTimeStamp = 0;
     if (consumer->GetFrontDesiredPresentTimeStamp(fronDesiredPresentTimeStamp, isAutoTimeStamp) !=
-            GSError::GSERROR_OK || fronDesiredPresentTimeStamp == 0) {
+        GSError::GSERROR_OK || fronDesiredPresentTimeStamp <= 0 || isAutoTimeStamp) {
         desiredPresentTimeStamp = 0;
         return;
     }
-    if (isAutoTimeStamp || fronDesiredPresentTimeStamp <= static_cast<int64_t>(timestamp_) ||
-        fronDesiredPresentTimeStamp - ONE_SECOND_TIMESTAMP > static_cast<int64_t>(timestamp_)) {
+
+    const uint64_t tmp = static_cast<uint64_t>(fronDesiredPresentTimeStamp);
+    if (tmp <= vsyncRsTimestamp_.load() ||
+        (tmp > ONE_SECOND_TIMESTAMP && tmp - ONE_SECOND_TIMESTAMP > vsyncRsTimestamp_.load())) {
         desiredPresentTimeStamp = 0;
         return;
     }
+    // vsyncRsTimestamp_ < fronDesiredPresentTimeStamp <= vsyncRsTimestamp_ + 1s
     desiredPresentTimeStamp = fronDesiredPresentTimeStamp;
 }
 
 void RSMainThread::NotifyUnmarshalTask(int64_t uiTimestamp)
 {
     if (isUniRender_ && rsVSyncDistributor_->IsUiDvsyncOn() && static_cast<uint64_t>(uiTimestamp) +
-        static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) >= dvsyncRsTimestamp_.load()
+        static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) >= vsyncRsTimestamp_.load()
         && waitForDVSyncFrame_.load()) {
         auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
         MergeToEffectiveTransactionDataMap(cachedTransactionData);
@@ -1897,17 +1901,23 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
             return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     });
 
+    // In the process of cutting the state, the self-drawing layer with the size before the cut state is probably
+    // sent, resulting in abnormal display, and this problem is solved by disabling HWC in the cutting state
+    auto screenManager = CreateOrGetScreenManager();
+    bool isFoldScreenSwitching = RSSystemProperties::IsFoldScreenFlag() && screenManager != nullptr &&
+        screenManager->IsScreenSwitching();
+
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
-    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ ||
+    isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
         hasColorFilter || CheckOverlayDisplayEnable() ||
         (isMultiDisplay && !hasProtectedLayer_ && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode));
 
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
-        "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
-        isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
+        "isFoldScreenSwitching:%d doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
+        isHardwareForcedDisabled_, isFoldScreenSwitching, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
 
     if (isMultiDisplay && !isHardwareForcedDisabled_) {
         // Disable direct composition when hardware composer is enabled for virtual screen
@@ -3306,7 +3316,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
     RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     timestamp_ = timestamp;
-    dvsyncRsTimestamp_.store(timestamp_);
+    vsyncRsTimestamp_.store(timestamp_);
     drawingRequestNextVsyncNum_.store(requestNextVsyncNum_);
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -3809,7 +3819,7 @@ void RSMainThread::SendCommands()
             }
             app->OnTransaction(transactionPtr);
         }
-        RS_LOGI("RS send to %{public}s", dfxString.c_str());
+        RS_LOGD("RS send to %{public}s", dfxString.c_str());
         RS_TRACE_NAME_FMT("RSMainThread::SendCommand to %s", dfxString.c_str());
     });
 }
@@ -4209,6 +4219,19 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 
     RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
     RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
+    dumpString.append("---------------RenderServiceTreeDump-Begin---------------\n");
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (rootNode != nullptr) {
+        rootNode->DumpTree(0, dumpString);
+    }
+    const auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraversalNodes([&dumpString](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr || !node->IsOnTheTree()) {
+            return;
+        }
+        node->DumpTree(0, dumpString, true);
+    });
+    dumpString.append("---------------RenderServiceTreeDump-End---------------\n");
 #else
     dumpString.append("No GPU in this device");
 #endif
@@ -4450,7 +4473,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             RS_PROFILER_PATCH_TIME(now);
             timestamp_ = timestamp_ + (now - curTime_);
-            dvsyncRsTimestamp_.store(timestamp_);
+            vsyncRsTimestamp_.store(timestamp_);
             int64_t vsyncPeriod = 0;
             VsyncError ret = VSYNC_ERROR_UNKOWN;
             if (receiver_) {
@@ -5187,8 +5210,11 @@ void RSMainThread::RequestNextVSyncInner(VSyncReceiver::FrameCallback callback, 
     if (Rosen::RSSystemProperties::GetTimeVsyncDisabled()) {
         receiver_->RequestNextVSync(callback, fromWhom, lastVSyncTS);
     } else {
-        receiver_->RequestNextVSync(callback, fromWhom, lastVSyncTS,
-            requestVsyncTime < static_cast<int64_t>(timestamp_) ? 0 : requestVsyncTime);
+        int64_t requestVsyncTimeTmp = 0;
+        if (requestVsyncTime > 0 && static_cast<uint64_t>(requestVsyncTime) > vsyncRsTimestamp_.load()) {
+            requestVsyncTimeTmp = requestVsyncTime;
+        }
+        receiver_->RequestNextVSync(callback, fromWhom, lastVSyncTS, requestVsyncTimeTmp);
     }
 }
 

@@ -438,6 +438,26 @@ bool DoGetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     rsInterfaces.GetBehindWindowFilterEnabled(enabled);
     return true;
 }
+
+bool DoClearUifirstCache(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    NodeId nodeId = GetData<NodeId>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ClearUifirstCache(nodeId);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -459,5 +479,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
+    OHOS::Rosen::DoClearUifirstCache(data, size);
     return 0;
 }

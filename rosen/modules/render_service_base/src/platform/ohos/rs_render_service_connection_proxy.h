@@ -377,7 +377,7 @@ public:
 
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     ErrCode NotifyScreenSwitched() override;
@@ -404,6 +404,8 @@ public:
     RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
+
+    void ClearUifirstCache(NodeId id) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -418,7 +420,7 @@ private:
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
     
-    ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) override;
+    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 

@@ -838,7 +838,7 @@ private:
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
     std::atomic<bool> waitForDVSyncFrame_ = false;
-    std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
+    std::atomic<uint64_t> vsyncRsTimestamp_ = 0;
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
 #if defined(ACCESSIBILITY_ENABLE)

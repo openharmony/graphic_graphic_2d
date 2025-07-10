@@ -401,7 +401,7 @@ public:
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
 
-    virtual ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) = 0;
+    virtual ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) = 0;
 
     virtual ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 
@@ -418,7 +418,8 @@ public:
 
     virtual ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
-    virtual void RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) = 0;
+    virtual void RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+        sptr<RSITransactionDataCallback> callback) = 0;
 
     virtual ErrCode NotifyScreenSwitched() = 0;
 
@@ -449,6 +450,8 @@ public:
     virtual RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
     virtual bool ProfilerIsSecureScreen() = 0;
+
+    virtual void ClearUifirstCache(NodeId id) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

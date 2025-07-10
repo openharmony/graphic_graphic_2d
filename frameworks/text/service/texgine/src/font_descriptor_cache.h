@@ -17,6 +17,7 @@
 #define OHOS_ROSEN_FONT_DESCRIPTOR_CACHE_H
 
 #include <memory>
+#include <mutex>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -35,7 +36,7 @@ public:
     void ParserStylishFonts();
     void MatchFromFontDescriptor(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& result);
     void ClearFontFileCache();
-    void Dump();
+    void Dump() const;
     void GetFontDescSharedPtrByFullName(const std::string& fullName,
         int32_t systemFontType, FontDescSharedPtr& result);
     void GetSystemFontFullNamesByType(int32_t systemFontType, std::unordered_set<std::string>& fontList);
@@ -46,7 +47,7 @@ private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
     bool ParserInstallFontsPathList(std::vector<std::string>& fontPathList);
     static bool ParserInstallFontsPathList(TextEngine::FullNameToPath& fontPathList);
-    bool ProcessSystemFontType(int32_t systemFontType, int32_t& fontType);
+    static bool ProcessSystemFontType(int32_t systemFontType, int32_t& fontType);
     bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result) const;
     std::unordered_set<std::string> GetInstallFontList();
     std::unordered_set<std::string> GetStylishFontList();
@@ -61,7 +62,7 @@ private:
     bool FilterSymbolicCache(bool symbolic, std::set<FontDescSharedPtr>& finishRet);
     bool IsDefault(FontDescSharedPtr desc);
     static int32_t WeightAlignment(int32_t weight);
-    bool GetFontTypeFromParams(const std::string& fullName,
+    static bool GetFontTypeFromParams(const std::string& fullName,
         int32_t systemFontType, int32_t& fontType);
     void ParserFontsByFontType(int32_t fontType);
 
@@ -89,6 +90,7 @@ private:
     std::set<FontDescSharedPtr> monoSpaceCache_;
     std::set<FontDescSharedPtr> symbolicCache_;
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> stylishFullNameMap_;
+    std::mutex mutex_;
 };
 } // namespace OHOS::Rosen
 

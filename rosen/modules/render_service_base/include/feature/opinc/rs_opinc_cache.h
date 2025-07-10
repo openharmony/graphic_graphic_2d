@@ -59,21 +59,18 @@ public:
         return unchangeCount_;
     }
 
-    bool OpincGetSupportFlag() const
-    {
-        return isOpincSupportFlag_;
-    }
+    bool GetSubTreeSupportFlag() const { return subTreeSupportFlag_; }
+    void UpdateSubTreeSupportFlag(bool childSupportFlag, bool childRootFlag, bool groupTypeIsNone);
 
-    void OpincSetSupportFlag(bool supportFlag)
-    {
-        isOpincSupportFlag_ = supportFlag;
-    }
+    bool GetCurNodeTreeSupportFlag() const { return subTreeSupportFlag_; }
+    void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
 
 private:
     // opinc state
     NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
     bool isSuggestOpincNode_ = false;
-    bool isOpincSupportFlag_ = true;
+    bool subTreeSupportFlag_ = true;
+    bool curNodeTreeSupportFlag_ = false;
     bool isOpincRootFlag_ = false;
     bool isUnchangeMarkEnable_ = false;
     bool isNeedCalculate_ = false;

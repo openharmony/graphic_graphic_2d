@@ -110,10 +110,10 @@ bool DoFinishDrawing(const uint8_t* data, size_t size)
     font.SetSize(1);
     std::shared_ptr<Drawing::TextBlob> textBlob =
         Drawing::TextBlob::MakeFromString("hello", font, Drawing::TextEncoding::UTF8);
-    auto recordingCanvas = new ExtendRecordingCanvas(1000, 3000);
+    auto recordingCanvas = new ExtendRecordingCanvas(1, 1);
     recordingCanvas->DrawTextBlob(textBlob.get(), 0, 0);
     std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
-    RSDrawingContext ctx = { recordingCanvas, 1000, 3000 };
+    RSDrawingContext ctx = { recordingCanvas, 1, 1 };
     RSExtendedModifierHelper::FinishDrawing(ctx);
     return true;
 }

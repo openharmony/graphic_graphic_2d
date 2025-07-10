@@ -18,6 +18,8 @@
 #include "rs_trace.h"
 #include "graphic_feature_param_manager.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/hdr/rs_hdr_util.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -45,8 +47,27 @@ std::string RectVectorToString(const std::vector<RectI>& regionRects)
     }
     return results;
 }
+
+bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut)
+{
+    return RSSystemParameters::IsNeedScRGBForP3(currentGamut) && RSUifirstManager::Instance().GetUiFirstSwitch();
+}
+
+void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio)
+{
+    RS_LOGD("HDR FinishHdrDraw");
+    Drawing::Filter filter = paint.GetFilter();
+    Drawing::ColorMatrix luminanceMatrix;
+    luminanceMatrix.SetScale(hdrBrightnessRatio, hdrBrightnessRatio, hdrBrightnessRatio, 1.0f);
+    auto luminanceColorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX,
+        luminanceMatrix);
+    filter.SetColorFilter(luminanceColorFilter);
+    paint.SetFilter(filter);
+}
+
 }
 RSLogicalDisplayRenderNodeDrawable::Registrar RSLogicalDisplayRenderNodeDrawable::instance_;
+std::shared_ptr<Drawing::RuntimeEffect> RSLogicalDisplayRenderNodeDrawable::brightnessAdjustmentShaderEffect_ = nullptr;
 constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being deleted
 RSLogicalDisplayRenderNodeDrawable::RSLogicalDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawable(std::move(node))
@@ -141,17 +162,29 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             lastTypeBlackList_ = currentTypeBlackList_;
             lastSecExemption_ = curSecExemption_;
         } else {
-            // wireless expand screen draw
-            RSRenderNodeDrawable::OnDraw(*curCanvas_);
+            DrawExpandDisplay(*params);
         }
         return;
     }
 
-    bool needOffScreen = params->GetNeedOffscreen() || screenInfo.isSamplingOn;
-    if (needOffScreen) {
+    auto hdrBrightnessRatio = screenParams->GetHdrBrightnessRatio();
+    bool isHdrOn = screenParams->GetHDRPresent();
+    bool isScRGBEnable = EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
+    bool isOpDropped = uniParam->IsOpDropped();
+    bool needOffscreen = params->GetNeedOffscreen() || screenInfo.isSamplingOn || isHdrOn || isScRGBEnable;
+
+    if (params->GetNeedOffscreen()) {
+        uniParam->SetOpDropped(false);
+    }
+
+    if (needOffscreen) {
         scaleManager_ = uniParam->GetSLRScaleManager();
         UpdateSlrScale(screenInfo, screenParams);
         ScaleCanvasIfNeeded(screenInfo);
+        auto rect = curCanvas_->GetDeviceClipBounds();
+        if (screenInfo.isSamplingOn && scaleManager_ != nullptr) {
+            screenParams->SetSlrMatrix(scaleManager_->GetScaleMatrix());
+        }
         PrepareOffscreenRender(*this, !screenInfo.isSamplingOn);
 #ifdef RS_PROFILER_ENABLED
         if (auto canvas =
@@ -160,7 +193,11 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             curCanvas_->AddCanvas(canvas);
         }
 #endif
-        curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        if (!params->GetNeedOffscreen() && !screenInfo.isSamplingOn && (isHdrOn || isScRGBEnable)) {
+            curCanvas_->ClipRect(rect);
+        } else {
+            curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        }
     }
 
     // prepare canvas
@@ -172,14 +209,16 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::OnDraw(*curCanvas_);
     DrawAdditionalContent(*curCanvas_);
 
-    if (needOffScreen && canvasBackup_) {
+    if (needOffscreen && canvasBackup_) {
         Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
         params->ApplyAlphaAndMatrixToCanvas(*curCanvas_);
+        ClearTransparentBeforeSaveLayer();
 #ifdef RS_PROFILER_ENABLED
         RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::EXTENDED);
 #endif
         FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE),
-            screenInfo.isSamplingOn);
+            screenInfo.isSamplingOn, hdrBrightnessRatio);
+        uniParam->SetOpDropped(isOpDropped);
     }
 
     if (RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable() && !params->IsRotationChanged()) {
@@ -280,6 +319,29 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(
     RSBaseRenderUtil::WriteSurfaceBufferToPng(drawParams.buffer);
     renderEngine->DrawScreenNodeWithParams(*rsCanvas, *screenDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, canvas, *screenParams);
+}
+
+void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRenderParams& params)
+{
+    RS_TRACE_FUNC();
+    auto [_, screenParam] = GetScreenParams(params);
+    if (!screenParam) {
+        RS_LOGE("%{public}s screenParam is nullptr", __func__);
+        return;
+    }
+    const auto& screenInfo = screenParam->GetScreenInfo();
+    if (screenParam->GetHDRPresent()) {
+        RS_LOGD("%{public}s HDRCast isHDREnabledVirtualScreen true", __func__);
+        curCanvas_->SetHDREnabledVirtualScreen(true);
+        curCanvas_->SetHdrOn(true);
+        PrepareOffscreenRender(*this, false);
+        RSRenderNodeDrawable::OnDraw(*curCanvas_);
+        FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE),
+            screenInfo.isSamplingOn);
+    } else {
+        RSRenderNodeDrawable::OnDraw(*curCanvas_);
+        curCanvas_->SetOnMultipleScreen(true); // for HDR
+    }
 }
 
 void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas)
@@ -862,8 +924,7 @@ void RSLogicalDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
 void RSLogicalDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
 {
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-    RS_LOGI("RSLogicalDisplayRenderNodeDrawable::SetCanvasBlack, set canvas to black"
-        "because of security layer/mute status.");
+    RS_LOGI("DisplayDrawable::SetCanvasBlack");
     curCanvas_->SetDisableFilterCache(false);
 }
 
@@ -889,7 +950,13 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
         return;
     }
     // for HDR
-    curCanvas_->SetOnMultipleScreen(true);
+    if (curScreenParams->GetHDRPresent()) {
+        RS_LOGD("RSLogicalDisplayRenderNodeDrawable::DrawMirror HDRCast isHDREnabledVirtualScreen true");
+        curCanvas_->SetHDREnabledVirtualScreen(true);
+        curCanvas_->SetHdrOn(true);
+    } else {
+        curCanvas_->SetOnMultipleScreen(true);
+    }
     curCanvas_->SetDisableFilterCache(true);
     auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
     auto screenManager = CreateOrGetScreenManager();
@@ -1147,6 +1214,35 @@ int32_t RSLogicalDisplayRenderNodeDrawable::GetSpecialLayerType(
     }
 }
 
+void RSLogicalDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
+{
+    if (!canvasBackup_) {
+        return;
+    }
+    RS_TRACE_NAME("ClearTransparentBeforeSaveLayer");
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    if (UNLIKELY(!renderParams_)) {
+        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer renderParams is null!");
+        return;
+    }
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(renderParams_.get());
+    for (const auto& [_, displayNodeId, drawable] : hardwareDrawables) {
+        auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable.get());
+        if (!surfaceDrawable || displayNodeId != params->GetId()) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+        if (!surfaceParams || !surfaceParams->GetHardwareEnabled()) {
+            continue;
+        }
+        Drawing::AutoCanvasRestore arc(*canvasBackup_, true);
+        canvasBackup_->SetMatrix(surfaceParams->GetLayerInfo().matrix);
+        canvasBackup_->ClipRect(surfaceParams->GetBounds());
+        canvasBackup_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    }
+}
+
 void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
     const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize)
 {
@@ -1203,9 +1299,25 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender, current surface is nullptr");
         return;
     }
-    if (!params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || !offscreenSurface_) {
+
+    auto [_, screenParams] = GetScreenParams(*params);
+    if (!screenParams) {
+        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    if (!params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || !offscreenSurface_ ||
+        (screenParams->GetHDRPresent() &&
+        offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16)) {
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
-        offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
+        bool isScRGBEnable = EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
+        if (screenParams->GetHDRPresent() || isScRGBEnable) {
+            RS_LOGD("HDR PrepareHdrDraw");
+            Drawing::ImageInfo info = { offscreenWidth, offscreenHeight, Drawing::COLORTYPE_RGBA_F16,
+                Drawing::ALPHATYPE_PREMUL, Drawing::ColorSpace::CreateSRGB() };
+            offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(info);
+        } else {
+            offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
+        }
     }
 
     if (offscreenSurface_ == nullptr) {
@@ -1230,9 +1342,9 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
 }
 
 void RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender(
-    const Drawing::SamplingOptions& sampling, bool isSamplingOn)
+    const Drawing::SamplingOptions& sampling, bool isSamplingOn, float hdrBrightnessRatio)
 {
-    RS_TRACE_FUNC();
+    RS_TRACE_NAME_FMT("%s: isSamplingOn:%d, hdrBrightnessRatio:%f", __func__, isSamplingOn, hdrBrightnessRatio);
     if (canvasBackup_ == nullptr) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender, canvasBackup_ is nullptr");
         return;
@@ -1241,14 +1353,35 @@ void RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender, offscreenSurface_ is nullptr");
         return;
     }
-    auto image = offscreenSurface_->GetImageSnapshot();
+    std::shared_ptr<Drawing::Image> image = nullptr;
+
+    Drawing::Brush paint;
+    bool isUseCustomShader = false;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (canvasBackup_->GetHDREnabledVirtualScreen()) {
+        isUseCustomShader = RSHdrUtil::HDRCastProcess(image, paint, sampling, offscreenSurface_, canvasBackup_);
+    }
+#endif
+    if (!isUseCustomShader) {
+        image = offscreenSurface_->GetImageSnapshot();
+    }
     if (image == nullptr) {
-        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
+        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender, image is nullptr");
         return;
     }
-    Drawing::Brush brush;
-    brush.SetAntiAlias(true);
-    canvasBackup_->AttachBrush(brush);
+
+    if (ROSEN_LNE(hdrBrightnessRatio, 1.0f)) {
+        auto shader = MakeBrightnessAdjustmentShader(image, sampling, hdrBrightnessRatio);
+        if (shader) {
+            paint.SetShaderEffect(shader);
+            isUseCustomShader = true;
+        } else {
+            FinishHdrDraw(paint, hdrBrightnessRatio);
+        }
+    }
+
+    paint.SetAntiAlias(true);
+    canvasBackup_->AttachBrush(paint);
 
     if (isSamplingOn) {
         if (RSSystemProperties::GetSLRScaleEnabled() && scaleManager_) {
@@ -1257,10 +1390,19 @@ void RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender(
             canvasBackup_->DrawImage(*image, 0, 0, sampling);
         }
     } else if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
-        canvasBackup_->DrawImage(*image, -offscreenTranslateX_, -offscreenTranslateY_, sampling);
+        if (isUseCustomShader) {
+            canvasBackup_->Translate(-offscreenTranslateX_, -offscreenTranslateY_);
+            canvasBackup_->DrawRect({ 0., 0., image->GetImageInfo().GetWidth(), image->GetImageInfo().GetHeight() });
+        } else {
+            canvasBackup_->DrawImage(*image, -offscreenTranslateX_, -offscreenTranslateY_, sampling);
+        }
         canvasBackup_->Translate(offscreenTranslateX_, offscreenTranslateY_);
     } else {
-        canvasBackup_->DrawImage(*image, 0, 0, sampling);
+        if (isUseCustomShader) {
+            canvasBackup_->DrawRect({ 0., 0., image->GetImageInfo().GetWidth(), image->GetImageInfo().GetHeight() });
+        } else {
+            canvasBackup_->DrawImage(*image, 0, 0, sampling);
+        }
     }
     canvasBackup_->DetachBrush();
 
@@ -1270,6 +1412,36 @@ void RSLogicalDisplayRenderNodeDrawable::FinishOffscreenRender(
     }
     curCanvas_ = canvasBackup_;
     canvasBackup_ = nullptr;
+}
+
+std::shared_ptr<Drawing::ShaderEffect> RSLogicalDisplayRenderNodeDrawable::MakeBrightnessAdjustmentShader(
+    const std::shared_ptr<Drawing::Image>& image, const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio)
+{
+    static const std::string shaderString(R"(
+        uniform shader imageInput;
+        uniform float ratio;
+        half4 main(float2 xy) {
+            half4 c = imageInput.eval(xy);
+            return half4(c.rgb * ratio, c.a);
+        }
+    )");
+    if (brightnessAdjustmentShaderEffect_ == nullptr) {
+        brightnessAdjustmentShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(shaderString);
+        if (brightnessAdjustmentShaderEffect_ == nullptr) {
+            ROSEN_LOGE("RSLogicalDisplayRenderNodeDrawable::MakeBrightnessAdjustmentShaderBuilder effect is null");
+            return nullptr;
+        }
+    }
+
+    auto builder = std::make_shared<Drawing::RuntimeShaderBuilder>(brightnessAdjustmentShaderEffect_);
+    if (!builder) {
+        ROSEN_LOGE("RSLogicalDisplayRenderNodeDrawable::MakeBrightnessAdjustmentShaderBuilder builder is null");
+        return nullptr;
+    }
+    builder->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, sampling, Drawing::Matrix()));
+    builder->SetUniform("ratio", hdrBrightnessRatio);
+    return builder->MakeShader(nullptr, false);
 }
 
 void RSLogicalDisplayRenderNodeDrawable::MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId)

@@ -89,6 +89,9 @@ bool DrawingGpuContextManager::Remove(void* key)
     std::unique_lock lock(mutex_);
     auto iter = gpuContext_.find(key);
     if (iter != gpuContext_.end()) {
+        if (iter->second != nullptr) {
+            iter->second->PurgeUnlockedResources(false);
+        }
         gpuContext_.erase(iter);
         return true;
     } else {

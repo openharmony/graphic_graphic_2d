@@ -109,7 +109,6 @@ private:
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableVisibleRect();
     bool EnableSlrScale();
-    bool IsHDRCast(RSScreenRenderParams* screenParams);
     GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
 
     static inline const std::map<GraphicColorGamut,

@@ -842,7 +842,6 @@ ohos_unittest("RSHrpServiceTest") {
     "$graphic_2d_root/rosen/test/include",
 
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
-    "//drivers/peripheral/display/interfaces/include/",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/utils/log",
   ]

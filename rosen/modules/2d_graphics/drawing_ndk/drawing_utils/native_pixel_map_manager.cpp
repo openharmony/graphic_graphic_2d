@@ -15,6 +15,11 @@
 
 #include "native_pixel_map_manager.h"
 
+#ifdef OHOS_PLATFORM
+#include "pixelmap_native_impl.h"
+#include "native_pixel_map.h"
+#endif
+
 NativePixelMapManager& NativePixelMapManager::GetInstance()
 {
     static NativePixelMapManager instance;
@@ -42,3 +47,32 @@ NativePixelMapType NativePixelMapManager::GetNativePixelMapType(void* handle)
     }
     return iter->second;
 }
+
+namespace OHOS {
+namespace Rosen {
+#ifdef OHOS_PLATFORM
+std::shared_ptr<OHOS::Media::PixelMap> GetPixelMapFromNativePixelMap(OH_Drawing_PixelMap* pixelMap)
+{
+    if (pixelMap == nullptr) {
+        return nullptr;
+    }
+    
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMapPtr = nullptr;
+    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
+        case NativePixelMapType::OBJECT_FROM_C:
+            if (pixelMap) {
+                pixelMapPtr = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
+            }
+            break;
+        case NativePixelMapType::OBJECT_FROM_JS:
+            pixelMapPtr = OHOS::Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
+            break;
+        default:
+            break;
+    }
+    
+    return pixelMapPtr;
+}
+#endif
+} // namespace Rosen
+} // namespace OHOS

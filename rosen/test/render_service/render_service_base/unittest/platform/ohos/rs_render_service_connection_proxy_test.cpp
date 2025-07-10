@@ -452,7 +452,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFrameGravity, TestSize.Lev
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenRefreshRate, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenRefreshRate, TestSize.Level0)
 {
     ScreenId id = 1;
     int32_t sceneId = 1;
@@ -467,7 +467,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenRefreshRate, TestSize.Leve
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, SetRefreshRateMode, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetRefreshRateMode, TestSize.Level0)
 {
     int32_t refreshRateMode = 1;
     proxy->SetRefreshRateMode(refreshRateMode);
@@ -480,7 +480,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetRefreshRateMode, TestSize.Level1
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, SyncFrameRateRange, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, SyncFrameRateRange, TestSize.Level0)
 {
     FrameRateLinkerId id = 1;
     FrameRateRange range;
@@ -509,7 +509,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, UnregisterFrameRateLinker, TestSize
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, GetCurrentRefreshRateMode, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetCurrentRefreshRateMode, TestSize.Level0)
 {
     ScreenId id = 1;
     EXPECT_EQ(proxy->GetScreenCurrentRefreshRate(id), 0);
@@ -522,7 +522,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetCurrentRefreshRateMode, TestSize
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenSupportedRefreshRates, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenSupportedRefreshRates, TestSize.Level0)
 {
     ScreenId id = 1;
     ASSERT_EQ(proxy->GetScreenSupportedRefreshRates(id).size(), 0);
@@ -546,7 +546,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetShowRefreshRateEnabled, TestSize
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, GetRealtimeRefreshRate, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetRealtimeRefreshRate, TestSize.Level0)
 {
     EXPECT_GE(proxy->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
 }
@@ -1092,7 +1092,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallb
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterHgmRefreshRateUpdateCallback, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterHgmRefreshRateUpdateCallback, TestSize.Level0)
 {
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
@@ -1200,7 +1200,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyLightFactorStatus, TestSize.L
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSize.Level0)
 {
     std::vector<std::string> packageList;
     proxy->NotifyPackageEvent(1, packageList);
@@ -1483,6 +1483,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ProfilerIsSecureScreenTest, TestSiz
 {
     ASSERT_NE(proxy, nullptr);
     proxy->ProfilerIsSecureScreen();
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: ClearUifirstCache Test
+ * @tc.desc: ClearUifirstCache Test
+ * @tc.type:FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, ClearUifirstCacheTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    proxy->ClearUifirstCache(nodeId);
     ASSERT_TRUE(proxy);
 }
 } // namespace Rosen

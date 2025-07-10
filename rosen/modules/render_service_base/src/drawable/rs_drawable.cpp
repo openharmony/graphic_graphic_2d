@@ -76,6 +76,7 @@ static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDraw
     { RSModifierType::FG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BLENDER },
     { RSModifierType::FG_BRIGHTNESS_NEGCOEFF,                    RSDrawableSlot::BLENDER },
     { RSModifierType::FG_BRIGHTNESS_FRACTION,                    RSDrawableSlot::BLENDER },
+    { RSModifierType::FG_BRIGHTNESS_HDR,                         RSDrawableSlot::BLENDER },
     { RSModifierType::BG_BRIGHTNESS_RATES,                       RSDrawableSlot::BACKGROUND_COLOR },
     { RSModifierType::BG_BRIGHTNESS_SATURATION,                  RSDrawableSlot::BACKGROUND_COLOR },
     { RSModifierType::BG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BACKGROUND_COLOR },
@@ -628,6 +629,8 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::SHADOW))) {
         dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
+        // adapt to USE_SHADOW_BATCHING
+        dirtySlots.emplace(RSDrawableSlot::CHILDREN);
     }
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::FRAME))) {

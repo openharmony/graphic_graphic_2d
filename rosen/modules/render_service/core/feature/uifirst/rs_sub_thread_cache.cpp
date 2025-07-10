@@ -1009,11 +1009,6 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
             __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
             cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
     }
-    if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
-        (surfaceParams.HasBlackListByScreenId(RSUniRenderThread::GetCaptureParam().virtualScreenId_) ||
-        surfaceParams.HasBlackListByScreenId(INVALID_SCREEN_ID))) {
-        return true;
-    }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d",
         surfaceParams.GetName().c_str(), surfaceParams.GetId(), enableType, cacheState);
     Drawing::Rect bounds = surfaceParams.GetBounds();
@@ -1048,7 +1043,12 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         surfaceDrawable->DrawBackground(canvas, bounds);
     }
     canvas.SetStencilVal(stencilVal);
-    bool drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    bool drawCacheSuccess = true;
+    if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
+        drawCacheSuccess = DrawUIFirstCacheWithStarting(surfaceDrawable, canvas, surfaceParams.GetUifirstUseStarting());
+    } else {
+        drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    }
     canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);

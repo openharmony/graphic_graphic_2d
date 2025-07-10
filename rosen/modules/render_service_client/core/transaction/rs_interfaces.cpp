@@ -1097,11 +1097,11 @@ void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
     renderServiceClient_->SetFreeMultiWindowStatus(enable);
 }
 
-bool RSInterfaces::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+bool RSInterfaces::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback)
 {
     RS_LOGD("interface::RegisterTransactionDataCallback, timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
-    return renderServiceClient_->RegisterTransactionDataCallback(pid, timeStamp, callback);
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    return renderServiceClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
@@ -1130,9 +1130,9 @@ bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
     return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 
-void RSInterfaces::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+void RSInterfaces::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    renderServiceClient_->SetLayerTopForHWC(nodeIdStr, isTop, zOrder);
+    renderServiceClient_->SetLayerTopForHWC(nodeId, isTop, zOrder);
 }
 
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
@@ -1216,6 +1216,11 @@ bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return renderServiceClient_->GetBehindWindowFilterEnabled(enabled);
+}
+
+void RSInterfaces::ClearUifirstCache(NodeId id)
+{
+    renderServiceClient_->ClearUifirstCache(id);
 }
 } // namespace Rosen
 } // namespace OHOS

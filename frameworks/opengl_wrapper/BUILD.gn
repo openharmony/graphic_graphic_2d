@@ -33,6 +33,9 @@ config("egl_config") {
   if (graphic_2d_feature_enable_opengl_to_vulkan) {
     defines += [ "OPENGL_WRAPPER_ENABLE_GL4" ]
   }
+  if (use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+  }
   cflags = [
     "-Wall",
     "-Werror",

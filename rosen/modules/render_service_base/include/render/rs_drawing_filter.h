@@ -33,6 +33,7 @@ namespace Rosen {
 class RSPaintFilterCanvas;
 class RSB_EXPORT RSDrawingFilter : public RSFilter {
 public:
+    RSDrawingFilter() = default;
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash);
     RSDrawingFilter(std::shared_ptr<RSRenderFilterParaBase> shaderFilter);
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
@@ -72,6 +73,17 @@ public:
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter> other) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<Drawing::ImageFilter> other, uint32_t hash) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSRenderFilterParaBase> other) const;
+    inline void SetNGRenderFilter(std::shared_ptr<RSNGRenderFilterBase> filter)
+    {
+        renderFilter_ = filter;
+    }
+    inline std::shared_ptr<RSNGRenderFilterBase> GetNGRenderFilter() const
+    {
+        return renderFilter_;
+    }
+
+    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+
     bool CanSkipFrame() const
     {
         return canSkipFrame_;
@@ -96,6 +108,8 @@ public:
 
     void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha);
+
+    void SetDisplayHeadroom(float headroom) override;
 
 private:
     struct DrawImageRectAttributes {

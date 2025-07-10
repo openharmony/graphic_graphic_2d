@@ -56,7 +56,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
+constexpr uint32_t ALPHA_MASK = 0xFF000000;
 namespace {
     const std::string UICAPTURE_TASK_PREFIX = "uicapture_task_";
 };
@@ -78,6 +78,21 @@ static inline void DrawCapturedImg(Drawing::Image& image,
     surface.FlushAndSubmit(true);
 }
 #endif
+
+uint32_t PixelMapSamplingDump(std::unique_ptr<Media::PixelMap>& pixelmap, int32_t x, int32_t y)
+{
+    if (pixelmap == nullptr) {
+        RS_LOGE("RSUiCaptureTaskParallel::PixelMapSamplingDump fail: pixelmap is nullptr");
+        return 0;
+    }
+    if (x < 0 || y < 0 || x >= pixelmap->GetWidth() || y >= pixelmap->GetHeight()) {
+        RS_LOGE("RSUiCaptureTaskParallel::PixelMapSamplingDump fail: x or y invalid");
+        return 0;
+    }
+    uint32_t pixel = 0;
+    pixelmap->ReadPixel({x, y}, pixel);
+    return pixel;
+}
 
 bool RSUiCaptureTaskParallel::IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect)
 {
@@ -271,16 +286,16 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
     int32_t rectLeft = specifiedAreaRect.GetLeft();
     int32_t rectTop = specifiedAreaRect.GetTop();
-    Drawing::scalar x_offset = static_cast<Drawing::scalar>(-1 * rectLeft);
-    Drawing::scalar y_offset = static_cast<Drawing::scalar>(-1 * rectTop);
+    Drawing::scalar xOffset = static_cast<Drawing::scalar>(-1 * rectLeft);
+    Drawing::scalar yOffset = static_cast<Drawing::scalar>(-1 * rectTop);
     if (HasEndNodeRect()) {
-        x_offset = captureConfig_.scaleX * (startRect_.left_ - endRect_.left_);
-        y_offset = captureConfig_.scaleY * (startRect_.top_ - endRect_.top_);
+        xOffset = captureConfig_.scaleX * (startRect_.left_ - endRect_.left_);
+        yOffset = captureConfig_.scaleY * (startRect_.top_ - endRect_.top_);
     }
-    relativeMatrix.Set(Drawing::Matrix::Index::TRANS_X, x_offset);
-    relativeMatrix.Set(Drawing::Matrix::Index::TRANS_Y, y_offset);
+    relativeMatrix.Set(Drawing::Matrix::Index::TRANS_X, xOffset);
+    relativeMatrix.Set(Drawing::Matrix::Index::TRANS_Y, yOffset);
     RS_LOGD("RSUiCaptureTaskParallel::Run: specifiedAreaRect offsetX is [%{public}f], offsetY is [%{public}f]",
-        x_offset, y_offset);
+        xOffset, yOffset);
     Drawing::Matrix invertMatrix;
     if (nodeParams->GetMatrix().Invert(invertMatrix)) {
         relativeMatrix.PreConcat(invertMatrix);
@@ -495,6 +510,14 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         // To get dump image
         // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
         RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
+        auto pixelDump = PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, 0) |
+                         PixelMapSamplingDump(pixelmap, 0, pixelmap->GetHeight() / 2) |
+                         PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() / 2) |
+                         PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() - 1, pixelmap->GetHeight() / 2) |
+                         PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() - 1);
+        if ((pixelDump & ALPHA_MASK) == 0) {
+            RS_LOGW("RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask pixelmap is transparent");
+        }
         RS_LOGI("RSUiCaptureTaskParallel::Capture capture success nodeId:[%{public}" PRIu64
                 "], pixelMap width: %{public}d, height: %{public}d",
             id, pixelmap->GetWidth(), pixelmap->GetHeight());

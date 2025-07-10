@@ -47,6 +47,7 @@
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "screen_manager/rs_screen.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -4181,7 +4182,7 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode001, TestSize.Level
 
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
     rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_TRUE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+    ASSERT_TRUE(RSOpincManager::Instance().OpincGetNodeSupportFlag(*rsCanvasRenderNode));
 }
 
 /**
@@ -4501,12 +4502,11 @@ HWTEST_F(RSUniRenderVisitorTest, UpdatePointWindowDirtyStatus001, TestSize.Level
     surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceNode->name_ = "pointer window";
 
-    // globalZOrder_ + 2 is displayNode layer
     ASSERT_NE(surfaceNode->GetMutableRSSurfaceHandler(), nullptr);
-    auto displayLayerZoder = surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_ + 2;
 
     rsUniRenderVisitor->UpdatePointWindowDirtyStatus(surfaceNode);
-    ASSERT_EQ(displayLayerZoder, surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_);
+    ASSERT_EQ(
+        static_cast<float>(TopLayerZOrder::POINTER_WINDOW), surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_);
 }
 
 /*
@@ -4520,6 +4520,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
     surfaceConfig.name = "SCBBannerNotification";
+    surfaceConfig.surfaceWindowType = SurfaceWindowType::SCB_BANNER_NOTIFICATION;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
@@ -4813,6 +4814,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDebugRectforRefreshRate, TestSize.Lev
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 10;
     surfaceConfig.name = "SCBGestureBack";
+    surfaceConfig.surfaceWindowType = SurfaceWindowType::SCB_GESTURE_BACK;
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
     std::vector<RSBaseRenderNode::SharedPtr> surfaces2 = {surfaceNode2};
     rsUniRenderVisitor->CheckMergeDebugRectforRefreshRate(surfaces2);
@@ -5061,7 +5063,43 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId001, TestSize.Level2)
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
     EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
 }
- 
+
+/*
+ * @tc.name: UpdateTopLayersDirtyStatusTest
+ * @tc.desc: Test UpdateTopLayersDirtyStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateTopLayersDirtyStatusTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+
+    RSSurfaceRenderNodeConfig config;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1, 0, rsContext);
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
+    topLayers.emplace_back(surfaceNode);
+    rsUniRenderVisitor->UpdateTopLayersDirtyStatus(topLayers);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    EXPECT_EQ(surfaceHandler->GetGlobalZOrder(), 1);
+    topLayers.clear();
+
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    surfaceNode1->SetLayerTop(true);
+    surfaceNode1->SetTopLayerZOrder(2);
+    surfaceNode1->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode1->GetId());
+    topLayers.emplace_back(surfaceNode1);
+    rsUniRenderVisitor->UpdateTopLayersDirtyStatus(topLayers);
+    auto surfaceHandler1 = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler1, nullptr);
+    EXPECT_EQ(surfaceHandler1->GetGlobalZOrder(), 2);
+}
+
 /*
  * @tc.name: HandleTunnelLayerId002
  * @tc.desc: Test HandleTunnelLayerId002

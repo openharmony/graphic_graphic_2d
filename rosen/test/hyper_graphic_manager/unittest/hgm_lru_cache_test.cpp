@@ -42,7 +42,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmLRUCacheTest, Put, Function | SmallTest | Level1)
+HWTEST_F(HgmLRUCacheTest, Put, Function | SmallTest | Level0)
 {
     constexpr int32_t cacheSize = 3;
     constexpr int32_t val0 = 0;

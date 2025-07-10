@@ -28,7 +28,7 @@ public:
     RSITransactionDataCallback() = default;
     virtual ~RSITransactionDataCallback() noexcept = default;
 
-    virtual void OnAfterProcess(int32_t pid, uint64_t timeStamp) = 0;
+    virtual void OnAfterProcess(uint64_t token, uint64_t timeStamp) = 0;
 };
 }// namespace Rosen
 }// namespace OHOS

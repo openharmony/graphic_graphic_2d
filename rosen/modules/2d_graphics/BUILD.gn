@@ -165,7 +165,6 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/text/font_mgr.cpp",
       "$drawing_core_src_dir/text/font_style_set.cpp",
       "$drawing_core_src_dir/text/hm_symbol.cpp",
-      "$drawing_core_src_dir/text/hm_symbol_config_ohos.cpp",
       "$drawing_core_src_dir/text/text.cpp",
       "$drawing_core_src_dir/text/text_blob.cpp",
       "$drawing_core_src_dir/text/text_blob_builder.cpp",
@@ -284,6 +283,11 @@ template("graphics2d_source_set") {
       ]
     }
     cflags = []
+
+    if (is_ohos && is_clang && target_cpu == "arm64") {
+      cflags += [ "-mno-fix-cortex-a53-843419" ]
+    }
+
     if (defined(graphic_2d_ext_feature_enable_ddgr) &&
         graphic_2d_ext_feature_enable_ddgr) {
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
@@ -435,6 +439,13 @@ if (!is_arkui_x) {
 
     if (platform == "ohos") {
       version_script = "2d_graphics.versionscript"
+    }
+
+    if (is_ohos && is_clang && target_cpu == "arm64") {
+      ldflags = [
+        "-Wl,--emit-relocs",
+        "-Wl,--no-relax"
+      ]
     }
 
     part_name = "graphic_2d"

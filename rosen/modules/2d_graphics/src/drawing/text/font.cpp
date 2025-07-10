@@ -220,7 +220,7 @@ uint16_t Font::UnicharToGlyphWithFeatures(const char* uni,
     while (utf8Current < utf8End) {
         uint32_t cluster = utf8Current - uni;
         SkUnichar val = SkUTF::NextUTF8(&utf8Current, utf8End);
-        hb_codepoint_t u = val < 0 ? 0XFFDD : val;
+        hb_codepoint_t u = val < 0 ? 0XFFDD : static_cast<hb_codepoint_t>(val);
         hb_buffer_add(buffer1, u, cluster);
     }
 
