@@ -13,19 +13,18 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <fstream>
-#include <unistd.h>
+#include <condition_variable>
 #include <cstdio>
+#include <cstring>
+#include <fstream>
 #include <iostream>
-#include <thread>
 #include <mutex>
 #include <queue>
-#include <condition_variable>
-#include <cstring>
+#include <securec.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <securec.h>
+#include <thread>
+#include <unistd.h>
 
 #include "rs_graphic_test_utils.h"
 #include "rs_profiler_packet.h"
