@@ -54,6 +54,18 @@ public:
     };
 };
 
+class RSIllegalTypeRenderModifier : public ModifierNG::RSRenderModifier {
+public:
+    RSIllegalTypeRenderModifier() = default;
+    ~RSIllegalTypeRenderModifier() override = default;
+
+    static inline constexpr auto Type = static_cast<ModifierNG::RSModifierType>(10000);
+    ModifierNG::RSModifierType GetType() const override
+    {
+        return Type;
+    };
+};
+
 class RSInvalidRenderModifier : public ModifierNG::RSRenderModifier {
 public:
     RSInvalidRenderModifier() = default;
@@ -210,6 +222,13 @@ HWTEST_F(RSRenderModifierNGTest, UnmarshallingTest, TestSize.Level1)
     EXPECT_TRUE(ret);
     auto renderModifier7 = ModifierNG::RSRenderModifier::Unmarshalling(parcel4);
     EXPECT_EQ(renderModifier7, nullptr);
+
+    Parcel parcel5;
+    auto renderModifier8 = std::make_shared<RSIllegalTypeRenderModifier>();
+    ret = renderModifier8->Marshalling(parcel5);
+    EXPECT_TRUE(ret);
+    auto renderModifier9 = ModifierNG::RSRenderModifier::Unmarshalling(parcel5);
+    EXPECT_EQ(renderModifier9, nullptr);
 }
 
 /**
