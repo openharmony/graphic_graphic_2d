@@ -107,7 +107,7 @@ VsyncError VSyncConnectionProxy::SetNativeDVSyncSwitch(bool dvsyncSwitch)
     return static_cast<VsyncError>(ret.ReadInt32());
 }
 
-VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount)
+VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
 {
     MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;
@@ -119,6 +119,14 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount)
     }
     if (!arg.WriteInt32(bufferCount)) {
         VLOGE("SetUiDvsyncConfig bufferCount error");
+        return VSYNC_ERROR_UNKOWN;
+    }
+    if (!arg.WriteBool(delayEnable)) {
+        VLOGE("SetUiDvsyncConfig delayEnable error");
+        return VSYNC_ERROR_UNKOWN;
+    }
+    if (!arg.WriteBool(nativeDelayEnable)) {
+        VLOGE("SetUiDvsyncConfig nativeDelayEnable error");
         return VSYNC_ERROR_UNKOWN;
     }
     auto remote = Remote();

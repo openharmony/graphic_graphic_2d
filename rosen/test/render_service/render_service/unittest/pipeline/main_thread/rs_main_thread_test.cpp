@@ -1525,6 +1525,29 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsSurfaceConsumerNeedSkip001
+ * @tc.desc: IsSurfaceConsumerNeedSkip test
+ * @tc.type: FUNC
+ * @tc.require: issueICKWDL
+ */
+HWTEST_F(RSMainThreadTest, IsSurfaceConsumerNeedSkip001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto distributor = mainThread->rsVSyncDistributor_;
+    sptr<IConsumerSurface> cSurface = nullptr;
+    auto res = mainThread->IsSurfaceConsumerNeedSkip(cSurface);
+    ASSERT_EQ(res, false);
+    cSurface = IConsumerSurface::Create();
+    auto vsyncGenerator = CreateVSyncGenerator();
+    auto vsyncController = new VSyncController(vsyncGenerator, 0);
+    mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    res = mainThread->IsSurfaceConsumerNeedSkip(cSurface);
+    ASSERT_EQ(res, false);
+    mainThread->rsVSyncDistributor_ = distributor;
+}
+
+/**
  * @tc.name: CheckSubThreadNodeStatusIsDoing001
  * @tc.desc: CheckSubThreadNodeStatusIsDoing test
  * @tc.type: FUNC

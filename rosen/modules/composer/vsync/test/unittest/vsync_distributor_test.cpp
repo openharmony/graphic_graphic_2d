@@ -489,7 +489,7 @@ HWTEST_F(VSyncDistributorTest, GetUiCommandDelayTime001, Function | MediumTest| 
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig001, Function | MediumTest| Level3)
 {
     uint32_t bufferCount = 2;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount, false, false), VSYNC_ERROR_OK);
 }
 
 /*
@@ -532,7 +532,7 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest001, Function | MediumTest| 
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetUiDvsyncConfig(1), VSYNC_ERROR_OK);
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_OK);
 }
 
 /*
@@ -547,7 +547,7 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Lev
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest001, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetUiDvsyncConfig(1), VSYNC_ERROR_NULLPTR);
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_NULLPTR);
 }
 
 /*
@@ -1581,6 +1581,19 @@ HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest022, Function | MediumTest| Le
     uint32_t pid = 0;
     ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: NeedSkipForSurfaceBuffer001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NeedSkipForSurfaceBuffer
+ */
+HWTEST_F(VSyncDistributorTest, NeedSkipForSurfaceBuffer001, Function | MediumTest| Level3)
+{
+    uint64_t id = 1;
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->NeedSkipForSurfaceBuffer(id), false);
 }
 
 /*

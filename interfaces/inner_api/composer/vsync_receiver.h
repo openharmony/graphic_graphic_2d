@@ -238,12 +238,14 @@ public:
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
 
     /**
-     * @brief set UI Dvsync configuration.
+     * @brief set Dvsync dynamic configuration.
      *
      * @param bufferCount is buffer count.
+     * @param delayEnable is dvsync delay enable.
+     * @param nativeDelayEnable is dvsync native delay enable.
      * @return Returns an error code.
      */
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount);
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
 
     /**
      * @brief request next vsync signal.
