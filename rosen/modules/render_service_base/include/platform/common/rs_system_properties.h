@@ -376,6 +376,7 @@ public:
     static bool GetCompositeLayerEnabled();
     static bool GetEarlyZEnable();
     static bool GetAIBarOptEnabled();
+    static bool GetRSMemoryInfoManagerParam();
 
 private:
     RSSystemProperties() = default;

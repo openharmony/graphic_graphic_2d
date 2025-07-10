@@ -26,6 +26,10 @@ ohos_unittest("RSRenderServiceBaseMemoryTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
+  if (current_os == "ohos" && graphic_2d_feature_enable_memory_info_manager) {
+    defines += [ "RS_MEMORY_INFO_MANAGER" ]
+  }
+
   sources = [
     "rs_memory_flow_control_test.cpp",
     "rs_memory_graphic_test.cpp",

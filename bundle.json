@@ -62,7 +62,8 @@
         "graphic_2d_feature_screenless_enable",
         "graphic_2d_feature_tv_metadata_enable",
         "graphic_2d_feature_upgrade_skia",
-        "graphic_2d_feature_enable_rdo"
+        "graphic_2d_feature_enable_rdo",
+        "graphic_2d_feature_enable_memory_info_manager"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
