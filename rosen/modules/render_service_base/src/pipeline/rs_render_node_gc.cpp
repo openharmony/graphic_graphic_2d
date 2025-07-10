@@ -32,12 +32,10 @@ struct MemoryHook {
 
     inline void Protect()
     {
-        static const int sigNo = 42; // Report to HiViewOcean
         static const bool isBeta = RSSystemProperties::GetVersionType() == "beta";
         if (CheckIsNotValid()) {
             if (isBeta) {
                 RS_LOGE("Drawable Protect %{public}u %{public}u", high, low);
-                raise(sigNo);
             }
             high = 0;
             low = 0;

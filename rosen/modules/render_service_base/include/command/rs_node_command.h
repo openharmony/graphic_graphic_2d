@@ -59,6 +59,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DRAW_CMD_LIST_NG = 0x0120,
     UPDATE_MODIFIER_NG_FILTER_BASE_PTR = 0X0121,
     UPDATE_MODIFIER_NG_SHADER_BASE_PTR = 0X0122,
+    UPDATE_MODIFIER_NG_MASK_BASE_PTR = 0X0123,
 
 
     SET_FREEZE = 0x0200,
@@ -237,6 +238,10 @@ ADD_COMMAND(RSUpdatePropertyNGShaderBase,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_SHADER_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderShaderBase>>,
         NodeId, std::shared_ptr<RSNGRenderShaderBase>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyNGMaskBase,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_MASK_BASE_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderMaskBase>>,
+        NodeId, std::shared_ptr<RSNGRenderMaskBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyImage,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSImage>>,

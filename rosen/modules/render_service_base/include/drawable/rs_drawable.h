@@ -94,7 +94,7 @@ enum class RSDrawableSlot : int8_t {
 
     // Annotations: Please remember to update this when new slots are added.
     // properties before Background, not clipped
-    TRANSITION_PROPERTIES_BEGIN = SHADOW,
+    TRANSITION_PROPERTIES_BEGIN = MASK,
     TRANSITION_PROPERTIES_END   = OUTLINE,
     // background properties, clipped by bounds by default
     BG_PROPERTIES_BEGIN         = BLENDER,

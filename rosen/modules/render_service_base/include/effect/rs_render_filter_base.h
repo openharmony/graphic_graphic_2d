@@ -98,6 +98,9 @@ public:
     static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
         std::shared_ptr<Drawing::GEVisualEffectContainer> container);
 
+    static void SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
+        const Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+
     static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
                                 std::shared_ptr<Drawing::GEVisualEffect> target);
 };

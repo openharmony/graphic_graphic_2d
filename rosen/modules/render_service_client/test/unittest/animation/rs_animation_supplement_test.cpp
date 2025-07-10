@@ -217,7 +217,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest001 end";
 }
 
-#ifndef MODIFIER_NG
 /**
  * @tc.name: AnimationSupplementTest002
  * @tc.desc: Verify the setcallback of Animation
@@ -264,7 +263,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
     EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest002 end";
 }
-#endif
 
 /**
  * @tc.name: AnimationSupplementTest003

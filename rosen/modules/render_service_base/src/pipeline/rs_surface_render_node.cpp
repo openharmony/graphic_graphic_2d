@@ -3048,7 +3048,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), screenNodeId);
     }
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
-    SendSurfaceNodeTreeStatus(onTree);
+    UpdateSurfaceNodeTreeStatusForAps(onTree);
 #endif
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
         "on tree: %d, nodeType: %d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
@@ -3088,13 +3088,15 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
 }
 
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
-void RSSurfaceRenderNode::SendSurfaceNodeTreeStatus(bool onTree)
+void RSSurfaceRenderNode::UpdateSurfaceNodeTreeStatusForAps(bool onTree)
 {
-    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && !onTree) {
-        std::shared_ptr<ApsMonitorImpl> apsMonitor = std::make_shared<ApsMonitorImpl>();
-        apsMonitor->SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
-        prevSelfDrawHeight_ = 0.0f;
-        prevSelfDrawWidth_ = 0.0f;
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        ApsMonitorImpl::GetInstance().SetApsSurfaceNodeTreeChange(onTree, name_);
+        if (!onTree) {
+            ApsMonitorImpl::GetInstance().SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
+            prevSelfDrawHeight_ = 0.0f;
+            prevSelfDrawWidth_ = 0.0f;
+        }
     }
 }
 

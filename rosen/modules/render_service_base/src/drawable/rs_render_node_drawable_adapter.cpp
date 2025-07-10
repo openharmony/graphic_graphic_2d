@@ -100,7 +100,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
                 ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node id in Cache is %{public}" PRIu64
-                    ", nodeType: %{public}d, drawableType: %{public}d", id, node->GetType(), ptr->GetNodeType());
+                    ", nodeType: %{public}u, drawableType: %{public}u", id, node->GetType(), ptr->GetNodeType());
                 return ptr;
             } else {
                 RenderNodeDrawableCache_.erase(cacheIt);
