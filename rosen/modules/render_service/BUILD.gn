@@ -82,6 +82,7 @@ ohos_shared_library("librender_service") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
   }
   defines += gpu_defines
+  defines += [ "MODULE_RS" ]
   cflags = [ "-DIMAGE_COLORSPACE_FLAG" ]
   if (is_ohos && is_clang && target_cpu == "arm64") {
     cflags += [ "-mno-fix-cortex-a53-843419" ]

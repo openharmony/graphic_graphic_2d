@@ -114,6 +114,8 @@ private:
 #undef LOG_TAG
 #define LOG_TAG "OHOS::RS"
 
+#if defined(MODULE_RSB) || defined(MODULE_RS)
+
 #define ROSEN_LOGI(format, ...) \
     HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
 #define ROSEN_LOGD(format, ...)                   \
@@ -138,6 +140,22 @@ private:
     HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__); \
     OHOS::Rosen::RSLogWOutput(format, ##__VA_ARGS__)
 #define RS_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#else
+
+#define ROSEN_LOGI(format, ...) HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGD(format, ...) HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGE(format, ...) HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGW(format, ...) HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#define RS_LOGI(format, ...) HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGD(format, ...) HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGE(format, ...) HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGW(format, ...) HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#endif
 
 #define CONDITION(cond)     (__builtin_expect((cond) != 0, 0))
 
