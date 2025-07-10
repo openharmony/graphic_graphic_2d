@@ -56,7 +56,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RSScreenRenderNodeFuzzTest",
+    ":RSDisplayRenderNodeFuzzTest",
   ]
 }
 ###############################################################################

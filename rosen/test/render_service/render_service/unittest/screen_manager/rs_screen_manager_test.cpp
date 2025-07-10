@@ -3780,8 +3780,8 @@ HWTEST_F(RSScreenManagerTest, SetScreenOffset001, TestSize.level1)
     auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
     EXPECT_NE(screenManagerImpl, nullptr);
     screenManagerImpl->SetScreenOffset(0, 0, 0);
-    auto rsScreen0 = 
-        std::make_shared<impl:: RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
     screenManagerImpl->screens_.clear();
     screenManagerImpl->screens_.insert(std::make_pair(100, rsScreen0));
     screenManagerImpl->SetScreenOffset(0, 0, 0);
