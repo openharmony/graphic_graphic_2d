@@ -21,35 +21,35 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <fuzzer/FuzzedDataProvider.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 #include <unistd.h>
 #include <unordered_map>
 
-#include "accesstoken_kit.h"
-#ifdef SUPPORT_ACCESS_TOKEN
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
-#endif
-#include "ipc_object_proxy.h"
-#include "ipc_object_stub.h"
-#include "iremote_object.h"
 #include "message_parcel.h"
 #include "securec.h"
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
-#endif
-#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
-#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
-#include "platform/ohos/rs_render_service_connect_hub.cpp"
-#include "screen_manager/rs_screen_manager.h"
-#include "transaction/rs_render_service_client.h"
+#include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
+DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
+auto g_pid = getpid();
+auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+auto mainThread_ = RSMainThread::Instance();
+sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+
+DVSyncFeatureParam dvsyncParam;
+auto generator = CreateVSyncGenerator();
+auto appVSyncController = new VSyncController(generator, 0);
+sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
+sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
 const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 0;
 const uint8_t DO_SET_SCREEN_ACTIVE_MODE = 1;
@@ -133,55 +133,260 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 } // namespace Mock
 
 void DoSetScreenChangeCallback()
-{}
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIScreenChangeCallback> rsIScreenChangeCallback_ = iface_cast<RSIScreenChangeCallback>(remoteObject);
+
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteRemoteObject(rsIScreenChangeCallback_->AsObject());
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoSetScreenActiveMode()
-{}
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    uint32_t modeId = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint32(modeId);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoSetScreenRefreshRate()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint64_t id = GetData<uint64_t>();
+    int32_t sceneId = GetData<int32_t>();
+    int32_t rate = GetData<int32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteInt32(sceneId);
+    dataParcel.WriteInt32(rate);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoSetRefreshRateMode()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    int32_t mode = GetData<int32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInt32(mode);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoSyncFrameRateRange()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint64_t id = static_cast<NodeId>(g_pid) << 32;
+    uint32_t min = GetData<uint32_t>();
+    uint32_t max = GetData<uint32_t>();
+    uint32_t preferred = GetData<uint32_t>();
+    uint32_t type = GetData<uint32_t>();
+    uint32_t componentScene = GetData<uint32_t>();
+    int32_t animatorExpectedFrameRate = GetData<int32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint32(min);
+    dataParcel.WriteUint32(max);
+    dataParcel.WriteUint32(preferred);
+    dataParcel.WriteUint32(type);
+    dataParcel.WriteUint32(componentScene);
+    dataParcel.WriteInt32(animatorExpectedFrameRate);
+
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoUnregisterFrameRateLinker()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint64_t id = static_cast<NodeId>(g_pid) << 32;
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoGetScreenCurrentRefreshRate()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint64_t id = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoGetCurrentRefreshRateMode()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoGetScreenSupportedRefreshRates()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoGetShowRefreshRateEnabled()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoSetShowRefreshRateEnabled()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    bool enabled = GetData<bool>();
+    int32_t type = GetData<int32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBool(enabled);
+    dataParcel.WriteInt32(type);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoGetRealtimeRefreshRate()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoGetRefreshInfo()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    int32_t pid = GetData<int32_t>();
+    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteInt32(pid);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoRegisterHgmRefreshRateUpdateCallback()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    bool readRemoteObject = GetData<bool>();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteBool(readRemoteObject);
+    dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    int32_t dstPid = GetData<int32_t>();
+    bool readRemoteObject = GetData<bool>();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> fpsUpdateCallback =
+        iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
+    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteInt32(dstPid);
+    dataParcel.WriteBool(readRemoteObject);
+    dataParcel.WriteRemoteObject(fpsUpdateCallback->AsObject());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoRegisterHgmRefreshRateModeChangeCallback()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback =
+        iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoGetRefreshInfoToSP()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    uint64_t nodeId = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
