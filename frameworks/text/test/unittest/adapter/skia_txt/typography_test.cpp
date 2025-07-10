@@ -34,7 +34,7 @@ class OH_Drawing_TypographyTest : public testing::Test {
  * @tc.desc: Test for badge text
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest001, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest001, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle superscriptTextStyle;
@@ -83,7 +83,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest001, 
  * @tc.desc: Test the conflict between the text badge and fontFeature
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest002, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest002, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle superscriptTextStyle;
@@ -121,7 +121,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest002, 
  * @tc.desc: test for get max width for Typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest001, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest001, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -136,7 +136,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest001, TestSize.Level
  * @tc.desc: test for get height for Typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest002, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest002, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -152,7 +152,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest002, TestSize.Level
  * @tc.desc: test for get actual width for Typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest003, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest003, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -168,7 +168,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest003, TestSize.Level
  * @tc.desc: test for get min intrinsic width for typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest004, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest004, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -183,7 +183,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest004, TestSize.Level
  * @tc.desc: test for get members for typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest005, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest005, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -207,7 +207,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest005, TestSize.Level
  * @tc.desc: test for updatting font size for typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest006, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest006, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -243,7 +243,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest006, TestSize.Level
  * @tc.desc: test for getting word boundary by index for typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -277,7 +277,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level
  * @tc.desc: test for GetLongestLineWithIndent & GetLineInfo & GetLineMetrics
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level0)
 {
     double maxWidth = 50;
     std::vector<float> indents = {1.2, 3.4};
@@ -327,7 +327,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level
  * @tc.desc: test for GetEllipsisTextRange
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level0)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -385,7 +385,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level
  * @tc.desc: test for GeneratePaintRegion
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level0)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -424,7 +424,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level
  * @tc.desc: test for truncated hight surrogate emoji text building and layouting
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level0)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -455,7 +455,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level
  * @tc.desc: test for truncated surrogate pair reverse emoji text building and layouting
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level0)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -489,7 +489,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
  * @tc.desc: test for one-run and one-line paragraph height with paragraphspacing
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level0)
 {
     // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
@@ -524,7 +524,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level
  * @tc.desc: test for multi-run paragraph height with paragraphspacing
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level0)
 {
     // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
@@ -559,7 +559,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level
  * @tc.desc: test for height with paragraphspacing(ineffective)
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level0)
 {
     // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
@@ -609,7 +609,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
  * @tc.desc: test for the actual effective value of textstyle: fallback textstyle.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level0)
 {
     // Use interfaces such as OH_Drawing_SetTypographyTextFontSize to test the fallback textstyle.
     OHOS::Rosen::TypographyStyle typographyStyle0;
@@ -644,7 +644,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
  * @tc.desc: test for the actual effective value of textstyle: default textstyle.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest017, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest017, TestSize.Level0)
 {
     // After setting the default text style in typographstyle, the fallback text style becomes ineffective.
     OHOS::Rosen::TypographyStyle typographyStyle1;
@@ -680,7 +680,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest017, TestSize.Level
  * @tc.desc: test for the actual effective value of textstyle: pushtext style.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level0)
 {
     // After pushing a new text style, the default text style becomes ineffective.
     OHOS::Rosen::TypographyStyle typographyStyle2;
@@ -719,7 +719,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level
  * @tc.desc: test obtaining some textStyle property from runMetrics.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
@@ -778,7 +778,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level
  * @tc.desc: test obtaining the some textStyle property from runMetrics.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest020, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest020, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
@@ -831,7 +831,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest020, TestSize.Level
  * @tc.desc: test obtaining the remaining textStyle property from runMetrics.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     OHOS::Rosen::TextStyle textStyle;
@@ -881,7 +881,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level
  * @tc.desc: test for multi-run and multi-line paragraph width with autospace
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest022, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest022, TestSize.Level0)
 {
     OHOS::Rosen::TextStyle style;
     style.fontSize = 40;
@@ -922,7 +922,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest022, TestSize.Level
  * @tc.desc: test for single-run and one-line paragraph width with autospace
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest023, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest023, TestSize.Level0)
 {
     OHOS::Rosen::TextStyle style;
     style.fontSize = 40;
@@ -956,6 +956,45 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest023, TestSize.Level
     EXPECT_NEAR(typography0->GetLineWidth(0) + style.fontSize / 8 * 2, typography1->GetLineWidth(0), 1e-6f);
     EXPECT_NEAR(typography0->GetLongestLineWithIndent() + style.fontSize / 8 * 2,
         typography1->GetLongestLineWithIndent(), 1e-6f);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest024
+ * @tc.desc: test for text effect
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    std::u16string text = u"test effect.";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 100;
+    typography->Layout(maxWidth);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+
+    std::unique_ptr<SPText::Paragraph> paragraphTemp = nullptr;
+    AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography.get());
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetTextBlobRecordInfo().size(), 0);
+    auto animationFunc = typographyImpl->GetAnimation();
+    EXPECT_EQ(animationFunc, nullptr);
+    typography->SetSkipTextBlobDrawing(true);
+    EXPECT_FALSE(typography->HasSkipTextBlobDrawing());
+
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_NE(typography->GetTextBlobRecordInfo().size(), 0);
+    typography->SetSkipTextBlobDrawing(true);
+    EXPECT_TRUE(typography->HasSkipTextBlobDrawing());
+    typography->SetTextEffectAssociation(true);
+    EXPECT_TRUE(typography->GetTextEffectAssociation());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -37,6 +37,7 @@
 #include "utils/scalar.h"
 #include "utils/system_properties.h"
 #include "sandbox_utils.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -379,7 +380,8 @@ std::pair<UnmarshallingHelper::UnmarshallingFunc, size_t> UnmarshallingHelper::G
 
 UnmarshallingPlayer::UnmarshallingPlayer(const DrawCmdList& cmdList) : cmdList_(cmdList) {}
 
-std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* handle, size_t avaliableSize)
+std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* handle, size_t avaliableSize,
+                                                               bool isReplayMode)
 {
     if (type == DrawOpItem::OPITEM_HEAD) {
         return nullptr;
@@ -387,7 +389,31 @@ std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, vo
 
     const auto unmarshallingPair = UnmarshallingHelper::Instance().GetFuncAndSize(type);
     /* if unmarshalling func is null or avaliable size < desirable unmarshalling size, then return nullptr*/
-    if (unmarshallingPair.first == nullptr || unmarshallingPair.second > avaliableSize) {
+    if (unmarshallingPair.first == nullptr) {
+        return nullptr;
+    }
+    if (unmarshallingPair.second > avaliableSize) {
+        if (isReplayMode) {
+            auto data = malloc(unmarshallingPair.second);
+            if (!data) {
+                return nullptr;
+            }
+            auto ret = memset_s(data, sizeof(data), 0, unmarshallingPair.second);
+            if (ret != EOK) {
+                free(data);
+                return nullptr;
+            }
+            ret = memmove_s(data, sizeof(data), handle, avaliableSize);
+            if (ret != EOK) {
+                free(data);
+                return nullptr;
+            }
+
+            auto result = (*unmarshallingPair.first)(this->cmdList_, data);
+            free(data);
+
+            return result;
+        }
         return nullptr;
     }
     return (*unmarshallingPair.first)(this->cmdList_, handle);
@@ -532,6 +558,15 @@ void DrawRectOpItem::DumpItems(std::string& out) const
 {
     out += " rect";
     rect_.Dump(out);
+}
+
+Rect DrawRectOpItem::GetOpItemCmdlistDrawRegion()
+{
+    if (rect_.IsEmpty()) {
+        LOGD("GetOpItemCmdlistDrawRegion rect opItem's bounds is null");
+        return { 0, 0, 0, 0 };
+    }
+    return rect_;
 }
 
 /* DrawRoundRectOpItem */
@@ -775,6 +810,21 @@ void DrawPathOpItem::DumpItems(std::string& out) const
         out += " Path";
         path_->Dump(out);
     }
+}
+
+Rect DrawPathOpItem::GetOpItemCmdlistDrawRegion()
+{
+    if (path_ == nullptr) {
+        LOGD("GetOpItemCmdlistDrawRegion path opItem is nullptr");
+        return { 0, 0, 0, 0 };
+    }
+
+    const auto& bounds = path_->GetBounds();
+    if (bounds.IsEmpty()) {
+        LOGD("GetOpItemCmdlistDrawRegion path opItem's bounds is null");
+        return { 0, 0, 0, 0 };
+    }
+    return bounds;
 }
 
 /* DrawBackgroundOpItem */
@@ -1933,6 +1983,27 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
         out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
         out += ']';
     }
+}
+
+Rect DrawTextBlobOpItem::GetOpItemCmdlistDrawRegion()
+{
+    if (textBlob_ == nullptr) {
+        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem is nullptr");
+        return { 0, 0, 0, 0 };
+    }
+
+    auto bounds = textBlob_->Bounds();
+    if (bounds == nullptr) {
+        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem's bounds is nullptr");
+        return { 0, 0, 0, 0 };
+    }
+
+    if (bounds->IsEmpty()) {
+        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem's bounds is null");
+        return { 0, 0, 0, 0 };
+    }
+    bounds->Offset(x_, y_);
+    return *bounds;
 }
 
 /* DrawSymbolOpItem */

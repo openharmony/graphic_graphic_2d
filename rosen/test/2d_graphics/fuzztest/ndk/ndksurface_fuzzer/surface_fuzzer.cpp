@@ -31,6 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
 void SurfaceFuzzTest000(const uint8_t* data, size_t size)
 {
     g_data = data;

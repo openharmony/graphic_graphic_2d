@@ -99,55 +99,6 @@ HWTEST_F(RSFilterTest, CreateMaterialFilterTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: operatorTest001
- * @tc.desc: Verify function operator+
- * @tc.type:FUNC
- * @tc.require: issueI9I98H
- */
-HWTEST_F(RSFilterTest, operatorTest001, TestSize.Level1)
-{
-    std::shared_ptr<RSFilter> lhs;
-    std::shared_ptr<RSFilter> rhs;
-    EXPECT_EQ(lhs + rhs, rhs);
-    lhs = std::make_shared<RSFilter>();
-    EXPECT_EQ(lhs + rhs, lhs);
-    rhs = std::make_shared<RSFilter>();
-    EXPECT_EQ(lhs + rhs, nullptr);
-}
-
-/**
- * @tc.name: operatorTest002
- * @tc.desc: Verify function operator-
- * @tc.type:FUNC
- * @tc.require: issueI9I98H
- */
-HWTEST_F(RSFilterTest, operatorTest002, TestSize.Level1)
-{
-    std::shared_ptr<RSFilter> lhs;
-    std::shared_ptr<RSFilter> rhs;
-    std::shared_ptr<RSFilter> lhss;
-    lhs = std::make_shared<RSFilter>();
-    EXPECT_EQ(lhs - rhs, lhs);
-    rhs = std::make_shared<RSFilter>();
-    EXPECT_EQ(lhss - rhs, lhss);
-    EXPECT_EQ(lhs - rhs, nullptr);
-}
-
-/**
- * @tc.name: operatorTest003
- * @tc.desc: Verify function operator*
- * @tc.type:FUNC
- * @tc.require: issueI9I98H
- */
-HWTEST_F(RSFilterTest, operatorTest003, TestSize.Level1)
-{
-    std::shared_ptr<RSFilter> lhs;
-    EXPECT_EQ(lhs * 1.0f, nullptr);
-    lhs = std::make_shared<RSFilter>();
-    EXPECT_EQ(lhs * 1.0f, nullptr);
-}
-
-/**
  * @tc.name: CreateLightUpEffectFilter
  * @tc.desc:
  * @tc.type:FUNC

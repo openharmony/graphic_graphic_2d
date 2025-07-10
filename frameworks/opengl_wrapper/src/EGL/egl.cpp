@@ -134,5 +134,6 @@ const std::map<std::string, EglWrapperFuncPointer> gExtensionMap = {
     { "eglGetStreamFileDescriptorKHR", (EglWrapperFuncPointer)&eglGetStreamFileDescriptorKHR },
     { "eglCreateStreamFromFileDescriptorKHR", (EglWrapperFuncPointer)&eglCreateStreamFromFileDescriptorKHR },
     { "eglGetNativeClientBufferANDROID", (EglWrapperFuncPointer)&eglGetNativeClientBufferANDROID },
+    { "eglDupNativeFenceFDANDROID", (EglWrapperFuncPointer)&eglDupNativeFenceFDANDROID },
 };
 }

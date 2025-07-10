@@ -60,7 +60,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode->AddChild(nodes[0], -1);
 
     rootNode->AddChild(nodes[0], -1);
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 }
 
 class NodeModifier : public RSNodeModifier {

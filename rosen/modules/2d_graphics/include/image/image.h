@@ -41,6 +41,7 @@ enum class CompressedType {
     ASTC_RGBA8_4x4,
     ASTC_RGBA8_6x6,
     ASTC_RGBA8_8x8,
+    ASTC_RGBA10_4x4,
 };
 
 enum class TextureOrigin {
@@ -456,6 +457,31 @@ public:
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
 
+    /**
+     * @brief Set whether to support opaque optimization.
+     *
+     * @param supportOpaqueOpt Whether to support opaque optimization.
+     */
+    void SetSupportOpaqueOpt(bool supportOpaqueOpt);
+
+    /**
+     * @brief Get whether to support opaque optimization.
+     *
+     * @return True if support opaque optimization, otherwise return false.
+     */
+    bool GetSupportOpaqueOpt() const;
+
+    /**
+     * @brief         Set headroom for texture in image.
+     * @param headroom  headroom value
+     */
+    void SetHeadroom(float headroom);
+
+    /**
+     * @brief         Get headroom for texture in Surface.
+     * @return        headroom value
+     */
+    float GetHeadroom() const;
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };

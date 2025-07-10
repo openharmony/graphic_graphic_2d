@@ -19,7 +19,11 @@
 #include "include/core/SkFontStyle.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkString.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkTHash.h"
+#else
 #include "include/private/SkTHash.h"
+#endif
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_memory_stream.h"
@@ -179,11 +183,14 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeDefault()
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int index)
 {
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path, index);
+
     if (!skTypeface) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
+
     skTypeface->setIsCustomTypeface(true);
+
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
@@ -214,11 +221,12 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const Fo
 
 std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
 {
+    std::vector<std::shared_ptr<Typeface>> typefaces;
     std::vector<sk_sp<SkTypeface>> skTypefaces = SkTypeface::GetSystemFonts();
     if (skTypefaces.empty()) {
         return {};
     }
-    std::vector<std::shared_ptr<Typeface>> typefaces;
+
     typefaces.reserve(skTypefaces.size());
     for (auto& item : skTypefaces) {
         item->setIsCustomTypeface(false);
@@ -235,7 +243,16 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
         return nullptr;
     }
     std::unique_ptr<SkStreamAsset> skMemoryStream = memoryStream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream();
+#ifdef USE_M133_SKIA
+    auto skFontMgr = SkFontMgr::RefDefault();
+    if (!skFontMgr) {
+        LOGD("SkiaTypeface::MakeFromStream, skFontMgr is nullptr.");
+        return nullptr;
+    }
+    sk_sp<SkTypeface> skTypeface = skFontMgr->makeFromStream(std::move(skMemoryStream), index);
+#else
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromStream(std::move(skMemoryStream), index);
+#endif
     if (!skTypeface) {
         LOGD("SkiaTypeface::MakeFromStream, skTypeface nullptr");
         return nullptr;
@@ -279,7 +296,20 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromName(const char familyName[], Fo
 {
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
+#ifdef USE_M133_SKIA
+    if (familyName == nullptr) {
+        LOGD("SkiaTypeface::MakeFromName, familyName is nullptr.");
+        return nullptr;
+    }
+    auto skFontMgr = SkFontMgr::RefDefault();
+    if (!skFontMgr) {
+        LOGD("SkiaTypeface::MakeFromName, skFontMgr is nullptr.");
+        return nullptr;
+    }
+    sk_sp<SkTypeface> skTypeface = skFontMgr->legacyMakeTypeface(familyName, skFontStyle);
+#else
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromName(familyName, skFontStyle);
+#endif
     if (!skTypeface) {
         LOGD("SkiaTypeface::MakeFromName, skTypeface nullptr");
         return nullptr;
@@ -376,7 +406,6 @@ void SkiaTypeface::SetHash(uint32_t hash)
     }
     skTypeface_->SetHash(hash);
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

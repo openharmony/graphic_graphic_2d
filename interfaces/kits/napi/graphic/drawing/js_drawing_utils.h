@@ -26,7 +26,7 @@
 #include "draw/shadow.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "pixel_map.h"
 #include "pixel_map_napi.h"
 #endif
@@ -39,7 +39,9 @@
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
-
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
+using namespace Media;
+#endif
 // used for test
 class JsDrawingTestUtils {
 public:
@@ -370,7 +372,11 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size);
 
+bool ConvertFromJsColor4F(napi_env env, napi_value jsValue, double* argbF, size_t size);
+
 bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::ColorQuad& jsColor);
+
+bool ConvertFromAdaptJsColor4F(napi_env env, napi_value jsValue, Drawing::Color4f& jsColor4F);
 
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
 
@@ -492,6 +498,9 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
 
 bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_value nativeType);
 
+void MakeFontFeaturesFromJsArray(napi_env env, std::shared_ptr<DrawingFontFeatures> features,
+    uint32_t size, napi_value& array);
+
 inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
 {
     napi_value objValue = nullptr;
@@ -505,6 +514,19 @@ inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
     return objValue;
 }
 
+inline napi_value GetColor4FAndConvertToJsValue(napi_env env, const Color4f& color4f)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "alpha", CreateJsNumber(env, color4f.alphaF_));
+        napi_set_named_property(env, objValue, "red", CreateJsNumber(env, color4f.redF_));
+        napi_set_named_property(env, objValue, "green", CreateJsNumber(env, color4f.greenF_));
+        napi_set_named_property(env, objValue, "blue", CreateJsNumber(env, color4f.blueF_));
+    }
+    return objValue;
+}
+
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
 
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
@@ -512,7 +534,7 @@ std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode
 std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
 class Bitmap;
 class ColorSpace;
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 extern std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace);
 extern Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat);
 extern Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);

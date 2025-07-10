@@ -31,11 +31,12 @@
 #include "drawing_pen.h"
 #include "drawing_point.h"
 #include "drawing_text_declaration.h"
+#include "drawing_text_global.h"
 #include "drawing_text_line.h"
 #include "drawing_text_lineTypography.h"
 #include "drawing_text_typography.h"
 #include "drawing_types.h"
 
-#define FUZZ_PROJECT_NAME "drawing_text_fuzzer"
+#define FUZZ_PROJECT_NAME "ndktypography_fuzzer"
 
 #endif // TEST_FUZZTEST_DRAWING_TEXT_FUZZER_H

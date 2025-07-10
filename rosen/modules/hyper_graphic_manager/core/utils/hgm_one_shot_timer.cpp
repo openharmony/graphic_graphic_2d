@@ -49,7 +49,7 @@ void HgmSimpleTimer::Start()
             handler_->PostTask(startCallback_);
         }
         auto time = interval_.load();
-        handler_->PostTask([this] () { Loop(); }, name_, time.count());
+        handler_->PostTask([this]() { Loop(); }, name_, time.count());
     }
 }
 
@@ -81,7 +81,7 @@ void HgmSimpleTimer::Loop()
     if (delay > ZERO) {
         // reset
         if (running_.load() && handler_ != nullptr) {
-            handler_->PostTask([this] () { Loop(); }, name_, delay.count());
+            handler_->PostTask([this]() { Loop(); }, name_, delay.count());
             return;
         }
     } else {

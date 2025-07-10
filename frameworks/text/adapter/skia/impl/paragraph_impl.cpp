@@ -446,9 +446,13 @@ void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::op
     }
     paints_[foregroundId].brush = brush;
 }
-
+#ifdef USE_M133_SKIA
+void ParagraphImpl::UpdateForegroundBrushWithValidData(skia_private::TArray<skt::Block, true>& skiaTextStyles,
+    const std::optional<RSBrush>& brush)
+#else
 void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true>& skiaTextStyles,
     const std::optional<RSBrush>& brush)
+#endif
 {
     TEXT_TRACE_FUNC();
     PaintID newId = static_cast<int>(paints_.size());
@@ -468,8 +472,11 @@ void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true
         }
     }
 }
-
+#ifdef USE_M133_SKIA
+void ParagraphImpl::UpdateForegroundBrushWithNullopt(skia_private::TArray<skt::Block, true>& skiaTextStyles)
+#else
 void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>& skiaTextStyles)
+#endif
 {
     TEXT_TRACE_FUNC();
     for (size_t i = 0; i < skiaTextStyles.size(); i++) {
@@ -488,13 +495,56 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
         return;
     }
 
+#ifdef USE_M133_SKIA
+    skia_private::TArray<skt::Block, true>& skiaTextStyles = paragraph_->exportTextStyles();
+#else
     SkTArray<skt::Block, true>& skiaTextStyles = paragraph_->exportTextStyles();
+#endif
 
     if (spTextStyle.foreground.has_value() && spTextStyle.foreground.value().brush.has_value()) {
         UpdateForegroundBrushWithValidData(skiaTextStyles, spTextStyle.foreground.value().brush);
     } else {
         UpdateForegroundBrushWithNullopt(skiaTextStyles);
     }
+}
+
+std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return {};
+    }
+    std::vector<TextBlobRecordInfo> textBlobRecordInfos;
+    std::vector<skt::TextBlobRecordInfo> infos = paragraph_->getTextBlobRecordInfo();
+    for (auto& info : infos) {
+        TextBlobRecordInfo recordInfo;
+        recordInfo.blob = info.fBlob;
+        recordInfo.offset = info.fOffset;
+        int index = std::get<int>(info.fPaint);
+        if (index >= 0 && index < static_cast<int>(paints_.size())) {
+            recordInfo.color = paints_[index].color;
+        }
+        textBlobRecordInfos.emplace_back(recordInfo);
+    }
+    return textBlobRecordInfos;
+}
+
+bool ParagraphImpl::HasSkipTextBlobDrawing() const
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return false;
+    }
+    return paragraph_->hasSkipTextBlobDrawing();
+}
+
+void ParagraphImpl::SetSkipTextBlobDrawing(bool state)
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->setSkipTextBlobDrawing(state);
 }
 
 void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const

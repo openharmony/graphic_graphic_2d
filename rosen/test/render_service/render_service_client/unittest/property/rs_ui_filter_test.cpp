@@ -80,6 +80,10 @@ HWTEST_F(RSUIFilterTest, CreateRenderProperty001, TestSize.Level1)
  */
 HWTEST_F(RSUIFilterTest, Insert001, TestSize.Level1)
 {
+    auto rsUIFilter = std::make_shared<RSUIFilter>();
+    rsUIFilter->Insert(nullptr);
+    EXPECT_TRUE(rsUIFilter->propertyTypes_.empty());
+
     float radius = 1.0f;
     auto filterBlurPara = std::make_shared<FilterBlurPara>();
     filterBlurPara->SetRadius(radius);
@@ -89,9 +93,10 @@ HWTEST_F(RSUIFilterTest, Insert001, TestSize.Level1)
 
     auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
 
-    auto rsUIFilter = std::make_shared<RSUIFilter>();
     rsUIFilter->Insert(rsUIFilterParaBase);
     EXPECT_EQ(rsUIFilter->paras_[RSUIFilterType::BLUR], rsUIFilterParaBase);
+    rsUIFilter->Insert(rsUIFilterParaBase);
+    EXPECT_EQ(rsUIFilter->propertyTypes_.size(), 1);
 }
 
 /**
@@ -104,6 +109,24 @@ HWTEST_F(RSUIFilterTest, IsStructureSame001, TestSize.Level1)
     auto rsUIFilter1 = std::make_shared<RSUIFilter>();
     auto rsUIFilter2 = std::make_shared<RSUIFilter>();
     EXPECT_TRUE(rsUIFilter1->IsStructureSame(rsUIFilter2));
+
+    auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
+    auto filterBlurPara = std::make_shared<FilterBlurPara>();
+    float radius = 1.0f;
+    filterBlurPara->SetRadius(radius);
+    rsUIBlurFilterPara->SetBlurPara(filterBlurPara);
+    rsUIFilter1->Insert(rsUIBlurFilterPara);
+    EXPECT_FALSE(rsUIFilter1->IsStructureSame(rsUIFilter2));
+
+    rsUIFilter2->Insert(rsUIBlurFilterPara);
+    EXPECT_TRUE(rsUIFilter1->IsStructureSame(rsUIFilter2));
+
+    rsUIFilter2->paras_[RSUIFilterType::BLUR] = nullptr;
+    EXPECT_FALSE(rsUIFilter1->IsStructureSame(rsUIFilter2));
+
+    rsUIFilter2->propertyTypes_.clear();
+    rsUIFilter2->propertyTypes_.push_back(RSUIFilterType::DISPLACEMENT_DISTORT);
+    EXPECT_FALSE(rsUIFilter1->IsStructureSame(rsUIFilter2));
 }
 
 /**
@@ -205,5 +228,29 @@ HWTEST_F(RSUIFilterTest, GetUIFilterTypes001, TestSize.Level1)
 
     auto rsUIFilterTypeVector = rsUIFilter->GetUIFilterTypes();
     EXPECT_NE(rsUIFilterTypeVector.size(), 0);
+}
+
+/**
+ * @tc.name: GetHdrEffectEnable001
+ * @tc.desc: Test func GetHdrEffectEnable
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterTest, GetHdrEffectEnable001, TestSize.Level1)
+{
+    auto rsUIFilter = std::make_shared<RSUIFilter>();
+    rsUIFilter->propertyTypes_.push_back(RSUIFilterType::BLUR);
+    EXPECT_FALSE(rsUIFilter->GetHdrEffectEnable());
+
+    rsUIFilter->paras_[RSUIFilterType::BLUR] = nullptr;
+    EXPECT_FALSE(rsUIFilter->GetHdrEffectEnable());
+
+    auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
+    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
+    rsUIFilter->paras_[RSUIFilterType::BLUR] = rsUIFilterParaBase;
+    EXPECT_FALSE(rsUIFilter->GetHdrEffectEnable());
+
+    rsUIFilterParaBase->enableHdrEffect_ = true;
+    rsUIFilterParaBase->stagingEnableHdrEffect_ = true;
+    EXPECT_TRUE(rsUIFilter->GetHdrEffectEnable());
 }
 } // namespace OHOS::Rosen

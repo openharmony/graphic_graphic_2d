@@ -51,6 +51,7 @@ bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontArgumentsConc
 }
 }
 
+std::mutex JsFontCollection::constructorMutex_;
 thread_local napi_ref JsFontCollection::constructor_ = nullptr;
 
 napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
@@ -80,24 +81,14 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 
 napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
-        DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
-        DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
-        DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
-    };
-
-    napi_value constructor = nullptr;
-    napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to define class");
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
         return nullptr;
     }
-
-    status = napi_create_reference(env, constructor, 1, &constructor_);
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to create reference");
+        TEXT_LOGE("Failed to get reference, ret %{public}d", status);
         return nullptr;
     }
 
@@ -107,6 +98,37 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
         return nullptr;
     }
     return exportObj;
+}
+
+bool JsFontCollection::CreateConstructor(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(constructorMutex_);
+    if (constructor_) {
+        return true;
+    }
+    napi_property_descriptor properties[] = {
+        DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
+        DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
+        DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
+        DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
+        DECLARE_NAPI_FUNCTION("unloadFontSync", JsFontCollection::UnloadFontSync),
+        DECLARE_NAPI_FUNCTION("unloadFont", JsFontCollection::UnloadFontAsync),
+    };
+
+    napi_value constructor = nullptr;
+    napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to define class, ret %{public}d", status);
+        return false;
+    }
+
+    status = napi_create_reference(env, constructor, 1, &constructor_);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to create reference, ret %{public}d", status);
+        return false;
+    }
+    return true;
 }
 
 void JsFontCollection::Destructor(napi_env env, void* nativeObject, void* finalize)
@@ -130,6 +152,10 @@ std::shared_ptr<FontCollection> JsFontCollection::GetFontCollection()
 
 napi_value JsFontCollection::GetGlobalInstance(napi_env env, napi_callback_info info)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok || !constructor) {
@@ -502,4 +528,75 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
     };
     return NapiAsyncWork::Enqueue(env, context, "OnLoadFontAsync", executor, complete);
 }
+
+napi_value JsFontCollection::UnloadFontAsync(napi_env env, napi_callback_info info)
+{
+    JsFontCollection* me = CheckParamsAndGetThis<JsFontCollection>(env, info);
+    return (me != nullptr) ? me->OnUnloadFontAsync(env, info) : nullptr;
+}
+
+napi_value JsFontCollection::UnloadFontSync(napi_env env, napi_callback_info info)
+{
+    JsFontCollection* me = CheckParamsAndGetThis<JsFontCollection>(env, info);
+    return (me != nullptr) ? me->OnUnloadFont(env, info) : nullptr;
+}
+
+
+napi_value JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_info info)
+{
+    sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
+    auto inputParser = [env, context](size_t argc, napi_value* argv) {
+        TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is null");
+        NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Status error, status=%d", static_cast<int>(context->status));
+        NAPI_CHECK_ARGS(context, argc >= ARGC_ONE, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
+            return, "Argc is invalid %zu", argc);
+        NAPI_CHECK_ARGS(context, ConvertFromJsValue(env, argv[0], context->familyName), napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "FamilyName is invalid %s", context->familyName.c_str());
+    };
+
+    context->GetCbInfo(env, info, inputParser);
+
+    auto executor = [context]() {
+        TEXT_ERROR_CHECK(context != nullptr, return, "Context is null");
+
+        auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
+        NAPI_CHECK_ARGS(context, fontCollection != nullptr, napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM,
+            return, "FontCollection is null");
+
+        NAPI_CHECK_ARGS(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Inner fontcollection is null");
+        fontCollection->fontcollection_->UnloadFont(context->familyName);
+    };
+
+    auto complete = [env](napi_value& output) {
+        output = NapiGetUndefined(env);
+    };
+    return NapiAsyncWork::Enqueue(env, context, "OnUnloadFontAsync", executor, complete);
+}
+
+napi_value JsFontCollection::OnUnloadFont(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = { nullptr };
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to get argument");
+    }
+    if (argv[0] == nullptr) {
+        TEXT_LOGE("Null argv[0]");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to get argument");
+    }
+    std::string familyName;
+    if (!ConvertFromJsValue(env, argv[0], familyName)) {
+        TEXT_LOGE("Failed to convert argv[0]");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to get argument");
+    }
+
+    fontcollection_->UnloadFont(familyName);
+
+    return NapiGetUndefined(env);
+}
+
 } // namespace OHOS::Rosen

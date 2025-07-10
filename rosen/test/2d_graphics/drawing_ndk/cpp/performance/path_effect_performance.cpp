@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,7 +55,7 @@ void PerformancePathEffectCreatePathDashEffect::OnTestPerformance(OH_Drawing_Can
     OH_Drawing_PathLineTo(path, 5, 5);
     for (int i = 0; i < testCount_; i++) {
         OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreatePathDashEffect(path,
-            10 + i * 0.01f, 5 + i * 0.01f, OH_Drawing_PathEffectType::PATH_EFFECT_TRANSLATE);
+            10 + i * 0.01f, 5 + i * 0.01f, OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_TRANSLATE);
         OH_Drawing_PathEffectDestroy(pathEffect);
     }
 }

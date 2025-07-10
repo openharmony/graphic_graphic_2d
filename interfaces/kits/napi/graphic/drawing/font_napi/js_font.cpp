@@ -19,7 +19,11 @@
 #include "js_typeface.h"
 #include "native_value.h"
 #include "path_napi/js_path.h"
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
 #include "src/utils/SkUTF.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -41,6 +45,7 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getMetrics", JsFont::GetMetrics),
     DECLARE_NAPI_FUNCTION("getWidths", JsFont::GetWidths),
     DECLARE_NAPI_FUNCTION("measureSingleCharacter", JsFont::MeasureSingleCharacter),
+    DECLARE_NAPI_FUNCTION("measureSingleCharacterWithFeatures", JsFont::MeasureSingleCharacterWithFeatures),
     DECLARE_NAPI_FUNCTION("measureText", JsFont::MeasureText),
     DECLARE_NAPI_FUNCTION("setScaleX", JsFont::SetScaleX),
     DECLARE_NAPI_FUNCTION("setSkewX", JsFont::SetSkewX),
@@ -290,6 +295,12 @@ napi_value JsFont::MeasureSingleCharacter(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
     return (me != nullptr) ? me->OnMeasureSingleCharacter(env, info) : nullptr;
+}
+
+napi_value JsFont::MeasureSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnMeasureSingleCharacterWithFeatures(env, info) : nullptr;
 }
 
 napi_value JsFont::MeasureText(napi_env env, napi_callback_info info)
@@ -728,6 +739,53 @@ napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info inf
     std::shared_ptr<Font> themeFont = MatchThemeFont(m_font, unicode);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
     return GetDoubleAndConvertToJsValue(env, realFont->MeasureSingleCharacter(unicode));
+}
+
+napi_value JsFont::OnMeasureSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnMeasureSingleCharacterWithFeatures font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    size_t len = 0;
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+    if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+    std::vector<char> strBuffer(len + 1);
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], strBuffer.data(), len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+
+    strBuffer[len] = 0;
+    const char* currentPtr = strBuffer.data();
+    const char* endPtr = strBuffer.data() + len;
+    int32_t unicode = SkUTF::NextUTF8(&currentPtr, endPtr);
+    size_t byteLen = currentPtr - strBuffer.data();
+    if (byteLen != len) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+
+    std::shared_ptr<Font> themeFont = MatchThemeFont(m_font, unicode);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+
+    napi_value array = argv[ARGC_ONE];
+    uint32_t size = 0;
+    if (napi_get_array_length(env, array, &size) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array");
+    }
+    std::shared_ptr<DrawingFontFeatures> featuresPtr = std::make_shared<DrawingFontFeatures>();
+    MakeFontFeaturesFromJsArray(env, featuresPtr, size, array);
+    return GetDoubleAndConvertToJsValue(env, realFont->MeasureSingleCharacterWithFeatures(strBuffer.data(),
+        unicode, featuresPtr));
 }
 
 napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)

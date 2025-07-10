@@ -314,12 +314,11 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_003, TestSize.Level1)
     std::shared_ptr<OcclusionNode> parentOcNode =
         std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
     std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
-    auto boundsProperty = std::make_shared<RSRenderPropertyBase>(propertyId);
+    auto boundsProperty = std::make_shared<RSRenderProperty<bool>>();
     boundsProperty->modifierType_ = RSModifierType::BOUNDS;
     auto boundsModifier = std::make_shared<RSBoundsRenderModifier>(boundsProperty);
     renderNode->modifiers_.emplace(boundsModifier->GetPropertyId(), boundsModifier);
-    ASSERT_NE(renderNode->renderContent_, nullptr);
-    renderNode->renderContent_->renderProperties_.clipToBounds_ = true;
+    renderNode->renderProperties_.clipToBounds_ = true;
     rootNode->CollectNodeProperties(*renderNode);
     EXPECT_TRUE(rootNode->isSubTreeIgnored_);
 }
@@ -338,24 +337,23 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_004, TestSize.Level1)
         std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
     rootNode->parentOcNode_ = parentOcNode;
     std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(parentId);
-    auto boundsProperty = std::make_shared<RSRenderPropertyBase>(propertyId);
+    auto boundsProperty = std::make_shared<RSRenderProperty<bool>>();
     boundsProperty->modifierType_ = RSModifierType::BOUNDS;
     auto boundsModifier = std::make_shared<RSBoundsRenderModifier>(boundsProperty);
     renderNode->modifiers_.emplace(boundsModifier->GetPropertyId(), boundsModifier);
     Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
-    ASSERT_NE(renderNode->renderContent_, nullptr);
-    renderNode->renderContent_->renderProperties_.cornerRadius_ = cornerRadius;
-    ASSERT_NE(renderNode->renderContent_->renderProperties_.boundsGeo_, nullptr);
-    renderNode->renderContent_->renderProperties_.boundsGeo_->x_ = 0;
-    renderNode->renderContent_->renderProperties_.boundsGeo_->y_ = 0;
-    renderNode->renderContent_->renderProperties_.boundsGeo_->width_ = 120.f;
-    renderNode->renderContent_->renderProperties_.boundsGeo_->height_ = 120.f;
+    renderNode->renderProperties_.cornerRadius_ = cornerRadius;
+    ASSERT_NE(renderNode->renderProperties_.boundsGeo_, nullptr);
+    renderNode->renderProperties_.boundsGeo_->x_ = 0;
+    renderNode->renderProperties_.boundsGeo_->y_ = 0;
+    renderNode->renderProperties_.boundsGeo_->width_ = 120.f;
+    renderNode->renderProperties_.boundsGeo_->height_ = 120.f;
     rootNode->CollectNodeProperties(*renderNode);
     EXPECT_FALSE(rootNode->isSubTreeIgnored_);
-    EXPECT_FLOAT_EQ(rootNode->drawRect_.left_, renderNode->renderContent_->renderProperties_.boundsGeo_->x_);
-    EXPECT_FLOAT_EQ(rootNode->drawRect_.top_, renderNode->renderContent_->renderProperties_.boundsGeo_->y_);
-    EXPECT_FLOAT_EQ(rootNode->drawRect_.width_, renderNode->renderContent_->renderProperties_.boundsGeo_->width_);
-    EXPECT_FLOAT_EQ(rootNode->drawRect_.height_, renderNode->renderContent_->renderProperties_.boundsGeo_->height_);
+    EXPECT_FLOAT_EQ(rootNode->drawRect_.left_, renderNode->renderProperties_.boundsGeo_->x_);
+    EXPECT_FLOAT_EQ(rootNode->drawRect_.top_, renderNode->renderProperties_.boundsGeo_->y_);
+    EXPECT_FLOAT_EQ(rootNode->drawRect_.width_, renderNode->renderProperties_.boundsGeo_->width_);
+    EXPECT_FLOAT_EQ(rootNode->drawRect_.height_, renderNode->renderProperties_.boundsGeo_->height_);
 }
 
 /*
@@ -426,21 +424,20 @@ HWTEST_F(RSOcclusionNodeTest, UpdateClipRect_001, TestSize.Level1)
     std::shared_ptr<OcclusionNode> rootNode =
         std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
     std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(nodeId);
-    ASSERT_NE(renderNode->renderContent_, nullptr);
-    ASSERT_NE(renderNode->renderContent_->renderProperties_.boundsGeo_, nullptr);
-    renderNode->renderContent_->renderProperties_.boundsGeo_->width_ = 100.0f;
-    renderNode->renderContent_->renderProperties_.boundsGeo_->height_ = 200.0f;
+    ASSERT_NE(renderNode->renderProperties_.boundsGeo_, nullptr);
+    renderNode->renderProperties_.boundsGeo_->width_ = 100.0f;
+    renderNode->renderProperties_.boundsGeo_->height_ = 200.0f;
     rootNode->UpdateClipRect(*renderNode);
     constexpr int initLeft = 0;
     constexpr int initTop = 0;
     EXPECT_EQ(rootNode->clipOuterRect_.left_, initLeft);
     EXPECT_EQ(rootNode->clipOuterRect_.top_, initTop);
-    EXPECT_EQ(rootNode->clipOuterRect_.width_, renderNode->renderContent_->renderProperties_.boundsGeo_->width_);
-    EXPECT_EQ(rootNode->clipOuterRect_.height_, renderNode->renderContent_->renderProperties_.boundsGeo_->height_);
+    EXPECT_EQ(rootNode->clipOuterRect_.width_, renderNode->renderProperties_.boundsGeo_->width_);
+    EXPECT_EQ(rootNode->clipOuterRect_.height_, renderNode->renderProperties_.boundsGeo_->height_);
     EXPECT_EQ(rootNode->clipInnerRect_.left_, initLeft);
     EXPECT_EQ(rootNode->clipInnerRect_.top_, initTop);
-    EXPECT_EQ(rootNode->clipInnerRect_.width_, renderNode->renderContent_->renderProperties_.boundsGeo_->width_);
-    EXPECT_EQ(rootNode->clipInnerRect_.height_, renderNode->renderContent_->renderProperties_.boundsGeo_->height_);
+    EXPECT_EQ(rootNode->clipInnerRect_.width_, renderNode->renderProperties_.boundsGeo_->width_);
+    EXPECT_EQ(rootNode->clipInnerRect_.height_, renderNode->renderProperties_.boundsGeo_->height_);
 }
 
 /*

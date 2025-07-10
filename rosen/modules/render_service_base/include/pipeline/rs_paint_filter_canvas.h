@@ -16,22 +16,24 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_PAINT_FILTER_CANVAS_H
 
+#include <limits>
 #include <optional>
 #include <stack>
 #include <vector>
 
-#include "draw/canvas.h"
-#include "draw/surface.h"
-
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
-#include "render/rs_filter.h"
+#include "common/rs_occlusion_region.h"
+#include "common/rs_rect.h"
+#include "draw/canvas.h"
+#include "draw/surface.h"
 #include "screen_manager/screen_types.h"
 #include "surface_type.h"
 #include "utils/region.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSFilter;
 
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:
@@ -137,6 +139,8 @@ public:
     CoreCanvas& DetachBrush() override;
     CoreCanvas& DetachPaint() override;
 
+    bool DrawImageEffectHPS(const Drawing::Image& image,
+        const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams) override;
     bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
@@ -192,6 +196,21 @@ public:
         int alphaSaveCount = -1;
         int envSaveCount = -1;
     };
+
+    enum class ScreenshotType {
+        NON_SHOT = 0,
+        SDR_SCREENSHOT,
+        SDR_WINDOWSHOT,
+        HDR_SCREENSHOT,
+        HDR_WINDOWSHOT,
+    };
+
+    struct HDRProperties {
+        bool isHDREnabledVirtualScreen = false;
+        float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
+        ScreenshotType screenshotType = ScreenshotType::NON_SHOT;
+    };
+
     enum SaveType : uint8_t {
         kNone           = 0x0,
         kCanvas         = 0x1,
@@ -201,6 +220,8 @@ public:
         kAll            = kCanvas | kAlpha | kEnv,
     };
 
+    ScreenshotType GetScreenshotType() const;
+    void SetScreenshotType(ScreenshotType type);
     SaveStatus SaveAllStatus(SaveType type = kAll);
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);
@@ -242,13 +263,17 @@ public:
     struct CachedEffectData {
         CachedEffectData() = default;
         CachedEffectData(std::shared_ptr<Drawing::Image>&& image, const Drawing::RectI& rect);
+        CachedEffectData(const std::shared_ptr<Drawing::Image>& image, const Drawing::RectI& rect);
         ~CachedEffectData() = default;
+        std::string GetInfo() const;
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
+    void SetDrawnRegion(const Occlusion::Region& region);
+    const Occlusion::Region& GetDrawnRegion() const;
     // behind window cache relate
     void SetBehindWindowData(const std::shared_ptr<CachedEffectData>& behindWindowData);
     const std::shared_ptr<CachedEffectData>& GetBehindWindowData() const;
@@ -311,6 +336,9 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool GetHDREnabledVirtualScreen() const;
+    void SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen);
+    const HDRProperties& GetHDRProperties() const;
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
     bool GetIsDrawingCache() const;
@@ -405,9 +433,9 @@ private:
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
-    float hdrBrightness_ = 1.0f; // Default 1.0f means max available headroom
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
+    HDRProperties hdrProperties_;
     Drawing::Surface* surface_ = nullptr;
     Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
     Drawing::Rect visibleRect_ = Drawing::Rect();
@@ -430,6 +458,8 @@ private:
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
+
+    Occlusion::Region drawnRegion_;
 };
 
 #ifdef RS_ENABLE_VK

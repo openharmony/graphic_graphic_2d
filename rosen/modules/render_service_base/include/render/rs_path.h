@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_PATH_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_PATH_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_PATH_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_PATH_H
 
 #include <memory>
 #include <string>
@@ -62,4 +62,4 @@ RSB_EXPORT bool RSPath::GetPosTan(float distance, Vector4f& pos, float& degrees)
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_PATH_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_PATH_H

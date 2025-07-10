@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
+#ifndef RENDER_SERVICE_BASE_MODIFIER_RS_MODIFIER_TYPE_H
+#define RENDER_SERVICE_BASE_MODIFIER_RS_MODIFIER_TYPE_H
 
 #include <bitset>
 #include <cstdint>
-#include <map>
+
+#include "modifier_ng/rs_modifier_ng_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,10 +30,10 @@ namespace Rosen {
 // 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, elsewise it will not work
 // 3. Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //    If a command is not used and you want to delete it, just COMMENT it
-// 4. MAX_RS_MODIFIER_TYPE always MUST be equla (GREATEST_ID_VALUE_IN_ENUM + 1)
-//    Example: If you added new enum value which id equal 400 and it greatest value in enum,
+// 4. MAX_RS_MODIFIER_TYPE always MUST be equal (GREATEST_ID_VALUE_IN_ENUM + 1)
+//    Example: If you added new enum value which id equals 400 and is the greatest value in enum,
 //    you HAVE TO change MAX_RS_MODIFIER_TYPE id to 401
-enum class RSModifierType : int16_t {
+enum class RSModifierType : uint16_t {
     INVALID = 0,
     BOUNDS = 1,
     FRAME = 2,
@@ -65,7 +66,7 @@ enum class RSModifierType : int16_t {
     BG_IMAGE_HEIGHT = 29,
     BG_IMAGE_POSITION_X = 30,
     BG_IMAGE_POSITION_Y = 31,
-    SURFACE_BG_COLOR = 32,
+    // 32 deleted, do not use this value never.
     BORDER_COLOR = 33,
     BORDER_WIDTH = 34,
     BORDER_STYLE = 35,
@@ -172,6 +173,10 @@ enum class RSModifierType : int16_t {
     BACKGROUND_UI_FILTER = 136,
     HDR_UI_BRIGHTNESS = 137,
     FOREGROUND_UI_FILTER = 138,
+    HDR_BRIGHTNESS_FACTOR = 139,
+    FOREGROUND_NG_FILTER = 140,
+    BACKGROUND_NG_FILTER = 141,
+    FG_BRIGHTNESS_HDR = 142,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -207,31 +212,6 @@ enum class RSPropertyModifierType : uint8_t {
 };
 
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
-
-enum class RSRenderPropertyType : int16_t {
-    INVALID = 0,
-    PROPERTY_FLOAT,
-    PROPERTY_COLOR,
-    PROPERTY_MATRIX3F,
-    PROPERTY_QUATERNION,
-    PROPERTY_FILTER,
-    PROPERTY_VECTOR2F,
-    PROPERTY_VECTOR3F,
-    PROPERTY_VECTOR4F,
-    PROPERTY_VECTOR4_COLOR,
-    PROPERTY_SKMATRIX,
-    PROPERTY_RRECT,
-    PROPERTY_SHADER_PARAM,
-    PROPERTY_UI_FILTER,
-};
-
-enum class RSPropertyUnit : int16_t {
-    UNKNOWN = 0,
-    PIXEL_POSITION,
-    PIXEL_SIZE,
-    RATIO_SCALE,
-    ANGLE_ROTATION,
-};
 
 class RSModifierTypeString {
 public:
@@ -270,7 +250,6 @@ public:
             case RSModifierType::BG_IMAGE_HEIGHT: return "BgImageHeight";
             case RSModifierType::BG_IMAGE_POSITION_X: return "BgImagePositionX";
             case RSModifierType::BG_IMAGE_POSITION_Y: return "BgImagePositionY";
-            case RSModifierType::SURFACE_BG_COLOR: return "SurfaceBgColor";
             case RSModifierType::BORDER_COLOR: return "BorderColor";
             case RSModifierType::BORDER_WIDTH: return "BorderWidth";
             case RSModifierType::BORDER_STYLE: return "BorderStyle";
@@ -286,6 +265,7 @@ public:
             case RSModifierType::FG_BRIGHTNESS_POSCOEFF: return "FgBrightnessPoscoeff";
             case RSModifierType::FG_BRIGHTNESS_NEGCOEFF: return "FgBrightnessNegcoeff";
             case RSModifierType::FG_BRIGHTNESS_FRACTION: return "FgBrightnessFraction";
+            case RSModifierType::FG_BRIGHTNESS_HDR: return "FgBrightnessHdr";
             case RSModifierType::BG_BRIGHTNESS_RATES: return "BgBrightnessRates";
             case RSModifierType::BG_BRIGHTNESS_SATURATION: return "BgBrightnessSaturation";
             case RSModifierType::BG_BRIGHTNESS_POSCOEFF: return "BgBrightnessPoscoeff";
@@ -370,6 +350,9 @@ public:
             case RSModifierType::BACKGROUND_UI_FILTER: return "BackgroundUIFilter";
             case RSModifierType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
             case RSModifierType::FOREGROUND_UI_FILTER: return "ForegroundUIFilter";
+            case RSModifierType::HDR_BRIGHTNESS_FACTOR: return "HDRBrightnessFactor";
+            case RSModifierType::BACKGROUND_NG_FILTER: return "BackgroundNgFilter";
+            case RSModifierType::FOREGROUND_NG_FILTER: return "ForegroundNgFilter";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";
@@ -396,7 +379,29 @@ public:
     }
 };
 
+class ModifierTypeConvertor {
+public:
+    static ModifierNG::RSModifierType ToModifierNGType(RSModifierType modifierType)
+    {
+        auto it = modifierTypeMap_.find(modifierType);
+        if (it != modifierTypeMap_.end()) {
+            return it->second;
+        }
+        return ModifierNG::RSModifierType::INVALID;
+    }
+
+private:
+    static inline std::unordered_map<RSModifierType, ModifierNG::RSModifierType> modifierTypeMap_ = {
+        { RSModifierType::TRANSITION, ModifierNG::RSModifierType::TRANSITION_STYLE },
+        { RSModifierType::BACKGROUND_STYLE, ModifierNG::RSModifierType::BACKGROUND_STYLE },
+        { RSModifierType::CONTENT_STYLE, ModifierNG::RSModifierType::CONTENT_STYLE },
+        { RSModifierType::FOREGROUND_STYLE, ModifierNG::RSModifierType::FOREGROUND_STYLE },
+        { RSModifierType::OVERLAY_STYLE, ModifierNG::RSModifierType::OVERLAY_STYLE },
+        { RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR },
+        { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR },
+        { RSModifierType::CUSTOM_CLIP_TO_FRAME, ModifierNG::RSModifierType::CLIP_TO_FRAME },
+    };
+};
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_TYPE_H
+#endif // RENDER_SERVICE_BASE_MODIFIER_RS_MODIFIER_TYPE_H

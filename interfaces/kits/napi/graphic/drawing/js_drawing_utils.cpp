@@ -113,6 +113,19 @@ bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t 
     return true;
 }
 
+bool ConvertFromJsColor4F(napi_env env, napi_value jsValue, double* argbF, size_t size)
+{
+    napi_value tempValue = nullptr;
+    for (size_t idx = 0; idx < size; idx++) {
+        double* curChannel = argbF + idx;
+        napi_get_named_property(env, jsValue, g_argbString[idx], &tempValue);
+        if (napi_get_value_double(env, tempValue, curChannel) != napi_ok) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::ColorQuad& jsColor)
 {
     bool isJsColor = false;
@@ -128,6 +141,26 @@ bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::Color
             return false;
         }
     }
+    return true;
+}
+
+bool ConvertFromAdaptJsColor4F(napi_env env, napi_value jsValue, Drawing::Color4f& jsColor4F)
+{
+    bool isJsColor4F = false;
+    napi_has_named_property(env, jsValue, JSCOLOR[0], &isJsColor4F);
+    if (!isJsColor4F) {
+        return false;
+    }
+
+    double argbF[ARGC_FOUR] = {0};
+    if (!ConvertFromJsColor4F(env, jsValue, argbF, ARGC_FOUR)) {
+        return false;
+    }
+    jsColor4F.alphaF_ = static_cast<float>(argbF[ARGC_ZERO]);
+    jsColor4F.redF_ = static_cast<float>(argbF[ARGC_ONE]);
+    jsColor4F.greenF_ = static_cast<float>(argbF[ARGC_TWO]);
+    jsColor4F.blueF_ = static_cast<float>(argbF[ARGC_THREE]);
+
     return true;
 }
 
@@ -275,7 +308,7 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
     return objValue;
 }
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace)
 {
     switch (colorSpace) {
@@ -441,6 +474,38 @@ std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font)
         return nullptr;
     }
     return fontMgr;
+}
+
+void MakeFontFeaturesFromJsArray(napi_env env, std::shared_ptr<DrawingFontFeatures> features,
+    uint32_t size, napi_value& array)
+{
+    features->clear();
+
+    for (uint32_t i = 0; i < size; ++i) {
+        napi_value tempNumber = nullptr;
+        napi_status status = napi_get_element(env, array, i, &tempNumber);
+        if (status != napi_ok || tempNumber == nullptr) {
+            continue;
+        }
+        std::string name;
+        napi_value tempValue = nullptr;
+        status = napi_get_named_property(env, tempNumber, "name", &tempValue);
+        if (status != napi_ok || tempValue == nullptr) {
+            continue;
+        }
+        if (!ConvertFromJsValue(env, tempValue, name)) {
+            continue;
+        }
+        double value = 0.0;
+        status = napi_get_named_property(env, tempNumber, "value", &tempValue);
+        if (status != napi_ok || tempValue == nullptr) {
+            continue;
+        }
+        if (!ConvertFromJsValue(env, tempValue, value)) {
+            continue;
+        }
+        features->push_back({{name, value}});
+    }
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

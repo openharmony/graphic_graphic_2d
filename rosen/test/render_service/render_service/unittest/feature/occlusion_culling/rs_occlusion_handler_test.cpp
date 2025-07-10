@@ -32,6 +32,7 @@ public:
     static const NodeId nodeId;
     static const NodeId firstNodeId;
     static const NodeId secondNodeId;
+    static const NodeId thirdNodeId;
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -48,7 +49,7 @@ const NodeId RSOcclusionHandlerTest::keyOcclusionNodeId = 0;
 const NodeId RSOcclusionHandlerTest::nodeId = 1;
 const NodeId RSOcclusionHandlerTest::firstNodeId = 1;
 const NodeId RSOcclusionHandlerTest::secondNodeId = 2;
-
+const NodeId RSOcclusionHandlerTest::thirdNodeId = 3;
 
 /*
  * @tc.name: CollectNode_001
@@ -106,6 +107,17 @@ HWTEST_F(RSOcclusionHandlerTest, CollectNode_003, TestSize.Level1)
     ASSERT_NE(rsOcclusionHandler->rootOcclusionNode_, nullptr);
     EXPECT_EQ(rsOcclusionHandler->rootOcclusionNode_->id_, firstNodeId);
     EXPECT_EQ(rsOcclusionHandler->rootOcclusionNode_->firstChild_->id_, secondNodeId);
+    std::shared_ptr<RSRenderNode> nodePtr3 = std::make_shared<RSRenderNode>(thirdNodeId);
+    std::shared_ptr<OcclusionNode> occlusionNode3 =
+        std::make_shared<OcclusionNode>(thirdNodeId, RSRenderNodeType::CANVAS_NODE);
+    nodePtr3->parent_ = nodePtr2;
+    nodePtr3->instanceRootNodeId_ = firstNodeId;
+    rsOcclusionHandler->occlusionNodes_[secondNodeId] = nullptr;
+    rsOcclusionHandler->occlusionNodes_[thirdNodeId] = occlusionNode3;
+    rsOcclusionHandler->CollectNode(*nodePtr3);
+    EXPECT_EQ(rsOcclusionHandler->occlusionNodes_.find(nodePtr3->GetId()), rsOcclusionHandler->occlusionNodes_.end());
+    rsOcclusionHandler->CollectNode(*nodePtr3);
+    EXPECT_EQ(rsOcclusionHandler->occlusionNodes_.find(nodePtr3->GetId()), rsOcclusionHandler->occlusionNodes_.end());
 }
 
 /*
@@ -167,13 +179,33 @@ HWTEST_F(RSOcclusionHandlerTest, CollectSubTree_002, TestSize.Level1)
     rsOcclusionHandler->rootNodeId_ = firstNodeId;
     rsOcclusionHandler->CollectNode(*nodePtr);
     std::shared_ptr<RSRenderNode> nodePtr2 = std::make_shared<RSRenderNode>(secondNodeId);
+    nodePtr2->renderProperties_.SetBounds(Vector4f{0, 0, 0, 0});
     nodePtr2->parent_ = nodePtr;
     rsOcclusionHandler->CollectSubTree(*nodePtr2, false);
+    EXPECT_EQ(rsOcclusionHandler->occlusionNodes_[2]->isSubTreeIgnored_, false);
     // the node and its subtree were correctly collected.
     int expectSize = 2;
     EXPECT_EQ(rsOcclusionHandler->occlusionNodes_.size(), expectSize);
     int expectCount = 1;
     EXPECT_EQ(rsOcclusionHandler->occlusionNodes_.count(nodePtr2->id_), expectCount);
+    std::shared_ptr<RSRenderNode> nodePtr3 = std::make_shared<RSRenderNode>(thirdNodeId);
+    nodePtr2->AddChild(nodePtr3);
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    fullChildrenList->emplace_back(nodePtr3);
+    std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>> constFullChildrenList
+        = std::move(fullChildrenList);
+    std::atomic_store_explicit(&(nodePtr2->fullChildrenList_), constFullChildrenList, std::memory_order_release);
+    // collected children which not collected
+    rsOcclusionHandler->CollectSubTree(*nodePtr2, false);
+    ASSERT_EQ(rsOcclusionHandler->occlusionNodes_.size(), 3);
+    // collected children which already collected, but it's ignored
+    rsOcclusionHandler->occlusionNodes_[thirdNodeId]->isSubTreeIgnored_ = true;
+    rsOcclusionHandler->CollectSubTree(*nodePtr2, false);
+    ASSERT_EQ(rsOcclusionHandler->occlusionNodes_.size(), 3);
+    // collected children which already collected, but it's not ignored
+    rsOcclusionHandler->occlusionNodes_[thirdNodeId]->isSubTreeIgnored_ = false;
+    rsOcclusionHandler->CollectSubTree(*nodePtr2, false);
+    ASSERT_EQ(rsOcclusionHandler->occlusionNodes_.size(), 3);
 }
 
 
@@ -244,11 +276,22 @@ HWTEST_F(RSOcclusionHandlerTest, UpdateSkippedSubTreeProp_002, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodePtr2 = std::make_shared<RSRenderNode>(secondNodeId);
     nodePtr2->parent_ = nodePtr;
     nodePtr2->instanceRootNodeId_ = firstNodeId;
+    nodePtr2->renderProperties_.SetBounds(Vector4f{0, 0, 0, 0});
+    std::shared_ptr<RSRenderNode> nodePtr3 = std::make_shared<RSRenderNode>(thirdNodeId);
+    nodePtr2->AddChild(nodePtr3);
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    fullChildrenList->emplace_back(nodePtr3);
+    fullChildrenList->emplace_back(nullptr);
+    std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>> constFullChildrenList =
+        std::move(fullChildrenList);
+    std::atomic_store_explicit(&(nodePtr2->fullChildrenList_), constFullChildrenList, std::memory_order_release);
+
     rsOcclusionHandler->CollectSubTree(*nodePtr2, false);
-    auto it = rsOcclusionHandler->occlusionNodes_.find(nodePtr2->id_);
+    auto it = rsOcclusionHandler->occlusionNodes_.find(nodePtr3->id_);
     ASSERT_NE(it, rsOcclusionHandler->occlusionNodes_.end());
     it->second->isSubTreeIgnored_ = false;
     rsOcclusionHandler->CollectSubTree(*nodePtr2, false);
+    rsOcclusionHandler->CollectSubTreeInner(*nodePtr2);
     // when isSubTreeIgnored_ is false then subTreeSkipPrepareNodes_ is not empty after method CollectSubTree
     EXPECT_FALSE(rsOcclusionHandler->subTreeSkipPrepareNodes_.empty());
     rsOcclusionHandler->UpdateSkippedSubTreeProp();

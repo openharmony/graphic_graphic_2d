@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -125,14 +125,22 @@ public:
     bool BuildFromGL(const GPUContextOptions& options);
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context);
+#else
     bool BuildFromVK(const GrVkBackendContext& context);
+#endif
 
     /**
      * @brief           Creates a VK GPUContext for a backend context.
      * @param context   An existed VK Context used to create a VK GPUContext.
      * @param options   Option to create a VK GPUContext.
      */
+#ifdef USE_M133_SKIA
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options);
+#else
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options);
+#endif
 #endif
 
     /**
@@ -189,8 +197,6 @@ public:
     void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const;
 
     void DumpAllResource(std::stringstream& dump) const;
-
-    void DumpAllCoreTrace(std::stringstream& dump) const;
 
     /**
      * @brief                   Free GPU created by the contetx.
@@ -323,7 +329,11 @@ public:
     void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority);
 
     void FlushGpuMemoryInWaitQueue();
+
+    void SetEarlyZFlag(bool flag);
     
+    void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions);
+
     void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived);
 
     /**

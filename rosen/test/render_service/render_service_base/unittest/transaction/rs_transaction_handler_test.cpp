@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <parameters.h>
 
 #include "command/rs_animation_command.h"
 #include "command/rs_command.h"
@@ -51,6 +52,69 @@ void RSTransactionHandlerTest::SetUpTestCase() {}
 void RSTransactionHandlerTest::TearDownTestCase() {}
 void RSTransactionHandlerTest::SetUp() {}
 void RSTransactionHandlerTest::TearDown() {}
+
+/**
+ * @tc.name: FlushImplicitTransactionHybridRender001
+ * @tc.desc: test func FlushImplicitTransaction when callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    auto hybridrenderEnable = system::GetParameter("const.graphics.hybridrenderenable", "0");
+    system::SetParameter("const.graphics.hybridrenderenable", "0");
+    transaction->FlushImplicitTransaction(timestamp);
+    system::SetParameter("const.graphics.hybridrenderenable", hybridrenderEnable);
+}
+
+/**
+ * @tc.name: FlushImplicitTransactionHybridRender002
+ * @tc.desc: test func FlushImplicitTransaction when callback is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender002, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    CommitTransactionCallback callback =
+        [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {};
+    RSTransactionHandler::SetCommitTransactionCallback(callback);
+    transaction->FlushImplicitTransaction(timestamp);
+}
+
+/**
+ * @tc.name: FlushImplicitTransactionHybridRender003
+ * @tc.desc: test func FlushImplicitTransaction when renderServiceClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender003, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_NE(transaction, nullptr);
+    uint64_t timestamp = 1;
+    NodeId nodeId = 1;
+    transaction->renderServiceClient_ = nullptr;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    transaction->FlushImplicitTransaction(timestamp);
+}
 
 /**
  * @tc.name: SetRenderThreadClient001
@@ -689,6 +753,90 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MoveCommandByNodeId001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId001, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    renderThreadClient.reset();
+    ASSERT_EQ(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
+}
+
+/**
+ * @tc.name: MoveCommandByNodeId002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId002, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
+}
+
+/**
+ * @tc.name: MoveCommandByNodeId003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId003, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient.reset();
+    ASSERT_EQ(renderServiceClient, nullptr);
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
+}
+
+/**
+ * @tc.name: MoveCommandByNodeId004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId004, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    renderThreadClient.reset();
+    ASSERT_EQ(renderThreadClient, nullptr);
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    preTransaction->renderThreadClient_ = std::move(renderThreadClient);
+    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
+}
+
+/**
  * @tc.name: AddCommandFromRT001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -862,6 +1010,186 @@ HWTEST_F(RSTransactionHandlerTest, AddCommonCommandTest, TestSize.Level1)
     ASSERT_NE(renderThreadClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
     transaction->AddCommand(command, isRenderServiceCommand, FollowType::FOLLOW_TO_PARENT, 1);
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdTest001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdTest001, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+    ASSERT_FALSE(preTransaction->implicitCommonTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddCommonCommand(command);
+    ASSERT_FALSE(preTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    curTransaction->Begin();
+    ASSERT_FALSE(curTransaction->implicitCommonTransactionDataStack_.empty());
+    preTransaction->MoveCommonCommandByNodeId(curTransaction, nodeId);
+    ASSERT_TRUE(preTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    ASSERT_FALSE(curTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    preTransaction->Commit();
+    curTransaction->Commit();
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdTest002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdTest002, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+    ASSERT_FALSE(preTransaction->implicitCommonTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddCommonCommand(command);
+    ASSERT_FALSE(preTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    ASSERT_TRUE(curTransaction->implicitCommonTransactionDataStack_.empty());
+    preTransaction->MoveCommonCommandByNodeId(curTransaction, nodeId);
+    ASSERT_FALSE(preTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    preTransaction->Commit();
+    ASSERT_TRUE(curTransaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdTest003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdTest003, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_TRUE(preTransaction->implicitCommonTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddCommonCommand(command);
+    ASSERT_TRUE(curTransaction->implicitCommonTransactionDataStack_.empty());
+    preTransaction->MoveCommonCommandByNodeId(curTransaction, nodeId);
+    ASSERT_TRUE(preTransaction->implicitCommonTransactionData_->IsEmpty());
+    ASSERT_FALSE(curTransaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdTest004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdTest004, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_TRUE(preTransaction->implicitCommonTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddCommonCommand(command);
+    curTransaction->Begin();
+    ASSERT_FALSE(curTransaction->implicitCommonTransactionDataStack_.empty());
+    preTransaction->MoveCommonCommandByNodeId(curTransaction, nodeId);
+    curTransaction->Commit();
+    ASSERT_TRUE(preTransaction->implicitCommonTransactionData_->IsEmpty());
+    ASSERT_FALSE(curTransaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdTest001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdTest001, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+    ASSERT_FALSE(preTransaction->implicitRemoteTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    ASSERT_FALSE(preTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    curTransaction->Begin();
+    ASSERT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.empty());
+    preTransaction->MoveRemoteCommandByNodeId(curTransaction, nodeId);
+    ASSERT_TRUE(preTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    ASSERT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    preTransaction->Commit();
+    curTransaction->Commit();
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdTest002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdTest002, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+    ASSERT_FALSE(preTransaction->implicitRemoteTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    ASSERT_FALSE(preTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    ASSERT_TRUE(curTransaction->implicitRemoteTransactionDataStack_.empty());
+    preTransaction->MoveRemoteCommandByNodeId(curTransaction, nodeId);
+    ASSERT_FALSE(preTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    preTransaction->Commit();
+    ASSERT_TRUE(curTransaction->implicitRemoteTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdTest003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdTest003, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_TRUE(preTransaction->implicitRemoteTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    ASSERT_TRUE(curTransaction->implicitRemoteTransactionDataStack_.empty());
+    preTransaction->MoveRemoteCommandByNodeId(curTransaction, nodeId);
+    ASSERT_TRUE(preTransaction->implicitRemoteTransactionData_->IsEmpty());
+    ASSERT_FALSE(curTransaction->implicitRemoteTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdTest004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdTest004, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_TRUE(preTransaction->implicitRemoteTransactionDataStack_.empty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    curTransaction->Begin();
+    ASSERT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.empty());
+    preTransaction->MoveRemoteCommandByNodeId(curTransaction, nodeId);
+    curTransaction->Commit();
+    ASSERT_TRUE(preTransaction->implicitRemoteTransactionData_->IsEmpty());
+    ASSERT_FALSE(curTransaction->implicitRemoteTransactionData_->IsEmpty());
 }
 
 /**

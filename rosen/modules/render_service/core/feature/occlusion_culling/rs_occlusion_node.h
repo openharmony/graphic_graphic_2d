@@ -52,6 +52,10 @@ public:
     bool IsSubTreeIgnored() const {
         return isSubTreeIgnored_;
     }
+    bool IsValid(const float value)
+    {
+        return !std::isinf(value) && !std::isnan(value);
+    }
     void ForwardOrderInsert(std::shared_ptr<OcclusionNode> newNode);
     bool RemoveChild(const std::shared_ptr<OcclusionNode>& child);
     void RemoveSubTree(std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes);
@@ -87,6 +91,8 @@ private:
     bool isOutOfRootRect_ = false;
     bool isAlphaNeed_ = false;
     bool isBgOpaque_ = false;
+    // Indicates whether the node was inserted or updated in the current frame.
+    // Nodes not inserted or updated in the current frame will be removed from the occlusion tree.
     bool isValidInCurrentFrame_ = false;
 
     // Spatial information

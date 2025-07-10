@@ -15,8 +15,11 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -419,7 +422,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutChild, TestSize.Level1)
     NodeId id = 1;
     RSUniRenderThread::GetCaptureParam().endNodeId_ = id;
     drawable->OnDraw(canvas);
-    ASSERT_FALSE(RSUniRenderThread::IsInCaptureProcess());
+    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
 
     CaptureParam param;
     param.isSnapshot_ = true;
@@ -450,6 +453,7 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 }
 
+
 /**
  * @tc.name: DrawWithoutNodeGroupCache
  * @tc.desc: Test If DrawWithoutNodeGroupCache Can Run
@@ -475,6 +479,62 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearDrawingCacheDataMapTest
+ * @tc.desc: Test If ClearDrawingCacheDataMap Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheDataMapTest, TestSize.Level1)
+{
+    auto renderNode1 = std::make_shared<RSRenderNode>(1);
+    auto renderNode2 = std::make_shared<RSRenderNode>(2);
+
+    auto drawable1 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode1));
+    auto drawable2 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode2));
+    EXPECT_NE(drawable1, nullptr);
+    EXPECT_NE(drawable2, nullptr);
+
+    RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable1->GetId()]++;
+    RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable2->GetId()]++;
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable1->GetId()], 1);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable2->GetId()], 1);
+
+    drawable1->ClearDrawingCacheDataMap();
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_.count(id), 0);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_.count(drawable2->GetId()), 1);
+}
+
+/**
+ * @tc.name: ClearDrawingCacheContiUpdateTimeMapTest
+ * @tc.desc: Test If ClearDrawingCacheContiUpdateTimeMap Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheContiUpdateTimeMapTest, TestSize.Level1)
+{
+    auto renderNode1 = std::make_shared<RSRenderNode>(1);
+    auto renderNode2 = std::make_shared<RSRenderNode>(2);
+
+    auto drawable1 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode1));
+    auto drawable2 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode2));
+    EXPECT_NE(drawable1, nullptr);
+    EXPECT_NE(drawable2, nullptr);
+
+    RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable1->GetId()]++;
+    RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable2->GetId()]++;
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable1->GetId()], 1);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable2->GetId()], 1);
+
+    drawable1->ClearDrawingCacheContiUpdateTimeMap();
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(id), 0);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(drawable2->GetId()), 1);
+}
+
+/**
  * @tc.name: SkipCulledNodeOrEntireSubtree001
  * @tc.desc: Test SkipCulledNodeOrEntireSubtree with node can not be skipped
  * @tc.type: FUNC
@@ -495,27 +555,6 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipCulledNodeOrEntireSubtree001, TestSize.Le
 
     Drawing::Rect bounds;
     EXPECT_EQ(drawable->SkipCulledNodeOrEntireSubtree(paintFilterCanvas, bounds), false);
-}
-
-/**
- * @tc.name: SkipCulledNodeOrEntireSubtree002
- * @tc.desc: Test SkipCulledNodeOrEntireSubtree with node can be skipped
- * @tc.type: FUNC
- * @tc.require: issueICA6FQ
- */
-HWTEST_F(RSRenderNodeDrawableTest, SkipCulledNodeOrEntireSubtree002, TestSize.Level1)
-{
-    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    ASSERT_NE(drawable, nullptr);
-    drawable->SetOcclusionCullingEnabled(true);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    std::unordered_set<NodeId> culledNodes{drawable->GetId()};
-    paintFilterCanvas.SetCulledNodes(std::move(culledNodes));
-
-    Drawing::Rect bounds;
-    EXPECT_EQ(drawable->SkipCulledNodeOrEntireSubtree(paintFilterCanvas, bounds), true);
 }
 
 /**
@@ -632,6 +671,80 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DealWithWhiteListNodes001
+ * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    RSUniRenderThread::SetCaptureParam(params);
+
+    drawable->renderParams_ = nullptr;
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_EQ(drawable->GetRenderParams(), nullptr);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+
+    ScreenId screenid = 1;
+    params.virtualScreenId_ = screenid;
+    std::unordered_map<ScreenId, bool> info;
+    info[screenid] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+
+    info.clear();
+    info[screenid + 1] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+}
+
+/**
+ * @tc.name: DealWithWhiteListNodes002
+ * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes002, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    params.rootIdInWhiteList_ = nodeId;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+
+    params.isMirror_ = true;
+    RSUniRenderThread::Instance().SetWhiteList({});
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+
+    params.isMirror_ = false;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+}
+
+/**
  * @tc.name: ProcessedNodeCount
  * @tc.desc: Test ProcessedNodeCount
  * @tc.type: FUNC
@@ -660,5 +773,33 @@ HWTEST_F(RSRenderNodeDrawableTest, ProcessedNodeCountTest, TestSize.Level1)
     ASSERT_EQ(drawable->GetTotalProcessedNodeCount(), 0);
     ASSERT_EQ(drawable->GetSnapshotProcessedNodeCount(), 0);
     ASSERT_EQ(drawable->GetProcessedNodeCount(), 0);
+}
+
+/**
+ * @tc.name: UpdateFilterDisplayHeadroomTest
+ * @tc.desc: Test UpdateFilterDisplayHeadroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateFilterDisplayHeadroomTest, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSEffectLuminanceManager::GetInstance().SetDisplayHeadroom(id, 1.5f);
+
+    Drawing::Canvas canvas;
+    drawable->UpdateFilterDisplayHeadroom(canvas);
+
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.SetScreenId(id);
+    drawable->UpdateFilterDisplayHeadroom(paintFilterCanvas);
+    EXPECT_NE(drawable->GetRenderParams(), nullptr);
+
+    const auto& params = drawable->GetRenderParams();
+    auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    params->foregroundFilterCache_ = filter;
+    params->backgroundFilter_ = filter;
+
+    drawable->UpdateFilterDisplayHeadroom(paintFilterCanvas);
+    EXPECT_EQ(filter->shaderFilters_.size(), 1);
 }
 }

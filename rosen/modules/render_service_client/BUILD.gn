@@ -12,7 +12,9 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 import("render_service_client.gni")
 
 config("render_service_client_config") {
@@ -31,6 +33,12 @@ config("render_service_client_config") {
       "$graphic_2d_root/utils/color_manager/export",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     ]
+  }
+
+  defines += gpu_defines
+
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
   }
 }
 
@@ -94,6 +102,7 @@ template("render_service_client_source_set") {
 
       #feature
       "core/feature/anco_manager/rs_ext_node_operation.cpp",
+      "core/feature/composite_layer/rs_composite_layer_utils.cpp",
       "core/feature/ui_capture/rs_divided_ui_capture.cpp",
 
       #modifier
@@ -105,6 +114,45 @@ template("render_service_client_source_set") {
       "core/modifier/rs_property.cpp",
       "core/modifier/rs_property_modifier.cpp",
       "core/modifier/rs_showing_properties_freezer.cpp",
+
+      #modifier_ng
+      "core/modifier_ng/appearance/rs_alpha_modifier.cpp",
+      "core/modifier_ng/appearance/rs_background_filter_modifier.cpp",
+      "core/modifier_ng/appearance/rs_behind_window_filter_modifier.cpp",
+      "core/modifier_ng/appearance/rs_blend_modifier.cpp",
+      "core/modifier_ng/appearance/rs_border_modifier.cpp",
+      "core/modifier_ng/appearance/rs_compositing_filter_modifier.cpp",
+      "core/modifier_ng/appearance/rs_dynamic_light_up_modifier.cpp",
+      "core/modifier_ng/appearance/rs_foreground_filter_modifier.cpp",
+      "core/modifier_ng/appearance/rs_hdr_brightness_modifier.cpp",
+      "core/modifier_ng/appearance/rs_mask_modifier.cpp",
+      "core/modifier_ng/appearance/rs_outline_modifier.cpp",
+      "core/modifier_ng/appearance/rs_particle_effect_modifier.cpp",
+      "core/modifier_ng/appearance/rs_pixel_stretch_modifier.cpp",
+      "core/modifier_ng/appearance/rs_point_light_modifier.cpp",
+      "core/modifier_ng/appearance/rs_shadow_modifier.cpp",
+      "core/modifier_ng/appearance/rs_use_effect_modifier.cpp",
+      "core/modifier_ng/appearance/rs_visibility_modifier.cpp",
+      "core/modifier_ng/background/rs_background_color_modifier.cpp",
+      "core/modifier_ng/background/rs_background_image_modifier.cpp",
+      "core/modifier_ng/background/rs_background_ng_shader_modifier.cpp",
+      "core/modifier_ng/background/rs_background_shader_modifier.cpp",
+      "core/modifier_ng/custom/rs_background_style_modifier.cpp",
+      "core/modifier_ng/custom/rs_content_style_modifier.cpp",
+      "core/modifier_ng/custom/rs_custom_modifier.cpp",
+      "core/modifier_ng/custom/rs_foreground_style_modifier.cpp",
+      "core/modifier_ng/custom/rs_node_modifier.cpp",
+      "core/modifier_ng/custom/rs_transition_style_modifier.cpp",
+      "core/modifier_ng/foreground/rs_env_foreground_color_modifier.cpp",
+      "core/modifier_ng/foreground/rs_foreground_color_modifier.cpp",
+      "core/modifier_ng/foreground/rs_foreground_shader_modifier.cpp",
+      "core/modifier_ng/geometry/rs_bounds_clip_modifier.cpp",
+      "core/modifier_ng/geometry/rs_bounds_modifier.cpp",
+      "core/modifier_ng/geometry/rs_frame_clip_modifier.cpp",
+      "core/modifier_ng/geometry/rs_frame_modifier.cpp",
+      "core/modifier_ng/geometry/rs_transform_modifier.cpp",
+      "core/modifier_ng/overlay/rs_overlay_style_modifier.cpp",
+      "core/modifier_ng/rs_modifier_ng.cpp",
 
       #pipeline
       "core/pipeline/rs_node_map.cpp",
@@ -145,17 +193,38 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_director.cpp",
 
       #ui_effect
+      "core/ui_effect/effect/src/visual_effect_para.cpp",
+      "core/ui_effect/effect/src/visual_effect_unmarshalling_singleton.cpp",
+      "core/ui_effect/effect/src/visual_effect.cpp",
+      "core/ui_effect/filter/src/filter_content_light_para.cpp",
+      "core/ui_effect/filter/src/filter_direction_light_para.cpp",
+      "core/ui_effect/filter/src/filter_dispersion_para.cpp",
+      "core/ui_effect/filter/src/filter_displacement_distort_para.cpp",
+      "core/ui_effect/filter/src/filter_mask_transition_para.cpp",
+      "core/ui_effect/filter/src/filter_para.cpp",
+      "core/ui_effect/filter/src/filter_unmarshalling_singleton.cpp",
+      "core/ui_effect/filter/src/filter_water_ripple_para.cpp",
+      "core/ui_effect/filter/src/filter.cpp",
+      "core/ui_effect/mask/src/mask_para.cpp",
+      "core/ui_effect/mask/src/mask_unmarshalling_singleton.cpp",
+      "core/ui_effect/mask/src/pixel_map_mask_para.cpp",
+      "core/ui_effect/mask/src/radial_gradient_mask_para.cpp",
       "core/ui_effect/property/src/rs_ui_bezier_warp_filter.cpp",
       "core/ui_effect/property/src/rs_ui_blur_filter.cpp",
       "core/ui_effect/property/src/rs_ui_color_gradient_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_content_light_filter.cpp",
       "core/ui_effect/property/src/rs_ui_displacement_distort_filter.cpp",
       "core/ui_effect/property/src/rs_ui_dispersion_filter.cpp",
       "core/ui_effect/property/src/rs_ui_edge_light_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_filter_base.cpp",
       "core/ui_effect/property/src/rs_ui_filter_para_base.cpp",
       "core/ui_effect/property/src/rs_ui_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_mask_base.cpp",
       "core/ui_effect/property/src/rs_ui_mask_para.cpp",
       "core/ui_effect/property/src/rs_ui_pixel_map_mask.cpp",
+      "core/ui_effect/property/src/rs_ui_radial_gradient_mask.cpp",
       "core/ui_effect/property/src/rs_ui_ripple_mask.cpp",
+      "core/ui_effect/property/src/rs_ui_shader_base.cpp",
       "core/ui_effect/property/src/rs_ui_sound_wave_filter.cpp",
     ]
 
@@ -208,7 +277,10 @@ template("render_service_client_source_set") {
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+      deps += [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$rosen_text_root:rosen_text",
+      ]
       if (rs_enable_gpu) {
         defines += [ "RS_ENABLE_GPU" ]
       }
@@ -219,10 +291,12 @@ template("render_service_client_source_set") {
 
     if (is_arkui_x) {
       defines += [ "ARKUI_X_ENABLE" ]
+      deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
     }
 
     if (rosen_is_ohos) {
       deps += [
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
         "$graphic_2d_root/utils/color_manager:color_manager",
       ]
@@ -235,6 +309,7 @@ template("render_service_client_source_set") {
         "hitrace:hitrace_meter",
         "image_framework:image_native",
         "qos_manager:qos",
+        "qos_manager:concurrent_task_client",
       ]
 
       if (defined(use_video_processing_engine) && use_video_processing_engine) {
@@ -257,15 +332,15 @@ template("render_service_client_source_set") {
         "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
         "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
       ]
-
-      if (rss_enabled) {
-        external_deps = []
-      }
     }
     if (defined(external_deps)) {
       external_deps += [ "hilog:libhilog" ]
     } else {
       external_deps = [ "hilog:libhilog" ]
+    }
+
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      external_deps += [ "jsoncpp:jsoncpp" ]
     }
 
     external_deps += [ "graphic_surface:surface_headers" ]
@@ -286,7 +361,7 @@ template("render_service_client_source_set") {
     if (is_static_lib) {
       public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static" ]
     } else {
-      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+      deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
       deps += [ "$rosen_root/modules/platform:eventhandler" ]
     }
 
@@ -364,22 +439,38 @@ ohos_shared_library("librender_service_client") {
     ":render_service_client_config",
     "../2d_graphics:export_config",
   ]
-
-  public_deps = [ ":render_service_client_src" ]
-
-  external_deps = [ "hilog:libhilog" ]
+  deps = [ ":render_service_client_src" ]
 
   if (enhanced_opt) {
     configs = [ ":render_service_client_link_config" ]
   }
 
-  public_external_deps = []
+  # for platform
+  public_configs += [
+    "$rosen_root/modules/platform:eventhandler_config",
+    "$rosen_root/modules/platform:utils_config",
+    "$rosen_root/modules/platform:ipc_core_config",
+    "$rosen_root/modules/platform:image_native_config",
+  ]
+
+  public_external_deps = [
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
   if (rosen_is_ohos) {
-    public_external_deps += [ "graphic_surface:surface" ]
+    public_external_deps += [
+      "c_utils:utils",
+      "eventhandler:libeventhandler",
+      "graphic_surface:surface",
+      "image_framework:image_native",
+    ]
   } else if (rosen_preview) {
     public_external_deps += [ "graphic_surface:surface_headers" ]
   }
 
+  if (rosen_is_win || current_os == "linux" || rosen_is_mac) {
+    public_external_deps += [ "skia:skia_canvaskit" ]
+  }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

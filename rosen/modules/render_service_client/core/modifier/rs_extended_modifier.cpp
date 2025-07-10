@@ -29,6 +29,7 @@ RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(std::weak_ptr<RS
 {
     auto node = canvasnode.lock();
     if (!node) {
+        RS_LOGW("RSExtendedModifierHelper::CreateDrawingContext node is nullptr");
         return { nullptr };
     }
     auto recordingCanvas = new ExtendRecordingCanvas(node->GetPaintWidth(), node->GetPaintHeight());
@@ -38,12 +39,13 @@ RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(std::weak_ptr<RS
 }
 
 std::shared_ptr<RSRenderModifier> RSExtendedModifierHelper::CreateRenderModifier(
-    RSDrawingContext& ctx, PropertyId id, RSModifierType type)
+    RSDrawingContext& ctx, PropertyId id, RSModifierType type, int16_t index)
 {
     auto renderProperty = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(
         RSExtendedModifierHelper::FinishDrawing(ctx), id);
     auto renderModifier =  std::make_shared<RSDrawCmdListRenderModifier>(renderProperty);
     renderModifier->SetType(type);
+    renderModifier->SetIndex(index);
     return renderModifier;
 }
 

@@ -27,13 +27,13 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t DEF_PID = 1000;
-    constexpr int32_t MIN_FPS = 60;
-    constexpr int32_t MAX_FPS = 90;
-    const std::string STRATEGY = "5";
-    const std::string PKG_NAME = "com.pkg.other";
-    const std::string PAGE_NAME = "other";
-    const std::string PAGE_NAME1 = "other1";
+constexpr int32_t DEF_PID = 1000;
+constexpr int32_t MIN_FPS = 60;
+constexpr int32_t MAX_FPS = 90;
+const std::string STRATEGY = "5";
+const std::string PKG_NAME = "com.pkg.other";
+const std::string PAGE_NAME = "other";
+const std::string PAGE_NAME1 = "other1";
 }
 
 class HgmAppPageUrlStrategyTest : public HgmTestBase {
@@ -93,7 +93,7 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName001, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName002, Function | SmallTest | Level1)
+HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName002, Function | SmallTest | Level0)
 {
     appPageUrlStrategy_->SetPageUrlConfig(screenSetting_.pageUrlConfig);
     appPageUrlStrategy_->NotifyPageName(DEF_PID, PKG_NAME, PAGE_NAME, true);
@@ -108,7 +108,7 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyPageName002, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange001, Function | SmallTest | Level1)
+HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange001, Function | SmallTest | Level0)
 {
     PolicyConfigData::ScreenSetting screenSetting;
 
@@ -129,7 +129,7 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange001, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange002, Function | SmallTest | Level1)
+HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange002, Function | SmallTest | Level0)
 {
     pid_t pid = 1;
     PolicyConfigData::ScreenSetting screenSetting;

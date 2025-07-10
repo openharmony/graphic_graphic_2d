@@ -286,20 +286,6 @@ HWTEST_F(RSDisplayNodeTest, OnBoundsSizeChanged, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDisplayOffset
- * @tc.desc: test results of SetDisplayOffset
- * @tc.type: FUNC
- * @tc.require: issueI9KDPI
- */
-HWTEST_F(RSDisplayNodeTest, SetDisplayOffset, TestSize.Level1)
-{
-    RSDisplayNodeConfig c;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
-    displayNode->SetDisplayOffset(0, 1);
-    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
-}
-
-/**
  * @tc.name: SetDisplayNodeMirrorConfig
  * @tc.desc: test results of SetDisplayNodeMirrorConfig
  * @tc.type: FUNC

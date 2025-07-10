@@ -42,6 +42,7 @@ public:
         virtual void OnPhaseOffsetChanged(int64_t phaseOffset) = 0;
         /* std::pair<id, refresh rate> */
         virtual void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) = 0;
+        virtual int64_t GetPhaseOffset() = 0;
     };
     struct ListenerRefreshRateData {
         sptr<OHOS::Rosen::VSyncGenerator::Callback> cb = nullptr;
@@ -55,7 +56,8 @@ public:
     VSyncGenerator() = default;
     virtual ~VSyncGenerator() noexcept = default;
     virtual VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) = 0;
-    virtual VsyncError AddListener(int64_t phase, const sptr<Callback>& cb) = 0;
+    virtual VsyncError AddListener(
+        const sptr<Callback>& cb, bool isRS = false, bool isUrgent = false) = 0;
     virtual VsyncError RemoveListener(const sptr<Callback>& cb) = 0;
     virtual VsyncError ChangePhaseOffset(const sptr<Callback>& cb, int64_t offset) = 0;
     virtual bool IsEnable() = 0;
@@ -68,6 +70,7 @@ public:
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
     virtual VSyncMode GetVSyncMode() = 0;
     virtual VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) = 0;
+    virtual uint32_t GetVsyncRefreshRate() = 0;
     virtual uint32_t GetVSyncMaxRefreshRate() = 0;
     virtual VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) = 0;
     virtual void Dump(std::string &result) = 0;
@@ -90,7 +93,8 @@ public:
     // End of DVSync
     virtual void PrintGeneratorStatus() = 0;
     virtual bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) = 0;
-    virtual bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) = 0;
+    virtual bool NeedPreexecuteAndUpdateTs(
+        int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -108,7 +112,8 @@ public:
     VSyncGenerator(const VSyncGenerator &) = delete;
     VSyncGenerator &operator=(const VSyncGenerator &) = delete;
     VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) override;
-    VsyncError AddListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
+    VsyncError AddListener(
+        const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, bool isRS, bool isUrgent) override;
     VsyncError RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError ChangePhaseOffset(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, int64_t offset) override;
     bool IsEnable() override;
@@ -121,6 +126,7 @@ public:
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;
     VSyncMode GetVSyncMode() override;
     VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) override;
+    uint32_t GetVsyncRefreshRate() override;
     uint32_t GetVSyncMaxRefreshRate() override;
     VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) override;
     void Dump(std::string &result) override;
@@ -144,7 +150,8 @@ public:
     // End of DVSync
     void PrintGeneratorStatus() override;
     bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) override;
-    bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) override;
+    bool NeedPreexecuteAndUpdateTs(
+        int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime) override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 
@@ -152,6 +159,7 @@ private:
         int64_t phase_;
         sptr<OHOS::Rosen::VSyncGenerator::Callback> callback_;
         int64_t lastTime_;
+        bool isRS_ = false;
     };
 
     VSyncGenerator();
@@ -183,6 +191,7 @@ private:
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
     void WaitForTimeoutConNotifyLocked();
+    void WaitForTimeoutConNotifyLockedForListener();
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_ = 0;

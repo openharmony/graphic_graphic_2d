@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,65 @@ public:
         fileName_ = "FunctionPenSetShaderEffectNullTest";
     }
     ~FunctionPenSetShaderEffectNullTest() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionPenSetColor4fNullTest : public TestBase {
+public:
+    FunctionPenSetColor4fNullTest()
+    {
+        fileName_ = "FunctionPenSetColor4fNullTest";
+    }
+    ~FunctionPenSetColor4fNullTest() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionPenGetAlphaFloatNullTest : public TestBase {
+public:
+    FunctionPenGetAlphaFloatNullTest()
+    {
+        fileName_ = "FunctionPenGetAlphaFloatNullTest";
+    }
+    ~FunctionPenGetAlphaFloatNullTest() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionPenGetRedFloatNullTest : public TestBase {
+public:
+    FunctionPenGetRedFloatNullTest()
+    {
+        fileName_ = "FunctionPenGetRedFloatNullTest";
+    }
+    ~FunctionPenGetRedFloatNullTest() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionPenGetBlueFloatNullTest : public TestBase {
+public:
+    FunctionPenGetBlueFloatNullTest()
+    {
+        fileName_ = "FunctionPenGetBlueFloatNullTest";
+    }
+    ~FunctionPenGetBlueFloatNullTest() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+class FunctionPenGetGreenFloatNullTest : public TestBase {
+public:
+    FunctionPenGetGreenFloatNullTest()
+    {
+        fileName_ = "FunctionPenGetGreenFloatNullTest";
+    }
+    ~FunctionPenGetGreenFloatNullTest() override {};
 
 protected:
     void OnTestFunction(OH_Drawing_Canvas* canvas) override;

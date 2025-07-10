@@ -24,6 +24,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class RuntimeEffect;
+class Canvas;
 class DRAWING_API RuntimeShaderBuilder {
 public:
     RuntimeShaderBuilder(std::shared_ptr<RuntimeEffect> runtimeEffect) noexcept;
@@ -31,6 +32,8 @@ public:
 
     std::shared_ptr<ShaderEffect> MakeShader(const Matrix* localMatrix, bool isOpaque);
     std::shared_ptr<Image> MakeImage(GPUContext* gpuContext,
+        const Matrix* localMatrix, ImageInfo resultInfo, bool mipmapped);
+    std::shared_ptr<Image> MakeImage(Canvas& canvas,
         const Matrix* localMatrix, ImageInfo resultInfo, bool mipmapped);
 
     void SetChild(const std::string& name, std::shared_ptr<ShaderEffect> shader);

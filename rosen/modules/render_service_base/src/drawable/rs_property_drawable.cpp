@@ -20,6 +20,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -27,7 +28,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -184,8 +185,12 @@ void RSFilterDrawable::OnSync()
 {
     if (needSync_) {
         filter_ = std::move(stagingFilter_);
+        if (filter_) {
+            filter_->OnSync();
+        }
         needSync_ = false;
     }
+
     renderNodeId_ = stagingNodeId_;
     renderNodeName_ = stagingNodeName_;
     renderIntersectWithDRM_ = stagingIntersectWithDRM_;
@@ -275,18 +280,13 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         }
         if (canvas && ptr && ptr->filter_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
-            if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR && rect != nullptr) {
+            if (rect) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                std::shared_ptr<RSShaderFilter> rsShaderFilter =
-                    filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
-                if (rsShaderFilter != nullptr) {
-                    auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
-                    tmpFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
-                }
+                filter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
             }
             int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
-                ptr->cacheManager_, ptr->IsForeground());
+                ptr->cacheManager_, ptr->renderNodeId_, ptr->IsForeground());
             int64_t blurDuration = Drawing::PerfmonitorReporter::GetCurrentTime() - startBlurTime;
             auto filterType = ptr->filter_->GetFilterType();
             RSPerfMonitorReporter::GetInstance().RecordBlurNode(ptr->renderNodeName_, blurDuration,
@@ -413,12 +413,12 @@ void RSFilterDrawable::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDa
     stagingIsDarkColorMode_ = isDark;
 }
 
-void RSFilterDrawable::MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+void RSFilterDrawable::MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId)
 {
     if (stagingCacheManager_ == nullptr) {
         return;
     }
-    stagingCacheManager_->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
+    stagingCacheManager_->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
 }
 
 bool RSFilterDrawable::IsFilterCacheValid() const
@@ -461,14 +461,6 @@ bool RSFilterDrawable::NeedPendingPurge() const
     return stagingCacheManager_->NeedPendingPurge();
 }
 
-bool RSFilterDrawable::IsPendingPurge() const
-{
-    if (stagingCacheManager_ == nullptr) {
-        return false;
-    }
-    return stagingCacheManager_->IsPendingPurge();
-}
-
 void RSFilterDrawable::MarkEffectNode()
 {
     if (stagingCacheManager_ != nullptr) {
@@ -501,12 +493,12 @@ bool RSFilterDrawable::IsAIBarFilter() const
     return stagingCacheManager_->GetFilterType() == RSFilter::AIBAR;
 }
 
-bool RSFilterDrawable::IsAIBarCacheValid()
+bool RSFilterDrawable::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
 {
     if (stagingCacheManager_ == nullptr) {
         return false;
     }
-    return stagingCacheManager_->IsAIBarCacheValid();
+    return stagingCacheManager_->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 }
 
 void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)

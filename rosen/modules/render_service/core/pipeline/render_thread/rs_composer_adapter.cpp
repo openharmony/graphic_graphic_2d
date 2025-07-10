@@ -33,7 +33,7 @@
 #include "string_utils.h"
 
 #include "draw/canvas.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -75,7 +75,7 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     return true;
 }
 
-bool RSComposerAdapter::Init(const RSDisplayRenderNode& node, const ScreenInfo& screenInfo,
+bool RSComposerAdapter::Init(const RSScreenRenderNode& node, const ScreenInfo& screenInfo,
     const ScreenInfo& mirroredScreenInfo, float mirrorAdaptiveCoefficient, const FallbackCallback& cb)
 {
     hdiBackend_ = HdiBackend::GetInstance();
@@ -100,8 +100,8 @@ bool RSComposerAdapter::Init(const RSDisplayRenderNode& node, const ScreenInfo& 
     };
     hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
 
-    offsetX_ = node.GetDisplayOffsetX();
-    offsetY_ = node.GetDisplayOffsetY();
+    offsetX_ = node.GetScreenOffsetX();
+    offsetY_ = node.GetScreenOffsetY();
     screenInfo_ = screenInfo;
     mirroredScreenInfo_ = mirroredScreenInfo;
     mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;
@@ -158,13 +158,13 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
             surfaceHandler = surfaceNode ? surfaceNode->GetRSSurfaceHandler() : nullptr;
-        } else if (nodePtr->IsInstanceOf<RSDisplayRenderNode>()) {
+        } else if (nodePtr->IsInstanceOf<RSScreenRenderNode>()) {
             auto drawable = nodePtr->GetRenderDrawable();
             if (!drawable) {
                 continue;
             }
-            auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-            surfaceHandler = displayDrawable->GetMutableRSSurfaceHandlerOnDraw();
+            auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+            surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
         }
         if (!surfaceHandler) {
             continue;
@@ -377,16 +377,16 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node, bool 
     return info;
 }
 
-// private func, for RSDisplayRenderNode
-ComposeInfo RSComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
+// private func, for RSScreenRenderNode
+ComposeInfo RSComposerAdapter::BuildComposeInfo(RSScreenRenderNode& node) const
 {
     ComposeInfo info {};
     auto drawable = node.GetRenderDrawable();
     if (!drawable) {
         return info;
     }
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     const auto& buffer = surfaceHandler->GetBuffer(); // we guarantee the buffer is valid.
     info.srcRect = GraphicIRect {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
     info.dstRect = GraphicIRect {
@@ -503,13 +503,6 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
         return false;
     }
 
-    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
-    if (geoPtr == nullptr) {
-        RS_LOGW("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%{public}" PRIu64 ")'s"
-            " geoPtr is nullptr!", node.GetId());
-        return false;
-    }
-
     if (!node.IsNotifyRTBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %{public}" PRIu64 " Notify RT buffer available",
@@ -596,7 +589,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node) const
     }
 }
 
-LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
+LayerInfoPtr RSComposerAdapter::CreateLayer(RSScreenRenderNode& node) const
 {
     if (output_ == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateLayer: output is nullptr");
@@ -606,8 +599,8 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
     if (!drawable) {
         return nullptr;
     }
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-    auto surfaceHandler = displayDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
@@ -619,7 +612,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
     }
 
     ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGD("RSComposerAdapter::ProcessSurface displayNode id:%{public}" PRIu64 " dst [%{public}d"
+    RS_LOGD("RSComposerAdapter::ProcessSurface screenNode id:%{public}" PRIu64 " dst [%{public}d"
         " %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d]"
         " surfaceBuffer [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d",
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
@@ -628,7 +621,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), &node);
     LayerRotate(layer, node);
-    // do not crop or scale down for displayNode's layer.
+    // do not crop or scale down for screenNode's layer.
     return layer;
 }
 

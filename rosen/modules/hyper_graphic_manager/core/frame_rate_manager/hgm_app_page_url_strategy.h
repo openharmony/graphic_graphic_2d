@@ -25,7 +25,7 @@ class HgmAppPageUrlStrategy final {
 public:
     using PageUrlVoterCallback = std::function<void(pid_t pid, std::string strategy, const bool isAddVoter)>;
 
-    void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
+    void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
     void SetPageUrlConfig(PolicyConfigData::PageUrlConfigMap pageUrlConfig);
     void RegisterPageUrlVoterCallback(const PageUrlVoterCallback& callback);
     void NotifyScreenSettingChange();

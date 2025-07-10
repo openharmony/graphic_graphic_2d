@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_canvas_render_node_drawable.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
 
@@ -76,7 +77,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 
     drawable->isOpDropped_ = false;
     drawable->isDrawingCacheEnabled_ = true;
-    drawable->GetOpincDrawCache().autoCacheEnable_ = false;
+    RSOpincManager::Instance().SetOPIncSwitch(false);
     drawable->drawBlurForCache_ = false;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
@@ -129,6 +130,8 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
     drawable->isDrawingCacheEnabled_ = false;
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     ASSERT_TRUE(drawable->GetRenderParams());
@@ -146,6 +149,18 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
+    
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    ScreenId screenid = 1;
+    params.virtualScreenId_ = screenid;
+    std::unordered_map<ScreenId, bool> info;
+    info[screenid] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    RSUniRenderThread::SetCaptureParam(params);
+    drawable->OnCapture(canvas);
 }
 
 /**

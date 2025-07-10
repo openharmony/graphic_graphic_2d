@@ -13,8 +13,8 @@
 * limitations under the License.
 */
  
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_COMPLEX_SHADER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_COMPLEX_SHADER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_COMPLEX_SHADER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_COMPLEX_SHADER_H
   
 #include <memory>
 #include <string>
@@ -46,10 +46,10 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
         const std::vector<float> &effectParam, const Drawing::RectF &rect);
     GexComplexShaderType GetShaderType() const;
-    GexComplexShaderType shaderType_;
+    GexComplexShaderType shaderType_ = GexComplexShaderType::NONE;
     std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
 };
 }  // namespace Rosen
 }  // namespace OHOS
   
-#endif  // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_COMPLEX_SHADER_H
+#endif  // RENDER_SERVICE_BASE_RENDER_RENDER_RS_COMPLEX_SHADER_H

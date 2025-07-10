@@ -610,8 +610,8 @@ bool DoTakeSurfaceCapture()
     captureConfig.isSync = GetData<bool>();
     uint8_t listSize = GetData<uint8_t>();
     for (uint8_t i = 0; i < listSize; ++i) {
-        uint64_t nodeId = GetData<uint64_t>();
-        captureConfig.blackList.push_back(nodeId);
+        uint64_t listNodeId = GetData<uint64_t>();
+        captureConfig.blackList.push_back(listNodeId);
     }
     captureConfig.mainScreenRect.left_ = GetData<float>();
     captureConfig.mainScreenRect.top_ = GetData<float>();
@@ -808,6 +808,17 @@ bool DoGetTotalAppMemSize()
     float cpuMemSize = GetData<float>();
     float gpuMemSize = GetData<float>();
     rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+    return true;
+}
+
+bool DoSetVirtualScreenAutoRotation()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    ScreenId screenId = GetData<ScreenId>();
+    bool isAutoRotation = GetData<bool>();
+    rsConn_->SetVirtualScreenAutoRotation(screenId, isAutoRotation);
     return true;
 }
 
@@ -1346,6 +1357,17 @@ bool DOSetLayerTop()
     return true;
 }
 
+bool DoSetForceRefresh()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string nodeIdStr = GetData<std::string>();
+    bool isForceRefresh = GetData<bool>();
+    rsConn_->SetForceRefresh(nodeIdStr, isForceRefresh);
+    return true;
+}
+
 bool DOSetFreeMultiWindowStatus()
 {
     if (rsConn_ == nullptr) {
@@ -1421,6 +1443,37 @@ bool DoGetBehindWindowFilterEnabled()
     return true;
 }
 
+bool DoProfilerServiceOpenFile()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t fd = 0;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN, "", ""};
+    rsConn_->ProfilerServiceOpenFile(dirInfo, "", 0, fd);
+    return true;
+}
+
+bool DoProfilerServicePopulateFiles()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::vector<HrpServiceFileInfo> outFiles;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN, "", ""};
+    rsConn_->ProfilerServicePopulateFiles(dirInfo, 0, outFiles);
+    return true;
+}
+
+bool DoProfilerIsSecureScreen()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->ProfilerIsSecureScreen();
+    return true;
+}
+
 class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
 public:
     explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
@@ -1445,6 +1498,39 @@ bool DoRegisterFirstFrameCommitCallback()
     FirstFrameCommitCallback callback = [](uint64_t screenId, int64_t timestamp) {};
     sptr<CustomFirstFrameCommitCallback> cb = new CustomFirstFrameCommitCallback(callback);
     rsConn_->RegisterFirstFrameCommitCallback(cb);
+    return true;
+}
+
+bool DoSetWindowExpectedRefreshRate()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::unordered_map<uint64_t, EventInfo> eventInfos;
+    uint64_t winId = GetData<uint64_t>();
+    EventInfo eventInfo;
+    eventInfo.eventName = GetData<std::string>();
+    eventInfo.eventStatus = GetData<bool>();
+    eventInfo.minRefreshRate = GetData<uint32_t>();
+    eventInfo.maxRefreshRate = GetData<uint32_t>();
+    eventInfo.description = GetData<std::string>();
+    eventInfos[winId] = eventInfo;
+    rsConn_->SetWindowExpectedRefreshRate(eventInfos);
+    std::unordered_map<std::string, EventInfo> stringEventInfos;
+    std::string name = GetData<std::string>();
+    stringEventInfos[name] = eventInfo;
+    rsConn_->SetWindowExpectedRefreshRate(stringEventInfos);
+    return true;
+}
+
+bool DoClearUifirstCache()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    rsConn_->ClearUifirstCache(id);
     return true;
 }
 
@@ -1549,6 +1635,7 @@ void DoFuzzerTest2()
     DOSetCurtainScreenUsingStatus();
     DOSetVirtualScreenStatus();
     DOSetLayerTop();
+    DoSetForceRefresh();
     DOSetFreeMultiWindowStatus();
 }
 
@@ -1565,6 +1652,12 @@ void DoFuzzerTest3()
     DoNotifySoftVsyncRateDiscountEvent();
     DoSetBehindWindowFilterEnabled();
     DoGetBehindWindowFilterEnabled();
+    DoSetVirtualScreenAutoRotation();
+    DoSetWindowExpectedRefreshRate();
+    DoProfilerServiceOpenFile();
+    DoProfilerServicePopulateFiles();
+    DoProfilerIsSecureScreen();
+    DoClearUifirstCache();
 }
 } // namespace Rosen
 } // namespace OHOS

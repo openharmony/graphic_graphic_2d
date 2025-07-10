@@ -28,7 +28,6 @@
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
-
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -380,6 +379,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     captureConfig.scaleY = scaleY;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     captureConfig.isSync = isSync;
+    captureConfig.specifiedAreaRect = specifiedAreaRect;
     if (RSSystemProperties::GetUniRenderEnabled()) {
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
@@ -416,7 +416,9 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> nod
         if (captureConfig.isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
+        RSSurfaceCaptureBlurParam blurParam = {};
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback,
+            captureConfig, blurParam, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
@@ -561,6 +563,11 @@ int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, ui
 bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+}
+
+int32_t RSInterfaces::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    return renderServiceClient_->SetVirtualScreenAutoRotation(id, isAutoRotation);
 }
 
 bool RSInterfaces::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
@@ -781,6 +788,16 @@ uint32_t RSInterfaces::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
     return renderServiceClient_->SetScreenActiveRect(id, activeRect);
 }
 
+void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+{
+    return renderServiceClient_->SetScreenOffset(id, offSetX, offSetY);
+}
+
+void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    return renderServiceClient_->SetScreenFrameGravity(id, gravity);
+}
+
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
 {
     return renderServiceClient_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
@@ -857,8 +874,16 @@ void RSInterfaces::SetAppWindowNum(uint32_t num)
     renderServiceClient_->SetAppWindowNum(num);
 }
 
+/**
+ * @brief Display safe Watermark
+ * @param watermarkImg, The image width and height are less than twice the screen size
+ * @param isShow, flag indicating whether to display the watermark identifier(true) or hide it(false)
+ */
 void RSInterfaces::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
+    if (watermarkImg == nullptr) {
+        ROSEN_LOGE("RSInterfaces::ShowWatermark watermarkImg is nullptr");
+    }
     renderServiceClient_->ShowWatermark(watermarkImg, isShow);
 }
 
@@ -1072,11 +1097,11 @@ void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
     renderServiceClient_->SetFreeMultiWindowStatus(enable);
 }
 
-bool RSInterfaces::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+bool RSInterfaces::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback)
 {
     RS_LOGD("interface::RegisterTransactionDataCallback, timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
-    return renderServiceClient_->RegisterTransactionDataCallback(pid, timeStamp, callback);
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    return renderServiceClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
@@ -1105,9 +1130,19 @@ bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
     return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 
+void RSInterfaces::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+{
+    renderServiceClient_->SetLayerTopForHWC(nodeIdStr, isTop, zOrder);
+}
+
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
+
+void RSInterfaces::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
+{
+    renderServiceClient_->SetForceRefresh(nodeIdStr, isForceRefresh);
 }
 
 void RSInterfaces::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
@@ -1127,10 +1162,19 @@ void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
     renderServiceClient_->SetWindowContainer(nodeId, value);
 }
 
-int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback)
+int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(
+    const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback)
 {
-    RS_TRACE_NAME("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback");
-    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(callback);
+    RS_LOGD("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback lowLimit_width: %{public}d lowLimit_height: "
+            "%{public}d highLimit_width: %{public}d highLimit_height: %{public}d",
+            constraint.range.lowLimit.width, constraint.range.lowLimit.height, constraint.range.highLimit.width,
+            constraint.range.highLimit.height);
+    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(constraint, callback);
+}
+
+int32_t RSInterfaces::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    return renderServiceClient_->UnRegisterSelfDrawingNodeRectChangeCallback();
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -1152,6 +1196,13 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
     }
 }
 
+int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
+{
+    auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    ROSEN_LOGD("RSInterfaces::GetpidGpuMemoryInMB called!");
+    return ret;
+}
+
 bool RSInterfaces::GetHighContrastTextState()
 {
     return renderServiceClient_->GetHighContrastTextState();
@@ -1165,6 +1216,11 @@ bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return renderServiceClient_->GetBehindWindowFilterEnabled(enabled);
+}
+
+void RSInterfaces::ClearUifirstCache(NodeId id)
+{
+    renderServiceClient_->ClearUifirstCache(id);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -49,6 +49,10 @@ struct RSLayerInfo {
     int32_t layerSource;
     bool arsrTag = true;
     bool copybitTag = false;
+    uint32_t ancoFlags = 0;
+    GraphicIRect ancoCropRect{};
+    bool useDeviceOffline = false;
+    
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -56,7 +60,9 @@ struct RSLayerInfo {
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
             (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
-            (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag);
+            (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag) &&
+            (ancoCropRect == layerInfo.ancoCropRect) && (ancoFlags == layerInfo.ancoFlags) &&
+            (useDeviceOffline == layerInfo.useDeviceOffline);
     }
 #endif
 };
@@ -76,6 +82,11 @@ public:
     {
         return isAppWindow_;
     }
+    bool IsLeashOrMainWindow() const
+    {
+        return isLeashorMainWindow_;
+    }
+
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return rsSurfaceNodeType_;
@@ -84,20 +95,20 @@ public:
     {
         return selfDrawingType_;
     }
-    void SetAncestorDisplayNode(const RSRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorScreenNode(const RSRenderNode::WeakPtr& ancestorScreenNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
-        auto node = ancestorDisplayNode.lock();
-        ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
+        ancestorScreenNode_ = ancestorScreenNode;
+        auto node = ancestorScreenNode.lock();
+        ancestorScreenDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
 
-    RSRenderNode::WeakPtr GetAncestorDisplayNode() const
+    RSRenderNode::WeakPtr GetAncestorScreenNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorScreenNode_;
     }
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorDisplayDrawable() const
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorScreenDrawable() const
     {
-        return ancestorDisplayDrawable_;
+        return ancestorScreenDrawable_;
     }
 
     float GetAlpha() const
@@ -127,10 +138,6 @@ public:
     const Color& GetBackgroundColor() const
     {
         return backgroundColor_;
-    }
-    const RectI& GetAbsDrawRect() const override
-    {
-        return absDrawRect_;
     }
     const RRect& GetRRect() const
     {
@@ -199,7 +206,10 @@ public:
 
     bool HasBlackListByScreenId(ScreenId screenId)
     {
-        return blackListIds_[screenId].size() != 0;
+        if (blackListIds_.find(screenId) != blackListIds_.end()) {
+            return blackListIds_[screenId].size() != 0;
+        }
+        return false;
     }
 
     bool HasPrivacyContentLayer()
@@ -224,20 +234,6 @@ public:
 
     // [Attention] The function only used for unlocking screen for PC currently
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
-
-    void SetLeashWindowVisibleRegionEmptyParam(bool isLeashWindowVisibleRegionEmpty)
-    {
-        if (isLeashWindowVisibleRegionEmpty_ == isLeashWindowVisibleRegionEmpty) {
-            return;
-        }
-        isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
-        needSync_ = true;
-    }
-
-    bool GetLeashWindowVisibleRegionEmptyParam() const
-    {
-        return isLeashWindowVisibleRegionEmpty_;
-    }
 
     bool SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
@@ -291,6 +287,12 @@ public:
     {
         return dstRect_;
     }
+
+    void SetAncoSrcCrop(const Rect& srcCrop) { ancoSrcCrop_ = srcCrop; }
+    const Rect& GetAncoSrcCrop() const { return ancoSrcCrop_; }
+    void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
+    uint32_t GetAncoFlags() const { return ancoFlags_; }
+
     void SetSurfaceCacheContentStatic(bool contentStatic, bool lastFrameSynced);
     bool GetSurfaceCacheContentStatic() const;
     bool GetPreSurfaceCacheContentStatic() const;
@@ -372,6 +374,8 @@ public:
     // source crop tuning
     void SetLayerSourceTuning(int32_t needSourceTuning);
     int32_t GetLayerSourceTuning() const;
+    void SetTunnelLayerId(const uint64_t& tunnelLayerId);
+    uint64_t GetTunnelLayerId() const;
 
     void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
     bool IsGpuOverDrawBufferOptimizeNode() const;
@@ -388,7 +392,10 @@ public:
     bool GetHwcGlobalPositionEnabled() const;
 
     void SetHwcCrossNode(bool isCrossNode);
-    bool IsDRMCrossNode() const;
+    bool IsHwcCrossNode() const;
+
+    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
+    bool IsNodeToBeCaptured() const;
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
@@ -398,6 +405,9 @@ public:
 
     void SetLayerTop(bool isTop);
     bool IsLayerTop() const;
+
+    void SetForceRefresh(bool isForceRefresh);
+    bool IsForceRefresh() const;
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
     
@@ -733,7 +743,7 @@ public:
         return rsSurfaceNodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
-    const Vector4f& GetRegionToBeMagnified() const
+    const Vector4<int>& GetRegionToBeMagnified() const
     {
         return regionToBeMagnified_;
     }
@@ -741,14 +751,22 @@ public:
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
+    void SetUseDeviceOffline(bool useDeviceOffline)
+    {
+#ifndef ROSEN_CROSS_PLATFORM
+        layerInfo_.useDeviceOffline = useDeviceOffline;
+#endif
+    }
+
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
     bool isAppWindow_ = false;
+    bool isLeashorMainWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
-    RSRenderNode::WeakPtr ancestorDisplayNode_;
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
+    RSRenderNode::WeakPtr ancestorScreenNode_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorScreenDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr sourceDisplayRenderNodeDrawable_;
 
@@ -773,9 +791,10 @@ private:
     RectI dstRect_;
     RectI oldDirtyInSurface_;
     RectI childrenDirtyRect_;
-    RectI absDrawRect_;
     RRect rrect_;
-    Vector4f regionToBeMagnified_;
+    Rect ancoSrcCrop_{};
+    uint32_t ancoFlags_ = 0;
+    Vector4<int> regionToBeMagnified_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
@@ -790,7 +809,6 @@ private:
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
     bool occlusionVisible_ = false;
-    bool isLeashWindowVisibleRegionEmpty_ = false;
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
@@ -819,6 +837,7 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
+    bool isNodeToBeCaptured_ = false;
     RSSpecialLayerManager specialLayerManager_;
     std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     std::set<NodeId> privacyContentLayerIds_ = {};
@@ -829,10 +848,12 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
+    bool isForceRefresh_ = false;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    uint64_t tunnelLayerId_ = 0;
     int64_t stencilVal_ = -1;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;

@@ -12,13 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
 
-#ifdef NEW_SKIA
 #include "include/effects/SkRuntimeEffect.h"
-#endif
-
 #include "common/rs_color.h"
 #include "render/rs_hps_blur.h"
 #include "render/rs_skia_filter.h"
@@ -52,11 +49,11 @@ enum MATERIAL_BLUR_STYLE : int {
 };
 // material blur style params
 struct MaterialParam {
-    float radius;
-    float saturation;
-    float brightness;
-    RSColor maskColor;
-    bool disableSystemAdaptation;
+    float radius = 0.f;
+    float saturation = 0.f;
+    float brightness = 1.f;
+    RSColor maskColor = {};
+    bool disableSystemAdaptation = false;
 };
 class RSB_EXPORT RSMaterialFilter : public RSDrawingFilterOriginal {
 public:
@@ -75,10 +72,6 @@ public:
     std::string GetDescription() override;
     std::string GetDetailedDescription() override;
 
-    std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
-    std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
-    std::shared_ptr<RSFilter> Multiply(float rhs) override;
-    std::shared_ptr<RSFilter> Negate() override;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
     float GetRadius() const;
@@ -89,13 +82,7 @@ public:
     bool GetDisableSystemAdaptation() const;
     bool CanSkipFrame() const override;
 
-    bool IsNearEqual(
-        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
-    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef) override;
-
-    bool IsEqual(const std::shared_ptr<RSFilter>& other) const override;
-    bool IsEqualZero() const override;
 
 private:
     BLUR_COLOR_MODE colorMode_;
@@ -117,4 +104,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_BLUR_FILTER_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_BLUR_FILTER_H

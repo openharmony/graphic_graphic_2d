@@ -20,7 +20,7 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -466,6 +466,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawImplTest, TestSize.Level1)
 HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
 {
     NodeId id = 13;
+    ScreenId screenId = 0;
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter =
         std::dynamic_pointer_cast<RSRenderNodeDrawableAdapter>(std::make_shared<RSRenderNodeDrawable>(std::move(node)));
@@ -476,8 +477,8 @@ HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
 
-    RSDisplayNodeConfig config;
-    auto rSDisplayRenderNode = std::make_shared<const RSDisplayRenderNode>(id, config);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto rSDisplayRenderNode = std::make_shared<const RSScreenRenderNode>(id, screenId, context);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(rSDisplayRenderNode, adapter);
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
@@ -620,6 +621,24 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterCachedRegionTest, TestSize.Leve
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
     EXPECT_EQ(adapter->GetFilterCachedRegion(), RectI());
+}
+
+/**
+ * @tc.name: DrawableOnDrawMultiAccessEventReportTest
+ * @tc.desc: Test RSRenderNodeSingleDrawableLocker::DrawableOnDrawMultiAccessEventReport
+ * @tc.type: FUNC
+ * @tc.require: issueIALKED
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DrawableOnDrawMultiAccessEventReportTest, TestSize.Level1)
+{
+    NodeId id = 20;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter =
+        std::dynamic_pointer_cast<RSRenderNodeDrawableAdapter>(std::make_shared<RSRenderNodeDrawable>(std::move(node)));
+    ASSERT_NE(adapter, nullptr);
+
+    RSRenderNodeSingleDrawableLocker singleLocker(adapter.get());
+    singleLocker.DrawableOnDrawMultiAccessEventReport(" ");
 }
 
 } // namespace OHOS::Rosen

@@ -50,7 +50,7 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode->SetFrame(0, 0, width, height);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_GREEN);
 
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(50, 50, width - 100, height - 100);
     canvasNode->SetFrame(50, 50, width - 100, height - 100);

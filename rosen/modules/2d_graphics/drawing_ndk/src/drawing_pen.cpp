@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,11 @@
 #include "drawing_helper.h"
 
 #include "draw/pen.h"
+#include "draw/color.h"
+#include "ndk_color_space.h"
+#ifdef OHOS_PLATFORM
+#include "utils/colorspace_convertor.h"
+#endif
 
 using namespace OHOS;
 using namespace Rosen;
@@ -369,6 +374,79 @@ bool OH_Drawing_PenGetFillPath(OH_Drawing_Pen* cPen, const OH_Drawing_Path* src,
     }
     return pen->GetFillPath(*srcPath, *dstPath, cRect ? CastToRect(cRect): nullptr,
         cMatrix ? *CastToMatrix(cMatrix) : Matrix());
+}
+
+#ifdef OHOS_PLATFORM
+static NativeColorSpaceManager* OHNativeColorSpaceManagerToNativeColorSpaceManager(
+    OH_NativeColorSpaceManager* nativeColorSpaceManager)
+{
+    return reinterpret_cast<NativeColorSpaceManager*>(nativeColorSpaceManager);
+}
+#endif
+
+OH_Drawing_ErrorCode OH_Drawing_PenSetColor4f(OH_Drawing_Pen* cPen, float a, float r, float g, float b,
+    OH_NativeColorSpaceManager* colorSpaceManager)
+{
+#ifdef OHOS_PLATFORM
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    NativeColorSpaceManager* nativeColorSpaceManager =
+        OHNativeColorSpaceManagerToNativeColorSpaceManager(colorSpaceManager);
+    std::shared_ptr<ColorSpace> drawingColorSpace = nullptr;
+    if (nativeColorSpaceManager) {
+        auto colorManagerColorSpace = std::make_shared<OHOS::ColorManager::ColorSpace>(
+            nativeColorSpaceManager->GetInnerColorSpace());
+        drawingColorSpace =
+            Drawing::ColorSpaceConvertor::ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+    }
+
+    pen->SetColor(Color4f{r, g, b, a}, drawingColorSpace);
+    return OH_DRAWING_SUCCESS;
+#else
+    return OH_DRAWING_SUCCESS;
+#endif
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PenGetAlphaFloat(OH_Drawing_Pen* pen, float* a)
+{
+    Pen* cPen = CastToPen(pen);
+    if (cPen == nullptr || a == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *a = cPen->GetAlphaF();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PenGetRedFloat(OH_Drawing_Pen* pen, float* r)
+{
+    Pen* cPen = CastToPen(pen);
+    if (cPen == nullptr || r == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *r = cPen->GetRedF();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PenGetGreenFloat(OH_Drawing_Pen* pen, float* g)
+{
+    Pen* cPen = CastToPen(pen);
+    if (cPen == nullptr || g == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *g = cPen->GetGreenF();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PenGetBlueFloat(OH_Drawing_Pen* pen, float* b)
+{
+    Pen* cPen = CastToPen(pen);
+    if (cPen == nullptr || b == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *b = cPen->GetBlueF();
+    return OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_PenReset(OH_Drawing_Pen* cPen)

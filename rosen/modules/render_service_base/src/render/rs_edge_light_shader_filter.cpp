@@ -17,21 +17,31 @@
 #include "common/rs_vector4.h"
 #include "ge_shader_filter_params.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSEdgeLightShaderFilter::RSEdgeLightShaderFilter(const EdgeLightShaderFilterParams& param)
     : alpha_(param.alpha),
+    bloom_(param.bloom),
     color_(param.color),
+    useRawColor_(param.useRawColor),
     mask_(param.mask)
 {
     type_ = ShaderFilterType::EDGE_LIGHT;
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
+    hash_ = hashFunc(&bloom_, sizeof(bloom_), hash_);
     hash_ = hashFunc(&color_, sizeof(color_), hash_);
+    hash_ = hashFunc(&useRawColor_, sizeof(useRawColor_), hash_);
     if (mask_) {
         auto maskHash = mask_->Hash();
         hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
@@ -47,18 +57,12 @@ void RSEdgeLightShaderFilter::GenerateGEVisualEffect(
         return;
     }
 
-    Vector4f color;
-    if (color_.has_value()) {
-        color = color_.value();
-    }
-
     auto edgeLightShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
         Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_ALPHA, alpha_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_R, color.x_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_G, color.y_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_B, color.z_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_USE_RAW_COLOR, !color_.has_value());
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_BLOOM, bloom_);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_COLOR, color_);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_USE_RAW_COLOR, useRawColor_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_MASK,
         mask_ != nullptr ? mask_->GenerateGEShaderMask() : nullptr);
     visualEffectContainer->AddToChainedFilter(edgeLightShaderFilter);

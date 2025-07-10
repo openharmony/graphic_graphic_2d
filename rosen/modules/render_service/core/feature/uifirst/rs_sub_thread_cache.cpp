@@ -29,7 +29,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_tag_tracker.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -40,15 +40,21 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_drawing_filter.h"
 #include "rs_profiler.h"
-#include "utils/graphic_coretrace.h"
 #include "rs_frame_report.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+
+#undef LOG_TAG
+#define LOG_TAG "RsSubThreadCache"
 
 namespace {
 static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
@@ -93,8 +99,8 @@ std::shared_ptr<Drawing::Surface> RsSubThreadCache::GetCacheSurface(uint32_t thr
 
 void RsSubThreadCache::ClearCacheSurfaceInThread()
 {
-    RS_TRACE_NAME_FMT("ClearCacheSurfaceInThread id:%" PRIu64, GetNodeId());
-    RS_LOGI("ClearCacheSurfaceInThread id:%{public}" PRIu64, GetNodeId());
+    RS_TRACE_NAME_FMT("ClearCacheSurfaceInThread id:%" PRIu64, nodeId_);
+    RS_LOGI("ClearCacheSurfaceInThread id:%{public}" PRIu64, nodeId_);
     std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
     if (clearCacheSurfaceFunc_) {
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
@@ -105,8 +111,8 @@ void RsSubThreadCache::ClearCacheSurfaceInThread()
 
 void RsSubThreadCache::ClearCacheSurfaceOnly()
 {
-    RS_TRACE_NAME_FMT("ClearCacheSurfaceOnly id:%" PRIu64, GetNodeId());
-    RS_LOGI("ClearCacheSurfaceOnly id:%{public}" PRIu64, GetNodeId());
+    RS_TRACE_NAME_FMT("ClearCacheSurfaceOnly id:%" PRIu64, nodeId_);
+    RS_LOGI("ClearCacheSurfaceOnly id:%{public}" PRIu64, nodeId_);
     if (cacheSurface_ == nullptr) {
         return;
     }
@@ -121,18 +127,16 @@ void RsSubThreadCache::ClearCacheSurfaceOnly()
 std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_GETCOMPLETEDIMAGE);
     auto gpuContext = canvas.GetGPUContext();
     if (!gpuContext) {
-        RS_LOGE("RsSubThreadCache::GetCompletedImage GetGPUContext nullptr");
+        RS_LOGE("GetCompletedImage GetGPUContext nullptr");
         return nullptr;
     }
     if (isUIFirst) {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
         if (!cacheCompletedBackendTexture_.IsValid()) {
-            RS_LOGE("RsSubThreadCache::GetCompletedImage invalid grBackendTexture_");
+            RS_LOGE("GetCompletedImage invalid grBackendTexture_");
             return nullptr;
         }
         auto colorType = Drawing::COLORTYPE_RGBA_8888;
@@ -140,7 +144,7 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
             OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
             if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
-                RS_LOGE("RsSubThreadCache::GetCompletedImage %{public}s is nullptr",
+                RS_LOGE("GetCompletedImage %{public}s is nullptr",
                     cacheCompletedSurface_ == nullptr ? "surface" : "cleanupHelper");
                 return nullptr;
             }
@@ -179,12 +183,12 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
     }
 
     if (!cacheCompletedSurface_) {
-        RS_LOGE("RsSubThreadCache::GetCompletedImage invalid cacheCompletedSurface");
+        RS_LOGE("GetCompletedImage invalid cacheCompletedSurface");
         return nullptr;
     }
     auto completeImage = cacheCompletedSurface_->GetImageSnapshot();
     if (!completeImage) {
-        RS_LOGE("RsSubThreadCache::GetCompletedImage Get complete image failed");
+        RS_LOGE("GetCompletedImage Get complete image failed");
         return nullptr;
     }
     if (threadIndex == completedSurfaceThreadIndex_) {
@@ -194,7 +198,7 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
     auto backendTexture = completeImage->GetBackendTexture(false, &origin);
     if (!backendTexture.IsValid()) {
-        RS_LOGE("RsSubThreadCache::GetCompletedImage get backendTexture failed");
+        RS_LOGE("GetCompletedImage get backendTexture failed");
         return nullptr;
     }
     SharedTextureContext* sharedContext = new SharedTextureContext(completeImage);
@@ -204,7 +208,7 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
     bool ret = cacheImage->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(),
         origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
     if (!ret) {
-        RS_LOGE("RsSubThreadCache::GetCompletedImage image BuildFromTexture failed");
+        RS_LOGE("GetCompletedImage image BuildFromTexture failed");
         return nullptr;
     }
     return cacheImage;
@@ -217,13 +221,11 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     RSPaintFilterCanvas& canvas, const Vector2f& boundSize, uint32_t threadIndex, bool isUIFirst)
 {
     if (!surfaceDrawable) {
-        RS_LOGE("DrawCacheSurface surfaceDrawable is nullptr");
+        RS_LOGE("DrawCacheSurface surfaceDrawable is nullptr. id:%{public}" PRIu64, nodeId_);
         return false;
     }
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DRAWCACHESURFACE);
     if (ROSEN_EQ(surfaceDrawable->boundsWidth_, 0.f) || ROSEN_EQ(surfaceDrawable->boundsHeight_, 0.f)) {
-        RS_LOGE("RsSubThreadCache::DrawCacheSurface return %d", __LINE__);
+        RS_LOGE("DrawCacheSurface surface bound is 0. id:%{public}" PRIu64, nodeId_);
         return false;
     }
 
@@ -231,7 +233,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheImage, "cacheImage");
     if (cacheImage == nullptr || ROSEN_EQ(cacheImage->GetWidth(), 0) ||
         ROSEN_EQ(cacheImage->GetHeight(), 0)) {
-        RS_LOGE("RsSubThreadCache::DrawCacheSurface return %d", __LINE__);
+        RS_LOGE("DrawCacheSurface cacheImage invalid. id:%{public}" PRIu64, nodeId_);
         return false;
     }
     canvas.Save();
@@ -245,10 +247,10 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     }
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (cacheImage->IsTextureBacked()) {
-            RS_LOGI("RsSubThreadCache::DrawCacheSurface convert cacheImage from texture to raster image");
+            RS_LOGI("DrawCacheSurface convert cacheImage from texture to raster image");
             cacheImage = cacheImage->MakeRasterImage();
             if (!cacheImage) {
-                RS_LOGE("RsSubThreadCache::DrawCacheSurface: MakeRasterImage failed");
+                RS_LOGE("DrawCacheSurface: MakeRasterImage failed");
                 canvas.Restore();
                 return false;
             }
@@ -278,12 +280,12 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable,
     ClearCacheSurfaceFunc func, uint32_t threadIndex, bool isNeedFP16)
 {
+    RS_TRACE_NAME_FMT("InitCanvasSurface id:%" PRIu64" targetColorGamut:%d isNeedFP16:%d",
+        nodeId_, targetColorGamut_, isNeedFP16);
     if (!nodeDrawable) {
-        RS_LOGE("RsSubThreadCache::InitCacheSurface nodeDrawable is nullptr");
+        RS_LOGE("InitCacheSurface nodeDrawable is nullptr");
         return;
     }
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_INITCACHESURFACE);
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
         if (!clearCacheSurfaceFunc_) {
@@ -319,7 +321,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
                 cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
         }
-        RS_LOGE("RsSubThreadCache::InitCacheSurface gpuContext == nullptr");
+        RS_LOGE("InitCacheSurface gpuContext == nullptr");
         return;
     }
 #ifdef RS_ENABLE_GL
@@ -337,12 +339,11 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
         // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
         // In other cases, the colorspace follows the targetColorGamut_
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
-        RS_LOGD("RsSubThreadCache::InitCacheSurface sub thread cache's targetColorGamut_ is [%{public}d]",
-            targetColorGamut_);
+        RS_LOGD("InitCacheSurface sub thread cache's targetColorGamut_ is [%{public}d]", targetColorGamut_);
         if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
-            RS_LOGD("RsSubThreadCache::InitCacheSurface colorType is FP16, take colorspace to sRGB");
+            RS_LOGD("InitCacheSurface colorType is FP16, take colorspace to sRGB");
         } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
             colorSpace =
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
@@ -357,7 +358,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
                     cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
                 ClearCacheSurface();
             }
-            RS_LOGE("RsSubThreadCache::InitCacheSurface !cacheBackendTexture_.IsValid() || !vkTextureInfo");
+            RS_LOGE("InitCacheSurface !cacheBackendTexture_.IsValid() || !vkTextureInfo");
             return;
         }
         cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
@@ -374,7 +375,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
 
 void RsSubThreadCache::ResetUifirst(bool isOnlyClearCache)
 {
-    RS_LOGI("ResetUifirst id:%{public}" PRIu64 ", isOnlyClearCache:%{public}d", GetNodeId(), isOnlyClearCache);
+    RS_LOGI("ResetUifirst id:%{public}" PRIu64 ", isOnlyClearCache:%{public}d", nodeId_, isOnlyClearCache);
     if (isOnlyClearCache) {
         ClearCacheSurfaceOnly();
     } else {
@@ -428,7 +429,8 @@ void RsSubThreadCache::UpdateBackendTexture()
 
 void RsSubThreadCache::UpdateCompletedCacheSurface()
 {
-    RS_TRACE_NAME_FMT("UpdateCompletedCacheSurface");
+    RS_TRACE_NAME_FMT("UpdateCompletedCacheSurface id:%" PRIu64, nodeId_);
+    RS_LOGD("UpdateCompletedCacheSurface id:%{public}" PRIu64, nodeId_);
     if (cacheSurface_ == nullptr || !IsCacheValid()) {
         RS_LOGE("cacheSurface is nullptr, cache and completeCache swap failed");
         isCacheValid_ = false;
@@ -479,7 +481,7 @@ void RsSubThreadCache::ClearCacheSurface(bool isClearCompletedCacheSurface)
             cacheCompletedCleanupHelper_ = nullptr;
         }
 #endif
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         isTextureValid_.store(false);
 #endif
     }
@@ -539,6 +541,10 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
 
 void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable)
 {
+    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+        return;
+    }
     if (!surfaceDrawable) {
         RS_LOGE("UpdateUifirstDirtyManager surfaceDrawable is nullptr");
         return;
@@ -666,12 +672,16 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
 bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     Drawing::RectI& dirtyRects)
 {
+    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+        return false;
+    }
     if (!surfaceDrawable) {
         RS_LOGE("MergeUifirstAllSurfaceDirtyRegion surfaceDrawable is nullptr");
         return false;
     }
     uifirstMergedDirtyRegion_ = {};
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("CalculateUifirstDirtyRegion params is nullptr");
         return false;
@@ -703,13 +713,17 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
 void RsSubThreadCache::UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     bool isEnableDirtyRegion)
 {
+    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+        return;
+    }
     if (!surfaceDrawable) {
         RS_LOGE("UpadteAllSurfaceUifirstDirtyEnableState surfaceDrawable is nullptr");
         return;
     }
     SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
     SetUifrstDirtyEnableFlag(isEnableDirtyRegion);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("UpadteAllSurfaceUifirstDirtyState params is nullptr");
         return;
@@ -730,17 +744,15 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
         RS_LOGE("SubDraw surfaceDrawable is nullptr");
         return;
     }
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_SUBDRAW);
     const auto& uifirstParams = surfaceDrawable->GetUifirstRenderParams();
     auto debugSize = uifirstParams ? uifirstParams->GetCacheSize() : Vector2f(0.f, 0.f);
-    RS_TRACE_NAME_FMT("RsSubThreadCache::SubDraw[%s] %" PRIu64 ", w%.1f h%.1f, isHigh:%d",
+    RS_TRACE_NAME_FMT("RsSubThreadCache::SubDraw[%s] %" PRIu64 ", w:%.1f h:%.1f, isHigh:%d",
         surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(), debugSize.x_, debugSize.y_,
         IsHighPostPriority());
 
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
-        RS_LOGE("RsSubThreadCache::SubDraw, rscanvas is nullptr");
+        RS_LOGE("SubDraw, rscanvas is nullptr");
         return;
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
@@ -750,9 +762,7 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
 
     // merge uifirst dirty region
     Drawing::RectI uifirstSurfaceDrawRects = {};
-    auto dirtyEnableFlag = MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable, uifirstSurfaceDrawRects) &&
-        RSSystemProperties::GetUIFirstDirtyEnabled() &&
-        RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI;
+    auto dirtyEnableFlag = MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable, uifirstSurfaceDrawRects);
     UpadteAllSurfaceUifirstDirtyEnableState(surfaceDrawable, dirtyEnableFlag);
     if (!dirtyEnableFlag) {
         rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -771,17 +781,13 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
     surfaceDrawable->DrawUifirstContentChildren(*rscanvas, bounds);
     int totalNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
     int totalSurfaces = GetTotalProcessedSurfaceCount();
-    const auto& params = surfaceDrawable->GetRenderParams();
-    float globalAlpha = params? params->GetGlobalAlpha() : -1.f;
-    RS_TRACE_NAME_FMT("SubDraw totalSurfaces:%d totalNodes:%d alpha:%f", totalSurfaces, totalNodes, globalAlpha);
+    RS_TRACE_NAME_FMT("SubDraw totalSurfaces:%d totalNodes:%d", totalSurfaces, totalNodes);
     if (totalSurfaces <= 0 || totalNodes <= 0) {
-        RS_LOGI("uifirst subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d"
-            ",alpha:%{public}f", surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes,
-            globalAlpha);
+        RS_LOGI("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
+            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
     } else {
-        RS_LOGD("uifirst subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d"
-            ",alpha:%{public}f", surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes,
-            globalAlpha);
+        RS_LOGD("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
+            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
     }
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     // uifirst dirty dfx
@@ -832,12 +838,10 @@ bool RsSubThreadCache::DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable*
         RS_LOGE("DrawUIFirstCache surfaceDrawable is nullptr");
         return false;
     }
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DRAWUIFIRSTCACHE);
     RS_TRACE_NAME_FMT("DrawUIFirstCache_NOSTARTING");
     const auto& params = surfaceDrawable->GetRenderParams();
     if (!params) {
-        RS_LOGE("RsSubThreadCache::DrawUIFirstCache params is nullptr");
+        RS_LOGE("DrawUIFirstCache params is nullptr");
         return false;
     }
 
@@ -875,8 +879,6 @@ bool RsSubThreadCache::DrawUIFirstCacheWithStarting(DrawableV2::RSSurfaceRenderN
         RS_LOGE("DrawUIFirstCacheWithStarting surfaceDrawable is nullptr");
         return false;
     }
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DRAWUIFIRSTCACHEWITHSTARTING);
     RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting %d, nodeID:%" PRIu64 "", HasCachedTexture(), id);
     bool ret = true;
     auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
@@ -991,8 +993,6 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         RS_LOGE("DealWithUIFirstCache surfaceDrawable is nullptr");
         return false;
     }
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DEALWITHUIFIRSTCACHE);
     if (drawWindowCache_.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams)) {
         return true;
     }
@@ -1004,10 +1004,10 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
-    if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
-        (surfaceParams.HasBlackListByScreenId(RSUniRenderThread::GetCaptureParam().virtualScreenId_) ||
-        surfaceParams.HasBlackListByScreenId(INVALID_SCREEN_ID))) {
-        return true;
+    if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
+            __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
+            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
     }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d",
         surfaceParams.GetName().c_str(), surfaceParams.GetId(), enableType, cacheState);
@@ -1024,13 +1024,13 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         auto matrix = surfaceParams.GetMatrix();
         Drawing::Matrix inverseMatrix;
         if (!matrix.Invert(inverseMatrix)) {
-            RS_LOGW("RsSubThreadCache::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__,
+            RS_LOGW("%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__,
                     surfaceParams.GetName().c_str());
         }
         canvas.ConcatMatrix(inverseMatrix);
         canvas.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
         canvas.ConcatMatrix(matrix);
-        RS_LOGD("RsSubThreadCache::DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
+        RS_LOGD("DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
             "offsetX=%{public}d offsetY=%{public}d", surfaceDrawable->curDisplayScreenId_, surfaceDrawable->offsetX_,
             surfaceDrawable->offsetY_);
     }
@@ -1043,7 +1043,12 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         surfaceDrawable->DrawBackground(canvas, bounds);
     }
     canvas.SetStencilVal(stencilVal);
-    bool drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    bool drawCacheSuccess = true;
+    if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
+        drawCacheSuccess = DrawUIFirstCacheWithStarting(surfaceDrawable, canvas, surfaceParams.GetUifirstUseStarting());
+    } else {
+        drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    }
     canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
@@ -1086,7 +1091,7 @@ bool RsSubThreadCache::BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> 
 {
     bool bufferFormatNeedUpdate = cacheSurface ? isNeedFP16 &&
         cacheSurface->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16 : false;
-    RS_LOGD("RsSubThreadCache::BufferFormatNeedUpdate: %{public}d", bufferFormatNeedUpdate);
+    RS_LOGD("BufferFormatNeedUpdate: %{public}d", bufferFormatNeedUpdate);
     return bufferFormatNeedUpdate;
 }
 
@@ -1115,16 +1120,16 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
     const Drawing::scalar px, const Drawing::scalar py)
 {
     if (!cacheCompletedBehindWindowData_) {
-        RS_LOGD("RsSubThreadCache::DrawBehindWindowBeforeCache no need to draw");
+        RS_LOGD("DrawBehindWindowBeforeCache no need to draw");
         return;
     }
     if (!cacheCompletedBehindWindowData_->filter_ || !cacheCompletedBehindWindowData_->rect_.IsValid()) {
-        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache data is not valid");
+        RS_LOGE("DrawBehindWindowBeforeCache data is not valid");
         return;
     }
     auto surface = canvas.GetSurface();
     if (!surface) {
-        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache surface is nullptr");
+        RS_LOGE("DrawBehindWindowBeforeCache surface is nullptr");
         return;
     }
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
@@ -1138,7 +1143,7 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
     auto filter = std::static_pointer_cast<RSDrawingFilter>(cacheCompletedBehindWindowData_->filter_);
     auto imageSnapshot = surface->GetImageSnapshot(imageRect);
     if (!imageSnapshot) {
-        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache imageSnapshot is nullptr");
+        RS_LOGE("DrawBehindWindowBeforeCache imageSnapshot is nullptr");
         return;
     }
     filter->PreProcess(imageSnapshot);

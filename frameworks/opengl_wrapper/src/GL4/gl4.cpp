@@ -25,14 +25,10 @@ using GetGlHookTableKeyFunc = pthread_key_t(*)();
 template<typename Func = void*>
 Func GetEglApi(const char* procname)
 {
-#if (defined(__aarch64__) || defined(__x86_64__))
-    static const char* libEGL = "/system/lib64/platformsdk/libEGL.so";
-#else
-    static const char* libEGL = "/system/lib/platformsdk/libEGL.so";
-#endif
-    void* dlEglHandle = dlopen(libEGL, RTLD_NOW | RTLD_GLOBAL);
+    constexpr const char *libWrapperName = "libEGL.so";
+    void* dlEglHandle = dlopen(libWrapperName, RTLD_NOW | RTLD_GLOBAL);
     if (!dlEglHandle) {
-        WLOGE("Failed to load EGL library (%s) using dlopen", libEGL);
+        WLOGE("Failed to load EGL library (%s) using dlopen", libWrapperName);
         return nullptr;
     }
 

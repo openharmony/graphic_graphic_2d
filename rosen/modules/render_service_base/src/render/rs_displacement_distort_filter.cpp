@@ -17,16 +17,22 @@
 #include "common/rs_vector2.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSDisplacementDistortFilter::RSDisplacementDistortFilter(std::shared_ptr<RSShaderMask> mask, Vector2f factor)
     : mask_(mask), factor_(factor)
 {
     type_ = ShaderFilterType::DISPLACEMENT_DISTORT;
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
     if (mask_) {
@@ -41,7 +47,7 @@ void RSDisplacementDistortFilter::GenerateGEVisualEffect(
     if (!mask_) {
         return;
     }
-    auto distortFilter = std::make_shared<Drawing::GEVisualEffect>("DISPLACEMENT_DISTORT",
+    auto distortFilter = std::make_shared<Drawing::GEVisualEffect>("DispDistort",
         Drawing::DrawingPaintType::BRUSH);
     distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_FACTOR, std::make_pair(factor_[0], factor_[1]));
     distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_MASK, mask_->GenerateGEShaderMask());

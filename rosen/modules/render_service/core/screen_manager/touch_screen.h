@@ -25,39 +25,15 @@ namespace OHOS {
 namespace Rosen {
 class TouchScreen final {
 public:
-    using TsSetFeatureConfig = int32_t (*)(int32_t, const char *);
-    using TsSetAftConfig = int32_t (*)(const char *);
-
     DISALLOW_COPY_AND_MOVE(TouchScreen);
-    
-    void InitTouchScreen();
 
-    bool IsSetFeatureConfigHandleValid() const
-    {
-        return setFeatureConfigHandle_ != nullptr;
-    }
-
-    int32_t SetFeatureConfig(int32_t feature, const char *config)
-    {
-        return setFeatureConfigHandle_(feature, config);
-    }
-
-    bool IsSetAftConfigHandleValid() const
-    {
-        return setAftConfigHandle_ != nullptr;
-    }
-
-    int32_t SetAftConfig(const char *config)
-    {
-        return setAftConfigHandle_(config);
-    }
+#ifdef TP_FEATURE_ENABLE
+    int32_t SetFeatureConfig(int32_t feature, const char *config);
+    int32_t SetAftConfig(const char *config);
+#endif
 
 private:
     DECLARE_DELAYED_SINGLETON(TouchScreen);
-
-    void* touchScreenHandle_ = nullptr;
-    TsSetFeatureConfig setFeatureConfigHandle_ = nullptr;
-    TsSetAftConfig setAftConfigHandle_ = nullptr;
 };
 
 #define TOUCH_SCREEN ::OHOS::DelayedSingleton<TouchScreen>::GetInstance()

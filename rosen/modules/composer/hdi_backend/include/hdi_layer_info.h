@@ -22,6 +22,7 @@
 #include <sync_fence.h>
 #include "graphic_error.h"
 #include "hdi_display_type.h"
+#include "common/rs_anco_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -222,11 +223,6 @@ public:
         isUniRender_ = isUniRender;
     }
 
-    void SetDisplayNodeFlag(bool isDisplayNode)
-    {
-        isDisplayNode_ = isDisplayNode;
-    }
-
     void SetTunnelHandleChange(bool change)
     {
         tunnelHandleChange_ = change;
@@ -235,6 +231,26 @@ public:
     void SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle)
     {
         tunnelHandle_ = handle;
+    }
+
+    void SetTunnelLayerId(const uint64_t &tunnelLayerId)
+    {
+        tunnelLayerId_ = tunnelLayerId;
+    }
+
+    uint64_t GetTunnelLayerId() const
+    {
+        return tunnelLayerId_;
+    }
+
+    void SetTunnelLayerProperty(uint32_t tunnelLayerProperty)
+    {
+        tunnelLayerProperty_ = tunnelLayerProperty;
+    }
+
+    uint32_t GetTunnelLayerProperty() const
+    {
+        return tunnelLayerProperty_;
     }
 
     bool IsSupportedPresentTimestamp() const
@@ -335,11 +351,6 @@ public:
     bool GetUniRenderFlag() const
     {
         return isUniRender_;
-    }
-
-    bool GetDisplayNodeFlag() const
-    {
-        return isDisplayNode_;
     }
 
     bool IsPreMulti() const
@@ -503,6 +514,16 @@ public:
         return needBilinearInterpolation_;
     }
 
+    void SetIsMaskLayer(bool isMaskLayer)
+    {
+        isMaskLayer_ = isMaskLayer;
+    }
+
+    bool IsMaskLayer() const
+    {
+        return isMaskLayer_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -538,6 +559,9 @@ public:
         arsrTag_ = layerInfo->GetLayerArsr();
         copybitTag_ = layerInfo->GetLayerCopybit();
         needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
+        tunnelLayerId_ = layerInfo->GetTunnelLayerId();
+        tunnelLayerProperty_ = layerInfo->GetTunnelLayerProperty();
+        ancoFlags_ = layerInfo->GetAncoFlags();
     }
 
     void Dump(std::string &result) const
@@ -588,6 +612,7 @@ public:
         }
         result += " displayNit = " + std::to_string(displayNit_) +
             ", brightnessRatio = " + std::to_string(brightnessRatio_) + ", ";
+        result += " ancoFlags = " + std::to_string(ancoFlags_) + ", ";
     }
 
     void DumpCurrentFrameLayer() const
@@ -626,6 +651,14 @@ public:
     {
         nodeId_ = nodeId;
     }
+
+    void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
+    uint32_t GetAncoFlags() const { return ancoFlags_; }
+    bool IsAncoNative() const
+    {
+        constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
+        return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
+    }
     /* hdiLayer get layer info end */
 
 private:
@@ -639,7 +672,6 @@ private:
     GraphicMatrix matrix_; // matrix used for uni render redraw
     int32_t gravity_; // used for uni render redraw
     bool isUniRender_ = false; // true for uni render layer (DisplayNode)
-    bool isDisplayNode_ = false; // true for Displaynode layer
     GraphicLayerAlpha layerAlpha_;
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_;
@@ -670,11 +702,15 @@ private:
     std::vector<float> layerLinearMatrix_
         = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace
     uint64_t nodeId_ = 0;
+    uint64_t tunnelLayerId_ = 0;
+    uint32_t tunnelLayerProperty_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
     bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
+    uint32_t ancoFlags_ = 0;
+    bool isMaskLayer_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

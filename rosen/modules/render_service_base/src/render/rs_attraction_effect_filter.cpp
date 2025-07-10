@@ -18,7 +18,11 @@
 #include "utils/point.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -27,8 +31,13 @@ RSAttractionEffectFilter::RSAttractionEffectFilter(float attractionFraction)
 {
     type_ = FilterType::ATTRACTION_EFFECT;
 
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&attractionFraction_, sizeof(attractionFraction_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&attractionFraction_, sizeof(attractionFraction_), hash_);
 }
 
 RSAttractionEffectFilter::~RSAttractionEffectFilter() = default;
@@ -389,6 +398,7 @@ void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float ca
     // 1.0 indicates that the window is to the right of the target point,
     // and - 1.0 indicates that the window is to the left.
     float location = (windowBottomCenter.GetX() > pointDst[0].GetX()) ? 1.0f : -1.0f;
+    location_ = location;
     isBelowTarget_ = (windowBottomCenter.GetY() > pointDst[0].GetY()) ? true : false;
 
     float width = isBelowTarget_ ? canvasHeight_ : canvasWidth_;
@@ -424,11 +434,52 @@ void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float ca
 Drawing::Brush RSAttractionEffectFilter::GetBrush(const std::shared_ptr<Drawing::Image>& image) const
 {
     Drawing::Brush brush;
+    if (image == nullptr) {
+        ROSEN_LOGE("RSAttractionEffectFilter::GetBrush image = nullptr");
+        return brush;
+    }
     brush.SetBlendMode(Drawing::BlendMode::SRC_OVER);
+    Drawing::Point startPt;
+    Drawing::Point endPt;
+
+    const float width = static_cast<float>(image->GetWidth());
+    const float height = static_cast<float>(image->GetHeight());
+
+    const Drawing::Point points[] = {
+        Drawing::Point(0.0f, 0.0f),
+        Drawing::Point(width, 0.0f),
+        Drawing::Point(0.0f, height),
+        Drawing::Point(width, height)
+
+    };
+    const int startIdx = (isBelowTarget_ ? (location_ == 1 ? 0 : 1) : (location_ == 1 ? 2 : 3));
+    const int endIdx = (isBelowTarget_ ? (location_ == 1 ? 3 : 2) : (location_ == 1 ? 0 : 1));
+
+    startPt = points[startIdx];
+    endPt = points[endIdx];
+
+    float startAlpha = 1.0f - std::min(1.0f, attractionFraction_ * 2.0f);
+    std::vector<Drawing::ColorQuad> colors;
+    uint8_t alphaVal = static_cast<uint8_t>(startAlpha * 255);
+    Drawing::ColorQuad fixedColor = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 255);
+    Drawing::ColorQuad stateColor = Drawing::Color::ColorQuadSetARGB(alphaVal, 255, 255, 255);
+    colors.push_back(fixedColor);
+    colors.push_back(stateColor);
+
+    std::vector<Drawing::scalar> positions;
+    positions.push_back(0.0f);
+    positions.push_back(1.0f);
+
+    auto gradientShader = Drawing::ShaderEffect::CreateLinearGradient(
+        startPt, endPt, colors, positions, Drawing::TileMode::CLAMP, nullptr);
+
     Drawing::SamplingOptions samplingOptions;
     Drawing::Matrix scaleMat;
-    brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
-        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat);
+    auto blendShader = Drawing::ShaderEffect::CreateBlendShader(
+        *imageShader, *gradientShader, Drawing::BlendMode::DST_IN);
+    brush.SetShaderEffect(blendShader);
     return brush;
 }
 

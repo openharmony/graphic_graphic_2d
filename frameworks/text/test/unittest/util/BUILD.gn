@@ -16,7 +16,7 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("string_convert_test") {
-  module_out_path = text_test_out_path
+  module_out_path = text_ut_out_path
   sources = [ "string_util_test.cpp" ]
 
   cflags_cc = [

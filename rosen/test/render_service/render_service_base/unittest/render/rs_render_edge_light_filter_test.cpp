@@ -13,7 +13,13 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "render/rs_render_edge_light_filter.h"
+#include "render/rs_shader_mask.h"
+#include "modifier/rs_render_property.h"
+#include "message_parcel.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -83,4 +89,150 @@ HWTEST_F(RSRenderEdgeLightFilterTest, GetLeafRenderProperties001, TestSize.Level
     EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
 }
 
+/**
+ * @tc.name: GenerateGEVisualEffect001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, GenerateGEVisualEffect001, TestSize.Level1)
+{
+    auto rsEdgeLightFilter = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+    rsEdgeLightFilter->GenerateGEVisualEffect(nullptr);
+
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->alpha_ = 0.8f;
+    rsEdgeLightFilter->bloom_ = true;
+    rsEdgeLightFilter->color_ = Vector4f(0.5f, 0.5f, 0.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->mask_ =
+        std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK));
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: GenerateGEVisualEffect002
+ * @tc.desc: Test hdr support of GenerateGEVisualEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, GenerateGEVisualEffect002, TestSize.Level1)
+{
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto rsEdgeLightFilter = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+    rsEdgeLightFilter->alpha_ = 0.8f;
+    rsEdgeLightFilter->bloom_ = true;
+
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(1.5f, 0.5f, 0.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(0.5f, 1.5f, 0.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(0.5f, 0.5f, 1.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(0.5f, 0.5f, 0.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: ParseFilterValuesTest001
+ * @tc.desc: Verify function ParseFilterValues
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, ParseFilterValuesTest001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto alphaRenderProperty = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0);
+    filter->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, alphaRenderProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
+
+    auto bloomRenderProperty = std::make_shared<RSRenderProperty<bool>>(true, 0);
+    filter->Setter(RSUIFilterType::EDGE_LIGHT_BLOOM, bloomRenderProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto colorRenderProperty =
+        std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.5f, 0.5f, 0.5f, 0.0f), 0);
+    filter->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, colorRenderProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
+
+    filter->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto maskRenderProperty = std::make_shared<RSRenderRippleMaskPara>(0);
+    filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
+
+    auto filterCopy = filter->DeepCopy();
+    EXPECT_NE(filterCopy, nullptr);
+}
+
+/**
+ * @tc.name: CreateRenderProperty001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, CreateRenderProperty001, TestSize.Level1)
+{
+    auto rsRenderEdgeLightFilterPara = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+
+    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RIPPLE_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
+    EXPECT_EQ(renderProperty, nullptr);
+
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+    
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_ALPHA);
+    EXPECT_NE(renderProperty, nullptr);
+    
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
+    EXPECT_NE(renderProperty, nullptr);
+}
+
+/**
+ * @tc.name: ParcelBoolTest001
+ * @tc.desc: Verify function Marshalling Unmarshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, ParcelBoolTest001, TestSize.Level1)
+{
+    auto rsRenderEdgeLightFilterPara = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+
+    auto boolProperty1 = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_BLOOM);
+    ASSERT_NE(boolProperty1, nullptr);
+    Parcel parcel1;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel1, boolProperty1));
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel1, boolProperty1));
+
+    auto v4fProperty1 = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
+    ASSERT_NE(v4fProperty1, nullptr);
+    Parcel parcel2;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel2, v4fProperty1));
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel2, v4fProperty1));
+
+    auto boolProperty2 = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_BLOOM);
+    ASSERT_NE(boolProperty2, nullptr);
+    auto v4fProperty2 = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
+    ASSERT_NE(v4fProperty2, nullptr);
+    Parcel parcel3;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel3, v4fProperty2));
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel3, boolProperty2));
+}
 } // namespace OHOS::Rosen

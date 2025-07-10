@@ -91,6 +91,16 @@ public:
 
     virtual bool IsSupportInteractiveAnimator() { return true; }
 
+    virtual RSModifierType GetModifierType() const
+    {
+        return RSModifierType::INVALID;
+    }
+
+    virtual ModifierNG::RSPropertyType GetPropertyType() const
+    {
+        return ModifierNG::RSPropertyType::INVALID;
+    }
+
     std::string DumpAnimation() const;
     virtual void DumpAnimationInfo(std::string& dumpInfo) const {}
 protected:

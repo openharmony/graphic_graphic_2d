@@ -377,6 +377,74 @@ void NativeDrawingFontTest010(const uint8_t* data, size_t size)
     OH_Drawing_FontDestroy(font);
 }
 
+void NativeDrawingFontTest011(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+
+    float val = GetObject<float>();
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+
+    OH_Drawing_FontFeaturesAddFeature(features, str, val);
+    OH_Drawing_FontFeaturesAddFeature(nullptr, "a", val);
+    OH_Drawing_FontFeaturesAddFeature(features, nullptr, val);
+
+    OH_Drawing_FontFeaturesDestroy(nullptr);
+    OH_Drawing_FontFeaturesDestroy(features);
+
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
+void NativeDrawingFontTest012(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    char* str = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[count - 1] = '\0';
+
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    float textWidth = 0.f;
+
+    OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    OH_Drawing_FontMeasureSingleCharacterWithFeatures(nullptr, str, features, &textWidth);
+    OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, nullptr, features, &textWidth);
+    OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, nullptr, &textWidth);
+    OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, nullptr);
+
+    OH_Drawing_FontFeaturesDestroy(features);
+    OH_Drawing_FontDestroy(font);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
+    }
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -395,5 +463,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingFontTest008(data, size);
     OHOS::Rosen::Drawing::NativeDrawingFontTest009(data, size);
     OHOS::Rosen::Drawing::NativeDrawingFontTest010(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest011(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingFontTest012(data, size);
     return 0;
 }

@@ -27,7 +27,9 @@
 #include "include/core/SkSamplingOptions.h"
 #include "include/core/SkString.h"
 #include "include/core/SkTextBlob.h"
+#ifndef USE_M133_SKIA
 #include "src/gpu/GrPerfMonitorReporter.h"
+#endif
 
 #include "text/font_arguments.h"
 #include "text/font_metrics.h"
@@ -41,6 +43,26 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+#ifdef USE_M133_SKIA
+struct SamplingOptionsUtils {
+    int maxAniso = 0;
+    bool useCubic = false;
+    CubicResampler cubic = {0, 0};
+    FilterMode filter = FilterMode::NEAREST;
+    MipmapMode mipmap = MipmapMode::NONE;
+};
+
+inline void ConvertSamplingOptions(SamplingOptionsUtils& tempSamplingOptions, const SamplingOptions& sampling)
+{
+    tempSamplingOptions.useCubic = sampling.GetUseCubic();
+    tempSamplingOptions.cubic.cubicCoffB = sampling.GetCubicCoffB();
+    tempSamplingOptions.cubic.cubicCoffC = sampling.GetCubicCoffC();
+    tempSamplingOptions.filter = sampling.GetFilterMode();
+    tempSamplingOptions.mipmap = sampling.GetMipmapMode();
+}
+#endif
+
 class SkiaConvertUtils {
 public:
     static void DrawingFontMetricsCastToSkFontMetrics(const FontMetrics& fontMetrics, SkFontMetrics& skFontMetrics)
@@ -214,6 +236,7 @@ public:
         skFontArgs.setPalette(pal);
     }
 
+#ifndef TODO_M133_SKIA
     static inline void DrawingTextureEventToRsTextureEvent(const TextureEvent& grTextureEvent,
         RsTextureEvent& rsTextureEvent)
     {
@@ -233,6 +256,7 @@ public:
         rsBlurEvent.fHeight = grBlurEvent.fHeight;
         rsBlurEvent.fBlurTime = grBlurEvent.fBlurTime;
     }
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -42,9 +42,9 @@ void RSRenderPathAnimationTest::TearDown() {}
  */
 HWTEST_F(RSRenderPathAnimationTest, DumpAnimationInfoTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     std::string out = "Out";
     RSRenderPathAnimation rsRenderPathAnimation(
@@ -60,9 +60,9 @@ HWTEST_F(RSRenderPathAnimationTest, DumpAnimationInfoTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetInterpolatorTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     float t = 1.0f;
     RSRenderPathAnimation rsRenderPathAnimation(
@@ -78,9 +78,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetInterpolatorTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, GetInterpolatorTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     std::shared_ptr<RSInterpolator> res;
     RSRenderPathAnimation rsRenderPathAnimation(
@@ -96,9 +96,9 @@ HWTEST_F(RSRenderPathAnimationTest, GetInterpolatorTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetRotationModeTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     float t = 1.0f;
     RSRenderPathAnimation rsRenderPathAnimation(
@@ -115,9 +115,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationModeTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, GetRotationModeTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RotationMode rotation;
     RSRenderPathAnimation rsRenderPathAnimation(
@@ -133,9 +133,9 @@ HWTEST_F(RSRenderPathAnimationTest, GetRotationModeTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetBeginFractionTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -151,9 +151,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetBeginFractionTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, GetBeginFractionTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -168,9 +168,9 @@ HWTEST_F(RSRenderPathAnimationTest, GetBeginFractionTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetEndFractionTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -186,9 +186,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetEndFractionTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, GetEndFractionTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -203,9 +203,9 @@ HWTEST_F(RSRenderPathAnimationTest, GetEndFractionTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetIsNeedPathTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -222,9 +222,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetIsNeedPathTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetPathNeedAddOriginTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -240,9 +240,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetPathNeedAddOriginTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetRotationIdTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -258,9 +258,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationIdTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, MarshallingTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -276,9 +276,9 @@ HWTEST_F(RSRenderPathAnimationTest, MarshallingTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, UnmarshallingTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -295,9 +295,9 @@ HWTEST_F(RSRenderPathAnimationTest, UnmarshallingTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, ParseParamTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -313,9 +313,9 @@ HWTEST_F(RSRenderPathAnimationTest, ParseParamTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, OnRemoveOnCompletionTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -330,9 +330,9 @@ HWTEST_F(RSRenderPathAnimationTest, OnRemoveOnCompletionTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, OnAttachTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -347,9 +347,9 @@ HWTEST_F(RSRenderPathAnimationTest, OnAttachTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, OnDetachTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -364,9 +364,9 @@ HWTEST_F(RSRenderPathAnimationTest, OnDetachTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetPathValueTest001, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -383,9 +383,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetPathValueTest001, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetPathValueTest002, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -402,9 +402,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetPathValueTest002, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetRotationValueTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation animation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -414,7 +414,7 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationValueTest, Level1)
     animation.SetRotationMode(RotationMode::ROTATE_AUTO);
     animation.SetRotationValue(tangent);
     EXPECT_EQ(animation.GetRotationMode(), RotationMode::ROTATE_AUTO);
-	
+
     animation.SetRotationMode(RotationMode::ROTATE_AUTO_REVERSE);
     animation.SetRotationValue(tangent);
     EXPECT_EQ(animation.GetRotationMode(), RotationMode::ROTATE_AUTO_REVERSE);
@@ -431,9 +431,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationValueTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, SetRotationTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -449,9 +449,9 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, GetPosTanValueTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -469,9 +469,9 @@ HWTEST_F(RSRenderPathAnimationTest, GetPosTanValueTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, UpdateVector2fPathValueTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
@@ -488,9 +488,9 @@ HWTEST_F(RSRenderPathAnimationTest, UpdateVector2fPathValueTest, Level1)
  */
 HWTEST_F(RSRenderPathAnimationTest, UpdateVector4fPathValueTest, Level1)
 {
-    auto originPosition = std::make_shared<RSRenderPropertyBase>();
-    auto startPosition = std::make_shared<RSRenderPropertyBase>();
-    auto endPosition = std::make_shared<RSRenderPropertyBase>();
+    auto originPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto startPosition = std::make_shared<RSRenderProperty<bool>>();
+    auto endPosition = std::make_shared<RSRenderProperty<bool>>();
     auto animationPath = std::make_shared<RSPath>();
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);

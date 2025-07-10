@@ -15,23 +15,27 @@
 
 #include "drawable/rs_property_drawable_utils.h"
 
-#include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
+#include "render/rs_color_picker.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "render/rs_foreground_effect_filter.h"
-#include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_mesa_blur_shader_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
-#include "render/rs_shader_filter.h"
-#include "render/rs_color_picker.h"
-#include "render/rs_maskcolor_shader_filter.h"
-#include "utils/graphic_coretrace.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
+#include "render/rs_render_magnifier_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
+#include "render/rs_render_mesa_blur_filter.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -260,19 +264,9 @@ void RSPropertyDrawableUtils::GetDarkColor(RSColor& color)
     }
 }
 
-void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
-{
-    // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
-    // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
-    auto matrix = canvas->GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
-    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
-    canvas->SetMatrix(matrix);
-}
-
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
-    const bool isForegroundFilter)
+    NodeId nodeId, const bool isForegroundFilter)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -316,8 +310,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         paintFilterCanvas->SetAlpha(1.0);
     }
     auto imageClipIBounds = clipIBounds;
-    std::shared_ptr<RSShaderFilter> magnifierShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
         auto canvasMatrix = canvas->GetTotalMatrix();
@@ -327,24 +320,25 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::filterCacheEnabled_) {
+    auto enableCache = (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr &&
+        RSProperties::filterCacheEnabled_ && !filter->GetNGRenderFilter());
+    if (enableCache) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }
-        std::shared_ptr<RSShaderFilter> rsShaderFilter =
-            filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+
+        auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter);
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, nodeId);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         return;
     }
 #endif
 
-    std::shared_ptr<RSShaderFilter> rsShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+    auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
     if (rsShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
         tmpFilter->IsOffscreenCanvas(true);
@@ -423,6 +417,12 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         return;
     }
 
+    if (rsdrawingFilter != nullptr && (rsFilter->GetFilterType() == RSFilter::CONTENT_LIGHT)) {
+        rsdrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
+            imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+        return;
+    }
+
     auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
     if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
         if (canvas.GetDisableFilterCache()) {
@@ -478,6 +478,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         behindWindow ? canvas->SetBehindWindowData(data) : canvas->SetEffectData(data);
+        cacheManager->ClearEffectCacheWithDrawnRegion(*canvas, clipIBounds);
         return;
     }
 #endif
@@ -734,6 +735,7 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightness
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender");
     builder->SetUniform("ubo_rate", params.rates_.z_);
     builder->SetUniform("ubo_degree", params.rates_.w_);
+    builder->SetUniform("ubo_headroom", params.enableHdr_ ? EFFECT_MAX_LUMINANCE : 1.0f);
     return builder->MakeBlender();
 }
 
@@ -749,12 +751,13 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_negr;
         uniform half ubo_negg;
         uniform half ubo_negb;
+        uniform half ubo_headroom;
 
         const half3 baseVec = half3(0.2412016, 0.6922296, 0.0665688);
         half3 sat(half3 inColor, half3 pos, half3 neg) {
             half3 delta = dot(inColor, baseVec) - inColor;
             half3 v = mix(neg, pos, step(0, delta));
-            return saturate(delta * v + inColor);
+            return clamp(inColor + delta * v, half3(0.0), half3(ubo_headroom));
         }
 
         half4 main(half4 src, half4 dst) {
@@ -789,7 +792,8 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_negr;
         uniform half ubo_negg;
         uniform half ubo_negb;
-
+        uniform half ubo_headroom;
+ 
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
         const half eps = 1e-5;
         half3 getUnpremulRGB(half4 color) {
@@ -804,7 +808,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
             half base = dot(r, baseVec);
             half3 delta = base - r;
             half3 v = mix(neg, pos, step(0, delta));
-            return saturate(inColor + delta * v);
+            return clamp(inColor + delta * v, half3(0.0), half3(ubo_headroom));
         }
 
         half4 main(half4 src, half4 dst) {
@@ -856,8 +860,9 @@ void RSPropertyDrawableUtils::DrawBinarization(Drawing::Canvas* canvas, const st
     canvas->DrawBackground(brush);
 }
 
-void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
-    const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
+void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas,
+    const std::optional<Vector4f>& pixelStretch, const RectF& boundsRect,
+    const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
 {
     if (!pixelStretch.has_value()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
@@ -987,8 +992,6 @@ Drawing::Path RSPropertyDrawableUtils::CreateShadowPath(const std::shared_ptr<RS
 void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
     const float& offsetY, const float& elevation, const bool& isFilled, Color spotColor)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPROPERTYDRAWABLEUTILS_DRAWSHADOW);
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawShadow, ShadowElevation: %f, ShadowOffsetX: "
         "%f, ShadowOffsetY: %f, bounds: %s",
@@ -1013,8 +1016,6 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
     const float& offsetY, const float& radius, const bool& isFilled, Color spotColor)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPROPERTYDRAWABLEUTILS_DRAWSHADOWMASKFILTER);
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawShadowMaskFilter, Radius: %f, ShadowOffsetX: "
         "%f, ShadowOffsetY: %f, bounds: %s",
@@ -1365,8 +1366,7 @@ bool RSPropertyDrawableUtils::RSFilterSetPixelStretch(const RSProperties& proper
         return false;
     }
     auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(filter);
-    std::shared_ptr<RSShaderFilter> mesaShaderFilter =
-        drawingFilter->GetShaderFilterWithType(RSShaderFilter::MESA);
+    auto mesaShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MESA);
     if (!mesaShaderFilter) {
         return false;
     }
@@ -1402,8 +1402,7 @@ void RSPropertyDrawableUtils::RSFilterRemovePixelStretch(const std::shared_ptr<R
         return;
     }
     auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(filter);
-    std::shared_ptr<RSShaderFilter> mesaShaderFilter =
-        drawingFilter->GetShaderFilterWithType(RSShaderFilter::MESA);
+    auto mesaShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MESA);
     if (!mesaShaderFilter) {
         return;
     }
@@ -1421,7 +1420,12 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::GenerateBehindWindowFilter, Radius: %f, Saturation: %f, "
         "Brightness: %f, MaskColor: %08X", radius, saturation, brightness, maskColor.AsArgbInt());
-    uint32_t hash = SkOpts::hash(&radius, sizeof(radius), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&radius, sizeof(radius), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GenerateMaterialColorFilter(saturation, brightness);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, radius, radius);
@@ -1431,16 +1435,16 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
         filter = filter?
             filter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
-        filter = filter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+        filter = filter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-        hash = SkOpts::hash(&saturation, sizeof(saturation), hash);
-        hash = SkOpts::hash(&brightness, sizeof(brightness), hash);
+        hash = hashFunc(&saturation, sizeof(saturation), hash);
+        hash = hashFunc(&brightness, sizeof(brightness), hash);
         filter = filter?
             filter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
         BLUR_COLOR_MODE::DEFAULT, maskColor);
-    filter = filter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    filter = filter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(maskColorShaderFilter));
     filter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(radius));
     filter->SetSaturationForHPS(saturation);
     filter->SetBrightnessForHPS(brightness);
@@ -1491,8 +1495,7 @@ float RSPropertyDrawableUtils::GetBlurFilterRadius(const std::shared_ptr<RSFilte
         case RSFilter::LINEAR_GRADIENT_BLUR :
             {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-                std::shared_ptr<RSShaderFilter> rsShaderFilter =
-                    filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+                auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
                 if (rsShaderFilter != nullptr) {
                     auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
                     return tmpFilter->GetLinearGradientBlurRadius();
@@ -1506,6 +1509,55 @@ float RSPropertyDrawableUtils::GetBlurFilterRadius(const std::shared_ptr<RSFilte
         default:
             return 0;
     }
+}
+
+Drawing::RectI RSPropertyDrawableUtils::GetRectByStrategy(
+    const Drawing::Rect& rect, RoundingStrategyType roundingStrategy)
+{
+    switch (roundingStrategy) {
+        case RoundingStrategyType::ROUND_IN:
+            return Drawing::RectI(std::ceil(rect.GetLeft()), std::ceil(rect.GetTop()), std::floor(rect.GetRight()),
+                std::floor(rect.GetBottom()));
+        case RoundingStrategyType::ROUND_OUT:
+            return Drawing::RectI(std::floor(rect.GetLeft()), std::floor(rect.GetTop()), std::ceil(rect.GetRight()),
+                std::ceil(rect.GetBottom()));
+        case RoundingStrategyType::ROUND_OFF:
+            return Drawing::RectI(std::round(rect.GetLeft()), std::round(rect.GetTop()), std::round(rect.GetRight()),
+                std::round(rect.GetBottom()));
+        case RoundingStrategyType::ROUND_STATIC_CAST_INT:
+            return Drawing::RectI(static_cast<int>(rect.GetLeft()), static_cast<int>(rect.GetTop()),
+                static_cast<int>(rect.GetRight()), static_cast<int>(rect.GetBottom()));
+        default:
+            return Drawing::RectI(std::floor(rect.GetLeft()), std::floor(rect.GetTop()), std::ceil(rect.GetRight()),
+                std::ceil(rect.GetBottom()));
+    }
+}
+
+Drawing::RectI RSPropertyDrawableUtils::GetAbsRectByStrategy(const Drawing::Surface* surface,
+    const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect, RoundingStrategyType roundingStrategy)
+{
+    Drawing::Rect absRect;
+    totalMatrix.MapRect(absRect, relativeRect);
+    Drawing::RectI absRectI = GetRectByStrategy(absRect, roundingStrategy);
+    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    absRectI.Intersect(deviceRect);
+    return absRectI;
+}
+
+std::tuple<Drawing::RectI, Drawing::RectI> RSPropertyDrawableUtils::GetAbsRectByStrategyForImage(
+    const Drawing::Surface* surface, const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect)
+{
+    Drawing::Rect absRect;
+    totalMatrix.MapRect(absRect, relativeRect);
+    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
+
+    Drawing::RectI absImageRect = GetRectByStrategy(absRect, RoundingStrategyType::ROUND_IN);
+    absImageRect.Intersect(deviceRect);
+
+    Drawing::RectI absDrawRect = GetRectByStrategy(absRect, RoundingStrategyType::ROUND_OUT);
+    absDrawRect.Intersect(deviceRect);
+
+    return {absImageRect, absDrawRect};
 }
 
 } // namespace Rosen

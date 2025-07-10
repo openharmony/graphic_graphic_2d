@@ -45,15 +45,13 @@ RSRenderSpringAnimation::RSRenderSpringAnimation(AnimationId id, const PropertyI
 void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderSpringAnimation";
-    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    DumpProperty(out);
+    RSPropertyType type = RSPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
-        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
-    } else {
-        out += ", ModifierType: INVALID";
     }
-    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(startValue_, type);
-    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
+    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_);
+    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_);
 }
 
 void RSRenderSpringAnimation::SetSpringParameters(
@@ -226,7 +224,7 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
         initialVelocity_ = startValue_ * 0.f;
     }
 
-    RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(
+    RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(
         GetPropertyId(), GetAnimationId(), initialVelocity_, GetPropertyValue());
     springValueEstimator_->SetInitialVelocity(initialVelocity_);
     springValueEstimator_->SetMinimumAmplitudeRatio(minimumAmplitudeRatio_);

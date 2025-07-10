@@ -72,14 +72,18 @@ void RSOcclusionHandler::CollectNodeInner(const RSRenderNode& node)
         return;
     }
     auto itParent = occlusionNodes_.find(parent->GetId());
+    auto itNode = occlusionNodes_.find(node.GetId());
     if (itParent == occlusionNodes_.end() || itParent->second == nullptr || itParent->second->IsSubTreeIgnored()) {
+        // If the parent is not collected or ignored, but the node is already collected,
+        // we should delete the node and its subtree.
+        if (itNode != occlusionNodes_.end() && itNode->second != nullptr) {
+            itNode->second->RemoveSubTree(occlusionNodes_);
+        }
         return;
     }
     auto parentOcNode = itParent->second;
-    auto itNode = occlusionNodes_.find(node.GetId());
     auto ocNode = (itNode != occlusionNodes_.end() && itNode->second != nullptr) ?
         itNode->second : std::make_shared<OcclusionNode>(nodeId, node.GetType());
-
     parentOcNode->ForwardOrderInsert(ocNode);
     ocNode->CollectNodeProperties(node);
     ocNode->CalculateNodeAllBounds();
@@ -93,20 +97,32 @@ void RSOcclusionHandler::CollectSubTree(const RSRenderNode& node,
     if (isSubTreeNeedPrepare) {
         return;
     }
-    auto itNode = occlusionNodes_.find(node.GetId());
-    if (itNode == occlusionNodes_.end() || itNode->second == nullptr) {
-        CollectSubTreeInner(node);
-        return;
-    }
-    // If the node is the root of a static subtree and the node can participate in occlusion culling,
-    // recollect the node's attributes and update the subtree.
-    if (!itNode->second->IsSubTreeIgnored()) {
-        CollectNodeInner(node);
-        subTreeSkipPrepareNodes_.insert(node.GetId());
-        return;
-    }
-    RS_TRACE_NAME_FMT("RSOcclusionHandler::CollectSubTree node id = %llu", node.GetId());
-    CollectSubTreeInner(node);
+    // When the subtree does not need to be prepared, it does not mean that all nodes in the subtree remain unchanged,
+    // because when a node is deleted, its grandparent node is marked dirty, not its parent node.
+    // Therefore, the first-level children may have been deleted, so we need to traverse the children to ensure
+    // the lightweight tree correctly follows the RS tree.
+    CollectNodeInner(node);
+    auto sortChildren = *(node.GetSortedChildren());
+    std::for_each(sortChildren.begin(), sortChildren.end(), [&](std::shared_ptr<RSRenderNode> child) {
+        if (!child) {
+            return;
+        }
+        auto itNode = occlusionNodes_.find(child->GetId());
+        if (itNode == occlusionNodes_.end() || itNode->second == nullptr) {
+            RS_TRACE_NAME_FMT("RSOcclusionHandler::CollectSubTree node id = %llu", child->GetId());
+            CollectSubTreeInner(*child);
+            return;
+        }
+        // If the node is the root of a static subtree and the node can participate in occlusion culling,
+        // recollect the node's attributes and update the subtree.
+        if (!itNode->second->IsSubTreeIgnored()) {
+            CollectNodeInner(*child);
+            subTreeSkipPrepareNodes_.insert(child->GetId());
+            return;
+        }
+        RS_TRACE_NAME_FMT("RSOcclusionHandler::CollectSubTree node id = %llu", child->GetId());
+        CollectSubTreeInner(*child);
+    });
 }
 
 void RSOcclusionHandler::CollectSubTreeInner(const RSRenderNode& node)
@@ -119,7 +135,9 @@ void RSOcclusionHandler::CollectSubTreeInner(const RSRenderNode& node)
     }
     auto sortChildren = *(node.GetSortedChildren());
     std::for_each(sortChildren.begin(), sortChildren.end(), [&](std::shared_ptr<RSRenderNode> node) {
-        CollectSubTreeInner(*node);
+        if (node) {
+            CollectSubTreeInner(*node);
+        }
     });
 }
 

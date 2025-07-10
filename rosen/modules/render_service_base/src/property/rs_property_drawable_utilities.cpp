@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+#include "feature/single_frame_composer/rs_single_frame_composer.h"
 #include "property/rs_property_drawable_utilities.h"
+
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 // ============================================================================
@@ -61,17 +64,40 @@ void RSCustomRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilter
 
 // ============================================================================
 // Adapter for RSRenderModifier
-RSModifierDrawable::RSModifierDrawable(RSModifierType type) : type_(type) {}
 void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     // single-frame-compose needs to access render node & mutable draw cmd list during the render process
     // PLANNING: this is a temporarily workaround, should refactor later
     auto nodePtr = content.GetRenderProperties().backref_.lock();
     if (nodePtr == nullptr) {
+        ROSEN_LOGE("RSModifierDrawable::Draw nodePtr is nullptr");
         return;
     }
+#if defined(MODIFIER_NG)
+    auto modifiers = nodePtr->modifiersNG_[static_cast<uint16_t>(modifierTypeNG_)];
+    if (modifiers.empty()) {
+        return;
+    }
+    if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        bool needSkip = false;
+        if (nodePtr->GetNodeIsSingleFrameComposer() && nodePtr->singleFrameComposer_ != nullptr) {
+            needSkip = nodePtr->singleFrameComposer_->SingleFrameModifierAddToListNG(modifierTypeNG_, modifiers);
+        }
+        for (const auto& modifier : modifiers) {
+            if (nodePtr->singleFrameComposer_ != nullptr &&
+                nodePtr->singleFrameComposer_->SingleFrameIsNeedSkipNG(needSkip, modifier)) {
+                continue;
+            }
+            modifier->Apply(&canvas, const_cast<RSRenderContent&>(content).renderProperties_);
+        }
+    } else {
+        for (const auto& modifier : modifiers) {
+            modifier->Apply(&canvas, const_cast<RSRenderContent&>(content).renderProperties_);
+        }
+    }
+#else
     auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(content.drawCmdModifiers_);
-    auto itr = drawCmdModifiers.find(type_);
+    auto itr = drawCmdModifiers.find(modifierType_);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return;
     }
@@ -80,7 +106,7 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
         bool needSkip = false;
         if (nodePtr->GetNodeIsSingleFrameComposer() && nodePtr->singleFrameComposer_ != nullptr) {
-            needSkip = nodePtr->singleFrameComposer_->SingleFrameModifierAddToList(type_, itr->second);
+            needSkip = nodePtr->singleFrameComposer_->SingleFrameModifierAddToList(modifierType_, itr->second);
         }
         for (const auto& modifier : itr->second) {
             if (nodePtr->singleFrameComposer_ != nullptr &&
@@ -96,6 +122,7 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
             }
         }
     }
+#endif
 }
 
 // ============================================================================

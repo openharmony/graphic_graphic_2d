@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TEXT_GLOBAL_CONFIG_H
-#define TEXT_GLOBAL_CONFIG_H
+#ifndef TEXT_2D_GLOBAL_CONFIG_H
+#define TEXT_2D_GLOBAL_CONFIG_H
 
 #include <cstdint>
 
@@ -37,11 +37,18 @@ enum TextError {
     TEXT_ERR_BUTT
 };
 
+enum TextUndefinedGlyphDisplay {
+    UNDEFINED_GLYPH_USE_DEFAULT,
+    UNDEFINED_GLYPH_USE_TOFU,
+    UNDEFINED_GLYPH_BUTT,
+};
+
 class TextGlobalConfig final {
 public:
     ~TextGlobalConfig() = default;
 
     static uint32_t SetTextHighContrast(uint32_t textHighContrast);
+    static uint32_t SetTextUndefinedGlyphDisplay(uint32_t textUndefinedGlyphDisplay);
 private:
     TextGlobalConfig() = default;
 };

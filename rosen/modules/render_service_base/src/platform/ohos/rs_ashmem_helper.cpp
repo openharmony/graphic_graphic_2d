@@ -127,13 +127,13 @@ void* AshmemAllocator::CopyFromAshmem(size_t size)
     if (size > LARGE_MALLOC) {
         ROSEN_LOGW("AshmemAllocator::CopyFromAshmem this time malloc large memory, size:%{public}zu", size);
     }
+    if (!data_) {
+        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem data_ is nullptr");
+        return nullptr;
+    }
     void* base = malloc(size);
     if (base == nullptr) {
         ROSEN_LOGE("AshmemAllocator::CopyFromAshmem malloc failed, size:%{public}zu", size);
-        return nullptr;
-    }
-    if (!data_) {
-        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem data_ is nullptr");
         return nullptr;
     }
     errno_t err = memcpy_s(base, size, data_, size);

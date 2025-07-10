@@ -233,6 +233,14 @@ typedef struct OH_Drawing_ColorFilter OH_Drawing_ColorFilter;
 typedef struct OH_Drawing_Font OH_Drawing_Font;
 
 /**
+ * @brief Defines a font, which is used to describe the font.
+ *
+ * @since 11
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontFeatures OH_Drawing_FontFeatures;
+
+/**
  * @brief Defines a memoryStream, which is used to describe the memory stream.
  *
  * @since 12

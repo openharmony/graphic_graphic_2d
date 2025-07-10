@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_DRAWING_RS_DRAWING_FILTER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_DRAWING_RS_DRAWING_FILTER_H
 
 #include "common/rs_color.h"
 #include "draw/brush.h"
@@ -25,20 +25,21 @@
 #include "effect/runtime_shader_builder.h"
 #include "render/rs_filter.h"
 #include "render/rs_kawase_blur.h"
-#include "render/rs_shader_filter.h"
 #include "render/rs_hps_blur.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
 class RSB_EXPORT RSDrawingFilter : public RSFilter {
 public:
+    RSDrawingFilter() = default;
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash);
-    RSDrawingFilter(std::shared_ptr<RSShaderFilter> shaderFilter);
+    RSDrawingFilter(std::shared_ptr<RSRenderFilterParaBase> shaderFilter);
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
-        std::shared_ptr<RSShaderFilter> shaderFilter, uint32_t hash);
+        std::shared_ptr<RSRenderFilterParaBase> shaderFilter, uint32_t hash);
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter,
-        std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters, uint32_t hash);
+        std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters, uint32_t hash);
     ~RSDrawingFilter() override;
 
     std::string GetDescription() override;
@@ -52,26 +53,37 @@ public:
 
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params = { false, false });
-    std::vector<std::shared_ptr<RSShaderFilter>> GetShaderFilters() const;
-    void InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderFilter);
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> GetShaderFilters() const;
+    void InsertShaderFilter(std::shared_ptr<RSRenderFilterParaBase> shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
     void SetImageFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter);
-    std::shared_ptr<RSShaderFilter> GetShaderFilterWithType(RSShaderFilter::ShaderFilterType type)
+    std::shared_ptr<RSRenderFilterParaBase> GetShaderFilterWithType(RSUIFilterType type)
     {
         for (const auto& shaderFilter : shaderFilters_) {
-            if (shaderFilter->GetShaderFilterType() == type) {
+            if (shaderFilter->GetType() == type) {
                 return shaderFilter;
             }
         }
         return nullptr;
     }
-
+    void OnSync() override;
     uint32_t Hash() const override;
     uint32_t ShaderHash() const;
     uint32_t ImageHash() const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter> other) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<Drawing::ImageFilter> other, uint32_t hash) const;
-    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSShaderFilter> other) const;
+    std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSRenderFilterParaBase> other) const;
+    inline void SetNGRenderFilter(std::shared_ptr<RSNGRenderFilterBase> filter)
+    {
+        renderFilter_ = filter;
+    }
+    inline std::shared_ptr<RSNGRenderFilterBase> GetNGRenderFilter() const
+    {
+        return renderFilter_;
+    }
+
+    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+
     bool CanSkipFrame() const
     {
         return canSkipFrame_;
@@ -97,6 +109,8 @@ public:
     void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha);
 
+    void SetDisplayHeadroom(float headroom) override;
+
 private:
     struct DrawImageRectAttributes {
         Drawing::Rect src;
@@ -111,6 +125,11 @@ private:
 
     bool IsHpsBlurApplied(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush, float radius);
+    void DrawKawaseEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
+        const DrawImageRectAttributes& attr, const Drawing::Brush& brush,
+        std::shared_ptr<RSRenderFilterParaBase>& kawaseShaderFilter);
+    bool ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush);
     bool ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush);
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -118,7 +137,8 @@ private:
         const DrawImageRectAttributes& attr);
     std::string GetFilterTypeString() const;
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters_;
+    std::shared_ptr<RSNGRenderFilterBase> renderFilter_ = nullptr;
     uint32_t imageFilterHash_ = 0;
     bool canSkipFrame_ = false;
     bool canSkipMaskColor_ = false;
@@ -129,4 +149,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_DRAWING_RS_DRAWING_FILTER_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_DRAWING_RS_DRAWING_FILTER_H

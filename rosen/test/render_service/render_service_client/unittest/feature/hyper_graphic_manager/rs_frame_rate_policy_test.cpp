@@ -17,7 +17,7 @@
 
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "transaction/rs_hgm_config_data.h"
-#include "modifier/rs_modifier_type.h"
+#include "modifier/rs_render_property.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -228,6 +228,17 @@ HWTEST_F(RSFrameRatePolicyTest, GetTouchOrPointerAction, TestSize.Level1)
 
     usleep(sendMoveDuration);
     EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_PULL_MOVE));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_BEGIN));
+ 
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_END));
+    
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
+ 
+    EXPECT_FALSE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
+ 
+    usleep(sendMoveDuration);
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
 }
 } // namespace Rosen
 } // namespace OHOS

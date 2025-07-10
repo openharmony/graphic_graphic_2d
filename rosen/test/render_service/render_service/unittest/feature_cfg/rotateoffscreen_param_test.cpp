@@ -45,9 +45,9 @@ void RotateOffScreenParamTest::TearDown() {}
 HWTEST_F(RotateOffScreenParamTest, SetRotateOffScreenDisplayNodeEnable, Function | SmallTest | Level1)
 {
     RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable (true);
-    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), true);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable(), true);
     RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(false);
-    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), false);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable(), false);
 }
 
 /**
@@ -62,6 +62,20 @@ HWTEST_F(RotateOffScreenParamTest, SetRotateOffScreenSurfaceNodeEnable, Function
     ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable(), true);
     RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(false);
     ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable(), false);
+}
+
+/**
+ * @tc.name: SetRotateOffScreenDowngradeEnable
+ * @tc.desc: Verify the SetRotateOffScreenDowngradeEnable function
+ * @tc.type: FUNC
+ * @tc.require: #ICBPLT
+ */
+HWTEST_F(RotateOffScreenParamTest, SetRotateOffScreenDowngradeEnable, Function | SmallTest | Level1)
+{
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable (true);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDowngradeEnable(), true);
+    RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(false);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDowngradeEnable(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

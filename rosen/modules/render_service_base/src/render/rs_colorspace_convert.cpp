@@ -81,13 +81,14 @@ RSColorSpaceConvert& RSColorSpaceConvert::Instance()
 
 bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> inputShader,
     const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
-    ScreenId screenId, uint32_t dynamicRangeMode, float hdrBrightness)
+    ScreenId screenId, uint32_t dynamicRangeMode, const RSPaintFilterCanvas::HDRProperties& hdrProperties)
 {
     RS_LOGD("RSColorSpaceConvertor HDRDraw targetColorSpace: %{public}d, screenId: %{public}" PRIu64 ""
         ", dynamicRangeMode: %{public}u, hdrBrightness: %{public}f",
-        targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties.hdrBrightness);
     RS_TRACE_NAME_FMT("RSColorSpaceConvertor HDRDraw targetColorSpace: %d, screenId: %" PRIu64 ""
-        ", dynamicRangeMode: %u, hdrBrightness: %f", targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
+        ", dynamicRangeMode: %u, hdrBrightness: %f", targetColorSpace, screenId, dynamicRangeMode,
+        hdrProperties.hdrBrightness);
     VPEParameter parameter;
 
     if (inputShader == nullptr) {
@@ -96,7 +97,7 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     }
 
     if (!SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter, targetColorSpace, screenId,
-        dynamicRangeMode, hdrBrightness)) {
+        dynamicRangeMode, hdrProperties)) {
         return false;
     }
 
@@ -116,7 +117,6 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
         return false;
     }
     paint.SetShaderEffect(outputShader);
-    RS_LOGI("paint SetShaderEffect Func:%s, Line:%d", __FUNCTION__, __LINE__);
     return true;
 }
 
@@ -166,7 +166,7 @@ void RSColorSpaceConvert::GetVideoDynamicMetadata(const sptr<SurfaceBuffer>& sur
 
 bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer,
     VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode,
-    float hdrBrightness)
+    const RSPaintFilterCanvas::HDRProperties& hdrProperties)
 {
     using namespace HDIV;
 
@@ -194,11 +194,11 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     auto& rsLuminance = RSLuminanceControl::Get();
     if (parameter.staticMetadata.size() != sizeof(HdrStaticMetadata)) {
         RS_LOGD("bhdr parameter.staticMetadata size is invalid");
-        scaler = hdrBrightness * (scaler - 1.0f) + 1.0f;
+        scaler = hdrProperties.hdrBrightness * (scaler - 1.0f) + 1.0f;
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(parameter.staticMetadata.data());
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel,
-            ret == GSERROR_OK ? parameter.dynamicMetadata : std::vector<uint8_t>{}, hdrBrightness);
+            ret == GSERROR_OK ? parameter.dynamicMetadata : std::vector<uint8_t>{}, hdrProperties.hdrBrightness);
     }
 
     if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
@@ -207,9 +207,21 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
-    parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
-    parameter.currentDisplayNits = displayNits;
-    parameter.sdrNits = sdrNits;
+    switch (hdrProperties.screenshotType) {
+        case RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT:
+            parameter.tmoNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
+            break;
+        case RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT:
+            parameter.tmoNits = parameter.currentDisplayNits;
+            break;
+        default:
+            parameter.tmoNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_HDR_NITS :
+                std::clamp(sdrNits * scaler, sdrNits, displayNits);
+            break;
+    }
+    parameter.currentDisplayNits = hdrProperties.isHDREnabledVirtualScreen ?
+        RSLuminanceConst::DEFAULT_CAST_HDR_NITS : displayNits;
+    parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     // color temperature
     parameter.layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId, (ret == GSERROR_OK &&
         dynamicRangeMode != DynamicRangeMode::STANDARD) ? parameter.dynamicMetadata : std::vector<uint8_t>(),
@@ -221,7 +233,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     }
     RS_LOGD("bhdr TmoNits:%{public}.2f. DisplayNits:%{public}.2f. SdrNits:%{public}.2f. DynamicRangeMode:%{public}u "
         "hdrBrightness:%{public}f", parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits,
-        dynamicRangeMode, hdrBrightness);
+        dynamicRangeMode, hdrProperties.hdrBrightness);
     return true;
 }
 
@@ -264,6 +276,28 @@ void RSColorSpaceConvert::CloseLibraryHandle()
         ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
     }
     handle_ = nullptr;
+}
+
+GraphicColorGamut RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name)
+{
+    using OHOS::ColorManager::ColorSpaceName;
+    static const std::unordered_map<ColorSpaceName, GraphicColorGamut> RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP {
+        {ColorSpaceName::BT601_EBU, GRAPHIC_COLOR_GAMUT_STANDARD_BT601},
+        {ColorSpaceName::SMPTE_C, GRAPHIC_COLOR_GAMUT_STANDARD_BT601},
+        {ColorSpaceName::BT709, GRAPHIC_COLOR_GAMUT_STANDARD_BT709},
+        {ColorSpaceName::DCI_P3, GRAPHIC_COLOR_GAMUT_DCI_P3},
+        {ColorSpaceName::SRGB, GRAPHIC_COLOR_GAMUT_SRGB},
+        {ColorSpaceName::ADOBE_RGB, GRAPHIC_COLOR_GAMUT_ADOBE_RGB},
+        {ColorSpaceName::DISPLAY_P3, GRAPHIC_COLOR_GAMUT_DISPLAY_P3},
+        {ColorSpaceName::BT2020, GRAPHIC_COLOR_GAMUT_BT2020},
+        {ColorSpaceName::BT2020_PQ, GRAPHIC_COLOR_GAMUT_BT2100_PQ},
+        {ColorSpaceName::BT2020_HLG, GRAPHIC_COLOR_GAMUT_BT2100_HLG},
+        {ColorSpaceName::DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020},
+    };
+    if (auto itr = RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP.find(name); itr != RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP.end()) {
+        return itr->second;
+    }
+    return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
 }
 
 } // namespace Rosen

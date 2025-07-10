@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include "gtest/gtest.h"
 
 #include "draw/surface.h"
@@ -1570,6 +1571,88 @@ HWTEST_F(DrawCmdTest, ClipRectOpItem_Marshalling001, TestSize.Level1)
     ASSERT_TRUE(drawCmdList != nullptr);
     opItem.Marshalling(*drawCmdList);
     EXPECT_EQ(drawCmdList->opCnt_, 1);
+}
+
+/**
+ * @tc.name: UnmarshallingPlayer
+ * @tc.desc: Test UnmarshallingPlayer
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
+{
+    {
+        auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+        auto player = UnmarshallingPlayer(*drawCmdList);
+        auto drawOpItem = player.Unmarshalling(0, nullptr, 0, false);
+        EXPECT_EQ(drawOpItem, nullptr);
+    }
+
+    {
+        auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+        auto type = DrawOpItem::RECT_OPITEM;
+        auto paintHandle = Drawing::PaintHandle {
+            .style = Drawing::Paint::PaintStyle::PAINT_FILL,
+            .color = { Drawing::Color::COLOR_WHITE },
+        };
+        auto rect = Drawing::Rect(0, 0, 0, 0);
+        auto roundRect = Drawing::RoundRect(rect, 0.f, 0.f);
+        auto handle = std::make_shared<DrawRoundRectOpItem::ConstructorHandle>(
+            roundRect, paintHandle
+        );
+        auto size = sizeof(DrawRectOpItem::ConstructorHandle);
+
+        auto player = UnmarshallingPlayer(*drawCmdList);
+        auto drawOpItem = player.Unmarshalling(type, static_cast<void*>(handle.get()), size, false);
+        EXPECT_EQ(drawOpItem->GetOpDesc(), "RECT_OPITEM");
+    }
+}
+
+/**
+ * @tc.name: GetOpItemCmdlistDrawRegion001
+ * @tc.desc: Test functions GetOpItemCmdlistDrawRegion for DrawTextBlobOpItem
+ * @tc.type: FUNC
+ * @tc.require: ICI6YB
+ */
+HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Font font;
+    auto textBlob = TextBlob::MakeFromString("12", font, TextEncoding::UTF8);
+    Paint paint;
+    DrawTextBlobOpItem opItem { textBlob.get(), 10, 10, paint };
+    ASSERT_TRUE(textBlob->Bounds() != nullptr);
+    ASSERT_TRUE(!(opItem.GetOpItemCmdlistDrawRegion().IsEmpty()));
+}
+
+/**
+ * @tc.name: GetOpItemCmdlistDrawRegion002
+ * @tc.desc: Test functions GetOpItemCmdlistDrawRegion for DrawRectOpItem
+ * @tc.type: FUNC
+ * @tc.require: ICI6YB
+ */
+HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    Rect rect;
+    PaintHandle paintHandle;
+    DrawRectOpItem::ConstructorHandle handle { rect, paintHandle };
+    ASSERT_TRUE(drawCmdList != nullptr);
+    DrawRectOpItem opItem { *drawCmdList, &handle };
+    ASSERT_TRUE((opItem.GetOpItemCmdlistDrawRegion().IsEmpty()));
+}
+
+/**
+ * @tc.name: GetOpItemCmdlistDrawRegion003
+ * @tc.desc: Test functions GetOpItemCmdlistDrawRegion for DrawPathOpItem
+ * @tc.type: FUNC
+ * @tc.require: ICI6YB
+ */
+HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion003, TestSize.Level1)
+{
+    Path path;
+    Paint paint;
+    DrawPathOpItem opItem{path, paint};
+    ASSERT_TRUE((opItem.GetOpItemCmdlistDrawRegion().IsEmpty()));
 }
 } // namespace Drawing
 } // namespace Rosen

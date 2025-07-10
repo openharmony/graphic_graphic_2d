@@ -139,7 +139,7 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
     float tangent = 0.0;
     GetPosTanValue(fraction, position, tangent);
     auto valueVector2f = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetOriginValue());
-    if (GetOriginValue()->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR2F) {
+    if (GetOriginValue()->GetPropertyType() == RSPropertyType::VECTOR2F) {
         UpdateVector2fPathValue(position);
         SetPathValue(position, tangent);
         return;
@@ -250,12 +250,14 @@ void RSRenderPathAnimation::SetRotation(const float tangent)
         return;
     }
 
-    auto modifier = target->GetModifier(rotationId_);
-    if (modifier != nullptr) {
-        auto property = std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty());
-        if (property != nullptr) {
-            property->Set(tangent);
-        }
+    std::shared_ptr<RSRenderProperty<float>> property;
+    if (auto modifier = target->GetModifier(rotationId_)) {
+        property = std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty());
+    } else {
+        property = std::static_pointer_cast<RSRenderProperty<float>>(target->GetProperty(rotationId_));
+    }
+    if (property != nullptr) {
+        property->Set(tangent);
     }
 }
 

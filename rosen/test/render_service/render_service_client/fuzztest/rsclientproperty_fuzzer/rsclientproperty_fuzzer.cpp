@@ -452,8 +452,8 @@ bool DoRSPropertyBase(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    RSPropertyBase propertyBase;
-    propertyBase.MarkModifierDirty();
+    RSProperty<float> propertyBase;
+    propertyBase.MarkCustomModifierDirty();
     propertyBase.MarkNodeDirty();
     return true;
 }
@@ -470,8 +470,8 @@ bool DoOperator(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    auto a = std::make_shared<RSPropertyBase>();
-    auto b = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> a = std::make_shared<RSProperty<float>>();
+    std::shared_ptr<RSPropertyBase> b = std::make_shared<RSProperty<float>>();
     a += b;
     a -= b;
     float value = GetData<float>();
@@ -667,9 +667,6 @@ bool DoGetPropertyType(const uint8_t* data, size_t size)
     Quaternion valueQuaternion = GetData<Quaternion>();
     RSAnimatableProperty rsAnimatablePropertyQuaternion(valueQuaternion);
     rsAnimatablePropertyQuaternion.GetPropertyType();
-    auto rsFilter = std::make_shared<RSFilter>();
-    RSAnimatableProperty rsAnimatablePropertyRSFilter(rsFilter);
-    rsAnimatablePropertyRSFilter.GetPropertyType();
     Vector4<Color> valueVector4Color = GetData<Vector4<Color>>();
     RSAnimatableProperty rsAnimatablePropertyVector4Color(valueVector4Color);
     rsAnimatablePropertyVector4Color.GetPropertyType();
@@ -691,13 +688,13 @@ bool DoRSPropertyBase002(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    auto property = std::make_shared<RSPropertyBase>();
+    auto property = std::make_shared<RSProperty<float>>();
     property->GetThreshold();
-    auto rsRenderPropertyBase = std::make_shared<RSRenderPropertyBase>();
+    auto rsRenderPropertyBase = std::make_shared<RSRenderProperty<bool>>();
     property->SetValueFromRender(rsRenderPropertyBase);
     bool isCustom = property->GetIsCustom();
     property->SetIsCustom(isCustom);
-    auto propertyBase = std::make_shared<RSPropertyBase>();
+    auto propertyBase = std::make_shared<RSProperty<float>>();
     property->SetValue(propertyBase);
     property->GetPropertyType();
     property->UpdateOnAllAnimationFinish();

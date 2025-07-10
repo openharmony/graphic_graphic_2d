@@ -59,9 +59,11 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:buffer_handle",
     "graphics_effect:graphics_effect_core",
+    "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
   ]

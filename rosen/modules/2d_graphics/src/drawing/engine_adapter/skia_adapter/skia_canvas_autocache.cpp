@@ -31,13 +31,20 @@
 #include "include/core/SkPicture.h"
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkDrawable.h"
+#ifdef USE_M133_SKIA
+#include "src/text/GlyphRun.h"
+#else
 #include "src/core/SkGlyphRun.h"
+#endif
 #include "src/utils/SkPatchUtils.h"
 #include "src/core/SkCanvasPriv.h"
+#ifdef USE_M133_SKIA
+#include "src/base/SkTLazy.h"
+#else
 #include "src/core/SkTLazy.h"
+#endif
 #include "src/core/SkMatrixPriv.h"
 
-#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -433,8 +440,6 @@ void SkiaCanvasAutoCache::onDrawImageRect2(const SkImage* image, const SkRect& s
                                            const SkRect& dst, const SkSamplingOptions& sampling,
                                            const SkPaint* paint, SrcRectConstraint constraint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVASAUTOCACHE_ONDRAWIMAGERECT2);
     if (OpShouldRecord()) {
         SkPaint realPaint = ProcessPaintForImage(paint);
         if (!RecordDrawArea(dst, realPaint)) {
@@ -511,7 +516,11 @@ void SkiaCanvasAutoCache::onDrawDrawable(SkDrawable* drawable, const SkMatrix* m
     this->SkNWayCanvas::onDrawDrawable(drawable, matrix);
 }
 
+#ifdef USE_M133_SKIA
+void SkiaCanvasAutoCache::onDrawGlyphRunList(const sktext::GlyphRunList& list, const SkPaint& paint)
+#else
 void SkiaCanvasAutoCache::onDrawGlyphRunList(const SkGlyphRunList& list, const SkPaint& paint)
+#endif
 {
     if (OpShouldRecord()) {
         SkRect bounds = list.sourceBounds();
@@ -619,7 +628,11 @@ SkImageInfo SkiaCanvasAutoCache::onImageInfo() const
     return this->proxy()->imageInfo();
 }
 
+#ifdef USE_M133_SKIA
+bool SkiaCanvasAutoCache::onGetProps(SkSurfaceProps* props, bool top) const
+#else
 bool SkiaCanvasAutoCache::onGetProps(SkSurfaceProps* props) const
+#endif
 {
     return this->proxy()->getProps(props);
 }

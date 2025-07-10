@@ -1066,6 +1066,24 @@ private:
     void OnDetachFromNode() override;
 };
 
+class RSC_EXPORT RSForegroundNGFilterModifier : public RSForegroundModifier {
+public:
+    explicit RSForegroundNGFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSForegroundNGFilterModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBackgroundNGFilterModifier : public RSBackgroundModifier {
+    public:
+        explicit RSBackgroundNGFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
+        virtual ~RSBackgroundNGFilterModifier() = default;
+    protected:
+        RSModifierType GetModifierType() const override;
+        std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 /**
  * @class RSUseShadowBatchingModifier
  *
@@ -1793,40 +1811,6 @@ public:
      * @brief Destructor for RSForegroundEffectRadiusModifier.
      */
     virtual ~RSForegroundEffectRadiusModifier() = default;
-protected:
-    /**
-     * @brief Get the type of the modifier.
-     *
-     * @return The type of the modifier.
-     */
-    RSModifierType GetModifierType() const override;
-
-    /**
-     * @brief Create a new render modifier.
-     *
-     * @return A shared pointer to the created RSRenderModifier.
-     */
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
-/**
- * @class RSFilterModifier
- *
- * @brief The class for filter modifiers.
- */
-class RSC_EXPORT RSFilterModifier : public RSForegroundModifier {
-public:
-    /**
-     * @brief Construct a new RSFilterModifier instance.
-     *
-     * @param property A shared pointer to the RSPropertyBase object.
-     */
-    explicit RSFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
-
-    /**
-     * @brief Destructor for RSFilterModifier.
-     */
-    virtual ~RSFilterModifier() = default;
 protected:
     /**
      * @brief Get the type of the modifier.
@@ -2864,6 +2848,40 @@ protected:
 };
 
 /**
+ * @class RSFgBrightnessHdrModifier
+ *
+ * @brief The class for foreground brightness hdr modifiers.
+ */
+class RSC_EXPORT RSFgBrightnessHdrModifier : public RSForegroundModifier {
+public:
+    /**
+     * @brief Construct a new RSFgBrightnessHdrModifier instance.
+     *
+     * @param property A shared pointer to the RSPropertyBase object.
+     */
+    explicit RSFgBrightnessHdrModifier(const std::shared_ptr<RSPropertyBase>& property);
+
+    /**
+     * @brief Destructor for RSFgBrightnessHdrModifier.
+     */
+    virtual ~RSFgBrightnessHdrModifier() = default;
+protected:
+    /**
+     * @brief Get the type of the modifier.
+     *
+     * @return The type of the modifier.
+     */
+    RSModifierType GetModifierType() const override;
+
+    /**
+     * @brief Create a new render modifier.
+     *
+     * @return A shared pointer to the created RSRenderModifier.
+     */
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+/**
  * @class RSBgBrightnessRatesModifier
  *
  * @brief The class for background brightness rates modifiers.
@@ -3238,40 +3256,6 @@ protected:
 };
 
 /**
- * @class RSBackgroundFilterModifier
- *
- * @brief The class for background filter modifiers.
- */
-class RSC_EXPORT RSBackgroundFilterModifier : public RSBackgroundModifier {
-public:
-    /**
-     * @brief Construct a new RSBackgroundFilterModifier instance.
-     *
-     * @param property A shared pointer to the RSPropertyBase object.
-     */
-    explicit RSBackgroundFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
-
-    /**
-     * @brief Destructor for RSBackgroundFilterModifier.
-     */
-    virtual ~RSBackgroundFilterModifier() = default;
-protected:
-    /**
-     * @brief Get the type of the modifier.
-     *
-     * @return The type of the modifier.
-     */
-    RSModifierType GetModifierType() const override;
-
-    /**
-     * @brief Create a new render modifier.
-     *
-     * @return A shared pointer to the created RSRenderModifier.
-     */
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
-/**
  * @class RSFrameGravityModifier
  *
  * @brief The class for frame gravity modifiers.
@@ -3459,6 +3443,41 @@ public:
      * @brief Destructor for RSCustomClipToFrameModifier.
      */
     virtual ~RSCustomClipToFrameModifier() = default;
+
+protected:
+    /**
+     * @brief Get the type of the modifier.
+     *
+     * @return The type of the modifier.
+     */
+    RSModifierType GetModifierType() const override;
+
+    /**
+     * @brief Create a new render modifier.
+     *
+     * @return A shared pointer to the created RSRenderModifier.
+     */
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+/**
+ * @class RSHDRBrightnessFactorModifier
+ *
+ * @brief The class for HDR brightness factor modifiers.
+ */
+class RS_EXPORT RSHDRBrightnessFactorModifier : public RSForegroundModifier {
+public:
+    /**
+     * @brief Construct a new RSHDRBrightnessFactorModifier instance.
+     *
+     * @param property A shared pointer to the RSPropertyBase object.
+     */
+    explicit RSHDRBrightnessFactorModifier(const std::shared_ptr<RSPropertyBase>& property);
+
+    /**
+     * @brief Destructor for RSHDRBrightnessFactorModifier.
+     */
+    virtual ~RSHDRBrightnessFactorModifier() = default;
 
 protected:
     /**

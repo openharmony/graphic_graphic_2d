@@ -20,6 +20,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "visitor/rs_node_visitor.h"
+#include "common/rs_common_hook.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -47,7 +48,8 @@ public:
     RSTestVisitor() = default;
     ~RSTestVisitor() override {}
 
-    void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) override {}
+    void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
     void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) override {}
@@ -55,19 +57,21 @@ public:
 
     void PrepareChildren(RSRenderNode& node) override {}
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
-    void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void PrepareScreenRenderNode(RSScreenRenderNode& node) override {}
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override {}
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
+    void PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
 
     void ProcessChildren(RSRenderNode& node) override {}
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
-    void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void ProcessScreenRenderNode(RSScreenRenderNode& node) override {}
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
     void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
+    void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
 };
 
 /**
@@ -321,7 +325,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, UpdatePartialRenderParams, TestSize.Level
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     node->UpdatePartialRenderParams();
     node->UpdateRenderParams();
-    node->UpdateAncestorDisplayNodeInRenderParams();
+    node->UpdateAncestorScreenNodeInRenderParams();
     node->SetUifirstChildrenDirtyRectParam(RectI());
     node->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
     node->SetIsParentUifirstNodeEnableParam(true);
@@ -950,6 +954,50 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, SetHardCursorStatusTest, TestSize.Level1)
     node->SetHardCursorStatus(false);
     EXPECT_EQ(node->GetHardCursorStatus(), false);
     EXPECT_EQ(node->GetHardCursorLastStatus(), true);
+}
+
+/**
+ * @tc.name: IsHardwareForcedDisabledTest001
+ * @tc.desc: IsHardwareForcedDisabled test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, IsHardwareForcedDisabledTest001, TestSize.Level1)
+{
+    const std::string testBundleName = "com.example.tvplayer";
+    RsCommonHook::Instance().SetTvPlayerBundleName(testBundleName);
+
+    RSSurfaceRenderNodeConfig config{};
+    config.id = ++id;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.bundleName = testBundleName;
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    node->SetIsOnTheTree(true);
+    node->SetGlobalAlpha(0.05f);
+    EXPECT_EQ(node->IsHardwareForcedDisabled(), true);
+}
+
+/**
+ * @tc.name: IsHardwareForcedDisabledTest002
+ * @tc.desc: IsHardwareForcedDisabled test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, IsHardwareForcedDisabledTest002, TestSize.Level1)
+{
+    const std::string testBundleName = "com.example.tvplayer";
+    RsCommonHook::Instance().SetTvPlayerBundleName(testBundleName);
+
+    RSSurfaceRenderNodeConfig config{};
+    config.id = ++id;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    config.bundleName = "com.example.others";
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    node->SetIsOnTheTree(true);
+    node->SetGlobalAlpha(0.05f);
+    EXPECT_EQ(node->IsHardwareForcedDisabled(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

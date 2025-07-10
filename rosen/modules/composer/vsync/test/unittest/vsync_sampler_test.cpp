@@ -24,11 +24,19 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t SAMPLER_NUMBER = 6;
+
+static int64_t SystemTime()
+{
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
+}
 }
 class VSyncSamplerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static void Reset();
 
     static inline sptr<VSyncSampler> vsyncSampler = nullptr;
     static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
@@ -42,6 +50,18 @@ void VSyncSamplerTest::SetUpTestCase()
 void VSyncSamplerTest::TearDownTestCase()
 {
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+}
+
+void VSyncSamplerTest::Reset()
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->period_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->phase_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->referenceTime_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->error_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->firstSampleIndex_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->modeUpdated_ = false;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
 }
 
 namespace {
@@ -67,7 +87,7 @@ HWTEST_F(VSyncSamplerTest, GetHardwarePeriodTest, Function | MediumTest| Level3)
 HWTEST_F(VSyncSamplerTest, AddSample001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(0), true);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -84,17 +104,17 @@ HWTEST_F(VSyncSamplerTest, AddSample002, Function | MediumTest| Level3)
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
     ASSERT_EQ(ret, false);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
-* Function: BeginSample001
+* Function: StartSample001
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call BeginSample
+* CaseDescription: 1. call StartSample
  */
-HWTEST_F(VSyncSamplerTest, BeginSample001, Function | MediumTest| Level3)
+HWTEST_F(VSyncSamplerTest, StartSample001, Function | MediumTest| Level3)
 {
     bool ret = true;
     for (int i = 0; i < SAMPLER_NUMBER; i++) {
@@ -102,9 +122,9 @@ HWTEST_F(VSyncSamplerTest, BeginSample001, Function | MediumTest| Level3)
     }
     ASSERT_EQ(ret, false);
     
-    VSyncSamplerTest::vsyncSampler->BeginSample();
+    VSyncSamplerTest::vsyncSampler->StartSample(true);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(6), true);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -134,7 +154,7 @@ HWTEST_F(VSyncSamplerTest, GetPeriod002, Function | MediumTest| Level3)
     }
     ASSERT_EQ(ret, false);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetPeriod(), 1);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -148,7 +168,7 @@ HWTEST_F(VSyncSamplerTest, GetPhase001, Function | MediumTest| Level3)
 {
     VSyncSamplerTest::vsyncSampler->AddSample(0);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetPhase(), 0);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -166,7 +186,7 @@ HWTEST_F(VSyncSamplerTest, GetPhase002, Function | MediumTest| Level3)
     }
     ASSERT_EQ(ret, false);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetPhase(), 0);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -227,7 +247,7 @@ HWTEST_F(VSyncSamplerTest, GetHardwarePeriod002, Function | MediumTest| Level3)
     ASSERT_EQ(ret, false);
     VSyncSamplerTest::vsyncSampler->SetPendingPeriod(1);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 1);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -247,14 +267,14 @@ HWTEST_F(VSyncSamplerTest, GetHardwarePeriod003, Function | MediumTest| Level3)
     ASSERT_EQ(ret, false);
     VSyncSamplerTest::vsyncSampler->SetPendingPeriod(8333333); // 8333333ns
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 16666667); // 16666667ns
-    VSyncSamplerTest::vsyncSampler->BeginSample();
+    VSyncSamplerTest::vsyncSampler->StartSample(true);
     VSyncSamplerTest::vsyncSampler->SetPendingPeriod(8333333); // 8333333ns
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 8333333); // 8333333ns
     VSyncSamplerTest::vsyncSampler->SetPendingPeriod(0);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 8333333); // 8333333ns
     VSyncSamplerTest::vsyncSampler->SetPendingPeriod(-1);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 8333333); // 8333333ns
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -268,7 +288,7 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime001, Function | MediumTest| Level3
 {
     VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(0, 6), true);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -287,7 +307,7 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime002, Function | MediumTest| Level3
     ASSERT_EQ(ret, false);
     VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(0, SAMPLER_NUMBER + 1), false);
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -303,7 +323,7 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime003, Function | MediumTest| Level3
 {
     VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(0, 0), true); // screenId 0
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -319,7 +339,7 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime004, Function | MediumTest| Level3
 {
     VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(1, 0), false); // screenId 1
-    VSyncSamplerTest::vsyncSampler->Reset();
+    Reset();
 }
 
 /*
@@ -349,13 +369,13 @@ HWTEST_F(VSyncSamplerTest, DumpTest, Function | MediumTest| Level3)
 HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackTest, Function | MediumTest| Level3)
 {
     bool result = false;
-    VSyncSampler::SetScreenVsyncEnabledCallback cb = [&result](bool enabled) {
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [&result](uint64_t screenId, bool enabled) {
         result = enabled;
     };
     VSyncSamplerTest::vsyncSampler->RegSetScreenVsyncEnabledCallback(cb);
-    VSyncSamplerTest::vsyncSampler->SetScreenVsyncEnabledInRSMainThread(true);
+    VSyncSamplerTest::vsyncSampler->SetScreenVsyncEnabledInRSMainThread(0, true);
     ASSERT_EQ(result, true);
-    VSyncSamplerTest::vsyncSampler->SetScreenVsyncEnabledInRSMainThread(false);
+    VSyncSamplerTest::vsyncSampler->SetScreenVsyncEnabledInRSMainThread(0, false);
     ASSERT_EQ(result, false);
 }
 
@@ -368,7 +388,7 @@ HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackTest, Function | Medi
  */
 HWTEST_F(VSyncSamplerTest, AddNegativeSamplesTest, Function | MediumTest| Level3)
 {
-    VSyncSamplerTest::vsyncSampler->BeginSample();
+    VSyncSamplerTest::vsyncSampler->StartSample(true);
     bool ret = true;
     for (int i = 1; i < SAMPLER_NUMBER + 1; i++) { // add 10 samples
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i * -16666667); // 16666667ns
@@ -385,7 +405,7 @@ HWTEST_F(VSyncSamplerTest, AddNegativeSamplesTest, Function | MediumTest| Level3
  */
 HWTEST_F(VSyncSamplerTest, AddSamplesVarianceOversizeTest, Function | MediumTest| Level3)
 {
-    VSyncSamplerTest::vsyncSampler->BeginSample();
+    VSyncSamplerTest::vsyncSampler->StartSample(true);
     int64_t floatingScope = 1000000; // 1000000ms
     bool ret = true;
     for (int i = 1; i <= 50; i++) { // add 50 samples
@@ -393,6 +413,74 @@ HWTEST_F(VSyncSamplerTest, AddSamplesVarianceOversizeTest, Function | MediumTest
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i * 16666667 + floatingScope); // 16666667ns
     }
     ASSERT_EQ(ret, true);
+}
+
+/*
+* Function: RecordDisplayVSyncStatusTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RecordDisplayVSyncStatus
+ */
+HWTEST_F(VSyncSamplerTest, RecordDisplayVSyncStatusTest, Function | MediumTest| Level3)
+{
+    vsyncSampler->RecordDisplayVSyncStatus(true);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->displayVSyncStatus_, true);
+    vsyncSampler->RecordDisplayVSyncStatus(false);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->displayVSyncStatus_, false);
+}
+
+/*
+* Function: RollbackHardwareVSyncStatusTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RollbackHardwareVSyncStatus
+ */
+HWTEST_F(VSyncSamplerTest, RollbackHardwareVSyncStatusTest, Function | MediumTest| Level3)
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = false;
+    vsyncSampler->RecordDisplayVSyncStatus(true);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->displayVSyncStatus_, true);
+    vsyncSampler->RollbackHardwareVSyncStatus();
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_, true);
+    vsyncSampler->RecordDisplayVSyncStatus(false);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->displayVSyncStatus_, false);
+    vsyncSampler->RollbackHardwareVSyncStatus();
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_, false);
+}
+
+/*
+* Function: SetAdaptive
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetAdaptive
+ */
+HWTEST_F(VSyncSamplerTest, SetAdaptive, Function | MediumTest| Level3)
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = false;
+    vsyncSampler->SetAdaptive(false);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), false);
+    vsyncSampler->SetAdaptive(true);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), true);
+}
+ 
+/*
+* Function: AddSample003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddSample
+ */
+HWTEST_F(VSyncSamplerTest, AddSample003, Function | MediumTest| Level3)
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = SystemTime();
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(0), true);
+    Reset();
 }
 } // namespace
 } // namespace Rosen

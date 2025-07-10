@@ -40,6 +40,8 @@ public:
 
     void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
         RSModifierType type, bool isSingleFrameComposer = false);
+    void UpdateRecordingNG(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
+        ModifierNG::RSModifierType type, bool isSingleFrameComposer = false);
     void ClearRecording();
 
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override;
@@ -57,8 +59,6 @@ public:
 
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
-    bool OpincGetNodeSupportFlag() override;
-
     RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::CANVAS_NODE;
@@ -69,13 +69,15 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void SetIsWideColorGamut(bool isWideColorGamut);
-    bool GetIsWideColorGamut() const;
-    void ModifyWideWindowColorGamutNum(bool flag);
+    void SetColorGamut(uint32_t colorGamut);
+    uint32_t GetColorGamut();
+    void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
 
     // [Attention] Only used in PC window resize scene now
     void SetLinkedRootNodeId(NodeId rootNodeId);
     RSB_EXPORT NodeId GetLinkedRootNodeId() const;
+
+    void UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,
@@ -83,6 +85,7 @@ protected:
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
+    void ApplyDrawCmdModifier(RSModifierContext& context, ModifierNG::RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas, bool needApplyMatrix);
 
     void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);
@@ -92,10 +95,12 @@ private:
 
     friend class RSCanvasNodeCommandHelper;
     friend class RSColorfulShadowDrawable;
+    friend class RSRenderNodeAllocator;
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;
-    bool isWideColorGamut_ = false;
+    uint32_t colorGamut_ = 0;
+    GraphicColorGamut graphicColorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
 
     // [Attention] Only used in PC window resize scene now
     NodeId linkedRootNodeId_ = INVALID_NODEID;

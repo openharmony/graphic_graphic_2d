@@ -20,6 +20,7 @@
 #include "render/rs_render_ripple_mask.h"
 namespace OHOS {
 namespace Rosen {
+class RSShaderMask;
 
 class RSB_EXPORT RSRenderDispDistortFilterPara : public RSRenderFilterParaBase {
 
@@ -31,18 +32,33 @@ public:
 
     virtual ~RSRenderDispDistortFilterPara() = default;
 
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
+
     void GetDescription(std::string& out) const override;
 
     virtual bool WriteToParcel(Parcel& parcel) override;
 
     virtual bool ReadFromParcel(Parcel& parcel) override;
 
-    static std::shared_ptr<RSRenderMaskPara> CreateRenderPropert(RSUIFilterType type);
+    static std::shared_ptr<RSRenderMaskPara> CreateRenderProperty(RSUIFilterType type);
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 
     std::shared_ptr<RSRenderMaskPara> GetRenderMask();
+
+    bool ParseFilterValues() override;
+    void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+
+    const Vector2f& GetFactor() const;
+    const std::shared_ptr<RSShaderMask>& GetMask() const;
+
 private:
+    void CalculateHash();
+
+    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_FACTOR[] = "DispDistort_Factor";
+    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_MASK[] = "DispDistort_Mask";
+    std::shared_ptr<RSShaderMask> mask_ = nullptr;
+    Vector2f factor_ = {1.f, 1.f};
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
 };
 } // namespace Rosen

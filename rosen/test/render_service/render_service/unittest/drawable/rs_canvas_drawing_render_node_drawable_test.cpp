@@ -409,6 +409,27 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ProcessCPURenderInBackgroundThre
 }
 
 /**
+ * @tc.name: OnCaptureTest
+ * @tc.desc: Test If OnCapture Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->OnCapture(canvas);
+}
+
+/**
  * @tc.name: ResetSurface
  * @tc.desc: Test If ResetSurface Can Run
  * @tc.type: FUNC
@@ -551,6 +572,31 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest002, TestSize.Le
     result = drawable->ResetSurfaceForGL(width, height, canvas);
     EXPECT_EQ(result, true);
     resultVK = drawable->ResetSurfaceForVK(width, height, canvas);
+    EXPECT_EQ(resultVK, true);
+}
+
+/**
+ * @tc.name: ResetSurface
+ * @tc.desc: Test If ResetSurface Can Run
+ * @tc.type: FUNC
+ * @tc.require: #ICDBD1
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    int width = 1;
+    int height = 1;
+    canvas.recordingState_ = true;
+    auto result = drawable->ResetSurfaceForGL(width, height, canvas);
+    EXPECT_EQ(result, true);
+
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->surfaceParams_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ASSERT_TRUE(drawable->GetRenderParams());
+    auto resultVK = drawable->ResetSurfaceForVK(width, height, canvas);
     EXPECT_EQ(resultVK, true);
 }
 

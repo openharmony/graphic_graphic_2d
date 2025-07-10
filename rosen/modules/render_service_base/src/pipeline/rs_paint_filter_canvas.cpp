@@ -17,10 +17,12 @@
 
 #include <algorithm>
 
+#include "common/rs_rect.h"
 #include "draw/canvas.h"
 
 #include "platform/common/rs_log.h"
-#include "utils/graphic_coretrace.h"
+#include "utils/rect.h"
+#include "utils/region.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -239,8 +241,6 @@ void RSPaintFilterCanvasBase::DrawCircle(const Point& centerPt, scalar radius)
 
 void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWPATH);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -304,8 +304,6 @@ void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planePa
 void RSPaintFilterCanvasBase::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWSHADOWSTYLE);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -433,8 +431,6 @@ void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, 
 void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center,
     const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWIMAGENINE);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -511,8 +507,6 @@ void RSPaintFilterCanvasBase::DrawImageWithStencil(const Drawing::Image& image, 
 void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWIMAGERECT);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -800,8 +794,6 @@ void RSPaintFilterCanvasBase::Shear(scalar sx, scalar sy)
 
 void RSPaintFilterCanvasBase::Flush()
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_FLUSH);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
@@ -997,6 +989,24 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
     }
 #endif
     return *this;
+}
+
+bool RSPaintFilterCanvasBase::DrawImageEffectHPS(const Drawing::Image& image,
+    const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams)
+{
+    bool result = false;
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            result = ((*iter)->DrawImageEffectHPS(image, hpsEffectParams) || result);
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        result = canvas_->DrawImageEffectHPS(image, hpsEffectParams);
+    }
+#endif
+    return result;
 }
 
 bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams)
@@ -1343,7 +1353,6 @@ void RSPaintFilterCanvas::PushDirtyRegion(Drawing::Region& resultRegion)
 void RSPaintFilterCanvas::PopDirtyRegion()
 {
     if (dirtyRegionStack_.empty()) {
-        RS_LOGW("PopDirtyRegion dirtyRegionStack_ is empty");
         return;
     }
     dirtyRegionStack_.pop();
@@ -1365,7 +1374,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
     isHdrOn_ = other.isHdrOn_;
-    hdrBrightness_ = other.hdrBrightness_;
+    hdrProperties_ = other.hdrProperties_;
 }
 
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
@@ -1463,6 +1472,16 @@ void RSPaintFilterCanvas::SetEffectData(const std::shared_ptr<RSPaintFilterCanva
     envStack_.top().effectData_ = effectData;
 }
 
+void RSPaintFilterCanvas::SetDrawnRegion(const Occlusion::Region& region)
+{
+    drawnRegion_ = region;
+}
+
+const Occlusion::Region& RSPaintFilterCanvas::GetDrawnRegion() const
+{
+    return drawnRegion_;
+}
+
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetEffectData() const
 {
     return envStack_.top().effectData_;
@@ -1534,6 +1553,24 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing:
     : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
 {}
 
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Drawing::Image>& image,
+    const Drawing::RectI& rect)
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+{}
+
+std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
+{
+    // std::shared_ptr<Drawing::Image> cachedImage = cachedImage_;
+    if (cachedImage_ == nullptr) {
+        return "No valid cacheImage found.";
+    }
+    std::string ss;
+    ss += " cachedRect: " + cachedRect_.ToString() +
+        ", CacheImageWidth: " + std::to_string(cachedImage_->GetWidth()) +
+        ", CacheImageHeight: " + std::to_string(cachedImage_->GetHeight());
+    return ss;
+}
+
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
 {
     isParallelCanvas_ = isParallel;
@@ -1593,6 +1630,16 @@ void RSPaintFilterCanvas::SetOnMultipleScreen(bool multipleScreen)
     multipleScreen_ = multipleScreen;
 }
 
+RSPaintFilterCanvas::ScreenshotType RSPaintFilterCanvas::GetScreenshotType() const
+{
+    return hdrProperties_.screenshotType;
+}
+
+void RSPaintFilterCanvas::SetScreenshotType(RSPaintFilterCanvas::ScreenshotType type)
+{
+    hdrProperties_.screenshotType = type;
+}
+
 ScreenId RSPaintFilterCanvas::GetScreenId() const
 {
     return screenId_;
@@ -1601,6 +1648,16 @@ ScreenId RSPaintFilterCanvas::GetScreenId() const
 void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
 {
     screenId_ = screenId;
+}
+
+bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
+{
+    return hdrProperties_.isHDREnabledVirtualScreen;
+}
+
+void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen)
+{
+    hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
 }
 
 bool RSPaintFilterCanvas::GetHdrOn() const
@@ -1615,12 +1672,17 @@ void RSPaintFilterCanvas::SetHdrOn(bool isHdrOn)
 
 float RSPaintFilterCanvas::GetHDRBrightness() const
 {
-    return hdrBrightness_;
+    return hdrProperties_.hdrBrightness;
 }
 
 void RSPaintFilterCanvas::SetHDRBrightness(float hdrBrightness)
 {
-    hdrBrightness_ = hdrBrightness;
+    hdrProperties_.hdrBrightness = hdrBrightness;
+}
+
+const RSPaintFilterCanvas::HDRProperties& RSPaintFilterCanvas::GetHDRProperties() const
+{
+    return hdrProperties_;
 }
 
 GraphicColorGamut RSPaintFilterCanvas::GetTargetColorGamut() const

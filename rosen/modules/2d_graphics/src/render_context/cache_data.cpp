@@ -108,25 +108,26 @@ void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
             return;
         }
     }
+    fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
 
     std::time_t curTime = time(nullptr);
     char timestamp[TIME_MAX_LEN] = {0};
     std::strftime(timestamp, TIME_MAX_LEN, "%Y-%m-%d %H:%M:%S", std::localtime(&curTime));
     if (write(fd, timestamp, TIME_MAX_LEN) == ERR_NUMBER) {
         LOGE("dump abnormal cache failed, because fail to write timestamp to disk");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         unlink(abnormalCacheDir.c_str());
         return;
     }
 
     if (write(fd, buffer, bufferSize) == ERR_NUMBER) {
         LOGE("dump abnormal cache failed, because fail to write data to disk");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         unlink(abnormalCacheDir.c_str());
         return;
     }
     fchmod(fd, S_IRUSR);
-    close(fd);
+    fdsan_close_with_tag(fd, LOG_DOMAIN);
     return;
 }
 
@@ -144,35 +145,36 @@ void CacheData::CacheReadFromFile(const std::string filePath)
         }
         return;
     }
+    fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
     struct stat statBuf;
     if (fstat(fd, &statBuf) == ERR_NUMBER) {
         LOGD("abandon, because fail to get the file status");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     if (statBuf.st_size < 0) {
         LOGD("abandon, negative file size");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
 
     size_t fileSize = static_cast<size_t>(statBuf.st_size);
     if (fileSize < RS_CACHE_HEAD_LEN || fileSize > maxTotalSize_ * maxMultipleSize_ + RS_CACHE_HEAD_LEN) {
         LOGE("abandon, illegal file size");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     uint8_t *buffer = reinterpret_cast<uint8_t*>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fd, 0));
     if (buffer == MAP_FAILED) {
         LOGD("abandon, because of mmap failure:");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
 
     if (!IsValidFile(buffer, fileSize)) {
         LOGE("abandon, invalid file");
         munmap(buffer, fileSize);
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
 
@@ -181,7 +183,7 @@ void CacheData::CacheReadFromFile(const std::string filePath)
         LOGE("abandon, because fail to read file contents");
     }
     munmap(buffer, fileSize);
-    close(fd);
+    fdsan_close_with_tag(fd, LOG_DOMAIN);
 }
 
 void CacheData::ReadFromFile()
@@ -214,24 +216,25 @@ void CacheData::WriteToFile()
             return;
         }
     }
+    fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
     size_t cacheSize = SerializedSize();
     if (cacheSize <= 0) {
         LOGD("abandon, illegal serialized size");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     size_t bufferSize = cacheSize + RS_CACHE_HEAD_LEN;
     uint8_t *buffer = new uint8_t[bufferSize];
     if (!buffer) {
         LOGD("abandon, because fail to allocate buffer for cache content");
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         unlink(cacheDir_.c_str());
         return;
     }
     if (Serialize(buffer + RS_CACHE_HEAD_LEN, cacheSize) < 0) {
         LOGD("abandon, because fail to serialize the CacheData:");
         delete[] buffer;
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         unlink(cacheDir_.c_str());
         return;
     }
@@ -239,7 +242,7 @@ void CacheData::WriteToFile()
     // Write the file rs magic head and CRC code
     if (memcpy_s(buffer, bufferSize, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
         delete[] buffer;
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     uint32_t *crc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
@@ -248,13 +251,13 @@ void CacheData::WriteToFile()
     if (write(fd, buffer, bufferSize) == ERR_NUMBER) {
         LOGD("abandon, because fail to write to disk");
         delete[] buffer;
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         unlink(cacheDir_.c_str());
         return;
     }
     delete[] buffer;
     fchmod(fd, S_IRUSR);
-    close(fd);
+    fdsan_close_with_tag(fd, LOG_DOMAIN);
 }
 
 void CacheData::Rewrite(const void *key, const size_t keySize, const void *value, const size_t valueSize)

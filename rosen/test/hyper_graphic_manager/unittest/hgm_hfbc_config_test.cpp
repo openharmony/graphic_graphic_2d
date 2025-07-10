@@ -19,7 +19,7 @@
 
 #include "hgm_hfbc_config.h"
 #include "hgm_test_base.h"
-#include <parameters.h>
+#include "parameters.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -48,7 +48,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level2)
+HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level0)
 {
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
@@ -66,7 +66,7 @@ HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, SetHfbcControlMode, Function | SmallTest | Level2)
+HWTEST_F(HgmHfbcConfigTest, SetHfbcControlMode, Function | SmallTest | Level0)
 {
     g_hfbcConfig.SetHfbcControlMode(true);
     EXPECT_EQ(g_hfbcConfig.isHfbcDisableListMode_, true);
@@ -80,12 +80,12 @@ HWTEST_F(HgmHfbcConfigTest, SetHfbcControlMode, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
+HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level0)
 {
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.banapp", "1" }, { "com.test.banapp2", "1" }
     };
-    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
+    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.SetHfbcConfigMap(hfbcConfig); });
     EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
 
     g_hfbcConfig.SetHfbcControlMode(true);
@@ -94,7 +94,7 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
     std::vector<std::string> packageList;
     packageList.emplace_back("com.test.allowapp");
     packageList.emplace_back("com.test.allowapp2");
-    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.HandleHfbcConfig(packageList);});
+    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.HandleHfbcConfig(packageList); });
 
     std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
     ASSERT_EQ(hfbcStatus == "0", true);
@@ -106,12 +106,12 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level1)
+HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level0)
 {
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
     };
-    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
+    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.SetHfbcConfigMap(hfbcConfig); });
     EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
 
     g_hfbcConfig.SetHfbcControlMode(false);
@@ -120,7 +120,7 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level1)
     std::vector<std::string> packageList;
     packageList.emplace_back("com.test.allowapp");
     packageList.emplace_back("com.test.allowapp2");
-    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.HandleHfbcConfig(packageList);});
+    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.HandleHfbcConfig(packageList); });
 
     std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
     ASSERT_EQ(hfbcStatus == "0", true);

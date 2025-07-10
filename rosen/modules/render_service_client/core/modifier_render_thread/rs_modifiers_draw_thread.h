@@ -22,6 +22,7 @@
 #include "common/rs_common_def.h"
 #include "event_handler.h"
 #include "refbase.h"
+#include "transaction/rs_irender_client.h"
 #include "transaction/rs_transaction_data.h"
 
 #ifdef ACCESSIBILITY_ENABLE
@@ -93,10 +94,19 @@ private:
 #endif
 } // namespace Detail
 
+class TransactionDataHolder {
+public:
+    TransactionDataHolder(const TransactionDataHolder&) = delete;
+    TransactionDataHolder& operator=(const TransactionDataHolder&) = delete;
+    explicit TransactionDataHolder(std::unique_ptr<RSTransactionData>&& transactionData)
+        : data_(std::move(transactionData)) {}
+private:
+    std::unique_ptr<RSTransactionData> data_;
+};
+
 class RSB_EXPORT RSModifiersDrawThread final {
 public:
     static RSModifiersDrawThread& Instance();
-
     void SetCacheDir(const std::string& path);
 #ifdef ACCESSIBILITY_ENABLE
     bool GetHighContrast() const;
@@ -106,6 +116,8 @@ public:
     void PostSyncTask(const std::function<void()>&& task);
     void RemoveTask(const std::string& name);
     bool GetIsStarted() const;
+    static bool GetIsFirstFrame();
+    static void SetIsFirstFrame(bool isFirstFrame);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
@@ -114,24 +126,23 @@ public:
         return std::move(taskFuture);
     }
 
-    static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData);
+    static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData,
+        std::shared_ptr<RSIRenderClient> renderServiceClient, bool& isNeedCommit);
 
-    uint32_t GetMaxPixelMapWidth() const;
-
-    uint32_t GetMaxPixelMapHeight() const;
-
+    static std::recursive_mutex transactionDataMutex_;
 private:
     RSModifiersDrawThread();
     ~RSModifiersDrawThread();
-
+    static void Destroy();
     RSModifiersDrawThread(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
+    void ClearEventResource();
+    static bool LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData);
 
     static bool TargetCommand(
         Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty);
-    bool CheckTotalAlpha(NodeId id, Drawing::DrawCmdList::HybridRenderType hybridRenderType);
 #ifdef ACCESSIBILITY_ENABLE
     void SubscribeHighContrastChange();
     void UnsubscribeHighContrastChange();
@@ -140,7 +151,8 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::mutex mutex_;
-    std::atomic<bool> isStarted_ = false;
+    static std::atomic<bool> isStarted_;
+    static bool isFirstFrame_;
 
 #ifdef ACCESSIBILITY_ENABLE
     bool highContrast_ = false;
@@ -148,10 +160,6 @@ private:
 #endif
 
     void Start();
-    void InitMaxPixelMapSize();
-    uint32_t maxPixelMapWidth_ = 0;
-    uint32_t maxPixelMapHeight_ = 0;
-    bool isFirst_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

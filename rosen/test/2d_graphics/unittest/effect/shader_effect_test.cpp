@@ -16,6 +16,9 @@
 #include "gtest/gtest.h"
 
 #include "effect/shader_effect.h"
+#ifdef RS_ENABLE_GPU
+#include "image/gpu_context.h"
+#endif
 #include "image/image.h"
 
 using namespace testing;
@@ -213,6 +216,10 @@ HWTEST_F(ShaderEffectTest, CreateLinearGradient003, TestSize.Level1)
     auto newShaderEffect = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
         position,TileMode::REPEAT);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
+        position,TileMode::REPEAT);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
@@ -271,6 +278,10 @@ HWTEST_F(ShaderEffectTest, CreateRadialGradient003, TestSize.Level1)
     auto newShaderEffect = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
         tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
+        tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
@@ -339,6 +350,10 @@ HWTEST_F(ShaderEffectTest, CreateTwoPointConical003, TestSize.Level1)
     auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
         colorSpace, position, tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        colorSpace, position, tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
@@ -402,6 +417,11 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient003, TestSize.Level1)
         ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
         endAngle, nullptr);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 =
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
+        endAngle, nullptr);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
@@ -814,6 +834,23 @@ HWTEST_F(ShaderEffectTest, ArgsContructor022, TestSize.Level1)
     ASSERT_TRUE(newShaderEffect != nullptr);
     auto type = newShaderEffect->GetType();
     EXPECT_EQ(type, ShaderEffect::ShaderEffectType::SWEEP_GRADIENT);
+}
+
+/*
+ * @tc.name: SetGPUContext001
+ * @tc.desc: test ShaderEffect
+ * @tc.type: FUNC
+ * @tc.require: issue#ICHPKE
+ * @tc.author:
+ */
+HWTEST_F(ShaderEffectTest, SetGPUContext001, TestSize.Level1)
+{
+    auto shaderEffect = ShaderEffect::CreateColorShader(Color::COLOR_TRANSPARENT);
+    ASSERT_TRUE(shaderEffect != nullptr);
+#ifdef RS_ENABLE_GPU
+    auto gpuContext = std::make_shared<GPUContext>();
+    shaderEffect->SetGPUContext(gpuContext);
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

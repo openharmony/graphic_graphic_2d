@@ -103,16 +103,16 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIRippleMaskPara::CreateRSRenderFilter
 {
     auto frProperty = std::make_shared<RSRenderRippleMaskPara>(id_);
     auto rProperty = GetAnimatRenderProperty<float>(
-        RSUIFilterType::RIPPLE_MASK_RADIUS, RSRenderPropertyType::PROPERTY_FLOAT);
+        RSUIFilterType::RIPPLE_MASK_RADIUS);
     frProperty->Setter(RSUIFilterType::RIPPLE_MASK_RADIUS, rProperty);
     auto wProperty = GetAnimatRenderProperty<float>(
-        RSUIFilterType::RIPPLE_MASK_WIDTH, RSRenderPropertyType::PROPERTY_FLOAT);
+        RSUIFilterType::RIPPLE_MASK_WIDTH);
     frProperty->Setter(RSUIFilterType::RIPPLE_MASK_WIDTH, wProperty);
     auto cProperty = GetAnimatRenderProperty<Vector2f>(
-        RSUIFilterType::RIPPLE_MASK_CENTER, RSRenderPropertyType::PROPERTY_VECTOR2F);
+        RSUIFilterType::RIPPLE_MASK_CENTER);
     frProperty->Setter(RSUIFilterType::RIPPLE_MASK_CENTER, cProperty);
     auto wCenterOffsetProperty = GetAnimatRenderProperty<float>(
-        RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET, RSRenderPropertyType::PROPERTY_FLOAT);
+        RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
     frProperty->Setter(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET, wCenterOffsetProperty);
     return frProperty;
 }

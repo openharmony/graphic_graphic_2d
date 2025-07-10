@@ -17,7 +17,7 @@
         "SystemCapability.Graphic.Graphic2D.EGL",
         "SystemCapability.Graphic.Graphic2D.GLES2",
         "SystemCapability.Graphic.Graphic2D.GLES3",
-        "SystemCapability.Graphic.Graphic2D.GL4",
+        "SystemCapability.Graphic.Graphic2D.GL4 = false",
         "SystemCapability.Graphic.Graphic2D.HyperGraphicManager",
         "SystemCapability.Graphic.Graphic2D.NativeBuffer",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
@@ -48,7 +48,6 @@
         "graphic_2d_feature_tp_switch_enbale",
         "graphic_2d_feature_rs_enable_profiler",
         "graphic_2d_feature_enable_chipset_vsync",
-        "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
         "graphic_2d_feature_enable_rspipeline",
@@ -59,7 +58,11 @@
         "graphic_2d_feature_vkqueue_priority_enable",
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
-        "graphic_2d_feature_enable_opengl_to_vulkan"
+        "graphic_2d_feature_enable_opengl_to_vulkan",
+        "graphic_2d_feature_screenless_enable",
+        "graphic_2d_feature_tv_metadata_enable",
+        "graphic_2d_feature_upgrade_skia",
+        "graphic_2d_feature_enable_rdo"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -119,7 +122,9 @@
           "faultloggerd",
           "freetype",
           "rust_cxx",
-          "media_foundation"
+          "media_foundation",
+          "selinux_adapter",
+          "runtime_core"
         ],
         "third_party": [
           "skia"
@@ -128,9 +133,9 @@
       "build": {
         "group_type": {
           "base_group": [
-            "//third_party/libpng:libpng",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
+            "//foundation/graphic/graphic_2d/interfaces/kits/ani:ani_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
@@ -157,7 +162,9 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-            "//foundation/graphic/graphic_2d/etc:ohos.para.dac"
+            "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
+            "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
+            "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]
       },
         "inner_kits": [
@@ -169,6 +176,16 @@
                 "canvas_napi/js_canvas.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text:text_napi_impl",
+            "header": {
+              "header_files": [
+                "paragraph_napi/js_paragraph.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text"
             }
           },
           {
@@ -189,6 +206,16 @@
                 "vsync_receiver.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/composer"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context:libglfw_render_context",
+            "header": {
+              "header_files": [
+                "glfw_render_context.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context/export"
             }
           },
           {
@@ -414,6 +441,14 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
+            "header": {
+            "header_files": [],
+            "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect/include"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
             "header": {
               "header_files": [
@@ -422,6 +457,24 @@
                 "color_mgr_ffi.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_impl",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_ffi",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
             }
           },
           {

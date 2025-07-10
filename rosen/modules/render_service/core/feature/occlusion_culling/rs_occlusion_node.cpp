@@ -72,12 +72,11 @@ bool OcclusionNode::RemoveChild(const std::shared_ptr<OcclusionNode>& child)
 
 void OcclusionNode::RemoveSubTree(std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes)
 {
-    auto parentShared = parentOcNode_.lock();
-    if (parentShared == nullptr) {
-        return;
-    }
     std::shared_ptr<OcclusionNode> child = lastChild_;
-    parentShared->RemoveChild(shared_from_this());
+    auto parentShared = parentOcNode_.lock();
+    if (parentShared) {
+        parentShared->RemoveChild(shared_from_this());
+    }
     while (child) {
         auto childLeft = child->leftSibling_.lock();
         child->RemoveSubTree(occlusionNodes);
@@ -95,18 +94,17 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     if (isSubTreeIgnored_) {
         return;
     }
+    // The node is considered opaque if its background color is fully opaque,
+    // and it does not use brightness or color blend modes.
     isBgOpaque_ = static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha()) == UINT8_MAX &&
-        !renderProperties.IsBgBrightnessValid();
+        !renderProperties.IsBgBrightnessValid() && !renderProperties.IsFgBrightnessValid() &&
+        renderProperties.IsColorBlendModeNone();
     rootOcclusionNode_ = parentShared->rootOcclusionNode_;
     localScale_ = renderProperties.GetScale();
     localAlpha_ = renderProperties.GetAlpha();
     isNeedClip_ = renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
         renderProperties.GetClipToRRect();
-    const auto& cornerRadius = renderProperties.GetCornerRadius();
-    cornerRadius_.x_ = std::isnan(cornerRadius.x_) ? 0.f : cornerRadius.x_;
-    cornerRadius_.y_ = std::isnan(cornerRadius.y_) ? 0.f : cornerRadius.y_;
-    cornerRadius_.z_ = std::isnan(cornerRadius.z_) ? 0.f : cornerRadius.z_;
-    cornerRadius_.w_ = std::isnan(cornerRadius.w_) ? 0.f : cornerRadius.w_;
+    cornerRadius_ = renderProperties.GetCornerRadius();
 
     CalculateDrawRect(node, renderProperties);
 }
@@ -114,7 +112,8 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
 bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSProperties& renderProperties)
 {
     if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE ||
-        node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr) {
+        node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr ||
+        const_cast<RSRenderNode&>(node).GetOpincCache().IsSuggestOpincNode()) {
         return true;
     }
 
@@ -129,7 +128,7 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
         !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
         !ROSEN_EQ(degree, 0.f) || !ROSEN_EQ(degreeX, 0.f) || !ROSEN_EQ(degreeY, 0.f) ||
         renderProperties.GetClipBounds()) {
-       return true;
+        return true;
     }
 
     // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
@@ -154,6 +153,12 @@ void OcclusionNode::CalculateDrawRect(const RSRenderNode& node, const RSProperti
     const auto& translate = renderProperties.GetTranslate();
     const auto& center = renderProperties.GetPivot();
     auto clipRRect = renderProperties.GetClipRRect().rect_;
+    // If the node has invalid properties, ignore the subtree.
+    isSubTreeIgnored_ |= !localScale_.IsValid() || !IsValid(localAlpha_) || !cornerRadius_.IsValid() ||
+        !originBounds.IsValid() || !translate.IsValid() || !center.IsValid() || !clipRRect.IsValid();
+    if (isSubTreeIgnored_) {
+        return;
+    }
 
     // calculate new pos.
     auto centOffset = center * Vector2f(originBounds.z_, originBounds.w_);
@@ -265,7 +270,9 @@ void OcclusionNode::UpdateSubTreeProp()
         CalculateNodeAllBounds();
     }
     std::shared_ptr<OcclusionNode> child = lastChild_;
-    while (child) {
+    // Update the subtree properties of the current node and its children
+    // Each child node is only updated once per frame.
+    while (child && !child->isValidInCurrentFrame_) {
         child->UpdateSubTreeProp();
         child = child->leftSibling_.lock();
     }

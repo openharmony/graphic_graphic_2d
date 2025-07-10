@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_ANIMATABLE_ARITHMETIC_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_ANIMATABLE_ARITHMETIC_H
+#ifndef RENDER_SERVICE_BASE_MODIFIER_RS_ANIMATABLE_ARITHMETIC_H
+#define RENDER_SERVICE_BASE_MODIFIER_RS_ANIMATABLE_ARITHMETIC_H
 
 #include <memory>
 
@@ -23,7 +23,6 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -84,4 +83,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_ANIMATABLE_ARITHMETIC_H
+#endif // RENDER_SERVICE_BASE_MODIFIER_RS_ANIMATABLE_ARITHMETIC_H

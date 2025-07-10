@@ -15,6 +15,7 @@
 
 #include "run_impl.h"
 #include "drawing_painter_impl.h"
+#include "typography_types.h"
 #include "text/font.h"
 
 namespace OHOS {
@@ -89,6 +90,27 @@ std::vector<Drawing::Point> RunImpl::GetPositions(int64_t start, int64_t length)
         return {};
     }
     return runBase_->getPositions(start, length);
+}
+
+std::vector<Drawing::Point> RunImpl::GetAdvances(uint32_t start, uint32_t length) const
+{
+    if (runBase_ == nullptr) {
+        return {};
+    }
+    return runBase_->getAdvances(start, length);
+}
+
+TextDirection RunImpl::GetTextDirection() const
+{
+    if (runBase_ == nullptr) {
+        return TextDirection::LTR;
+    }
+
+    if (runBase_->getTextDirection() == skia::textlayout::TextDirection::kRtl) {
+        return TextDirection::RTL;
+    } else {
+        return TextDirection::LTR;
+    }
 }
 
 void RunImpl::GetStringRange(uint64_t* location, uint64_t* length) const

@@ -66,6 +66,7 @@ public:
     void SetAnimation(
         std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
     ) override;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> GetAnimation() override;
     void SetParagraghId(uint32_t id) override;
     Drawing::FontMetrics MeasureText() override;
     bool GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics) override;
@@ -82,10 +83,16 @@ public:
     void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) override;
     void UpdateAllTextStyles(const TextStyle& textStyleTemplate) override;
+    void SetSkipTextBlobDrawing(bool state) override;
+    bool HasSkipTextBlobDrawing() const override;
+    std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
+    void SetTextEffectAssociation(bool association) override { textEffectAssociation_ = association; }
+    bool GetTextEffectAssociation() const override { return textEffectAssociation_; }
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;
+    bool textEffectAssociation_{false};
     mutable std::shared_mutex mutex_;
 };
 } // namespace AdapterTxt

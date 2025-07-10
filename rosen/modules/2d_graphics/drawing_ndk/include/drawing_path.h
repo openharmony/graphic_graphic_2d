@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -752,6 +752,67 @@ bool OH_Drawing_PathOp(OH_Drawing_Path* path, const OH_Drawing_Path* srcPath, OH
  */
 bool OH_Drawing_PathGetMatrix(OH_Drawing_Path* path, bool forceClosed,
     float distance, OH_Drawing_Matrix* matrix, OH_Drawing_PathMeasureMatrixFlags flag);
+
+/**
+ * @brief Approximates the path with a series of line segments.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param acceptableError Indicates the acceptable error for a line on the path. Should be no less than 0.
+ * @param vals Indicates the storage for the computed array containing point components.
+ * There are three components for each point:
+ * 1.Fraction along the length of the path that the point resides.
+ * 2.The x coordinate of the point.
+ * 3.The y coordinate of the point.
+ * @param count Returns with the size of array. The minimum size is 6.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or count is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if acceptableError is less than 0.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathApproximate(OH_Drawing_Path* path, float acceptableError, float* vals,
+    uint32_t* count);
+
+/**
+ * @brief Performs interpolation between the current path and another path based on a given weight, and stores the
+ * result in the target path object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param other Indicates the pointer to an <b>OH_Drawing_Path</b> object to be interpolated with path.
+ * @param weight Indicates the interpolation weight, which must be in the range [0, 1].
+ * @param success Indicates the interpolation is success or not.
+ * @param interpolatedPath Indicates the pointer to an <b>OH_Drawing_Path</b> object to store the result.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if either path, other, success or interpolatedPath is
+ *                 nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if weight is outside the range [0, 1].
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathInterpolate(OH_Drawing_Path* path, OH_Drawing_Path* other,
+    float weight, bool* success, OH_Drawing_Path* interpolatedPath);
+
+/**
+ * @brief Checks whether the current path is compatible with another path (other) for interpolation, which means
+ * they have exactly the same structure, both paths must have the same operations, in the same order.
+ * If any of the operations are of type CONIC, then the weights of those conics must also match.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param other Indicates the pointer to an <b>OH_Drawing_Path</b> object to be interpolated with path.
+ * @param result Indicates whether the current path and the other path are compatible for interpolation.
+ *               The value is true if the paths are compatible, and false otherwise.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if either path, other or result is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathIsInterpolate(OH_Drawing_Path* path, OH_Drawing_Path* other, bool* result);
 
 #ifdef __cplusplus
 }

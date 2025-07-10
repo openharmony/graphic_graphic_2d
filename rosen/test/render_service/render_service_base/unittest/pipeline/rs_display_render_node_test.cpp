@@ -17,8 +17,9 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "display_engine/rs_luminance_control.h"
+#include "params/rs_logical_display_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -26,7 +27,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSDisplayRenderNodeTest : public testing::Test {
+class RSLogicalDisplayRenderNodeTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -37,10 +38,10 @@ public:
     static inline std::weak_ptr<RSContext> context = {};
 };
 
-void RSDisplayRenderNodeTest::SetUpTestCase() {}
-void RSDisplayRenderNodeTest::TearDownTestCase() {}
-void RSDisplayRenderNodeTest::SetUp() {}
-void RSDisplayRenderNodeTest::TearDown() {}
+void RSLogicalDisplayRenderNodeTest::SetUpTestCase() {}
+void RSLogicalDisplayRenderNodeTest::TearDownTestCase() {}
+void RSLogicalDisplayRenderNodeTest::SetUp() {}
+void RSLogicalDisplayRenderNodeTest::TearDown() {}
 
 /**
  * @tc.name: PrepareTest
@@ -48,9 +49,9 @@ void RSDisplayRenderNodeTest::TearDown() {}
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, PrepareTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, PrepareTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     node->QuickPrepare(visitor);
     node->Prepare(visitor);
@@ -67,9 +68,9 @@ HWTEST_F(RSDisplayRenderNodeTest, PrepareTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest001, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 0;
     uint32_t skipFrameInterval = 0;
     ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
@@ -81,9 +82,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest002, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest002, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 0;
     ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
@@ -95,9 +96,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest002, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest003, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest003, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 1;
     ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
@@ -109,9 +110,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest003, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest004, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest004, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 2; // skipFrameInterval 2
     node->SkipFrame(refreshRate, skipFrameInterval);
@@ -124,9 +125,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest004, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest005, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest005, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 2; // skipFrameInterval 2
     node->SkipFrame(refreshRate, skipFrameInterval);
@@ -140,9 +141,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest005, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest006, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest006, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 6; // skipFrameInterval 6
     node->SkipFrame(refreshRate, skipFrameInterval);
@@ -156,9 +157,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest006, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest007, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest007, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 6; // skipFrameInterval 6
     node->SkipFrame(refreshRate, skipFrameInterval);
@@ -172,9 +173,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest007, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIAVK8D
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest008, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest008, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 55; // skipFrameInterval 55
     node->SkipFrame(refreshRate, skipFrameInterval);
@@ -188,9 +189,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest008, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIAVK8D
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest009, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest009, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 45; // skipFrameInterval 45
     node->SkipFrame(refreshRate, skipFrameInterval);
@@ -204,9 +205,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest009, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIAVK8D
  */
-HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest010, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SkipFrameTest010, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     uint32_t refreshRate = 60; // 60hz
     uint32_t skipFrameInterval = 25; // skipFrameInterval 25
     node->SkipFrame(refreshRate, skipFrameInterval);
@@ -220,18 +221,60 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest010, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetMirrorSourceTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetMirrorSourceTest, TestSize.Level1)
 {
-    std::shared_ptr<RSDisplayRenderNode> rsDisplayRenderNode = nullptr;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    std::shared_ptr<RSLogicalDisplayRenderNode> rsDisplayRenderNode = nullptr;
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     node->SetMirrorSource(rsDisplayRenderNode);
 
-    node->isMirroredDisplay_ = true;
+    node->isMirrorDisplay_ = true;
     node->SetMirrorSource(rsDisplayRenderNode);
 
-    rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
+    rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(id + 1, config, context);
     node->SetMirrorSource(rsDisplayRenderNode);
-    ASSERT_NE(node->mirrorSource_.lock(), nullptr);
+    EXPECT_NE(node->mirrorSource_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: ResetMirrorSourceTest
+ * @tc.desc: test results of ResetMirrorSourceTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, ResetMirrorSourceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
+    node->SetMirrorSource(nullptr);
+    EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
+    node->ResetMirrorSource();
+    EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
+
+    auto rsDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(id + 1, config, context);
+    node->isMirrorDisplay_ = true;
+    node->SetMirrorSource(rsDisplayRenderNode);
+    EXPECT_NE(node->mirrorSource_.lock(), nullptr);
+    node->ResetMirrorSource();
+    EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: SetHasMirrorDisplay
+ * @tc.desc: test results of SetHasMirrorDisplay
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetHasMirrorDisplayTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
+    node->stagingRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(node->stagingRenderParams_.get());
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetIsMirrorDisplay(true);
+    EXPECT_TRUE(displayParams->IsMirrorDisplay());
+    node->stagingRenderParams_->SetNeedSync(false);
+    node->SetIsMirrorDisplay(false);
+    EXPECT_FALSE(displayParams->IsMirrorDisplay());
 }
 
 /**
@@ -240,9 +283,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SetMirrorSourceTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetRotationTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetRotationTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
     node->InitRenderParams();
     node->UpdateRotation();
     node->GetRotation();
@@ -258,9 +301,11 @@ HWTEST_F(RSDisplayRenderNodeTest, GetRotationTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, IsRotationChangedTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IsRotationChangedTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
     node->InitRenderParams();
     node->UpdateRotation();
     ASSERT_FALSE(node->IsRotationChanged());
@@ -276,10 +321,12 @@ HWTEST_F(RSDisplayRenderNodeTest, IsRotationChangedTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:SR000HSUII
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context);
-    auto childNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    auto childNode = std::make_shared<RSLogicalDisplayRenderNode>(id + 1, config);
     node->AddChild(childNode);
     childNode->SetBootAnimation(true);
     ASSERT_EQ(childNode->GetBootAnimation(), true);
@@ -294,9 +341,11 @@ HWTEST_F(RSDisplayRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:SR000HSUII
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
     node->SetBootAnimation(true);
     ASSERT_TRUE(node->GetBootAnimation());
     node->SetBootAnimation(false);
@@ -309,9 +358,11 @@ HWTEST_F(RSDisplayRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:issueI981R9
  */
-HWTEST_F(RSDisplayRenderNodeTest, CollectSurface, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, CollectSurface, TestSize.Level2)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
     RSContext* rsContext = new RSContext();
     std::shared_ptr<RSContext> sharedContext(rsContext);
     std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSRenderNode>(1, sharedContext);
@@ -328,10 +379,12 @@ HWTEST_F(RSDisplayRenderNodeTest, CollectSurface, TestSize.Level2)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, ProcessTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, ProcessTest, TestSize.Level1)
 {
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
     displayNode->Process(visitor);
 
     visitor = std::make_shared<RSRenderThreadVisitor>();
@@ -345,9 +398,11 @@ HWTEST_F(RSDisplayRenderNodeTest, ProcessTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetIsOnTheTree, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetIsOnTheTree, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
     bool flag = true;
     displayNode->SetIsOnTheTree(flag, id, id, id, id);
     ASSERT_TRUE(true);
@@ -359,10 +414,12 @@ HWTEST_F(RSDisplayRenderNodeTest, SetIsOnTheTree, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetCompositeType, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetCompositeType, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    RSDisplayRenderNode::CompositeType type = RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    CompositeType type = CompositeType::UNI_RENDER_COMPOSITE;
     displayNode->SetCompositeType(type);
     ASSERT_EQ(displayNode->GetCompositeType(), type);
 }
@@ -373,9 +430,10 @@ HWTEST_F(RSDisplayRenderNodeTest, SetCompositeType, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetForceSoftComposite, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetForceSoftComposite, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 1);
     bool flag = true;
     displayNode->SetForceSoftComposite(flag);
     ASSERT_EQ(displayNode->IsForceSoftComposite(), flag);
@@ -387,9 +445,12 @@ HWTEST_F(RSDisplayRenderNodeTest, SetForceSoftComposite, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, UpdateRenderParams, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateRenderParams, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
     displayNode->UpdateRenderParams();
     ASSERT_TRUE(true);
 }
@@ -400,11 +461,10 @@ HWTEST_F(RSDisplayRenderNodeTest, UpdateRenderParams, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, UpdateScreenRenderParams, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateScreenRenderParams, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    RSDisplayRenderNode::ScreenRenderParams screenRenderParams;
-    displayNode->UpdateScreenRenderParams(screenRenderParams);
+    NodeId id = 0;
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_TRUE(true);
 }
 
@@ -414,10 +474,12 @@ HWTEST_F(RSDisplayRenderNodeTest, UpdateScreenRenderParams, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, UpdatePartialRenderParams, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdatePartialRenderParams, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    displayNode->UpdatePartialRenderParams();
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
+    displayNode->UpdateRenderParams();
     ASSERT_TRUE(true);
 }
 
@@ -427,9 +489,10 @@ HWTEST_F(RSDisplayRenderNodeTest, UpdatePartialRenderParams, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, UpdateDisplayDirtyManager, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateDisplayDirtyManager, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     int32_t bufferage = 1;
     bool useAlignedDirtyRegion = false;
     displayNode->UpdateDisplayDirtyManager(bufferage, useAlignedDirtyRegion);
@@ -442,9 +505,9 @@ HWTEST_F(RSDisplayRenderNodeTest, UpdateDisplayDirtyManager, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetSortedChildren, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetSortedChildren, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     displayNode->GetSortedChildren();
     displayNode->isNeedWaitNewScbPid_ = true;
     displayNode->GetSortedChildren();
@@ -457,12 +520,12 @@ HWTEST_F(RSDisplayRenderNodeTest, GetSortedChildren, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIA8LNR
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
-    auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(INVALID_NODEID);
-    EXPECT_TRUE(region.IsEmpty());
 }
 
 /**
@@ -471,9 +534,9 @@ HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent001, Te
  * @tc.type:FUNC
  * @tc.require: issuesIA8LNR
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
 
     constexpr NodeId bottomSurfaceNodeId = 1;
@@ -482,17 +545,6 @@ HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, Te
     constexpr NodeId topSurfaceNodeId = 2;
     const RectI topSurfacePos(0, 0, 2, 2);
     const std::pair<NodeId, RectI> topSurface{ topSurfaceNodeId, topSurfacePos };
-
-    displayNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
-    displayNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
-    displayNode->UpdateSurfaceNodePos(bottomSurface.first, bottomSurface.second);
-    displayNode->AddSurfaceNodePosByDescZOrder(bottomSurface.first, bottomSurface.second);
-    displayNode->ClearCurrentSurfacePos();
-    displayNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
-    displayNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
-
-    auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(topSurface.first);
-    EXPECT_TRUE(region.GetBound() == bottomSurface.second);
 }
 
 /**
@@ -501,15 +553,14 @@ HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, Te
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSDisplayRenderNodeTest, RecordMainAndLeashSurfaces001, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, RecordMainAndLeashSurfaces001, TestSize.Level2)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(surfaceNode, nullptr);
 
     displayNode->RecordMainAndLeashSurfaces(surfaceNode);
-    ASSERT_EQ(displayNode->curMainAndLeashSurfaceNodes_.size(), 1);
 }
 
 /**
@@ -518,13 +569,10 @@ HWTEST_F(RSDisplayRenderNodeTest, RecordMainAndLeashSurfaces001, TestSize.Level2
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes001, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes001, TestSize.Level2)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
-    
-    displayNode->HandleCurMainAndLeashSurfaceNodes();
-    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
 }
 
 /**
@@ -533,16 +581,12 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes001, TestSize
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes002, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes002, TestSize.Level2)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(id + 1);
     ASSERT_NE(canvasNode, nullptr);
-    
-    displayNode->RecordMainAndLeashSurfaces(canvasNode);
-    displayNode->HandleCurMainAndLeashSurfaceNodes();
-    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
 }
 
 /**
@@ -551,17 +595,13 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes002, TestSize
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes003, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes003, TestSize.Level2)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    
-    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
-    displayNode->HandleCurMainAndLeashSurfaceNodes();
-    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
 }
 
 /**
@@ -570,16 +610,13 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes003, TestSize
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes004, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes004, TestSize.Level2)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->isOnTheTree_ = true;
-    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
-    displayNode->HandleCurMainAndLeashSurfaceNodes();
-    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 1);
 }
 
 /**
@@ -588,16 +625,13 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes004, TestSize
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize.Level2)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize.Level2)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->isOnTheTree_ = false;
-    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
-    displayNode->HandleCurMainAndLeashSurfaceNodes();
-    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
 }
 
 /**
@@ -606,15 +640,13 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize
  * @tc.type:FUNC
  * @tc.require: issuesIB6QKS
  */
-HWTEST_F(RSDisplayRenderNodeTest, ForceCloseHdrTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, ForceCloseHdrTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(node, nullptr);
     node->InitRenderParams();
     node->SetForceCloseHdr(false);
     EXPECT_EQ(node->GetForceCloseHdr(), false);
-    node->SetForceCloseHdr(true);
-    EXPECT_EQ(node->GetForceCloseHdr(), true);
 }
 
 /**
@@ -623,9 +655,9 @@ HWTEST_F(RSDisplayRenderNodeTest, ForceCloseHdrTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIB6QKS
  */
-HWTEST_F(RSDisplayRenderNodeTest, HasUniRenderHdrSurfaceTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HasUniRenderHdrSurfaceTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(node, nullptr);
     node->InitRenderParams();
     EXPECT_EQ(node->GetHasUniRenderHdrSurface(), false);
@@ -639,9 +671,9 @@ HWTEST_F(RSDisplayRenderNodeTest, HasUniRenderHdrSurfaceTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIB6QKS
  */
-HWTEST_F(RSDisplayRenderNodeTest, IsLuminanceStatusChangeTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IsLuminanceStatusChangeTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(node, nullptr);
     node->InitRenderParams();
     EXPECT_EQ(node->GetIsLuminanceStatusChange(), false);
@@ -655,9 +687,9 @@ HWTEST_F(RSDisplayRenderNodeTest, IsLuminanceStatusChangeTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIAKMJP
  */
-HWTEST_F(RSDisplayRenderNodeTest, AddSecurityLayer001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, AddSecurityLayer001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     NodeId id = 1;
     displayNode->AddSecurityLayer(id);
@@ -670,9 +702,9 @@ HWTEST_F(RSDisplayRenderNodeTest, AddSecurityLayer001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIAKMJP
  */
-HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityLayerList001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, ClearSecurityLayerList001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     NodeId id = 1;
     displayNode->AddSecurityLayer(id);
@@ -686,9 +718,9 @@ HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityLayerList001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIAKMJP
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetSecurityExemption001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetSecurityExemption001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     EXPECT_EQ(displayNode->GetSecurityExemption(), false);
 }
@@ -699,9 +731,9 @@ HWTEST_F(RSDisplayRenderNodeTest, GetSecurityExemption001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIAKMJP
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     displayNode->SetSecurityExemption(true);
     EXPECT_EQ(displayNode->GetSecurityExemption(), true);
@@ -713,9 +745,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIB3N3D
  */
-HWTEST_F(RSDisplayRenderNodeTest, AddSecurityVisibleLayer001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, AddSecurityVisibleLayer001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     NodeId id = 1;
     displayNode->AddSecurityVisibleLayer(id);
@@ -728,9 +760,9 @@ HWTEST_F(RSDisplayRenderNodeTest, AddSecurityVisibleLayer001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIB3N3D
  */
-HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityVisibleLayerList001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, ClearSecurityVisibleLayerList001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     NodeId id = 1;  // test value for surface node id
     displayNode->AddSecurityVisibleLayer(id);
@@ -747,9 +779,9 @@ HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityVisibleLayerList001, TestSize.Lev
  * @tc.type:FUNC
  * @tc.require: issueIB2KBH
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetHasSecLayerInVisibleRect001, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetHasSecLayerInVisibleRect001, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     EXPECT_EQ(displayNode->hasSecLayerInVisibleRect_, false);
     EXPECT_EQ(displayNode->hasSecLayerInVisibleRectChanged_, false);
@@ -765,9 +797,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SetHasSecLayerInVisibleRect001, TestSize.Level
  * @tc.type:FUNC
  * @tc.require: issuesIB6QKS
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetColorSpaceTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetColorSpaceTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1, context);
     node->InitRenderParams();
     auto colorSpace = node->GetColorSpace();
     ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, colorSpace);
@@ -779,13 +811,39 @@ HWTEST_F(RSDisplayRenderNodeTest, GetColorSpaceTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIB6QKS
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1, context);
     node->InitRenderParams();
     node->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     auto colorSpace = node->GetColorSpace();
     ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, colorSpace);
+}
+
+/**
+ * @tc.name: UpdateColorSpaceTest
+ * @tc.desc: test results of UpdateColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issueICGKPE
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    node->InitRenderParams();
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, node->GetColorSpace());
+
+    node->UpdateColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, node->GetColorSpace());
 }
 
 /**
@@ -794,9 +852,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesIB6QKS
  */
-HWTEST_F(RSDisplayRenderNodeTest, PixelFormatTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, PixelFormatTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1, context);
     node->InitRenderParams();
     node->SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
     ASSERT_EQ(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888, node->GetPixelFormat());
@@ -810,16 +868,14 @@ HWTEST_F(RSDisplayRenderNodeTest, PixelFormatTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIBANP9
  */
-HWTEST_F(RSDisplayRenderNodeTest, HdrStatusTest, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, HdrStatusTest, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     displayNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
     displayNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
     displayNode->CollectHdrStatus(HdrStatus::AI_HDR_VIDEO);
     EXPECT_EQ(displayNode->GetDisplayHdrStatus(), HdrStatus::HDR_PHOTO | HdrStatus::HDR_VIDEO |
         HdrStatus::AI_HDR_VIDEO);
-    displayNode->ResetDisplayHdrStatus();
-    EXPECT_EQ(displayNode->GetDisplayHdrStatus(), HdrStatus::NO_HDR);
 }
 
 /**
@@ -828,9 +884,9 @@ HWTEST_F(RSDisplayRenderNodeTest, HdrStatusTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIBIK1X
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetWindowContainer, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetWindowContainer, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     displayNode->SetWindowContainer(nullptr);
     ASSERT_NE(displayNode, nullptr);
 }
@@ -841,9 +897,9 @@ HWTEST_F(RSDisplayRenderNodeTest, SetWindowContainer, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIBIK1X
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     std::ignore = displayNode->GetWindowContainer();
     ASSERT_NE(displayNode, nullptr);
 }
@@ -854,10 +910,10 @@ HWTEST_F(RSDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIBIK1X
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
 {
     NodeId id = 1;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     NodeId targetSurfaceRenderNodeId = 2;
     displayNode->SetTargetSurfaceRenderNodeId(targetSurfaceRenderNodeId);
     ASSERT_EQ(displayNode->GetTargetSurfaceRenderNodeId(), targetSurfaceRenderNodeId);
@@ -869,9 +925,9 @@ HWTEST_F(RSDisplayRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIBTNC3
  */
-HWTEST_F(RSDisplayRenderNodeTest, GetVirtualScreenMuteStatus, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, GetVirtualScreenMuteStatus, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     ASSERT_FALSE(displayNode->GetVirtualScreenMuteStatus());
 }
@@ -882,9 +938,9 @@ HWTEST_F(RSDisplayRenderNodeTest, GetVirtualScreenMuteStatus, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issuesIBTNC3
  */
-HWTEST_F(RSDisplayRenderNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
+HWTEST_F(RSLogicalDisplayRenderNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
 {
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
     ASSERT_NE(displayNode, nullptr);
     displayNode->SetVirtualScreenMuteStatus(true);
     ASSERT_TRUE(displayNode->GetVirtualScreenMuteStatus());

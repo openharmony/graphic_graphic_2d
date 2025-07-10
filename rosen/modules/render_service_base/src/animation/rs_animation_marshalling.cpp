@@ -27,7 +27,6 @@
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "platform/common/rs_log.h"
-#include "rs_profiler.h"
 
 #include "transaction/rs_marshalling_helper.h"
 
@@ -66,7 +65,7 @@ bool RSCubicBezierInterpolator::Marshalling(Parcel& parcel) const
 RSCubicBezierInterpolator* RSCubicBezierInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id failed");
         return nullptr;
     }
@@ -173,7 +172,7 @@ bool LinearInterpolator::Marshalling(Parcel& parcel) const
 LinearInterpolator* LinearInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id failed");
         return nullptr;
     }
@@ -194,7 +193,7 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write id failed");
         return false;
     }
-    if (!RSMarshallingHelper::MarshallingVec(parcel, times_) || !RSMarshallingHelper::MarshallingVec(parcel, values_)) {
+    if (!RSMarshallingHelper::Marshalling(parcel, times_) || !RSMarshallingHelper::Marshalling(parcel, values_)) {
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write value failed");
         return false;
     }
@@ -204,14 +203,14 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
 RSCustomInterpolator* RSCustomInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("Unmarshalling RSCustomInterpolator id failed");
         return nullptr;
     }
     std::vector<float> times;
     std::vector<float> values;
-    if (!(RSMarshallingHelper::UnmarshallingVec(parcel, times, MAX_SAMPLE_POINTS) &&
-        RSMarshallingHelper::UnmarshallingVec(parcel, values, MAX_SAMPLE_POINTS))) {
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, times, MAX_SAMPLE_POINTS) &&
+        RSMarshallingHelper::Unmarshalling(parcel, values, MAX_SAMPLE_POINTS))) {
         ROSEN_LOGE("Unmarshalling CustomInterpolator failed");
         return nullptr;
     }
@@ -264,15 +263,14 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     int fpsPreferred = 0;
     int componentScene = 0;
     uint64_t token = 0;
-    if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
-            parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
-            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable) &&
-            parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) && parcel.ReadInt32(fpsPreferred) &&
-            parcel.ReadInt32(componentScene) && parcel.ReadUint64(token))) {
+    if (!(RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) && parcel.ReadInt32(duration) &&
+            parcel.ReadInt32(startDelay) && parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) &&
+            parcel.ReadBool(autoReverse) && parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) &&
+            parcel.ReadBool(isRepeatCallbackEnable) && parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) &&
+            parcel.ReadInt32(fpsPreferred) && parcel.ReadInt32(componentScene) && parcel.ReadUint64(token))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, id_);
     SetDuration(duration);
     SetStartDelay(startDelay);
     SetRepeatCount(repeatCount);
@@ -292,8 +290,8 @@ bool RSRenderCurveAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderCurveAnimation::Marshalling, RenderPropertyAnimation failed");
         return false;
     }
-    if (!(RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_) && interpolator_ != nullptr &&
+    if (!(RSMarshallingHelper::Marshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Marshalling(parcel, endValue_) && interpolator_ != nullptr &&
             interpolator_->Marshalling(parcel))) {
         ROSEN_LOGE("RSRenderCurveAnimation::Marshalling, MarshallingHelper failed");
         return false;
@@ -320,8 +318,8 @@ bool RSRenderCurveAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Unmarshalling(parcel, endValue_))) {
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, endValue_))) {
         ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, Unmarshalling Fail");
         return false;
     }
@@ -342,8 +340,8 @@ bool RSRenderInterpolatingSpringAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, RenderPropertyAnimation failed");
         return false;
     }
-    if (!(RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_))) {
+    if (!(RSMarshallingHelper::Marshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Marshalling(parcel, endValue_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, MarshallingHelper failed");
         return false;
     }
@@ -380,8 +378,8 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Unmarshalling(parcel, endValue_))) {
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, endValue_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, RSRenderPropertyBase Fail");
         return false;
     }
@@ -418,7 +416,7 @@ bool RSRenderKeyframeAnimation::Marshalling(Parcel& parcel) const
         }
         for (const auto& [startFraction, endFraction, property, interpolator] : durationKeyframes_) {
             if (!(parcel.WriteFloat(startFraction) && parcel.WriteFloat(endFraction) &&
-                    RSRenderPropertyBase::Marshalling(parcel, property) &&
+                    RSMarshallingHelper::Marshalling(parcel, property) &&
                     interpolator != nullptr && interpolator->Marshalling(parcel))) {
                 ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, Write durationkeyframe value failed");
                 return false;
@@ -432,7 +430,7 @@ bool RSRenderKeyframeAnimation::Marshalling(Parcel& parcel) const
         return false;
     }
     for (const auto& [value, property, interpolator] : keyframes_) {
-        if (!(parcel.WriteFloat(value) && RSRenderPropertyBase::Marshalling(parcel, property) &&
+        if (!(parcel.WriteFloat(value) && RSMarshallingHelper::Marshalling(parcel, property) &&
                 interpolator != nullptr && interpolator->Marshalling(parcel))) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, Write value failed");
             return false;
@@ -484,7 +482,7 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
             return false;
         }
         std::shared_ptr<RSRenderPropertyBase> tupValue1;
-        if (!RSRenderPropertyBase::Unmarshalling(parcel, tupValue1)) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, tupValue1)) {
             return false;
         }
         std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
@@ -507,7 +505,7 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
             return false;
         }
         std::shared_ptr<RSRenderPropertyBase> tupValue1;
-        if (!RSRenderPropertyBase::Unmarshalling(parcel, tupValue1)) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, tupValue1)) {
             return false;
         }
         std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
@@ -530,8 +528,8 @@ bool RSRenderPathAnimation::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, animationPath_) &&
             parcel.WriteInt32(static_cast<std::underlying_type<RotationMode>::type>(rotationMode_)) &&
             parcel.WriteBool(isNeedPath_) && parcel.WriteBool(needAddOrigin_) && interpolator_ != nullptr &&
-            interpolator_->Marshalling(parcel) && RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_) && parcel.WriteUint64(rotationId_))) {
+            interpolator_->Marshalling(parcel) && RSMarshallingHelper::Marshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Marshalling(parcel, endValue_) && parcel.WriteUint64(rotationId_))) {
         ROSEN_LOGE("RSRenderPathAnimation::Marshalling, write failed");
         return false;
     }
@@ -573,12 +571,12 @@ bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Unmarshalling(parcel, endValue_) && parcel.ReadUint64(rotationId_))) {
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, endValue_) &&
+            RSMarshallingHelper::UnmarshallingPidPlusId(parcel, rotationId_))) {
         ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse values failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, rotationId_);
     SetInterpolator(interpolator);
     SetRotationMode(static_cast<RotationMode>(rotationMode));
     SetIsNeedPath(isNeedPath);
@@ -596,7 +594,7 @@ bool RSRenderPropertyAnimation::Marshalling(Parcel& parcel) const
         return false;
     }
     if (!(RSMarshallingHelper::Marshalling(parcel, isAdditive_) &&
-            RSRenderPropertyBase::Marshalling(parcel, originValue_))) {
+            RSMarshallingHelper::Marshalling(parcel, originValue_))) {
         ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write value failed");
         return false;
     }
@@ -610,12 +608,12 @@ bool RSRenderPropertyAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, isAdditive_))) {
+    if (!(RSMarshallingHelper::UnmarshallingPidPlusId(parcel, propertyId_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, isAdditive_))) {
         ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
-    if (!RSRenderPropertyBase::Unmarshalling(parcel, originValue_)) {
+    if (!RSMarshallingHelper::Unmarshalling(parcel, originValue_)) {
         return false;
     }
     if (originValue_ == nullptr) {
@@ -634,8 +632,8 @@ bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, RenderPropertyAnimation failed");
         return false;
     }
-    if (!(RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_))) {
+    if (!(RSMarshallingHelper::Marshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Marshalling(parcel, endValue_))) {
         ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, RSRenderPropertyBase failed");
         return false;
     }
@@ -677,8 +675,8 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Unmarshalling(parcel, endValue_))) {
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, startValue_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, endValue_))) {
         ROSEN_LOGE("RSRenderSpringAnimation::ParseParam, RSRenderPropertyBase Fail");
         return false;
     }
@@ -880,7 +878,7 @@ bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("RSSpringInterpolator::Unmarshalling Read id failed");
         return nullptr;
     }
@@ -915,7 +913,7 @@ bool RSStepsInterpolator::Marshalling(Parcel& parcel) const
 RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id{0};
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, id)) {
         ROSEN_LOGE("RSStepsInterpolator::Unmarshalling Read id failed");
         return nullptr;
     }

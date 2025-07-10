@@ -207,19 +207,11 @@ public:
     Color GetBackgroundColor() const;
 
     /**
-     * @brief Gets the background color of surface.
-     *
-     * @return The background color of the surface.
-     */
-    Color GetSurfaceBgColor() const;
-
-    /**
      * @brief Gets the background shader of modifier.
      *
      * @return The pointer to background shader.
      */
     std::shared_ptr<RSShader> GetBackgroundShader() const;
-
 
     /**
      * @brief Gets the background image.
@@ -341,20 +333,6 @@ public:
     float GetForegroundEffectRadius() const;
 
     /**
-     * @brief Gets the background filter.
-     *
-     * @return The pointer to background filter.
-     */
-    std::shared_ptr<RSFilter> GetBackgroundFilter() const;
-
-    /**
-     * @brief Gets the filter.
-     *
-     * @return The pointer to filter.
-     */
-    std::shared_ptr<RSFilter> GetFilter() const;
-
-    /**
      * @brief Gets the color of shadow.
      *
      * @return The color of shadow.
@@ -406,9 +384,9 @@ public:
     /**
      * @brief Gets the shadow mask.
      *
-     * @return true if shadow mask is enabled; false otherwise.
+     * @return  The strategy for shadow Mask.
      */
-    bool GetShadowMask() const;
+    int GetShadowMask() const;
 
     /**
      * @brief Gets the shadow fill status.
@@ -474,6 +452,13 @@ public:
      * @return The HDR UI component brightness ratio.
      */
     float GetHDRUIBrightness() const;
+
+    /**
+     * @brief Gets the HDR brightness factor of displayNode.
+     *
+     * @return The HDR brightness factor of displayNode.
+     */
+    float GetHDRBrightnessFactor() const;
 
     /**
      * @brief Gets the degree of light up effect.
@@ -685,6 +670,10 @@ public:
      */
     std::string Dump() const;
 private:
+#if defined(MODIFIER_NG)
+    Vector4f GetBgImageDstRect() const;
+#endif
+
     NodeId id_;
     std::weak_ptr<RSUIContext> rsUIContext_;
 };

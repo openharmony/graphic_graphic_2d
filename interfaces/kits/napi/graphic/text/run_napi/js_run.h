@@ -41,9 +41,12 @@ public:
     static napi_value GetStringIndices(napi_env env, napi_callback_info info);
     static napi_value GetImageBounds(napi_env env, napi_callback_info info);
     static napi_value GetTypographicBounds(napi_env env, napi_callback_info info);
+    static napi_value GetAdvances(napi_env env, napi_callback_info info);
+    static napi_value GetTextDirection(napi_env env, napi_callback_info info);
     void SetParagraph(std::shared_ptr<Typography> paragraph);
 
 private:
+    static std::mutex constructorMutex_;
     static thread_local napi_ref constructor_;
     napi_value OnGetGlyphCount(napi_env env, napi_callback_info info);
     napi_value OnGetGlyphs(napi_env env, napi_callback_info info);
@@ -55,7 +58,10 @@ private:
     napi_value OnGetStringIndices(napi_env env, napi_callback_info info);
     napi_value OnGetImageBounds(napi_env env, napi_callback_info info);
     napi_value OnGetTypographicBounds(napi_env env, napi_callback_info info);
+    napi_value OnGetAdvances(napi_env env, napi_callback_info info);
+    napi_value OnGetTextDirection(napi_env env, napi_callback_info info);
 
+    static bool CreateConstructor(napi_env env);
     std::unique_ptr<Run> run_;
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "pixel_map.h"
 #include "render/rs_render_pixel_map_mask.h"
 
 using namespace testing;
@@ -146,5 +147,85 @@ HWTEST_F(RSRenderPixelMapMaskTest, GetLeafRenderProperties001, TestSize.Level1)
     rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR] = renderProperty;
     rsRenderPropertyBaseVec = rsRenderPixelMapMaskPara->GetLeafRenderProperties();
     EXPECT_EQ(rsRenderPropertyBaseVec.size(), 4);
+}
+
+/**
+ * @tc.name: LimitedDeepCopy
+ * @tc.desc: test for LimitedDeepCopy
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPixelMapMaskTest, LimitedDeepCopy001, TestSize.Level1)
+{
+    auto rsRenderPixelMapMaskPara = std::make_shared<RSRenderPixelMapMaskPara>(0);
+    rsRenderPixelMapMaskPara->modifierType_ = RSModifierType::BACKGROUND_UI_FILTER;
+    rsRenderPixelMapMaskPara->Setter(RSUIFilterType::PIXEL_MAP_MASK, nullptr);
+
+    // pixel map
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    auto pixelMapProperty = std::make_shared<RSRenderProperty<std::shared_ptr<Media::PixelMap>>>(pixelMap, 0);
+    rsRenderPixelMapMaskPara->Setter(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP, pixelMapProperty);
+
+    // image
+    rsRenderPixelMapMaskPara->cacheImage_ = std::make_shared<Drawing::Image>();
+
+    // src
+    auto src = Vector4f(0.1, 0.3, 0.9, 1);
+    auto srcProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(src, 0);
+    rsRenderPixelMapMaskPara->Setter(RSUIFilterType::PIXEL_MAP_MASK_SRC, srcProperty);
+
+    // dst
+    auto dst = Vector4f(0.02, 0.35, 0.79, 0.98);
+    auto dstProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(dst, 0);
+    rsRenderPixelMapMaskPara->Setter(RSUIFilterType::PIXEL_MAP_MASK_DST, dstProperty);
+
+    // fill color
+    auto fillColor = Vector4f(0.3, 0.4, 0.2, 0.66);
+    auto fillColorProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(fillColor, 0);
+    rsRenderPixelMapMaskPara->Setter(RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR, fillColorProperty);
+
+    rsRenderPixelMapMaskPara->Setter(RSUIFilterType::EDGE_LIGHT, fillColorProperty);
+
+    auto para = rsRenderPixelMapMaskPara->LimitedDeepCopy();
+    ASSERT_NE(para, nullptr);
+    auto newPixelMapMaskPara = std::static_pointer_cast<RSRenderPixelMapMaskPara>(para);
+
+    EXPECT_EQ(rsRenderPixelMapMaskPara->id_, newPixelMapMaskPara->id_);
+    EXPECT_EQ(rsRenderPixelMapMaskPara->type_, newPixelMapMaskPara->type_);
+    EXPECT_EQ(rsRenderPixelMapMaskPara->modifierType_, newPixelMapMaskPara->modifierType_);
+
+    // pixel map
+    ASSERT_NE(newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP], nullptr);
+    EXPECT_NE(rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP],
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP]);
+    auto newPixelMap = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<Media::PixelMap>>>(
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP])->Get();
+    EXPECT_EQ(pixelMap, newPixelMap);
+
+    // image
+    EXPECT_EQ(rsRenderPixelMapMaskPara->GetImage(), newPixelMapMaskPara->GetImage());
+
+    // src
+    ASSERT_NE(newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_SRC], nullptr);
+    EXPECT_NE(rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_SRC],
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_SRC]);
+    auto newSrc = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_SRC])->Get();
+    EXPECT_EQ(src, newSrc);
+
+    // dst
+    ASSERT_NE(newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_DST], nullptr);
+    EXPECT_NE(rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_DST],
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_DST]);
+    auto newDst = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_DST])->Get();
+    EXPECT_EQ(dst, newDst);
+
+    // fill color
+    ASSERT_NE(newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR], nullptr);
+    EXPECT_NE(rsRenderPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR],
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR]);
+    auto newFillColor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
+        newPixelMapMaskPara->properties_[RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR])->Get();
+    EXPECT_EQ(fillColor, newFillColor);
 }
 } // namespace OHOS::Rosen

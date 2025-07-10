@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -258,7 +258,7 @@ protected:
 
 class FunctionCanvasQuickRejectPath : public TestBase {
 public:
-    explicit FunctionCanvasQuickRejectPath(int type) : TestBase(type)
+    FunctionCanvasQuickRejectPath()
     {
         fileName_ = "FunctionCanvasQuickRejectPath";
     };
@@ -271,7 +271,7 @@ protected:
 
 class FunctionCanvasQuickRejectRect : public TestBase {
 public:
-    explicit FunctionCanvasQuickRejectRect(int type) : TestBase(type)
+    FunctionCanvasQuickRejectRect()
     {
         fileName_ = "FunctionCanvasQuickRejectRect";
     };
@@ -284,7 +284,7 @@ protected:
 
 class FunctionCanvasDrawArcWithCenter : public TestBase {
 public:
-    explicit FunctionCanvasDrawArcWithCenter(int type) : TestBase(type)
+    FunctionCanvasDrawArcWithCenter()
     {
         fileName_ = "FunctionCanvasDrawArcWithCenter";
     };
@@ -296,7 +296,7 @@ protected:
 
 class FunctionCanvasDrawNestedRoundRect : public TestBase {
 public:
-    explicit FunctionCanvasDrawNestedRoundRect(int type) : TestBase(type)
+    FunctionCanvasDrawNestedRoundRect()
     {
         fileName_ = "FunctionCanvasDrawNestedRoundRect";
     };
@@ -308,7 +308,7 @@ protected:
 
 class FunctionCanvasDrawPixelMapNine : public TestBase {
 public:
-    explicit FunctionCanvasDrawPixelMapNine(int type) : TestBase(type)
+    FunctionCanvasDrawPixelMapNine()
     {
         fileName_ = "FunctionCanvasDrawPixelMapNine";
     };

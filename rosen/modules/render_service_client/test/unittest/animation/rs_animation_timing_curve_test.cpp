@@ -28,6 +28,7 @@ using namespace ANIMATIONTEST;
 class RSAnimationTimingCurveTest : public RSAnimationBaseTest {
 };
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CreateCustomCurveTest001
  * @tc.desc: Verify the CreateCustomCurve of animation
@@ -753,6 +754,7 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateSpringTest002, TestSize.Level1)
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateSpringTest002 end";
 }
+#endif
 
 /**
  * @tc.name: CreateSpringCurve001
@@ -805,6 +807,7 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateInterpolatingSpring001, TestSize.Leve
     GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateInterpolatingSpring001 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CreateCubicCurveTest004
  * @tc.desc: Verify the CreateCubicCurve of animation
@@ -1374,5 +1377,6 @@ HWTEST_F(RSAnimationTimingCurveTest, ConstCurveTest009, TestSize.Level1)
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest ConstCurveTest009 end";
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -22,6 +22,7 @@
 #include "render/rs_render_ripple_mask.h"
 namespace OHOS {
 namespace Rosen {
+class RSShaderMask;
 
 class RSB_EXPORT RSRenderEdgeLightFilterPara : public RSRenderFilterParaBase {
 
@@ -32,6 +33,8 @@ public:
     }
 
     virtual ~RSRenderEdgeLightFilterPara() = default;
+
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
 
     void GetDescription(std::string& out) const override;
 
@@ -46,10 +49,27 @@ public:
         return maskType_;
     }
 
+    bool ParseFilterValues() override;
+
+    void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+
+    virtual void SetDisplayHeadroom(float headroom) override
+    {
+        maxHeadroom_ = headroom;
+    }
 private:
+    float alpha_{ 0.f };
+    bool bloom_{ true };
+    Vector4f color_;
+    bool useRawColor_{ false };
+    std::shared_ptr<RSShaderMask> mask_{ nullptr };
     static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
+    void CalculateHash();
 
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
+
+    // HDR settings
+    float maxHeadroom_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

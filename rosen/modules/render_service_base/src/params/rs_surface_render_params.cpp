@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_surface_render_params.h"
+#include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
@@ -231,6 +232,20 @@ int32_t RSSurfaceRenderParams::GetLayerSourceTuning() const
     return layerSource_;
 }
 
+void RSSurfaceRenderParams::SetTunnelLayerId(const uint64_t& tunnelLayerId)
+{
+    if (tunnelLayerId_ == tunnelLayerId) {
+        return;
+    }
+    tunnelLayerId_ = tunnelLayerId;
+    needSync_ = true;
+}
+
+uint64_t RSSurfaceRenderParams::GetTunnelLayerId() const
+{
+    return tunnelLayerId_;
+}
+
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 {
     return isLastFrameHardwareEnabled_;
@@ -419,9 +434,19 @@ void RSSurfaceRenderParams::SetHwcCrossNode(bool isCrossNode)
 {
     isHwcCrossNode_ = isCrossNode;
 }
-bool RSSurfaceRenderParams::IsDRMCrossNode() const
+bool RSSurfaceRenderParams::IsHwcCrossNode() const
 {
     return isHwcCrossNode_;
+}
+
+void RSSurfaceRenderParams::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
+{
+    isNodeToBeCaptured_ = isNodeToBeCaptured;
+}
+
+bool RSSurfaceRenderParams::IsNodeToBeCaptured() const
+{
+    return isNodeToBeCaptured_;
 }
 
 void RSSurfaceRenderParams::SetSkipDraw(bool skip)
@@ -456,6 +481,20 @@ void RSSurfaceRenderParams::SetLayerTop(bool isTop)
 bool RSSurfaceRenderParams::IsLayerTop() const
 {
     return isLayerTop_;
+}
+
+void RSSurfaceRenderParams::SetForceRefresh(bool isForceRefresh)
+{
+    if (isForceRefresh_ == isForceRefresh) {
+        return;
+    }
+    isForceRefresh_ = isForceRefresh;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsForceRefresh() const
+{
+    return isForceRefresh_;
 }
 
 void RSSurfaceRenderParams::SetWatermarkEnabled(const std::string& name, bool isEnabled)
@@ -523,10 +562,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
     targetSurfaceParams->isLeashWindow_ = isLeashWindow_;
     targetSurfaceParams->isAppWindow_ = isAppWindow_;
+    targetSurfaceParams->isLeashorMainWindow_ = isLeashorMainWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
-    targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
-    targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
+    targetSurfaceParams->ancestorScreenNode_ = ancestorScreenNode_;
+    targetSurfaceParams->ancestorScreenDrawable_ = ancestorScreenDrawable_;
     targetSurfaceParams->sourceDisplayRenderNodeDrawable_ = sourceDisplayRenderNodeDrawable_;
     targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
     targetSurfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
@@ -539,7 +579,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isCrossNode_ = isCrossNode_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
-    targetSurfaceParams->absDrawRect_ = absDrawRect_;
     targetSurfaceParams->rrect_ = rrect_;
     targetSurfaceParams->occlusionVisible_ = occlusionVisible_;
     targetSurfaceParams->visibleRegion_ = visibleRegion_;
@@ -577,17 +616,21 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isGlobalPositionEnabled_ = isGlobalPositionEnabled_;
+    targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
     targetSurfaceParams->isHwcGlobalPositionEnabled_ = isHwcGlobalPositionEnabled_;
     targetSurfaceParams->isHwcCrossNode_ = isHwcCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->ancoSrcCrop_ = ancoSrcCrop_;
+    targetSurfaceParams->ancoFlags_ = ancoFlags_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
+    targetSurfaceParams->isForceRefresh_ = isForceRefresh_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
-    targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
+    targetSurfaceParams->tunnelLayerId_ = tunnelLayerId_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
@@ -632,7 +675,6 @@ std::string RSSurfaceRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(isAttractionValid_);
     ret += RENDER_BASIC_PARAM_TO_STRING(needBilinearInterpolation_);
     ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
-    ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);
     ret += RENDER_BASIC_PARAM_TO_STRING(occlusionVisible_);
     ret += RENDER_BASIC_PARAM_TO_STRING(isOccludedByFilterCache_);
     ret += "}";
@@ -646,7 +688,7 @@ bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curS
     }
     if (IsLeashWindow() && (!IsCrossNode() ||
         GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::DISABLED)) {
-        return GetLeashWindowVisibleRegionEmptyParam();
+        return curSurfaceDrawRegion.IsEmpty();
     }
     return false;
 }

@@ -20,7 +20,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #ifdef ROSEN_OHOS
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "hisysevent.h"
 #include "sandbox_utils.h"
 #endif
 using namespace testing;
@@ -47,8 +47,8 @@ void RSCurveAnimationTest::TearDown() {}
  */
 HWTEST_F(RSCurveAnimationTest, StartRenderAnimationTest, Level1)
 {
-    auto property = std::make_shared<RSPropertyBase>();
-    auto byValue = std::make_shared<RSPropertyBase>();
+    auto property = std::make_shared<RSProperty<float>>();
+    auto byValue = std::make_shared<RSProperty<float>>();
     RSCurveAnimation rsCurveAnimation(property, byValue);
     auto animation = std::make_shared<RSRenderCurveAnimation>();
     rsCurveAnimation.StartInner(nullptr);

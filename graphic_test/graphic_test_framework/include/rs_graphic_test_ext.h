@@ -32,6 +32,7 @@ enum RSGraphicTestType {
     TEXT_TEST,
     PIXMAP_TEST,
     SYMBOL_TEST,
+    EFFECT_TEST,
 };
 
 enum class RSGraphicTestMode : uint8_t {

@@ -35,7 +35,7 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 {
 }
 
-bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
                                     std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
 #ifdef RS_ENABLE_GPU
@@ -117,9 +117,9 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
 }
 
-void RSVirtualScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
+void RSVirtualScreenProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
 {
-    RS_LOGI("RSVirtualScreenProcessor::ProcessDisplaySurface() is not supported.");
+    RS_LOGI("RSVirtualScreenProcessor::ProcessScreenSurface() is not supported.");
 }
 
 void RSVirtualScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

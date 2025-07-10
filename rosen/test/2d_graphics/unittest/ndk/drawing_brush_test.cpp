@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "drawing_color_filter.h"
 #include "effect/color_filter.h"
 #include "effect/filter.h"
+#include "native_color_space_manager.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -229,6 +230,151 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushCopy007, TestSize.L
     OH_Drawing_BrushDestroy(brush);
     OH_Drawing_BrushDestroy(brush_copy);
 }
+
+/*
+ * @tc.name: NativeDrawingBrushTest_BrushSetColor4f
+ * @tc.desc: test for OH_Drawing_BrushSetColor4f.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_BrushSetColor4f, TestSize.Level1)
+{
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_NativeColorSpaceManager* colorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(ColorSpaceName::ADOBE_RGB);
+    EXPECT_EQ(OH_Drawing_BrushSetColor4f(nullptr, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushSetColor4f(brush, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushSetColor4f(brush, 0.2f, 0.3f, 0.4f, 0.1f, nullptr), OH_DRAWING_SUCCESS);
+    OH_Drawing_BrushDestroy(brush);
+    OH_NativeColorSpaceManager_Destroy(colorSpaceManager);
+}
+
+/*
+ * @tc.name: NativeDrawingBrushTest_BrushSetColor4f001
+ * @tc.desc: test for OH_Drawing_BrushSetColor4f.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_BrushSetColor4f001, TestSize.Level1)
+{
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_NativeColorSpaceManager* colorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(ColorSpaceName::ADOBE_RGB);
+    EXPECT_EQ(OH_Drawing_BrushSetColor4f(brush, 1.01f, 1.1f, 1.5f, 1.4f, colorSpaceManager),
+        OH_DRAWING_SUCCESS);
+    float a = 0;
+    float r = 0;
+    float g = 0;
+    float b = 0;
+    EXPECT_EQ(OH_Drawing_BrushGetAlphaFloat(brush, &a), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushGetRedFloat(brush, &r), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushGetGreenFloat(brush, &g), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushGetBlueFloat(brush, &b), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(a - 1.0f) < 0.01);
+    EXPECT_TRUE(std::abs(r - 1.0f) < 0.01);
+    EXPECT_TRUE(std::abs(g - 1.0f) < 0.01);
+    EXPECT_TRUE(std::abs(b - 1.0f) < 0.01);
+    EXPECT_EQ(OH_Drawing_BrushSetColor4f(brush, -0.1f, -1.1f, -1.5f, -1.4f, colorSpaceManager),
+        OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushGetAlphaFloat(brush, &a), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushGetRedFloat(brush, &r), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushGetGreenFloat(brush, &g), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_BrushGetBlueFloat(brush, &b), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(a) < 0.01);
+    EXPECT_TRUE(std::abs(r) < 0.01);
+    EXPECT_TRUE(std::abs(g) < 0.01);
+    EXPECT_TRUE(std::abs(b) < 0.01);
+    OH_Drawing_BrushDestroy(brush);
+    OH_NativeColorSpaceManager_Destroy(colorSpaceManager);
+}
+
+/*
+ @tc.name: NativeDrawingBrushTest_BrushGetAlphaFloat
+ * @tc.desc: test for OH_Drawing_BrushGetAlphaFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_BrushGetAlphaFloat, TestSize.Level1)
+{
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    float a = 0.0f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_BrushSetColor4f(brush, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_BrushGetAlphaFloat(nullptr, &a), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetAlphaFloat(brush, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetAlphaFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetAlphaFloat(brush, &a), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(a - 0.2f) < 0.01);
+    OH_Drawing_BrushDestroy(brush);
+}
+
+/*
+ @tc.name: NativeDrawingBrushTest_BrushGetRedFloat
+ * @tc.desc: test for OH_Drawing_BrushGetRedFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_BrushGetRedFloat, TestSize.Level1)
+{
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    float r = 0.0f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_BrushSetColor4f(brush, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_BrushGetRedFloat(nullptr, &r), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetRedFloat(brush, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetRedFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetRedFloat(brush, &r), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(r - 0.3f) < 0.01);
+    OH_Drawing_BrushDestroy(brush);
+}
+
+/*
+ @tc.name: NativeDrawingBrushTest_BrushGetGreenFloat
+ * @tc.desc: test for OH_Drawing_BrushGetGreenFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_BrushGetGreenFloat, TestSize.Level1)
+{
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    float g = 0.0f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_BrushSetColor4f(brush, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_BrushGetGreenFloat(nullptr, &g), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetGreenFloat(brush, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetGreenFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetGreenFloat(brush, &g), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(g - 0.4f) < 0.01);
+    OH_Drawing_BrushDestroy(brush);
+}
+
+/*
+ @tc.name: NativeDrawingBrushTest_BrushGetBlueFloat
+ * @tc.desc: test for OH_Drawing_BrushGetBlueFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_BrushGetBlueFloat, TestSize.Level1)
+{
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    float b = 0.2f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_BrushSetColor4f(brush, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_BrushGetBlueFloat(nullptr, &b), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetBlueFloat(brush, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetBlueFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BrushGetBlueFloat(brush, &b), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(b - 0.1f) < 0.01);
+    OH_Drawing_BrushDestroy(brush);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

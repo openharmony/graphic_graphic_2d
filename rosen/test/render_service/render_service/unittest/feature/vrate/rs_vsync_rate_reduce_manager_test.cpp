@@ -393,6 +393,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CalcRates001, TestSize.Level1)
     surfaceVRateInfo.nodeId = nodeId;
     surfaceVRateInfo.name = "surfaceNode";
     surfaceVRateInfo.visibleRegion = Occlusion::Region(Occlusion::Rect(10, 10, 100, 100));
+    surfaceVRateInfo.visibleRegionBehindWindow = Occlusion::Region(Occlusion::Rect(10, 10, 100, 100));
     surfaceVRateInfo.appWindowArea = 1000;
 
     rateReduceManager.surfaceVRateMap_[nodeId] = surfaceVRateInfo;
@@ -417,6 +418,33 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CalcRates001, TestSize.Level1)
     iter = rateReduceManager.vSyncRateMap_.find(nodeId);
     ASSERT_NE(rateReduceManager.vSyncRateMap_.end(), iter);
     EXPECT_EQ(vRate, iter->second);
+}
+
+/**
+ * @tc.name: CalcRates002
+ * @tc.desc: Test CalcRates processing.
+ * @tc.type: FUNC
+ * @tc.require: issueICIXW6
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, CalcRates002, TestSize.Level1)
+{
+    RSVsyncRateReduceManager rateReduceManager;
+    rateReduceManager.rsRefreshRate_ = 60;
+    rateReduceManager.curRatesLevel_ = 2;
+    rateReduceManager.isSystemAnimatedScenes_ = false;
+    NodeId nodeId = 1;
+    SurfaceVRateInfo surfaceVRateInfo;
+    surfaceVRateInfo.nodeId = nodeId;
+    surfaceVRateInfo.name = "surfaceNode";
+    surfaceVRateInfo.appWindowArea = 1000;
+    surfaceVRateInfo.visibleRegion = Occlusion::Region(Occlusion::Rect(10, 10, 100, 100));
+    surfaceVRateInfo.visibleRegionBehindWindow = Occlusion::Region(Occlusion::Rect(RectI()));
+    rateReduceManager.surfaceVRateMap_[nodeId] = surfaceVRateInfo;
+
+    rateReduceManager.CalcRates();
+    auto iter = rateReduceManager.vSyncRateMap_.find(nodeId);
+    ASSERT_NE(rateReduceManager.vSyncRateMap_.end(), iter);
+    EXPECT_EQ(2, iter->second);
 }
 
 /**
@@ -449,6 +477,28 @@ HWTEST_F(RSVsyncRateReduceManagerTest, GetRateByBalanceLevel001, TestSize.Level1
     rateReduceManager.curRatesLevel_ = 5;
     rateReduceManager.rsRefreshRate_ = 60;
     EXPECT_EQ(1, rateReduceManager.GetRateByBalanceLevel(0.8));
+}
+
+/**
+ * @tc.name: GetRateByBalanceLevel002
+ * @tc.desc: Test GetRateByBalanceLevel processing.
+ * @tc.type: FUNC
+ * @tc.require: issueICIXW6
+ */
+HWTEST_F(RSVsyncRateReduceManagerTest, GetRateByBalanceLevel002, TestSize.Level1)
+{
+    RSVsyncRateReduceManager rateReduceManager;
+    rateReduceManager.curRatesLevel_ = 1;
+    rateReduceManager.rsRefreshRate_ = 120;
+    EXPECT_EQ(4, rateReduceManager.GetRateByBalanceLevel(-1.0));
+
+    rateReduceManager.curRatesLevel_ = 3;
+    rateReduceManager.rsRefreshRate_ = 60;
+    EXPECT_EQ(2, rateReduceManager.GetRateByBalanceLevel(-1.0));
+
+    rateReduceManager.curRatesLevel_ = 5;
+    rateReduceManager.rsRefreshRate_ = 60;
+    EXPECT_EQ(2, rateReduceManager.GetRateByBalanceLevel(-1.0));
 }
 
 /**
@@ -651,7 +701,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CollectSurfaceVsyncInfo003, TestSize.Leve
 
     surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     buildFunc(surfaceNode);
-    auto& properties = surfaceNode->renderContent_->renderProperties_;
+    auto& properties = surfaceNode->renderProperties_;
     properties.boundsGeo_ = nullptr;
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
     EXPECT_EQ(true, rateReduceManager.surfaceVRateMap_.empty());

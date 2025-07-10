@@ -68,6 +68,7 @@ if (is_arkui_x) {
       "enum_napi/js_enum.cpp",
       "font_napi/js_font.cpp",
       "font_napi/js_typeface.cpp",
+      "font_napi/js_typefacearguments.cpp",
       "image_filter_napi/js_image_filter.cpp",
       "js_drawing_init.cpp",
       "js_drawing_utils.cpp",
@@ -85,16 +86,27 @@ if (is_arkui_x) {
       "shader_effect_napi/js_shader_effect.cpp",
       "shadow_layer_napi/js_shadow_layer.cpp",
       "text_blob_napi/js_text_blob.cpp",
+      "tool_napi/js_tool.cpp",
+      "drawing_module.cpp",
     ]
 
-    defines = []
+    defines = [ "ROSEN_ARKUI_X" ]
     configs = [ ":local_drawing_config" ]
     public_configs = [ ":drawing_config" ]
+
+    include_dirs = [
+      "//foundation/multimedia/image_framework/interfaces/kits/js/common/include",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      "//foundation/graphic/graphic_surface/interfaces/inner_api/surface"
+    ]
 
     deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
       "//foundation/arkui/napi:ace_napi",
+    ]
+    public_deps = [
+      "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     ]
     defines += [ "MODULE_DRAWING" ]
     cflags_cc = [ "-std=c++17" ]
@@ -160,6 +172,7 @@ if (is_arkui_x) {
         "resource_management:global_resmgr",
       ]
       deps += [ "$graphic_2d_root/utils:libgraphic_utils" ]
+      deps += [ "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor" ]
       defines += [ "ROSEN_OHOS" ]
       cflags_cc = [ "-std=c++17" ]
     } else {

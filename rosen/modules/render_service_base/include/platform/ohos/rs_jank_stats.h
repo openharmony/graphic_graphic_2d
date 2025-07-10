@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ constexpr int64_t TIMESTAMP_INITIAL = -1;
 constexpr int32_t TRACE_ID_INITIAL = -1;
 constexpr float TIMESTAMP_INITIAL_FLOAT = -1.f;
 constexpr float MS_TO_US = 1000.f; // ms to us
+constexpr std::string_view SWITCH_SCENE_NAME = "ABILITY_OR_PAGE_SWITCH";
 
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
@@ -123,6 +124,17 @@ struct JankDurationParams {
     bool implicitAnimationEnd_ = false;
 };
 
+struct AvcodecVideoParam {
+    std::string surfaceName;
+    uint32_t fps;
+    uint64_t reportTime;
+    uint64_t startTime;
+    uint64_t decodeCount;
+    uint32_t previousSequence = 0;
+    uint64_t previousFrameTime = 0;
+    uint32_t continuousFrameLoss = 0;
+};
+
 class RSJankStats {
 public:
     static RSJankStats& GetInstance();
@@ -144,6 +156,15 @@ public:
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd);
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
     bool IsAnimationEmpty();
+    void AvcodecVideoDump(std::string& dumpString, std::string& type, const std::string& avcodecVideo);
+    void AvcodecVideoStart(
+        const uint64_t queueId, const std::string& surfaceName, const uint32_t fps, const uint64_t reportTime);
+    void AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName = "", const uint32_t fps = 0);
+    void AvcodecVideoCollectBegin();
+    void AvcodecVideoCollectFinish();
+    void AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence);
+    bool GetEarlyZEnableFlag();
+    bool GetFlushEarlyZ();
 
 private:
     RSJankStats() = default;
@@ -248,6 +269,8 @@ private:
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
     std::mutex mutex_;
     Rosen::AppInfo appInfo_;
+    bool avcodecVideoCollectOpen_ = false;
+    std::unordered_map<uint64_t, AvcodecVideoParam> avcodecVideoMap_;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,
@@ -260,6 +283,9 @@ private:
         JANK_FRAME_180_FREQ,
         JANK_FRAME_INVALID,
     };
+    bool ddgrEarlyZEnableFlag_ = false;
+    bool isFlushEarlyZ_ = false;
+    int32_t lastReportEarlyZTraceId_ = -1;
 };
 
 } // namespace Rosen

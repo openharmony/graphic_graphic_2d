@@ -19,13 +19,15 @@
 #include <memory>
 #include <vector>
 #include "common/rs_occlusion_region.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
 #include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
+class RSProcessor;
+class RSSLRScaleFunction;
 struct CaptureParam {
     bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
@@ -38,10 +40,11 @@ struct CaptureParam {
     bool isNeedBlur_ = false;
     bool isSoloNodeUiCapture_ = false;
     NodeId endNodeId_ = INVALID_NODEID;
+    bool captureFinished_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
         bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,
-        bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID)
+        bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID, bool captureFinished = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
@@ -50,7 +53,8 @@ struct CaptureParam {
         isSelfCapture_(isSelfCapture),
         isNeedBlur_(isNeedBlur),
         isSoloNodeUiCapture_(isSoloNodeUiCapture),
-        endNodeId_(endNodeId) {}
+        endNodeId_(endNodeId),
+        captureFinished_(captureFinished) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
@@ -66,7 +70,7 @@ enum ForceCommitReason {
 
 class RSB_EXPORT RSRenderThreadParams {
 public:
-    using DrawablesVec = std::vector<std::pair<NodeId,
+    using DrawablesVec = std::vector<std::tuple<NodeId, NodeId,
         DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     RSRenderThreadParams() = default;
@@ -85,6 +89,11 @@ public:
     bool IsAllSurfaceVisibleDebugEnabled() const
     {
         return isAllSurfaceVisibleDebugEnabled_;
+    }
+
+    void SetVirtualDirtyEnabled(bool isVirtualDirtyEnabled)
+    {
+        isVirtualDirtyEnabled_ = isVirtualDirtyEnabled;
     }
 
     bool IsVirtualDirtyEnabled() const
@@ -227,9 +236,9 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardCursorDrawables() const
+    const auto& GetHardCursorDrawables() const
     {
-        return hardCursorDrawableMap_;
+        return hardCursorDrawableVec_;
     }
     
     void SetPendingScreenRefreshRate(uint32_t rate)
@@ -302,7 +311,7 @@ public:
     {
         return isCurtainScreenOn_;
     }
-    
+
     void SetForceCommitLayer(uint32_t forceCommitReason)
     {
         forceCommitReason_ = forceCommitReason;
@@ -448,12 +457,12 @@ public:
         screenInfo_ = info;
     }
 
-    RSDisplayRenderNode::CompositeType GetCompositeType() const
+    CompositeType GetCompositeType() const
     {
         return compositeType_;
     }
 
-    void SetCompositeType(RSDisplayRenderNode::CompositeType type)
+    void SetCompositeType(CompositeType type)
     {
         compositeType_ = type;
     }
@@ -468,14 +477,46 @@ public:
 
     bool HasPhysicMirror() const
     {
-        return isMirrorScreen_ && compositeType_ == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
+        return isMirrorScreen_ && compositeType_ == CompositeType::UNI_RENDER_COMPOSITE;
     }
 
     AdvancedDirtyRegionType GetAdvancedDirtyType() const
     {
         return advancedDirtyType_;
     }
+
+    void SetRSProcessor(const std::shared_ptr<RSProcessor>& processor)
+    {
+        processor_ = processor;
+    }
+
+    std::shared_ptr<RSProcessor> GetRSProcessor() const
+    {
+        return processor_;
+    }
+
+    void SetVirtualDirtyRefresh(bool virtualdirtyRefresh)
+    {
+        virtualDirtyRefresh_ = virtualdirtyRefresh;
+    }
+
+    bool GetVirtualDirtyRefresh() const
+    {
+        return virtualDirtyRefresh_;
+    }
+
+    void SetSLRScaleManager(std::shared_ptr<RSSLRScaleFunction> slrManager)
+    {
+        slrManager_ = slrManager;
+    }
+
+    std::shared_ptr<RSSLRScaleFunction> GetSLRScaleManager() const
+    {
+        return slrManager_;
+    }
+
 private:
+    bool virtualDirtyRefresh_ = false;
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     int64_t actualTimestamp_ = 0;
@@ -515,7 +556,7 @@ private:
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardCursorDrawableMap_;
+    std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>> hardCursorDrawableVec_;
     uint32_t forceCommitReason_ = 0;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
@@ -523,6 +564,7 @@ private:
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
+    std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
 
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
@@ -533,7 +575,7 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
-    RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
@@ -541,6 +583,7 @@ private:
 
     bool isSecurityExemption_ = false;
     ScreenInfo screenInfo_ = {};
+    std::shared_ptr<RSProcessor> processor_ = nullptr;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

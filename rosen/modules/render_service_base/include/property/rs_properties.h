@@ -50,6 +50,7 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
+class RSNGRenderFilterBase;
 namespace DrawableV2 {
 class RSBackgroundImageDrawable;
 class RSBackgroundFilterDrawable;
@@ -198,6 +199,11 @@ public:
         needSkipShadow_ = needSkipShadow;
     }
 
+    void SetHDRBrightnessFactor(float factor);
+    float GetHDRBrightnessFactor() const;
+    void SetCanvasNodeHDRBrightnessFactor(float factor);
+    float GetCanvasNodeHDRBrightnessFactor() const;
+
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
     const RSRenderParticleVector& GetParticles() const;
@@ -221,6 +227,9 @@ public:
     std::shared_ptr<RSImage> GetBgImage() const;
     void SetBgImageInnerRect(const Vector4f& rect);
     Vector4f GetBgImageInnerRect() const;
+    void SetBgImageDstRect(const Vector4f& rect);
+    const Vector4f GetBgImageDstRect();
+    const RectF& GetBgImageRect() const;
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
     void SetBgImagePositionX(float positionX);
@@ -265,7 +274,6 @@ public:
     const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
 
     // filter properties
-    void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
@@ -278,6 +286,16 @@ public:
     void SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
     std::shared_ptr<RSRenderFilter> GetForegroundUIFilter() const;
 
+    void SetBackgroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetBackgroundNGFilter() const;
+
+    void SetForegroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetForegroundNGFilter() const;
+    void SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
+    std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
+    void SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
+    std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
+
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
     void SetFgBrightnessSaturation(const float& saturation);
@@ -288,6 +306,8 @@ public:
     Vector4f GetFgBrightnessNegCoeff() const;
     void SetFgBrightnessFract(const float& fraction);
     float GetFgBrightnessFract() const;
+    void SetFgBrightnessHdr(const bool enableHdr);
+    bool GetFgBrightnessHdr() const;
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
 
@@ -318,7 +338,6 @@ public:
     void SetBgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetBgBrightnessParams() const;
 
-    void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
@@ -412,7 +431,7 @@ public:
     void SetShadowElevation(float radius);
     void SetShadowRadius(float radius);
     void SetShadowPath(std::shared_ptr<RSPath> shadowPath);
-    void SetShadowMask(bool shadowMask);
+    void SetShadowMask(int shadowMask);
     void SetShadowIsFilled(bool shadowIsFilled);
     void SetShadowColorStrategy(int shadowColorStrategy);
     const Color& GetShadowColor() const;
@@ -425,7 +444,8 @@ public:
     const std::optional<float>& GetDynamicLightUpDegree() const;
     const std::optional<float>& GetDynamicDimDegree() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
-    bool GetShadowMask() const;
+    int GetShadowMask() const;
+    bool IsShadowMaskValid() const;
     bool GetShadowIsFilled() const;
     int GetShadowColorStrategy() const;
     const std::optional<RSShadow>& GetShadow() const;
@@ -486,6 +506,7 @@ public:
     bool IsGeoDirty() const;
     bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
+    bool IsSubTreeAllDirty() const;
 
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
@@ -581,6 +602,9 @@ public:
     void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
     bool GetNeedDrawBehindWindow() const;
 
+    void SetEnableHDREffect(bool useHDREffect);
+    bool GetEnableHDREffect() const;
+
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
     bool IsColorBlendModeValid() const;
@@ -589,7 +613,7 @@ public:
     int GetColorBlendApplyType() const;
     bool IsColorBlendApplyTypeOffscreen() const;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
     void ClearFilterCache();
 #endif
@@ -602,6 +626,8 @@ public:
     void SetHaveEffectRegion(bool hasEffectRegion);
 
     void OnApplyModifiers();
+
+    void ResetBorder(bool isOutline);
 
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
@@ -616,7 +642,7 @@ private:
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
-    void AccmulateDirtyStatus();
+    void AccumulateDirtyStatus();
     void RecordCurDirtyStatus();
 
     // generate filter
@@ -647,12 +673,14 @@ private:
     void GenerateBezierWarpFilter();
     void GenerateRenderFilterDispersion();
     void GenerateForegroundRenderFilter();
+    void GenerateContentLightFilter();
+    void ComposeNGRenderFilter(
+        std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter);
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
     bool NeedLightBlur(bool disableSystemAdaptation);
 
-    const RectF& GetBgImageRect() const;
     void GenerateRRect();
     RectI GetDirtyRect() const;
     // added for update dirty region dfx
@@ -661,9 +689,11 @@ private:
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
+    bool subTreeAllDirty_ = false;
     bool curIsDirty_ = false;
     bool curGeoDirty_ = false;
     bool curContentDirty_ = false;
+    bool curSubTreeAllDirty_ = false;
     bool hasBounds_ = false;
     bool isSpherizeValid_ = false;
     bool clipToBounds_ = false;
@@ -680,6 +710,7 @@ private:
     bool needFilter_ = false;
     bool needHwcFilter_ = false;
     bool useEffect_ = false;
+    bool enableHDREffect_ = false;
     bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     bool alphaNeedApply_ = false;
@@ -693,6 +724,8 @@ private:
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
     bool localMagnificationCap_ = false;
+    float hdrBrightnessFactor_ = 1.0f; // for displayNode
+    float canvasNodeHDRBrightnessFactor_ = 1.0f; // for canvasNode
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
@@ -725,6 +758,10 @@ private:
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
     std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSRenderFilter> backgroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
@@ -795,7 +832,7 @@ private:
     Drawing::Matrix prevAbsMatrix_;
     RSRenderParticleVector particles_;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;

@@ -24,16 +24,16 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    const std::string VOTER_NAME[] = {
-        "VOTER_VRATE",
-        "VOTER_VIDEOCALL",
-        "VOTER_GAMEFRAMEINSERTION",
-        "VOTER_HIGH",
-        "VOTER_MID",
-        "VOTER_LOW",
-    };
-    constexpr uint32_t SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE = 6;
-    const std::string VRATE_CONTROL_MINIFPS = "minifps";
+const std::string VOTER_NAME[] = {
+    "VOTER_VRATE",
+    "VOTER_VIDEOCALL",
+    "VOTER_GAMEFRAMEINSERTION",
+    "VOTER_HIGH",
+    "VOTER_MID",
+    "VOTER_LOW",
+};
+constexpr uint32_t SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE = 6;
+const std::string VRATE_CONTROL_MINIFPS = "minifps";
 }
 
 HgmSoftVSyncManager::HgmSoftVSyncManager()
@@ -182,7 +182,7 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
         isChanged = true;
     }
     if (!isChanged && appVoteData_.count(linker.first)) {
-        expectedRange.preferred_ = appVoteData_[linker.first];
+        expectedRange.preferred_ = static_cast<int32_t>(appVoteData_[linker.first]);
     }
     auto appFrameRate = isPerformanceFirst_ && expectedRange.type_ != SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE ?
                         OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
@@ -265,9 +265,9 @@ bool HgmSoftVSyncManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     }
     int32_t& appFrameRate = finalRange.preferred_;
     // finalRange.preferred_ is 0 means that the appframerate want to be changed by self.
-    if (appFrameRate != 0 && (finalRange.type_ != ACE_COMPONENT_FRAME_RATE_TYPE ||
-        (finalRange.type_ == ACE_COMPONENT_FRAME_RATE_TYPE && /* ArkUI Vote */
-        iter->second != std::numeric_limits<int>::max()))) { /*invisible window*/
+    if (appFrameRate != 0 && (finalRange.type_ != DRAG_SCENE_FRAME_RATE_TYPE ||
+        (finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE && /* ArkUI Vote */
+        iter->second != std::numeric_limits<int>::max()))) { /* invisible window */
         RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d return because "
             "appFrameRate[%d] changed by self, not arkui vote[%u], not invisble window", ExtractPid(linkerId),
             linkerId, iter->second, appFrameRate, finalRange.type_);

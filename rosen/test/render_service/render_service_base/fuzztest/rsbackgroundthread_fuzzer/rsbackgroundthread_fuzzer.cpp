@@ -90,7 +90,6 @@ bool DoCreateShareEglContext(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     RSBackgroundThread::Instance().CreateShareEglContext();
-
 #if defined(ACE_ENABLE_GL) || defined(RS_ENABLE_GL)
     RSBackgroundThread::Instance().CreateShareEglContext();
     RSBackgroundThread::Instance().renderContext_ = new RenderContext();

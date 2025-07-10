@@ -27,6 +27,7 @@ struct HwcPropertyContext {
     bool isNodeRenderByDrawingCache = false;
     bool isNodeRenderByChildNode = false;
     Drawing::Matrix totalMatrix;
+    float absRotation = 0.f;
 };
 
 public:
@@ -47,14 +48,14 @@ public:
         const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
     static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node,
-        const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer);
+        const sptr<SurfaceBuffer>& buffer, const sptr<IConsumerSurface>& consumer);
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static void UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     static bool HasNonZRotationTransform(const Drawing::Matrix& matrix);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static std::optional<Drawing::Matrix> GetMatrix(const std::shared_ptr<RSRenderNode>& hwcNode);
-    static void IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2);
+    static bool IntersectRect(Drawing::Rect& result, const Drawing::Rect& other);
     static bool IsBlendNeedFilter(RSRenderNode& node);
     static bool IsBlendNeedBackground(RSRenderNode& node);
     static bool IsBlendNeedChildNode(RSRenderNode& node);
@@ -92,7 +93,7 @@ private:
         auto parent = std::static_pointer_cast<RSRenderNode>(hwcNode);
         while ((parent = parent->GetParent().lock())) {
             (std::invoke(callbacks, parent), ...);
-            if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+            if (parent->GetType() == RSRenderNodeType::SCREEN_NODE) {
                 break;
             }
         }
@@ -102,8 +103,15 @@ private:
         HwcPropertyContext& ctx);
     static inline void UpdateHwcNodeAlpha(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
     static inline void UpdateHwcNodeTotalMatrix(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+    static void UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+#if defined(MODIFIER_NG)
+    template<typename T>
+    static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(
+        const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType);
+#else
     template<typename T>
     static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(const RSRenderNode& node, RSModifierType type);
+#endif
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);

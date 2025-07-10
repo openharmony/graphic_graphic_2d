@@ -141,6 +141,8 @@ private:
     std::string vendorValue_ {};
     std::string clientApiValue_ {};
     std::string extensionValue_ {};
+    bool hasColorSpaceSupport_ = false;
+    bool hasWideColorAndHdrSupport_ = false;
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H

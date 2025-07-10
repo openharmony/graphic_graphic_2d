@@ -40,9 +40,12 @@ ohos_shared_library("libdrawing_demo") {
   public_external_deps = [ "window_manager:libwm" ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "image_framework:image_native",
+    "selinux_adapter:librestorecon",
     "window_manager:libdm",
   ]
 

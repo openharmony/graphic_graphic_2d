@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "limit_number.h"
 
 using namespace testing;
@@ -138,6 +138,20 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerSourceTuning, TestSize.Level1)
 
     params.SetLayerSourceTuning(true);
     EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetTunnelLayerId
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetTunnelLayerId, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_EQ(params.GetTunnelLayerId(), 0);
+    params.SetTunnelLayerId(1);
+    EXPECT_EQ(params.GetTunnelLayerId(), 1);
 }
 
 /**
@@ -345,6 +359,42 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_002, TestSize.Level2)
     params.SetLayerTop(isLayerTop);
     EXPECT_EQ(params.needSync_, true);
     EXPECT_EQ(params.isLayerTop_, isLayerTop);
+}
+
+/**
+ * @tc.name: SetForceRefresh_001
+ * @tc.desc: Test function SetForceRefresh
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetForceRefresh_001, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(115);
+    params.needSync_ = false;
+    params.isForceRefresh_  = false;
+
+    bool isForceRefresh = params.isForceRefresh_;
+    params.SetForceRefresh(isForceRefresh);
+    EXPECT_EQ(params.needSync_, false);
+    EXPECT_EQ(params.isForceRefresh_, isForceRefresh);
+}
+
+/**
+ * @tc.name: SetForceRefresh_002
+ * @tc.desc: Test function SetForceRefresh
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetForceRefresh_002, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(115);
+    params.needSync_ = false;
+    params.isForceRefresh_  = false;
+
+    bool isForceRefresh = !params.isForceRefresh_;
+    params.SetForceRefresh(isForceRefresh);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_EQ(params.isForceRefresh_, isForceRefresh);
 }
 
 /**

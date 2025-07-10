@@ -18,10 +18,11 @@
 
 #include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_vector2.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RadialGradientMaskPara : public MaskPara {
+class RSC_EXPORT RadialGradientMaskPara : public MaskPara {
 public:
     RadialGradientMaskPara()
     {
@@ -59,21 +60,39 @@ public:
         return radiusY_;
     }
 
-    void SetValues(std::vector<Vector2f>& values)
+    void SetColors(std::vector<float>& colors)
     {
-        values_ = values;
+        colors_ = colors;
     }
 
-    const std::vector<Vector2f>& GetValues() const
+    const std::vector<float>& GetColors() const
     {
-        return values_;
+        return colors_;
     }
 
+    void SetPositions(std::vector<float>& positions)
+    {
+        positions_ = positions;
+    }
+
+    const std::vector<float>& GetPositions() const
+    {
+        return positions_;
+    }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
+
+    std::shared_ptr<MaskPara> Clone() const override;
 private:
-    Vector2f center_;
-    float radiusX_;
-    float radiusY_;
-    std::vector<Vector2f> values_;
+    Vector2f center_ = { 0.0f, 0.0f };
+    float radiusX_ = 0.0f;
+    float radiusY_ = 0.0f;
+    std::vector<float> colors_;
+    std::vector<float> positions_;
 };
 } // namespace Rosen
 } // namespace OHOS

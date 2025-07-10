@@ -258,6 +258,24 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font
     float* textWidth);
 
 /**
+ * @brief Measures the width of a single character with font features.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param str Indicates the single character encoded in UTF-8.
+ * @param fontFeatures Indicates the pointer to an <b>OH_Drawing_FontFeatures</b> object.
+ * @param textWidth Indicates the width of the single character.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, str
+ *                 fontFeatures or textWidth is nullptr, or if strlen(str) is 0.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacterWithFeatures(const OH_Drawing_Font* font, const char* str,
+    const OH_Drawing_FontFeatures* fontFeatures, float* textWidth);
+
+/**
  * @brief Measures the width of text.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -292,8 +310,8 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* font, con
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, text
- *                 and textWidth is nullptr or byteLength is 0 or brush and pen are both not nullptr.
- * @since 20
+ *                 and textWidth is nullptr or byteLength is 0 or brush and pen are both not empty.
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_Font* font, const void* text,
@@ -301,7 +319,7 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_F
     OH_Drawing_Rect* bounds, float* textWidth);
 
 /**
- * @brief Retrieves the advance and bounding box for each glyph in glyphs
+ * @brief Retrieves the advance and bounding box for each glyph in glyphs.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
@@ -310,12 +328,12 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_F
  * @param brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
  * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
  * @param widths Indicates the text advances for each glyph returned to the caller.
- * @param bounds Indicates the text bounding box for each glyph returned to caller.
+ * @param bounds Indicates the text bounding box for each glyph returned to the caller.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font and glyphs is nullptr
- *                 or count is no larger than 0 or brush and pen are both not nullptr.
- * @since 20
+ *                 or count is no larger than 0 or brush and pen are both not empty.
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* font, const uint16_t* glyphs, int count,
@@ -333,8 +351,8 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* font,
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, glyphs and points is nullptr or
- *                 count is not larger than 0.
- * @since 20
+ *                 count is no larger than 0.
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetPos(const OH_Drawing_Font* font, const uint16_t* glyphs, int count,
@@ -349,7 +367,7 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetPos(const OH_Drawing_Font* font, const ui
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font and spacing is nullptr.
- * @since 20
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetSpacing(const OH_Drawing_Font* font, float* spacing);
@@ -630,6 +648,47 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetPathForGlyph(const OH_Drawing_Font* font,
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetTextPath(const OH_Drawing_Font* font, const void* text, size_t byteLength,
     OH_Drawing_TextEncoding encoding, float x, float y, OH_Drawing_Path* path);
+
+/**
+ * @brief Creates an <b>OH_Drawing_FontFeatures</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @return Returns the pointer to the <b>OH_Drawing_FontFeatures</b> object created.
+ *         If nullptr is returned, the creation fails.
+ *         The possible cause of the failure is that the available memory is empty.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_FontFeatures* OH_Drawing_FontFeaturesCreate(void);
+
+/**
+ * @brief Adds a font feature for an <b>OH_Drawing_FontFeatures</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param fontFeatures Indicates the pointer to an <b>OH_Drawing_FontFeatures</b> object.
+ * @param name Indicates the feature name.
+ * @param value Indicates the value of the feature.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if either fontFeatures or name is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontFeaturesAddFeature(OH_Drawing_FontFeatures* fontFeatures,
+    const char* name, float value);
+
+/**
+ * @brief Destroys an <b>OH_Drawing_FontFeatures</b> object and reclaims the memory occupied by the object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param fontFeatures Indicates the pointer to an <b>OH_Drawing_FontFeatures</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if fontFeatures is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontFeaturesDestroy(OH_Drawing_FontFeatures* fontFeatures);
 
 /**
  * @brief Sets whether to follow the theme font. If the value is true, the theme font is used when typeface is not set.

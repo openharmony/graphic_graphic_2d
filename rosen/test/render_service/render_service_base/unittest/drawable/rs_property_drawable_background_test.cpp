@@ -13,19 +13,20 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
-
-#include "drawable/rs_property_drawable_background.h"
-#include "pipeline/rs_context.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_effect_render_node.h"
-#include "render/rs_drawing_filter.h"
-#include "third_party/skia/include/core/SkStream.h"
-#include "surface_buffer_impl.h"
 #include "buffer_handle.h"
 #include "buffer_handle_utils.h"
+#include "gtest/gtest.h"
 #include "parameters.h"
+#include "surface_buffer_impl.h"
+
+#include "drawable/rs_property_drawable_background.h"
+#include "effect/rs_render_shader_base.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "render/rs_drawing_filter.h"
+#include "ge_visual_effect_container.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -57,13 +58,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSShadowDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    node.renderContent_->GetMutableRenderProperties().SetShadowIsFilled(true);
-    node.renderContent_->GetMutableRenderProperties().shadow_->radius_ = 1.0f;
+    node.GetMutableRenderProperties().SetShadowIsFilled(true);
+    node.GetMutableRenderProperties().shadow_->radius_ = 1.0f;
     ASSERT_TRUE(node.GetRenderProperties().IsShadowValid());
-    node.renderContent_->GetMutableRenderProperties().shadow_->SetMask(true);
+    node.GetMutableRenderProperties().shadow_->SetMask(true);
     std::shared_ptr<RSDrawable> drawableTwo = DrawableV2::RSShadowDrawable::OnGenerate(node);
-    node.renderContent_->GetMutableRenderProperties().shadow_->SetMask(false);
-    node.renderContent_->GetMutableRenderProperties().shadow_->SetElevation(1.0f);
+    node.GetMutableRenderProperties().shadow_->SetMask(false);
+    node.GetMutableRenderProperties().shadow_->SetElevation(1.0f);
     ASSERT_TRUE(node.GetRenderProperties().GetShadowElevation() > 0.f);
     std::shared_ptr<RSDrawable> drawableThree = DrawableV2::RSShadowDrawable::OnGenerate(node);
     std::shared_ptr<DrawableV2::RSShadowDrawable> rsShadowDrawable =
@@ -74,7 +75,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
     rsShadowDrawable->needSync_ = true;
     rsShadowDrawable->OnSync();
     ASSERT_FALSE(rsShadowDrawable->needSync_);
-    node.renderContent_->GetMutableRenderProperties().shadow_->SetElevation(0);
+    node.GetMutableRenderProperties().shadow_->SetElevation(0);
     std::shared_ptr<RSDrawable> drawableFour = DrawableV2::RSShadowDrawable::OnGenerate(node);
     ASSERT_NE(drawableFour, nullptr);
 }
@@ -121,31 +122,31 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSMaskDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    std::shared_ptr<RSMask> mask =  std::make_shared<RSMask>();
+    std::shared_ptr<RSMask> mask = std::make_shared<RSMask>();
     mask->type_ = MaskType::SVG;
-    node.renderContent_->GetMutableRenderProperties().SetMask(mask);
+    node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_EQ(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->svgPicture_ = std::make_shared<Drawing::Picture>();
-    node.renderContent_->GetMutableRenderProperties().mask_.reset();
-    node.renderContent_->GetMutableRenderProperties().SetMask(mask);
+    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::GRADIENT;
-    node.renderContent_->GetMutableRenderProperties().mask_.reset();
-    node.renderContent_->GetMutableRenderProperties().SetMask(mask);
+    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::PATH;
-    node.renderContent_->GetMutableRenderProperties().mask_.reset();
-    node.renderContent_->GetMutableRenderProperties().SetMask(mask);
+    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::PIXEL_MAP;
     Media::InitializationOptions opts;
     opts.size.width = 50;
     opts.size.height = 50;
     auto pixelMap = Media::PixelMap::Create(opts);
-    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelMap.release());
+    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelMap.release());
     mask->SetPixelMap(shpPixelMap);
-    node.renderContent_->GetMutableRenderProperties().mask_.reset();
-    node.renderContent_->GetMutableRenderProperties().SetMask(mask);
+    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
 }
 
@@ -161,18 +162,16 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundColorDrawable, TestSize.Level
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundColorDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundColor(Color(1, 1, 1, 1));
+    node.GetMutableRenderProperties().SetBackgroundColor(Color(1, 1, 1, 1));
     ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
     std::optional<RSDynamicBrightnessPara> params = RSDynamicBrightnessPara();
-    node.renderContent_->GetMutableRenderProperties().SetBgBrightnessParams(params);
-    node.renderContent_->GetMutableRenderProperties().SetBgBrightnessFract(0.0f);
+    node.GetMutableRenderProperties().SetBgBrightnessParams(params);
+    node.GetMutableRenderProperties().SetBgBrightnessFract(0.0f);
     ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
     auto borderColor = Color(255, 255, 255, 255);
     auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
-    node.renderContent_->GetMutableRenderProperties().SetBorderColor(
-        { borderColor, borderColor, borderColor, borderColor });
-    node.renderContent_->GetMutableRenderProperties().SetBorderStyle(
-        { borderStyle, borderStyle, borderStyle, borderStyle });
+    node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
+    node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
     ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
 }
 
@@ -189,15 +188,108 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundShaderDrawable, TestSize.Leve
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundShader(shader);
+    node.GetMutableRenderProperties().SetBackgroundShader(shader);
     ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
     auto borderColor = Color(255, 255, 255, 255);
     auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
-    node.renderContent_->GetMutableRenderProperties().SetBorderColor(
-        { borderColor, borderColor, borderColor, borderColor });
-    node.renderContent_->GetMutableRenderProperties().SetBorderStyle(
-        { borderStyle, borderStyle, borderStyle, borderStyle });
+    node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
+    node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
     ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
+}
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable001
+ * @tc.desc: Test OnGenerate
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node);
+    EXPECT_EQ(drawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+    EXPECT_NE(DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node), nullptr);
+
+    auto borderColor = Color(255, 255, 255, 255);
+    auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
+    node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
+    node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
+
+    EXPECT_NE(DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable002
+ * @tc.desc: Test OnUpdate
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node);
+    EXPECT_EQ(drawable, nullptr);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+    auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
+        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
+    EXPECT_NE(drawableTwo, nullptr);
+    EXPECT_TRUE(drawableTwo->OnUpdate(node));
+    EXPECT_EQ(drawableTwo->stagingShader_, shader);
+    EXPECT_EQ(drawableTwo->needSync_, true);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(nullptr);
+    EXPECT_FALSE(drawableTwo->OnUpdate(node));
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable003
+ * @tc.desc: Test Onsync
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable003, TestSize.Level1)
+{
+    DrawableV2::RSBackgroundNGShaderDrawable drawable;
+    drawable.needSync_ = false;
+    drawable.OnSync();
+    EXPECT_FALSE(drawable.needSync_);
+
+    drawable.needSync_ = true;
+    drawable.OnSync();
+    EXPECT_TRUE(drawable.needSync_);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    drawable.stagingShader_ = shader;
+    drawable.OnSync();
+    EXPECT_FALSE(drawable.needSync_);
+    EXPECT_NE(drawable.visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable004
+ * @tc.desc: Test Onsync
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable004, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSBackgroundNGShaderDrawable>();
+    auto drawFunc = drawable->CreateDrawFunc();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawFunc(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
+
+    drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    drawFunc(canvas.get(), nullptr);
+    ASSERT_TRUE(true);
+
+    drawFunc(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
 }
 
 /**
@@ -215,7 +307,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable001, TestSize.Le
     std::shared_ptr<RSImage> shader = std::make_shared<RSImage>();
     auto pixelmap = std::make_shared<Media::PixelMap>();
     shader->SetPixelMap(pixelmap);
-    node.renderContent_->GetMutableRenderProperties().SetBgImage(shader);
+    node.GetMutableRenderProperties().SetBgImage(shader);
     ASSERT_NE(DrawableV2::RSBackgroundImageDrawable::OnGenerate(node), nullptr);
 }
 
@@ -256,7 +348,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable003, TestSize.Le
     opts.size.width = 50;
     opts.size.height = 50;
     auto pixelmap = Media::PixelMap::Create(opts);
-    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelmap.release());
+    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelmap.release());
     shpPixelMap->SetAstc(true);
     image->SetPixelMap(shpPixelMap);
     drawable->bgImage_ = image;
@@ -324,7 +416,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable006, TestSize.Le
     opts.size.width = 50;
     opts.size.height = 50;
     auto pixelmap = Media::PixelMap::Create(opts);
-    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelmap.release());
+    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelmap.release());
     DrawableV2::RSBackgroundImageDrawable drawable;
     drawable.bgImage_ = image;
     drawable.SetCompressedDataForASTC();
@@ -347,11 +439,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSDrawingFilter>(std::make_shared<RSShaderFilter>());
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(backgroundFilter);
+    std::shared_ptr<RSFilter> backgroundFilter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    node.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
     RSEffectRenderNode nodeTwo(id);
-    nodeTwo.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(backgroundFilter);
+    nodeTwo.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_TRUE(nodeTwo.IsInstanceOf<RSEffectRenderNode>());
     ASSERT_TRUE(nodeTwo.GetRenderProperties().GetBackgroundFilter());
     auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundEffectDrawable>(
@@ -360,12 +453,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     drawableTwo->OnSync();
     ASSERT_TRUE(drawableTwo->CreateDrawFunc());
     auto drawableThree = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(nullptr);
+    node.GetMutableRenderProperties().backgroundFilter_ = nullptr;
     ASSERT_FALSE(drawableThree->OnUpdate(node));
     auto drawableFour = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     ASSERT_FALSE(drawableFour->OnUpdate(node));
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RSBackgroundFilterDrawable002
  * @tc.desc: Test NeedBehindWindow branch
@@ -383,25 +477,25 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, list);
+    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, list);
     float radius = 0.f;
-    ASSERT_TRUE(DrawableV2::RSBackgroundFilterDrawable::GetModifierProperty(node,
-        RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius));
+    ASSERT_TRUE(DrawableV2::RSBackgroundFilterDrawable::GetModifierProperty(
+        node, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius));
     ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
     auto property2 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property2->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> list2 { std::make_shared<RSDrawCmdListRenderModifier>(property2) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, list2);
+    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, list2);
     ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
     auto property3 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property3->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> list3 { std::make_shared<RSDrawCmdListRenderModifier>(property3) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, list3);
+    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, list3);
     ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
     auto property4 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property4->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> list4 { std::make_shared<RSDrawCmdListRenderModifier>(property4) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, list4);
+    node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, list4);
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
     // OnGenerate and OnUpdate test
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
@@ -419,6 +513,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
     ASSERT_TRUE(filterDrawable->needDrawBehindWindow_);
     ASSERT_TRUE(filterDrawable->drawBehindWindowRegion_ == filterDrawable->stagingDrawBehindWindowRegion_);
 }
+#endif
 
 /**
  * @tc.name: RSBackgroundEffectDrawable
@@ -431,7 +526,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawable, TestSize.Leve
     auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     int width = 1270;
     int height = 2560;
-    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    Drawing::ImageInfo imageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
     Drawing::Surface* surfacePtr = surface.get();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(surfacePtr);
@@ -453,24 +548,24 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable001, TestSize.Level1)
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
-    auto drawableTwo = std::static_pointer_cast<DrawableV2::RSUseEffectDrawable>(
-        DrawableV2::RSUseEffectDrawable::OnGenerate(node));
+    node.GetMutableRenderProperties().SetUseEffect(true);
+    auto drawableTwo =
+        std::static_pointer_cast<DrawableV2::RSUseEffectDrawable>(DrawableV2::RSUseEffectDrawable::OnGenerate(node));
     ASSERT_NE(drawableTwo, nullptr);
     ASSERT_TRUE(drawableTwo->OnUpdate(node));
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(false);
+    node.GetMutableRenderProperties().SetUseEffect(false);
     ASSERT_FALSE(drawableTwo->OnUpdate(node));
     auto nodeTwo = std::make_shared<RSEffectRenderNode>(2);
     auto nodeThree = std::make_shared<RSRenderNode>(3);
     nodeTwo->AddChild(nodeThree, 1);
-    nodeThree->renderContent_->GetMutableRenderProperties().SetUseEffect(true);
+    nodeThree->GetMutableRenderProperties().SetUseEffect(true);
     auto drawableThree = std::static_pointer_cast<DrawableV2::RSUseEffectDrawable>(
         DrawableV2::RSUseEffectDrawable::OnGenerate(*nodeThree.get()));
     ASSERT_TRUE(drawableThree->OnUpdate(*nodeThree.get()));
     auto nodeFour = std::make_shared<RSRenderNode>(4);
     auto nodeFive = std::make_shared<RSRenderNode>(5);
     nodeFour->AddChild(nodeFive, 1);
-    nodeFive->renderContent_->GetMutableRenderProperties().SetUseEffect(true);
+    nodeFive->GetMutableRenderProperties().SetUseEffect(true);
     auto drawableFour = std::static_pointer_cast<DrawableV2::RSUseEffectDrawable>(
         DrawableV2::RSUseEffectDrawable::OnGenerate(*nodeFive.get()));
     ASSERT_TRUE(drawableFour->OnUpdate(*nodeFive.get()));
@@ -505,13 +600,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable003, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffectType(1);
+    node.GetMutableRenderProperties().SetUseEffect(true);
+    node.GetMutableRenderProperties().SetUseEffectType(1);
     auto drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
     auto useEffectDrawable = std::static_pointer_cast<DrawableV2::RSUseEffectDrawable>(drawable);
     ASSERT_EQ(useEffectDrawable->useEffectType_, UseEffectType::BEHIND_WINDOW);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffectType(0);
+    node.GetMutableRenderProperties().SetUseEffectType(0);
     ASSERT_TRUE(useEffectDrawable->OnUpdate(node));
     ASSERT_EQ(useEffectDrawable->stagingUseEffectType_, UseEffectType::EFFECT_COMPONENT);
     ASSERT_TRUE(useEffectDrawable->needSync_);
@@ -530,8 +625,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable004, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffectType(1);
+    node.GetMutableRenderProperties().SetUseEffect(true);
+    node.GetMutableRenderProperties().SetUseEffectType(1);
     auto drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
@@ -552,8 +647,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable005, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffectType(1);
+    node.GetMutableRenderProperties().SetUseEffect(true);
+    node.GetMutableRenderProperties().SetUseEffectType(1);
     auto drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
@@ -574,8 +669,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable006, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
-    node.renderContent_->GetMutableRenderProperties().SetUseEffectType(2);
+    node.GetMutableRenderProperties().SetUseEffect(true);
+    node.GetMutableRenderProperties().SetUseEffectType(2);
     auto drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
@@ -635,15 +730,15 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSDynamicLightUpDrawable001, TestSize.Lev
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSDynamicLightUpDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
     std::optional<float> rate = { 1.0f };
-    node.renderContent_->GetMutableRenderProperties().SetDynamicLightUpRate(rate);
+    node.GetMutableRenderProperties().SetDynamicLightUpRate(rate);
     std::optional<float> lightUpDegree = { 0.0f };
-    node.renderContent_->GetMutableRenderProperties().SetDynamicLightUpDegree(lightUpDegree);
-    ASSERT_TRUE(node.renderContent_->GetMutableRenderProperties().IsDynamicLightUpValid());
+    node.GetMutableRenderProperties().SetDynamicLightUpDegree(lightUpDegree);
+    ASSERT_TRUE(node.GetMutableRenderProperties().IsDynamicLightUpValid());
     auto drawableTwo = std::static_pointer_cast<DrawableV2::RSDynamicLightUpDrawable>(
         DrawableV2::RSDynamicLightUpDrawable::OnGenerate(node));
     ASSERT_NE(drawableTwo, nullptr);
     ASSERT_TRUE(drawableTwo->OnUpdate(node));
-    node.renderContent_->GetMutableRenderProperties().SetDynamicLightUpRate(lightUpDegree);
+    node.GetMutableRenderProperties().SetDynamicLightUpRate(lightUpDegree);
     ASSERT_FALSE(drawableTwo->OnUpdate(node));
     drawableTwo->OnSync();
     ASSERT_FALSE(drawableTwo->needSync_);

@@ -45,14 +45,15 @@ ohos_unittest("RSRenderClientPipelineTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbegetutil",
   ]

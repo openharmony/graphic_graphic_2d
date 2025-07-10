@@ -23,14 +23,14 @@
 #include "common/rs_macros.h"
 #include "draw/canvas.h"
 #include "include/core/SkCanvas.h" // SKIA
+#include "symbol_animation_config.h"
 #include "text/font_metrics.h"
-#include "utils/rect.h"
-
+#include "text/text_blob.h"
 #include "text_style.h"
 #include "text_line_base.h"
 #include "typography_style.h"
 #include "typography_types.h"
-#include "symbol_animation_config.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -113,6 +113,12 @@ struct LineMetrics {
     std::map<size_t, RunMetrics> runMetrics;
 };
 
+struct TextBlobRecordInfo {
+    std::shared_ptr<Drawing::TextBlob> blob{nullptr};
+    SkPoint offset{0.0f, 0.0f};
+    Drawing::Color color{Drawing::Color::COLOR_BLACK};
+};
+
 class Typography {
 public:
     virtual ~Typography() = default;
@@ -152,6 +158,7 @@ public:
     virtual double GetLineWidth(int lineNumber) = 0;
     virtual void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc)= 0;
+    virtual std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> GetAnimation() = 0;
     virtual void SetParagraghId(uint32_t id) = 0;
     virtual Drawing::FontMetrics MeasureText() = 0;
     virtual bool GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics) = 0;
@@ -169,6 +176,11 @@ public:
     virtual void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) = 0;
     virtual void UpdateAllTextStyles(const TextStyle& textStyleTemplate) = 0;
+    virtual void SetSkipTextBlobDrawing(bool state) = 0;
+    virtual bool HasSkipTextBlobDrawing() const = 0;
+    virtual void SetTextEffectAssociation(bool association) = 0;
+    virtual bool GetTextEffectAssociation() const = 0;
+    virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -51,6 +51,8 @@ public:
     T Normalize();
     void Identity();
     bool IsInfinite() const;
+    bool IsNaN() const;
+    bool IsValid() const;
     bool IsIdentity() const;
     bool IsZero() const;
     void SetValues(T x, T y, T z, T w);
@@ -550,6 +552,19 @@ bool Vector4<T>::IsInfinite() const
 {
     return std::isinf(data_[0]) || std::isinf(data_[1]) ||
         std::isinf(data_[2]) || std::isinf(data_[3]);
+}
+
+template<typename T>
+bool Vector4<T>::IsNaN() const
+{
+    return std::isnan(data_[0]) || std::isnan(data_[1]) ||
+        std::isnan(data_[2]) || std::isnan(data_[3]);
+}
+
+template<typename T>
+bool Vector4<T>::IsValid() const
+{
+    return !IsInfinite() && !IsNaN();
 }
 } // namespace Rosen
 } // namespace OHOS

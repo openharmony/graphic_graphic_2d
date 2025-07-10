@@ -25,48 +25,49 @@ RSTransactionDataCallbackManager& RSTransactionDataCallbackManager::Instance()
     return mgr;
 }
 
-void RSTransactionDataCallbackManager::RegisterTransactionDataCallback(int32_t pid,
+void RSTransactionDataCallbackManager::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
     RS_LOGD("RSTransactionDataCallbackManager save data, timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
-    if (!PushTransactionDataCallback(pid, timeStamp, callback)) {
+        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    if (!PushTransactionDataCallback(token, timeStamp, callback)) {
         RS_LOGE("RegisterTransactionDataCallback register callback err");
     }
 }
 
-void RSTransactionDataCallbackManager::TriggerTransactionDataCallback(int32_t pid, uint64_t timeStamp)
+void RSTransactionDataCallbackManager::TriggerTransactionDataCallback(uint64_t token, uint64_t timeStamp)
 {
-    if (auto callback = PopTransactionDataCallback(pid, timeStamp)) {
+    if (auto callback = PopTransactionDataCallback(token, timeStamp)) {
         RS_LOGD("RSTransactionDataCallbackManager trigger data, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
-        callback->OnAfterProcess(pid, timeStamp);
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+        callback->OnAfterProcess(token, timeStamp);
     } else {
-        RS_LOGE("TriggerTransactionDataCallback trigger callback err");
+        RS_LOGD("RSTransactionDataCallbackManager trigger callback error, timeStamp: %{public}"
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
     }
 }
 
-bool RSTransactionDataCallbackManager::PushTransactionDataCallback(int32_t pid,
+bool RSTransactionDataCallbackManager::PushTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
     std::lock_guard<std::mutex> lock{ transactionDataCbMutex_ };
-    if (transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)) == std::end(transactionDataCallbacks_)) {
+    if (transactionDataCallbacks_.find(std::make_pair(token, timeStamp)) == std::end(transactionDataCallbacks_)) {
         RS_LOGD("RSTransactionDataCallbackManager push data, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
-        transactionDataCallbacks_.emplace(std::make_pair(pid, timeStamp), callback);
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+        transactionDataCallbacks_.emplace(std::make_pair(token, timeStamp), callback);
         return true;
     }
     return false;
 }
 
-sptr<RSITransactionDataCallback> RSTransactionDataCallbackManager::PopTransactionDataCallback(int32_t pid,
+sptr<RSITransactionDataCallback> RSTransactionDataCallbackManager::PopTransactionDataCallback(uint64_t token,
     uint64_t timeStamp)
 {
     std::lock_guard<std::mutex> lock { transactionDataCbMutex_ };
-    auto iter = transactionDataCallbacks_.find(std::make_pair(pid, timeStamp));
+    auto iter = transactionDataCallbacks_.find(std::make_pair(token, timeStamp));
     if (iter != std::end(transactionDataCallbacks_)) {
         RS_LOGD("RSTransactionDataCallbackManager pop data, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
+            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
         auto callback = iter->second;
         transactionDataCallbacks_.erase(iter);
         return callback;

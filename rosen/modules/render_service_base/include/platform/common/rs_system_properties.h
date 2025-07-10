@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "utils/system_properties.h"
 
@@ -135,14 +136,6 @@ enum class DdgrOpincDfxType {
     OPINC_DFX_AUTO,
 };
 
-enum class ComponentEnableSwitch {
-    TEXTBLOB = 0,
-    SVG,
-    HMSYMBOL,
-    CANVAS,
-    SWITCH_MAX,
-};
-
 struct GetComponentSwitch {
     ComponentEnableSwitch type;
     bool (*ComponentHybridSwitch)();
@@ -166,6 +159,7 @@ public:
     static bool GetProfilerEnabled();
     static void SetProfilerDisabled();
     static bool GetInstantRecording();
+    static bool GetProfilerPixelCheckMode();
     static void SetInstantRecording(bool flag);
     static uint32_t GetBetaRecordingMode();
     static void SetBetaRecordingMode(uint32_t param);
@@ -192,6 +186,7 @@ public:
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
     static bool GetExpandScreenDirtyEnabled();
+    static bool GetVirtualExpandScreenSkipEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetHighContrastStatus();
@@ -269,8 +264,10 @@ public:
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
+    static bool GetHeterogComputingHDREnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetUIFirstOptScheduleEnabled();
+    static bool GetUIFirstBehindWindowEnabled();
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
@@ -346,10 +343,14 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
+    static bool GetOptimizeCanvasDrawRegionEnabled();
+    static bool GetHpaeBlurUsingAAE();
+
     static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
     static bool GetTimeVsyncDisabled();
     static void SetDebugFmtTraceEnabled(bool flag);
+    static bool GetTextureExportDFXEnabled();
     static bool GetDebugFmtTraceEnabled();
 
     static bool GetHybridRenderEnabled();
@@ -360,14 +361,22 @@ public:
     static bool GetHybridRenderMemeoryReleaseEnabled();
     static bool GetHybridRenderSystemEnabled();
     static int32_t GetHybridRenderCcmEnabled();
-    static int32_t GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
+    static bool GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
     static bool GetHybridRenderTextBlobEnabled();
     static bool GetHybridRenderSvgEnabled();
     static bool GetHybridRenderHmsymbolEnabled();
+    static bool GetTypicalResidentProcess();
+    static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
 
     static bool GetVKImageUseEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
+    static bool GetSubThreadControlFrameRate();
+    static int GetSubThreadDropFrameInterval();
+    static bool GetCompositeLayerEnabled();
+    static bool GetEarlyZEnable();
+    static bool GetAIBarOptEnabled();
+
 private:
     RSSystemProperties() = default;
 
@@ -377,6 +386,8 @@ private:
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;
+    static inline bool isTypicalResidentProcess_ = false;
+    static bool isEnableEarlyZ_;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

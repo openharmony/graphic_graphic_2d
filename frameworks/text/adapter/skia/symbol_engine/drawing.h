@@ -21,7 +21,6 @@
 #include "draw/path.h"
 #include "text/text_blob.h"
 #include "text/hm_symbol.h"
-#include "text/hm_symbol_config_ohos.h"
 
 namespace RSDrawing = OHOS::Rosen::Drawing;
 using RSBrush = RSDrawing::Brush;
@@ -38,7 +37,6 @@ using RSSymbolLayersGroups = RSDrawing::DrawingSymbolLayersGroups;
 using RSSymbolRenderingStrategy = RSDrawing::DrawingSymbolRenderingStrategy;
 using RSEffectStrategy = RSDrawing::DrawingEffectStrategy;
 using RSHMSymbolData = RSDrawing::DrawingHMSymbolData;
-using RSHmSymbolConfig_OHOS = RSDrawing::HmSymbolConfigOhos;
 using RSAnimationSetting = RSDrawing::DrawingAnimationSetting;
 using RSAnimationType = RSDrawing::DrawingAnimationType;
 using RSGroupInfo = RSDrawing::DrawingGroupInfo;
@@ -49,5 +47,7 @@ using RSCommonSubType = RSDrawing::DrawingCommonSubType;
 using RSAnimationInfo = RSDrawing::DrawingAnimationInfo;
 using RSAnimationPara = RSDrawing::DrawingAnimationPara;
 using RSPiecewiseParameter = RSDrawing::DrawingPiecewiseParameter;
+using RSRecordingCanvas = RSDrawing::RecordingCanvas;
+using RSHybridRenderType = RSDrawing::DrawCmdList::HybridRenderType;
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXGINE_DRAWING_DRAWING_H

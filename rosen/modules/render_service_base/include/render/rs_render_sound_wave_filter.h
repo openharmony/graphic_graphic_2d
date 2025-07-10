@@ -30,6 +30,8 @@ public:
 
     virtual ~RSRenderSoundWaveFilterPara() = default;
 
+    std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const override;
+
     void GetDescription(std::string& out) const override;
 
     virtual bool WriteToParcel(Parcel& parcel) override;
@@ -39,6 +41,50 @@ public:
     static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
+    float GetColorProgress() const;
+    float GetSoundIntensity() const;
+    float GetShockWaveAlphaA() const;
+    float GetShockWaveAlphaB() const;
+    float GetShockWaveProgressA() const;
+    float GetShockWaveProgressB() const;
+    float GetShockWaveTotalAlpha() const;
+
+    bool ParseFilterValues() override;
+    void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+
+    void SetDisplayHeadroom(float headroom) override
+    {
+        maxHeadroom_ = headroom;
+    }
+
+private:
+    void CalculateHash();
+    static constexpr char GE_FILTER_SOUND_WAVE_COLOR_A[] = "COLORA";
+    static constexpr char GE_FILTER_SOUND_WAVE_COLOR_B[] = "COLORB";
+    static constexpr char GE_FILTER_SOUND_WAVE_COLOR_C[] = "COLORC";
+    static constexpr char GE_FILTER_SOUND_WAVE_COLORPROGRESS[] = "COLORPROGRESS";
+    static constexpr char GE_FILTER_SOUND_WAVE_SOUNDINTENSITY[] = "SOUNDINTENSITY";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHA_A[] = "SHOCKWAVEALPHAA";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHA_B[] = "SHOCKWAVEALPHAB";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESS_A[] = "SHOCKWAVEPROGRESSA";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESS_B[] = "SHOCKWAVEPROGRESSB";
+    static constexpr char GE_FILTER_SOUND_WAVE_TOTAL_ALPHA[] = "SHOCKWAVETOTALALPHA";
+    // sound wave
+    Drawing::Color4f colorA_ = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Drawing::Color4f colorB_ = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Drawing::Color4f colorC_ = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float colorProgress_ = 0.0f;
+    float soundIntensity_ = 0.0f;
+
+    // shock wave
+    float shockWaveAlphaA_ = 1.0f;
+    float shockWaveAlphaB_ = 1.0f;
+    float shockWaveProgressA_ = 0.0f;
+    float shockWaveProgressB_ = 0.0f;
+    float shockWaveTotalAlpha_ = 0.0f;
+
+    // HDR settings
+    float maxHeadroom_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

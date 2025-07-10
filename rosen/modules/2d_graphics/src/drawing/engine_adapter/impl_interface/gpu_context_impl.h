@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,11 @@
 #include "base_impl.h"
 #include "image/trace_memory_dump.h"
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/vk/VulkanBackendContext.h"
+#else
 #include "include/gpu/vk/GrVkBackendContext.h"
+#endif
 #endif
 
 namespace OHOS {
@@ -42,8 +46,13 @@ public:
 
     virtual bool BuildFromGL(const GPUContextOptions& options) = 0;
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+    virtual bool BuildFromVK(const skgpu::VulkanBackendContext& context) = 0;
+    virtual bool BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options) = 0;
+#else
     virtual bool BuildFromVK(const GrVkBackendContext& context) = 0;
     virtual bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) = 0;
+#endif
 #endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
@@ -67,8 +76,6 @@ public:
     virtual void DumpGpuStats(std::string& out) = 0;
 
     virtual void DumpAllResource(std::stringstream& dump) = 0;
-
-    virtual void DumpAllCoreTrace(std::stringstream& dump) = 0;
 
     virtual void ReleaseResourcesAndAbandonContext() = 0;
 
@@ -120,6 +127,10 @@ public:
     virtual void FlushGpuMemoryInWaitQueue() = 0;
     
     virtual void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) = 0;
+
+    virtual void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) = 0;
+
+    virtual void SetEarlyZFlag(bool flag) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

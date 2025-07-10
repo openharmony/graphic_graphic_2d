@@ -38,6 +38,9 @@ enum DrawingAnimationType {
     PULSE_TYPE = 6,
     REPLACE_APPEAR_TYPE = 7,
     REPLACE_DISAPPEAR_TYPE = 8,
+    DISABLE_TYPE = 9,
+    QUICK_REPLACE_APPEAR_TYPE = 10,
+    QUICK_REPLACE_DISAPPEAR_TYPE = 11,
 };
 
 enum DrawingCurveType {
@@ -92,6 +95,8 @@ struct DrawingGroupSetting {
 struct DrawingAnimationSetting {
     std::vector<DrawingAnimationType> animationTypes;
     std::vector<DrawingGroupSetting> groupSettings;
+    double slope = 0.0;
+    DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN;
 };
 
 struct DrawingRenderGroup {
@@ -109,6 +114,9 @@ enum DrawingEffectStrategy {
     PULSE = 6,
     REPLACE_APPEAR = 7,
     REPLACE_DISAPPEAR = 8,
+    DISABLE = 9,
+    QUICK_REPLACE_APPEAR = 10,
+    QUICK_REPLACE_DISAPPEAR = 11,
 
     TEXT_FLIP = 100, // text type start from 100
 };

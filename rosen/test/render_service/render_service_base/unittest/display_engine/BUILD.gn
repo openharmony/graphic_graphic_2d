@@ -50,8 +50,8 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
 
   external_deps = [
     "c_utils:utils",
-    "googletest:gtest_main",
     "googletest:gmock_main",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "image_framework:image_native",
     "init:libbegetutil",
@@ -60,12 +60,11 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   ]
 
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    sources += [
-      "rs_vpe_manager_test.cpp",
-    ]
+    sources += [ "rs_vpe_manager_test.cpp" ]
     external_deps += [
-      "video_processing_engine:videoprocessingengine",
+      "eventhandler:libeventhandler",
       "media_foundation:media_foundation",
+      "video_processing_engine:videoprocessingengine",
     ]
   }
 

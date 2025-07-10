@@ -114,6 +114,17 @@ HWTEST_F(RSSystemPropertiesTest, GetProfilerEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetPixelCheckEnabled
+ * @tc.desc: GetPixelCheckEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueIC7V62
+ */
+HWTEST_F(RSSystemPropertiesTest, GetPixelCheckEnabled, TestSize.Level1)
+{
+    ASSERT_EQ(RSSystemProperties::GetProfilerPixelCheckMode(), 0);
+}
+
+/**
  * @tc.name: SetInstantRecording
  * @tc.desc: SetInstantRecording Test
  * @tc.type:FUNC
@@ -210,7 +221,7 @@ HWTEST_F(RSSystemPropertiesTest, GetDirtyRegionDebugType, TestSize.Level1)
 /**
  * @tc.name: GetPartialRenderEnabled
  * @tc.desc: GetPartialRenderEnabled Test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9JZWC
  */
 HWTEST_F(RSSystemPropertiesTest, GetPartialRenderEnabled, TestSize.Level1)
@@ -221,13 +232,37 @@ HWTEST_F(RSSystemPropertiesTest, GetPartialRenderEnabled, TestSize.Level1)
 /**
  * @tc.name: GetUniPartialRenderEnabled
  * @tc.desc: GetUniPartialRenderEnabled Test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9JZWC
  */
 HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
 {
     ASSERT_EQ(
         RSSystemProperties::GetUniPartialRenderEnabled(), PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY);
+}
+
+/**
+ * @tc.name: GetVirtualDirtyEnabled
+ * @tc.desc: GetVirtualDirtyEnabled Test
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVirtualDirtyEnabled, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.uni.virtualdirty.enabled", "1");
+    ASSERT_EQ(std::to_string(RSSystemProperties::GetVirtualDirtyEnabled()), type);
+}
+
+/**
+ * @tc.name: GetVirtualExpandScreenSkipEnabled
+ * @tc.desc: GetVirtualExpandScreenSkipEnabled Test
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVirtualExpandScreenSkipEnabled, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    ASSERT_EQ(std::to_string(RSSystemProperties::GetVirtualExpandScreenSkipEnabled()), type);
 }
 
 /**
@@ -1072,6 +1107,17 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetOptimizeCanvasDrawRegionEnabled
+ * @tc.desc: GetOptimizeCanvasDrawRegionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesICI6YB
+ */
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeCanvasDrawRegionEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled());
+}
+
+/**
  * @tc.name: GetTimeVsyncDisabled
  * @tc.desc: GetTimeVsyncDisabled Test
  * @tc.type:FUNC
@@ -1094,6 +1140,50 @@ HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
     RSSystemProperties::SetBehindWindowFilterEnabled(!enabled);
     EXPECT_EQ(RSSystemProperties::GetBehindWindowFilterEnabled(), !enabled);
     RSSystemProperties::SetBehindWindowFilterEnabled(enabled);
+}
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest
+ * @tc.desc: set isTypicalResidentProcess_ to true
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
+    RSSystemProperties::SetTypicalResidentProcess(!enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    // recover isTypicalResidentProcess_
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
+}
+
+/**
+ * @tc.name: GetCompositeLayerEnabledTest
+ * @tc.desc: GetCompositeLayerEnabledTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetCompositeLayerEnabledTest, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetCompositeLayerEnabled();
+    EXPECT_EQ(enabled, true);
+}
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest001
+ * @tc.desc: set isTypicalResidentProcess_ to true and GetHybridRenderEnabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
+    RSSystemProperties::SetTypicalResidentProcess(true);
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderEnabled(), false);
+    // recover isTypicalResidentProcess_
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
 } // namespace Rosen
 } // namespace OHOS

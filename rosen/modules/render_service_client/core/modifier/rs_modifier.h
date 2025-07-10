@@ -60,7 +60,7 @@ public:
      * @param property A shared pointer to an RSPropertyBase object.
      */
     explicit RSModifier(const std::shared_ptr<RSPropertyBase>& property)
-        : property_(property ? property : std::make_shared<RSPropertyBase>())
+        : property_(property ? property : std::make_shared<RSProperty<bool>>())
     {}
 
     /**
@@ -90,7 +90,7 @@ public:
 
 protected:
     RSModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
-        : property_(property ? property : std::make_shared<RSPropertyBase>())
+        : property_(property ? property : std::make_shared<RSProperty<bool>>())
     {
         property_->type_ = type;
     }
@@ -119,7 +119,11 @@ protected:
 
     void AttachToNode(const std::shared_ptr<RSNode> target)
     {
-        property_->target_ = std::weak_ptr<RSNode>(target);
+        if (!target) {
+            property_->target_.reset();
+        } else {
+            property_->Attach(*target);
+        }
         property_->AttachModifier(shared_from_this());
         MarkNodeDirty();
         OnAttachToNode(target);
@@ -129,7 +133,7 @@ protected:
     {
         OnDetachFromNode();
         MarkNodeDirty();
-        property_->target_.reset();
+        property_->Detach();
     }
 
     void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption)

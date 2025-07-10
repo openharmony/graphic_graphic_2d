@@ -18,12 +18,6 @@
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_listened_canvas.h"
 
-#include "third_party/skia/include/core/SkRRect.h"
-#include "third_party/skia/include/core/SkPath.h"
-#include "third_party/skia/include/core/SkRegion.h"
-#include "third_party/skia/include/core/SkScalar.h"
-#include "third_party/skia/include/core/SkBlendMode.h"
-
 using namespace testing;
 using namespace testing::ext;
 

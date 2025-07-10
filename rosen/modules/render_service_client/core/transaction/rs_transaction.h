@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+/**
+* @file rs_transaction.h
+* @brief Process transaction messages.
+*/
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 
@@ -41,11 +46,35 @@ public:
     static RSTransaction* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
 
+    /**
+     * @brief Send messages to RT or RS.
+     * @details This function is used to flush message to RT(in divided render) or RS(in uniRender).
+     */
     static void FlushImplicitTransaction();   // planing
+    /**
+     * @brief Open a synchronous transaction.
+     * @details This function is used to open a synchronous transaction, which will block other operation until
+     * transaction is compelete.
+     * @param handler Event handle, used to handle events related to the transaction, if it is empty
+     * then no events will be processed.
+     */
     void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
+    /**
+     * @brief Close a synchronous transaction.
+     * @details This function is used to close a synchronous transaction, and commit it to the server.
+     * @param handler An event handle for the fallback mechanism of synchronous transaction, if it is empty,
+     * then no fallback for synchronous transactions will be performed.
+     */
     void CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
-
+    /**
+     * @brief Start a synchronous transaction.
+     * @details This function is used to close a synchronous transaction, and commit it to the server.
+     */
     void Begin();
+    /**
+     * @brief Close a synchronous transaction.
+     * @details This function is used to close a synchronous transaction, and commit it to the server.
+     */
     void Commit();
 
     void SetDuration(int32_t duration) { duration_ = duration; }
@@ -71,15 +100,16 @@ public:
         return syncId_;
     }
 
+    void SetTransactionHandler(std::shared_ptr<RSTransactionHandler> rsTransactionHandler)
+    {
+        rsTransactionHandler_ = rsTransactionHandler;
+    }
+
 private:
     uint64_t GenerateSyncId();
     void ResetSyncTransactionInfo();
     bool UnmarshallingParam(Parcel& parcel);
 
-    void SetTransactionHandler(std::shared_ptr<RSTransactionHandler> rsTransactionHandler)
-    {
-        rsTransactionHandler_ = rsTransactionHandler;
-    }
     uint64_t syncId_ { 0 };
     std::mutex mutex_;
     mutable int32_t transactionCount_ { 0 };

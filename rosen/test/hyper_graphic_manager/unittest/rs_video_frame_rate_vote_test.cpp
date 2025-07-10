@@ -24,8 +24,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-}
 class RSVideoFrameRateVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
@@ -64,7 +62,7 @@ void RSVideoFrameRateVoteTest::ReleaseCallback(int64_t avg)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSVideoFrameRateVoteTest, RSVideoFrameRateVote001, Function | SmallTest | Level1)
+HWTEST_F(RSVideoFrameRateVoteTest, RSVideoFrameRateVote001, Function | SmallTest | Level0)
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
@@ -80,7 +78,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, RSVideoFrameRateVote001, Function | SmallTest
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSVideoFrameRateVoteTest, StartVideoFrameRateVote001, Function | SmallTest | Level1)
+HWTEST_F(RSVideoFrameRateVoteTest, StartVideoFrameRateVote001, Function | SmallTest | Level0)
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
@@ -95,7 +93,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, StartVideoFrameRateVote001, Function | SmallT
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate001, Function | SmallTest | Level1)
+HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate001, Function | SmallTest | Level0)
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
@@ -118,7 +116,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, VoteVideoFrameRate001, Function | SmallTest |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSVideoFrameRateVoteTest, SendDelayTask001, Function | SmallTest | Level1)
+HWTEST_F(RSVideoFrameRateVoteTest, SendDelayTask001, Function | SmallTest | Level0)
 {
     releaseCallbackResult_ = 0;
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
@@ -138,7 +136,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, SendDelayTask001, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSVideoFrameRateVoteTest, CancelDelayTask001, Function | SmallTest | Level1)
+HWTEST_F(RSVideoFrameRateVoteTest, CancelDelayTask001, Function | SmallTest | Level0)
 {
     releaseCallbackResult_ = 0;
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
@@ -160,7 +158,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, CancelDelayTask001, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSVideoFrameRateVoteTest, DoVoteCallback001, Function | SmallTest | Level1)
+HWTEST_F(RSVideoFrameRateVoteTest, DoVoteCallback001, Function | SmallTest | Level0)
 {
     voteCallbackResult_ = 0;
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
@@ -182,7 +180,7 @@ HWTEST_F(RSVideoFrameRateVoteTest, DoVoteCallback001, Function | SmallTest | Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSVideoFrameRateVoteTest, DoReleaseCallback001, Function | SmallTest | Level1)
+HWTEST_F(RSVideoFrameRateVoteTest, DoReleaseCallback001, Function | SmallTest | Level0)
 {
     releaseCallbackResult_ = 0;
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,

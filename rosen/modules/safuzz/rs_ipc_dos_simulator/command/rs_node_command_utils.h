@@ -33,7 +33,6 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyGravity, Uint64, Gravity, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyMatrix3f, Uint64, Matrix3f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyQuaternion, Uint64, Quaternion, Uint64, PropertyUpdateType);
-    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyFilter, Uint64, RSFilterSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyImage, Uint64, RSImageSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyMask, Uint64, RSMaskSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyPath, Uint64, RSPathSharedPtr, Uint64, PropertyUpdateType);
@@ -71,6 +70,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIFirstSwitch, Uint64, RSUIFirstSwitch);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawRegion, Uint64, RectFSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetOutOfParent, Uint64, OutOfParentType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRegisterGeometryTransitionNodePair, Uint64, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUnregisterGeometryTransitionNodePair, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSRemoveAllModifiers, Uint64);

@@ -18,7 +18,7 @@
 
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "pixel_map.h"
 #endif
 
@@ -79,6 +79,7 @@ public:
     static napi_value DrawShadow(napi_env env, napi_callback_info info);
     static napi_value DrawRegion(napi_env env, napi_callback_info info);
     static napi_value DrawSingleCharacter(napi_env env, napi_callback_info info);
+    static napi_value DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     static napi_value DrawText(napi_env env, napi_callback_info info);
     static napi_value DrawBackground(napi_env env, napi_callback_info info);
     static napi_value DrawRoundRect(napi_env env, napi_callback_info info);
@@ -136,6 +137,7 @@ private:
     napi_value OnDrawShadow(napi_env env, napi_callback_info info);
     napi_value OnDrawRegion(napi_env env, napi_callback_info info);
     napi_value OnDrawSingleCharacter(napi_env env, napi_callback_info info);
+    napi_value OnDrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
     napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
     napi_value OnGetWidth(napi_env env, napi_callback_info info);
@@ -163,7 +165,7 @@ private:
     static thread_local napi_ref constructor_;
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     std::shared_ptr<Media::PixelMap> mPixelMap_ = nullptr;
 #endif
 };

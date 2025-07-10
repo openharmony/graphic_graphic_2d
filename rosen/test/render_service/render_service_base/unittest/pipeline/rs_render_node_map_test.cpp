@@ -15,7 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -134,13 +135,12 @@ HWTEST_F(RSRenderNodeMapTest, RegisterRenderNode, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, RegisterDisplayRenderNode, TestSize.Level1)
 {
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode* rsDisplayRenderNode = new RSDisplayRenderNode(id, config);
-    std::shared_ptr<RSDisplayRenderNode> node(rsDisplayRenderNode);
+    RSScreenRenderNode* screenRenderNode = new RSScreenRenderNode(id, 1);
+    std::shared_ptr<RSScreenRenderNode> node(screenRenderNode);
     RSRenderNodeMap rsRenderNodeMap;
-    auto result = rsRenderNodeMap.RegisterDisplayRenderNode(node);
+    auto result = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_TRUE(result);
-    result = rsRenderNodeMap.RegisterDisplayRenderNode(node);
+    result = rsRenderNodeMap.RegisterRenderNode(node);
     EXPECT_FALSE(result);
 }
 
@@ -198,13 +198,46 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 
     rsRenderNodeMap.renderNodeMap_[pid][id] = node;
     rsRenderNodeMap.FilterNodeByPid(1);
-    RSDisplayNodeConfig config;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsRenderNodeMap.displayNodeMap_.emplace(id, rsDisplayRenderNode);
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(id, 1);
+    rsRenderNodeMap.screenNodeMap_.emplace(id, screenRenderNode);
     rsRenderNodeMap.FilterNodeByPid(1);
     rsRenderNodeMap.renderNodeMap_.clear();
     rsRenderNodeMap.FilterNodeByPid(1);
     EXPECT_TRUE(true);
+}
+
+/*
+ * @tc.name: FilterNodeByPid
+ * @tc.desc: Test FilterNodeByPid
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, FilterNodeByPidImmediate, Level1)
+{
+    auto renderNodeMap = RSRenderNodeMap();
+    auto displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayId, config);
+    renderNodeMap.RegisterRenderNode(displayRenderNode);
+
+    constexpr uint32_t bits = 32u;
+    constexpr uint64_t nodeId = 1;
+    constexpr uint64_t pid1 = 1;
+    constexpr uint64_t pid2 = 2;
+
+    auto registerNode = [&renderNodeMap](uint64_t pid, uint64_t nodeId) {
+        auto renderNodeId = NodeId((pid << bits) | nodeId);
+        auto renderNode = std::make_shared<RSRenderNode>(renderNodeId);
+        renderNodeMap.RegisterRenderNode(renderNode);
+    };
+
+    registerNode(pid1, nodeId);
+    registerNode(pid2, nodeId);
+
+    EXPECT_EQ(renderNodeMap.GetSize(), 4);
+    renderNodeMap.FilterNodeByPid(pid1, true);
+    EXPECT_EQ(renderNodeMap.GetSize(), 3);
+    renderNodeMap.FilterNodeByPid(pid2, true);
+    EXPECT_EQ(renderNodeMap.GetSize(), 2);
 }
 
 /**

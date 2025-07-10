@@ -14,13 +14,13 @@
  */
 
 #include "gtest/gtest.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "params/rs_render_thread_params.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
@@ -443,6 +443,81 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CaptureSurface006
+ * @tc.desc: Test CaptureSurface
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    RSSpecialLayerManager slManager;
+    surfaceParams->specialLayerManager_ = slManager;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    CaptureParam captureParam;
+    captureParam.isMirror_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    uniParams->isSecurityExemption_ = false;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    captureParam.isMirror_ = false;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+}
+
+/**
+ * @tc.name: CaptureSurface008
+ * @tc.desc: Test sub window has a blacklist in UIFirst scenario
+ * @tc.type: FUNC
+ * @tc.require: issueICHZO3
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    RSSpecialLayerManager slManager;
+    surfaceParams->specialLayerManager_ = slManager;
+
+    auto virtualScreenId = 1;
+    CaptureParam captureParam;
+    captureParam.isMirror_ = true;
+    captureParam.virtualScreenId_ = virtualScreenId;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->blackListIds_[virtualScreenId].insert(renderNode_->GetId());
+    ASSERT_EQ(surfaceParams->HasBlackListByScreenId(virtualScreenId), true);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    RSUniRenderThread::GetCaptureParam().isMirror_ = false;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->blackListIds_[virtualScreenId].clear();
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::NONE;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->blackListIds_[virtualScreenId].insert(renderNode_->GetId());
+    ASSERT_EQ(surfaceParams->HasBlackListByScreenId(virtualScreenId), true);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+}
+
+/**
  * @tc.name: CrossDisplaySurfaceDirtyRegionConversion
  * @tc.desc: Test CrossDisplaySurfaceDirtyRegionConversion, if node is cross-display, the surface dirty will be offset.
  * @tc.type: FUNC
@@ -492,6 +567,18 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
     surfaceParams->isAppWindow_ = false;
     Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
+
+    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->isAppWindow_ = false;
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
+    ASSERT_FALSE(result.IsEmpty());
+
+    surfaceParams->isMainWindowType_ = false;
+    surfaceParams->isLeashWindow_ = false;
+    surfaceParams->isAppWindow_ = false;
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
+    ASSERT_FALSE(result.IsEmpty());
 
     surfaceParams->isMainWindowType_ = true;
     surfaceParams->isLeashWindow_ = false;
@@ -584,7 +671,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
     auto rsSurfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
-        std::make_pair(0, rsSurfaceRenderNode));
+        std::make_tuple(0, 1, rsSurfaceRenderNode));
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 
     auto rsRenderNode = std::make_shared<RSRenderNode>(0);
@@ -592,7 +679,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
     auto surfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsRenderNode);
     surfaceRenderNode->renderParams_ = std::make_unique<RSRenderParams>(0);
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
-        std::make_pair(0, surfaceRenderNode));
+        std::make_tuple(0, 1, surfaceRenderNode));
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 }
 
@@ -1351,8 +1438,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView002, T
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     auto renderNode = std::make_shared<RSRenderNode>(id);
-    auto displayRenderNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(renderNode);
-    displayRenderNodeDrawable->cacheImgForMultiScreenView_ = nullptr;
+    auto displayRenderNodeDrawable = std::make_shared<RSLogicalDisplayRenderNodeDrawable>(renderNode);
+    displayRenderNodeDrawable->cachedImageByCapture_ = nullptr;
     surfaceParams->sourceDisplayRenderNodeDrawable_ = displayRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }
@@ -1370,9 +1457,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView003, T
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     auto renderNode = std::make_shared<RSRenderNode>(id);
-    auto displayRenderNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(renderNode);
-    auto cacheImgForMultiScreenView = std::make_shared<Drawing::Image>();
-    displayRenderNodeDrawable->cacheImgForMultiScreenView_ = cacheImgForMultiScreenView;
+    auto displayRenderNodeDrawable = std::make_shared<RSLogicalDisplayRenderNodeDrawable>(renderNode);
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    displayRenderNodeDrawable->cachedImageByCapture_ = cacheImg;
     surfaceParams->sourceDisplayRenderNodeDrawable_ = displayRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }

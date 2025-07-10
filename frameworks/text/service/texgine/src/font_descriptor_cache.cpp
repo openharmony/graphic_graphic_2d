@@ -28,6 +28,7 @@
 #include "text/font_style.h"
 #include "text/font_mgr.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 #define INSTALL_FONT_CONFIG_FILE "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json"
 
@@ -59,6 +60,7 @@ void FontDescriptorCache::ClearFontFileCache()
 
 void FontDescriptorCache::ParserSystemFonts()
 {
+    std::lock_guard guard(mutex_);
     // System fonts have already been parsed
     if (!fullNameMap_.empty()) {
         return;
@@ -71,6 +73,7 @@ void FontDescriptorCache::ParserSystemFonts()
 
 void FontDescriptorCache::ParserStylishFonts()
 {
+    std::lock_guard guard(mutex_);
     // Stylish fonts have already been parsed
     if (!stylishFullNameMap_.empty()) {
         return;
@@ -137,7 +140,7 @@ bool FontDescriptorCache::ParserInstallFontsPathList(std::vector<std::string>& f
     return ret == Drawing::FontCheckCode::SUCCESSED;
 }
 
-bool FontDescriptorCache::ParserInstallFontsPathList(std::unordered_map<std::string, std::string>& fontPathList)
+bool FontDescriptorCache::ParserInstallFontsPathList(TextEngine::FullNameToPath& fontPathList)
 {
     return TextEngine::FontConfigJson::ParseInstallConfig(INSTALL_FONT_CONFIG_FILE, fontPathList) == 0;
 }
@@ -145,7 +148,7 @@ bool FontDescriptorCache::ParserInstallFontsPathList(std::unordered_map<std::str
 std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
 {
     std::unordered_set<std::string> fullNameList;
-    TextEngine::FontFileMap fullNameToPath;
+    TextEngine::FullNameToPath fullNameToPath;
     if (!ParserInstallFontsPathList(fullNameToPath)) {
         TEXT_LOGE("Failed to parser install fonts path list");
         return fullNameList;
@@ -206,6 +209,7 @@ bool FontDescriptorCache::ProcessSystemFontType(int32_t systemFontType, int32_t&
 void FontDescriptorCache::GetSystemFontFullNamesByType(
     int32_t systemFontType, std::unordered_set<std::string> &fontList)
 {
+    TEXT_TRACE_FUNC();
     if (systemFontType < 0) {
         TEXT_LOGE("Invalid system font type %{public}d", systemFontType);
         return;
@@ -240,14 +244,26 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
     }
 }
 
-bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result)
+bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(
+    const std::string& fullName, FontDescSharedPtr& result) const
 {
-    TextEngine::FontFileMap fullNameToPath;
+    TextEngine::FullNameToPath fullNameToPath;
     if (!ParserInstallFontsPathList(fullNameToPath)) {
         TEXT_LOGE("Failed to parser install fonts path list");
         return false;
     }
-    std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(fullNameToPath[fullName]);
+    auto iter = fullNameToPath.find(fullName);
+    if (iter == fullNameToPath.end()) {
+        TEXT_LOGE("Failed to find font path by full name: %{public}s", fullName.c_str());
+        return false;
+    }
+    FontDescSharedPtr desc = parser_.ParserFontDescriptorFromPath(iter->second.second, iter->second.first);
+    if (desc && desc->fullName == fullName) {
+        desc->weight = WeightAlignment(desc->weight);
+        result = desc;
+        return true;
+    }
+    std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(iter->second.second);
     for (const auto& item : descriptors) {
         if (item->fullName == fullName) {
             item->weight = WeightAlignment(item->weight);
@@ -279,6 +295,7 @@ bool FontDescriptorCache::GetFontTypeFromParams(const std::string& fullName,
 void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& fullName,
     int32_t systemFontType, FontDescSharedPtr& result)
 {
+    TEXT_TRACE_FUNC();
     int32_t fontType = 0;
     if (!GetFontTypeFromParams(fullName, systemFontType, fontType)) {
         return;
@@ -310,9 +327,8 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         return;
     }
     if ((fontCategory & TextEngine::FontParser::SystemFontType::CUSTOMIZED)) {
-        auto it = dynamicFullNameMap_.find(fullName);
-        if (it != dynamicFullNameMap_.end()) {
-            result = dynamicFullNameMap_[fullName];
+        if (dynamicFullNameMap_.count(fullName)) {
+            result = dynamicFullNameMap_.at(fullName);
             return;
         }
     }
@@ -540,7 +556,7 @@ void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::s
     result = std::move(finishRet);
 }
 
-void FontDescriptorCache::Dump()
+void FontDescriptorCache::Dump() const
 {
     TEXT_LOGD("allFontDescriptor size: %{public}zu, fontFamilyMap size: %{public}zu, fullNameMap size: %{public}zu \
         postScriptNameMap size: %{public}zu, fontSubfamilyNameMap size: %{public}zu, boldCache size: %{public}zu \

@@ -93,7 +93,7 @@ int DrawingDemo::InitWindow()
     rootNode_->SetBounds(0, 0, rect_.width_, rect_.height_);
     rootNode_->SetFrame(0, 0, rect_.width_, rect_.height_);
     rootNode_->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
-    rsUiDirector_->SetRoot(rootNode_->GetId());
+    rsUiDirector_->SetRSRootNode(rootNode_->ReinterpretCastTo<RSRootNode>());
 
     canvasNode_ = RSCanvasNode::Create();
     if (canvasNode_ == nullptr) {

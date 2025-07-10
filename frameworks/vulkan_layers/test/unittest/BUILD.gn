@@ -56,6 +56,7 @@ ohos_static_library("vulkan_loader_test_common") {
     "$graphic_2d_root/utils:libgraphic_utils",
   ]
   public_external_deps = [
+    "eventhandler:libeventhandler",
     "vulkan-headers:vulkan_headers",
     "zlib:libz",
   ]

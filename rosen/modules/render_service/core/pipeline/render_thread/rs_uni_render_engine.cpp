@@ -19,7 +19,6 @@
 #include "info_collection/rs_layer_compose_collection.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
-#include "utils/graphic_coretrace.h"
 #ifdef RS_ENABLE_GPU
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
@@ -27,7 +26,7 @@
 #include "metadata_helper.h"
 #endif
 
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 
 namespace OHOS {
@@ -47,8 +46,6 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params, PreProcessFunc preProcess,
     PostProcessFunc postProcess)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSUNIRENDERENGINE_DRAWSURFACENODEWITHPARAMS);
     canvas.Save();
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
@@ -202,6 +199,15 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
         RegisterDeleteBufferListener(layer->GetSurface(), !RSSystemProperties::GetVKImageUseEnabled());
+        DrawImage(canvas, params);
+    } else {
+        DrawBuffer(canvas, params);
+    }
+}
+
+void RSUniRenderEngine::DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+{
+    if (!params.useCPU) {
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

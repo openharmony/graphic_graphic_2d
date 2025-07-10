@@ -15,12 +15,13 @@
 
 #include <gtest/gtest.h>
 
-#include "transaction/rs_transaction_data.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "command/rs_node_command.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "transaction/rs_transaction_data.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -305,6 +306,20 @@ HWTEST_F(RSTransactionDataTest, Marshalling, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Marshalling
+ * @tc.desc: Test Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSTransactionDataTest, Marshalling002, TestSize.Level1)
+{
+    RSTransactionData rsTransactionData;
+    Parcel parcel;
+    parcel.SetDataSize(1843201);
+    ASSERT_EQ(rsTransactionData.Marshalling(parcel), true);
+}
+
+/**
  * @tc.name: AlarmRsNodeLog
  * @tc.desc: Test UnmarshallingCommand
  * @tc.type:FUNC
@@ -364,6 +379,70 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid, TestSize.Level1)
 
     bool isCallingPidValid = rsTransactionData.IsCallingPidValid(callingPid, rsRenderNodeMap);
     EXPECT_TRUE(isCallingPidValid);
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdTest001
+ * @tc.desc: Test MoveCommandByNodeIdTest
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdTest001, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    ASSERT_FALSE(preTransactionData->IsEmpty());
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(curTransactionData->IsEmpty());
+    preTransactionData->MoveCommandByNodeId(curTransactionData, nodeId);
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    ASSERT_FALSE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdTest002
+ * @tc.desc: Test MoveCommandByNodeIdTest
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdTest002, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = nullptr;
+    preTransactionData->payload_.emplace_back(nodeId, FollowType::FOLLOW_TO_PARENT, std::move(command));
+    ASSERT_FALSE(preTransactionData->IsEmpty());
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(curTransactionData->IsEmpty());
+    preTransactionData->MoveCommandByNodeId(curTransactionData, nodeId);
+    ASSERT_FALSE(preTransactionData->IsEmpty());
+    ASSERT_TRUE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdTest003
+ * @tc.desc: Test MoveCommandByNodeIdTest
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdTest003, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId1 = 1;
+    NodeId nodeId2 = 1000;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId2, true);
+    preTransactionData->AddCommand(command, nodeId2, FollowType::FOLLOW_TO_PARENT);
+    ASSERT_FALSE(preTransactionData->IsEmpty());
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(curTransactionData->IsEmpty());
+    preTransactionData->MoveCommandByNodeId(curTransactionData, nodeId1);
+    ASSERT_FALSE(preTransactionData->IsEmpty());
+    ASSERT_TRUE(curTransactionData->IsEmpty());
 }
 } // namespace Rosen
 } // namespace OHOS

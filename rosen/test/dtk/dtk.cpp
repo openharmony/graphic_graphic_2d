@@ -28,6 +28,10 @@
 #include "utils/log.h"
 #include "dtk_test_register.h"
 #include "dtk_test_utils.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkBitmap.h"
+#include "include/core/SkStream.h"
+#endif
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -45,7 +49,7 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
 
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     canvasNode = RSCanvasNode::Create();
     canvasNode->SetFrame(0, 0, width, height);
     rootNode->AddChild(canvasNode, -1);
@@ -61,7 +65,11 @@ void ExportSkImage(sk_sp<SkImage>& image, const std::string& fileName)
         return;
     }
 
+#ifdef USE_M133_SKIA
+    sk_sp<SkData> snapshot = image->refEncodedData();
+#else
     sk_sp<SkData> snapshot = image->encodeToData();
+#endif
     std::string dumpFileName = dir + fileName + ".jpg";
 
     SkFILEWStream outStream(dumpFileName.c_str());

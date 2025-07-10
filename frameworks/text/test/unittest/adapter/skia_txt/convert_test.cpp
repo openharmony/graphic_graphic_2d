@@ -29,7 +29,7 @@ class OHDrawingConvertTest : public testing::Test {};
  * @tc.desc: test for  Convert FontCollection
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest001, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest001, TestSize.Level0)
 {
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
     std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> adapterFontCollection =
@@ -44,7 +44,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest001, TestSize.Level1)
  * @tc.desc: test for  Convert Affinity
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest002, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest002, TestSize.Level0)
 {
     // 0 for unit test
     const SPText::PositionWithAffinity zeroAndUpstream = { 0, SPText::Affinity::UPSTREAM };
@@ -64,7 +64,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest002, TestSize.Level1)
  * @tc.desc: test for  Convert Range
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest003, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest003, TestSize.Level0)
 {
     // 0 for unit test
     SPText::Range<size_t> range(0, 0);
@@ -84,7 +84,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest003, TestSize.Level1)
  * @tc.desc: test for  Convert TextBox
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest004, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest004, TestSize.Level0)
 {
     SkRect skRect = SkRect::MakeEmpty();
     const SPText::TextBox box(skRect, SPText::TextDirection::RTL);
@@ -102,7 +102,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest004, TestSize.Level1)
  * @tc.desc: test for  Convert TextRectHeightStyle
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest005, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest005, TestSize.Level0)
 {
     TextRectHeightStyle textRectHeightStyle = TextRectHeightStyle::TIGHT;
     SPText::RectHeightStyle rectHeightStyle = AdapterTxt::Convert(textRectHeightStyle);
@@ -134,7 +134,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest005, TestSize.Level1)
  * @tc.desc: test for  Convert TextRectWidthStyle
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest006, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest006, TestSize.Level0)
 {
     TextRectWidthStyle textRectWidthStyle = TextRectWidthStyle::MAX;
     SPText::RectWidthStyle rectWidthStyle = AdapterTxt::Convert(textRectWidthStyle);
@@ -150,7 +150,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest006, TestSize.Level1)
  * @tc.desc: test for  Convert TypographyStyle
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest007, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest007, TestSize.Level0)
 {
     TypographyStyle typographyStyle;
     SPText::ParagraphStyle paragraphStyle = AdapterTxt::Convert(typographyStyle);
@@ -166,7 +166,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest007, TestSize.Level1)
  * @tc.desc: test for  Convert PlaceholderSpan
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest008, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest008, TestSize.Level0)
 {
     PlaceholderSpan placeholderSpan;
     placeholderSpan.alignment = PlaceholderVerticalAlignment::OFFSET_AT_BASELINE;
@@ -179,7 +179,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest008, TestSize.Level1)
  * @tc.desc: test for  Convert PlaceholderSpan
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest009, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest009, TestSize.Level0)
 {
     TextStyle textStyle;
     SPText::TextStyle sptextStyle = AdapterTxt::Convert(textStyle);
@@ -212,7 +212,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest009, TestSize.Level1)
  * @tc.desc: test for  Convert PlaceholderSpan
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest010, TestSize.Level2)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest010, TestSize.Level0)
 {
     TextStyle textStyle;
     int tagFeature = 10;
@@ -246,7 +246,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest010, TestSize.Level2)
  * @tc.desc: test for  Convert PlaceholderSpan
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest011, TestSize.Level1)
+HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest011, TestSize.Level0)
 {
     SPText::TextStyle sptextStyle;
     int spTagFeature = 0;

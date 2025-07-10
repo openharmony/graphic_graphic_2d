@@ -165,6 +165,29 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReportUiSkipEvent001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, ReportUiSkipEvent001, TestSize.Level1)
+{
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 10;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 1000, 2000);
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->uiSkipCount_, 10);
+
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 20;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 2000, 1000);
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 30;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 3000 + 60 * 1000, 2000);
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 500;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 3000 + 60 * 1000, 1000);
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 100;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 3000 + 60 * 1000, 2000);
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->uiSkipCount_, 100);
+}
+
+/**
  * @tc.name: IsEmpty001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -352,6 +375,25 @@ HWTEST_F(RSTransactionProxyTest, Commit004, TestSize.Level1)
     ASSERT_EQ(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     RSTransactionProxy::GetInstance()->Begin();
+    RSTransactionProxy::GetInstance()->Commit(timestamp);
+}
+
+/**
+ * @tc.name: Commit005
+ * @tc.desc: Commit Test with normal
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSTransactionProxyTest, Commit005, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(renderServiceClient, nullptr);
+    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    RSTransactionProxy::GetInstance()->Begin();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransactionProxy::GetInstance()->Commit(timestamp);
 }
 

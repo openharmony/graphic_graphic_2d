@@ -68,10 +68,12 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "skia:skia_canvaskit",
     "vulkan-headers:vulkan_headers",
+    "ffrt:libffrt",
   ]
 
   subsystem_name = "graphic"

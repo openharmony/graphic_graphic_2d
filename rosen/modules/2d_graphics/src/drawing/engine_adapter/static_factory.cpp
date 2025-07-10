@@ -15,9 +15,12 @@
 
 #include "static_factory.h"
 
-#include "utils/graphic_coretrace.h"
 #include "skia_adapter/skia_static_factory.h"
+#ifdef USE_M133_SKIA
+#include "src/base/SkUtils.h"
+#else
 #include "src/core/SkUtils.h"
+#endif
 #include "utils/system_properties.h"
 #ifdef ENABLE_DDGR_OPTIMIZE
 #include "ddgr_static_factory.h"
@@ -369,27 +372,6 @@ void StaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vecto
     return EngineStaticFactory::GetDrawingPointsForTextBlob(blob, points);
 }
 
-DrawingSymbolLayersGroups StaticFactory::GetSymbolLayersGroups(uint16_t glyphId)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::GetSymbolLayersGroups(glyphId);
-    }
-#endif
-    return EngineStaticFactory::GetSymbolLayersGroups(glyphId);
-}
-
-std::vector<std::vector<DrawingPiecewiseParameter>> StaticFactory::GetGroupParameters(
-    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-    }
-#endif
-    return EngineStaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-}
-
 std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -412,26 +394,6 @@ void StaticFactory::SetVmaCacheStatus(bool flag)
         EngineStaticFactory::SetVmaCacheStatus(flag);
     }
 #endif
-}
-
-void StaticFactory::RecordCoreTrace(int functionType)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
-#endif
-    EngineStaticFactory::RecordCoreTrace(functionType);
-}
-
-void StaticFactory::RecordCoreTrace(int functionType, uint64_t nodeId)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
-#endif
-    EngineStaticFactory::RecordCoreTrace(functionType, nodeId);
 }
 
 void StaticFactory::ResetStatsData()

@@ -23,6 +23,7 @@ group("default") {
     public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_video" ]
+    public_deps += [ "frameworks/bootanimation:bootanimation.rc" ]
   }
 }
 
@@ -60,7 +61,7 @@ ohos_prebuilt_etc("graphic.rc") {
 ## Install graphic.rc to /system/etc/init/graphic.rc }}}
 
 group("libvulkan") {
-  public_deps = libvulkan
+  public_external_deps = libvulkan
 }
 
 group("libnative_image") {

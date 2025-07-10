@@ -60,10 +60,10 @@ void GenerateFullChildrenListForAll(const RSContext& context)
         [](const std::shared_ptr<RSRenderNode>& node) { node->GenerateFullChildrenList(); });
 }
 
-std::vector<RSRenderContent::DrawCmdContainer> GetBufferOfDrawCmdModifiersFromTree(
+std::vector<RSRenderNode::DrawCmdContainer> GetBufferOfDrawCmdModifiersFromTree(
     const std::vector<std::shared_ptr<RSRenderNode>>& tree)
 {
-    std::vector<RSRenderContent::DrawCmdContainer> bufferOfDrawCmdModifiers;
+    std::vector<RSRenderNode::DrawCmdContainer> bufferOfDrawCmdModifiers;
     bufferOfDrawCmdModifiers.reserve(tree.size());
 
     for (const auto& node : tree) {
@@ -117,7 +117,7 @@ bool CheckDescsInLists(
 }
 
 bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std::shared_ptr<RSRenderNode>>& tree,
-    const std::vector<RSRenderContent::DrawCmdContainer>& bufferOfDrawCmdModifiers)
+    const std::vector<RSRenderNode::DrawCmdContainer>& bufferOfDrawCmdModifiers)
 {
     bool isDrawCmdModifiersEqual = true;
 
@@ -242,7 +242,11 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
 HWTEST_F(RSProfilerTest, SecureScreen, testing::ext::TestSize.Level1)
 {
     RSProfiler::testing_ = true;
+
+    sptr<RSRenderService> renderService = GetAndInitRenderService();
+
     EXPECT_NO_THROW({
+        RSProfiler::Init(renderService);
         EXPECT_FALSE(RSProfiler::IsSecureScreen());
     });
 }
@@ -302,5 +306,33 @@ HWTEST_F(RSProfilerTest, RSDoubleTransformationTest, Function | Reliability | La
 
         EXPECT_TRUE(isDrawCmdModifiersEqual);
     });
+}
+
+/*
+ * @tc.name: IfNeedToSkipDuringReplay
+ * @tc.desc: Test IfNeedToSkipDuringReplay method
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | LargeTest | Level2)
+{
+    RSProfiler::testing_ = true;
+
+    RSProfiler::SetMode(Mode::READ_EMUL);
+
+    auto data = std::make_shared<Drawing::Data>();
+    constexpr size_t length = 40'000;
+    constexpr size_t position = 36;
+
+    void* allocated = malloc(length);
+    EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
+
+    auto* buffer = new[std::nothrow] uint8_t[sizeof(MessageParcel) + 1];
+    MessageParcel* messageParcel = new (buffer + 1) MessageParcel;
+
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*messageParcel, data));
+
+    EXPECT_TRUE(RSProfiler::IfNeedToSkipDuringReplay(*messageParcel, position));
+    EXPECT_EQ(messageParcel->GetWritePosition(), position);
 }
 } // namespace OHOS::Rosen

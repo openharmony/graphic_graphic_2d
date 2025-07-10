@@ -26,6 +26,10 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
+    RSRenderNodeDrawableType GetDrawableType() const override
+    {
+        return RSRenderNodeDrawableType::CANVAS_NODE_DRAWABLE;
+    }
 protected:
     explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 private:

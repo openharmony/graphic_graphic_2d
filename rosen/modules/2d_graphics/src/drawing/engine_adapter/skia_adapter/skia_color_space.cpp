@@ -55,6 +55,8 @@ static inline skcms_TransferFunction ConvertToSkCMSTransferFunction(const CMSTra
             return SkNamedTransferFn::kLinear;
         case CMSTransferFuncType::REC2020:
             return SkNamedTransferFn::kRec2020;
+        case CMSTransferFuncType::HLG:
+            return SkNamedTransferFn::kHLG;
         default:
             return SkNamedTransferFn::kSRGB;
     }

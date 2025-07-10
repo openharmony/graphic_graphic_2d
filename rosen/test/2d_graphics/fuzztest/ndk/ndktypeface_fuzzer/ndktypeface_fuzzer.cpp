@@ -117,19 +117,21 @@ void NativeDrawingTypefaceTest003(const uint8_t* data, size_t size)
     g_pos = 0;
 
     uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    char* axis = new char[str_size];
+    char* axis = new char[str_size + 1];
     for (size_t i = 0; i < str_size; i++) {
         axis[i] = GetObject<char>();
     }
+    axis[str_size] = 0;
     float value = GetObject<float>();
     OH_Drawing_FontArguments* fontArguments = OH_Drawing_FontArgumentsCreate();
     OH_Drawing_FontArgumentsAddVariation(fontArguments, axis, value);
 
     str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    char* path = new char[str_size];
+    char* path = new char[str_size + 1];
     for (size_t i = 0; i < str_size; i++) {
         path[i] = GetObject<char>();
     }
+    path[str_size] = 0;
     OH_Drawing_Typeface* typeFace = OH_Drawing_TypefaceCreateFromFileWithArguments(path, fontArguments);
     OH_Drawing_Typeface* typeFace2 = OH_Drawing_TypefaceCreateFromCurrent(typeFace, fontArguments);
 

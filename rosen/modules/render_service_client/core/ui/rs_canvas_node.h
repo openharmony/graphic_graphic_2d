@@ -117,11 +117,14 @@ public:
     void DrawOnNode(RSModifierType type, DrawFunc func) override;
 
     /**
-     * @brief Sets the freeze state of the node.
+     * @brief Controls freeze state of canvas node rendering content
      *
-     * The property is valid only for CanvasNode and SurfaceNode in uniRender.
+     * Freezes current frame data when enabled, preventing content refresh until unfrozen.
+     * Used for scenarios requiring static snapshots or temporary rendering suspension.
      *
-     * @param isFreeze If true, the node will be frozen; if false, the node will be unfrozen.
+     * @param isFreeze Freeze control flag:
+     *                - true: Freeze current content
+     *                - false: Resume normal rendering pipeline
      */
     void SetFreeze(bool isFreeze) override;
 
@@ -133,11 +136,11 @@ public:
     void SetHDRPresent(bool hdrPresent);
 
     /**
-     * @brief Sets whether the canvas node uses a wide color gamut.
+     * @brief Sets the canvas node's color gamut.
      *
-     * @param isWideColorGamut True to enable wide color gamut; false to use standard color gamut.
+     * @param colorGamut The enum of ColorSpaceName.
      */
-    void SetIsWideColorGamut(bool isWideColorGamut);
+    void SetColorGamut(uint32_t colorGamut);
 
     /**
      * @brief Sets the callback function to be called when the bounds of the canvas node change.
@@ -179,7 +182,6 @@ public:
      */
     static SharedPtr Unmarshalling(Parcel& parcel);
 
-#ifdef RS_ENABLE_VK
     /**
      * @brief Sets the hybrid render canvas state.
      *
@@ -218,7 +220,6 @@ public:
      * @return true if the surface was successfully reset; false otherwise.
      */
     bool ResetSurface(int width, int height);
-#endif
 
 protected:
     RSCanvasNode(

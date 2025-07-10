@@ -17,6 +17,8 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_node_allocator.h"
+#include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include <csignal>
 
@@ -30,12 +32,10 @@ struct MemoryHook {
 
     inline void Protect()
     {
-        static const int sigNo = 42; // Report to HiViewOcean
         static const bool isBeta = RSSystemProperties::GetVersionType() == "beta";
         if (CheckIsNotValid()) {
             if (isBeta) {
                 RS_LOGE("Drawable Protect %{public}u %{public}u", high, low);
-                raise(sigNo);
             }
             high = 0;
             low = 0;
@@ -108,6 +108,9 @@ void RSRenderNodeGC::ReleaseNodeBucket()
     RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu, remain node buckets %u", toDele.size(), remainBucketSize);
     for (auto ptr : toDele) {
         if (ptr) {
+            if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
+                continue;
+            }
 #if defined(__aarch64__)
             auto* hook = reinterpret_cast<MemoryHook*>(ptr);
             hook->Protect();
@@ -192,6 +195,9 @@ void RSRenderNodeGC::ReleaseDrawableBucket()
     RS_TRACE_NAME_FMT("ReleaseDrawableMemory %zu, remain drawable buckets %u", toDele.size(), remainBucketSize);
     for (auto ptr : toDele) {
         if (ptr) {
+            if (RSRenderNodeAllocator::Instance().AddDrawableToAllocator(ptr)) {
+                continue;
+            }
             delete ptr;
             ptr = nullptr;
         }

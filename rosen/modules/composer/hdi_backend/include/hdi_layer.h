@@ -98,7 +98,7 @@ private:
     uint32_t bufferCacheCountMax_ = 0;
     mutable std::mutex mutex_;
     sptr<SurfaceBuffer> currBuffer_ = nullptr;
-    bool alreadyClearBuffer_ = false;
+    bool bufferCleared_ = false;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     void CloseLayer();
@@ -120,6 +120,8 @@ private:
     int32_t SetLayerMetaDataSet();
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
     int32_t SetLayerTunnelHandle();
+    int32_t SetTunnelLayerId();
+    int32_t SetTunnelLayerProperty();
     int32_t SetLayerPresentTimestamp();
     int32_t InitDevice();
     bool IsSameLayerMetaData();

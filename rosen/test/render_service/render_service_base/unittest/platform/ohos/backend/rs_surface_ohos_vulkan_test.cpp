@@ -21,6 +21,8 @@
 #include "render_context/render_context.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "hpae_base/rs_hpae_base_types.h"
+#include "hpae_base/rs_hpae_scheduler.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -305,45 +307,81 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushFrame001, TestSize.Level1)
     }
 }
 
+#ifdef ENABLE_HPAE_BLUR
 /**
- * @tc.name: ClearSurfaceResource001
- * @tc.desc: test ClearSurfaceResource
+ * @tc.name: SubmitHpaeTaskTest
+ * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require: issuesIC7U3T
+ * @tc.require: wz
  */
-HWTEST_F(RSSurfaceOhosVulkanTest, ClearSurfaceResource001, TestSize.Level1)
+HWTEST_F(RSSurfaceOhosVulkanTest, SubmitHpaeTaskTest, TestSize.Level1)
 {
-    RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
 
-    // create consumer
-    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
-    ASSERT_NE(cSurface, nullptr);
-    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    cSurface->RegisterConsumerListener(listener);
-
-    // create producer
-    sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
-    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(pSurface, nullptr);
-    int32_t fence;
-    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
-    BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-    };
-
-    // create buffer
-    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
-    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
-    ASSERT_NE(nativeWindowBuffer, nullptr);
-
-    rsSurface.mSurfaceList.emplace_back(nativeWindowBuffer);
-    rsSurface.ClearSurfaceResource();
-    ASSERT_TRUE(rsSurface.mSurfaceList.empty());
+    uint64_t preFrameId = 1;
+    rsSurface.SubmitHpaeTask(preFrameId);
+    HpaeTask hpaeTask;
+    hpaeTask.taskId = 1;
+    hpaeTask.taskPtr = &preFrameId;
+    HpaeBackgroundCacheItem item;
+    item.hpaeTask_ = hpaeTask;
+    RSHpaeScheduler::GetInstance().GetCachedHpaeItem(item);
+    rsSurface.SubmitHpaeTask(preFrameId);
 }
+
+/**
+ * @tc.name: SubmitGpuAndHpaeTaskTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, SubmitGpuAndHpaeTaskTest, TestSize.Level1)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    uint64_t preFrameId = 1;
+    uint64_t curFrameId = 1;
+    rsSurface.SubmitGpuAndHpaeTask(preFrameId, curFrameId);
+
+    uint64_t preFrameId = 0;
+    uint64_t curFrameId = 0;
+    rsSurface.SubmitGpuAndHpaeTask(preFrameId, curFrameId);
+}
+
+/**
+ * @tc.name: SubmitGpuSemaphoreTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, SubmitGpuAndHpaeTaskTest, TestSize.Level1)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    bool submitWithFFTS = true;
+    uint64_t preFrameId = 1;
+    uint64_t curFrameId = 1;
+    std::vector<GrBackendSemaphore> vec;
+    NativeBufferUtils::NativeSurfaceInfo sur;
+    rsSurface.SubmitGpuSemaphore(submitWithFFTS, preFrameId, curFrameId, vec, sur);
+
+    uint64_t preFrameId = 0;
+    uint64_t curFrameId = 0;
+    rsSurface.SubmitGpuSemaphore(submitWithFFTS, preFrameId, curFrameId, vec, sur);
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

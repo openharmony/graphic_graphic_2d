@@ -18,13 +18,16 @@
 #include <memory>
 #include <vector>
 #include "filter_para.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class Filter final {
+class RSC_EXPORT Filter final {
 public:
     Filter() = default;
     ~Filter() = default;
+
+    Filter(const Filter& filter);
 
     void AddPara(const std::shared_ptr<FilterPara>& para)
     {
@@ -35,6 +38,11 @@ public:
     {
         return filterParas_;
     }
+
+    bool Marshalling(Parcel& parcel) const;
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Filter>& val);
+
 private:
     std::vector<std::shared_ptr<FilterPara>> filterParas_;
 };

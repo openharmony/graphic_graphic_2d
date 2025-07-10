@@ -187,6 +187,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
     skStyle.setTrailingSpaceOptimized(txt.isTrailingSpaceOptimized);
     skStyle.setEnableAutoSpace(txt.enableAutoSpace);
+    skStyle.setVerticalAlignment(static_cast<skt::TextVerticalAlign>(txt.verticalAlignment));
 
     return skStyle;
 }
@@ -269,7 +270,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.SetColor(txt.color);
         paint.isSymbolGlyph = txt.isSymbolGlyph;
         paint.symbol.familyName_ = txt.fontFamilies.empty() ? "" : txt.fontFamilies[0];
-        paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
+        paint.symbol.SetSymbolColor(txt.symbol.GetSymbolColor());
         paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
         paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
         paint.symbol.SetAnimationMode(txt.symbol.GetAnimationMode());
@@ -278,6 +279,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetCommonSubType(txt.symbol.GetCommonSubType());
         paint.symbol.SetSymbolType(txt.symbol.GetSymbolType());
         paint.symbol.SetSymbolUid(txt.symbol.GetSymbolUid());
+        paint.symbol.SetSymbolShadow(txt.symbol.GetSymbolShadow());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 }

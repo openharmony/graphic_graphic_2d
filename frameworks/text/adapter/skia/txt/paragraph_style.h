@@ -20,8 +20,9 @@
 #include <climits>
 #include <string>
 
-#include "text_style.h"
 #include "rosen_text/typography_style.h"
+#include "text_style.h"
+#include "typography_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -102,6 +103,7 @@ public:
     size_t defaultTextStyleUid { 0 };
     bool halfLeading { false };
     bool enableAutoSpace{false};
+    TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 };
 } // namespace SPText
 } // namespace Rosen

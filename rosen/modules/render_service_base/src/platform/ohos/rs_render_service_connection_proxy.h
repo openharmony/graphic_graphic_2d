@@ -174,7 +174,7 @@ public:
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
 
     bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
-
+        
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 
@@ -213,6 +213,8 @@ public:
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) override;
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
+
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) override;
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
 
@@ -257,6 +259,10 @@ public:
 
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
 
+    void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY) override;
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -271,6 +277,10 @@ public:
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;
+
+    ErrCode AvcodecVideoStart(uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) override;
+
+    ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) override;
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
@@ -367,14 +377,17 @@ public:
 
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     ErrCode NotifyScreenSwitched() override;
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
@@ -384,6 +397,15 @@ public:
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
+
+    RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd) override;
+    RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
+    bool ProfilerIsSecureScreen() override;
+
+    void ClearUifirstCache(NodeId id) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -397,8 +419,12 @@ private:
     int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
+    
+    ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) override;
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
+
+    ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
 

@@ -30,9 +30,8 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::Marshalling(Parcel& parcel) con
            RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
            RSMarshallingHelper::Marshalling(parcel, targetId_) &&
            RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
-           RSMarshallingHelper::Marshalling(parcel, isTimeout_) &&
-           RSMarshallingHelper::Marshalling(parcel, success_) &&
-           (property_ == nullptr || RSRenderPropertyBase::Marshalling(parcel, property_));
+           RSMarshallingHelper::Marshalling(parcel, isTimeout_) && RSMarshallingHelper::Marshalling(parcel, success_) &&
+           RSMarshallingHelper::Marshalling(parcel, property_);
 }
 
 RSCommand* RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(Parcel& parcel)
@@ -68,7 +67,7 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::ReadFromParcel(Parcel& parcel)
 {
     return RSMarshallingHelper::Unmarshalling(parcel, isTimeout_) &&
            RSMarshallingHelper::Unmarshalling(parcel, success_) &&
-           RSRenderPropertyBase::Unmarshalling(parcel, property_);
+           RSMarshallingHelper::Unmarshalling(parcel, property_);
 }
 
 void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
@@ -239,10 +238,10 @@ bool RSNodeGetAnimationsValueFraction::ReadFromParcel(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, success_)) {
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId_)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, nodeId_)) {
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, animationId_)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, animationId_)) {
         return false;
     }
     return true;

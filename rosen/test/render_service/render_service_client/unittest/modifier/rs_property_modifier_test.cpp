@@ -51,7 +51,7 @@ void RSPropertyModifierTest::TearDown() {}
  */
 HWTEST_F(RSPropertyModifierTest, GetModifierType, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorModifier> colorModifier =
         std::make_shared<RSEnvForegroundColorModifier>(property);
@@ -67,7 +67,7 @@ HWTEST_F(RSPropertyModifierTest, GetModifierType, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, CreateRenderModifier, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorModifier> colorModifier =
         std::make_shared<RSEnvForegroundColorModifier>(property);
@@ -83,7 +83,7 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier001, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
         std::make_shared<RSHDRBrightnessModifier>(property);
@@ -99,7 +99,7 @@ HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier001, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier002, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
         std::make_shared<RSHDRBrightnessModifier>(property);
@@ -115,7 +115,7 @@ HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier002, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, GetModifierType02, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorStrategyModifier> colorStrategyModifier =
         std::make_shared<RSEnvForegroundColorStrategyModifier>(property);
@@ -131,7 +131,7 @@ HWTEST_F(RSPropertyModifierTest, GetModifierType02, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, CreateRenderModifier02, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSEnvForegroundColorStrategyModifier> colorStrategyModifier =
         std::make_shared<RSEnvForegroundColorStrategyModifier>(property);
@@ -147,7 +147,7 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier02, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, GetModifierType03, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSCustomClipToFrameModifier> clipModifier =
         std::make_shared<RSCustomClipToFrameModifier>(property);
@@ -163,12 +163,44 @@ HWTEST_F(RSPropertyModifierTest, GetModifierType03, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, CreateRenderModifier03, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSCustomClipToFrameModifier> clipModifier =
         std::make_shared<RSCustomClipToFrameModifier>(property);
     ASSERT_NE(clipModifier, nullptr);
     auto res = clipModifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: RSHDRBrightnessFactorModifier001
+ * @tc.desc: RSHDRBrightnessFactorModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
+        std::make_shared<RSHDRBrightnessFactorModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType modifierType = modifier->GetModifierType();
+    EXPECT_EQ(modifierType, RSModifierType::HDR_BRIGHTNESS_FACTOR);
+}
+
+/**
+ * @tc.name: RSHDRBrightnessFactorModifier002
+ * @tc.desc: RSHDRBrightnessFactorModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
+        std::make_shared<RSHDRBrightnessFactorModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    auto res = modifier->CreateRenderModifier();
     EXPECT_NE(res, nullptr);
 }
 
@@ -186,6 +218,7 @@ HWTEST_F(RSPropertyModifierTest, Apply01, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSModifier> boundsModifier = std::make_shared<RSBoundsModifier>(property);
     ASSERT_NE(boundsModifier, nullptr);
+    boundsModifier->Apply(nullptr);
     boundsModifier->Apply(geometry);
     EXPECT_EQ(geometry->x_, 10.f);
     EXPECT_EQ(geometry->y_, 10.f);
@@ -196,6 +229,7 @@ HWTEST_F(RSPropertyModifierTest, Apply01, TestSize.Level1)
     ASSERT_NE(property02, nullptr);
     std::shared_ptr<RSModifier> boundsSizeModifier = std::make_shared<RSBoundsSizeModifier>(property02);
     ASSERT_NE(boundsSizeModifier, nullptr);
+    boundsSizeModifier->Apply(nullptr);
     boundsSizeModifier->Apply(geometry);
     EXPECT_EQ(geometry->width_, 60.f);
     EXPECT_EQ(geometry->height_, 30.f);
@@ -205,6 +239,7 @@ HWTEST_F(RSPropertyModifierTest, Apply01, TestSize.Level1)
     std::shared_ptr<RSModifier> boundsPositionModifier =
         std::make_shared<RSBoundsPositionModifier>(property03);
     ASSERT_NE(boundsPositionModifier, nullptr);
+    boundsPositionModifier->Apply(nullptr);
     boundsPositionModifier->Apply(geometry);
     EXPECT_EQ(geometry->x_, 50.f);
     EXPECT_EQ(geometry->y_, 50.f);
@@ -224,6 +259,7 @@ HWTEST_F(RSPropertyModifierTest, Apply02, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSPivotModifier> pivotModifier = std::make_shared<RSPivotModifier>(property);
     ASSERT_NE(pivotModifier, nullptr);
+    pivotModifier->Apply(nullptr);
     pivotModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->pivotX_, 70.f);
     EXPECT_EQ(geometry->trans_->pivotY_, 80.f);
@@ -232,6 +268,7 @@ HWTEST_F(RSPropertyModifierTest, Apply02, TestSize.Level1)
     ASSERT_NE(property02, nullptr);
     std::shared_ptr<RSPivotZModifier> pivotZModifier = std::make_shared<RSPivotZModifier>(property02);
     ASSERT_NE(pivotZModifier, nullptr);
+    pivotZModifier->Apply(nullptr);
     pivotZModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->pivotZ_, 90.f);
 
@@ -240,6 +277,7 @@ HWTEST_F(RSPropertyModifierTest, Apply02, TestSize.Level1)
     ASSERT_NE(property03, nullptr);
     std::shared_ptr<RSQuaternionModifier> quaternionModifier = std::make_shared<RSQuaternionModifier>(property03);
     ASSERT_NE(quaternionModifier, nullptr);
+    quaternionModifier->Apply(nullptr);
     quaternionModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->quaternion_, value);
 }
@@ -258,6 +296,7 @@ HWTEST_F(RSPropertyModifierTest, Apply03, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSRotationModifier> rotationModifier = std::make_shared<RSRotationModifier>(property);
     ASSERT_NE(rotationModifier, nullptr);
+    rotationModifier->Apply(nullptr);
     rotationModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->rotation_, 30);
 
@@ -271,6 +310,7 @@ HWTEST_F(RSPropertyModifierTest, Apply03, TestSize.Level1)
     ASSERT_NE(propertyX, nullptr);
     std::shared_ptr<RSRotationXModifier> rotationXModifier = std::make_shared<RSRotationXModifier>(propertyX);
     ASSERT_NE(rotationXModifier, nullptr);
+    rotationXModifier->Apply(nullptr);
     rotationXModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->rotationX_, 60);
 
@@ -284,6 +324,7 @@ HWTEST_F(RSPropertyModifierTest, Apply03, TestSize.Level1)
     ASSERT_NE(propertyY, nullptr);
     std::shared_ptr<RSRotationYModifier> rotationYModifier = std::make_shared<RSRotationYModifier>(propertyY);
     ASSERT_NE(rotationYModifier, nullptr);
+    rotationYModifier->Apply(nullptr);
     rotationYModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->rotationY_, 40);
 
@@ -309,6 +350,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     std::shared_ptr<RSCameraDistanceModifier> cameraDistanceModifier =
         std::make_shared<RSCameraDistanceModifier>(property);
     ASSERT_NE(cameraDistanceModifier, nullptr);
+    cameraDistanceModifier->Apply(nullptr);
     cameraDistanceModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->cameraDistance_, 10);
 
@@ -316,6 +358,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     ASSERT_NE(property02, nullptr);
     std::shared_ptr<RSScaleModifier> scaleModifier = std::make_shared<RSScaleModifier>(property02);
     ASSERT_NE(scaleModifier, nullptr);
+    scaleModifier->Apply(nullptr);
     scaleModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->scaleX_, 2);
     EXPECT_EQ(geometry->trans_->scaleY_, 2);
@@ -324,6 +367,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     ASSERT_NE(property03, nullptr);
     std::shared_ptr<RSSkewModifier> skewModifier = std::make_shared<RSSkewModifier>(property03);
     ASSERT_NE(skewModifier, nullptr);
+    skewModifier->Apply(nullptr);
     skewModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->skewX_, 30);
     EXPECT_EQ(geometry->trans_->skewY_, 30);
@@ -333,6 +377,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     ASSERT_NE(property04, nullptr);
     std::shared_ptr<RSScaleZModifier> scalezModifier = std::make_shared<RSScaleZModifier>(property04);
     ASSERT_NE(scalezModifier, nullptr);
+    scalezModifier->Apply(nullptr);
     scalezModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->scaleZ_, 1.f);
 }
@@ -351,25 +396,18 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSPerspModifier> perspModifier = std::make_shared<RSPerspModifier>(property);
     ASSERT_NE(perspModifier, nullptr);
+    perspModifier->Apply(nullptr);
     perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 0);
-    EXPECT_EQ(geometry->trans_->perspY_, 0);
-    EXPECT_EQ(geometry->trans_->perspZ_, 0);
-    EXPECT_EQ(geometry->trans_->perspW_, 1);
-
-    auto property02 = std::make_shared<RSProperty<Vector4f>>(INITIAL_VALUE_RECT_4F);
-    ASSERT_NE(property02, nullptr);
-    perspModifier = std::make_shared<RSPerspModifier>(property02);
-    perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 0);
-    EXPECT_EQ(geometry->trans_->perspY_, 0);
-    EXPECT_EQ(geometry->trans_->perspZ_, 0);
-    EXPECT_EQ(geometry->trans_->perspW_, 1);
+    EXPECT_EQ(geometry->trans_->perspX_, INITIAL_VALUE_RECT_4F.x_);
+    EXPECT_EQ(geometry->trans_->perspY_, INITIAL_VALUE_RECT_4F.y_);
+    EXPECT_EQ(geometry->trans_->perspZ_, INITIAL_VALUE_RECT_4F.z_);
+    EXPECT_EQ(geometry->trans_->perspW_, INITIAL_VALUE_RECT_4F.w_);
 
     auto property03 = std::make_shared<RSProperty<Vector2f>>(INITIAL_VALUE_SIZE_2F);
     ASSERT_NE(property03, nullptr);
     std::shared_ptr<RSTranslateModifier> translateModifier = std::make_shared<RSTranslateModifier>(property03);
     ASSERT_NE(translateModifier, nullptr);
+    translateModifier->Apply(nullptr);
     translateModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->translateX_, 60);
     EXPECT_EQ(geometry->trans_->translateY_, 30);
@@ -385,6 +423,7 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     ASSERT_NE(property05, nullptr);
     std::shared_ptr<RSTranslateZModifier> translateZModifier = std::make_shared<RSTranslateZModifier>(property05);
     ASSERT_NE(translateZModifier, nullptr);
+    translateZModifier->Apply(nullptr);
     translateZModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->translateZ_, 20);
 
@@ -403,7 +442,7 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterRadiusModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterRadiusModifier> modifier =
         std::make_shared<RSBehindWindowFilterRadiusModifier>(property);
@@ -421,7 +460,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterRadiusModifierTest, TestSiz
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterSaturationModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterSaturationModifier> modifier =
         std::make_shared<RSBehindWindowFilterSaturationModifier>(property);
@@ -439,7 +478,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterSaturationModifierTest, Tes
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterBrightnessModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterBrightnessModifier> modifier =
         std::make_shared<RSBehindWindowFilterBrightnessModifier>(property);
@@ -457,7 +496,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterBrightnessModifierTest, Tes
  */
 HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterMaskColorModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBehindWindowFilterMaskColorModifier> modifier =
         std::make_shared<RSBehindWindowFilterMaskColorModifier>(property);
@@ -475,7 +514,7 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterMaskColorModifierTest, Test
  */
 HWTEST_F(RSPropertyModifierTest, RSComplexShaderParamModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSComplexShaderParamModifier> modifier =
         std::make_shared<RSComplexShaderParamModifier>(property);
@@ -493,7 +532,7 @@ HWTEST_F(RSPropertyModifierTest, RSComplexShaderParamModifierTest, TestSize.Leve
  */
 HWTEST_F(RSPropertyModifierTest, RSBackgroundUIFilterModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSBackgroundUIFilterModifier> modifier =
         std::make_shared<RSBackgroundUIFilterModifier>(property);
@@ -510,12 +549,63 @@ HWTEST_F(RSPropertyModifierTest, RSBackgroundUIFilterModifierTest, TestSize.Leve
  */
 HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSForegroundUIFilterModifier> modifier =
         std::make_shared<RSForegroundUIFilterModifier>(property);
     ASSERT_NE(modifier, nullptr);
     RSModifierType ModifierType = modifier->GetModifierType();
     EXPECT_EQ(ModifierType, RSModifierType::FOREGROUND_UI_FILTER);
+}
+
+/**
+ * @tc.name: RSForegroundNGFilterModifierTest
+ * @tc.desc: RSForegroundNGFilterModifierTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSForegroundNGFilterModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSForegroundNGFilterModifier> modifier =
+        std::make_shared<RSForegroundNGFilterModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::FOREGROUND_NG_FILTER);
+}
+
+/**
+ * @tc.name: RSHDRUIBrightnessModifier001
+ * @tc.desc: test RSHDRUIBrightnessModifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier001, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRUIBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    auto res = hdrModifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: RSHDRUIBrightnessModifier002
+ * @tc.desc: test RSHDRUIBrightnessModifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRUIBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    RSModifierType res = hdrModifier->GetModifierType();
+    EXPECT_EQ(res, RSModifierType::HDR_UI_BRIGHTNESS);
 }
 } // namespace OHOS::Rosen

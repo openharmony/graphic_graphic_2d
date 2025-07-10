@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "draw/path_iterator.h"
 
 #include "impl_factory.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,6 +30,10 @@ scalar PathIterator::ConicWeight() const
 
 PathVerb PathIterator::Next(Point* points)
 {
+    if (points == nullptr) {
+        LOGE("PathIterator::Next, points is nullptr");
+        return PathVerb::DONE;
+    }
     return impl_->Next(points);
 }
 
@@ -38,6 +43,25 @@ PathVerb PathIterator::Peek()
 }
 
 PathIterator::~PathIterator() {}
+
+PathIter::PathIter(const Path& path, bool forceClose) noexcept
+    : impl_(ImplFactory::CreatePathIterImpl(path, forceClose)) {}
+
+scalar PathIter::ConicWeight() const
+{
+    return impl_->ConicWeight();
+}
+
+PathVerb PathIter::Next(Point* points)
+{
+    if (points == nullptr) {
+        LOGE("PathIter::Next, points is nullptr");
+        return PathVerb::DONE;
+    }
+    return impl_->Next(points);
+}
+
+PathIter::~PathIter() {}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

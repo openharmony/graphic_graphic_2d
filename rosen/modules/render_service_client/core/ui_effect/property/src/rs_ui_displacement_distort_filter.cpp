@@ -14,6 +14,7 @@
  */
 
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
+#include "ui_effect/property/include/rs_ui_radial_gradient_mask.h"
 #include "ui_effect/property/include/rs_ui_pixel_map_mask.h"
 
 #include "platform/common/rs_log.h"
@@ -95,6 +96,10 @@ void RSUIDispDistortFilterPara::SetDisplacementDistort(
     }
     maskType_ = RSUIMaskPara::ConvertMaskType(maskPara->GetMaskParaType());
     std::shared_ptr<RSUIMaskPara> maskProperty = CreateMask(maskType_);
+    if (maskProperty == nullptr) {
+        ROSEN_LOGW("RSUIDispDistortFilterPara::SetDisplacementDistort maskProperty nullptr");
+        return;
+    }
     maskProperty->SetPara(maskPara);
     SetMask(maskProperty);
 }
@@ -123,7 +128,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIDispDistortFilterPara::CreateRSRende
         return nullptr;
     }
     auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        factor->Get(), factor->GetId(), RSRenderPropertyType::PROPERTY_VECTOR2F);
+        factor->Get(), factor->GetId());
     frProperty->Setter(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR, factProperty);
 
     auto mask = std::static_pointer_cast<RSUIMaskPara>(GetRSProperty(maskType_));
@@ -166,6 +171,9 @@ std::shared_ptr<RSUIMaskPara> RSUIDispDistortFilterPara::CreateMask(RSUIFilterTy
         }
         case RSUIFilterType::PIXEL_MAP_MASK: {
             return std::make_shared<RSUIPixelMapMaskPara>();
+        }
+        case RSUIFilterType::RADIAL_GRADIENT_MASK: {
+            return std::make_shared<RSUIRadialGradientMaskPara>();
         }
         default:
             return nullptr;

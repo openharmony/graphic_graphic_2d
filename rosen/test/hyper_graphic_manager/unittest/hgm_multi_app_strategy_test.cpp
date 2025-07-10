@@ -20,6 +20,7 @@
 #include "hgm_frame_rate_manager.h"
 #include "hgm_multi_app_strategy.h"
 #include "hgm_test_base.h"
+#include "mock_policy_config_visitor.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,24 +28,24 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t nodeIdOffset = 32;
-    const std::string settingStrategyName = "99";
-    const std::string otherPkgName = "com.pkg.other";
-    const std::string defaultPidStr = "0";
+constexpr int32_t nodeIdOffset = 32;
+const std::string settingStrategyName = "99";
+const std::string otherPkgName = "com.pkg.other";
+const std::string defaultPidStr = "0";
 
-    constexpr int32_t fps0 = 10;
-    constexpr int32_t downFps0 = 90;
-    constexpr int32_t pid0 = 10010;
-    const std::string strategyName0 = "110";
-    const std::string pkgName0 = "com.app10";
-    constexpr int32_t appType0 = 20010;
+constexpr int32_t fps0 = 10;
+constexpr int32_t downFps0 = 90;
+constexpr int32_t pid0 = 10010;
+const std::string strategyName0 = "110";
+const std::string pkgName0 = "com.app10";
+constexpr int32_t appType0 = 20010;
 
-    constexpr int32_t fps1 = 15;
-    constexpr int32_t downFps1 = 120;
-    constexpr int32_t pid1 = 10015;
-    const std::string strategyName1 = "115";
-    const std::string pkgName1 = "com.app15";
-    constexpr int32_t appType1 = 20015;
+constexpr int32_t fps1 = 15;
+constexpr int32_t downFps1 = 120;
+constexpr int32_t pid1 = 10015;
+const std::string strategyName1 = "115";
+const std::string pkgName1 = "com.app15";
+constexpr int32_t appType1 = 20015;
 }
 
 struct PkgParam {
@@ -78,8 +79,7 @@ void HgmMultiAppStrategyTest::SetUp()
     // set app config
     auto strategyConfigs = multiAppStrategy_->GetStrategyConfigs();
     auto screenSetting = multiAppStrategy_->GetScreenSetting();
-    multiAppStrategy_->appBufferListCache_ = {"test1", "test2", "test3", "test4"};
-    auto &appTypes = screenSetting.appTypes;
+    auto& appTypes = screenSetting.appTypes;
 
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
         .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = true };
@@ -87,8 +87,8 @@ void HgmMultiAppStrategyTest::SetUp()
 
     strategyConfigs[strategyName0] = { .min = fps0, .max = fps0, .dynamicMode = DynamicModeType::TOUCH_ENABLED,
         .drawMin = OLED_NULL_HZ, .drawMax = OLED_NULL_HZ, .down = downFps0,
-        .bufferFpsMap = {{"test2", OLED_NULL_HZ}, {"test4", OLED_NULL_HZ},
-            {"test3", OLED_120_HZ}, {"test1", OLED_90_HZ}},
+        .bufferFpsMap = {{ "test2", OLED_NULL_HZ }, { "test4", OLED_NULL_HZ },
+            { "test3", OLED_120_HZ }, { "test1", OLED_90_HZ }},
         };
     screenSetting.appList[pkgName0] = strategyName0;
     pkgParams_.push_back({ .pkgName = pkgName0, .fps = fps0, .pid = pid0,
@@ -100,7 +100,7 @@ void HgmMultiAppStrategyTest::SetUp()
     pkgParams_.push_back({ .pkgName = pkgName1, .fps = fps1, .pid = pid1,
         .linker = std::make_shared<RSRenderFrameRateLinker>(((NodeId)pid1) << nodeIdOffset) });
 
-    for (auto &pkgParam : pkgParams_) {
+    for (auto& pkgParam : pkgParams_) {
         pkgParam.linker->SetExpectedRange(FrameRateRange(OLED_NULL_HZ, RANGE_MAX_REFRESHRATE, OLED_NULL_HZ));
     }
 
@@ -122,7 +122,7 @@ void HgmMultiAppStrategyTest::SetMultiAppStrategy(
 std::vector<std::string> HgmMultiAppStrategyTest::CreateVotePkgs()
 {
     std::vector<std::string> pkgs;
-    for (auto &pkgParam : pkgParams_) {
+    for (auto& pkgParam : pkgParams_) {
         pkgs.push_back(pkgParam.pkgName + ":" + std::to_string(pkgParam.pid));
     }
     return pkgs;
@@ -134,8 +134,8 @@ HgmErrCode HgmMultiAppStrategyTest::GetTouchVoteInfo(VoteInfo& touchVoteInfo)
     if (frameRateMgr == nullptr) {
         return HGM_ERROR;
     }
-    auto iter = frameRateMgr->voteRecord_.find("VOTER_TOUCH");
-    if (iter == frameRateMgr->voteRecord_.end()) {
+    auto iter = frameRateMgr->frameVoter_.voteRecord_.find("VOTER_TOUCH");
+    if (iter == frameRateMgr->frameVoter_.voteRecord_.end()) {
         return HGM_ERROR;
     }
     auto& [voteInfos, _] = iter->second;
@@ -152,10 +152,10 @@ HgmErrCode HgmMultiAppStrategyTest::GetTouchVoteInfo(VoteInfo& touchVoteInfo)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
-        auto &pkgParam = pkgParams_[0]; // first pkg
+        auto& pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -204,11 +204,11 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
-        auto &pkgParam = pkgParams_[0]; // first pkg
+        auto& pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -252,11 +252,11 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         std::string unConfigPkgName = "com.pkg.other";
-        auto &pkgParam = pkgParams_[0]; // first pkg
+        auto& pkgParam = pkgParams_[0]; // first pkg
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -306,7 +306,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -348,7 +348,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -387,7 +387,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -426,7 +426,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, UseStrategyNum, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, UseStrategyNum, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -452,7 +452,7 @@ HWTEST_F(HgmMultiAppStrategyTest, UseStrategyNum, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, FollowFocus, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, FollowFocus, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -480,7 +480,7 @@ HWTEST_F(HgmMultiAppStrategyTest, FollowFocus, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, UseMax, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, UseMax, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
     PolicyConfigData::StrategyConfig strategyConfig;
@@ -506,7 +506,7 @@ HWTEST_F(HgmMultiAppStrategyTest, UseMax, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
@@ -528,14 +528,14 @@ HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
         ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
-    
+
         STEP("1. normal strategy") {
             multiAppStrategy_->isLtpo_ = true;
             multiAppStrategy_->lowAmbientStatus_ = false;
@@ -560,7 +560,7 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
             ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
             ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
         }
-        STEP("2. brightness level strategy") {
+        STEP("2. brightness Level strategy") {
             multiAppStrategy_->isLtpo_ = false;
             multiAppStrategy_->lowAmbientStatus_ = true;
             multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::LOW_LEVEL);
@@ -587,7 +587,7 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest | Level0)
 {
     for (bool status : {false, true}) {
         multiAppStrategy_->lowAmbientStatus_ = status;
@@ -608,7 +608,7 @@ HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level0)
 {
     constexpr int32_t gameType0 = 10046;
     PART("CaseDescription") {
@@ -632,9 +632,9 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require: IAHFXD
  */
-HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest | Level0)
 {
-    std::vector<std::string> pkgs = {"com.app10", "com.app15"};
+    std::vector<std::string> pkgs = { "com.app10", "com.app15" };
     multiAppStrategy_->CheckPackageInConfigList(pkgs);
     ASSERT_EQ(pkgs[0], "com.app10");
 }
@@ -645,10 +645,10 @@ HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest
  * @tc.type: FUNC
  * @tc.require: IAHFXD
  */
-HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level0)
 {
-    std::vector<std::string> pkgs0 = {"com.app10", "com.app15"};
-    std::vector<std::string> pkgs1 = {"com.app10"};
+    std::vector<std::string> pkgs0 = { "com.app10", "com.app15" };
+    std::vector<std::string> pkgs1 = { "com.app10" };
     MultiAppStrategyType undefineType = static_cast<MultiAppStrategyType>(100);
     auto multiAppStrategy = std::make_shared<HgmMultiAppStrategy>();
 
@@ -674,99 +674,37 @@ HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
         ASSERT_EQ(pkgName, "com.app10");
     }
     STEP("OnStrategyChange") {
-        multiAppStrategy->RegisterStrategyChangeCallback([] (const PolicyConfigData::StrategyConfig&) {});
+        multiAppStrategy->RegisterStrategyChangeCallback([](const PolicyConfigData::StrategyConfig&) {});
         multiAppStrategy->RegisterStrategyChangeCallback(nullptr);
         multiAppStrategy->OnStrategyChange();
     }
 }
 
 /**
- * @tc.name: SetHgmAppStrategyConfig1
- * @tc.desc: Verify the result of SetHgmAppStrategyConfig
+ * @tc.name: GetAppStrategyConfig
+ * @tc.desc: Verify the result of GetAppStrategyConfig
  * @tc.type: FUNC
- * @tc.require: IAHFXD
+ * @tc.require:
  */
-HWTEST_F(HgmMultiAppStrategyTest, SetHgmAppStrategyConfig1, Function | SmallTest | Level1)
+HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | Level0)
 {
-    std::string pkg1 = "com.app10";
-    PolicyConfigData::StrategyConfig appStrategyConfig;
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.min, fps0);
-    ASSERT_EQ(appStrategyConfig.max, fps0);
-    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_ENABLED);
-    ASSERT_EQ(appStrategyConfig.isFactor, false);
-    ASSERT_EQ(appStrategyConfig.drawMin, OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.drawMax, OLED_NULL_HZ);
+    auto multiAppStrategy = HgmMultiAppStrategy();
+    PolicyConfigData::StrategyConfig strategyRes;
+    auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
 
-    std::vector<std::pair<std::string, std::string>> newConfig = {
-        {"min", "60"},
-        {"max", "120"},
-        {"dynamicMode", "0"},
-        {"isFactor", "1"},
-        {"drawMin", "60"},
-        {"drawMax", "120"},
-        {"test4", "60"},
-        {"test1", "0"},
-        {"errorKey", "1"},
-    };
+    // null
+    std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
+    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
+    HgmCore::Instance().mPolicyConfigVisitor_ = mock;
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(
+        testing::Return(EXEC_SUCCESS));
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
 
-    multiAppStrategy_->SetAppStrategyConfig(pkg1, newConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.min, OLED_60_HZ);
-    ASSERT_EQ(appStrategyConfig.max, OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_DISENABLED);
-    ASSERT_EQ(appStrategyConfig.isFactor, true);
-    ASSERT_EQ(appStrategyConfig.drawMin, OLED_60_HZ);
-    ASSERT_EQ(appStrategyConfig.drawMax, OLED_120_HZ);
-
-    std::vector<std::pair<std::string, std::string>> emptyConfig = {};
-    multiAppStrategy_->SetAppStrategyConfig(pkg1, emptyConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.min, fps0);
-    ASSERT_EQ(appStrategyConfig.max, fps0);
-    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_ENABLED);
-    ASSERT_EQ(appStrategyConfig.isFactor, false);
-    ASSERT_EQ(appStrategyConfig.drawMin, OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.drawMax, OLED_NULL_HZ);
-}
-
-/**
- * @tc.name: SetHgmAppStrategyConfig2
- * @tc.desc: Verify the result of SetHgmAppStrategyConfig
- * @tc.type: FUNC
- * @tc.require: IAHFXD
- */
-HWTEST_F(HgmMultiAppStrategyTest, SetHgmAppStrategyConfig2, Function | SmallTest | Level1)
-{
-    std::string pkg1 = "com.app10";
-    PolicyConfigData::StrategyConfig appStrategyConfig;
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_90_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
-    std::vector<std::pair<std::string, std::string>> newConfig = {
-        {"test4", "60"},
-        {"test1", "0"},
-        {"test3", "120"}
-    };
-    multiAppStrategy_->SetAppStrategyConfig(pkg1, newConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_60_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
-    std::vector<std::pair<std::string, std::string>> emptyConfig = {};
-    multiAppStrategy_->SetAppStrategyConfig("", emptyConfig);
-    multiAppStrategy_->UpdateAppStrategyConfigCache();
-    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_NULL_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_90_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
-    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
+    HgmCore::Instance().mPolicyConfigVisitor_ = nullptr;
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+    HgmCore::Instance().mPolicyConfigVisitor_ = configVisitor;
+    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

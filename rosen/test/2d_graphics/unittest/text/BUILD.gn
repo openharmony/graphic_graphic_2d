@@ -25,11 +25,11 @@ ohos_unittest("2d_graphics_text_test") {
   ]
 
   sources = [
-    "font_mgr_test.cpp",
+    "font_test.cpp",
+    "font_harfbuzz_test.cpp",
     "skfontmgr_test.cpp",
     "text_blob_test.cpp",
     "typeface_test.cpp",
-    "font_test.cpp",
   ]
 
   external_deps = [

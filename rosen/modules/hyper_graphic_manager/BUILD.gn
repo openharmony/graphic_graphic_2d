@@ -36,6 +36,10 @@ config("libhyper_graphic_manager_config") {
     "$graphic_2d_root/utils/sandbox",
   ]
 
+  if (defined(graphic_2d_hgm_configs.vendor_root)) {
+    include_dirs += graphic_2d_hgm_configs.libhyper_graphic_manager_ext_includes
+  }
+
   cflags = [
     "-g3",
     "-fdata-sections",
@@ -60,10 +64,10 @@ ohos_shared_library("libhyper_graphic_manager") {
     debug = false
   }
   configs = [ ":libhyper_graphic_manager_config" ]
-  version_script = "libhyper_graphic_manager.map"
 
   sources = [
     "core/config/hgm_config_callback_manager.cpp",
+    "core/config/hgm_user_define.cpp",
     "core/config/xml_parser.cpp",
     "core/frame_rate_manager/hgm_app_page_url_strategy.cpp",
     "core/frame_rate_manager/hgm_energy_consumption_policy.cpp",
@@ -79,6 +83,8 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/hgm_screen_manager/hgm_screen.cpp",
     "core/hgm_screen_manager/hgm_screen_info.cpp",
     "core/soft_vsync_manager/hgm_soft_vsync_manager.cpp",
+    "core/utils/hgm_command.cpp",
+    "core/utils/hgm_frame_voter.cpp",
     "core/utils/hgm_one_shot_timer.cpp",
     "core/utils/hgm_voter.cpp",
     "frame_rate_vote/rs_frame_rate_vote.cpp",
@@ -98,6 +104,7 @@ ohos_shared_library("libhyper_graphic_manager") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
@@ -118,6 +125,7 @@ ohos_shared_library("libhyper_graphic_manager") {
   ]
 
   if (defined(graphic_2d_hgm_configs.vendor_root)) {
+    version_script = graphic_2d_hgm_configs.libhyper_graphic_manager_map
     sources += graphic_2d_hgm_configs.libhyper_graphic_manager_ext_sources
     sources -= graphic_2d_hgm_configs.libhyper_graphic_manager_ext_sources_del
   }

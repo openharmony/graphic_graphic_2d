@@ -161,7 +161,7 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
 
 bool CloseZipFile(const unzFile zipFile, bool ret);
 
-int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp);
+int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp);
 
 std::string ReadFile(const std::string &filePath);
 

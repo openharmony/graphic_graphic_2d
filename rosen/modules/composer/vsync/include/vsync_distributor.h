@@ -71,9 +71,10 @@ public:
     virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
-    void AddRequestVsyncTimestamp(const int64_t& timestamp);
+    bool AddRequestVsyncTimestamp(const int64_t& timestamp);
     void RemoveTriggeredVsync(const int64_t &currentTime);
     bool NeedTriggeredVsync(const int64_t& currentTime);
+    bool IsRequestVsyncTimestampEmpty();
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
     inline void SetGCNotifyTask(GCNotifyTask hook)
     {
@@ -86,6 +87,7 @@ public:
     int32_t highPriorityRate_ = -1;
     bool highPriorityState_ = false;
     ConnectionInfo info_;
+    bool triggerThisTime_ = false; // used for LTPO
     uint64_t id_ = 0;
     uint64_t windowNodeId_ = 0;
     uint32_t vsyncPulseFreq_ = 1;
@@ -119,6 +121,7 @@ private:
     bool isFirstRequestVsync_ = true;
     bool isFirstSendVsync_ = true;
     RequestNativeVSyncCallback requestNativeVSyncCallback_ = nullptr;
+    bool isRsConn_ = false;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
@@ -169,12 +172,13 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
-        int32_t bufferCount, int64_t lastConsumeTime);
+        int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
+    void SetTaskEndWithTime(uint64_t time);
 
 private:
 
@@ -187,7 +191,7 @@ private:
         uint32_t refreshRate;
     };
     void ThreadMain();
-    void EnableVSync();
+    void EnableVSync(bool isUrgent = false);
     void DisableVSync();
     void OnVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
@@ -214,7 +218,7 @@ private:
     void CheckNeedDisableDvsync(int64_t now, int64_t period);
     void OnVSyncTrigger(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
-
+    void UpdateTriggerFlagForRNV(const sptr<VSyncConnection> &connection, const int64_t& requestVsyncTime);
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
     sptr<VSyncController> controller_;

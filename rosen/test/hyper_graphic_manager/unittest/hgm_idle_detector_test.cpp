@@ -26,21 +26,23 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    const std::string bufferName = "frameBuffer";
-    const std::string aceAnimator = "AceAnimato";
-    const std::string rosenWeb = "RosenWeb";
-    const std::string flutterBuffer = "oh_flutter";
-    const std::string otherSurface = "Other_SF";
-    constexpr uint64_t  fromtest = 3;
-    constexpr uint64_t  currTime = 100000000;
-    constexpr uint64_t  lastTime = 200000000;
-    constexpr uint32_t  fps30HZ = 30;
-    constexpr uint32_t  fps60HZ = 60;
-    constexpr uint32_t  fps90HZ = 90;
-    constexpr uint32_t  fps120HZ = 120;
-    constexpr pid_t Pid = 0;
-    const NodeId id = 0;
+constexpr uint32_t ACE_ANIMATOR_OFFSET = 16;
+const std::string bufferName = "frameBuffer";
+const std::string aceAnimator = "AceAnimato";
+const std::string rosenWeb = "RosenWeb";
+const std::string flutterBuffer = "oh_flutter";
+const std::string otherSurface = "Other_SF";
+constexpr uint64_t  fromtest = 3;
+constexpr uint64_t  currTime = 100000000;
+constexpr uint64_t  lastTime = 200000000;
+constexpr uint32_t  fps30HZ = 30;
+constexpr uint32_t  fps60HZ = 60;
+constexpr uint32_t  fps90HZ = 90;
+constexpr uint32_t  fps120HZ = 120;
+constexpr pid_t Pid = 0;
+const NodeId id = 0;
 }
+
 class HgmIdleDetectorTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
@@ -63,7 +65,7 @@ void HgmIdleDetectorTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, SetAndGetAppSupportState, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, SetAndGetAppSupportState, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -87,7 +89,7 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetAppSupportState, Function | SmallTest | L
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, SetAndGetAceAnimatorIdleState, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, SetAndGetAceAnimatorIdleState, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -121,7 +123,7 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetAceAnimatorIdleState, Function | SmallTes
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -183,7 +185,7 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS001, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS001, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -222,7 +224,7 @@ HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS001, Function | SmallTest | L
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS002, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS002, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
     ASSERT_NE(idleDetector, nullptr);
@@ -254,7 +256,7 @@ HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS002, Function | SmallTest | L
  * @tc.type: FUNC
  * @tc.require: IAW09K
  */
-HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate001, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate001, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -293,7 +295,7 @@ HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate001, Funct
  * @tc.type: FUNC
  * @tc.require: IAW09K
  */
-HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate002, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate002, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -316,7 +318,7 @@ HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate002, Funct
  * @tc.type: FUNC
  * @tc.require: IAW09K
  */
-HWTEST_F(HgmIdleDetectorTest, ResetAceAnimatorExpectedFrameRate, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, ResetAceAnimatorExpectedFrameRate, Function | SmallTest | Level0)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 

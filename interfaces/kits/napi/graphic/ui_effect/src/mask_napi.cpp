@@ -34,10 +34,12 @@ thread_local napi_ref MaskNapi::sConstructor_ = nullptr;
 
 napi_value MaskNapi::Init(napi_env env, napi_value exports)
 {
+    RegisterMaskParaUnmarshallingCallback();
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createRippleMask", CreateRippleMask),
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createWaveGradientMask", CreateWaveGradientMask),
     };
 
     napi_value constructor = nullptr;
@@ -91,12 +93,12 @@ void MaskNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 }
 
 bool ParseRippleMask(
-    napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask, size_t& realArgc)
+    napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask, const size_t& realArgc)
 {
-    if (!rippleMask) {
+    if (!rippleMask || realArgc < NUM_3) {
         return false;
     }
-    int parseTimes = 0;
+    uint32_t parseTimes = 0;
     double point[NUM_2] = { 0 };
     if (ConvertFromJsPoint(env, argv[NUM_0], point, NUM_2)) {
         Vector2f center(static_cast<float>(point[NUM_0]), static_cast<float>(point[NUM_1]));
@@ -112,14 +114,50 @@ bool ParseRippleMask(
         rippleMask->SetWidth(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(env, argv[NUM_3], val)) {
+    if (realArgc == NUM_4 && ParseJsDoubleValue(env, argv[NUM_3], val)) {
         rippleMask->SetWidthCenterOffset(static_cast<float>(val));
         parseTimes++;
     }
     return (parseTimes == realArgc);
 }
 
-bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<Vector2f>& values)
+bool ParseWaveGradientMask(
+    napi_env env, napi_value* argv, const std::shared_ptr<WaveGradientMaskPara>& waveGradientMask, size_t& realArgc)
+{
+    if (!waveGradientMask) {
+        MASK_LOG_E("ParseWaveGradientMask: waveGradientMask is nullptr");
+        return false;
+    }
+    int parseTimes = 0;
+    double point[NUM_2] = { 0.0 };
+    if (ConvertFromJsPoint(env, argv[NUM_0], point, NUM_2)) {
+        Vector2f center(static_cast<float>(point[NUM_0]), static_cast<float>(point[NUM_1]));
+        waveGradientMask->SetWaveCenter(center);
+        parseTimes++;
+    }
+    double val = 0.0;
+    if (ParseJsDoubleValue(env, argv[NUM_1], val)) {
+        waveGradientMask->SetWaveWidth(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_2], val)) {
+        waveGradientMask->SetPropagationRadius(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, argv[NUM_3], val)) {
+        waveGradientMask->SetBlurRadius(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (realArgc == NUM_5 && ParseJsDoubleValue(env, argv[NUM_4], val)) {
+        waveGradientMask->SetTurbulenceStrength(static_cast<float>(val));
+        parseTimes++;
+    }
+
+    MASK_LOG_I("ParseWaveGradientMask parseTimes: %{public}d, realArgc: %{public}zu", parseTimes, realArgc);
+    return (parseTimes == realArgc);
+}
+
+bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<float>& colors, std::vector<float>& positions)
 {
     bool isArray = false;
     napi_is_array(env, valuesArray, &isArray);
@@ -131,24 +169,36 @@ bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<Vector2f>
     if (napi_get_array_length(env, valuesArray, &length) != napi_ok) {
         return false;
     }
-    values.reserve(length);
+    colors.reserve(length);
+    positions.reserve(length);
+    double val = 0.0;
     for (uint32_t i = 0; i < length; i++) {
         napi_value tmpArray = nullptr;
         if (napi_get_element(env, valuesArray, i, &tmpArray) != napi_ok || !tmpArray) {
             return false;
         }
-        Vector2f point(0.f, 0.f);
-        if (!ParseJsVector2f(env, tmpArray, point)) {
+        uint32_t tmpLen = 0;
+        if (napi_get_array_length(env, tmpArray, &tmpLen) != napi_ok || tmpLen != NUM_2) {
             return false;
         }
-        values.emplace_back(point);
+
+        if (!ConvertDoubleValueFromJsElement(env, tmpArray, NUM_0, val)) {
+            return false;
+        }
+        colors.emplace_back(static_cast<float>(val));
+
+        if (!ConvertDoubleValueFromJsElement(env, tmpArray, NUM_1, val)) {
+            return false;
+        }
+        positions.emplace_back(static_cast<float>(val));
     }
     return true;
 }
 
-bool ParseRadialGradientMask(napi_env env, napi_value* argv, std::shared_ptr<RadialGradientMaskPara> mask)
+bool ParseRadialGradientMask(
+    napi_env env, napi_value *argv, std::shared_ptr<RadialGradientMaskPara> mask, const size_t& realArgc)
 {
-    if (!mask) {
+    if (!mask || realArgc != NUM_4) {
         return false;
     }
     int parseTimes = 0;
@@ -167,9 +217,11 @@ bool ParseRadialGradientMask(napi_env env, napi_value* argv, std::shared_ptr<Rad
         mask->SetRadiusY(static_cast<float>(val));
         parseTimes++;
     }
-    std::vector<Vector2f> values;
-    if (ParseValueArray(env, argv[NUM_3], values)) {
-        mask->SetValues(values);
+    std::vector<float> colors;
+    std::vector<float> positions;
+    if (ParseValueArray(env, argv[NUM_3], colors, positions)) {
+        mask->SetColors(colors);
+        mask->SetPositions(positions);
         parseTimes++;
     }
     return (parseTimes == NUM_4);
@@ -200,6 +252,31 @@ napi_value MaskNapi::Create(napi_env env, std::shared_ptr<MaskPara> maskPara)
     return maskObj;
 }
 
+napi_value MaskNapi::CreateWaveGradientMask(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        MASK_LOG_E("MaskNapi CreateWaveGradientMask failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "MaskNapi CreateWaveGradientMask failed, is not system app");
+        return nullptr;
+    }
+    const size_t requireMinArgc = NUM_4;
+    const size_t requireMaxArgc = NUM_5;
+    size_t realArgc = NUM_5;
+    napi_value argv[requireMaxArgc];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireMinArgc <= realArgc && realArgc <= requireMaxArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreateWaveGradientMask parsing input fail."));
+    
+    auto maskPara = std::make_shared<WaveGradientMaskPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(ParseWaveGradientMask(env, argv, maskPara, realArgc), nullptr,
+        MASK_LOG_E("MaskNapi CreateWaveGradientMask parsing mask input fail."));
+    MASK_LOG_I("MaskNapi CreateWaveGradientMask parsing mask success.");
+    return Create(env, maskPara);
+}
+
 napi_value MaskNapi::CreateRippleMask(napi_env env, napi_callback_info info)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
@@ -217,7 +294,7 @@ napi_value MaskNapi::CreateRippleMask(napi_env env, napi_callback_info info)
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireMinArgc <= realArgc && realArgc <= requireMaxArgc, nullptr,
         MASK_LOG_E("MaskNapi CreateRippleMask parsing input fail."));
-    
+
     auto maskPara = std::make_shared<RippleMaskPara>();
     UIEFFECT_NAPI_CHECK_RET_D(ParseRippleMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRippleMask parsing mask input fail."));
@@ -242,7 +319,7 @@ napi_value MaskNapi::CreateRadialGradientMask(napi_env env, napi_callback_info i
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing input fail."));
     
     auto maskPara = std::make_shared<RadialGradientMaskPara>();
-    UIEFFECT_NAPI_CHECK_RET_D(ParseRadialGradientMask(env, argv, maskPara), nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(ParseRadialGradientMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing mask input fail."));
     return Create(env, maskPara);
 }
@@ -318,5 +395,12 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
 
     return Create(env, para);
 }
+
+void MaskNapi::RegisterMaskParaUnmarshallingCallback()
+{
+    PixelMapMaskPara::RegisterUnmarshallingCallback();
+    RadialGradientMaskPara::RegisterUnmarshallingCallback();
+}
+
 }  // namespace Rosen
 }  // namespace OHOS

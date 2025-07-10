@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,65 @@ public:
         fileName_ = "FunctionBrushSetShaderEffect";
     }
     ~FunctionBrushSetShaderEffect() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionBrushSetColor4f : public TestBase {
+public:
+    FunctionBrushSetColor4f()
+    {
+        fileName_ = "FunctionBrushSetColor4f";
+    }
+    ~FunctionBrushSetColor4f() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionBrushGetAlphaFloat : public TestBase {
+public:
+    FunctionBrushGetAlphaFloat()
+    {
+        fileName_ = "FunctionBrushGetAlphaFloat";
+    }
+    ~FunctionBrushGetAlphaFloat() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionBrushGetRedFloat : public TestBase {
+public:
+    FunctionBrushGetRedFloat()
+    {
+        fileName_ = "FunctionBrushGetRedFloat";
+    }
+    ~FunctionBrushGetRedFloat() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionBrushGetBlueFloat : public TestBase {
+public:
+    FunctionBrushGetBlueFloat()
+    {
+        fileName_ = "FunctionBrushGetBlueFloat";
+    }
+    ~FunctionBrushGetBlueFloat() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+class FunctionBrushGetGreenFloat : public TestBase {
+public:
+    FunctionBrushGetGreenFloat()
+    {
+        fileName_ = "FunctionBrushGetGreenFloat";
+    }
+    ~FunctionBrushGetGreenFloat() override {};
 
 protected:
     void OnTestFunction(OH_Drawing_Canvas* canvas) override;

@@ -17,8 +17,6 @@
 
 #include <memory>
 
-#include "rs_profiler.h"
-
 #include "animation/rs_value_estimator.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_optional_trace.h"
@@ -46,7 +44,13 @@ bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
     if (!target) {
         return true;
     } else if (!target->GetRenderProperties().GetVisible()) {
+#if defined(MODIFIER_NG)
+        if (auto modifierNG = property_->GetModifierNG().lock()) {
+            target->RemoveModifierNG(modifierNG->GetId());
+        }
+#else
         target->RemoveModifier(property_->GetId());
+#endif
         return true;
     }
 
@@ -63,9 +67,16 @@ bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
     }
 
     if (particleSystem_ == nullptr || particleSystem_->IsFinish(renderParticleVector_.renderParticleVector_)) {
-        if (target) {
-            target->RemoveModifier(property_->GetId());
+        if (!target) {
+            return true;
         }
+#if defined(MODIFIER_NG)
+        if (auto modifierNG = property_->GetModifierNG().lock()) {
+            target->RemoveModifierNG(modifierNG->GetId());
+        }
+#else
+        target->RemoveModifier(property_->GetId());
+#endif
         return true;
     }
     return false;
@@ -130,7 +141,15 @@ void RSRenderParticleAnimation::OnAttach()
     auto particleAnimations = target->GetAnimationManager().GetParticleAnimations();
     if (!particleAnimations.empty()) {
         for (const auto& pair : particleAnimations) {
+#if defined(MODIFIER_NG)
+            auto property = target->GetProperty(pair.first);
+            auto modifierNG = property != nullptr ? property->GetModifierNG().lock() : nullptr;
+            if (modifierNG != nullptr) {
+                target->RemoveModifierNG(modifierNG->GetId());
+            }
+#else
             target->RemoveModifier(pair.first);
+#endif
             target->GetAnimationManager().RemoveAnimation(pair.second);
             target->GetAnimationManager().UnregisterParticleAnimation(pair.first, pair.second);
         }
@@ -186,17 +205,16 @@ RSRenderParticleAnimation* RSRenderParticleAnimation::Unmarshalling(Parcel& parc
 bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
 {
     AnimationId id = 0;
-    if (!parcel.ReadUint64(id)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id)) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling animationId failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, id);
     SetAnimationId(id);
-    if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
+    if (!(RSMarshallingHelper::UnmarshallingPidPlusId(parcel, propertyId_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
     return true;
 }

@@ -22,7 +22,6 @@
 #include <mutex>
 #include <string>
 #include "sync_fence.h"
-#include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
 #include "platform/ohos/backend/rs_vulkan_header_ext.h"
@@ -30,11 +29,33 @@
 #define VK_NO_PROTOTYPES 1
 
 #include "vulkan/vulkan.h"
-#include "include/gpu/vk/GrVkBackendContext.h"
-#include "include/gpu/GrDirectContext.h"
 #include "rs_vulkan_mem_statistic.h"
 
+#include "draw/surface.h"
 #include "image/gpu_context.h"
+#include "rs_trace.h"
+
+typedef enum VkSemaphoreExtTypeHUAWEI {
+    VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
+    VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,
+}VkSemaphoreExtTypeHUAWEI;
+
+typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {
+    OHOS::Rosen::VkStructureTypeHUAWEI sType;
+    const void*                        pNext;
+    VkSemaphoreExtTypeHUAWEI           semaphoreExtType;
+    uint32_t                           eventId;
+}VkSemaphoreExtTypeCreateInfoHUAWEI;
+
+#ifdef USE_M133_SKIA
+#include "include/gpu/vk/VulkanExtensions.h"
+#include "include/gpu/vk/VulkanBackendContext.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "include/gpu/vk/GrVkExtensions.h"
+#include "include/gpu/vk/GrVkBackendContext.h"
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -131,18 +152,26 @@ public:
 
     RsVulkanInterface() {};
     ~RsVulkanInterface();
-    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false);
+    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
-    bool CreateDevice(bool isProtected = false);
+    bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
+#ifdef USE_M133_SKIA
+    bool CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected = false);
+#else
     bool CreateSkiaBackendContext(GrVkBackendContext* context, bool isProtected = false);
+#endif
     RsVulkanMemStat& GetRsVkMemStat()
     {
         return mVkMemStat;
     }
 
     bool IsValid() const;
+#ifdef USE_M133_SKIA
+    skgpu::VulkanGetProc CreateSkiaGetProc() const;
+#else
     GrVkGetProc CreateSkiaGetProc() const;
+#endif
     const std::shared_ptr<MemoryHandler> GetMemoryHandler() const
     {
         return memHandler_;
@@ -228,7 +257,11 @@ public:
         return backendContext_.fQueue;
     }
 
+#ifdef USE_M133_SKIA
+    inline const skgpu::VulkanBackendContext& GetGrVkBackendContext() const noexcept
+#else
     inline const GrVkBackendContext& GetGrVkBackendContext() const noexcept
+#endif
     {
         return backendContext_;
     }
@@ -273,11 +306,16 @@ private:
     VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeature_;
     std::vector<const char*> deviceExtensions_;
     VkDeviceMemoryExclusiveThresholdHUAWEI deviceMemoryExclusiveThreshold_;
+#ifdef USE_M133_SKIA
+    skgpu::VulkanExtensions skVkExtensions_;
+    skgpu::VulkanBackendContext backendContext_;
+#else
     GrVkExtensions skVkExtensions_;
+    GrVkBackendContext backendContext_;
+#endif
     RsVulkanMemStat mVkMemStat;
 
     // static thread_local GrVkBackendContext backendContext_;
-    GrVkBackendContext backendContext_;
     VulkanInterfaceType interfaceType_ = VulkanInterfaceType::BASIC_RENDER;
     RsVulkanInterface(const RsVulkanInterface &) = delete;
     RsVulkanInterface &operator=(const RsVulkanInterface &) = delete;
@@ -320,7 +358,6 @@ public:
         std::function<void()> destructCallback_;
     };
     static RsVulkanContext& GetSingleton(const std::string& cacheDir = "");
-    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
     static void ReleaseRecyclableSingleton();
     explicit RsVulkanContext(std::string cacheDir = "");
     void InitVulkanContextForHybridRender(const std::string& cacheDir);
@@ -342,7 +379,11 @@ public:
         return GetRsVulkanInterface().IsValid();
     }
 
+#ifdef USE_M133_SKIA
+    skgpu::VulkanGetProc CreateSkiaGetProc()
+#else
     GrVkGetProc CreateSkiaGetProc()
+#endif
     {
         return GetRsVulkanInterface().CreateSkiaGetProc();
     }
@@ -367,7 +408,11 @@ public:
         return GetRsVulkanInterface().GetQueue();
     }
 
+#ifdef USE_M133_SKIA
+    inline const skgpu::VulkanBackendContext& GetGrVkBackendContext() noexcept
+#else
     inline const GrVkBackendContext& GetGrVkBackendContext() noexcept
+#endif
     {
         return GetRsVulkanInterface().GetGrVkBackendContext();
     }
@@ -379,6 +424,10 @@ public:
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext();
+    static void ReleaseDrawingContextMap();
+    static void ReleaseRecyclableDrawingContext();
+    static void ReleaseDrawingContextForThread(int tid);
 
     void ClearGrContext(bool isProtected = false);
 
@@ -401,24 +450,25 @@ public:
 
     static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
 
-    static void CleanUpRecyclableDrawingContext(int tid);
-
     static bool GetIsInited();
 
+    static bool IsRecyclableSingletonValid();
+
 private:
+    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
+    static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
     std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;
-    // drawing context
-    static thread_local std::weak_ptr<Drawing::GPUContext> drawingContext_;
-    static thread_local std::weak_ptr<Drawing::GPUContext> protectedDrawingContext_;
-    static std::map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
-    static std::map<int, std::shared_ptr<Drawing::GPUContext>> protectedDrawingContextMap_;
+    // drawingContextMap_ : <tid, <drawingContext, isRecyclable>>
+    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> drawingContextMap_;
+    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> protectedDrawingContextMap_;
     static std::mutex drawingContextMutex_;
     // use for recyclable singleton
-    static std::unique_ptr<RsVulkanContext> recyclableSingleton_;
-    static std::mutex recyclableSingletonMutex_;
+    static std::recursive_mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
+    // isRecyclableSingletonValid_ : true -> has been initialized and is valid , false -> has been released
+    static std::atomic<bool> isRecyclableSingletonValid_;
     // use to mark current process has created vulkan context at least once
     static std::atomic<bool> isInited_;
 };

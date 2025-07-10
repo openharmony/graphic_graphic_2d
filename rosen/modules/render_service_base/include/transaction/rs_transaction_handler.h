@@ -33,13 +33,12 @@ namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-#ifdef RS_ENABLE_VK
 using CommitTransactionCallback =
     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
-#endif
 class RSB_EXPORT RSTransactionHandler final {
 public:
     RSTransactionHandler() = default;
+    RSTransactionHandler(uint64_t token) : token_(token) {}
     virtual ~RSTransactionHandler() = default;
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
@@ -48,6 +47,7 @@ public:
         FollowType followType = FollowType::NONE, NodeId nodeId = 0);
     void AddCommandFromRT(
         std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType = FollowType::FOLLOW_TO_PARENT);
+    void MoveCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
 
     void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
     void FlushImplicitTransactionFromRT(uint64_t timestamp);
@@ -68,12 +68,7 @@ public:
         flushEmptyCallback_ = flushEmptyCallback;
     }
 
-#ifdef RS_ENABLE_VK
-    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
-    {
-        commitTransactionCallback_ = commitTransactionCallback;
-    }
-#endif
+    static void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
 
     void SetSyncId(const uint64_t syncId)
     {
@@ -94,7 +89,9 @@ private:
     RSTransactionHandler& operator=(const RSTransactionHandler&) = delete;
     RSTransactionHandler& operator=(const RSTransactionHandler&&) = delete;
     void AddCommonCommand(std::unique_ptr<RSCommand>& command);
+    void MoveCommonCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
     void AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
+    void MoveRemoteCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
     // Command Transaction Triggered by UI Thread.
     mutable std::mutex mutex_;
     std::unique_ptr<RSTransactionData> implicitCommonTransactionData_ { std::make_unique<RSTransactionData>() };
@@ -110,13 +107,12 @@ private:
     std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
+    uint64_t token_ = 0;
 
     bool needSync_ { false };
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
-#ifdef RS_ENABLE_VK
-    CommitTransactionCallback commitTransactionCallback_ = nullptr;
-#endif
+    static CommitTransactionCallback commitTransactionCallback_;
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};
 };

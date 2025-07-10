@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -269,6 +269,27 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas*, OH_Drawing_PixelMap*,
     const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions*);
 
 /**
+ * @brief Draw the specified area of the Media::PixelMap to the specified area of the canvas.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param pixelMap Indicates the pointer to an <b>OH_Drawing_PixelMap</b> object.
+ * @param src Indicates the area of source pixelmap.
+ * @param dst Indicates the area of destination canvas.
+ * @param samplingOptions Indicates the sampling mode.
+ * @param constraint Indicates constraint type.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of canvas, pixelMap
+ *                 and dst is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapRectConstraint(OH_Drawing_Canvas* canvas,
+    OH_Drawing_PixelMap* pixelMap, const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst,
+    const OH_Drawing_SamplingOptions* samplingOptions, OH_Drawing_SrcRectConstraint constraint);
+
+/**
  * @brief Fills clipped canvas area with brush.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -496,6 +517,26 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawNestedRoundRect(OH_Drawing_Canvas* can
  */
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* canvas, const char* str,
     const OH_Drawing_Font* font, float x, float y);
+
+/**
+ * @brief Draws a single character with font features.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param str Indicates the single character encoded in UTF-8.
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param x Indicates the horizontal offset applied to the single character.
+ * @param y Indicates the vertical offset applied to the single character.
+ * @param fontFeatures Indicates the pointer to an <b>OH_Drawing_FontFeatures</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of canvas, str, font
+ *                 or fontFeatures is nullptr, or if strlen(str) is 0.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing_Canvas* canvas, const char* str,
+    const OH_Drawing_Font* font, float x, float y, OH_Drawing_FontFeatures* fontFeatures);
 
 /**
  * @brief Draws a textblob.
@@ -920,7 +961,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* canvas, O
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if canvas or recordCmd is nullptr.
- * @since 20
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmdNesting(OH_Drawing_Canvas* canvas, OH_Drawing_RecordCmd* recordCmd);

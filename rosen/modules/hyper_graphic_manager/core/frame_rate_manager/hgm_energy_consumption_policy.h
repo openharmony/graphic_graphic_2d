@@ -36,23 +36,24 @@ public:
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     // called by RSMainThread
     void StatisticAnimationTime(uint64_t timestamp);
-    void StartNewAnimation(const std::string &componentName);
+    void StartNewAnimation(const std::string& componentName);
     // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
     
     bool GetUiIdleFps(FrameRateRange& rsRange);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
-    void PrintEnergyConsumptionLog(const FrameRateRange &rsRange);
-    void SetVideoCallSceneInfo(const EventInfo &eventInfo);
+    void PrintEnergyConsumptionLog(const FrameRateRange& rsRange);
+    void SetVideoCallSceneInfo(const EventInfo& eventInfo);
     // called by RSMainThread
-    void StatisticsVideoCallBufferCount(pid_t pid, const std::string &surfaceName);
+    void StatisticsVideoCallBufferCount(pid_t pid, const std::string& surfaceName);
     // called by RSMainThread
     void CheckOnlyVideoCallExist();
     // called by RSMainThread
     bool GetVideoCallVsyncChange();
-    bool GetVideoCallFrameRate(pid_t pid, const std::string &vsyncName, FrameRateRange &finalRange);
-    void SetCurrentPkgName(const std::vector<std::string> &pkgs);
+    bool GetVideoCallFrameRate(pid_t pid, const std::string& vsyncName, FrameRateRange &finalRange);
+    void SetCurrentPkgName(const std::vector<std::string>& pkgs);
+    void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
 
 private:
     // <rateType, <isEnable, idleFps>>
@@ -81,6 +82,7 @@ private:
     mutable std::mutex videoCallLock_;
     std::string videoCallLayerName_ = "";
     // concurrency protection <<<
+    std::atomic<bool> aceComponentEnable_ = { true };
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -90,9 +92,9 @@ private:
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&&) = delete;
     static void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
     void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
-    int32_t GetComponentEnergyConsumptionConfig(const std::string &componentName);
+    int32_t GetComponentEnergyConsumptionConfig(const std::string& componentName);
     // Invoked by the render_service thread
-    void GetComponentFps(FrameRateRange &rsRange);
+    void GetComponentFps(FrameRateRange& rsRange);
 };
 } // namespace OHOS::Rosen
 

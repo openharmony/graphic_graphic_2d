@@ -199,26 +199,6 @@ bool DoSetScreenId(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetDisplayOffset(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    int32_t offsetX = GetData<uint64_t>();
-    int32_t offsetY = GetData<uint64_t>();
-    displayNode->SetDisplayOffset(offsetX, offsetY);
-    return true;
-}
-
 bool DoSetSecurityDisplay(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -441,7 +421,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoMarshalling(data, size);
     OHOS::Rosen::DoUnmarshalling(data, size);
     OHOS::Rosen::DoSetScreenId(data, size);
-    OHOS::Rosen::DoSetDisplayOffset(data, size);
     OHOS::Rosen::DoSetSecurityDisplay(data, size);
     OHOS::Rosen::DoSetScreenRotation(data, size);
     OHOS::Rosen::DoSetDisplayNodeMirrorConfig(data, size);

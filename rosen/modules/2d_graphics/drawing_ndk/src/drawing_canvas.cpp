@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +15,16 @@
 
 #include "drawing_canvas.h"
 
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
 #include "src/utils/SkUTF.h"
+#endif
 
 #include "drawing_canvas_utils.h"
 #include "drawing_font_utils.h"
 #include "drawing_helper.h"
-#include "image_pixel_map_mdk.h"
-#include "native_pixel_map.h"
 #include "native_pixel_map_manager.h"
-#include "pixelmap_native_impl.h"
 #include "recording/recording_canvas.h"
 #include "utils/log.h"
 
@@ -126,6 +127,11 @@ static const Font* CastToFont(const OH_Drawing_Font* cFont)
     return reinterpret_cast<const Font*>(cFont);
 }
 
+static Drawing::DrawingFontFeatures* CastToFontFeatures(OH_Drawing_FontFeatures* fontFeatures)
+{
+    return reinterpret_cast<Drawing::DrawingFontFeatures*>(fontFeatures);
+}
+
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
 {
     return (OH_Drawing_Canvas*)new Canvas;
@@ -137,17 +143,7 @@ OH_Drawing_Canvas* OH_Drawing_CanvasCreateWithPixelMap(OH_Drawing_PixelMap* pixe
     if (pixelMap == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<Media::PixelMap> p = nullptr;
-    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
-        case NativePixelMapType::OBJECT_FROM_C:
-            p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
-            break;
-        case NativePixelMapType::OBJECT_FROM_JS:
-            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
-            break;
-        default:
-            break;
-    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
 
     Bitmap bitmap;
     if (!DrawingCanvasUtils::ExtractDrawingBitmap(p, bitmap)) {
@@ -495,19 +491,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* cCanva
     if (canvas == nullptr || pixelMap == nullptr || dst == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
-    std::shared_ptr<Media::PixelMap> p = nullptr;
-    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
-        case NativePixelMapType::OBJECT_FROM_C:
-            if (pixelMap) {
-                p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
-            }
-            break;
-        case NativePixelMapType::OBJECT_FROM_JS:
-            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
-            break;
-        default:
-            break;
-    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
     OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapNine(canvas, p,
         CastToRect(center), CastToRect(dst), static_cast<FilterMode>(mode));
     auto iter = g_canvasMap.find(canvas);
@@ -524,19 +508,7 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
     const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions)
 {
 #ifdef OHOS_PLATFORM
-    std::shared_ptr<Media::PixelMap> p = nullptr;
-    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
-        case NativePixelMapType::OBJECT_FROM_C:
-            if (pixelMap) {
-                p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
-            }
-            break;
-        case NativePixelMapType::OBJECT_FROM_JS:
-            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
-            break;
-        default:
-            break;
-    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
     DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas), p,
         reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
         reinterpret_cast<const Drawing::SamplingOptions*>(cSampingOptions));
@@ -544,6 +516,30 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
     if (iter != g_canvasMap.end() && iter->second != nullptr) {
         iter->second->MarkDirty();
     }
+#endif
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapRectConstraint(OH_Drawing_Canvas* cCanvas,
+    OH_Drawing_PixelMap* pixelMap, const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst,
+    const OH_Drawing_SamplingOptions* cSamplingOptions, OH_Drawing_SrcRectConstraint cConstraint)
+{
+#ifdef OHOS_PLATFORM
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || pixelMap == nullptr || dst == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
+    OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapRectConstraint(CastToCanvas(cCanvas), p,
+        reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
+        reinterpret_cast<const Drawing::SamplingOptions*>(cSamplingOptions),
+        static_cast<SrcRectConstraint>(cConstraint));
+    auto iter = g_canvasMap.find(cCanvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+    return errorCode;
+#else
+    return OH_DRAWING_SUCCESS;
 #endif
 }
 
@@ -761,6 +757,50 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCa
 #endif
     return OH_DRAWING_SUCCESS;
 }
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing_Canvas* cCanvas, const char* str,
+    const OH_Drawing_Font* cFont, float x, float y, OH_Drawing_FontFeatures* fontFeatures)
+{
+    Drawing::DrawingFontFeatures* features =  CastToFontFeatures(fontFeatures);
+    if (str == nullptr || cFont == nullptr || features == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t len = strlen(str);
+    if (len == 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::MatchThemeFont(font, unicode);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    // copy UTF char to array
+    int32_t utfCharLen = currentStr - str;
+    std::vector<char> strBuffer(utfCharLen + 1);
+    for (int32_t i = 0; i < utfCharLen; ++i) {
+        strBuffer[i] = str[i];
+    }
+    strBuffer[utfCharLen] = 0;
+    std::shared_ptr<Drawing::DrawingFontFeatures> featureCopy = std::make_shared<Drawing::DrawingFontFeatures>();
+    for (const auto& entry : *features) {
+        featureCopy->push_back(entry);
+    }
+    canvas->DrawSingleCharacterWithFeatures(strBuffer.data(), *font, x, y, featureCopy);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
+    return OH_DRAWING_SUCCESS;
+}
+
 
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_TextBlob* cTextBlob, float x, float y)
 {

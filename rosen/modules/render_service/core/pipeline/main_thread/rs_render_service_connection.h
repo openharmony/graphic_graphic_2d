@@ -234,6 +234,8 @@ private:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) override;
+
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
 
     ErrCode SetGlobalDarkColorMode(bool isDark) override;
@@ -276,6 +278,10 @@ private:
         ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate, int32_t& retVal) override;
 
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
+
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
@@ -382,9 +388,13 @@ private:
 
     void SetFreeMultiWindowStatus(bool enable) override;
 
+    ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) override;
+
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
+
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
@@ -397,7 +407,10 @@ private:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
@@ -410,6 +423,20 @@ private:
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
+    ErrCode AvcodecVideoStart(uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) override;
+
+    ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) override;
+
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
+
+    RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd) override;
+    RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
+    bool ProfilerIsSecureScreen() override;
+
+    void ClearUifirstCache(NodeId id) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

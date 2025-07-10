@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
@@ -81,7 +81,7 @@ void RSUniRenderComposerAdapterTest::SetUp()
     info.rotation = rotation;
     composerAdapter_ = std::make_unique<RSUniRenderComposerAdapter>();
     ASSERT_NE(composerAdapter_, nullptr);
-    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient);
+    composerAdapter_->Init(info, offsetX, offsetY);
 }
 
 /**
@@ -1158,24 +1158,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform006, TestSize.Lev
 }
 
 /**
- * @tc.name: CheckStatusBeforeCreateLayer008
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer while
- *           bounds geometry is nullptr
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer008, TestSize.Level2)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
-    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
-    surfaceNode->SetSrcRect(dstRect);
-    surfaceNode->SetDstRect(dstRect);
-    ASSERT_FALSE(composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
-}
-
-/**
  * @tc.name: LayerScaleDown004
  * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerScaleDown while
  *           scaling mode is SCALING_MODE_SCALE_CROP
@@ -1286,9 +1268,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
 
     using namespace HDI::Display::Graphic::Common::V1_0;
 
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode::SharedPtr nodePtr = std::make_shared<RSDisplayRenderNode>(1, config);
-    auto displayDrawable =std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+    RSScreenRenderNode::SharedPtr nodePtr = std::make_shared<RSScreenRenderNode>(1, 1);
+    auto displayDrawable =std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr));
     auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
     sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
@@ -1343,11 +1324,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace002, TestSize.Level2
     SetUp();
 
     NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node);
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
+    auto drawable = DrawableV2::RSScreenRenderNodeDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
-    auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
+    auto displayDrawable = static_cast<DrawableV2::RSScreenRenderNodeDrawable*>(drawable);
     composerAdapter_->SetBufferColorSpace(*displayDrawable);
 }
 
@@ -1362,9 +1342,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2
     SetUp();
 
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
     ASSERT_NE(displayDrawable, nullptr);
     composerAdapter_->SetBufferColorSpace(*displayDrawable);

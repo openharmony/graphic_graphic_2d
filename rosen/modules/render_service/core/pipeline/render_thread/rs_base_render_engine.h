@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,12 +20,13 @@
 
 #include "hdi_layer_info.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#ifdef RS_ENABLE_VK
-#include "feature/gpuComposition/rs_vk_image_manager.h"
-#endif
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #include "rs_base_render_util.h"
 
 #include "platform/drawing/rs_surface_frame.h"
@@ -33,8 +34,8 @@
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 #include "render_context/render_context.h"
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-#include "feature/gpuComposition/rs_egl_image_manager.h"
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
+#include "feature/gpuComposition/rs_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "colorspace_converter_display.h"
@@ -43,7 +44,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
-class RSDisplayRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
 }
 struct FrameContextConfig {
@@ -102,10 +102,26 @@ public:
 
     void SetDamageRegion(const std::vector<RectI> &rects)
     {
-        if (surfaceFrame_ != nullptr) {
-            surfaceFrame_->SetDamageRegion(rects);
+        if (surfaceFrame_ == nullptr) {
+            return;
+        }
+        const auto surface = surfaceFrame_->GetSurface();
+        if (surface != nullptr) {
+            surfaceFrame_->SetDamageRegion(
+                CheckAndVerifyDamageRegion(rects, RectI(0, 0, surface->Width(), surface->Height())));
         }
     }
+    // some frame maynot need to call FlushFrame
+    void Reset()
+    {
+        targetSurface_ = nullptr;
+        surfaceFrame_ = nullptr;
+    }
+
+protected:
+    std::vector<RectI> CheckAndVerifyDamageRegion(const std::vector<RectI>& rects,
+        const RectI& surfaceRect) const;
+
 private:
     std::shared_ptr<RSSurfaceOhos> targetSurface_;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;
@@ -129,7 +145,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init(bool independentContext = false);
+    void Init();
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -157,9 +173,10 @@ public:
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
         PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
 
-    void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
+    virtual void DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) = 0;
+    void DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSScreenRenderNode& node,
         BufferDrawParam& params);
-    void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
+    void DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
         BufferDrawParam& params);
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
@@ -190,24 +207,21 @@ public:
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     void ResetCurrentContext();
 
-#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    const std::shared_ptr<RSEglImageManager>& GetEglImageManager()
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
+    const std::shared_ptr<RSImageManager>& GetImageManager()
     {
-        return eglImageManager_;
+        return imageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
-        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect>& inputShader, BufferDrawParam& params,
+        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter,
+        const RSPaintFilterCanvas::HDRProperties& hdrProperties = RSPaintFilterCanvas::HDRProperties{});
 #endif
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorSpaceNameToDrawingColorSpace(
         OHOS::ColorManager::ColorSpaceName colorSpaceName);
 #ifdef RS_ENABLE_VK
-    const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
-    {
-        return vkImageManager_;
-    }
     const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
     {
         return skContext_;
@@ -226,32 +240,25 @@ protected:
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 
 private:
-    std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace = nullptr);
-
     static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
         BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
 
     static bool NeedBilinearInterpolation(const BufferDrawParam& params, const Drawing::Matrix& matrix);
 
+    static std::shared_ptr<Drawing::ColorSpace> GetCanvasColorSpace(const RSPaintFilterCanvas& canvas);
+
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
-#endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
     std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
     std::shared_ptr<Drawing::GPUContext> captureSkContext_ = nullptr;
-    std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
 #endif
+    std::shared_ptr<RSImageManager> imageManager_ = nullptr;
     using SurfaceId = uint64_t;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-    static std::shared_ptr<Drawing::ColorSpace> GetCanvasColorSpace(const RSPaintFilterCanvas& canvas);
     static bool ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;

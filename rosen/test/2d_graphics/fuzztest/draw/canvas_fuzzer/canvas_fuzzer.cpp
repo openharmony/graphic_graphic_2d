@@ -22,6 +22,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int32_t BITMAP_WIDTH = 300;
+static constexpr int32_t BITMAP_HEIGHT = 300;
 
 bool CanvasFuzzTest(const uint8_t* data, size_t size)
 {
@@ -54,6 +56,54 @@ bool CanvasFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTest001(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Canvas canvas;
+    uint32_t count = GetObject<uint32_t>();
+    bool flag = GetObject<bool>();
+    canvas.AddCanvas(&canvas);
+    canvas.RemoveAll();
+    canvas.RestoreToCount(count);
+    canvas.GetRecordingState();
+    canvas.SetRecordingState(flag);
+    std::shared_ptr<Drawing::Canvas> cCanvas;
+    OverDrawCanvas overDrawCanvas = OverDrawCanvas(cCanvas);
+    overDrawCanvas.GetDrawingType();
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    NoDrawCanvas noDrawCanvas = NoDrawCanvas(width, height);
+    noDrawCanvas.GetDrawingType();
+
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    Image image;
+    image.BuildFromBitmap(bmp);
+    // DrawImageEffectHPS
+    Rect rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    scalar sigma = GetObject<scalar>();
+    float saturation = GetObject<float>();
+    float brightness = GetObject<float>();
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    hpsEffectParams.push_back(std::make_shared<Drawing::HpsBlurEffectParameter>
+        (rect, rect, sigma, saturation, brightness));
+    canvas.DrawImageEffectHPS(image, hpsEffectParams);
+
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -63,5 +113,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::CanvasFuzzTest(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     return 0;
 }

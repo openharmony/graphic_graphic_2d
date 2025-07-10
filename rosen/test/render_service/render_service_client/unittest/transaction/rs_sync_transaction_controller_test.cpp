@@ -76,6 +76,20 @@ HWTEST_F(RSSyncTransactionControllerTest, OpenSyncTransaction001, TestSize.Level
 }
 
 /**
+ * @tc.name: OpenSyncTransaction002
+ * @tc.desc: test results of OpenSyncTransaction
+ * @tc.type: FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSSyncTransactionControllerTest, OpenSyncTransaction002, TestSize.Level1)
+{
+    RSSyncTransactionController* instance = RSSyncTransactionController::GetInstance();
+    instance->needCloseSync_ = false;
+    instance->OpenSyncTransaction();
+    EXPECT_TRUE(instance->needCloseSync_);
+}
+
+/**
  * @tc.name: CloseSyncTransaction001
  * @tc.desc: test results of CloseSyncTransaction
  * @tc.type: FUNC
@@ -96,5 +110,20 @@ HWTEST_F(RSSyncTransactionControllerTest, CloseSyncTransaction001, TestSize.Leve
     instance->CloseSyncTransaction();
     EXPECT_TRUE(instance->rsTransaction_ != nullptr);
     EXPECT_TRUE(!instance->needCloseSync_);
+}
+
+/**
+ * @tc.name: CloseSyncTransaction002
+ * @tc.desc: test results of CloseSyncTransaction
+ * @tc.type: FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSSyncTransactionControllerTest, CloseSyncTransaction002, TestSize.Level1)
+{
+    RSSyncTransactionController* instance = RSSyncTransactionController::GetInstance();
+    EXPECT_FALSE(instance->needCloseSync_);
+    instance->needCloseSync_ = true;
+    instance->OpenSyncTransaction();
+    EXPECT_FALSE(instance->needCloseSync_);
 }
 } // namespace OHOS::Rosen

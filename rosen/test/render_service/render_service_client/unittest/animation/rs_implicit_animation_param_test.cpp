@@ -25,7 +25,7 @@
 #include "modifier/rs_property_modifier.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "hisysevent.h"
 #include "sandbox_utils.h"
 #endif
 using namespace testing;
@@ -59,6 +59,7 @@ HWTEST_F(RSImplicitAnimationParamTest, ApplyTimingProtocolTest, Level1)
     ASSERT_NE(animation, nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SyncProperties001
  * @tc.desc: Verify the RSImplicitCancelAnimationParam SyncProperties
@@ -153,6 +154,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest SyncProperties002 end";
 }
+#endif
 
 /**
  * @tc.name: AddKeyframe001

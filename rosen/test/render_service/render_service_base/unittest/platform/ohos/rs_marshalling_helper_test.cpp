@@ -1346,63 +1346,6 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingArrayTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarshallingVecTest
- * @tc.desc: Verify function MarshallingVec
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, MarshallingVecTest, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<int> val;
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec(parcel, val));
-    val.emplace_back(1);
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec(parcel, val));
-}
-
-/**
- * @tc.name: UnmarshallingVecTest
- * @tc.desc: Verify function UnmarshallingVec
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, UnmarshallingVecTest, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<int> val;
-    EXPECT_TRUE(RSMarshallingHelper::UnmarshallingVec(parcel, val));
-}
-
-/**
- * @tc.name: MarshallingVec2Test
- * @tc.desc: Verify function MarshallingVec2
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, MarshallingVec2Test, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<std::vector<int>> val;
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec2(parcel, val));
-    std::vector<int> emptyVector;
-    val.emplace_back(emptyVector);
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec2(parcel, val));
-}
-
-/**
- * @tc.name: UnmarshallingVec2Test
- * @tc.desc: Verify function UnmarshallingVec2
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, UnmarshallingVec2Test, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<std::vector<int>> val;
-    EXPECT_TRUE(RSMarshallingHelper::UnmarshallingVec2(parcel, val));
-}
-
-/**
  * @tc.name: MarshallingTest035
  * @tc.desc: Verify function Marshalling
  * @tc.type:FUNC
@@ -1862,7 +1805,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest051, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel2, drawCmdList2));
     std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList2 = nullptr;
     // exceed max recordCmd count
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(*parcel, outDrawCmdList2));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(*parcel2, outDrawCmdList2));
     RSMarshallingHelper::EndNoSharedMem();
 }
 
@@ -1902,7 +1845,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest052, TestSize.Level1)
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel, drawCmdList));
     std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList = nullptr;
-    // not exceed max recordCmd count
+    // not exceed max recordCmd depth
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(*parcel, outDrawCmdList));
 
     auto recordCmdUtilsTmp2 = std::make_shared<RSRecordCmdUtils>();
@@ -1917,10 +1860,49 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest052, TestSize.Level1)
     auto parcel2 = std::make_shared<MessageParcel>();
     parcel2->SetMaxCapacity(parcelCapacity);
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
-    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel2, drawCmdList2));
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel2, drawCmdList2, -1)); // basic depth -1
     std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList2 = nullptr;
-    // exceed max recordCmd count
+    // exceed max recordCmd depth
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(*parcel2, outDrawCmdList2));
+}
+
+/**
+ * @tc.name: MarshallingTest053
+ * @tc.desc: Verify function Marshalling recordCmd nesting depth limit
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingTest053, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
+    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
+    auto p = Drawing::Point(width, height);
+    recordCanvasTmp->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmdTmp = recordCmdUtilsTmp->FinishRecording();
+
+    for (int i = 0; i < Drawing::RECORD_CMD_MAX_DEPTH; i++) {
+        auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
+        Drawing::Canvas* recordCanvas = recordCmdUtils->BeginRecording(rect);
+        recordCanvas->DrawPoint(p);
+        recordCanvas->DrawRecordCmd(recordCmdTmp, nullptr, nullptr);
+        std::shared_ptr<Drawing::RecordCmd> recordCmd = recordCmdUtils->FinishRecording();
+        recordCmdUtils = nullptr;
+        recordCmdTmp = recordCmd;
+    }
+
+    auto rootCanvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+    rootCanvas->DrawRecordCmd(recordCmdTmp, nullptr, nullptr);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = rootCanvas->GetDrawCmdList();
+    auto parcel = std::make_shared<MessageParcel>();
+    const size_t parcelCapacity = 200 * 1024 * 1024; // parcel capacity: 200M
+    parcel->SetMaxCapacity(parcelCapacity);
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    // test max depth
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(*parcel, drawCmdList));
+    RSMarshallingHelper::EndNoSharedMem();
 }
 } // namespace Rosen
 } // namespace OHOS

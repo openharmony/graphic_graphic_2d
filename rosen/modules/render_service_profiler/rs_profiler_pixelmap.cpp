@@ -20,6 +20,7 @@
 
 #include "media_errors.h"
 #include "pixel_map.h"
+#include "pixel_map_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
 #include "rs_profiler_utils.h"
@@ -38,6 +39,8 @@
 #define ALPHA_OFFSET 4
 #define SIZE_OF_PIXEL 4
 #define RGB_OFFSET 3
+#define PIXELMAP_FLAG_PROFILER (1 << 0)
+#define PIXELMAP_FLAG_PIXEL_CHECK (1 << 1)
 
 namespace OHOS::Rosen {
 
@@ -179,7 +182,7 @@ void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
     }
 
     constexpr size_t skipBytes = 24u;
-    const auto size = static_cast<size_t>(const_cast<PixelMap&>(map).GetByteCount());
+    const auto size = static_cast<size_t>(map.GetByteCount());
     const ImageProperties properties(map);
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
         PushImage(
@@ -216,6 +219,8 @@ bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMem
     if (!CopyImageData(image, memory.base, image->dmaSize)) {
         return false;
     }
+    // solve pink artefacts problem during replay (GPU reads texture when it's still not updated)
+    surfaceBuffer->FlushCache();
 
     memory.context = IncrementSurfaceBufferReference(surfaceBuffer);
     skipBytes = image->parcelSkipBytes;
@@ -707,8 +712,16 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
     }
 
     const bool profilerEnabled = RSSystemProperties::GetProfilerEnabled();
-    if (!parcel.WriteBool(profilerEnabled)) {
-        HRPE("MarshalPixelMap: Unable to write profilerEnabled");
+    const bool pixelCheckEnabled = RSSystemProperties::GetProfilerPixelCheckMode();
+    uint8_t flags = 0;
+    if (profilerEnabled) {
+        flags |= PIXELMAP_FLAG_PROFILER;
+        if (pixelCheckEnabled) {
+            flags |= PIXELMAP_FLAG_PIXEL_CHECK;
+        }
+    }
+    if (!parcel.WriteUint8(flags)) {
+        HRPE("MarshalPixelMap: Unable to write flags");
         return false;
     }
 
@@ -717,8 +730,18 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
     }
 
     const uint64_t id = ImageCache::New();
-    if (!parcel.WriteUint64(id) || !map->Marshalling(parcel)) {
+    if (!parcel.WriteUint64(id)) {
         HRPE("MarshalPixelMap: Unable to write id");
+        return false;
+    }
+
+    if (pixelCheckEnabled) {
+        if (!Media::PixelMapRecordParcel::MarshallingPixelMapForRecord(parcel, *(map.get()))) {
+            HRPE("MarshalPixelMap: Unable to marshal pixelmap for pixel check mode");
+            return false;
+        }
+    } else if (!map->Marshalling(parcel)) {
+        HRPE("MarshalPixelMap: Unable to marshal pixelmap");
         return false;
     }
 
@@ -734,17 +757,59 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
     return true;
 }
 
-Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
+Media::PixelMap* RSProfiler::UnmarshalPixelMapNstd(Parcel& parcel,
     std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc)
 {
-    bool profilerEnabled = false;
-    if (!parcel.ReadBool(profilerEnabled)) {
-        HRPE("UnmarshalPixelMap: Unable to read profilerEnabled");
+    const uint64_t id = parcel.ReadUint64();
+
+    if (IsRecordAbortRequested()) {
+        return Media::PixelMapRecordParcel::UnmarshallingPixelMapForRecord(parcel, readSafeFdFunc);
+    }
+
+    ImageInfo info;
+    PixelMemInfo memory;
+    PIXEL_MAP_ERR error;
+    auto map = Media::PixelMapRecordParcel::StartUnmarshalling(parcel, info, memory, error);
+
+    if ((IsReadMode() || IsReadEmulationMode()) && IsParcelMock(parcel)) {
+        size_t skipBytes = 0u;
+        if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
+            parcel.SkipBytes(skipBytes);
+            return Media::PixelMapRecordParcel::FinishUnmarshalling(map, parcel, info, memory, error);
+        }
+    }
+
+    const auto parcelPosition = parcel.GetReadPosition();
+    if (map && !Media::PixelMapRecordParcel::ReadMemInfoFromParcel(parcel, memory, error, readSafeFdFunc)) {
+        delete map;
         return nullptr;
     }
 
+    if (IsWriteMode() || IsWriteEmulationMode()) {
+        if (!PixelMapStorage::Push(id, info, memory, parcel.GetReadPosition() - parcelPosition)) {
+            RequestRecordAbort();
+        }
+    }
+    return Media::PixelMapRecordParcel::FinishUnmarshalling(map, parcel, info, memory, error);
+}
+
+Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
+    std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc)
+{
+    uint8_t flags;
+    if (!parcel.ReadUint8(flags)) {
+        HRPE("UnmarshalPixelMap: Unable to read flags");
+        return nullptr;
+    }
+
+    bool profilerEnabled = flags & PIXELMAP_FLAG_PROFILER;
     if (!profilerEnabled) {
-        return PixelMap::Unmarshalling(parcel, readSafeFdFunc);
+        return PixelMap::UnmarshallingWithIsDisplay(parcel, readSafeFdFunc, true);
+    }
+
+    bool pixelCheckEnabled = flags & PIXELMAP_FLAG_PIXEL_CHECK;
+    if (pixelCheckEnabled) {
+        return UnmarshalPixelMapNstd(parcel, readSafeFdFunc);
     }
 
     const uint64_t id = parcel.ReadUint64();
@@ -758,7 +823,7 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
     PIXEL_MAP_ERR error;
     auto map = PixelMap::StartUnmarshalling(parcel, info, memory, error);
 
-    if (IsReadMode() || IsReadEmulationMode()) {
+    if (IsPlaybackParcel(parcel)) {
         size_t skipBytes = 0u;
         if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
             parcel.SkipBytes(skipBytes);

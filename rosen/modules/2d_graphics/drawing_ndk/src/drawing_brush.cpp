@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,11 @@
 #include "drawing_helper.h"
 
 #include "draw/brush.h"
+#include "draw/color.h"
+#include "ndk_color_space.h"
+#ifdef OHOS_PLATFORM
+#include "utils/colorspace_convertor.h"
+#endif
 
 using namespace OHOS;
 using namespace Rosen;
@@ -196,6 +201,75 @@ void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush* cBrush, OH_Drawing_BlendMode
         return;
     }
     brush->SetBlendMode(static_cast<BlendMode>(cBlendMode));
+}
+
+#ifdef OHOS_PLATFORM
+static NativeColorSpaceManager* OHNativeColorSpaceManagerToNativeColorSpaceManager(
+    OH_NativeColorSpaceManager* nativeColorSpaceManager)
+{
+    return reinterpret_cast<NativeColorSpaceManager*>(nativeColorSpaceManager);
+}
+#endif
+
+OH_Drawing_ErrorCode OH_Drawing_BrushSetColor4f(OH_Drawing_Brush* cBrush, float a, float r, float g, float b,
+    OH_NativeColorSpaceManager* colorSpaceManager)
+{
+#ifdef OHOS_PLATFORM
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    NativeColorSpaceManager* nativeColorSpaceManager =
+        OHNativeColorSpaceManagerToNativeColorSpaceManager(colorSpaceManager);
+    std::shared_ptr<ColorSpace> drawingColorSpace = nullptr;
+    if (nativeColorSpaceManager) {
+        auto colorManagerColorSpace = std::make_shared<OHOS::ColorManager::ColorSpace>(
+            nativeColorSpaceManager->GetInnerColorSpace());
+        drawingColorSpace =
+            Drawing::ColorSpaceConvertor::ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+    }
+
+    brush->SetColor(Color4f{r, g, b, a}, drawingColorSpace);
+    return OH_DRAWING_SUCCESS;
+#else
+    return OH_DRAWING_SUCCESS;
+#endif
+}
+
+OH_Drawing_ErrorCode OH_Drawing_BrushGetAlphaFloat(const OH_Drawing_Brush* brush, float* a)
+{
+    if (brush == nullptr || a == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *a = CastToBrush(*brush).GetAlphaF();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_BrushGetRedFloat(const OH_Drawing_Brush* brush, float* r)
+{
+    if (brush == nullptr || r == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *r = CastToBrush(*brush).GetRedF();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_BrushGetGreenFloat(const OH_Drawing_Brush* brush, float* g)
+{
+    if (brush == nullptr || g == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *g = CastToBrush(*brush).GetGreenF();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_BrushGetBlueFloat(const OH_Drawing_Brush* brush, float* b)
+{
+    if (brush == nullptr || b == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *b = CastToBrush(*brush).GetBlueF();
+    return OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_BrushReset(OH_Drawing_Brush* cBrush)

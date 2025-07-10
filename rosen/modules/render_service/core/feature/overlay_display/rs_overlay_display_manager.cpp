@@ -18,6 +18,9 @@
 #include <dlfcn.h>
 
 #include "platform/common/rs_log.h"
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
 
 namespace OHOS::Rosen {
 const std::string OVERLAY_DISPLAY_SO_PATH = "liboverlay_display.z.so";
@@ -79,6 +82,9 @@ void RSOverlayDisplayManager::PostProcFilter(RSPaintFilterCanvas& canvas)
 {
     std::shared_lock lock(mutex_);
     if (modeOfCurrentVsync_ == 0) {
+#ifdef RS_ENABLE_TV_PQ_METADATA
+        RSTvMetadataManager::Instance().ResetDpPixelFormat();
+#endif
         return;
     }
     if (postProcFunc_ == nullptr) {
@@ -86,10 +92,17 @@ void RSOverlayDisplayManager::PostProcFilter(RSPaintFilterCanvas& canvas)
         return;
     }
     postProcFunc_(canvas);
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    TvPQMetadata info = { 0 };
+    info.dpPixFmt = 2; // 0x2 : ARGB private frame format
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(info);
+#endif
 }
 
 void RSOverlayDisplayManager::ExpandDirtyRegion(
-    RSDirtyRegionManager& dirtyManager, const ScreenInfo& screenInfo, Occlusion::Region& dirtyRegion)
+    RSDirtyRegionManager& dirtyManager, const ScreenInfo& screenInfo, Occlusion::Region& drawnRegion,
+    Occlusion::Region& damageRegion)
 {
     std::shared_lock lock(mutex_);
     if (modeOfCurrentVsync_ == 0) {
@@ -99,7 +112,8 @@ void RSOverlayDisplayManager::ExpandDirtyRegion(
         RS_LOGI("%{public}s function is null.", __func__);
         return;
     }
-    expandDirtyRegionFunc_(dirtyManager, screenInfo, dirtyRegion);
+    expandDirtyRegionFunc_(dirtyManager, screenInfo, drawnRegion);
+    damageRegion = drawnRegion;
 }
 
 bool RSOverlayDisplayManager::LoadLibrary()

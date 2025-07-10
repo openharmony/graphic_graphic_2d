@@ -21,7 +21,6 @@
 
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 #include "utils/performanceCaculate.h"
 
@@ -201,7 +200,15 @@ void DrawCmdList::Dump(std::string& out)
 {
     bool found = false;
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    for (auto& item : drawOpItems_) {
+    std::vector<std::shared_ptr<DrawOpItem>> dumpDrawOpItems;
+    size_t lastOpGenSize = lastOpGenSize_;
+    if (drawOpItems_.empty() && !IsEmpty()) {
+        UnmarshallingDrawOpsSimple(dumpDrawOpItems, lastOpGenSize);
+    } else {
+        dumpDrawOpItems = drawOpItems_;
+    }
+    
+    for (auto& item : dumpDrawOpItems) {
         if (item == nullptr) {
             continue;
         }
@@ -339,7 +346,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
             break;
         }
         uint32_t type = curOpItemPtr->GetType();
-        auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset);
+        auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset, isReplayMode);
         if (!op) {
             if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
                 break;
@@ -357,7 +364,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
             }
             auto* replaceOpItemPtr = static_cast<OpItem*>(replacePtr);
             size_t avaliableSize = opAllocator_.GetSize() - replacedOpListForBuffer_[opReplaceIndex].second;
-            auto replaceOp = player.Unmarshalling(replaceOpItemPtr->GetType(), replacePtr, avaliableSize);
+            auto replaceOp = player.Unmarshalling(replaceOpItemPtr->GetType(), replacePtr, avaliableSize, isReplayMode);
             if (replaceOp) {
                 drawOpItems_.emplace_back(replaceOp);
                 replacedOpListForVector_.emplace_back((drawOpItems_.size() - 1), op);
@@ -392,8 +399,6 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
 
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_DRAWCMDLIST_PLAYBACK);
     if (canvas.GetUICapture() && noNeedUICaptured_) {
         return;
     }
@@ -648,16 +653,17 @@ void DrawCmdList::PlaybackByVector(Canvas& canvas, const Rect* rect)
     canvas.DetachPaint();
 }
 
-bool DrawCmdList::UnmarshallingDrawOpsSimple()
+bool DrawCmdList::UnmarshallingDrawOpsSimple(
+    std::vector<std::shared_ptr<DrawOpItem>>& drawOpItems, size_t& lastOpGenSize)
 {
     if (opAllocator_.GetSize() <= offset_) {
         return false;
     }
     size_t offset = offset_;
-    if (lastOpGenSize_ != opAllocator_.GetSize()) {
+    if (lastOpGenSize != opAllocator_.GetSize()) {
         uint32_t count = 0;
         UnmarshallingPlayer player = { *this };
-        drawOpItems_.clear();
+        drawOpItems.clear();
         do {
             count++;
             void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
@@ -666,7 +672,7 @@ bool DrawCmdList::UnmarshallingDrawOpsSimple()
                 break;
             }
             uint32_t type = curOpItemPtr->GetType();
-            if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset)) {
+            if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset, isReplayMode)) {
                 drawOpItems_.emplace_back(op);
             }
             if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
@@ -674,14 +680,14 @@ bool DrawCmdList::UnmarshallingDrawOpsSimple()
             }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } while (offset != 0 && count <= MAX_OPITEMSIZE);
-        lastOpGenSize_ = opAllocator_.GetSize();
+        lastOpGenSize = opAllocator_.GetSize();
     }
     return true;
 }
 
 void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
 {
-    if (!UnmarshallingDrawOpsSimple()) {
+    if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {
         return;
     }
     uint32_t opCount = 0;
@@ -724,7 +730,7 @@ bool DrawCmdList::IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxP
     if (hybridRenderType_ == HybridRenderType::CANVAS) {
         return true;
     }
-    if (!UnmarshallingDrawOpsSimple()) {
+    if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {
         return false;
     }
     // check whiteList
@@ -838,6 +844,46 @@ size_t DrawCmdList::GetSize()
 void DrawCmdList::SetCanvasDrawingOpLimitEnable(bool isEnable)
 {
     isCanvasDrawingOpLimitEnabled_ = isEnable;
+}
+
+const std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::GetDrawOpItems() const
+{
+    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems(drawOpItems_);
+    return drawOpItems;
+}
+
+RectF DrawCmdList::GetCmdlistDrawRegion()
+{
+    Rect cmdlistDrawRegion;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        for (const auto& op : drawOpItems_) {
+            if (!op) {
+                continue;
+            }
+            const auto& type = op->GetType();
+            switch (type) {
+                // dst opItem
+                case DrawOpItem::PATH_OPITEM:
+                case DrawOpItem::TEXT_BLOB_OPITEM:
+                case DrawOpItem::RECT_OPITEM:
+                    cmdlistDrawRegion.Join(op->GetOpItemCmdlistDrawRegion());
+                    break;
+                // not dst opItem, but will appear in dst scene
+                case DrawOpItem::CLIP_RECT_OPITEM:
+                case DrawOpItem::CLIP_ROUND_RECT_OPITEM:
+                case DrawOpItem::CONCAT_MATRIX_OPITEM:
+                case DrawOpItem::SCALE_OPITEM:
+                case DrawOpItem::SAVE_OPITEM:
+                case DrawOpItem::RESTORE_OPITEM:
+                case DrawOpItem::PIXELMAP_RECT_OPITEM:
+                    break;
+                default:
+                    return Rect(0, 0, 0, 0);
+            }
+        }
+    }
+    return cmdlistDrawRegion;
 }
 } // namespace Drawing
 } // namespace Rosen

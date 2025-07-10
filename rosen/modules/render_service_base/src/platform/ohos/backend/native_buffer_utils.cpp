@@ -18,15 +18,21 @@
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
 #include "pipeline/sk_resource_manager.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
+namespace {
+constexpr uint32_t FORMAT_R10G10B10A8 = 0x7FFFFFFF - 255;
+}
 void DeleteVkImage(void* context)
 {
     VulkanCleanupHelper* cleanupHelper = static_cast<VulkanCleanupHelper*>(context);
@@ -193,8 +199,6 @@ bool BindImageMemory(VkDevice device, RsVulkanContext& vkContext, VkImage& image
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
     NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_NATIVEBUFFERUTILS_MAKEFROMNATIVEWINDOWBUFFER);
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
         ROSEN_LOGE("MakeFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");
@@ -252,6 +256,8 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
     if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
         colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+    } else if (nbFormatProps.format == static_cast<VkFormat>(FORMAT_R10G10B10A8)) {
+        colorType = Drawing::ColorType::COLORTYPE_RGBA_1010108;
     }
 
     nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendTexture(
@@ -278,9 +284,15 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     return true;
 }
 
+#ifdef USE_M133_SKIA
+skgpu::VulkanYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbFormatProps)
+{
+    skgpu::VulkanYcbcrConversionInfo ycbcrInfo = {
+#else
 GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbFormatProps)
 {
     GrVkYcbcrConversionInfo ycbcrInfo = {
+#endif
         .fFormat = nbFormatProps.format,
         .fExternalFormat = nbFormatProps.externalFormat,
         .fYcbcrModel = nbFormatProps.suggestedYcbcrModel,

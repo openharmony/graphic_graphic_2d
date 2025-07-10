@@ -43,13 +43,13 @@ private:
     void DoReleaseCallback();
 
 private:
-    uint64_t surfaceNodeId_ {0};
-    std::function<void(uint64_t)> releaseCallback_ {nullptr};
-    std::function<void(uint64_t, uint32_t)> voteCallback_ {nullptr};
-    uint32_t lastRate_ {0};
-    std::shared_ptr<ffrt::queue> ffrtQueue_ {nullptr};
+    uint64_t surfaceNodeId_{ 0 };
+    std::function<void(uint64_t)> releaseCallback_{ nullptr };
+    std::function<void(uint64_t, uint32_t)> voteCallback_{ nullptr };
+    uint32_t lastRate_{ 0 };
+    std::shared_ptr<ffrt::queue> ffrtQueue_{ nullptr };
     ffrt::mutex ffrtMutex_;
-    ffrt::task_handle taskHandler_ {nullptr};
+    ffrt::task_handle taskHandler_{ nullptr };
 };
 } // namespace Rosen
 } // namespace OHOS

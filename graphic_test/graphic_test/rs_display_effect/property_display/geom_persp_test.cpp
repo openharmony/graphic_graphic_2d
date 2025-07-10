@@ -33,6 +33,363 @@ private:
     const int screenHeight = 2000;
 };
 
+/* SetPerspX: > 0, {-1.0f, 0.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspX_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 100, 100, 200, 200 });
+    testNode->SetPerspX(-1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPerspX: < 0, {1.0f, 0.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspX_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 200, 200, 400, 400 });
+    testNode->SetPerspX(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPerspY: > 0, {0.0f, -1.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspY_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 300, 300, 600, 600 });
+    testNode->SetPerspY(-1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPerspY: < 0, {0.0f, 1.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspY_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 800, 800 });
+    testNode->SetPerspY(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPerspZ: > 0, {0.0f, 0.0f, -1.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspZ_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 800, 800, 400, 400 });
+    testNode->SetPerspZ(-1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPerspZ: < 0, {0.0f, 0.0f, 1.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspZ_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 600, 600, 300, 300 });
+    testNode->SetPerspZ(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPerspW: = 0, {0.0f, 0.0f, 0.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspW_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPerspW(0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPerspW: < 0, {0.0f, 0.0f, 0.0f, -1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_PerspW_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 200, 200, 100, 100 });
+    testNode->SetPerspW(-1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp1f: > 0， {-1.0f, -1.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp1f_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp1f: < 0， {1.0f, 1.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp1f_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 200, 200, 100, 100 });
+    testNode->SetPersp(1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp2f: > 0  < 0， {-1.0f, 1.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp2f_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, 1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp2f: < 0 > 0， {1.0f, -1.0f, 0.0f, 1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp2f_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 200, 200, 100, 100 });
+    testNode->SetPersp(1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, -1.0f, -1.0f, -1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, -1.0f, -1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, -1.0f, -1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, -1.0f, -1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, -1.0f, 1.0f, -1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, -1.0f, 1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, -1.0f, 1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_4)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, -1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, 1.0f, 1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_5)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, 1.0f, -1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, 1.0f, -1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_6)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, 1.0f, -1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, 1.0f, 1.0f, -1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_7)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, 1.0f, 1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, 1.0f, 1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_8)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(-1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{1.0f, -1.0f, -1.0f, -1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_9)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, -1.0f, -1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{1.0f, -1.0f, -1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_10)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, -1.0f, -1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{1.0f, -1.0f, 1.0f, -1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_11)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, -1.0f, 1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{1.0f, -1.0f, 1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_12)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, -1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{-1.0f, 1.0f, 1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_13)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, 1.0f, -1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{1.0f, 1.0f, -1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_14)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, 1.0f, -1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{1.0f, 1.0f, 1.0f, -1.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_15)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp4f == SetPerspV4f：{1.0f, 1.0f, 1.0f, 0.0f} */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp4f_Test_16)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetPivot(0, 0) */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_1)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 350, 650, 300, 400 });
+    testNode->SetPivot(Vector2f(0.0f, 0.0f));
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetPivot(1, 1) */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_2)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 350, 650, 300, 400 });
+    testNode->SetPivot(Vector2f(1.0f, 1.0f));
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetRotation(-45, -45, -45) */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_3)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 350, 650, 300, 400 });
+    testNode->SetRotation(-45.0f, -45.0f, -45.0f);
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetRotation(45, 45, 45) */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_4)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 350, 650, 300, 400 });
+    testNode->SetRotation(45.0f, 45.0f, 45.0f);
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetRotation(-45, 0, 45) */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_5)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 350, 650, 300, 400 });
+    testNode->SetRotation(-45.0f, 0.0f, 45.0f);
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetRotation(0, -45, 45) */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_6)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 350, 650, 300, 400 });
+    testNode->SetRotation(0.0f, -45.0f, 45.0f);
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetRotation(45, -45, 0) */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_7)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 350, 650, 300, 400 });
+    testNode->SetRotation(45.0f, -45.0f, 0.0f);
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, 0.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetPivot、SetRotation case1 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_8)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 300, 300, 600, 600 });
+    testNode->SetPivot(Vector2f(1.0f, 1.0f));
+    testNode->SetRotation(45.0, 0.0f, 45.0);
+    testNode->SetPersp(1.0f, 1.0f, 1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetPivot、SetRotation case2 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_9)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPivot(Vector2f(0.0f, 0.0f));
+    testNode->SetRotation(0.0f, 0.0f, 45.0f);
+    testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+    testNode->SetPersp(1.0f, -1.0f, -1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/* SetPersp：compositon SetPivot、SetRotation case3 */
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Comp_Test_10)
+{
+    auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 400, 400, 200, 200 });
+    testNode->SetPivot(Vector2f(1.0f, 1.0f));
+    testNode->SetRotation(0.0, 0, 45.0);
+    testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+    testNode->SetPersp(1.0f, -1.0f, -1.0f, -1.0f);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Test_1)
 {
     float xList[] = { -1.0, 0.0, 2.0 };

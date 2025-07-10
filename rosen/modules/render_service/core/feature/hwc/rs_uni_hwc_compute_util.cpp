@@ -52,7 +52,7 @@ GraphicTransformType RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(RSS
 }
 
 GraphicTransformType RSUniHwcComputeUtil::GetConsumerTransform(const RSSurfaceRenderNode& node,
-    const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer)
+    const sptr<SurfaceBuffer>& buffer, const sptr<IConsumerSurface>& consumer)
 {
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     if (consumer != nullptr && buffer != nullptr) {
@@ -148,12 +148,12 @@ void RSUniHwcComputeUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const D
     Drawing::Rect frame = Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight);
     Drawing::Rect localIntersectRect;
     gravityMatrix.MapRect(localIntersectRect, frame);
-    localIntersectRect.Intersect(bound);
+    IntersectRect(localIntersectRect, bound);
     Drawing::Rect absIntersectRect;
     totalMatrix.MapRect(absIntersectRect, localIntersectRect);
     const RectI dstRect = node.GetDstRect();
     Drawing::Rect newDstRect(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
-    newDstRect.Intersect(absIntersectRect);
+    IntersectRect(newDstRect, absIntersectRect);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
     Drawing::Rect newSrcRect;
@@ -434,9 +434,9 @@ void RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, 
     Drawing::Rect dstRectWithoutScaling;
     gravityMatrix.MapRect(dstRectWithoutScaling, Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight));
     totalMatrix.MapRect(dstRectWithoutScaling, dstRectWithoutScaling);
-    newDstRect.Intersect(dstRectWithoutScaling);
+    IntersectRect(newDstRect, dstRectWithoutScaling);
     Drawing::Rect bounds = node.GetDstRectWithoutRenderFit();
-    newDstRect.Intersect(bounds);
+    IntersectRect(newDstRect, bounds);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
     Drawing::Rect newSrcRect;
@@ -508,7 +508,7 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight /
             (boundsHeight == 0.0f ? 1.0f : boundsHeight));
         if (absRect == node.GetDstRect()) {
-            // If the SurfaceRenderNode is completely in the DisplayRenderNode,
+            // If the SurfaceRenderNode is completely in the ScreenRenderNode,
             // we do not need to crop the buffer.
             srcRect.width_ = bufferWidth;
             srcRect.height_ = bufferHeight;
@@ -567,6 +567,15 @@ inline void RSUniHwcComputeUtil::UpdateHwcNodeTotalMatrix(const std::shared_ptr<
     }
 }
 
+void RSUniHwcComputeUtil::UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx)
+{
+    if (!parent->GetRenderProperties().GetQuaternion().IsIdentity()) {
+        ctx.absRotation += RSUniRenderUtil::GetYawFromQuaternion(parent->GetRenderProperties().GetQuaternion());
+    } else {
+        ctx.absRotation += parent->GetRenderProperties().GetRotation();
+    }
+}
+
 void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     if (hwcNode == nullptr) {
@@ -577,19 +586,17 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
     bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
     const auto& hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
-    hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
     HwcPropertyContext ctx;
     ctx.alpha = hwcNode->GetRenderProperties().GetAlpha();
     ctx.totalMatrix = hwcNodeGeo->GetMatrix();
+    ctx.absRotation = hwcNode->GetRenderProperties().GetRotation();
     RSUniHwcComputeUtil::TraverseParentNodeAndReduce(
         hwcNode,
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeDrawingCache(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeBlendNeedChildNode(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAlpha(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeTotalMatrix(parent, ctx); },
-        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
-            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
-        },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAbsRotation(parent, ctx); },
         [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
             auto cornerRadius = parentProperty.GetCornerRadius();
@@ -653,6 +660,7 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
     }
     hwcNode->SetTotalMatrix(ctx.totalMatrix);
     hwcNode->SetGlobalAlpha(ctx.alpha);
+    hwcNode->SetAbsRotation(ctx.absRotation);
     hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
 }
 
@@ -698,7 +706,7 @@ GraphicTransformType RSUniHwcComputeUtil::GetLayerTransform(RSSurfaceRenderNode&
     auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (consumer != nullptr && buffer != nullptr) {
         if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
-            RS_LOGE("RSUniHwcComputeUtil::GetLayerTransform GetSurfaceBufferTransformType failed");
+            RS_LOGE("GetLayerTransform GetSurfaceBufferTransformType failed");
         }
     }
     int consumerTransform = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transformType));
@@ -739,14 +747,19 @@ std::optional<Drawing::Matrix> RSUniHwcComputeUtil::GetMatrix(
     }
 }
 
-void RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2)
+bool RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& result, const Drawing::Rect& other)
 {
-    float left = std::max(rect1.left_, rect2.left_);
-    float top = std::max(rect1.top_, rect2.top_);
-    float right = std::min(rect1.right_, rect2.right_);
-    float bottom = std::min(rect1.bottom_, rect2.bottom_);
+    float left = std::max(result.left_, other.left_);
+    float top = std::max(result.top_, other.top_);
+    float right = std::min(result.right_, other.right_);
+    float bottom = std::min(result.bottom_, other.bottom_);
     Drawing::Rect intersectedRect(left, top, right, bottom);
-    rect1 = intersectedRect.IsValid() ? intersectedRect : Drawing::Rect();
+    if (!intersectedRect.IsValid()) {
+        result = Drawing::Rect();
+        return false;
+    }
+    result = intersectedRect;
+    return true;
 }
 
 bool RSUniHwcComputeUtil::IsBlendNeedFilter(RSRenderNode& node)
@@ -782,6 +795,17 @@ bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
         property.GetColorFilter() != nullptr;
 }
 
+#if defined(MODIFIER_NG)
+template<typename T>
+std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
+    const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
+{
+    if (auto modifier = node.GetModifierNG(modifierType)) {
+        return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty(propertyType));
+    }
+    return nullptr;
+}
+#else
 template<typename T>
 std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
     const RSRenderNode& node, RSModifierType type)
@@ -794,11 +818,17 @@ std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifie
     const auto& modifier = itr->second.back();
     return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty());
 }
+#endif
 
 bool RSUniHwcComputeUtil::IsForegroundColorStrategyValid(RSRenderNode& node)
 {
-    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(
-        node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+#if defined(MODIFIER_NG)
+    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(node,
+        ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
+#else
+    auto property =
+        GetPropertyFromModifier<ForegroundColorStrategyType>(node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+#endif
     return (property == nullptr) ? false : property->Get() != ForegroundColorStrategyType::INVALID;
 }
 

@@ -59,15 +59,18 @@ public:
         return unchangeCount_;
     }
 
-    bool IsReseted() const
-    {
-        return isReseted_;
-    }
+    bool GetSubTreeSupportFlag() const { return subTreeSupportFlag_; }
+    void UpdateSubTreeSupportFlag(bool childSupportFlag, bool childRootFlag, bool groupTypeIsNone);
+
+    bool GetCurNodeTreeSupportFlag() const { return subTreeSupportFlag_; }
+    void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
 
 private:
     // opinc state
     NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
     bool isSuggestOpincNode_ = false;
+    bool subTreeSupportFlag_ = true;
+    bool curNodeTreeSupportFlag_ = false;
     bool isOpincRootFlag_ = false;
     bool isUnchangeMarkEnable_ = false;
     bool isNeedCalculate_ = false;
@@ -78,7 +81,6 @@ private:
     int unchangeCountUpper_ = 3; // 3 time is the default to cache
     bool cacheChangeFlag_ = false;
     int waitCount_ = 0;
-    bool isReseted_ = true;
     // opinc state func
     void NodeCacheStateChange(NodeChangeType type);
     void SetCacheStateByRetrytime();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <sstream>
 #include <sys/time.h>
 #include <unistd.h>
+#include "cJSON.h"
 
 #include "hisysevent.h"
 #include "rs_trace.h"
@@ -39,6 +40,8 @@ constexpr int64_t ANIMATION_TIMEOUT = 10000;          // 10s
 constexpr int64_t S_TO_NS = 1000000000;              // s to ns
 constexpr int64_t VSYNC_JANK_LOG_THRESHOLED = 6;     // 6 times vsync
 constexpr int64_t INPUTTIME_TIMEOUT = 100000000;          // ns, 100ms
+constexpr uint64_t DELAY_TIME_MS = 1000;
+constexpr uint32_t ACVIDEO_QUIT_FRAME_COUNT = 10;
 }
 
 RSJankStats& RSJankStats::GetInstance()
@@ -956,6 +959,19 @@ void RSJankStats::RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool i
     jankFrames.isFrameRateRecorded_ = true;
 }
 
+bool RSJankStats::GetEarlyZEnableFlag()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    isFlushEarlyZ_ = false;
+    return ddgrEarlyZEnableFlag_;
+}
+
+bool RSJankStats::GetFlushEarlyZ()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return isFlushEarlyZ_;
+}
+
 void RSJankStats::SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, JankFrames& jankFrames)
 {
     jankFrames.isUpdateJankFrame_ = true;
@@ -985,6 +1001,11 @@ void RSJankStats::SetAnimationTraceBegin(std::pair<int64_t, std::string> animati
         implicitAnimationTotal_++;
     }
     RS_ASYNC_TRACE_BEGIN(traceName, traceId);
+    if (RSSystemProperties::GetEarlyZEnable() && info.sceneId == SWITCH_SCENE_NAME) {
+        ddgrEarlyZEnableFlag_ = true;
+        isFlushEarlyZ_ = true;
+        lastReportEarlyZTraceId_ = traceId;
+    }
 }
 
 void RSJankStats::SetAnimationTraceEnd(JankFrames& jankFrames)
@@ -1003,6 +1024,11 @@ void RSJankStats::SetAnimationTraceEnd(JankFrames& jankFrames)
     jankFrames.traceTerminateTimeSteady_ = rtEndTimeSteady_;
     const bool isDisplayAnimator = animationAsyncTraces_.at(traceId).isDisplayAnimator_;
     RS_ASYNC_TRACE_END(animationAsyncTraces_.at(traceId).traceName_, traceId);
+    if (ddgrEarlyZEnableFlag_ && lastReportEarlyZTraceId_ == traceId) {
+        ddgrEarlyZEnableFlag_ = false;
+        isFlushEarlyZ_ = true;
+        lastReportEarlyZTraceId_ = traceId;
+    }
     animationAsyncTraces_.erase(traceId);
     if (isDisplayAnimator) {
         explicitAnimationTotal_--;
@@ -1073,6 +1099,186 @@ int32_t RSJankStats::GetTraceIdInit(const DataBaseRs& info, int64_t setTimeStead
     int64_t mappedUniqueId = info.uniqueId * TRACE_ID_SCALE_PARAM + (traceIdRemainder_[info.uniqueId].remainder_++);
     int32_t traceId = static_cast<int32_t>(mappedUniqueId);
     return traceId;
+}
+
+void RSJankStats::AvcodecVideoDump(
+    std::string& dumpString, std::string& type, const std::string& avcodecVideo)
+{
+    std::string func;
+    uint64_t uniqueId;
+    std::string surfaceName = "";
+    uint32_t fps = 0;
+    uint64_t reportTime = UINT64_MAX;
+
+    RS_LOGD("AvcodecVideoDump start. type %{public}s", type.substr(avcodecVideo.length()).c_str());
+    cJSON* jsonObject = cJSON_Parse(type.substr(avcodecVideo.length()).c_str());
+    if (jsonObject == nullptr) {
+        dumpString.append("AvcodecVideoDump can not parse type to json.\n");
+        cJSON_Delete(jsonObject);
+        return;
+    }
+
+    cJSON* jsonItemFunc = cJSON_GetObjectItem(jsonObject, "func");
+    if (jsonItemFunc != nullptr && cJSON_IsString(jsonItemFunc)) {
+        func = jsonItemFunc->valuestring;
+    }
+
+    cJSON* jsonItemUniqueId = cJSON_GetObjectItem(jsonObject, "uniqueId");
+    if (jsonItemUniqueId != nullptr && cJSON_IsString(jsonItemUniqueId)) {
+        std::string strM = jsonItemUniqueId->valuestring;
+        char* end = nullptr;
+        errno = 0;
+        long long sizeM = std::strtoll(strM.c_str(), &end, 10);
+        if (end != nullptr && end != strM.c_str() && errno == 0 && *end == '\0' && sizeM > 0) {
+            uniqueId = static_cast<uint64_t>(sizeM);
+        } else {
+            dumpString.append("AvcodecVideoDump param error : uniqueId.\n");
+            cJSON_Delete(jsonObject);
+            return;
+        }
+    } else {
+        dumpString.append("AvcodecVideoDump param error : uniqueId.\n");
+        cJSON_Delete(jsonObject);
+        return;
+    }
+
+    cJSON* jsonItemSurface = cJSON_GetObjectItem(jsonObject, "surfaceName");
+    if (jsonItemSurface != nullptr && cJSON_IsString(jsonItemSurface)) {
+        surfaceName = jsonItemSurface->valuestring;
+    }
+
+    cJSON* jsonItemFps = cJSON_GetObjectItem(jsonObject, "fps");
+    if (jsonItemFps != nullptr && cJSON_IsNumber(jsonItemFps)) {
+        fps = static_cast<uint32_t>(jsonItemFps->valueint);
+    }
+
+    if (func == "start") {
+        cJSON* jsonItemReportTime = cJSON_GetObjectItem(jsonObject, "reportTime");
+        if (jsonItemReportTime != nullptr && cJSON_IsNumber(jsonItemReportTime)) {
+            reportTime = static_cast<uint64_t>(jsonItemReportTime->valueint);
+        } else {
+            dumpString.append("AvcodecVideoDump param error : reportTime.\n");
+            cJSON_Delete(jsonObject);
+            return;
+        }
+
+        AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+        dumpString.append("AvcodecVideoStart ");
+    } else {
+        AvcodecVideoStop(uniqueId, surfaceName, fps);
+        dumpString.append("AvcodecVideoStop ");
+    }
+    cJSON_Delete(jsonObject);
+    dumpString.append("[uniqueId:" + std::to_string(uniqueId) + ", surfaceName:" + surfaceName +
+        ", fps:" + std::to_string(fps) + ", reportTime:" + std::to_string(reportTime) + "]\n");
+}
+
+void RSJankStats::AvcodecVideoStart(
+    const uint64_t queueId, const std::string& surfaceName, const uint32_t fps, const uint64_t reportTime)
+{
+    if (avcodecVideoMap_.find(queueId) != avcodecVideoMap_.end()) {
+        RS_LOGE("AvcodecVideoStart mission exists. %{public}" PRIu64 ".", queueId);
+        return;
+    }
+
+    AvcodecVideoParam& info = avcodecVideoMap_[queueId];
+    info.surfaceName = surfaceName;
+    info.fps = fps;
+    info.reportTime = reportTime;
+    info.startTime = static_cast<uint64_t>(GetCurrentSystimeMs());
+    info.decodeCount = 0;
+
+    avcodecVideoCollectOpen_ = true;
+    RS_TRACE_NAME_FMT("AvcodecVideoStart [queueId %lu, surfaceName %s, fps %u, reportTime %lu, startTime %lu]",
+        queueId, info.surfaceName.c_str(), info.fps, info.reportTime, info.startTime);
+}
+
+void RSJankStats::AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName, const uint32_t fps)
+{
+    auto it = avcodecVideoMap_.find(queueId);
+    if (it == avcodecVideoMap_.end()) {
+        RS_LOGE("AvcodecVideoStop mission does not exist. %{public}" PRIu64 ".", queueId);
+        return;
+    }
+
+    uint64_t duration = static_cast<uint64_t>(GetCurrentSystimeMs()) - it->second.startTime;
+    RS_TRACE_NAME_FMT("AvcodecVideoStop mission complete. NotifyVideoEventToXperf" \
+        "[uniqueId %lu, duration %lu, avgFps %lu]",
+        queueId, duration, it->second.decodeCount * DELAY_TIME_MS / duration);
+    RS_LOGD("AvcodecVideoStop mission complete. NotifyVideoEventToXperf" \
+        "[uniqueId %{public}" PRIu64 ", duration %{public}" PRIu64 ", avgFps %{public}" PRIu64 "]",
+        queueId, duration, it->second.decodeCount * DELAY_TIME_MS / duration);
+
+    avcodecVideoMap_.erase(it);
+
+    if (avcodecVideoMap_.empty()) {
+        avcodecVideoCollectOpen_ = false;
+    }
+}
+
+void RSJankStats::AvcodecVideoCollectBegin()
+{
+    if (!avcodecVideoCollectOpen_) {
+        return;
+    }
+
+    for (auto& [queueId, info] : avcodecVideoMap_) {
+        info.continuousFrameLoss++;
+    }
+}
+
+void RSJankStats::AvcodecVideoCollectFinish()
+{
+    if (!avcodecVideoCollectOpen_) {
+        return;
+    }
+
+    std::vector<uint64_t> finishedVideos;
+    for (auto it = avcodecVideoMap_.begin(); it != avcodecVideoMap_.end(); it++) {
+        if (it->second.continuousFrameLoss >= ACVIDEO_QUIT_FRAME_COUNT) {
+            RS_LOGD("AvcodecVideoCollectFinish. [uniqueId %{public}" PRIu64 "]", it->first);
+            finishedVideos.push_back(it->first);
+        }
+    }
+    for (auto queueId : finishedVideos) {
+        AvcodecVideoStop(queueId);
+    }
+}
+
+void RSJankStats::AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence)
+{
+    if (!avcodecVideoCollectOpen_) {
+        return;
+    }
+
+    auto it = avcodecVideoMap_.find(queueId);
+    if (it == avcodecVideoMap_.end()) {
+        return;
+    }
+
+    uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
+    if (it->second.previousSequence == 0) {
+        // first sequence
+        it->second.decodeCount++;
+        it->second.previousSequence = sequence;
+        it->second.previousFrameTime = now;
+        it->second.continuousFrameLoss = 0;
+    } else if (it->second.previousSequence != sequence) {
+        uint64_t frameTime = now - it->second.previousFrameTime;
+        if (frameTime > it->second.reportTime) {
+            RSBackgroundThread::Instance().PostTask([queueId, frameTime]() {
+                RS_TRACE_NAME_FMT("AvcodecVideoCollect NotifyVideoFaultToXperf [uniqueId %lu, frameTime %lu]",
+                    queueId, frameTime);
+                RS_LOGD("AvcodecVideoCollect NotifyVideoFaultToXperf" \
+                    "[uniqueId %{public}" PRIu64 ", frameTime %{public}" PRIu64 "]",
+                    queueId, frameTime);
+            });
+        }
+        it->second.decodeCount++;
+        it->second.previousSequence = sequence;
+        it->second.previousFrameTime = now;
+        it->second.continuousFrameLoss = 0;
+    }
 }
 
 int64_t RSJankStats::GetEffectiveFrameTime(bool isConsiderRsStartTime) const

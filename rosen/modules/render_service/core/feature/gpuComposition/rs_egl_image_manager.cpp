@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,12 @@
 
 #ifndef NDEBUG
 #include <cassert>
+#endif
+
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
+#include "src/gpu/gl/GrGLDefines.h"
 #endif
 
 namespace OHOS {
@@ -165,15 +171,7 @@ EGLImageKHR CreateEGLImage(
 }
 } // namespace Detail
 
-ImageCacheSeq::ImageCacheSeq(
-    EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientBuffer)
-    : eglDisplay_(eglDisplay),
-      eglImage_(eglImage),
-      eglClientBuffer_(eglClientBuffer)
-{
-}
-
-ImageCacheSeq::~ImageCacheSeq() noexcept
+EglImageResource::~EglImageResource() noexcept
 {
     if (eglImage_ != EGL_NO_IMAGE_KHR) {
         Detail::GetEGLDestroyImageKHRFunc()(eglDisplay_, eglImage_);
@@ -190,17 +188,17 @@ ImageCacheSeq::~ImageCacheSeq() noexcept
         Detail::CastFromEGLClientBuffer(eglClientBuffer_));
 }
 
-bool ImageCacheSeq::BindToTexture()
+bool EglImageResource::BindToTexture()
 {
     // no image check.
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
-        RS_LOGE("ImageCacheSeq::BindToTexture: eglImage_ is null.");
+        RS_LOGE("EglImageResource::BindToTexture: eglImage_ is null.");
         return false;
     }
 
     glGenTextures(1, &textureId_);
     if (textureId_ == 0) {
-        RS_LOGE("ImageCacheSeq::BindToTexture: glGenTextures error.");
+        RS_LOGE("EglImageResource::BindToTexture: glGenTextures error.");
         return false;
     }
 
@@ -210,7 +208,7 @@ bool ImageCacheSeq::BindToTexture()
     return true;
 }
 
-std::unique_ptr<ImageCacheSeq> ImageCacheSeq::Create(
+std::unique_ptr<EglImageResource> EglImageResource::Create(
     EGLDisplay eglDisplay,
     EGLContext eglContext,
     const sptr<OHOS::SurfaceBuffer>& buffer)
@@ -222,21 +220,17 @@ std::unique_ptr<ImageCacheSeq> ImageCacheSeq::Create(
 
     EGLImageKHR img = Detail::CreateEGLImage(eglDisplay, eglContext, nativeBuffer);
     if (img == EGL_NO_IMAGE_KHR) {
-        RS_LOGE("ImageCacheSeq::Create: eglCreateImageKHR failed, error %{public}s.",
+        RS_LOGE("EglImageResource::Create: eglCreateImageKHR failed, error %{public}s.",
             Detail::EGLErrorString(eglGetError()));
         return nullptr;
     }
 
-    auto imageCache = std::make_unique<ImageCacheSeq>(
+    auto imageCache = std::make_unique<EglImageResource>(
         eglDisplay, img, Detail::CastToEGLClientBuffer(nativeBuffer.Release()));
     if (!imageCache->BindToTexture()) {
         return nullptr;
     }
     return imageCache;
-}
-
-RSEglImageManager::RSEglImageManager(EGLDisplay display) : eglDisplay_(display)
-{
 }
 
 void RSEglImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
@@ -247,18 +241,18 @@ void RSEglImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
     acquireFence->Wait(3000); // 3000ms
 }
 
-GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+GLuint RSEglImageManager::CreateEglImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
     const pid_t threadIndex)
 {
     auto bufferId = buffer->GetSeqNum();
-    auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
+    auto imageCache = EglImageResource::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
     if (imageCache == nullptr) {
-        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
+        RS_LOGE("RSEglImageManager::CreateEglImageCacheFromBuffer:failed to create for buffer id %{public}d.",
             bufferId);
         return 0; // return texture id 0.
     }
     imageCache->SetThreadIndex(threadIndex);
-    auto textureId = imageCache->TextureId();
+    auto textureId = imageCache->GetTextureId();
     {
         std::lock_guard<std::mutex> lock(opMutex_);
         imageCacheSeqs_[bufferId] = std::move(imageCache);
@@ -267,24 +261,14 @@ GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuf
     return textureId;
 }
 
-std::unique_ptr<ImageCacheSeq> RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-    const sptr<SyncFence>& acquireFence)
-{
-    WaitAcquireFence(acquireFence);
-    auto bufferId = buffer->GetSeqNum();
-    auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
-    if (imageCache == nullptr) {
-        RS_LOGE("RSEglImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
-            bufferId);
-        return nullptr;
-    }
-    return imageCache;
-}
-
 GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence, pid_t threadIndex)
 {
     WaitAcquireFence(acquireFence);
+    if (buffer == nullptr) {
+        RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: buffer is null.");
+        return 0;
+    }
     auto bufferId = buffer->GetSeqNum();
     RS_OPTIONAL_TRACE_NAME_FMT("MapEglImage seqNum: %d", bufferId);
     RS_LOGD("RSEglImageManager::MapEglImageFromSurfaceBuffer: %{public}d", bufferId);
@@ -294,11 +278,11 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
         isImageCacheNotFound = imageCacheSeqs_.count(bufferId) == 0 || imageCacheSeqs_[bufferId] == nullptr;
         if (!isImageCacheNotFound) {
             const auto& imageCache = imageCacheSeqs_[bufferId];
-            return imageCache->TextureId();
+            return imageCache->GetTextureId();
         }
     }
     // cache not found, create it.
-    return CreateImageCacheFromBuffer(buffer, threadIndex);
+    return CreateEglImageCacheFromBuffer(buffer, threadIndex);
 }
 
 void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
@@ -308,13 +292,13 @@ void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
         if (isForUniRedraw) {
             UnMapEglImageFromSurfaceBufferForUniRedraw(id);
         } else {
-            UnMapEglImageFromSurfaceBuffer(id);
+            UnMapImageFromSurfaceBuffer(id);
         }
         cacheQueue_.pop();
     }
 }
 
-void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
+void RSEglImageManager::UnMapImageFromSurfaceBuffer(int32_t seqNum)
 {
     pid_t threadIndex = 0;
     {
@@ -327,7 +311,7 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
         }
     }
     auto func = [this, seqNum]() {
-        std::unique_ptr<ImageCacheSeq> imageCacheSeq;
+        std::unique_ptr<EglImageResource> imageCacheSeq;
         {
             std::lock_guard<std::mutex> lock(opMutex_);
             if (imageCacheSeqs_.count(seqNum) == 0) {
@@ -352,6 +336,108 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNu
         (void)imageCacheSeqs_.erase(seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBufferForRedraw");
     });
+}
+
+std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
+    RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+    const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
+{
+#if defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GL)
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSEglImageManager::CreateEglImageFromBuffer GrContext is null!");
+        return nullptr;
+    }
+    if (buffer == nullptr) {
+        RS_LOGE("RSEglImageManager::CreateEglImageFromBuffer buffer is null!");
+        return nullptr;
+    }
+    auto eglTextureId = MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
+    if (eglTextureId == 0) {
+        RS_LOGE("RSEglImageManager::CreateEglImageFromBuffer MapEglImageFromSurfaceBuffer return invalid texture ID");
+        return nullptr;
+    }
+    auto pixelFmt = buffer->GetFormat();
+    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
+
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::TextureInfo externalTextureInfo;
+    externalTextureInfo.SetWidth(buffer->GetSurfaceBufferWidth());
+    externalTextureInfo.SetHeight(buffer->GetSurfaceBufferHeight());
+
+    auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
+    externalTextureInfo.SetIsMipMapped(false);
+    externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
+    externalTextureInfo.SetID(eglTextureId);
+    auto glType = GR_GL_RGBA8;
+    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+        glType = GR_GL_BGRA8;
+    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
+        pixelFmt == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+        glType = GR_GL_RGB10_A2;
+    }
+    externalTextureInfo.SetFormat(glType);
+    if (!image->BuildFromTexture(*canvas.GetGPUContext(), externalTextureInfo,
+        surfaceOrigin, bitmapFormat, drawingColorSpace)) {
+        RS_LOGE("RSEglImageManager::CreateEglImageFromBuffer image BuildFromTexture failed");
+        return nullptr;
+    }
+    return image;
+#else
+    return nullptr;
+#endif // RS_ENABLE_EGLIMAGE
+}
+
+std::shared_ptr<Drawing::Image> RSEglImageManager::GetIntersectImage(Drawing::RectI& imgCutRect,
+    const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
+    const sptr<SyncFence>& acquireFence, pid_t threadIndex)
+{
+    auto eglTextureId = MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
+    if (eglTextureId == 0) {
+        RS_LOGE("RSEglImageManager::GetIntersectImageFromGL invalid texture ID");
+        return nullptr;
+    }
+
+    Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
+    Drawing::TextureInfo externalTextureInfo;
+    externalTextureInfo.SetWidth(buffer->GetSurfaceBufferWidth());
+    externalTextureInfo.SetHeight(buffer->GetSurfaceBufferHeight());
+    externalTextureInfo.SetIsMipMapped(false);
+    externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
+    externalTextureInfo.SetID(eglTextureId);
+    auto glType = GR_GL_RGBA8;
+    auto pixelFmt = buffer->GetFormat();
+    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+        glType = GR_GL_BGRA8;
+    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        glType = GL_RGB10_A2;
+    }
+    externalTextureInfo.SetFormat(glType);
+
+    std::shared_ptr<Drawing::Image> layerImage = std::make_shared<Drawing::Image>();
+    if (!layerImage->BuildFromTexture(*context, externalTextureInfo,
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+        RS_LOGE("RSEglImageManager::GetIntersectImageFromGL image BuildFromTexture failed");
+        return nullptr;
+    }
+
+    std::shared_ptr<Drawing::Image> cutDownImage = std::make_shared<Drawing::Image>();
+    bool res = cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
+    if (!res) {
+        ROSEN_LOGE("RSEglImageManager::GetIntersectImageFromVK cutDownImage BuildSubset failed.");
+        return nullptr;
+    }
+    Drawing::ImageInfo info = Drawing::ImageInfo(imgCutRect.GetWidth(), imgCutRect.GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
+
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(context.get(), false, info);
+    if (surface == nullptr) {
+        RS_LOGE("RSEglImageManager::GetIntersectImageFromGL MakeRenderTarget failed.");
+        return nullptr;
+    }
+    auto drawCanvas = std::make_shared<RSPaintFilterCanvas>(surface.get());
+    drawCanvas->DrawImage(*cutDownImage, 0.f, 0.f, Drawing::SamplingOptions());
+    surface->FlushAndSubmit(true);
+    return surface.get()->GetImageSnapshot();
 }
 } // namespace Rosen
 } // namespace OHOS

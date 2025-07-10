@@ -48,12 +48,9 @@ public:
 private:
     std::shared_ptr<Rosen::RSShaderMask> mask_;
     float opacity_;
-    float redOffsetX_;
-    float redOffsetY_;
-    float greenOffsetX_;
-    float greenOffsetY_;
-    float blueOffsetX_;
-    float blueOffsetY_;
+    Vector2f redOffset_;
+    Vector2f greenOffset_;
+    Vector2f blueOffset_;
 };
 }  // namespace Rosen
 }  // namespace OHOS

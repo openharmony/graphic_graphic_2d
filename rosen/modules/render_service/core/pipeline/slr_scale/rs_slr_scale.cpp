@@ -160,7 +160,7 @@ void RSSLRScaleFunction::RefreshColorSpace(GraphicColorGamut colorGamut)
             colorMatrixType = Drawing::CMSMatrixType::DCIP3;
             break;
         default:
-            RS_LOGE("RSSLRScaleFunction::RefreshColorSpace error colorSpace is %{pulic}d.", colorGamut_);
+            RS_LOGE("RSSLRScaleFunction::RefreshColorSpace error colorSpace is %{public}d.", colorGamut_);
             colorMatrixType = Drawing::CMSMatrixType::SRGB;
             break;
     }

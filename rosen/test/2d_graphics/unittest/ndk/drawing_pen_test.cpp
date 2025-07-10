@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,8 @@
 #include "drawing_path.h"
 #include "drawing_rect.h"
 #include "drawing_matrix.h"
+#include "native_color_space_manager.h"
+
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -673,6 +675,148 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenReset, TestSize.Level1)
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
 
+/*
+ * @tc.name: OH_Drawing_PenSetColor4f
+ * @tc.desc: test for OH_Drawing_PenSetColor4f.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetColor4f, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_NE(pen, nullptr);
+    OH_NativeColorSpaceManager* colorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(ColorSpaceName::ADOBE_RGB);
+    EXPECT_EQ(OH_Drawing_PenSetColor4f(nullptr, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenSetColor4f(pen, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenSetColor4f(pen, 0.2f, 0.3f, 0.4f, 0.1f, nullptr), OH_DRAWING_SUCCESS);
+    OH_Drawing_PenDestroy(pen);
+    OH_NativeColorSpaceManager_Destroy(colorSpaceManager);
+}
+
+/*
+ * @tc.name: OH_Drawing_PenSetColor4f001
+ * @tc.desc: test for OH_Drawing_PenSetColor4f.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetColor4f001, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_NE(pen, nullptr);
+    OH_NativeColorSpaceManager* colorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(ColorSpaceName::ADOBE_RGB);
+    float a = 0;
+    float r = 0;
+    float g = 0;
+    float b = 0;
+    EXPECT_EQ(OH_Drawing_PenSetColor4f(pen, 1.01f, 1.1f, 1.5f, 1.4f, colorSpaceManager), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetAlphaFloat(pen, &a), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetRedFloat(pen, &r), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetGreenFloat(pen, &g), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetBlueFloat(pen, &b), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(a - 1.0f) < 0.01);
+    EXPECT_TRUE(std::abs(r - 1.0f) < 0.01);
+    EXPECT_TRUE(std::abs(g - 1.0f) < 0.01);
+    EXPECT_TRUE(std::abs(b - 1.0f) < 0.01);
+
+    EXPECT_EQ(OH_Drawing_PenSetColor4f(pen, -0.1f, -1.1f, -1.5f, -1.4f, colorSpaceManager), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetAlphaFloat(pen, &a), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetRedFloat(pen, &r), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetGreenFloat(pen, &g), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PenGetBlueFloat(pen, &b), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(a) < 0.01);
+    EXPECT_TRUE(std::abs(r) < 0.01);
+    EXPECT_TRUE(std::abs(g) < 0.01);
+    EXPECT_TRUE(std::abs(b) < 0.01);
+    OH_Drawing_PenDestroy(pen);
+    OH_NativeColorSpaceManager_Destroy(colorSpaceManager);
+}
+
+/*
+ * @tc.name: OH_Drawing_PenGetAlphaFloat
+ * @tc.desc: test for OH_Drawing_PenGetAlphaFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetAlphaFloat, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_NE(pen, nullptr);
+    float a = 0.4f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_PenSetColor4f(pen, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_PenGetAlphaFloat(nullptr, &a), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetAlphaFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetAlphaFloat(pen, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetAlphaFloat(pen, &a), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(a - 0.2f) < 0.01);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: OH_Drawing_PenGetRedFloat
+ * @tc.desc: test for OH_Drawing_PenGetRedFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetRedFloat, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_NE(pen, nullptr);
+    float r = 0.1f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_PenSetColor4f(pen, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_PenGetRedFloat(nullptr, &r), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetRedFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetRedFloat(pen, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetRedFloat(pen, &r), OH_DRAWING_SUCCESS);
+    OH_Drawing_PenDestroy(pen);
+    EXPECT_TRUE(std::abs(r - 0.3f) < 0.01);
+}
+
+/*
+ * @tc.name: OH_Drawing_PenGetGreenFloat
+ * @tc.desc: test for OH_Drawing_PenGetGreenFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetGreenFloat, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_NE(pen, nullptr);
+    float g = 0.5f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_PenSetColor4f(pen, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_PenGetGreenFloat(nullptr, &g), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetGreenFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetGreenFloat(pen, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetGreenFloat(pen, &g), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(g - 0.4f) < 0.01);
+    OH_Drawing_PenDestroy(pen);
+}
+
+/*
+ * @tc.name: OH_Drawing_PenGetBlueFloat
+ * @tc.desc: test for OH_Drawing_PenGetBlueFloat.
+ * @tc.type: FUNC
+ * @tc.require: IC9835
+ */
+HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetBlueFloat, TestSize.Level1)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_NE(pen, nullptr);
+    float b = 0.5f;
+    OH_NativeColorSpaceManager* colorSpaceManager = nullptr;
+    OH_Drawing_PenSetColor4f(pen, 0.2f, 0.3f, 0.4f, 0.1f, colorSpaceManager);
+    EXPECT_EQ(OH_Drawing_PenGetBlueFloat(nullptr, &b), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetBlueFloat(nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetBlueFloat(pen, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PenGetBlueFloat(pen, &b), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(std::abs(b - 0.1f) < 0.01);
+    OH_Drawing_PenDestroy(pen);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

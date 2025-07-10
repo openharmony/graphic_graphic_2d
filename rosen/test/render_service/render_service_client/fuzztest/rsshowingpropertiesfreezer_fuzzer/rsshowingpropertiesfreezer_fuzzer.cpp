@@ -410,25 +410,6 @@ bool DoGetBackgroundColor(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetSurfaceBgColor(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetSurfaceBgColor();
-
-    return true;
-}
-
 bool DoGetBgImageWidth(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -539,44 +520,6 @@ bool DoGetBorderWidth(const uint8_t* data, size_t size)
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
     showingPropertiesFreezer.GetBorderWidth();
-
-    return true;
-}
-
-bool DoGetBackgroundFilter(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetBackgroundFilter();
-
-    return true;
-}
-
-bool DoGetFilter(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetFilter();
 
     return true;
 }
@@ -834,15 +777,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetCornerRadius(data, size);
     OHOS::Rosen::DoGetForegroundColor(data, size);
     OHOS::Rosen::DoGetBackgroundColor(data, size);
-    OHOS::Rosen::DoGetSurfaceBgColor(data, size);
     OHOS::Rosen::DoGetBgImageWidth(data, size);
     OHOS::Rosen::DoGetBgImageHeight(data, size);
     OHOS::Rosen::DoGetBgImagePositionX(data, size);
     OHOS::Rosen::DoGetBgImagePositionY(data, size);
     OHOS::Rosen::DoGetBorderColor(data, size);
     OHOS::Rosen::DoGetBorderWidth(data, size);
-    OHOS::Rosen::DoGetBackgroundFilter(data, size);
-    OHOS::Rosen::DoGetFilter(data, size);
     OHOS::Rosen::DoGetShadowColor(data, size);
     OHOS::Rosen::DoGetShadowOffsetX(data, size);
     OHOS::Rosen::DoGetShadowOffsetY(data, size);
@@ -854,6 +794,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetAttractionDstPointValue(data, size);
     OHOS::Rosen::DoGetLightUpEffectDegree(data, size);
     OHOS::Rosen::DoGetDynamicDimDegree(data, size);
+    OHOS::Rosen::DoGetHDRUIBrightness(data, size);
     return 0;
 }
 

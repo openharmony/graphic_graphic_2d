@@ -17,11 +17,19 @@
 #define SKIAIMAGE_H
 
 #include "include/core/SkBitmap.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/SkImageGanesh.h"
+#include "include/gpu/ganesh/SkSurfaceGanesh.h"
+#endif
 #include "include/core/SkImage.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPicture.h"
 #ifdef RS_ENABLE_GPU
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #endif
 #include "skia_bitmap.h"
 #include "skia_color_space.h"
@@ -29,7 +37,11 @@
 #include "skia_paint.h"
 #include "skia_picture.h"
 #include "skia_yuv_info.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 
 #include "impl_interface/image_impl.h"
 
@@ -113,6 +125,13 @@ public:
     bool Deserialize(std::shared_ptr<Data> data) override;
 
     void PostSkImgToTargetThread();
+
+    void SetSupportOpaqueOpt(bool supportOpaqueOpt) override;
+
+    bool GetSupportOpaqueOpt() const override;
+
+    void SetHeadroom(float headroom) override;
+    float GetHeadroom() const override;
 private:
 #ifdef RS_ENABLE_GPU
     sk_sp<GrDirectContext> grContext_ = nullptr;

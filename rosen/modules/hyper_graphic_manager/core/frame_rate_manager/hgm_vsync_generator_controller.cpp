@@ -23,14 +23,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t TARGET_TIME_TRIGGER_PULSE_NUM = 6;
+constexpr uint32_t TARGET_TIME_TRIGGER_PULSE_NUM = 6;
 }
 
 HgmVSyncGeneratorController::HgmVSyncGeneratorController(sptr<VSyncController> rsController,
     sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
     : rsController_(rsController),
-    appController_(appController),
-    vsyncGenerator_(vsyncGenerator)
+      appController_(appController),
+      vsyncGenerator_(vsyncGenerator)
 {
 }
 
@@ -118,9 +118,19 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
     }
     return vsyncCount;
 }
+
 bool HgmVSyncGeneratorController::CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate)
 {
     return refreshRate <= OLED_60_HZ;
+}
+
+void HgmVSyncGeneratorController::ChangeAdaptiveStatus(bool isAdaptive)
+{
+    if (rsController_ == nullptr) {
+        HGM_LOGE("HgmVSyncGeneratorController::ChangeAdaptiveStatus rsController is null");
+        return;
+    }
+    rsController_->ChangeAdaptiveStatus(isAdaptive);
 }
 } // namespace Rosen
 } // namespace OHOS

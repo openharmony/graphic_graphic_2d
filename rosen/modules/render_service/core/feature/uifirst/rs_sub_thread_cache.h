@@ -93,6 +93,16 @@ public:
 
     bool HasCachedTexture() const;
 
+    float GetCacheSurfaceAlphaInfo()
+    {
+        return cacheSurfaceInfo_.alpha;
+    }
+
+    int GetCacheSurfaceProcessedNodes()
+    {
+        return cacheSurfaceInfo_.processedNodeCount;
+    }
+
     void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
     {
         isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;

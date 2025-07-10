@@ -191,6 +191,7 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 
 void RSDirtyRegionManager::SetCurrentFrameDirtyRect(const RectI& dirtyRect)
 {
+    currentFrameAdvancedDirtyRegion_ = { dirtyRect };
     currentFrameDirtyRegion_ = dirtyRect;
 }
 
@@ -223,6 +224,7 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     ptr->maxNumOfDirtyRects_ = maxNumOfDirtyRects_;
     ptr->dirtyRegionForQuickReject_ = {};
     ptr->debugRect_ = debugRect_;
+    filterCollector_.OnSync(ptr->filterCollector_);
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
         ptr->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
         ptr->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
@@ -299,6 +301,7 @@ void RSDirtyRegionManager::Clear()
     dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     isDfxTarget_ = false;
     isFilterCacheRectValid_ = true;
+    filterCollector_.Clear();
 }
 
 bool RSDirtyRegionManager::IsCurrentFrameDirty() const
@@ -470,8 +473,6 @@ RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 void RSDirtyRegionManager::MergeAdvancedDirtyHistory(unsigned int age)
 {
     if (age == 0 || age > historySize_) {
-        RS_LOGW("RSDirtyRegionManager::MergeAdvancedDirtyHistory unvalid age : %{public}d"
-            "historySize : %{public}d", age, historySize_);
         advancedDirtyRegion_ = {surfaceRect_};
         return;
     }

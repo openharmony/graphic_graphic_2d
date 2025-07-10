@@ -104,6 +104,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       width_(configs.width),
       height_(configs.height),
       isVirtual_(true),
+      virtualSecLayerOption_(configs.flags),
       producerSurface_(configs.surface),
       pixelFormat_(configs.pixelFormat),
       screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN),
@@ -261,6 +262,25 @@ uint32_t RSScreen::PhyHeight() const
 {
     std::shared_lock<std::shared_mutex> lock(screenMutex_);
     return phyHeight_;
+}
+
+void RSScreen::SetScreenOffset(int32_t offsetX, int32_t offsetY)
+{
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
+    offsetX_ = offsetX;
+    offsetY_ = offsetY;
+}
+
+int32_t RSScreen::GetOffsetX() const
+{
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
+    return offsetX_;
+}
+
+int32_t RSScreen::GetOffsetY() const
+{
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
+    return offsetY_;
 }
 
 bool RSScreen::IsSamplingOn() const
@@ -465,7 +485,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     height_ = height;
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}d,"
         " height: %{public}d, phywidth: %{public}d, phyHeight: %{public}d.",
-	    __func__, id_, width_, height_, phyWidth_, phyHeight_);
+        __func__, id_, width_, height_, phyWidth_, phyHeight_);
 }
 
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
@@ -1117,6 +1137,20 @@ bool RSScreen::GetCanvasRotation() const
     return canvasRotation_;
 }
 
+int32_t RSScreen::SetVirtualScreenAutoRotation(bool isAutoRotation)
+{
+    if (IsVirtual()) {
+        autoBufferRotation_ = isAutoRotation;
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::INVALID_ARGUMENTS;
+}
+
+bool RSScreen::GetVirtualScreenAutoRotation() const
+{
+    return autoBufferRotation_;
+}
+
 bool RSScreen::SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode)
 {
     if (IsVirtual()) {
@@ -1463,6 +1497,11 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
 
     linearMatrix_ = matrix;
     return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetVirtualSecLayerOption() const
+{
+    return virtualSecLayerOption_;
 }
 } // namespace impl
 } // namespace Rosen

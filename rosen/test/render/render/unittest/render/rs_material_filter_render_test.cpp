@@ -77,17 +77,6 @@ HWTEST_F(RSMaterialFilterRenderTest, TestCreateMaterialStyle002, TestSize.Level1
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
 
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
@@ -113,17 +102,6 @@ HWTEST_F(RSMaterialFilterRenderTest, TestCreateMaterialStyle003, TestSize.Level1
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
 
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);

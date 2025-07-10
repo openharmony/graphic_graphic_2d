@@ -95,11 +95,11 @@ const FrameRateRange& RSAnimationRateDecider::GetFrameRateRange() const
 int32_t RSAnimationRateDecider::CalculatePreferredRate(const PropertyValue& property, const FrameRateGetFunc& func)
 {
     switch (property->GetPropertyType()) {
-        case RSRenderPropertyType::PROPERTY_VECTOR4F:
+        case RSPropertyType::VECTOR4F:
             return ProcessVector4f(property, func);
-        case RSRenderPropertyType::PROPERTY_VECTOR2F:
+        case RSPropertyType::VECTOR2F:
             return ProcessVector2f(property, func);
-        case RSRenderPropertyType::PROPERTY_FLOAT:
+        case RSPropertyType::FLOAT:
             return ProcessFloat(property, func);
         default:
             return 0;

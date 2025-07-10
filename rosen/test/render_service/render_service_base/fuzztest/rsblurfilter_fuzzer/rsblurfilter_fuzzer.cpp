@@ -76,7 +76,6 @@ bool DoOtherFunc(const uint8_t* data, size_t size)
     rsBlurFilter->IsValid();
     rsBlurFilter->GetDescription();
     rsBlurFilter->GetDetailedDescription();
-    rsBlurFilter->Negate();
     rsBlurFilter->CanSkipFrame();
 
     return true;
@@ -97,45 +96,6 @@ bool DoCompose(const uint8_t* data, size_t size)
     auto blurFilter1 = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
     auto blurFilter2 = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
     auto composedFilter = blurFilter1->Compose(blurFilter2);
-    return true;
-}
-bool DoAdd(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    float blurRadiusX = GetData<float>();
-    float blurRadiusY = GetData<float>();
-    auto rsBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
-
-    auto rhs = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
-    rsBlurFilter->Add(rhs);
-    rsBlurFilter->Sub(rhs);
-    return true;
-}
-bool DoMultiply(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    float blurRadiusX = GetData<float>();
-    float blurRadiusY = GetData<float>();
-    auto rsBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
-
-    float rhs = GetData<float>();
-    rsBlurFilter->Multiply(rhs);
     return true;
 }
 bool DoDrawImageRect(const uint8_t* data, size_t size)
@@ -186,44 +146,6 @@ bool DoSetGreyCoef(const uint8_t* data, size_t size)
     rsBlurFilter->SetGreyCoef(greyCoef);
     return true;
 }
-bool DoIsNearEqual(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    float blurRadiusX = GetData<float>();
-    float blurRadiusY = GetData<float>();
-    auto rsBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
-    auto rhs = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
-    float threshold = GetData<float>();
-    rsBlurFilter->IsNearEqual(rhs, threshold);
-    return true;
-}
-bool DoIsNearZero(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    float blurRadiusX = GetData<float>();
-    float blurRadiusY = GetData<float>();
-    auto rsBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
-
-    float threshold = GetData<float>();
-    rsBlurFilter->IsNearZero(threshold);
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -233,11 +155,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoOtherFunc(data, size);
     OHOS::Rosen::DoCompose(data, size);
-    OHOS::Rosen::DoAdd(data, size);
-    OHOS::Rosen::DoMultiply(data, size);
     OHOS::Rosen::DoDrawImageRect(data, size);
     OHOS::Rosen::DoSetGreyCoef(data, size);
-    OHOS::Rosen::DoIsNearEqual(data, size);
-    OHOS::Rosen::DoIsNearZero(data, size);
     return 0;
 }

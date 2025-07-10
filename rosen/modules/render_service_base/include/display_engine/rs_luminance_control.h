@@ -17,13 +17,18 @@
 #define RENDER_SERVICE_BASE_DISPLAY_ENGINE_RS_LUMINANCE_CONTROL_H
 
 #include <cinttypes>
-#include <vector>
-
 #include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
+
+namespace RSLuminanceConst {
+    constexpr float DEFAULT_CAPTURE_HDR_NITS = 1000.0f;
+    constexpr float DEFAULT_CAST_HDR_NITS = 1000.0f;
+    constexpr float DEFAULT_CAST_SDR_NITS = 203.0f;
+}
 
 enum CLOSEHDR_SCENEID : uint32_t {
     MULTI_DISPLAY = 0,
@@ -33,6 +38,7 @@ enum CLOSEHDR_SCENEID : uint32_t {
 enum HDRComponentType : uint32_t {
     IMAGE = 0,
     UICOMPONENT,
+    EFFECT,
 };
 
 enum HdrStatus : uint32_t {
@@ -40,6 +46,7 @@ enum HdrStatus : uint32_t {
     HDR_PHOTO = 0x0001,
     HDR_VIDEO = 0x0010,
     AI_HDR_VIDEO = 0x0100,
+    HDR_EFFECT = 0x1000,
 };
 
 class RSLuminanceControlInterface {
@@ -63,6 +70,7 @@ public:
     virtual bool IsForceCloseHdr() const = 0;
     virtual void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr) = 0;
     virtual bool IsCloseHardwareHdr() const = 0;
+    virtual bool IsScreenNoHeadroom(ScreenId) = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -94,6 +102,7 @@ public:
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
     RSB_EXPORT bool IsCloseHardwareHdr();
+    RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId);
 
 private:
     RSLuminanceControl() = default;

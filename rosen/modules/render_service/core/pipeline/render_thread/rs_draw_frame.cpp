@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,17 +21,19 @@
 #include "rs_trace.h"
 
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/hetero_hdr/rs_hdr_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_filter_cache_manager.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "rs_frame_report.h"
 #include "rs_uni_render_thread.h"
 
 #include "rs_profiler.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,10 +56,21 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
 bool RSDrawFrame::debugTraceEnabled_ =
     std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
 
+void RSDrawFrame::SetEarlyZFlag(Drawing::GPUContext* gpuContext)
+{
+    if (UNLIKELY(gpuContext == nullptr)) {
+        RS_LOGE("RSDrawFrame::SetEarlyZFlag gpuContext is nullptr!");
+        return;
+    }
+    bool isFlushEarlyZFlag = RSJankStats::GetInstance().GetFlushEarlyZ();
+    if (isFlushEarlyZFlag) {
+        bool earlyZEnableFlag = RSJankStats::GetInstance().GetEarlyZEnableFlag();
+        gpuContext->SetEarlyZFlag(earlyZEnableFlag);
+    }
+}
+
 void RSDrawFrame::RenderFrame()
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSDRAWFRAME_RENDERFRAME);
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
     StartCheck();
@@ -70,8 +83,9 @@ void RSDrawFrame::RenderFrame()
     Sync();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
         RSBaseRenderUtil::GetAccumulatedBufferCount());
-    unirenderInstance_.UpdateDisplayNodeScreenId();
+    unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
+    RSHdrManager::Instance().PostHdrSubTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
     RsFrameReport::GetInstance().UnblockMainThread();
@@ -87,6 +101,8 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.PurgeShaderCacheAfterAnimate();
     MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsEnd(unirenderInstance_.GetDynamicRefreshRate());
+    auto gpuContext = unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    SetEarlyZFlag(gpuContext);
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
     RsFrameReport::GetInstance().UniRenderEnd();
     EndCheck();
@@ -138,8 +154,6 @@ void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
 
 void RSDrawFrame::PostAndWait()
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSDRAWFRAME_POSTANDWAIT);
     RS_TRACE_NAME_FMT("PostAndWait, parallel type %d", static_cast<int>(rsParallelType_));
     RsFrameReport& fr = RsFrameReport::GetInstance();
     if (fr.GetEnable()) {
@@ -229,6 +243,13 @@ void RSDrawFrame::Sync()
 {
     RS_TRACE_NAME_FMT("Sync");
     RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode()->Sync();
+    bool isHdrOn = false;
+    if (stagingRenderThreadParams_ && stagingRenderThreadParams_->HasDisplayHdrOn()) {
+        isHdrOn = true;
+    }
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    RSHpaeManager::GetInstance().OnSync(isHdrOn);
+#endif
 
     auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
     for (auto [id, weakPtr] : stagingSyncCanvasDrawingNodes_) {
@@ -249,6 +270,7 @@ void RSDrawFrame::Sync()
         }
     }
     pendingSyncNodes.clear();
+    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 }

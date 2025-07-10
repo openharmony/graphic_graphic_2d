@@ -31,6 +31,7 @@ ohos_fuzztest("RSBaseScreenManagerFuzzTest") {
   deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 }

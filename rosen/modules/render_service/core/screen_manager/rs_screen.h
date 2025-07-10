@@ -66,6 +66,11 @@ public:
     // physical screen resolution
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
+
+    virtual void SetScreenOffset(int32_t offsetX, int32_t offsetY) = 0;
+    virtual int32_t GetOffsetX() const = 0;
+    virtual int32_t GetOffsetY() const = 0;
+
     virtual bool IsSamplingOn() const = 0;
     virtual float GetSamplingTranslateX() const = 0;
     virtual float GetSamplingTranslateY() const = 0;
@@ -146,6 +151,9 @@ public:
     virtual bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) = 0;
     virtual bool GetCanvasRotation() const = 0;
 
+    virtual int32_t SetVirtualScreenAutoRotation(bool isAutoRotation) = 0;
+    virtual bool GetVirtualScreenAutoRotation() const = 0;
+
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) = 0;
     virtual ScreenScaleMode GetScaleMode() const = 0;
 
@@ -174,6 +182,7 @@ public:
     virtual Rect GetMainScreenVisibleRect() const = 0;
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
+    virtual int32_t GetVirtualSecLayerOption() const = 0;
 };
 
 namespace impl {
@@ -203,6 +212,9 @@ public:
     // physical screen resolution
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
+    void SetScreenOffset(int32_t offsetX, int32_t offsetY) override;
+    int32_t GetOffsetX() const override;
+    int32_t GetOffsetY() const override;
     bool IsSamplingOn() const override;
     float GetSamplingTranslateX() const override;
     float GetSamplingTranslateY() const override;
@@ -283,6 +295,9 @@ public:
     bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) override;
     bool GetCanvasRotation() const override;
 
+    int32_t SetVirtualScreenAutoRotation(bool isAutoRotation) override;
+    bool GetVirtualScreenAutoRotation() const override;
+
     bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) override;
     ScreenScaleMode GetScaleMode() const override;
 
@@ -311,6 +326,7 @@ public:
     Rect GetMainScreenVisibleRect() const override;
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
+    int32_t GetVirtualSecLayerOption() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -352,11 +368,15 @@ private:
 
     bool isVirtual_ = true;
     std::atomic<bool> isVirtualSurfaceUpdateFlag_ = false;
+    int32_t virtualSecLayerOption_ = 0;
     std::shared_ptr<HdiOutput> hdiOutput_ = nullptr; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_ = nullptr; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
+
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
 
     mutable std::mutex producerSurfaceMutex_;
     sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual
@@ -367,7 +387,8 @@ private:
         COLOR_GAMUT_SRGB,
         COLOR_GAMUT_DCI_P3,
         COLOR_GAMUT_ADOBE_RGB,
-        COLOR_GAMUT_DISPLAY_P3 };
+        COLOR_GAMUT_DISPLAY_P3,
+        COLOR_GAMUT_BT2100_HLG };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
     std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;
@@ -387,6 +408,7 @@ private:
 
     std::atomic<ScreenRotation> screenRotation_ = ScreenRotation::ROTATION_0;
     std::atomic<bool> canvasRotation_ = false; // just for virtual screen to use
+    std::atomic<bool> autoBufferRotation_ = false; // whether automatically adjust buffer rotation, virtual screen only
     std::atomic<ScreenScaleMode> scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;
     static std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> COMMON_COLOR_SPACE_TYPE_TO_RS_MAP;

@@ -109,14 +109,14 @@ void TextAnimationConfig::OnDrawTextEffect(RSCanvas* canvas,
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
     brush.SetColor(color_.CastToColorQuad());
+    canvas->AttachBrush(brush);
     for (const auto& effectElement : effectElements) {
         ClearTextAnimation(effectElement.uniqueId);
         auto path = effectElement.path;
         path.Offset(effectElement.offset.GetX(), effectElement.offset.GetY());
-        canvas->AttachBrush(brush);
         canvas->DrawPath(path);
-        canvas->DetachBrush();
     }
+    canvas->DetachBrush();
 }
 
 void TextAnimationConfig::ClearTextAnimation(uint64_t uniqueId)
@@ -127,6 +127,22 @@ void TextAnimationConfig::ClearTextAnimation(uint64_t uniqueId)
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::NONE;
     symbolAnimationConfig->symbolSpanId = uniqueId;
+    animationFunc_(symbolAnimationConfig);
+}
+
+void TextAnimationConfig::AnimationUnchange(bool isUnchange)
+{
+    currentAnimationHasPlayed_ = isUnchange;
+}
+
+void TextAnimationConfig::ClearAllTextAnimation()
+{
+    if (animationFunc_ == nullptr) {
+        return;
+    }
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
+    symbolAnimationConfig->animationStart = false;
     animationFunc_(symbolAnimationConfig);
 }
 }

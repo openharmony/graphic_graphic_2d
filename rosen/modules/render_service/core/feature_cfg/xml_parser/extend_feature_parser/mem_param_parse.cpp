@@ -14,6 +14,7 @@
  */
 
 #include "mem_param_parse.h"
+#include "memory/rs_memory_snapshot.h"
 
 namespace OHOS::Rosen {
 
@@ -54,6 +55,10 @@ int32_t MEMParamParse::ParseMemInternal(xmlNode &node)
         } else if (name == "RSCacheLimitsResourceSize" && IsNumber(val)) {
             MEMParam::SetRSCacheLimitsResourceSize(stoi(val));
             RS_LOGI("RSCacheLimitsResourceSize %{public}d", MEMParam::GetRSCacheLimitsResourceSize());
+        } else if (name =="MemSnapshotPrintHilogLimit" && IsNumber(val)) {
+            MemorySnapshot::Instance().SetMemSnapshotPrintHilogLimit(stoi(val));
+            RS_LOGI("memSnapshotPrintHilogLimit %{public}d",
+                MemorySnapshot::Instance().GetMemSnapshotPrintHilogLimit());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);

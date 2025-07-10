@@ -72,7 +72,7 @@ struct TextTab {
     TextAlign alignment = TextAlign::LEFT;
     float location = -1.0f;
 };
-struct TypographyStyle {
+struct RS_EXPORT TypographyStyle {
     const static inline std::u16string ELLIPSIS = u"\u2026";
 
     FontWeight fontWeight = FontWeight::W400;
@@ -111,10 +111,15 @@ struct TypographyStyle {
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
     bool enableAutoSpace{false};
+    TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 
+    TypographyStyle() = default;
+    TypographyStyle(const TypographyStyle& other) = default;
+    TypographyStyle& operator=(const TypographyStyle&) = default;
     bool operator==(const TypographyStyle &rhs) const
     {
         return
+            this->verticalAlignment == rhs.verticalAlignment &&
             this->ELLIPSIS == rhs.ELLIPSIS &&
             this->fontWeight == rhs.fontWeight &&
             this->fontStyle == rhs.fontStyle &&

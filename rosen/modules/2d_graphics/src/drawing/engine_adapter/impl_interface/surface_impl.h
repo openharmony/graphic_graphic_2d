@@ -22,7 +22,11 @@
 #include "image/image_info.h"
 #include "utils/rect.h"
 #ifdef RS_ENABLE_GL
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/gl/GrGLTypes.h"
+#else
 #include "include/gpu/gl/GrGLTypes.h"
+#endif
 #endif
 #ifdef RS_ENABLE_VK
 #include "vulkan/vulkan.h"
@@ -67,6 +71,8 @@ public:
     virtual void SetDrawingArea(const std::vector<RectI>& rects) = 0;
     virtual void ClearDrawingArea() = 0;
 #endif
+    virtual void SetHeadroom(float headroom) = 0;
+    virtual float GetHeadroom() const = 0;
     virtual int Width() const = 0;
     virtual int Height() const = 0;
 };

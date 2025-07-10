@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_MASK_H
-#define RENDER_SERVICE_CLIENT_CORE_UI_RS_MASK_H
+#ifndef RENDER_SERVICE_BASE_RENDER_UI_RS_MASK_H
+#define RENDER_SERVICE_BASE_RENDER_UI_RS_MASK_H
 
 #include <memory>
 #include "common/rs_macros.h"
@@ -21,9 +21,7 @@
 #include "draw/brush.h"
 #include "draw/path.h"
 #include "image/picture.h"
-#if defined(NEW_SKIA)
 #include "modules/svg/include/SkSVGDOM.h"
-#endif
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -105,4 +103,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_MASK_H
+#endif // RENDER_SERVICE_BASE_RENDER_UI_RS_MASK_H

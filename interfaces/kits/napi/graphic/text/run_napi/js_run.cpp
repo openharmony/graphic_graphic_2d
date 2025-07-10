@@ -19,8 +19,10 @@
 #include "canvas_napi/js_canvas.h"
 #include "font_napi/js_font.h"
 #include "recording/recording_canvas.h"
+#include "typography_types.h"
 
 namespace OHOS::Rosen {
+std::mutex JsRun::constructorMutex_;
 thread_local napi_ref JsRun::constructor_ = nullptr;
 const std::string CLASS_NAME = "Run";
 napi_value JsRun::Constructor(napi_env env, napi_callback_info info)
@@ -52,6 +54,32 @@ napi_value JsRun::Constructor(napi_env env, napi_callback_info info)
 
 napi_value JsRun::Init(napi_env env, napi_value exportObj)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get reference, ret %{public}d", status);
+        return nullptr;
+    }
+
+    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+        return nullptr;
+    }
+
+    return exportObj;
+}
+
+bool JsRun::CreateConstructor(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(constructorMutex_);
+    if (constructor_) {
+        return true;
+    }
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getGlyphCount", JsRun::GetGlyphCount),
         DECLARE_NAPI_FUNCTION("getGlyphs", JsRun::GetGlyphs),
@@ -63,6 +91,8 @@ napi_value JsRun::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getImageBounds", JsRun::GetImageBounds),
         DECLARE_NAPI_FUNCTION("getTypographicBounds", JsRun::GetTypographicBounds),
         DECLARE_NAPI_FUNCTION("paint", JsRun::Paint),
+        DECLARE_NAPI_FUNCTION("getTextDirection", JsRun::GetTextDirection),
+        DECLARE_NAPI_FUNCTION("getAdvances", JsRun::GetAdvances),
     };
 
     napi_value constructor = nullptr;
@@ -70,22 +100,15 @@ napi_value JsRun::Init(napi_env env, napi_value exportObj)
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to define class, ret %{public}d", status);
-        return nullptr;
+        return false;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to create reference, ret %{public}d", status);
-        return nullptr;
+        return false;
     }
-
-    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
-        return nullptr;
-    }
-
-    return exportObj;
+    return true;
 }
 
 void JsRun::Destructor(napi_env env, void* nativeObject, void* finalize)
@@ -99,6 +122,10 @@ void JsRun::Destructor(napi_env env, void* nativeObject, void* finalize)
 
 napi_value JsRun::CreateRun(napi_env env, napi_callback_info info)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
     napi_value result = nullptr;
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
@@ -214,6 +241,60 @@ napi_value JsRun::OnGetPositions(napi_env env, napi_callback_info info)
             GetPointAndConvertToJsValue(env, positions.at(index))));
     }
     return napiPositions;
+}
+
+napi_value JsRun::GetAdvances(napi_env env, napi_callback_info info)
+{
+    JsRun* me = CheckParamsAndGetThis<JsRun>(env, info);
+    return (me != nullptr) ? me->OnGetAdvances(env, info) : nullptr;
+}
+
+napi_value JsRun::OnGetAdvances(napi_env env, napi_callback_info info)
+{
+    if (!run_) {
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiGetUndefined(env);
+    }
+
+    size_t argc = ARGC_ONE;
+    int64_t start = 0;
+    int64_t end = 0;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    if (!GetStartEndParams(env, argv[0], start, end)) {
+        return NapiGetUndefined(env);
+    }
+
+    std::vector<Drawing::Point> advances = run_->GetAdvances(start, end);
+    napi_value napiAdvances = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &napiAdvances));
+    size_t advanceSize = advances.size();
+    for (size_t index = 0; index < advanceSize; ++index) {
+        NAPI_CALL(env, napi_set_element(env, napiAdvances, index,
+            GetPointAndConvertToJsValue(env, advances.at(index))));
+    }
+    return napiAdvances;
+}
+
+napi_value JsRun::GetTextDirection(napi_env env, napi_callback_info info)
+{
+    JsRun* me = CheckParamsAndGetThis<JsRun>(env, info);
+    return (me != nullptr) ? me->OnGetTextDirection(env, info) : nullptr;
+}
+
+napi_value JsRun::OnGetTextDirection(napi_env env, napi_callback_info info)
+{
+    if (!run_) {
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiGetUndefined(env);
+    }
+
+    TextDirection textDirection = run_->GetTextDirection();
+    return CreateJsNumber(env, (int)textDirection);
 }
 
 napi_value JsRun::GetOffsets(napi_env env, napi_callback_info info)

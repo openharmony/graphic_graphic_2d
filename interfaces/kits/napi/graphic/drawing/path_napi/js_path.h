@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,6 +72,9 @@ public:
     static napi_value IsEmpty(napi_env env, napi_callback_info info);
     static napi_value IsRect(napi_env env, napi_callback_info info);
     static napi_value GetPathIterator(napi_env env, napi_callback_info info);
+    static napi_value Approximate(napi_env env, napi_callback_info info);
+    static napi_value Interpolate(napi_env env, napi_callback_info info);
+    static napi_value IsInterpolate(napi_env env, napi_callback_info info);
     Path* GetPath();
 
 private:
@@ -114,6 +117,9 @@ private:
     napi_value OnBuildFromSvgString(napi_env env, napi_callback_info info);
     napi_value OnIsClosed(napi_env env, napi_callback_info info);
     napi_value OnGetPathIterator(napi_env env, napi_callback_info info);
+    napi_value OnApproximate(napi_env env, napi_callback_info info);
+    napi_value OnInterpolate(napi_env env, napi_callback_info info);
+    napi_value OnIsInterpolate(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
     Path* m_path = nullptr;

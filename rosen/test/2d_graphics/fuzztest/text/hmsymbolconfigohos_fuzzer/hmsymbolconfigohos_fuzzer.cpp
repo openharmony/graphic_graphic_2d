@@ -13,14 +13,13 @@
  * limitations under the License.
  */
 
-#include "hmsymbolconfigohos_fuzzer.h"
-
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
 
 #include "get_object.h"
-#include "text/hm_symbol_config_ohos.h"
+#include "hmsymbolconfigohos_fuzzer.h"
+#include "skia_txt/default_symbol_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -41,7 +40,7 @@ bool HmSymbolConfigOhosFuzzTest001(const uint8_t* data, size_t size)
     g_pos = 0;
 
     uint32_t glyphId = GetObject<uint32_t>();
-    HmSymbolConfigOhos::GetSymbolLayersGroups(glyphId);
+    OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetSymbolLayersGroups(glyphId);
     return true;
 }
 
@@ -60,8 +59,9 @@ bool HmSymbolConfigOhosFuzzTest002(const uint8_t* data, size_t size)
     uint32_t commonSubType = GetObject<uint32_t>();
     uint16_t groupSum = GetObject<uint16_t>();
     uint16_t animationMode = GetObject<uint16_t>();
-    HmSymbolConfigOhos::GetGroupParameters(static_cast<DrawingAnimationType>(type % TYPE_SIZE), groupSum,
-        animationMode, static_cast<DrawingCommonSubType>(commonSubType % SUBTYPE_SIZE));
+    OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetGroupParameters(
+        static_cast<DrawingAnimationType>(type % TYPE_SIZE), groupSum, animationMode,
+        static_cast<DrawingCommonSubType>(commonSubType % SUBTYPE_SIZE));
     return true;
 }
 } // namespace Drawing

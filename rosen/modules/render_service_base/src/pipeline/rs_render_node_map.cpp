@@ -18,7 +18,8 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -174,6 +175,12 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
+    } else if (nodePtr->GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+        auto logicalDisplayNode = nodePtr->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+        logicalDisplayNodeMap_.emplace(id, logicalDisplayNode);
+    } else if (nodePtr->GetType() == RSRenderNodeType::SCREEN_NODE) {
+        auto screenNode = nodePtr->ReinterpretCastTo<RSScreenRenderNode>();
+        screenNodeMap_.emplace(id, screenNode);
     }
     return true;
 }
@@ -191,18 +198,6 @@ bool RSRenderNodeMap::UnRegisterUnTreeNode(NodeId id)
         return true;
     }
     return false;
-}
-
-bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayRenderNode>& nodePtr)
-{
-    NodeId id = nodePtr->GetId();
-    pid_t pid = ExtractPid(id);
-    if (!(renderNodeMap_[pid].insert({ id, nodePtr })).second) {
-        return false;
-    }
-    displayNodeMap_.emplace(id, nodePtr);
-    nodePtr->OnRegister(context_);
-    return true;
 }
 
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
@@ -224,7 +219,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
         RSSurfaceFpsManager::GetInstance().UnregisterSurfaceFps(id);
     }
     residentSurfaceNodeMap_.erase(id);
-    displayNodeMap_.erase(id);
+    screenNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
 }
 
@@ -247,11 +242,11 @@ void RSRenderNodeMap::MoveRenderNodeMap(
     }
 }
 
-void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
+void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
-    bool useBatchRemoving =
+    bool useBatchRemoving = !immediate &&
         RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     auto iter = renderNodeMap_.find(pid);
@@ -302,7 +297,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return pair.first == pid;
     });
 
-    EraseIf(displayNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(screenNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid && pair.second) {
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
                 (unsigned long long)pid);
@@ -372,9 +367,17 @@ bool RSRenderNodeMap::ContainPid(pid_t pid) const
         [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
 }
 
-void RSRenderNodeMap::TraverseDisplayNodes(std::function<void (const std::shared_ptr<RSDisplayRenderNode>&)> func) const
+void RSRenderNodeMap::TraverseScreenNodes(std::function<void (const std::shared_ptr<RSScreenRenderNode>&)> func) const
 {
-    for (const auto& [_, node] : displayNodeMap_) {
+    for (const auto& [_, node] : screenNodeMap_) {
+        func(node);
+    }
+}
+
+void RSRenderNodeMap::TraverseLogicalDisplayNodes(
+    std::function<void (const std::shared_ptr<RSLogicalDisplayRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : logicalDisplayNodeMap_) {
         func(node);
     }
 }

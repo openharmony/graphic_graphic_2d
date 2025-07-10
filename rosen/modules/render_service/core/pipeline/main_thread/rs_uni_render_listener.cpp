@@ -19,6 +19,9 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSUniRenderListener"
+
 namespace OHOS {
 namespace Rosen {
 RSUniRenderListener::~RSUniRenderListener() {}

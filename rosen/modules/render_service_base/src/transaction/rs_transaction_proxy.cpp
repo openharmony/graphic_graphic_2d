@@ -14,14 +14,31 @@
  */
 
 #include "transaction/rs_transaction_proxy.h"
+#include <mutex>
 #include <stdlib.h>
 
 #ifdef ROSEN_OHOS
+#include "hisysevent.h"
 #include "mem_mgr_client.h"
 #endif
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/syscall.h>
+#include <sys/types.h>
+#define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -70,6 +87,7 @@ void RSTransactionProxy::SetRenderServiceClient(const std::shared_ptr<RSIRenderC
 void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
                                     FollowType followType, NodeId nodeId)
 {
+#ifndef SCREENLESS_DEVICE
     if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
         RS_LOGE("RSTransactionProxy::add command fail, (renderServiceClient_ and renderThreadClient_ is nullptr)"
             " or command is nullptr");
@@ -102,6 +120,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     }
     ROSEN_LOGE("RSTransactionProxy::AddCommand failed, isRenderServiceCommand:%{public}d %{public}s",
         isRenderServiceCommand, command->PrintType().c_str());
+#endif
 }
 
 void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
@@ -145,14 +164,10 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         return;
     }
     timestamp_ = std::max(timestamp, timestamp_);
-#ifdef RS_ENABLE_VK
     thread_local pid_t tid = gettid();
-#endif
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
         implicitCommonTransactionData_->timestamp_ = timestamp_;
-#ifdef RS_ENABLE_VK
         implicitCommonTransactionData_->tid_ = tid;
-#endif
         implicitCommonTransactionData_->abilityName_ = abilityName;
         renderThreadClient_->CommitTransaction(implicitCommonTransactionData_);
         implicitCommonTransactionData_ = std::make_unique<RSTransactionData>();
@@ -163,25 +178,39 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     }
 
     if (renderServiceClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
-        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
-            " transactionData empty:%{public}d]",
-            renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
+        RS_TRACE_NAME("UI skip");
+        uiSkipCount_++;
         return;
     }
 
     auto transactionData = std::make_unique<RSTransactionData>();
     std::swap(implicitRemoteTransactionData_, transactionData);
     transactionData->timestamp_ = timestamp_;
-#ifdef RS_ENABLE_VK
     transactionData->tid_ = tid;
     if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
         commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_);
         return;
     }
-#endif
     renderServiceClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
+}
+
+void RSTransactionProxy::ReportUiSkipEvent(const std::string& ability, int64_t nowMs, int64_t lastTimestamp)
+{
+    static std::atomic<uint32_t> lastCount_ = 0;
+    uint32_t nowCount = uiSkipCount_;
+    uint32_t lastCount = lastCount_.exchange(nowCount);
+    int64_t duration = (nowMs > lastTimestamp) ? nowMs - lastTimestamp : 0;
+    if (duration > 60 * 1000 && nowCount > lastCount && nowCount - lastCount > 100) { // 60 * 1000 ms, gt 100 frame
+        int32_t count = static_cast<int32_t>(nowCount - lastCount);
+        RS_LOGE_LIMIT(__func__, __line__, "ui_skip count:%{public}d", count);
+#ifdef ROSEN_OHOS
+        using namespace OHOS::HiviewDFX;
+        HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "RS_UI_SKIP_ANOMALY",
+            HiSysEvent::EventType::STATISTIC, "ABILITY", ability, "COUNT", count, "DURATION", duration);
+#endif
+    }
 }
 
 uint32_t RSTransactionProxy::GetTransactionDataIndex() const
@@ -209,6 +238,8 @@ void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
     std::unique_lock<std::mutex> cmdLock(mutexForRT_);
     if (renderServiceClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
         implicitTransactionDataFromRT_->timestamp_ = timestamp;
+        thread_local pid_t tid = gettid();
+        implicitTransactionDataFromRT_->tid_ = tid;
         renderServiceClient_->CommitTransaction(implicitTransactionDataFromRT_);
         implicitTransactionDataFromRT_ = std::make_unique<RSTransactionData>();
     }
@@ -281,6 +312,8 @@ void RSTransactionProxy::Commit(uint64_t timestamp)
     if (!implicitRemoteTransactionDataStack_.empty()) {
         if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
+            thread_local pid_t tid = gettid();
+            implicitRemoteTransactionDataStack_.top()->tid_ = tid;
             renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
@@ -291,10 +324,12 @@ void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::st
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     timestamp_ = std::max(timestamp, timestamp_);
+    thread_local pid_t tid = gettid();
     if (!implicitCommonTransactionDataStack_.empty()) {
         if (renderThreadClient_ != nullptr && (!implicitCommonTransactionDataStack_.top()->IsEmpty() ||
             implicitCommonTransactionDataStack_.top()->IsNeedSync())) {
             implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
+            implicitCommonTransactionDataStack_.top()->tid_ = tid;
             implicitCommonTransactionDataStack_.top()->abilityName_ = abilityName;
             implicitCommonTransactionDataStack_.top()->SetSyncId(syncId_);
             renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
@@ -306,6 +341,7 @@ void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::st
         if (renderServiceClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
             implicitRemoteTransactionDataStack_.top()->IsNeedSync())) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
+            implicitRemoteTransactionDataStack_.top()->tid_ = tid;
             implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId_);
             renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }

@@ -85,6 +85,11 @@ public:
         finishCallbackType_ = finishCallbackType;
     }
 
+    void SetInterfaceName(const std::string& interfaceName)
+    {
+        interfaceName_ = interfaceName;
+    }
+
     int GetDuration() const
     {
         return duration_;
@@ -130,6 +135,11 @@ public:
         return finishCallbackType_;
     }
 
+    const std::string& GetInterfaceName() const
+    {
+        return interfaceName_;
+    }
+
     static const RSAnimationTimingProtocol DEFAULT;
     static const RSAnimationTimingProtocol IMMEDIATE;
 
@@ -143,6 +153,7 @@ protected:
     bool isForward_ { true };
     FrameRateRange range_ = {0, 0, 0};
     FinishCallbackType finishCallbackType_ { FinishCallbackType::TIME_SENSITIVE };
+    std::string interfaceName_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -69,10 +69,13 @@ ohos_unittest("vsync_test_st") {
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -105,15 +108,18 @@ ohos_unittest("vsync_ltpo_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -146,15 +152,18 @@ ohos_unittest("vsync_30to60_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -187,15 +196,18 @@ ohos_unittest("vsync_30to90_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -228,15 +240,18 @@ ohos_unittest("vsync_30to120_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -269,15 +284,18 @@ ohos_unittest("vsync_60to30_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -310,15 +328,18 @@ ohos_unittest("vsync_60to90_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -351,15 +372,18 @@ ohos_unittest("vsync_60to120_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -392,15 +416,18 @@ ohos_unittest("vsync_90to30_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -433,15 +460,18 @@ ohos_unittest("vsync_90to60_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -474,15 +504,18 @@ ohos_unittest("vsync_90to120_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -515,15 +548,18 @@ ohos_unittest("vsync_120to30_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -556,15 +592,18 @@ ohos_unittest("vsync_120to60_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -597,15 +636,18 @@ ohos_unittest("vsync_120to90_test_st") {
   ]
 
   deps = [
-    "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -639,15 +681,18 @@ ohos_unittest("vsync_multicallback_test_st") {
   ]
 
   deps = [
-    "../..:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
     "$graphic_2d_root/utils:socketpair",
+    "../..:libvsync",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -676,7 +721,8 @@ ohos_unittest("vsync_limit_test_st") {
     "-g3",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps =
+      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest vsync_limit_test }}}
@@ -698,7 +744,8 @@ ohos_unittest("nativeVsync_getPeriod_test_st") {
     "-g3",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps =
+      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest nativeVsync_getPeriod_test }}}
@@ -717,7 +764,8 @@ ohos_unittest("nativeVsync_requestFrame_test_st") {
     "-g3",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps =
+      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest nativeVsync_requestFrame_test }}}
@@ -736,7 +784,8 @@ ohos_unittest("nativeVsync_requestMultiCB_test_st") {
     "-g3",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
+  deps =
+      [ "$graphic_2d_root/rosen/modules/composer/native_vsync:libnative_vsync" ]
 }
 
 ## SystemTest nativeVsync_requestMultiCB_test }}}
@@ -760,15 +809,18 @@ ohos_unittest("vsync_setvsyncrate_test_st") {
   ]
 
   deps = [
-    "../..:libvsync",
     "$graphic_2d_root/utils:socketpair",
+    "../..:libvsync",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -802,15 +854,18 @@ ohos_unittest("vsync_callbackeveryframe_test_st") {
   ]
 
   deps = [
-    "../..:libvsync",
+    "$graphic_2d_root/rosen/modules/platform:eventhandler",
     "$graphic_2d_root/utils:socketpair",
+    "../..:libvsync",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []
@@ -844,15 +899,17 @@ ohos_unittest("vsync_sample_test_st") {
   ]
 
   deps = [
-    "../..:libvsync",
     "$graphic_2d_root/utils:socketpair",
+    "../..:libvsync",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gtest_main",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   defines = []

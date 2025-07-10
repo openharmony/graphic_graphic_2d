@@ -246,7 +246,7 @@ HWTEST_F(RSUIDirectorTest, UIDirectorTotal001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
 
-    director->SetRoot(rootNode->GetId());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 
     director->SetTimeStamp(345, "test");
     director->SetRSSurfaceNode(nullptr);

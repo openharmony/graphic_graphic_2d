@@ -155,7 +155,7 @@ HWTEST_F(RSOpincCacheTest, OpincQuickMarkStableNode002, TestSize.Level1)
     EXPECT_TRUE(renderNode.isSubTreeDirty_);
 
     opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
-    EXPECT_TRUE(opincCache.isReseted_);
+    EXPECT_TRUE(opincCache.subTreeSupportFlag_);
 }
 
 /**
@@ -169,17 +169,17 @@ HWTEST_F(RSOpincCacheTest, OpincUpdateRootFlag001, TestSize.Level1)
     RSRenderNode renderNode(0);
     auto& opincCache = renderNode.GetOpincCache();
     bool unchangeMarkEnable = true;
-    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, renderNode.OpincGetNodeSupportFlag());
+    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, true);
     EXPECT_TRUE(opincCache.isOpincRootFlag_ == false);
 
     opincCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
     opincCache.isSuggestOpincNode_ = true;
     renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, renderNode.OpincGetNodeSupportFlag());
+    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, true);
     EXPECT_TRUE(opincCache.IsOpincUnchangeState());
 
     opincCache.isUnchangeMarkEnable_ = true;
-    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, renderNode.OpincGetNodeSupportFlag());
+    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, true);
     EXPECT_TRUE(opincCache.isUnchangeMarkEnable_ == false);
 }
 
@@ -233,16 +233,16 @@ HWTEST_F(RSOpincCacheTest, OpincForcePrepareSubTree001, TestSize.Level1)
     auto& opincCache = renderNode.GetOpincCache();
     bool autoCacheEnable = true;
     bool res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), renderNode.OpincGetNodeSupportFlag());
+        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), true);
     EXPECT_TRUE(!res);
 
     opincCache.isSuggestOpincNode_ = true;
     res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), renderNode.OpincGetNodeSupportFlag());
+        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), true);
     EXPECT_TRUE(res);
     autoCacheEnable = false;
     res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), renderNode.OpincGetNodeSupportFlag());
+        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), true);
     EXPECT_FALSE(res);
 }
 
@@ -358,6 +358,63 @@ HWTEST_F(RSOpincCacheTest, NodeCacheStateReset001, TestSize.Level1)
     opincCache.isOpincRootFlag_ = true;
     opincCache.NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
     EXPECT_FALSE(opincCache.isOpincRootFlag_);
+}
+
+/**
+ * @tc.name: UpdateSubTreeSupportFlag
+ * @tc.desc: test results of UpdateSubTreeSupportFlag
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSOpincCacheTest, UpdateSubTreeSupportFlag, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(false, false, false);
+    ASSERT_FALSE(opincCache.GetSubTreeSupportFlag());
+
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(false, false, true);
+    ASSERT_FALSE(opincCache.GetSubTreeSupportFlag());
+
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(false, true, false);
+    ASSERT_FALSE(opincCache.GetSubTreeSupportFlag());
+
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(true, false, false);
+    ASSERT_FALSE(opincCache.GetSubTreeSupportFlag());
+
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(true, true, false);
+    ASSERT_FALSE(opincCache.GetSubTreeSupportFlag());
+
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(false, true, true);
+    ASSERT_FALSE(opincCache.GetSubTreeSupportFlag());
+
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(true, false, true);
+    ASSERT_TRUE(opincCache.GetSubTreeSupportFlag());
+
+    opincCache.subTreeSupportFlag_ = true;
+    opincCache.UpdateSubTreeSupportFlag(true, true, true);
+    ASSERT_FALSE(opincCache.GetSubTreeSupportFlag());
+}
+
+/**
+ * @tc.name: SetCurNodeTreeSupportFlag
+ * @tc.desc: test results of SetCurNodeTreeSupportFlag
+ * @tc.type: FUNC
+ * @tc.require: issueI9UX8W
+ */
+HWTEST_F(RSOpincCacheTest, SetCurNodeTreeSupportFlag, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+    opincCache.SetCurNodeTreeSupportFlag(true);
+    ASSERT_TRUE(opincCache.GetCurNodeTreeSupportFlag());
 }
 } // namespace Rosen
 } // namespace OHOS

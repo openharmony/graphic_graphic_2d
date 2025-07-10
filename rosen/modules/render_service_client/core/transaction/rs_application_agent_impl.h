@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+/**
+* @file rs_application_agent_impl.h
+* @brief Agent that the application registers with the RenderService
+*/
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_APPLICATION_AGENT_IMPL_H
 #define RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_APPLICATION_AGENT_IMPL_H
 
@@ -30,7 +35,14 @@ class RSC_EXPORT RSApplicationAgentImpl final : public RSApplicationAgentStub {
 class RSApplicationAgentImpl final {
 #endif
 public:
+    /**
+     * @brief singletion constructor for application agent
+     * @return application agent pointer
+     */
     static RSApplicationAgentImpl* Instance();
+    /**
+     * @brief register application agent to renderService
+     */
     void RegisterRSApplicationAgent();
 
     RSApplicationAgentImpl() = default;
@@ -43,6 +55,10 @@ private:
     RSApplicationAgentImpl& operator=(const RSApplicationAgentImpl&&) = delete;
 
 #ifdef ROSEN_OHOS
+    /**
+     * @brief register application agent to renderService
+     * @param transactionData Transactions that the RenderService needs to send to the application
+     */
     void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
 #endif
 

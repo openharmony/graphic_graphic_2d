@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,7 +53,11 @@ bool SkiaPath::InitWithSVGString(const std::string& str)
 std::string SkiaPath::ConvertToSVGString() const
 {
     SkString skString;
+#ifdef USE_M133_SKIA
+    skString = SkParsePath::ToSVGString(path_);
+#else
     SkParsePath::ToSVGString(path_, &skString);
+#endif
 
     return skString.c_str();
 }
@@ -124,7 +128,7 @@ void SkiaPath::RArcTo(scalar rx, scalar ry, scalar angle, PathDirection directio
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
     SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
-    path_.arcTo(rx, ry, angle, arcLarge, pathDir, dx, dy);
+    path_.rArcTo(rx, ry, angle, arcLarge, pathDir, dx, dy);
     isChanged_ = true;
 }
 
@@ -295,8 +299,32 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
     if (skPathImpl1 != nullptr && skPathImpl2 != nullptr) {
         SkPath interp;
         isSuccess = path_.interpolate(skPathImpl1->GetPath(), weight, &interp);
+        if (!isSuccess) {
+            return isSuccess;
+        }
         skPathImpl2->SetPath(interp);
         isChanged_ = true;
+    }
+    return isSuccess;
+}
+
+int SkiaPath::CountVerbs() const
+{
+    return path_.countVerbs();
+}
+
+Point SkiaPath::GetPoint(int index) const
+{
+    SkPoint point = path_.getPoint(index);
+    return Point(point.x(), point.y());
+}
+
+bool SkiaPath::IsInterpolate(const Path& other)
+{
+    bool isSuccess = false;
+    auto skPathImpl = other.GetImpl<SkiaPath>();
+    if (skPathImpl != nullptr) {
+        isSuccess = path_.isInterpolatable(skPathImpl->GetPath());
     }
     return isSuccess;
 }
@@ -521,9 +549,13 @@ bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathM
 std::shared_ptr<Data> SkiaPath::Serialize() const
 {
     if (path_.isEmpty()) {
-        LOGE("SkiaPath::Serialize, path is empty!");
+        LOGD("SkiaPath::Serialize, path is empty!");
     }
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     writer.writePath(path_);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();

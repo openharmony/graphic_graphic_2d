@@ -1,0 +1,64 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+ohos_shared_library("cj_ui_effect_ffi") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  include_dirs = [
+    "include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core/ui_effect",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  sources = [
+    "src/cj_filter.cpp",
+    "src/cj_visual_effect.cpp",
+    "src/ui_effect_ffi.cpp",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:cj_image_ffi",
+    "image_framework:image_native",
+    "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
+  ]
+
+  defines = [ "ENABLE_IPC_SECURITY" ]
+  external_deps += [
+    "access_token:libaccesstoken_sdk",
+    "ipc:ipc_core",
+  ]
+
+  cflags_cc = [ "-std=c++17" ]
+
+  innerapi_tags = [ "platformsdk" ]
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

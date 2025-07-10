@@ -233,11 +233,6 @@ void RSInteractiveImplictAnimator::PauseAnimation()
             animation->InteractivePause();
         }
     }
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSTransactionProxy is nullptr");
-        return;
-    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorPause>(id_);
     AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
@@ -265,11 +260,6 @@ void RSInteractiveImplictAnimator::ContinueAnimation()
         }
     }
 
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSTransactionProxy is nullptr");
-        return;
-    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorContinue>(id_);
     AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
@@ -296,11 +286,6 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
                 continue;
             }
             animation->InteractiveFinish(position);
-        }
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy == nullptr) {
-            ROSEN_LOGE("RSTransactionProxy is nullptr");
-            return;
         }
         std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorFinish>(id_, position);
         AddCommand(command, IsUniRenderEnabled());
@@ -348,7 +333,7 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
             continue;
         }
         std::shared_ptr<RSPropertyBase> property = nullptr;
-        if (auto prop = node->GetProperty(propertyId)) {
+        if (auto prop = node->GetPropertyById(propertyId)) {
             property = prop;
         } else if (auto modifier = node->GetModifier(propertyId)) {
             property = modifier->GetProperty();
@@ -384,11 +369,6 @@ void RSInteractiveImplictAnimator::ReverseAnimation()
         }
     }
 
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSTransactionProxy is nullptr");
-        return;
-    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorReverse>(id_);
     AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
@@ -414,11 +394,6 @@ void RSInteractiveImplictAnimator::SetFraction(float fraction)
         }
     }
 
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSTransactionProxy is nullptr");
-        return;
-    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorSetFraction>(id_, fraction);
     AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {

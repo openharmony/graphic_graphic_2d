@@ -28,6 +28,7 @@
 #include <utility>
 #endif
 
+#include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -39,6 +40,7 @@
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
+#include "rs_hrp_service.h"
 #include "rs_irender_client.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
@@ -118,6 +120,8 @@ public:
     SurfaceCaptureCallback() {}
     virtual ~SurfaceCaptureCallback() {}
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
+    virtual void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR) = 0;
 };
 
 class SurfaceBufferCallback {
@@ -156,7 +160,8 @@ public:
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
+        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
@@ -305,6 +310,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation);
+
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 
     bool SetGlobalDarkColorMode(bool isDark);
@@ -344,6 +351,10 @@ public:
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
 
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
@@ -432,7 +443,11 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    void SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder);
+
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+
+    void SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
 
@@ -464,23 +479,36 @@ public:
 
     void SetWindowContainer(NodeId nodeId, bool value);
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 
     bool GetHighContrastTextState();
 
-    bool RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback);
+    bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
+
+    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+
+    RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd);
+    RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
+    bool ProfilerIsSecureScreen();
+
+    void ClearUifirstCache(NodeId id);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<Media::PixelMap> pixelmap);
+        std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
-    void TriggerTransactionDataCallbackAndErase(int32_t pid, uint64_t timeStamp);
+    void TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp);
     struct RectHash {
         std::size_t operator()(const Drawing::Rect& rect) const {
             std::size_t h1 = std::hash<Drawing::scalar>()(rect.left_);
@@ -491,11 +519,22 @@ private:
         }
     };
 
+    // Hash for solo node capture
+    struct UICaptureParamHash {
+        std::size_t operator()(const RSUICaptureInRangeParam& param) const {
+            std::size_t h1 = std::hash<NodeId>()(param.endNodeId);
+            std::size_t h2 = std::hash<bool>()(param.useBeginNodeSize);
+            return h1 ^ (h2 << 1);
+        }
+    };
+
     struct PairHash {
         std::size_t operator()(const std::pair<NodeId, RSSurfaceCaptureConfig>& p) const {
             std::size_t h1 = std::hash<NodeId>()(p.first);
             std::size_t h2 = RectHash()(p.second.mainScreenRect);
-            return h1 ^ (h2 << 1);
+            std::size_t h3 = UICaptureParamHash()(p.second.uiCaptureInRangeParam);
+            std::size_t h4 = RectHash()(p.second.specifiedAreaRect);
+            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
         }
     };
 
@@ -514,7 +553,7 @@ private:
     mutable std::shared_mutex surfaceBufferCallbackMutex_;
 
     sptr<RSITransactionDataCallback> transactionDataCbDirector_;
-    std::map<std::pair<int32_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
+    std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
     std::mutex transactionDataCallbackMutex_;
 
     friend class SurfaceCaptureCallbackDirector;

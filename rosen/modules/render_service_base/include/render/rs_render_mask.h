@@ -32,6 +32,12 @@ public:
     {
         return type_ != RSUIFilterType::NONE;
     }
+
+    // just a single-level deep copy is performed. The properties[]->Get() value are not deeply copied.
+    virtual std::shared_ptr<RSRenderMaskPara> LimitedDeepCopy() const
+    {
+        return nullptr;
+    }
 };
 } // Rosen
 } // OHOS

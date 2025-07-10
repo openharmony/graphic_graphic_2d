@@ -12,21 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <algorithm>
+
 #include "rs_frame_rate_vote.h"
+
+#include <algorithm>
+
 #include "hgm_core.h"
 #include "platform/common/rs_log.h"
-#include "sandbox_utils.h"
 #include "rs_video_frame_rate_vote.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-    const std::string VIDEO_RATE_FLAG = "VIDEO_RATE";
-    const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
-    // USE DURATION TO DETERMINE BARRAGE AND UI
-    constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
-    constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
+const std::string VIDEO_RATE_FLAG = "VIDEO_RATE";
+const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
+// USE DURATION TO DETERMINE BARRAGE AND UI
+constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
+constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
 }
 
 RSFrameRateVote::RSFrameRateVote()
@@ -77,15 +80,22 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
     sptr<SurfaceBuffer>& buffer)
 {
     // OH SURFACE SOURCE VIDEO AN UI VOTE
-    if (lastVotedRate_ != OLED_NULL_HZ && CheckSurfaceAndUi(sourceType)) {
-        {
-            std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
-            auto votingAddress = surfaceVideoFrameRateVote_.find(lastSurfaceNodeId_);
-            if (votingAddress != surfaceVideoFrameRateVote_.end() && votingAddress->second) {
+    if (CheckSurfaceAndUi(sourceType)) {
+        if (lastVotedRate_ == OLED_NULL_HZ) {
+            return;
+        }
+        uint64_t currentId = lastSurfaceNodeId_.load();
+        std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
+        auto task = [this, currentId]() {
+            auto votingAddress = this->surfaceVideoFrameRateVote_.find(currentId);
+            if (votingAddress != this->surfaceVideoFrameRateVote_.end() && votingAddress->second) {
                 votingAddress->second->ReSetLastRate();
             }
+            this->SurfaceVideoVote(currentId, 0);
+        };
+        if (ffrtQueue_) {
+            ffrtQueue_->submit(task);
         }
-        SurfaceVideoVote(lastSurfaceNodeId_, 0);
         return;
     }
     if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
@@ -154,7 +164,7 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
         return;
     }
     auto maxElement = std::max_element(surfaceVideoRate_.begin(), surfaceVideoRate_.end(),
-        [] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+        [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
     uint32_t maxRate = maxElement->second;
     pid_t maxPid = ExtractPid(maxElement->first);
     lastSurfaceNodeId_ = surfaceNodeId;
@@ -208,7 +218,7 @@ void RSFrameRateVote::NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo)
     if (pid > DEFAULT_PID) {
         RS_LOGI("video vote pid:%{public}d rate(%{public}u, %{public}u)",
             pid, eventInfo.minRefreshRate, eventInfo.maxRefreshRate);
-        HgmTaskHandleThread::Instance().PostTask([pid, eventInfo] () {
+        HgmTaskHandleThread::Instance().PostTask([pid, eventInfo]() {
             auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
             if (frameRateMgr != nullptr) {
                 frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);

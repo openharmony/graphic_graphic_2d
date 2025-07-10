@@ -32,6 +32,19 @@
 #include <optional>
 #include <unordered_map>
 
+#include "recording/recording_canvas.h"
+#include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/border_light_effect_para.h"
+#include "ui_effect/effect/include/visual_effect.h"
+#include "ui_effect/filter/include/filter.h"
+#include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
+#include "ui_effect/filter/include/filter_fly_out_para.h"
+#include "ui_effect/filter/include/filter_hdr_para.h"
+#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
+#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+#include "ui_effect/filter/include/filter_water_ripple_para.h"
+
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
@@ -44,24 +57,13 @@
 #include "modifier/rs_modifier_extractor.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_showing_properties_freezer.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
-#include "ui_effect/effect/include/background_color_effect_para.h"
-#include "ui_effect/effect/include/hdr_ui_brightness_para.h"
-#include "ui_effect/effect/include/visual_effect.h"
-#include "ui_effect/filter/include/filter.h"
-#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
-#include "ui_effect/filter/include/filter_blur_para.h"
-#include "ui_effect/filter/include/filter_water_ripple_para.h"
-#include "ui_effect/filter/include/filter_fly_out_para.h"
-#include "ui_effect/filter/include/filter_distort_para.h"
-#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
-
-#include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_sync_transaction_handler.h"
-#include "recording/recording_canvas.h"
+#include "transaction/rs_transaction_handler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,6 +72,7 @@ using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 using ExportTypeChangedCallback = std::function<void(bool)>;
 using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
+using PropertyNodeChangeCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -78,8 +81,17 @@ class RSModifier;
 class RSObjAbsGeometry;
 class RSUIContext;
 class RSUIFilter;
+class RSNGFilterBase;
+class RSNGShaderBase;
 enum class CancelAnimationStatus;
 
+namespace ModifierNG {
+class RSModifier;
+class RSCustomModifier;
+class RSForegroundFilterModifier;
+class RSBackgroundFilterModifier;
+enum class RSModifierType : uint16_t;
+}
 /**
  * @class RSNode
  *
@@ -131,6 +143,8 @@ public:
      *              If the index is -1 (default), the child is added to the end.
      */
     virtual void AddChild(SharedPtr child, int index = -1);
+
+    bool AddCompositeNodeChild(SharedPtr node, int index);
 
     /**
      * @brief Moves a child node to a new index within the current node.
@@ -384,6 +398,9 @@ public:
      */
     const std::shared_ptr<RSMotionPathOption> GetMotionPathOption() const;
 
+    void SetMotionPathOptionToProperty(
+        const ModifierNG::RSModifierType& modifierType, const ModifierNG::RSPropertyType& propertyType);
+
     /**
      * @brief Draws on the node using the specified modifier type and drawing function.
      *
@@ -400,19 +417,8 @@ public:
      * @return A constant reference to the RSModifierExtractor holding the staging properties.
      */
     const RSModifierExtractor& GetStagingProperties() const;
-    const RSShowingPropertiesFreezer& GetShowingProperties() const;
 
-    /**
-     * @brief Sets a property value for a specific modifier.
-     *
-     * If property already exists, it will be updated.
-     * If property does not exist, it will be created.
-     *
-     * @param modifierType The type of the modifier to which the property belongs.
-     * @param value The value to assign to the property.
-     */
-    template<typename ModifierName, typename PropertyName, typename T>
-    void SetProperty(RSModifierType modifierType, T value);
+    const RSShowingPropertiesFreezer& GetShowingProperties() const;
 
     /**
      * @brief Sets the bounds of the node.
@@ -479,11 +485,15 @@ public:
     virtual void SetFramePositionY(float positionY);
 
     /**
-     * @brief Sets the freeze state of the node.
+     * @brief Freezes current frame data when enabled, preventing content refresh until unfrozen.
      *
-     * The property is valid only for CanvasNode and SurfaceNode in uniRender.
+     * This property is valid only for CanvasNode and SurfaceNode in uniRender.
      *
-     * @param isFreeze If true, the node will be frozen; if false, the node will be unfrozen.
+     * @param isFreeze Freeze state flag
+     *                - true: Freeze current frame content
+     *                - false: Resume dynamic updates
+     * @see RSCanvasNode::SetFreeze(bool isFreeze)
+     * @see RSSurfaceNode::SetFreeze(bool isFreeze)
      */
     virtual void SetFreeze(bool isFreeze);
 
@@ -689,7 +699,7 @@ public:
      *
      * @param scaleZ The scaling factor to apply on the Z-axis.
      */
-    void SetScaleZ(const float& scaleZ);
+    void SetScaleZ(float scaleZ);
 
     /**
      * @brief Sets the skew factor for the node.
@@ -1146,6 +1156,34 @@ public:
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
 
     /**
+     * @brief Sets the background filter.
+     *
+     * @param backgroundFilter Indicates the background filter to be applied.
+     */
+    void SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgroundFilter);
+
+    /**
+     * @brief Sets the foreground filter.
+     *
+     * @param foregroundFilter Indicates the foreground filter to be applied.
+     */
+    void SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter);
+
+    /**
+     * @brief Sets the background shader.
+     *
+     * @param backgroundShader Indicates the background shader to be applied.
+     */
+    void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
+
+    /**
+     * @brief Sets the foreground shader.
+     *
+     * @param foregroundShader Indicates the foreground shader to be applied.
+     */
+    void SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader);
+
+    /**
      * @brief Sets the filter.
      *
      * @param filter Indicates the filter to be applied.
@@ -1233,6 +1271,13 @@ public:
     void SetFgBrightnessFract(const float& fract);
 
     /**
+     * @brief Sets the hdr using for foreground brightness.
+     *
+     * @param hdr Indicates the hdr using for foreground brightness.
+     */
+    void SetFgBrightnessHdr(const bool hdr);
+
+    /**
      * @brief Sets the parameters for background brightness.
      *
      * @param params Indicates the parameters for background brightness.
@@ -1267,6 +1312,7 @@ public:
      */
     void SetBgBrightnessNegCoeff(const Vector4f& coeff);
     void SetBgBrightnessFract(const float& fract);
+    void SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara);
 
 
     /**
@@ -1348,6 +1394,13 @@ public:
     void SetShadowMask(bool shadowMask);
 
     /**
+     * @brief Sets the strategy of the shadow mask.
+     *
+     * @param strategy Indicates the strategy of the shadow mask.
+     */
+    void SetShadowMaskStrategy(SHADOW_MASK_STRATEGY strategy);
+
+    /**
      * @brief Sets whether the shadow should be filled.
      *
      * @param shadowIsFilled Indicates whether the shadow is filled (true) or not (false).
@@ -1419,6 +1472,13 @@ public:
     void SetHDRBrightness(const float& hdrBrightness);
 
     /**
+     * @brief Sets the HDR brightness factor to display node.
+     *
+     * @param factor The HDR brightness factor to set.
+     */
+    void SetHDRBrightnessFactor(float factor);
+
+    /**
      * @brief Sets the visibility of the node.
      *
      * @param visible True to make the node visible; false to hide it.
@@ -1443,13 +1503,13 @@ public:
     /**
      * @brief Sets the degree of light up effect.
      *
-     * @param LightUpEffectDegree The degree of the light up effect to apply.
+     * @param lightUpEffectDegree The degree of the light up effect to apply.
      */
-    void SetLightUpEffectDegree(float LightUpEffectDegree);
+    void SetLightUpEffectDegree(float lightUpEffectDegree);
 
     void SetAttractionEffect(float fraction, const Vector2f& destinationPoint);
     void SetAttractionEffectFraction(float fraction);
-    void SetAttractionEffectDstPoint(Vector2f destinationPoint);
+    void SetAttractionEffectDstPoint(const Vector2f& destinationPoint);
 
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
@@ -1476,6 +1536,8 @@ public:
     void SetUseEffectType(UseEffectType useEffectType);
     void SetAlwaysSnapshot(bool enable);
 
+    void SetEnableHDREffect(uint32_t type, bool enableHdrEffect);
+
     void SetUseShadowBatching(bool useShadowBatching);
 
     void SetColorBlendMode(RSColorBlendMode colorBlendMode);
@@ -1489,6 +1551,11 @@ public:
     void MarkContentChanged(bool isChanged) {}
     // driven render was shelved, functions will be deleted soon [end]
 
+#if defined(MODIFIER_NG)
+    void AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+
+    void RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+#else
     /**
      * @brief Adds a modifier to the current node.
      *
@@ -1504,6 +1571,9 @@ public:
      * @param modifier A shared pointer to the RSModifier to be removed.
      */
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
+#endif
+
+    const std::shared_ptr<ModifierNG::RSModifier> GetModifierByType(const ModifierNG::RSModifierType& type);
 
     /**
      * @brief Sets whether the node is a custom text type.
@@ -1530,7 +1600,26 @@ public:
      */
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
-    // Mark preferentially draw node and childrens
+    /**
+     * @brief Sets if need use the cmdlist drawing region for the node.
+     *
+     * @param needUseCmdlistDrawRegion Whether to need use the cmdlist drawing region for this node.
+     */
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
+
+    /**
+     * @brief Mark the node as a group node for rendering pipeline optimization
+     *
+     * NodeGroup generates off-screen cache containing this node and its entire subtree
+     * Off-screen cache may exhibit conflicts between background effects
+     * When using node group optimization, be aware of rendering effect limitations:
+     *     - Avoid co-occurrence of surface capture, blur, brightness adjustment and blend operations
+     *     - These effects may produce visual artifacts or performance degradation
+     *
+     * @param isNodeGroup       Whether to enable group rendering optimization for this node
+     * @param isForced          When true, forces group marking ignoring system property checks
+     * @param includeProperty   When true, packages node properties with the group
+     */
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
     // Mark opinc node
@@ -1653,10 +1742,28 @@ public:
 
     static DrawNodeChangeCallback drawNodeChangeCallback_;
     static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    static PropertyNodeChangeCallback propertyNodeChangeCallback_;
+    /**
+     * @brief Sets the callback function for property node change events
+     *
+     * @param callback Function pointer to the callback handler
+     */
+    static void SetPropertyNodeChangeCallback(PropertyNodeChangeCallback callback);
+
+    /**
+     * @brief Enables or disables property node change callback notifications
+     *
+     * @param needCallback Boolean flag to control callback triggering
+     */
+    static void SetNeedCallbackNodeChange(bool needCallback);
     bool GetIsDrawn();
     void SetDrawNode();
     DrawNodeType GetDrawNodeType() const;
     void SyncDrawNodeType(DrawNodeType nodeType);
+
+    const std::shared_ptr<RSPropertyBase> GetPropertyById(const PropertyId& propertyId);
+    const std::shared_ptr<RSPropertyBase> GetPropertyByType(
+        const ModifierNG::RSModifierType& modifierType, const ModifierNG::RSPropertyType& propertyType);
 
     /**
      * @brief Gets the context for the RSUI.
@@ -1683,7 +1790,6 @@ public:
      */
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 
-#ifdef RS_ENABLE_VK
     /**
      * @brief Gets whether the canvas enables hybrid rendering.
      *
@@ -1700,7 +1806,6 @@ public:
      * @param hybridRenderCanvas true to enable hybrid rendering; false otherwise.
      */
     virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
-#endif
 
     /**
      * @brief Gets whether the node is on the tree.
@@ -1710,11 +1815,6 @@ public:
     bool GetIsOnTheTree()
     {
         return isOnTheTree_;
-    }
-
-    float GetTotalAlpha() const
-    {
-        return totalAlpha_;
     }
 
     /**
@@ -1741,6 +1841,8 @@ protected:
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
+    void DumpModifiers(std::string& out) const;
+
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
@@ -1752,9 +1854,7 @@ protected:
 
     bool drawContentLast_ = false;
 
-#ifdef RS_ENABLE_VK
     bool hybridRenderCanvas_ = false;
-#endif
 
     /**
      * @brief Called when child nodes are added to this node.
@@ -1826,6 +1926,9 @@ protected:
      */
     void SetIsOnTheTree(bool flag);
 
+    std::array<std::shared_ptr<ModifierNG::RSModifier>, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNGCreatedBySetter_;
+    static inline bool isMultiInstanceOpen_ = false;
+
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -1839,6 +1942,54 @@ private:
     void SetParent(WeakPtr parent);
     void RemoveChildByNode(SharedPtr child);
     virtual void CreateRenderNodeForTextureExportSwitch() {};
+
+#if defined(MODIFIER_NG)
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetPropertyNG(T value);
+
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     * @param animatable The property is animatable or not.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetPropertyNG(T value, bool animatable);
+
+    /**
+     * @brief Sets a UIFilter property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetUIFilterPropertyNG(T value);
+#else
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param modifierType The type of the modifier to which the property belongs.
+     * @param value The value to assign to the property.
+     */
+    template<typename ModifierName, typename PropertyName, typename T>
+    void SetProperty(RSModifierType modifierType, T value);
+#endif
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -1858,6 +2009,8 @@ private:
     void SetForegroundBlurRadiusY(float blurRadiusY);
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
+    void NotifyPageNodeChanged();
+    void CheckModifierType(RSModifierType modifierType);
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -1878,8 +2031,7 @@ private:
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     const std::shared_ptr<RSPropertyBase> GetProperty(const PropertyId& propertyId);
     void RegisterProperty(std::shared_ptr<RSPropertyBase> property);
-    void UnRegisterProperty(const PropertyId& propertyId);
-    void ResetPropertyMap();
+    void UnregisterProperty(const PropertyId& propertyId);
 
 
     /**
@@ -1890,7 +2042,8 @@ private:
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
-    void AccumulateAlpha(float &alpha);
+
+    void DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
 
     /**
      * @brief Clears all modifiers associated with this node.
@@ -1906,9 +2059,6 @@ private:
 
     float globalPositionX_ = 0.f;
     float globalPositionY_ = 0.f;
-    float alpha_ = 1.f;
-    float totalAlpha_ = 1.f;
-    bool visitedForTotalAlpha_ = false;
 
     bool extendModifierIsDirty_ { false };
 
@@ -1921,6 +2071,7 @@ private:
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
+    static bool isNeedCallbackNodeChange_;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
@@ -1929,12 +2080,16 @@ private:
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::weak_ptr<RSUIContext> rsUIContext_;
 
+    uint32_t hdrEffectType_ = 0;
+
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
     std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
     std::map<PropertyId, std::shared_ptr<RSPropertyBase>> properties_;
     std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+    std::map<ModifierId, std::shared_ptr<ModifierNG::RSModifier>> modifiersNG_;
+
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
 
@@ -1958,6 +2113,8 @@ private:
     friend class RSPathAnimation;
     friend class RSModifierExtractor;
     friend class RSModifier;
+    friend class ModifierNG::RSModifier;
+    friend class ModifierNG::RSCustomModifier;
     friend class RSBackgroundUIFilterModifier;
     friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
@@ -1968,6 +2125,8 @@ private:
     friend class RSExtendedModifier;
     friend class RSCurveAnimation;
     friend class RSAnimation;
+    friend class ModifierNG::RSForegroundFilterModifier;
+    friend class ModifierNG::RSBackgroundFilterModifier;
     template<typename T>
     friend class RSProperty;
     template<typename T>

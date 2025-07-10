@@ -67,23 +67,17 @@ bool DoDisplayNode(const uint8_t* data, size_t size, RSContext& context)
     bool isMirrored = GetData<bool>();
     NodeId mirrorNodeId = GetData<NodeId>();
     RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
-    int32_t offsetX = GetData<int32_t>();
-    int32_t offsetY = GetData<int32_t>();
     bool isSecurityDisplay = GetData<bool>();
     bool isBootAnimation = GetData<bool>();
     NodeId id2 = GetData<NodeId>();
     ScreenRotation screenRotation = GetData<ScreenRotation>();
-    uint32_t rogWidth = GetData<uint32_t>();
-    uint32_t rogHeight = GetData<uint32_t>();
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetScreenId(context, id, screenId);
-    DisplayNodeCommandHelper::SetDisplayOffset(context, id, offsetX, offsetY);
     DisplayNodeCommandHelper::SetSecurityDisplay(context, id, isSecurityDisplay);
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
     DisplayNodeCommandHelper::SetBootAnimation(context, id, isBootAnimation);
     DisplayNodeCommandHelper::SetBootAnimation(context, id2, isBootAnimation);
     DisplayNodeCommandHelper::SetScreenRotation(context, id, screenRotation);
-    DisplayNodeCommandHelper::SetRogSize(context, id, rogWidth, rogHeight);
     return true;
 }
 bool DoSetDisplayMode(const uint8_t* data, size_t size, RSContext& context)

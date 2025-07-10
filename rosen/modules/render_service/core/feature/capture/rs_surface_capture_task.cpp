@@ -24,18 +24,18 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "draw/color.h"
 #include "draw/surface.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -67,8 +67,9 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
         nodeName = surfaceNode->GetName();
-    } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        GraphicColorGamut colorGamut = displayNode->GetColorSpace();
+    } else if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
+        auto screenInfo = CreateOrGetScreenManager()->QueryScreenInfo(displayNode->GetScreenId());
+        GraphicColorGamut colorGamut = static_cast<GraphicColorGamut>(screenInfo.colorGamut);
         if (colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
             colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
         }
@@ -100,7 +101,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
         return false;
     }
-    if (!CopyDataToPixelMap(img, pixelmap, colorSpace)) {
+    if (!CopyDataToPixelMap(img, pixelmap)) {
             RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
             return false;
     }
@@ -141,7 +142,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
 }
 
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNode(
-    std::shared_ptr<RSDisplayRenderNode> node, bool isUniRender)
+    std::shared_ptr<RSLogicalDisplayRenderNode> node, bool isUniRender)
 {
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: node is nullptr");
@@ -175,14 +176,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     return Media::PixelMap::Create(opts);
 }
 
-bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap,
-    std::shared_ptr<Drawing::ColorSpace> colorSpace)
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
     if (!img || !pixelmap) {
         RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap failed, img or pixelmap is nullptr");
         return false;
     }
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+    auto colorType = (pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16) ?
+        Drawing::ColorType::COLORTYPE_RGBA_F16 : Drawing::ColorType::COLORTYPE_RGBA_8888;
 #ifdef ROSEN_OHOS
     int fd = AshmemCreate("RSSurfaceCapture Data", size);
     if (fd < 0) {
@@ -203,8 +205,10 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
         return false;
     }
 
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat format { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
+    auto colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
+    auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
     bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
     bitmap.SetPixels(data);
     if (!img->ReadPixels(bitmap, 0, 0)) {
@@ -222,7 +226,7 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
         return false;
     }
 
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat format { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
     bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
     bitmap.SetPixels(data);
@@ -234,11 +238,6 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
     }
 
     pixelmap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
-    if (colorSpace != nullptr) {
-        pixelmap->InnerSetColorSpace(colorSpace->IsSRGB()?
-            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB):
-            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
-    }
 #endif
     return true;
 }
@@ -305,18 +304,23 @@ void RSSurfaceCaptureVisitor::ProcessChildren(RSRenderNode &node)
     }
 }
 
-void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
+void RSSurfaceCaptureVisitor::ProcessScreenRenderNode(RSScreenRenderNode &node)
 {
-    RS_TRACE_NAME("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode:" +
+    RS_TRACE_NAME("RSSurfaceCaptureVisitor::ProcessScreenRenderNode:" +
         std::to_string(node.GetId()));
-    RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode child size:[%{public}d] total",
+    RS_LOGD("RSSurfaceCaptureVisitor::ProcessScreenRenderNode child size:[%{public}d] total",
         node.GetChildrenCount());
 
     if (canvas_ == nullptr) {
-        RS_LOGE("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: Canvas is null!");
+        RS_LOGE("RSSurfaceCaptureVisitor::ProcessScreenRenderNode: Canvas is null!");
         return;
     }
 
+    ProcessChildren(node);
+}
+
+void RSSurfaceCaptureVisitor::ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
+{
     ProcessChildren(node);
 }
 

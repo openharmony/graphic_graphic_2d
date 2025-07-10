@@ -63,6 +63,8 @@ namespace Rosen {
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
+static std::once_flag g_isResidentProcessFlag;
+static std::once_flag g_initHybridCallback;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -105,10 +107,8 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance)
         RSRenderThread::Instance().Start();
     } else {
         // force fallback animaiions send to RS if no render thread
-        RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true; // ToDo
-#ifdef RS_ENABLE_VK
+        RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
         InitHybridRender();
-#endif
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
@@ -136,9 +136,9 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
     }
 }
 
-#ifdef RS_ENABLE_VK
 void RSUIDirector::InitHybridRender()
 {
+#ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         if (!cacheDir_.empty()) {
             RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
@@ -148,15 +148,47 @@ void RSUIDirector::InitHybridRender()
             std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
             auto task = [renderServiceClient, transactionData = std::move(rsTransactionData),
                 &transactionDataIndex]() mutable {
-                renderServiceClient->CommitTransaction(RSModifiersDrawThread::ConvertTransaction(transactionData));
+                bool isNeedCommit = true;
+                RSModifiersDrawThread::ConvertTransaction(transactionData, renderServiceClient, isNeedCommit);
+                if (isNeedCommit) {
+                    renderServiceClient->CommitTransaction(transactionData);
+                }
                 transactionDataIndex = transactionData->GetIndex();
                 // destroy semaphore after commitTransaction for which syncFence was duped
                 RSModifiersDraw::DestroySemaphore();
+                std::shared_ptr<RSUIContext> rsUICtx;
+                {
+                    int32_t instanceId = INSTANCE_ID_UNDEFINED;
+                    for (auto& [id, _, cmd] : transactionData->GetPayload()) {
+                        if (cmd == nullptr) {
+                            continue;
+                        }
+                        uint64_t token = cmd->GetToken();
+                        rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
+                        if (rsUICtx != nullptr) {
+                            break;
+                        }
+                        if (instanceId == INSTANCE_ID_UNDEFINED) {
+                            NodeId realId = id == 0 ? cmd->GetNodeId() : id;
+                            instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+                            instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
+                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
+                        }
+                    }
+                    auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
+                    std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                    auto task = [dataHolder]() {
+                        std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                        (void) dataHolder;
+                    };
+                    rsUICtx == nullptr ? RSUIDirector::PostTask(task, instanceId) : rsUICtx->PostTask(task);
+                }
             };
             RSModifiersDrawThread::Instance().ScheduleTask(task);
         };
         SetCommitTransactionCallback(callback);
     }
+#endif
 }
 
 void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
@@ -164,7 +196,9 @@ void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commit
     if (rsUIContext_) {
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr) {
-            transaction->SetCommitTransactionCallback(commitTransactionCallback);
+            std::call_once(g_initHybridCallback, [commitTransactionCallback]() {
+                    RSTransactionHandler::SetCommitTransactionCallback(commitTransactionCallback);
+            });
         }
     } else {
         auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -173,7 +207,21 @@ void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commit
         }
     }
 }
-#endif
+
+bool RSUIDirector::IsHybridRenderEnabled()
+{
+    return RSSystemProperties::GetHybridRenderEnabled();
+}
+
+bool RSUIDirector::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+{
+    return RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+}
+
+uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
+{
+    return RSSystemProperties::GetHybridRenderTextBlobLenCount();
+}
 
 void RSUIDirector::StartTextureExport()
 {
@@ -200,6 +248,8 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 {
     ROSEN_LOGD("RSUIDirector::GoForeground");
     if (!isActive_) {
+        auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+        lastUiSkipTimestamp_ = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
         if (!isUniRenderEnabled_ || isTextureExport) {
             RSRenderThread::Instance().UpdateWindowStatus(true);
         }
@@ -219,6 +269,16 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 #endif
 }
 
+void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
+{
+    auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+    int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->ReportUiSkipEvent(abilityName, nowMs, lastUiSkipTimestamp_);
+    }
+}
+
 void RSUIDirector::GoBackground(bool isTextureExport)
 {
     ROSEN_LOGD("RSUIDirector::GoBackground");
@@ -227,6 +287,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(false);
         }
         isActive_ = false;
+        ReportUiSkipEvent(abilityName_);
         auto node = rootNode_.lock();
         if (node) {
             node->SetEnableRender(false);
@@ -496,21 +557,41 @@ void RSUIDirector::SendMessages()
 
 void RSUIDirector::SendMessages(std::function<void()> callback)
 {
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands With Callback");
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        if (callback != nullptr) {
-            static const int32_t pid = static_cast<uint32_t>(getpid());
-            RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
-                PRIu64 " pid: %{public}d", timeStamp_, pid);
-            RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
+    if (rsUIContext_) {
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "multi-intance SendCommands With Callback");
+        RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
+        auto transaction = rsUIContext_->GetRSTransaction();
+        if (transaction != nullptr && !transaction->IsEmpty()) {
+            if (callback != nullptr) {
+                RS_LOGD("RSUIDirector:: multi-intance SendMessages with callback, timeStamp: %{public}"
+                    PRIu64 " token: %{public}" PRIu64, timeStamp_, rsUIContext_->GetToken());
+                RSInterfaces::GetInstance().RegisterTransactionDataCallback(rsUIContext_->GetToken(),
+                    timeStamp_, callback);
+            }
+            transaction->FlushImplicitTransaction(timeStamp_, abilityName_);
+            index_ = transaction->GetTransactionDataIndex();
+        } else {
+            RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector:: multi-intance SendMessages failed, \
+                transaction is nullptr");
         }
-        transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
-        index_ = transactionProxy->GetTransactionDataIndex();
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     } else {
-        RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands With Callback");
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr && !transactionProxy->IsEmpty()) {
+            if (callback != nullptr) {
+                static const uint64_t pid = static_cast<uint64_t>(getpid());
+                RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
+                    PRIu64 " pid: %{public}" PRIu64, timeStamp_, pid);
+                RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
+            }
+            transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+            index_ = transactionProxy->GetTransactionDataIndex();
+        } else {
+            RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
+        }
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 uint32_t RSUIDirector::GetIndex() const
@@ -539,6 +620,7 @@ void RSUIDirector::RecvMessages()
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance)
 {
     if (cmds == nullptr || cmds->IsEmpty()) {
+        ROSEN_LOGD("RSUIDirector::RecvMessages cmd empty");
         return;
     }
     ROSEN_LOGD("ProcessMessages begin");
@@ -552,9 +634,9 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
     for (auto &[id, _, cmd] : cmds->GetPayload()) {
         NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
-        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId); // ToDo
+        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
         if (instanceId == INSTANCE_ID_UNDEFINED) {
-            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId); // ToDo
+            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
         }
         m[instanceId].push_back(std::move(cmd));
     }
@@ -563,13 +645,13 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
         msgId, cmds->GetIndex(), cmds->GetCommandCount());
     auto counter = std::make_shared<std::atomic_size_t>(m.size());
     for (auto &[instanceId, commands] : m) {
-        ROSEN_LOGI("Post messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", msgId,
+        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", msgId,
             static_cast<unsigned long>(commands.size()), instanceId);
         PostTask(
             [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
                 counter, msgId, tempInstanceId = instanceId] {
                 RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Process messageId:%lu", msgId);
-                ROSEN_LOGI("Process messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d",
+                ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d",
                     msgId, static_cast<unsigned long>(cmds->size()), tempInstanceId);
                 for (auto &cmd : *cmds) {
                     RSContext context; // RSCommand->process() needs it
@@ -605,7 +687,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
         msgId, cmds->GetIndex(), cmds->GetCommandCount());
     auto counter = std::make_shared<std::atomic_size_t>(cmdMap.size());
     for (auto& [token, commands] : cmdMap) {
-        ROSEN_LOGI("Post messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, msgId,
+        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, msgId,
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
@@ -613,9 +695,9 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
             return;
         }
         rsUICtx->PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
-                              counter, msgId, tempToken = token, &rsUICtx] {
+                              counter, msgId, tempToken = token, rsUICtx] {
             RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Process messageId:%lu", msgId);
-            ROSEN_LOGI("Process messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, msgId,
+            ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, msgId,
                 static_cast<unsigned long>(cmds->size()), tempToken);
             for (auto& cmd : *cmds) {
                 RSContext context; // RSCommand->process() needs it
@@ -626,7 +708,10 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
                 if (requestVsyncCallback_ != nullptr) {
                     requestVsyncCallback_();
                 } else {
-                    rsUICtx->GetRSTransaction()->FlushImplicitTransaction();
+                    auto rsTransaction = rsUICtx->GetRSTransaction();
+                    if (rsTransaction != nullptr) {
+                        rsTransaction->FlushImplicitTransaction();
+                    }
                 }
                 ROSEN_LOGD("ProcessMessages end");
             }
@@ -637,7 +722,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
     AnimationCallbackEvent event)
 {
-    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
         "Animation FinishCallback Processor", nodeId, animId, false);
     auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(token);
     // try find the node by nodeId
@@ -657,7 +742,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
         return;
     }
     // if node not found, try fallback node
-    auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode(); // ToDo
+    auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
     if (fallbackNode && fallbackNode->AnimationCallback(animId, event)) {
         ROSEN_LOGD("RSUIDirector::AnimationCallbackProcessor, found animation %{public}" PRIu64 " on fallback node.",
             animId);
@@ -674,7 +759,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
 
     std::string out;
     // use for dump transactionFlags [pid,index] in client tree dump
-    int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId); // DFX ToDo
+    int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);
     {
         std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex_);
         for (const auto &[director, taskRunner] : uiTaskRunners_) {
@@ -686,7 +771,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
         }
     }
 
-    if (auto node = RSNodeMap::Instance().GetNode(nodeId)) { // DFX ToDo
+    if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {
         constexpr int TOP_LEVEL_DEPTH = 1;
         node->DumpTree(TOP_LEVEL_DEPTH, out);
     }
@@ -748,7 +833,8 @@ int32_t RSUIDirector::GetCurrentRefreshRateMode()
 int32_t RSUIDirector::GetAnimateExpectedRate() const
 {
     int32_t animateRate = 0;
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         auto& range = modifierManager->GetFrameRateRange();
         if (range.IsValid()) {
@@ -756,6 +842,17 @@ int32_t RSUIDirector::GetAnimateExpectedRate() const
         }
     }
     return animateRate;
+}
+
+void RSUIDirector::SetTypicalResidentProcessOnce(bool isTypicalResidentProcess)
+{
+    std::call_once(g_isResidentProcessFlag,
+        [isTypicalResidentProcess]() { RSSystemProperties::SetTypicalResidentProcess(isTypicalResidentProcess); });
+}
+
+void RSUIDirector::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+    SetTypicalResidentProcessOnce(isTypicalResidentProcess);
 }
 } // namespace Rosen
 } // namespace OHOS

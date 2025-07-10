@@ -34,7 +34,6 @@
 #include "draw/canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 #include "utils/performanceCaculate.h"
 #include "SkOverdrawCanvas.h"
@@ -266,7 +265,11 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         return;
     }
     builder.uniform("width") = width;
+#ifndef USE_M133_SKIA
     auto shader = builder.makeShader(nullptr, false);
+#else
+    auto shader = builder.makeShader(nullptr);
+#endif
     SkPaint paint;
     paint.setShader(shader);
     skCanvas_->drawPaint(paint);
@@ -405,8 +408,6 @@ void SkiaCanvas::DrawCircle(const Point& centerPt, scalar radius, const Paint& p
 
 void SkiaCanvas::DrawPath(const Path& path, const Paint& paint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWPATH);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -476,8 +477,6 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
 void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWSHADOWSTYLE);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -592,8 +591,6 @@ void SkiaCanvas::DrawVertices(const Vertices& vertices, BlendMode mode, const Pa
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWIMAGENINE);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -780,7 +777,13 @@ void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect
         }
     }
 
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
     const SkRect* skCullRect = reinterpret_cast<const SkRect*>(cullRect);
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
@@ -823,7 +826,13 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
         }
     }
 
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
     skCanvas_->drawImage(img, px, py, *samplingOptions, &skPaint_);
@@ -848,7 +857,13 @@ void SkiaCanvas::DrawImageWithStencil(const Image& image, const scalar px, const
         return;
     }
 
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
     skCanvas_->drawImageWithStencil(img, px, py, *samplingOptions, &skPaint_, stencilVal);
@@ -861,8 +876,6 @@ void SkiaCanvas::DrawImageWithStencil(const Image& image, const scalar px, const
 void SkiaCanvas::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWIMAGERECT);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -879,7 +892,13 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& src, const Rect& 
 
     const SkRect* srcRect = reinterpret_cast<const SkRect*>(&src);
     const SkRect* dstRect = reinterpret_cast<const SkRect*>(&dst);
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
 
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
@@ -905,7 +924,13 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst,
     }
 
     const SkRect* dstRect = reinterpret_cast<const SkRect*>(&dst);
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
     skCanvas_->drawImageRect(img, *dstRect, *samplingOptions, &skPaint_);
@@ -972,6 +997,7 @@ void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, con
         return;
     }
 
+#ifndef TODO_M133_SKIA
     HMSymbolData skSymbol;
     if (!ConvertToHMSymbolData(symbol, skSymbol)) {
         LOGD("ConvertToHMSymbolData failed, return on line %{public}d", __LINE__);
@@ -983,6 +1009,7 @@ void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, con
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
     skCanvas_->drawSymbol(skSymbol, *skLocate, skPaint_);
+#endif
 }
 
 void SkiaCanvas::ClearStencil(const RectI& rect, uint32_t stencilVal)
@@ -1195,7 +1222,13 @@ void SkiaCanvas::Flush()
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
     }
+#ifdef USE_M133_SKIA
+    if (auto dContext = GrAsDirectContext(skCanvas_->recordingContext())) {
+        dContext->flushAndSubmit();
+    }
+#else
     skCanvas_->flush();
+#endif
 }
 
 void SkiaCanvas::Clear(ColorQuad color)
@@ -1352,6 +1385,9 @@ bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParamet
         return false;
     }
 
+#ifdef USE_M133_SKIA
+    return false;
+#else
     SkRect srcRect = SkRect::MakeLTRB(blurParams.src.GetLeft(), blurParams.src.GetTop(),
         blurParams.src.GetRight(), blurParams.src.GetBottom());
     SkRect dstRect = SkRect::MakeLTRB(blurParams.dst.GetLeft(), blurParams.dst.GetTop(),
@@ -1359,6 +1395,14 @@ bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParamet
 
     SkBlurArg blurArg(srcRect, dstRect, blurParams.sigma, blurParams.saturation, blurParams.brightness);
     return skCanvas_->drawBlurImage(img.get(), blurArg);
+#endif
+}
+
+bool SkiaCanvas::DrawImageEffectHPS(const Image& image,
+    const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams)
+{
+    LOGD("skia does not support DrawImageEffectHPS");
+    return false;
 }
 
 std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
@@ -1368,6 +1412,9 @@ std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlu
         return {0, 0};
     }
 
+#ifdef USE_M133_SKIA
+    return {0, 0};
+#else
     SkRect srcRect = SkRect::MakeLTRB(blurParams.src.GetLeft(), blurParams.src.GetTop(),
         blurParams.src.GetRight(), blurParams.src.GetBottom());
     SkRect dstRect = SkRect::MakeLTRB(blurParams.dst.GetLeft(), blurParams.dst.GetTop(),
@@ -1375,6 +1422,7 @@ std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlu
 
     SkBlurArg blurArg(srcRect, dstRect, blurParams.sigma, blurParams.saturation, blurParams.brightness);
     return skCanvas_->CalcHpsBluredImageDimension(blurArg);
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

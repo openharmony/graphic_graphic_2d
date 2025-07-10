@@ -20,6 +20,7 @@
 #include "vsync_distributor.h"
 #include "vsync_generator.h"
 #include "vsync_controller.h"
+#include "vsync_connection_stub.h"
 
 namespace OHOS {
     namespace {
@@ -90,7 +91,8 @@ namespace OHOS {
         MessageParcel arguments;
         MessageParcel reply;
         MessageOption option;
-        uint32_t code = GetData<uint32_t>();
+        uint32_t code = GetData<uint32_t>() %
+            (static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH) + 1);
         vsyncConnection->OnRemoteRequest(code, arguments, reply, option);
         arguments.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
         for (uint32_t i = 0; i < FUNC_NUM; ++i) {

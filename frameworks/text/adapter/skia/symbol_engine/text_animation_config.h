@@ -27,9 +27,9 @@
 namespace OHOS::Rosen::SPText {
 class TextAnimationConfig {
 public:
-    ~TextAnimationConfig() {};
+    ~TextAnimationConfig() = default;
 
-    TextAnimationConfig() {};
+    TextAnimationConfig() = default;
 
     void SetUniqueId(uint64_t uniqueId);
 
@@ -46,6 +46,10 @@ public:
     void SetAnimation(
         const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc);
+
+    void AnimationUnchange(bool isUnchange);
+
+    void ClearAllTextAnimation();
 
 private:
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>

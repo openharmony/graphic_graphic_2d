@@ -16,6 +16,7 @@ group("fuzztest") {
 
   deps = [
     "camera3d_fuzzer:fuzztest",
+    "colorspaceconvertor_fuzzer:fuzztest",
     "data_fuzzer:fuzztest",
     "matrix44_fuzzer:fuzztest",
     "matrix_fuzzer:fuzztest",
@@ -32,5 +33,7 @@ group("fuzztest") {
     "size_fuzzer:fuzztest",
     "systemproperties_fuzzer:fuzztest",
     "vertices_fuzzer:fuzztest",
+    "performance_caculate_fuzzer:fuzztest",
+    "perfmonitor_reporter_fuzzer:fuzztest",
   ]
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -36,14 +36,20 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -52,10 +58,6 @@ ohos_unittest("RSCanvasNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_canvas_node_test.cpp" ]
-
-  if (graphic_2d_feature_enable_vulkan) {
-    defines = [ "RS_ENABLE_VK" ]
-  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -70,14 +72,20 @@ ohos_unittest("RSCanvasNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -100,14 +108,20 @@ ohos_unittest("RSDisplayNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -130,14 +144,20 @@ ohos_unittest("RSEffectNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -146,10 +166,6 @@ ohos_unittest("RSNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_node_test.cpp" ]
-
-  if (graphic_2d_feature_enable_vulkan) {
-    defines = [ "RS_ENABLE_VK" ]
-  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -164,14 +180,20 @@ ohos_unittest("RSNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -194,14 +216,20 @@ ohos_unittest("RSProxyNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -224,14 +252,20 @@ ohos_unittest("RSRootNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -254,14 +288,20 @@ ohos_unittest("RSSurfaceExtractorTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -284,15 +324,21 @@ ohos_unittest("RSSurfaceNodeTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
     "init:libbegetutil",
+    "opengles:libGLES",
   ]
 }
 
@@ -302,9 +348,44 @@ ohos_unittest("RSTextureExportTest") {
 
   sources = [ "rs_texture_export_test.cpp" ]
 
+  include_dirs = ["$graphic_2d_root/rosen/test/include"]
+
+  configs = [
+    ":ui_test",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
+  ]
+
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+  ]
+
+  subsystem_name = "graphic"
+  external_deps = [
+    "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
+  ]
+}
+
+##############################  RSRenderServiceClientTest  ##################################
+ohos_unittest("RSUIContextTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_ui_context_test.cpp" ]
+
   include_dirs = [
     "$graphic_2d_root/rosen/test/include",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
   configs = [
@@ -318,7 +399,9 @@ ohos_unittest("RSTextureExportTest") {
   ]
 
   deps = [
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   subsystem_name = "graphic"
@@ -355,14 +438,20 @@ ohos_unittest("RSUIDirectorTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
@@ -390,5 +479,6 @@ group("unittest") {
     ":RSSurfaceNodeTest",
     ":RSTextureExportTest",
     ":RSUIDirectorTest",
+    ":RSUIContextTest",
   ]
 }

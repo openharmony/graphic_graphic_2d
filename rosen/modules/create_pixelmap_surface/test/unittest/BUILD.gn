@@ -60,9 +60,7 @@ ohos_static_library("pixel_map_test_common") {
   }
   public_configs = [ ":pixel_map_test_common_public_config" ]
 
-  public_deps = [
-    "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
-  ]
+  public_deps = [ "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface" ]
 
   public_external_deps = [
     "c_utils:utils",

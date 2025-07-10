@@ -16,12 +16,14 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_RATE_DECIDER_H
 #define ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_RATE_DECIDER_H
 
+#include "rs_frame_rate_range.h"
+
 #include "common/rs_common_def.h"
 #include "modifier/rs_modifier_type.h"
-#include "rs_frame_rate_range.h"
 
 namespace OHOS {
 namespace Rosen {
+enum class RSPropertyUnit : uint8_t;
 class RSRenderPropertyBase;
 using FrameRateGetFunc = std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>;
 using PropertyValue = std::shared_ptr<RSRenderPropertyBase>;

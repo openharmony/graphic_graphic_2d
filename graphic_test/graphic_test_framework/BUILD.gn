@@ -115,7 +115,10 @@ ohos_static_library("rs_graphic_test_main") {
 
   public_deps = [ ":rs_graphic_test_src" ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

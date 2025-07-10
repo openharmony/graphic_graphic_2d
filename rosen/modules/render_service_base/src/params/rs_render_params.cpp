@@ -448,6 +448,20 @@ void RSRenderParams::SetGlobalAlpha(float alpha)
     needSync_ = true;
 }
 
+void RSRenderParams::SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info)
+{
+    if (info == hasVirtualScreenWhiteList_) {
+        return;
+    }
+    hasVirtualScreenWhiteList_ = info;
+    needSync_ = true;
+}
+
+const std::unordered_map<ScreenId, bool>& RSRenderParams::GetVirtualScreenWhiteListInfo() const
+{
+    return hasVirtualScreenWhiteList_;
+}
+
 bool RSRenderParams::NeedSync() const
 {
     return needSync_;
@@ -461,6 +475,7 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->canvasDrawingNodeSurfaceChanged_ = true;
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
+    target->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
     }
@@ -504,15 +519,30 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
     needSync_ = true;
 }
 
+const std::shared_ptr<RSFilter>& RSRenderParams::GetBackgroundFilter() const
+{
+    return backgroundFilter_;
+}
+
+void RSRenderParams::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
+{
+    if (backgroundFilter_ == backgroundFilter) {
+        return;
+    }
+    backgroundFilter_ = backgroundFilter;
+    needSync_ = true;
+}
+
 RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
 {
     return surfaceParams_;
 }
 
-void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height, GraphicColorGamut colorSpace)
 {
     surfaceParams_.width = width;
     surfaceParams_.height = height;
+    surfaceParams_.colorSpace = colorSpace;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -542,7 +572,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
-    target->isInBlackList_ = isInBlackList_;
+    target->isNodeGroupHasChildInBlackList_ = isNodeGroupHasChildInBlackList_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
@@ -554,6 +584,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasGlobalCorner_ = hasGlobalCorner_;
     target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
+    target->backgroundFilter_ = backgroundFilter_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
     target->isOpincSupportFlag_ = isOpincSupportFlag_;
@@ -579,6 +610,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // used for DFX
     target->isOnTheTree_ = isOnTheTree_;
 
+    target->hasVirtualScreenWhiteList_ = hasVirtualScreenWhiteList_;
     needSync_ = false;
 }
 
@@ -597,6 +629,9 @@ std::string RSRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(int(frameGravity_));
     if (foregroundFilterCache_ != nullptr) {
         ret += foregroundFilterCache_->GetDescription();
+    }
+    if (backgroundFilter_ != nullptr) {
+        ret += backgroundFilter_->GetDescription();
     }
     return ret;
 }
@@ -645,13 +680,6 @@ const RSLayerInfo& RSRenderParams::GetLayerInfo() const
 {
     static const RSLayerInfo defaultLayerInfo = {};
     return defaultLayerInfo;
-}
-
-// overrided by displayNode
-const ScreenInfo& RSRenderParams::GetScreenInfo() const
-{
-    static ScreenInfo defalutScreenInfo;
-    return defalutScreenInfo;
 }
 
 const Drawing::Matrix& RSRenderParams::GetTotalMatrix()

@@ -29,7 +29,6 @@
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
@@ -70,8 +69,6 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
-        RS_RSCANVASRENDERNODEDRAWABLE_ONDRAW, GetId());
     SetDrawSkipType(DrawSkipType::NONE);
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     if (!ShouldPaint()) {
@@ -183,10 +180,8 @@ void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASDRAWINGRENDERNODEDRAWABLE_DRAWRENDERCONTENT);
     DrawContent(*canvas_, rect);
-    if (!renderParams_) {
+    if (!renderParams_ || !RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         return;
     }
     SetNeedDraw(false);
@@ -222,6 +217,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     OnDraw(canvas);
 }
 
@@ -262,8 +260,6 @@ bool RSCanvasDrawingRenderNodeDrawable::CheckPostplaybackParamValid(NodeId nodeI
 
 void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASDRAWINGRENDERNODEDRAWABLE_POSTPLAYBACKINCORRESPONDTHREAD);
     auto canvasDrawingPtr = shared_from_this();
     pid_t threadId = threadId_;
     RS_OPTIONAL_TRACE_NAME_FMT("post playback task node[%llu]", GetId());
@@ -307,7 +303,7 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
         }
         RS_OPTIONAL_TRACE_NAME_FMT("PostPlaybackInCorrespondThread NodeId[%llu]", nodeId);
-        RS_LOGI("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", nodeId);
+        RS_LOGI_LIMIT("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", nodeId);
         auto rect = GetRenderParams()->GetBounds();
         DrawContent(*canvas_, rect);
         SetNeedDraw(false);
@@ -352,8 +348,6 @@ bool RSCanvasDrawingRenderNodeDrawable::InitSurfaceForGL(int width, int height, 
 
 bool RSCanvasDrawingRenderNodeDrawable::InitSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASDRAWINGRENDERNODEDRAWABLE_INITSURFACEFORVK);
     if (IsNeedResetSurface()) {
         ClearPreSurface(surface_);
         preThreadInfo_ = curThreadInfo_;
@@ -713,10 +707,14 @@ bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASDRAWINGRENDERNODEDRAWABLE_RESETSURFACEFORVK);
-    Drawing::ImageInfo info =
-        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    const auto& params = GetRenderParams();
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    if (params) {
+        colorSpace = params->GetCanvasDrawingSurfaceParams().colorSpace;
+    }
+    auto drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorSpace);
+    Drawing::ImageInfo info = Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888,
+        Drawing::ALPHATYPE_PREMUL, drawingColorSpace };
 
     bool isNewCreate = false;
 #ifdef RS_ENABLE_VK
@@ -738,7 +736,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         }
         REAL_ALLOC_CONFIG_SET_STATUS(true);
         surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+            Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, drawingColorSpace,
             NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
         REAL_ALLOC_CONFIG_SET_STATUS(false);
         if (!surface_) {
@@ -854,8 +852,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(
 bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
     int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASDRAWINGRENDERNODEDRAWABLE_GPUCONTEXTRESETVK);
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
@@ -897,8 +893,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int height)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASDRAWINGRENDERNODEDRAWABLE_RESETSURFACEFORPLAYBACK);
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback NodeId[%{public}" PRIu64 "]", GetId());
@@ -956,8 +950,6 @@ inline void RSCanvasDrawingRenderNodeDrawable::ClearPreSurface(std::shared_ptr<D
 
 bool RSCanvasDrawingRenderNodeDrawable::ReuseBackendTexture(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASDRAWINGRENDERNODEDRAWABLE_REUSEBACKENDTEXTURE);
     auto preMatrix = canvas_->GetTotalMatrix();
     auto preDeviceClipBounds = canvas_->GetDeviceClipBounds();
     auto preSaveCount = canvas_->GetSaveCount();

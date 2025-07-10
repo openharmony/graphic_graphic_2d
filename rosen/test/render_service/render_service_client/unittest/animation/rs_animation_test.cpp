@@ -18,7 +18,7 @@
 #include "ui/rs_node.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "hisysevent.h"
 #include "sandbox_utils.h"
 #endif
 using namespace testing;
@@ -304,5 +304,16 @@ HWTEST_F(RSAnimationTest, PauseTest002, Level1)
     rsAnimation.StartInner(per);
     rsAnimation.Pause();
     ASSERT_NE(per, nullptr);
+}
+
+/**
+ * @tc.name: GetPropertyType
+ * @tc.desc: test results of GetPropertyType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, GetPropertyType, Level1)
+{
+    auto animation = std::make_shared<RSAnimation>();
+    EXPECT_EQ(animation->GetPropertyType(), ModifierNG::RSPropertyType::INVALID);
 }
 }

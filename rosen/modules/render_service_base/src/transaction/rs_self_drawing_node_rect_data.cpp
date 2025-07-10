@@ -24,11 +24,10 @@ bool RSSelfDrawingNodeRectData::Marshalling(Parcel& parcel) const
     marshallingSuccess &= parcel.WriteUint32(rectData_.size());
     for (const auto& data : rectData_) {
         marshallingSuccess &= parcel.WriteUint64(data.first);
-        marshallingSuccess &= parcel.WriteString(data.second.first);
-        marshallingSuccess &= parcel.WriteInt32(data.second.second.GetLeft());
-        marshallingSuccess &= parcel.WriteInt32(data.second.second.GetTop());
-        marshallingSuccess &= parcel.WriteInt32(data.second.second.GetWidth());
-        marshallingSuccess &= parcel.WriteInt32(data.second.second.GetHeight());
+        marshallingSuccess &= parcel.WriteInt32(data.second.GetLeft());
+        marshallingSuccess &= parcel.WriteInt32(data.second.GetTop());
+        marshallingSuccess &= parcel.WriteInt32(data.second.GetWidth());
+        marshallingSuccess &= parcel.WriteInt32(data.second.GetHeight());
     }
     if (!marshallingSuccess) {
         RS_LOGE("RSSelfDrawingNodeRectData::Marshalling failed");
@@ -59,13 +58,13 @@ RSSelfDrawingNodeRectData* RSSelfDrawingNodeRectData::Unmarshalling(Parcel& parc
         uint64_t nodeId;
         std::string nodeName;
         RectI rect;
-        if (!parcel.ReadUint64(nodeId) || !parcel.ReadString(nodeName) || !parcel.ReadInt32(rect.left_) ||
-            !parcel.ReadInt32(rect.top_) || !parcel.ReadInt32(rect.width_) || !parcel.ReadInt32(rect.height_)) {
+        if (!parcel.ReadUint64(nodeId) || !parcel.ReadInt32(rect.left_) || !parcel.ReadInt32(rect.top_) ||
+            !parcel.ReadInt32(rect.width_) || !parcel.ReadInt32(rect.height_)) {
             RS_LOGE("RSSelfDrawingNodeRectData::Unmarshalling read rectData failed");
             delete SelfDrawingNodeRectData;
             return nullptr;
         }
-        SelfDrawingNodeRectData->rectData_.insert(std::make_pair(nodeId, std::make_pair(nodeName, rect)));
+        SelfDrawingNodeRectData->rectData_.insert(std::make_pair(nodeId, rect));
     }
     return SelfDrawingNodeRectData;
 }

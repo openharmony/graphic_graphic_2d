@@ -20,6 +20,11 @@
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/HMSymbol.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#endif
 #include "include/core/SkImage.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"
@@ -183,6 +188,9 @@ public:
     void SetGrContextToSkiaImage(SkiaImage* skiaImage);
 
     bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+
+    bool DrawImageEffectHPS(const Image& image,
+        const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams) override;
 
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 

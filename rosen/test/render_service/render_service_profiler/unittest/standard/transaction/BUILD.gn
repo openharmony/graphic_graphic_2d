@@ -82,6 +82,7 @@ ohos_static_library("rs_test_common") {
 
   public_external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "init:libbegetutil",
     "ipc:ipc_core",

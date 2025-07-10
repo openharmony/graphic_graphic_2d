@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_BASE_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_BASE_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H
 
 #include <cstdint>
 #include <mutex>
@@ -64,6 +64,7 @@ public:
     virtual void DrawImageLattice(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
         Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
+    void SetCompressData(const std::shared_ptr<Drawing::Data> CompressData);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
     void MarkYUVImage();
@@ -95,8 +96,10 @@ public:
 
 protected:
     void GenUniqueId(uint32_t id);
+    void UploadGpu(Drawing::Canvas& canvas);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
+    bool SetCompressedDataForASTC();
 #if defined(RS_ENABLE_VK)
     void BindPixelMapToDrawingImage(Drawing::Canvas& canvas);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
@@ -111,6 +114,8 @@ protected:
     std::shared_ptr<Drawing::Image> image_;
     void* imagePixelAddr_ = nullptr;
     std::shared_ptr<Media::PixelMap> pixelMap_;
+    // used for astc render
+    std::shared_ptr<Drawing::Data> compressData_;
 
     RectF srcRect_;
     RectF dstRect_;
@@ -138,4 +143,4 @@ protected:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_BASE_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H

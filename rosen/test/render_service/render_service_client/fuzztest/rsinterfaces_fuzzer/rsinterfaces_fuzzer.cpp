@@ -69,6 +69,8 @@ class SurfaceCaptureFuture : public SurfaceCaptureCallback {
         {
             pixelMap_ = pixelmap;
         }
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
         std::shared_ptr<Media::PixelMap> GetPixelMap()
         {
             return pixelMap_;
@@ -373,6 +375,27 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    bool isAutoRotation = GetData<bool>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetVirtualScreenAutoRotation(screenId, isAutoRotation);
+    return true;
+}
+
 bool DoSetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -412,6 +435,26 @@ bool DoGetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     rsInterfaces.GetBehindWindowFilterEnabled(enabled);
     return true;
 }
+
+bool DoClearUifirstCache(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    NodeId nodeId = GetData<NodeId>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ClearUifirstCache(nodeId);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -432,5 +475,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
+    OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
+    OHOS::Rosen::DoClearUifirstCache(data, size);
     return 0;
 }

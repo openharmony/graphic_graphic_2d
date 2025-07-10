@@ -64,6 +64,7 @@ T GetData()
 
 bool TestModifierManager(const uint8_t* data, size_t size)
 {
+#ifndef MODIFIER_NG
     if (data == nullptr) {
         return false;
     }
@@ -82,7 +83,6 @@ bool TestModifierManager(const uint8_t* data, size_t size)
     RSModifierManager manager;
     manager.AddModifier(modifier);
     manager.AddAnimation(animation);
-    manager.RemoveAnimation(id);
     manager.Animate(time);
     manager.RegisterSpringAnimation(id, id);
     manager.UnregisterSpringAnimation(id, id);
@@ -91,8 +91,11 @@ bool TestModifierManager(const uint8_t* data, size_t size)
     manager.SetDisplaySyncEnable(true);
     manager.FlushStartAnimation(time);
     manager.GetAnimation(id);
+    manager.RemoveAnimation(id);
+#endif
     return true;
 }
+
 bool TestHasUIAnimation(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

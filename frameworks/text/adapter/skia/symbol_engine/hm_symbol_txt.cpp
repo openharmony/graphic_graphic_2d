@@ -18,21 +18,23 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-static const float MINLOSE = 1E-6;
 
 bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
 {
-    if (colorList_.size() != symbol.colorList_.size()) {
+    auto symbolColor = symbol.GetSymbolColor();
+    bool isUnequal = symbolColor_.colorType != symbolColor.colorType ||
+        symbolColor_.gradients.size() != symbolColor.gradients.size();
+    if (isUnequal) {
         return false;
     }
     if (renderMode_ != symbol.renderMode_ || effectStrategy_ != symbol.effectStrategy_) {
         return false;
     }
-    for (size_t i = 0; i < colorList_.size(); i++) {
-        if (abs(colorList_[i].a - symbol.colorList_[i].a) > MINLOSE ||
-            colorList_[i].r != symbol.colorList_[i].r ||
-            colorList_[i].g != symbol.colorList_[i].g ||
-            colorList_[i].b != symbol.colorList_[i].b) {
+    for (size_t i = 0; i < symbolColor_.gradients.size(); i++) {
+        const auto& l = symbolColor_.gradients[i];
+        const auto& r = symbolColor.gradients[i];
+        bool isEqual = (l == nullptr && r == nullptr) || (l != nullptr && r != nullptr && l->IsNearlyEqual(r));
+        if (!isEqual) {
             return false;
         }
     }
@@ -43,12 +45,25 @@ bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
 
 void HMSymbolTxt::SetRenderColor(const std::vector<RSSColor>& colorList)
 {
-    colorList_ = colorList;
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    for (const auto& color : colorList) {
+        auto gradient =  std::make_shared<SymbolGradient>();
+        std::vector<Drawing::ColorQuad> colors;
+        Drawing::Color color1;
+        color1.SetRgb(color.r, color.g, color.b);
+        color1.SetAlphaF(color.a);
+        colors.push_back(color1.CastToColorQuad());
+        gradient->SetColors(colors);
+        gradients.push_back(gradient);
+    }
+    symbolColor_.gradients = gradients;
 }
 
 void HMSymbolTxt::SetRenderColor(const RSSColor& colorList)
 {
-    colorList_ = {colorList};
+    std::vector<RSSColor> colors = {colorList};
+    SetRenderColor(colors);
 }
 
 void HMSymbolTxt::SetRenderMode(RSSymbolRenderingStrategy renderMode)
@@ -63,7 +78,18 @@ void HMSymbolTxt::SetSymbolEffect(const RSEffectStrategy& effectStrategy)
 
 std::vector<RSSColor> HMSymbolTxt::GetRenderColor() const
 {
-    return colorList_;
+    std::vector<RSSColor> colorList;
+    for (const auto& gradient : symbolColor_.gradients) {
+        bool isInvalid = gradient == nullptr || gradient->GetColors().empty();
+        if (isInvalid) {
+            continue;
+        }
+        auto gradientColor = gradient->GetColors()[0];
+        Drawing::Color color(gradientColor);
+        RSSColor scolor = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
+        colorList.push_back(scolor);
+    }
+    return colorList;
 }
 
 RSSymbolRenderingStrategy HMSymbolTxt::GetRenderMode() const
@@ -145,6 +171,37 @@ void HMSymbolTxt::SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap)
 const SymbolBitmapType& HMSymbolTxt::GetSymbolBitmap() const
 {
     return relayoutChangeBitmap_;
+}
+
+void HMSymbolTxt::SetGradients(const std::vector<std::shared_ptr<SymbolGradient>>& gradients)
+{
+    symbolColor_.colorType = SymbolColorType::GRADIENT_TYPE;
+    symbolColor_.gradients = gradients;
+}
+
+std::vector<std::shared_ptr<SymbolGradient>> HMSymbolTxt::GetGradients() const
+{
+    return symbolColor_.gradients;
+}
+
+void HMSymbolTxt::SetSymbolColor(const SymbolColor& symbolColor)
+{
+    symbolColor_ = symbolColor;
+}
+
+SymbolColor HMSymbolTxt::GetSymbolColor() const
+{
+    return symbolColor_;
+}
+
+void HMSymbolTxt::SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow)
+{
+    symbolShadow_ = symbolShadow;
+}
+
+const std::optional<SymbolShadow>& HMSymbolTxt::GetSymbolShadow() const
+{
+    return symbolShadow_;
 }
 } // SPText
 } // Rosen

@@ -123,11 +123,12 @@ struct RSDynamicBrightnessPara {
     Vector4f posCoeff_ {};
     Vector4f negCoeff_ {};
     float fraction_ = 1.0;
+    bool enableHdr_ = false;
 
     RSDynamicBrightnessPara() = default;
 
     RSDynamicBrightnessPara(float rate, float lightUpDegree, float cubicCoeff, float quadCoeff,
-        float saturation, std::array<float, RGB_NUM> posRGB, std::array<float, RGB_NUM> negRGB)
+        float saturation, std::array<float, RGB_NUM> posRGB, std::array<float, RGB_NUM> negRGB, bool enableHdr = false)
     {
         constexpr size_t INDEX_0 = 0;
         constexpr size_t INDEX_1 = 1;
@@ -137,6 +138,7 @@ struct RSDynamicBrightnessPara {
         posCoeff_ = Vector4f(posRGB[INDEX_0], posRGB[INDEX_1], posRGB[INDEX_2], 0.0f);
         negCoeff_ =  Vector4f(negRGB[INDEX_0], negRGB[INDEX_1], negRGB[INDEX_2], 0.0f);
         fraction_ = 1.0f;
+        enableHdr_ = enableHdr;
     }
 
     inline bool IsValid() const

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,8 +20,18 @@
 #include <array>
 
 #include "include/core/SkExecutor.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrTypes.h"
+#include "include/gpu/ganesh/GrContextOptions.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLDirectContext.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/ganesh/vk/GrVkDirectContext.h"
+#endif
+#else
 #include "include/gpu/GrContextOptions.h"
 #include "include/gpu/GrDirectContext.h"
+#endif
 
 #include "image/gpu_context.h"
 #include "impl_interface/gpu_context_impl.h"
@@ -56,8 +66,13 @@ public:
     bool BuildFromGL(const GPUContextOptions& options) override;
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context) override;
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options) override;
+#else
     bool BuildFromVK(const GrVkBackendContext& context) override;
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
+#endif
 #endif
 
     void Flush() override;
@@ -78,8 +93,6 @@ public:
     void DumpGpuStats(std::string& out) override;
 
     void DumpAllResource(std::stringstream& dump) override;
-
-    void DumpAllCoreTrace(std::stringstream& dump) override;
 
     void ReleaseResourcesAndAbandonContext() override;
 
@@ -138,6 +151,10 @@ public:
     void FlushGpuMemoryInWaitQueue() override;
     
     void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) override;
+
+    void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) override;
+
+    void SetEarlyZFlag(bool flag) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

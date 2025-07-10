@@ -38,8 +38,9 @@
 #include "common/rs_common_def.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "render/rs_typeface_cache.h"
@@ -167,12 +168,12 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     if (!context_) {
         return;
     }
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
+    std::shared_ptr<RSScreenRenderNode> displayNode = GetScreenNode(*context_);
     if (!displayNode) {
         return;
     }
     // the following logic calcuate the percentage of dirtyRegion
-    auto params = static_cast<RSDisplayRenderParams*>(displayNode->GetRenderParams().get());
+    auto params = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
     if (!params) {
         return;
     }
@@ -478,9 +479,18 @@ void RSProfiler::OnProcessCommand()
 
 bool RSProfiler::IsSecureScreen()
 {
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
-    if (displayNode) {
-        return (displayNode->GetMultableSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)) ? true : false;
+    std::shared_ptr<RSScreenRenderNode> screenNode = GetScreenNode(*context_);
+    if (!screenNode) {
+        return false;
+    }
+    for (auto& child : *screenNode->GetChildren()) {
+        auto displayNode = child->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+        if (!displayNode) {
+            continue;
+        }
+        if (displayNode->GetMultableSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)) {
+            return true;
+        }
     }
     return false;
 }
@@ -631,7 +641,7 @@ void RSProfiler::OnFrameEnd()
     g_renderServiceCpuId = Utils::GetCpuId();
 
     std::string value;
-    constexpr int maxMsgPerFrame = 32;
+    constexpr int maxMsgPerFrame = 1024;
     value = SendMessageBase();
     for (int i = 0; value != "" && i < maxMsgPerFrame; value = SendMessageBase(), i++) {
         if (!value.length()) {
@@ -1257,8 +1267,8 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     RenderServiceTreeDump(json, pid);
 
     auto& display = json["Display"];
-    auto displayNode = GetDisplayNode(*context_);
-    auto dirtyManager = displayNode ? displayNode->GetDirtyManager() : nullptr;
+    auto screenNode = GetScreenNode(*context_);
+    auto dirtyManager = screenNode ? screenNode->GetDirtyManager() : nullptr;
     if (dirtyManager) {
         const auto displayRect = dirtyManager->GetSurfaceRect();
         display = { displayRect.GetLeft(), displayRect.GetTop(), displayRect.GetRight(), displayRect.GetBottom() };
@@ -1366,7 +1376,7 @@ void RSProfiler::KillPid(const ArgList& args)
         const std::string out =
             "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
 
-        context_->GetMutableNodeMap().FilterNodeByPid(pid);
+        context_->GetMutableNodeMap().FilterNodeByPid(pid, true);
         AwakeRenderServiceThread();
         Respond(out);
     }
@@ -1389,8 +1399,10 @@ void RSProfiler::GetRoot(const ArgList& args)
             type = "UNKNOWN";
         } else if (nodeType == RSRenderNodeType::RS_NODE) {
             type = "NONE";
-        } else if (nodeType == RSRenderNodeType::DISPLAY_NODE) {
-            type = "DISPLAY_NODE";
+        } else if (nodeType == RSRenderNodeType::SCREEN_NODE) {
+            type = "SCREEN_NODE";
+        } else if (nodeType == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
+            type = "LOGICAL_DISPLAY_NODE";
         } else if (nodeType == RSRenderNodeType::EFFECT_NODE) {
             type = "EFFECT_NODE";
         } else if (nodeType == RSRenderNodeType::ROOT_NODE) {
@@ -1408,7 +1420,7 @@ void RSProfiler::GetRoot(const ArgList& args)
     };
 
     if (node) {
-        out += "ROOT_ID=" + std::to_string(node->GetId()); // DISPLAY_NODE;ohos.sceneboard
+        out += "ROOT_ID=" + std::to_string(node->GetId()); // SCREEN_NODE;ohos.sceneboard
     }
 
     Respond(out);
@@ -2156,13 +2168,25 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     }
 
     std::stringstream stream;
-    MarshalSubTree(*context_, stream, *node, RSFILE_VERSION_LATEST);
+
+    // Save RSFILE_VERSION
+    uint32_t fileVersion = RSFILE_VERSION_LATEST;
+    stream.write(reinterpret_cast<const char*>(&fileVersion), sizeof(fileVersion));
+
+    MarshalSubTree(*context_, stream, *node, fileVersion);
     std::string testDataSubTree = stream.str();
 
     Respond("Save SubTree Size: " + std::to_string(testDataSubTree.size()));
 
     // save file need setenforce 0
-    const std::string filePath = "/data/rssbtree_test_" + std::to_string(nodeId);
+    std::string rootPath = "/data";
+    char realRootPath[PATH_MAX] = {0};
+    if (!realpath(rootPath.c_str(), realRootPath)) {
+        Respond("Error: data path is invalid");
+        return;
+    }
+    std::string filePath = realRootPath;
+    filePath = filePath + "/rssbtree_test_" + std::to_string(nodeId);
     std::ofstream file(filePath);
     if (file.is_open()) {
         file << testDataSubTree;
@@ -2188,7 +2212,13 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
         return;
     }
 
-    std::ifstream file(filePath);
+    char realPath[PATH_MAX] = {0};
+    if (!realpath(filePath.c_str(), realPath)) {
+        Respond("Error: Path is invalid");
+        return;
+    }
+
+    std::ifstream file(realPath);
     if (!file.is_open()) {
         std::error_code ec(errno, std::system_category());
         RS_LOGE("RSProfiler::TestLoadSubTree read file failed: %{public}s", ec.message().c_str());
@@ -2198,7 +2228,12 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
     std::stringstream stream;
     stream << file.rdbuf();
     file.close();
-    std::string errorReason = UnmarshalSubTree(*context_, stream, *node, RSFILE_VERSION_LATEST);
+
+    // Load RSFILE_VERSION
+    uint32_t fileVersion = 0u;
+    stream.read(reinterpret_cast<char*>(&fileVersion), sizeof(fileVersion));
+
+    std::string errorReason = UnmarshalSubTree(*context_, stream, *node, fileVersion);
     if (errorReason.size()) {
         RS_LOGE("RSProfiler::TestLoadSubTree failed: %{public}s", errorReason.c_str());
         Respond("RSProfiler::TestLoadSubTree failed: " + errorReason);

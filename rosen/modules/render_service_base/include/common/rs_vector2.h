@@ -63,6 +63,7 @@ public:
     T Normalize();
     bool IsInfinite() const;
     bool IsNaN() const;
+    bool IsValid() const;
 };
 
 typedef Vector2<int> UIPoint;
@@ -288,8 +289,15 @@ bool Vector2<T>::IsInfinite() const
 template<typename T>
 bool Vector2<T>::IsNaN() const
 {
-    return IsNan(data_[0]) || IsNan(data_[1]);
+    return std::isnan(data_[0]) || std::isnan(data_[1]);
 }
+
+template<typename T>
+bool Vector2<T>::IsValid() const
+{
+    return !IsInfinite() && !IsNaN();
+}
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_VECTOR2_H

@@ -15,10 +15,10 @@
 
 #include "gtest/gtest.h"
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_node.h"
 
@@ -33,9 +33,9 @@ constexpr NodeId DEFAULT_ID = 0xFFFF;
 class RSDirtyRectsDFXTest : public testing::Test {
 public:
     std::shared_ptr<RSSurfaceRenderNode> renderNode_;
-    std::shared_ptr<RSDisplayRenderNode> displayRenderNode_;
+    std::shared_ptr<RSScreenRenderNode> screenRenderNode_;
     RSRenderNodeDrawableAdapter* drawable_ = nullptr;
-    std::shared_ptr<RSDisplayRenderNodeDrawable> displayDrawable_ = nullptr;
+    std::shared_ptr<RSScreenRenderNodeDrawable> screenDrawable_ = nullptr;
     std::shared_ptr<RSDirtyRectsDfx> rsDirtyRectsDfx_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::shared_ptr<Drawing::Canvas> drawingCanvas_;
@@ -51,24 +51,25 @@ void RSDirtyRectsDFXTest::TearDownTestCase() {}
 void RSDirtyRectsDFXTest::SetUp()
 {
     renderNode_ = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
-    RSDisplayNodeConfig config;
-    displayRenderNode_ = std::make_shared<RSDisplayRenderNode>(DEFAULT_ID, config);
+    ScreenId screenId = 0;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    screenRenderNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, screenId, context);
     if (!renderNode_) {
         RS_LOGE("RSSurfaceRenderNodeDrawableTest: failed to create surface node.");
         return;
     }
-    displayDrawable_ = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayRenderNode_));
-    if (!displayDrawable_->renderParams_) {
+    screenDrawable_ = std::static_pointer_cast<RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(screenRenderNode_));
+    if (!screenDrawable_->renderParams_) {
         RS_LOGE("RSSurfaceRenderNodeDrawableTest: failed to init displayDrawable_.");
         return;
     }
-    auto displayRenderParams = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto displayRenderParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     if (!displayRenderParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawableTest: failed to init displayRenderParams.");
         return;
     }
-    rsDirtyRectsDfx_ = std::make_shared<RSDirtyRectsDfx>(*displayDrawable_);
+    rsDirtyRectsDfx_ = std::make_shared<RSDirtyRectsDfx>(*screenDrawable_);
     if (!rsDirtyRectsDfx_) {
         RS_LOGE("RSSurfaceRenderNodeDrawableTest: failed to create RSDirtyRectsDfx.");
         return;
@@ -93,24 +94,25 @@ void RSDirtyRectsDFXTest::TearDown() {}
 HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDraw(*canvas_);
     ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->OnDraw(*canvas_);
 
-    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    ASSERT_TRUE(renderThreadParams);
+    renderThreadParams = std::make_unique<RSRenderThreadParams>();
     renderThreadParams->isPartialRenderEnabled_ = true;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = true;
     renderThreadParams->isVisibleRegionDfxEnabled_ = true;
     RSRealtimeRefreshRateManager::Instance().showEnabled_ = true;
-    rsDirtyRectsDfx_->OnDraw(*canvas_);
 
     renderThreadParams->isDirtyRegionDfxEnabled_ = true;
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = true;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = true;
     renderThreadParams->isMergedDirtyRegionDfxEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDraw(*canvas_);
+    renderThreadParams = std::make_unique<RSRenderThreadParams>();
     renderThreadParams->isPartialRenderEnabled_ = false;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = false;
     renderThreadParams->isVisibleRegionDfxEnabled_ = false;
@@ -119,6 +121,8 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = false;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = false;
     renderThreadParams->isMergedDirtyRegionDfxEnabled_ = false;
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
+    rsDirtyRectsDfx_->OnDraw(*canvas_);
 }
 
 /**
@@ -131,14 +135,21 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDrawVirtual, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
     std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDraw(*canvas);
     ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->OnDrawVirtual(*canvas_);
     ASSERT_FALSE(RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyDfxEnabled_);
 
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyDfxEnabled_ = true;
+    renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->isVirtualDirtyDfxEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDrawVirtual(*canvas_);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyDfxEnabled_ = false;
+    renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->isVirtualDirtyDfxEnabled_ = false;
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
+    rsDirtyRectsDfx_->OnDrawVirtual(*canvas_);
 }
 
 /**
@@ -151,41 +162,6 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawDirtyRegionInVirtual, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
     rsDirtyRectsDfx_->DrawDirtyRegionInVirtual(*canvas_);
-}
-
-/**
- * @tc.name: DrawCurrentRefreshRate
- * @tc.desc: Test If DrawCurrentRefreshRate Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDirtyRectsDFXTest, DrawCurrentRefreshRate, TestSize.Level1)
-{
-    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto drawingCanvas = std::make_unique<Drawing::Canvas>();
-    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    
-    auto& rSRealtimeRefreshRateManager = RSRealtimeRefreshRateManager::Instance();
-    rSRealtimeRefreshRateManager.currRealtimeRefreshRateMap_[0] = 200; // 200: value greater than currRefreshRate
-
-    auto paramPtr = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-
-    paramPtr->screenId_ = 0;
-    paramPtr->screenRotation_ = ScreenRotation::ROTATION_0;
-    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
-    paramPtr->screenRotation_ = ScreenRotation::ROTATION_270;
-    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
-
-    paramPtr->screenId_ = -1;
-    paramPtr->screenRotation_ = ScreenRotation::ROTATION_0;
-    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
-    paramPtr->screenRotation_ = ScreenRotation::ROTATION_270;
-    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
-
-    paramPtr->screenId_ = 0;
-    paramPtr->screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
-    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
-    ASSERT_TRUE(canvas);
 }
 
 /**
@@ -352,7 +328,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawSurfaceOpaqueRegionForDFX001, TestSize.Level1)
     rsDirtyRectsDfx_->DrawSurfaceOpaqueRegionForDFX(*canvas_, *surfaceParams);
 
     surfaceParams->isFirstLevelCrossNode_ = true;
-    auto params = static_cast<RSDisplayRenderParams*>(rsDirtyRectsDfx_->displayParams_.get());
+    auto params = static_cast<RSScreenRenderParams*>(rsDirtyRectsDfx_->screenParams_.get());
     ASSERT_NE(params, nullptr);
     params->isFirstVisitCrossNodeDisplay_ = true;
     rsDirtyRectsDfx_->DrawSurfaceOpaqueRegionForDFX(*canvas_, *surfaceParams);
@@ -383,7 +359,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceDirtyRegionForDFX001, TestSize.Level
 HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX001, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->screenParams_->GetAllMainAndLeashSurfaceDrawables();
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
@@ -404,7 +380,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX001, TestSize.Leve
 HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX002, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->screenParams_->GetAllMainAndLeashSurfaceDrawables();
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
@@ -428,7 +404,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX002, TestSize.Leve
 HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX003, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->screenParams_->GetAllMainAndLeashSurfaceDrawables();
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
@@ -452,7 +428,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX003, TestSize.Leve
 HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceDirtyRegionForDFX001, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->screenParams_->GetAllMainAndLeashSurfaceDrawables();
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
@@ -480,7 +456,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceDirtyRegionForDFX001, TestSize.Le
 HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceVisibleRegionForDFX001, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->screenParams_->GetAllMainAndLeashSurfaceDrawables();
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
@@ -500,40 +476,6 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceVisibleRegionForDFX001, TestSize.
 }
 
 /**
- * @tc.name: RefreshRateRotationProcess
- * @tc.desc: Test If RefreshRateRotationProcess Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDirtyRectsDFXTest, RefreshRateRotationProcess, TestSize.Level1)
-{
-    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    int screenWidth = 1260;
-    int screenHeight = 2720;
-    bool res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
-    ASSERT_TRUE(res);
-
-    rotation = ScreenRotation::ROTATION_90;
-    auto drawingCanvas = std::make_unique<Drawing::Canvas>();
-    canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
-    ASSERT_TRUE(res);
-
-    rotation = ScreenRotation::ROTATION_180;
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
-    ASSERT_TRUE(res);
-
-    rotation = ScreenRotation::ROTATION_270;
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
-    ASSERT_TRUE(res);
-
-    rotation = ScreenRotation::INVALID_SCREEN_ROTATION;
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
-    ASSERT_FALSE(res);
-}
-
-/**
  * @tc.name: DrawDirtyRectForDFX
  * @tc.desc: Test If DrawDirtyRectForDFX Can Run
  * @tc.type: FUNC
@@ -549,7 +491,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawDirtyRectForDFX, TestSize.Level1)
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
     canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     rsDirtyRectsDfx_->DrawDirtyRectForDFX(*canvas_, dirtyRect, color, fillType, edgeWidth);
-    ASSERT_TRUE(rsDirtyRectsDfx_->displayParams_);
+    ASSERT_TRUE(rsDirtyRectsDfx_->screenParams_);
 
     fillType = RSDirtyRectsDfx::RSPaintStyle::FILL;
     rsDirtyRectsDfx_->DrawDirtyRectForDFX(*canvas_, dirtyRect, color, fillType, edgeWidth);
@@ -613,7 +555,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawHwcRegionForDFXTest, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->SetHardwareEnabled(true);
-    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(0, drawable));
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_tuple(0, 0, drawable));
 
     std::shared_ptr<RSSurfaceRenderNode> renderNodeHardwareDisabled = std::make_shared<RSSurfaceRenderNode>(1);
     ASSERT_NE(renderNodeHardwareDisabled, nullptr);
@@ -623,15 +565,15 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawHwcRegionForDFXTest, TestSize.Level1)
         static_cast<RSSurfaceRenderParams*>(drawableHardwareDisabled->GetRenderParams().get());
     ASSERT_NE(surfaceParamsHardwareDisabled, nullptr);
     surfaceParamsHardwareDisabled->SetHardwareEnabled(false);
-    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(1, drawableHardwareDisabled));
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_tuple(1, 0, drawableHardwareDisabled));
 
-    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(1, nullptr));
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_tuple(1, 0, nullptr));
 
     std::shared_ptr<RSSurfaceRenderNode> renderNodeParamsNull = std::make_shared<RSSurfaceRenderNode>(2);
     ASSERT_NE(renderNodeParamsNull, nullptr);
     auto drawableParamsNull = RSSurfaceRenderNodeDrawable::OnGenerate(renderNodeParamsNull);
     drawableParamsNull->renderParams_ = nullptr;
-    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(2, drawableParamsNull));
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_tuple(2, 0, drawableParamsNull));
 
     RSUniRenderThread::Instance().Sync(move(params));
     ASSERT_NE(canvas_, nullptr);
@@ -647,16 +589,15 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawHwcRegionForDFXTest, TestSize.Level1)
 HWTEST_F(RSDirtyRectsDFXTest, DrawMergedAndAllDirtyRegionForDFX, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    rsDirtyRectsDfx_->OnDraw(*canvas_);
-    ASSERT_NE(canvas_, nullptr);
-    rsDirtyRectsDfx_->OnDraw(*canvas_);
-
-    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    ASSERT_TRUE(renderThreadParams);
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
     renderThreadParams->isPartialRenderEnabled_ = true;
     renderThreadParams->isMergedDirtyRegionDfxEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDraw(*canvas_);
+    renderThreadParams = std::make_unique<RSRenderThreadParams>();
     renderThreadParams->isPartialRenderEnabled_ = false;
     renderThreadParams->isMergedDirtyRegionDfxEnabled_ = false;
+    RSUniRenderThread::Instance().Sync(move(renderThreadParams));
+    rsDirtyRectsDfx_->OnDraw(*canvas_);
 }
 }

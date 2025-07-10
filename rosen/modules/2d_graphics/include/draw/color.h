@@ -44,6 +44,7 @@ enum ColorType {
     COLORTYPE_RGBA_1010102,
     COLORTYPE_GRAY_8,
     COLORTYPE_RGB_888X,
+    COLORTYPE_RGBA_1010108,
 };
 
 enum AlphaType {
@@ -152,6 +153,8 @@ public:
     void Dump(std::string& out) const;
 
 private:
+    void UpdateValueToFloat();
+    void UpdateValueToInt();
     uint32_t alpha_;
     uint32_t red_;
     uint32_t green_;

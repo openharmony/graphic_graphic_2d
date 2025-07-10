@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 #include <filesystem>
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
 
+#include "token_setproc.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing;
@@ -62,6 +65,8 @@ public:
                 testInfo->test_case_name(), testInfo->name());
         }
     }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     bool isCallbackCalled_ = false;
 };
 } // namespace
@@ -71,6 +76,22 @@ public:
     // called before each tests
     void BeforeEach() override
     {
+        uint64_t tokenId;
+        const char* perms[1];
+        perms[0] = "ohos.permission.CAPTURE_SCREEN";
+        NativeTokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 1,
+            .aclsNum = 0,
+            .dcaps = NULL,
+            .perms = perms,
+            .acls = NULL,
+            .processName = "foundation",
+            .aplStr = "system_basic",
+        };
+        tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
         auto size = GetScreenSize();
         SetSurfaceBounds({0, 0, size.x_ / 2.0f, size.y_ / 2.0f});
         SetSurfaceColor(RSColor(0xffff0000));
@@ -105,13 +126,11 @@ public:
 GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_TEST_001)
 {
     auto canvasNode0 = RSCanvasNode::Create();
-    RegisterNode(canvasNode0);
     canvasNode0->SetBounds({0, 0, 100, 100});
     canvasNode0->SetFrame({0, 0, 100, 100});
     canvasNode0->SetBackgroundColor(SK_ColorYELLOW);
 
     auto canvasNode1 = RSCanvasNode::Create();
-    RegisterNode(canvasNode1);
     canvasNode1->SetBounds({0, 0, 200, 200});
     canvasNode1->SetFrame({0, 0, 200, 200});
     canvasNode1->SetBackgroundColor(SK_ColorBLUE);
@@ -120,13 +139,11 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode0";
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig);
-    RegisterNode(surfaceNode0);
     surfaceNode0->SetBounds({0, 0, 100, 100});
     surfaceNode0->SetFrame({0, 0, 100, 100});
 
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode1";
     auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
-    RegisterNode(surfaceNode1);
     surfaceNode1->SetBounds({0, 0, 200, 200});
     surfaceNode1->SetFrame({0, 0, 200, 200});
 
@@ -151,7 +168,6 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
         LOGE("displayNode is nullptr");
         return;
     }
-    RegisterNode(displayNode);
     displayNode->SetBounds({0, 0, 1000, 1000});
     displayNode->SetFrame({0, 0, 1000, 1000});
     displayNode->RSNode::AddChild(surfaceNode1);
@@ -177,13 +193,11 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
 GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_TEST_002)
 {
     auto canvasNode0 = RSCanvasNode::Create();
-    RegisterNode(canvasNode0);
     canvasNode0->SetBounds({0, 0, 100, 100});
     canvasNode0->SetFrame({0, 0, 100, 100});
     canvasNode0->SetBackgroundColor(SK_ColorYELLOW);
 
     auto canvasNode1 = RSCanvasNode::Create();
-    RegisterNode(canvasNode1);
     canvasNode1->SetBounds({0, 0, 200, 200});
     canvasNode1->SetFrame({0, 0, 200, 200});
     canvasNode1->SetBackgroundColor(SK_ColorBLUE);
@@ -192,13 +206,11 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode0";
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig);
-    RegisterNode(surfaceNode0);
     surfaceNode0->SetBounds({0, 0, 100, 100});
     surfaceNode0->SetFrame({0, 0, 100, 100});
 
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode1";
     auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
-    RegisterNode(surfaceNode1);
     surfaceNode1->SetBounds({0, 0, 200, 200});
     surfaceNode1->SetFrame({0, 0, 200, 200});
 
@@ -223,7 +235,6 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
         LOGE("displayNode is nullptr");
         return;
     }
-    RegisterNode(displayNode);
     displayNode->SetBounds({0, 0, 1000, 1000});
     displayNode->SetFrame({0, 0, 1000, 1000});
     displayNode->RSNode::AddChild(surfaceNode1);

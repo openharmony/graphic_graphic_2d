@@ -34,6 +34,11 @@ public:
     // [Attention] Only used in PC window resize scene now
     bool DrawWindowKeyFrameOffscreenBuffer(RSPaintFilterCanvas& canvas,
         const Drawing::Rect& bounds, float alpha, bool isFreezed);
+    
+    RSRenderNodeDrawableType GetDrawableType() const override
+    {
+        return RSRenderNodeDrawableType::ROOT_NODE_DRAWABLE;
+    }
 
 private:
     explicit RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);

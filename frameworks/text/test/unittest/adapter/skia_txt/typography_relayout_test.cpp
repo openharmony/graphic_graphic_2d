@@ -40,7 +40,7 @@ class TypographyRelayoutTest : public testing::Test {
  * @tc.desc: test for relayout but not change paragraph style and text style
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -69,7 +69,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, TestSize.Le
  * @tc.desc: test for relayout but not layout
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest002, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest002, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -99,7 +99,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest002, TestSize.Le
  * @tc.desc: test for relayout and changing relayout width
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest003, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest003, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH / 10;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -129,7 +129,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest003, TestSize.Le
  * @tc.desc: test for relayout paragraph style default font size
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -161,7 +161,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, TestSize.Le
  * @tc.desc: test for relayout paragraph style maxlines
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -193,7 +193,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, TestSize.Le
  * @tc.desc: test for relayout paragraph style ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, TestSize.Level0)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -229,7 +229,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, TestSize.Le
  * @tc.desc: test for relayout paragraph style ellipsis modal
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, TestSize.Level0)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -264,7 +264,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, TestSize.Le
  * @tc.desc: test for relayout textstyle font size
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest008, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest008, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -299,7 +299,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest008, TestSize.Le
  * @tc.desc: test for relayout textstyle font variation
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest009, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest009, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -333,7 +333,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest009, TestSize.Le
  * @tc.desc: test for relayout textstyle font weight
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest010, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest010, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -368,7 +368,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest010, TestSize.Le
  * @tc.desc: test for relayout textstyle letter spacing
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest011, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest011, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -402,7 +402,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest011, TestSize.Le
  * @tc.desc: test for relayout textstyle height override
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest012, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest012, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -438,7 +438,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest012, TestSize.Le
  * @tc.desc: test for relayout textstyle font feature
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest013, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest013, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -472,7 +472,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest013, TestSize.Le
  * @tc.desc: test for relayout strut style height and height only
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest014, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest014, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -511,7 +511,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest014, TestSize.Le
  * @tc.desc: test for relayout style use line style
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest015, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest015, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -548,7 +548,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest015, TestSize.Le
  * @tc.desc: test for relayout strut style font size
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest016, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest016, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -585,7 +585,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest016, TestSize.Le
  * @tc.desc: test obtaining some textStyle property from runMetrics part one
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest017, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest017, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -639,7 +639,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest017, TestSize.Le
  * @tc.desc: test obtaining some textStyle property from runMetrics part two
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest018, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest018, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -689,7 +689,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest018, TestSize.Le
  * @tc.desc: test obtaining some textStyle property from runMetrics part three
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest019, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest019, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -724,6 +724,8 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest019, TestSize.Le
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    EXPECT_FALSE(paragraphImpl->isRunCombinated());
     auto runMetrics = typography->GetLineMetrics()[0].runMetrics;
     for (const auto& item : runMetrics) {
         EXPECT_EQ(item.second.textStyle->styleId, 17);
@@ -743,7 +745,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest019, TestSize.Le
  * @tc.desc: test obtaining some paragraph default text style property part one
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest020, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest020, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -792,7 +794,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest020, TestSize.Le
  * @tc.desc: test obtaining some paragraph default text style property part two
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest021, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest021, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -844,7 +846,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest021, TestSize.Le
  * @tc.desc: test obtaining some paragraph line style part one
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest022, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest022, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -899,7 +901,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest022, TestSize.Le
  * @tc.desc: test obtaining some paragraph line style part two
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest023, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest023, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -950,7 +952,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest023, TestSize.Le
  * @tc.desc: test for relayout symbol style
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -971,7 +973,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Le
     std::vector<Drawing::DrawingSColor> colors;
     colors.push_back({1.0, 255, 0, 0});
     colors.push_back({1.0, 0, 255, 0});
-    textStyle.symbol.colorList_ = colors;
+    textStyle.symbol.SetRenderColor(colors);
 
     textStyle.symbol.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
     std::bitset<static_cast<size_t>(RelayoutSymbolStyleAttribute::SYMBOL_ATTRIBUTE_BUTT)> symbolStyleBitset;
@@ -981,6 +983,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Le
     symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::COMMONSUB_TYPE));
     symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::COLOR_LIST));
     symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::RENDER_MODE));
+    symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::GRADIENT_COLOR));
     textStyle.symbol.SetSymbolBitmap(symbolStyleBitset);
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -1007,7 +1010,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Le
  * @tc.desc: test the paragraph spacing style and the paragraph end spacing style of relayout
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest025, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest025, TestSize.Level0)
 {
     const double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -1045,7 +1048,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest025, TestSize.Le
  * @tc.desc: test the paragraph spacing style and the paragraph end spacing style of relayout(ineffective)
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest026, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest026, TestSize.Level0)
 {
     const double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -1088,7 +1091,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest026, TestSize.Le
  * @tc.desc: test the text height behavior style of relayout
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest027, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest027, TestSize.Level0)
 {
     constexpr double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -1131,7 +1134,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest027, TestSize.Le
  * @tc.desc: Test for multiple textStyle when changing for font color
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest028, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest028, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -1174,7 +1177,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest028, TestSize.Le
  * @tc.desc: Test for paragraph's paints when changing for font color
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest029, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest029, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -1217,7 +1220,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest029, TestSize.Le
  * @tc.desc: Test for paragraph's paints when changing for relayout width mutil
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest030, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest030, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -1243,6 +1246,44 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest030, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     typography->Relayout(maxWidth / 2, typographyStyle, relayoutTextStyles);
     EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetMaxWidth(), maxWidth / 2));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest031
+ * @tc.desc: Test for combination run caused the background color update to fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest031, TestSize.Level1)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.textStyleUid = UNIQUEID;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"12";
+    std::u16string textTwo = u"34";
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle textStyleExtra = textStyle;
+    textStyleExtra.textStyleUid = UNIQUEID + 1;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(textTwo);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    textStyle.backgroundRect = { 0xFFFF0000, 16.0, 16.0, 16.0, 16.0 };
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    textStyleExtra.relayoutChangeBitmap = styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::BACKGROUND_RECT));
+    textStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    EXPECT_TRUE(paragraphImpl->isRunCombinated());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -17,10 +17,11 @@
 #include <iostream>
 #include "filter_para.h"
 #include "common/rs_vector2.h"
+#include "common/rs_macros.h"
  
 namespace OHOS {
 namespace Rosen {
-class WaterRipplePara : public FilterPara {
+class RSC_EXPORT WaterRipplePara : public FilterPara {
 public:
     WaterRipplePara()
     {
@@ -77,6 +78,14 @@ public:
     {
         return rippleMode_;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
+
+    std::shared_ptr<FilterPara> Clone() const override;
 
 private:
     float rippleCenterX_ = 0.0f;

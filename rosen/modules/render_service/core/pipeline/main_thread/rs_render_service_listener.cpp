@@ -42,7 +42,8 @@ void RSRenderServiceListener::OnBufferAvailable()
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     surfaceHandler->IncreaseAvailableBuffer();
-    if (auto consumer = surfaceHandler->GetConsumer()) {
+    auto consumer = surfaceHandler->GetConsumer();
+    if (consumer) {
         uint64_t uniqueId = consumer->GetUniqueId();
         bool isActiveGame = FrameReport::GetInstance().IsActiveGameWithUniqueId(uniqueId);
         if (isActiveGame) {
@@ -62,20 +63,11 @@ void RSRenderServiceListener::OnBufferAvailable()
             " RT buffer available", node->GetId());
         node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
     }
-    if (node->IsLayerTop()) {
-        // Ensure that the compose task is completed within single frame
-        RSMainThread::Instance()->ForceRefreshForUni();
-        return;
-    }
-    if ((node->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)) != 0) {
-        node->SetAncoFlags(node->GetAncoFlags() & (~static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)));
-        RS_TRACE_NAME_FMT("AncoForceRefresh id %lld", node->GetId());
-        RS_LOGD("AncoForceRefresh id %{public}" PRIu64 "", node->GetId());
-        RSMainThread::Instance()->ForceRefreshForUni();
+    if (ForceRefresh(node)) {
         return;
     }
 
-    if (auto consumer = surfaceHandler->GetConsumer()) {
+    if (consumer) {
         bool supportFastCompose = false;
         GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
         if (ret == GSERROR_OK && supportFastCompose) {
@@ -89,14 +81,11 @@ void RSRenderServiceListener::OnBufferAvailable()
             }
         }
     }
-    if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
-        return;
-    }
     SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer());
 }
 
-void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceRenderNode> &node,
-    std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
+void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
+    const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
 {
     uint64_t id = 0;
     int64_t lastConsumeTime = 0;
@@ -108,10 +97,13 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceR
     }
     int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
     std::string name = node->GetName();
-    RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
-    int64_t desiredPresentTimestamp = 0;
-    RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
-    RSMainThread::Instance()->RequestNextVSync("selfdrawing", 0, desiredPresentTimestamp);
+    if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
+        RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, true);
+        RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
+    } else {
+        RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, false);
+        RSMainThread::Instance()->RequestNextVSync("selfdrawing");
+    }
 }
 
 void RSRenderServiceListener::OnTunnelHandleChange()
@@ -244,6 +236,23 @@ void RSRenderServiceListener::OnTransformChange()
             node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(true);
         }
     });
+}
+
+bool RSRenderServiceListener::ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node)
+{
+    if (node->IsLayerTop() && node->IsTopLayerForceRefresh()) {
+        // Ensure that ......
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return true;
+    }
+    if ((node->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)) != 0) {
+        node->SetAncoFlags(node->GetAncoFlags() & (~static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)));
+        RS_TRACE_NAME_FMT("AncoForceRefresh id %lld", node->GetId());
+        RS_LOGD("AncoForceRefresh id %{public}" PRIu64 "", node->GetId());
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return true;
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

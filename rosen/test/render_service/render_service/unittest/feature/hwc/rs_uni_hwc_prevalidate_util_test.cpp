@@ -177,39 +177,40 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, IsNeedDssRotate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateDisplayNodeLayerInfo001
- * @tc.desc: CreateDisplayNodeLayerInfo, node is nullptr
+ * @tc.name: CreateScreenNodeLayerInfo001
+ * @tc.desc: CreateScreenNodeLayerInfo, node is nullptr
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateDisplayNodeLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     ScreenInfo screenInfo;
     RequestLayerInfo info;
-    bool ret = uniHwcPrevalidateUtil.CreateDisplayNodeLayerInfo(
+    bool ret = uniHwcPrevalidateUtil.CreateScreenNodeLayerInfo(
         DEFAULT_Z_ORDER, nullptr, screenInfo, DEFAULT_FPS, info);
     ASSERT_EQ(info.fps, DEFAULT_FPS);
     ASSERT_EQ(ret, false);
 }
 
 /**
- * @tc.name: CreateDisplayNodeLayerInfo002
- * @tc.desc: CreateDisplayNodeLayerInfo, input displayNode
+ * @tc.name: CreateScreenNodeLayerInfo002
+ * @tc.desc: CreateScreenNodeLayerInfo, input displayNode
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateDisplayNodeLayerInfo002, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo002, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     ScreenInfo screenInfo;
-    RSDisplayNodeConfig config;
     NodeId id = 0;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(displayNode, nullptr);
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
     RequestLayerInfo info;
-    bool ret = uniHwcPrevalidateUtil.CreateDisplayNodeLayerInfo(
-        DEFAULT_Z_ORDER, displayNode, screenInfo, DEFAULT_FPS, info);
+    bool ret = uniHwcPrevalidateUtil.CreateScreenNodeLayerInfo(
+        DEFAULT_Z_ORDER, screenNode, screenInfo, DEFAULT_FPS, info);
     ASSERT_EQ(info.fps, DEFAULT_FPS);
     ASSERT_EQ(ret, false);
 }
@@ -331,27 +332,6 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow004, TestSi
     hwcNode->isOnTheTree_ = true;
     bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
     EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: ClearCldInfo
- * @tc.desc: Test ClearCldInfo
- * @tc.type: FUNC
- * @tc.require: issueIBA4NP
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, ClearCldInfo001, TestSize.Level2)
-{
-    NodeId id = 1;
-    auto node = std::make_shared<RSRcdSurfaceRenderNode>(id, RCDSurfaceType::BOTTOM);
-    ASSERT_NE(node, nullptr);
-
-    RequestLayerInfo info;
-    RSUniHwcPrevalidateUtil::GetInstance().CopyCldInfo(node->GetCldInfo(), info);
-
-    std::vector<RequestLayerInfo> infos;
-    infos.push_back(info);
-    RSUniHwcPrevalidateUtil::GetInstance().ClearCldInfo(infos);
-    ASSERT_EQ(infos[0].cldInfo, nullptr);
 }
 
 /**

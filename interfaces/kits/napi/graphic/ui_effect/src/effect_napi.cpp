@@ -36,6 +36,7 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createEffect", CreateEffect),
         DECLARE_NAPI_STATIC_FUNCTION("createBrightnessBlender", CreateBrightnessBlender),
+        DECLARE_NAPI_STATIC_FUNCTION("createHdrBrightnessBlender", CreateHdrBrightnessBlender),
     };
  
     napi_value constructor = nullptr;
@@ -115,7 +116,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         UIEFFECT_LOG_E("EffectNapi CreateEffect wrap fail"));
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetBackgroundColorBlender),
-        DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRUIBrightness),
+        DECLARE_NAPI_FUNCTION("borderLight", CreateBorderLight),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
@@ -210,7 +211,133 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
 
     return nativeObj;
 }
- 
+
+napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateHdrBrightnessBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateHdrBrightnessBlender failed, is not system app");
+        return nullptr;
+    }
+
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[NUM_1];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender parsing input fail"));
+
+    napi_value nativeObj = argv[0];
+    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender nativeObj is nullptr"));
+
+    BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender blender is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckCreateBrightnessBlender(env, nativeObj) &&
+        ParseBrightnessBlender(env, nativeObj, blender), nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender fail"));
+
+    blender->SetHdr(true);
+
+    status = napi_wrap(
+        env, nativeObj, blender,
+        [](napi_env env, void* data, void* hint) {
+            BrightnessBlender* blenderObj = (BrightnessBlender*)data;
+            delete blenderObj;
+        },
+        nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender wrap fail"));
+
+    return nativeObj;
+}
+
+napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateBorderLight failed, is not system app");
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_4] = {0};
+    size_t argCount = NUM_4;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateBorderLight parsing input fail"));
+
+    if (argCount != NUM_4) {
+        UIEFFECT_LOG_E("Args number less than 4");
+        return thisVar;
+    }
+    std::shared_ptr<BorderLightEffectPara> para = std::make_shared<BorderLightEffectPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateBorderLight para is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_D(GetBorderLight(env, argValue, argCount, para), nullptr,
+        UIEFFECT_LOG_E("EffectNapi GetBorderLight fail"));
+
+    float lightIntensity = 0.f;
+    lightIntensity = GetSpecialValue(env, argValue[NUM_2]);
+    para->SetLightIntensity(lightIntensity);
+
+    float lightWidth = 0.f;
+    lightWidth = GetSpecialValue(env, argValue[NUM_3]);
+    para->SetLightWidth(lightWidth);
+
+    VisualEffect* visualEffectObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateBorderLight napi_unwrap fail"));
+    visualEffectObj->AddPara(para);
+
+    return thisVar;
+}
+
+bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, size_t length,
+    std::shared_ptr<BorderLightEffectPara>& para)
+{
+    if (length < NUM_2) {
+        UIEFFECT_LOG_E("FilterNapi GetBorderLight array length is less than 2");
+        return false;
+    }
+
+    Vector3f lightPosition = {0.0f, 0.0f, 0.0f};
+    Vector4f lightColor = {0.0f, 0.0f, 0.0f, 0.0f};
+
+    if (!ParseJsVector3f(env, param[0], lightPosition)) {
+        UIEFFECT_LOG_E("FilterNapi GetBorderLight parse lightPosition fail");
+        return false;
+    }
+    para->SetLightPosition(lightPosition);
+
+    if (!ParseJsRGBAColor(env, param[1], lightColor)) {
+        UIEFFECT_LOG_E("FilterNapi GetBorderLight parse lightColor fail");
+        return false;
+    }
+    para->SetLightColor(lightColor);
+    return true;
+}
+
+float EffectNapi::GetSpecialValue(napi_env env, napi_value argValue)
+{
+    double tmp = 0.0;
+    if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
+        napi_get_value_double(env, argValue, &tmp) == napi_ok && tmp >= 0) {
+            return static_cast<float>(tmp);
+    }
+    return tmp;
+}
+
 static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arraySize)
 {
     bool isArray = false;
@@ -334,47 +461,6 @@ napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_inf
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&effectObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && effectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender effectObj is nullptr"));
-    effectObj->AddPara(para);
-    return thisVar;
-}
-
-napi_value EffectNapi::SetHDRUIBrightness(napi_env env, napi_callback_info info)
-{
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "The SetHDRUIBrightness is only accessible to system applications.");
-        return nullptr;
-    }
-    size_t argc = NUM_1;
-    napi_value argv[NUM_1] = {0};
-    napi_value thisVar = nullptr;
-    if (napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr) != napi_ok) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness parsing input fail");
-        return nullptr;
-    }
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[0], &valueType);
-    if (valueType != napi_number) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness input is not number");
-        return nullptr;
-    }
-    double brightnessRatio = 1.0;
-    if (napi_get_value_double(env, argv[0], &brightnessRatio) != napi_ok) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness parsing float fail");
-        return nullptr;
-    }
-    VisualEffect* effectObj = nullptr;
-    if (napi_unwrap(env, thisVar, reinterpret_cast<void**>(&effectObj)) != napi_ok || effectObj == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness effectObj is nullptr");
-        return nullptr;
-    }
-    if (std::isnan(brightnessRatio)) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness brightnessRatio is nan");
-        brightnessRatio = 1.0f;
-    }
-    std::shared_ptr<HDRUIBrightnessPara> para = std::make_shared<HDRUIBrightnessPara>();
-    para->SetHDRUIBrightness(static_cast<float>(brightnessRatio));
     effectObj->AddPara(para);
     return thisVar;
 }

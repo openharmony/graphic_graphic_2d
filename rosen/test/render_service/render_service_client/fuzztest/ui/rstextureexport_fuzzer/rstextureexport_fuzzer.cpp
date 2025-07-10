@@ -28,7 +28,8 @@ namespace {
 const uint8_t DO_RSTEXTURE_EXPORT = 0;
 const uint8_t DO_DOTEXTURE_EXPORT = 1;
 const uint8_t DO_STOPTEXTURE_EXPORT = 2;
-const uint8_t TARGET_SIZE = 3;
+const uint8_t DO_UPDATE_BUFFER_INFO = 3;
+const uint8_t TARGET_SIZE = 4;
 
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
@@ -69,6 +70,7 @@ void DoRSTextureExport()
     bool isRenderServiceNode = GetData<bool>();
     std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
     RSTextureExport text(node, surfaceId);
+    text.DoTextureExport();
 }
 
 void DoDoTextureExport()
@@ -88,13 +90,27 @@ void DoStopTextureExport()
     RSTextureExport text(node, surfaceId);
     text.StopTextureExport();
 }
+
+bool UpdateBufferInfo()
+{
+    // test
+    SurfaceId surfaceId = GetData<SurfaceId>();
+    bool isRenderServiceNode = GetData<bool>();
+    float x = GetData<float>();
+    float y = GetData<float>();
+    float width = GetData<float>();
+    float height = GetData<float>();
+    std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
+    RSTextureExport text(node, surfaceId);
+    text.UpdateBufferInfo(x, y, width, height);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    /* Run your code on data */
     if (!OHOS::Rosen::Init(data, size)) {
         return -1;
     }
@@ -109,9 +125,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_STOPTEXTURE_EXPORT:
             OHOS::Rosen::DoStopTextureExport();
             break;
+        case OHOS::Rosen::DO_UPDATE_BUFFER_INFO:
+            OHOS::Rosen::UpdateBufferInfo();
+            break;
         default:
             return -1;
     }
     return 0;
 }
-

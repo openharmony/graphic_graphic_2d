@@ -147,17 +147,13 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest, TestSize.Level
     Drawing::Rect dst2;
     ForegroundEffectParam param(src1, dst2);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
-    Drawing::Pixmap pixmap;
-    image = std::make_shared<Drawing::Image>();
     Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
-    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
     int addr1 = 1;
     int* addr = &addr1;
-    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    auto pixmap = Drawing::Pixmap(imageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
-    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
-    image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
+    image = Drawing::Image::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
@@ -189,7 +185,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest001, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -222,7 +222,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest002, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -255,7 +259,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest003, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -289,7 +297,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest104, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -322,7 +334,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest004, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -355,7 +371,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest005, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -388,7 +408,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest006, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -421,7 +445,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest007, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -454,7 +482,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest008, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -488,7 +520,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest009, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -521,7 +557,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest010, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -554,7 +594,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest011, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -588,7 +632,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest012, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -621,7 +669,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest013, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;
@@ -654,7 +706,11 @@ HWTEST_F(RSForegroundEffectFilterTest, ApplyForegroundEffectTest014, TestSize.Le
     auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
     Drawing::ReleaseContext releaseContext = nullptr;
     Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage = SkImages::RasterFromPixmap(skiaPixmap, rasterReleaseProc, releaseContext);
+#else
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+#endif
     image->imageImplPtr = std::make_shared<Drawing::SkiaImage>(skImage);
     rsForegroundEffectFilter->ApplyForegroundEffect(canvas, image, param);
     rsForegroundEffectFilter->blurScale_ = 0;

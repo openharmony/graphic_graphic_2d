@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,29 +21,29 @@
 #include <queue>
 #include <unordered_map>
 
+#include "rs_image_manager.h"
+
+#include "common/rs_common_def.h"
 #include "draw/surface.h"
+#include "native_window.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "vulkan/vulkan_core.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#include "native_window.h"
-#include "common/rs_common_def.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class NativeVkImageRes {
+class VkImageResource {
 public:
-    NativeVkImageRes(NativeWindowBuffer* nativeWindowBuffer, Drawing::BackendTexture backendTexture,
-        NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper)
-        : mNativeWindowBuffer(nativeWindowBuffer),
-        mBackendTexture_(backendTexture),
-        mVulkanCleanupHelper(vulkanCleanupHelper)
-    {
-    }
+    static std::shared_ptr<VkImageResource> Create(sptr<OHOS::SurfaceBuffer> buffer);
 
-    ~NativeVkImageRes();
+    VkImageResource(NativeWindowBuffer* nativeWindowBuffer, Drawing::BackendTexture backendTexture,
+        NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper)
+        : mNativeWindowBuffer(nativeWindowBuffer), mBackendTexture_(backendTexture),
+          mVulkanCleanupHelper(vulkanCleanupHelper) {}
+    ~VkImageResource();
 
     const Drawing::BackendTexture& GetBackendTexture() const
     {
@@ -55,8 +55,6 @@ public:
         return mVulkanCleanupHelper->Ref();
     }
 
-    static std::shared_ptr<NativeVkImageRes> Create(sptr<OHOS::SurfaceBuffer> buffer);
-
     pid_t GetThreadIndex() const
     {
         return threadIndex_;
@@ -67,7 +65,7 @@ public:
         threadIndex_ = threadIndex;
     }
 
-    void SetBufferDeleteFromCacheFlag(const bool &flag)
+    void SetBufferDeleteFromCacheFlag(const bool& flag)
     {
         isBufferDeleteFromCache = flag;
     }
@@ -85,26 +83,33 @@ private:
     bool isBufferDeleteFromCache = false;
 };
 
-class RSVkImageManager {
+class RSVkImageManager : public RSImageManager {
 public:
     RSVkImageManager() = default;
-    ~RSVkImageManager() noexcept = default;
+    ~RSVkImageManager() noexcept override = default;
 
-    std::shared_ptr<NativeVkImageRes> MapVkImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr);
-    void UnMapVkImageFromSurfaceBuffer(uint32_t seqNum);
-    std::shared_ptr<NativeVkImageRes> CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
-        const sptr<SyncFence>& acquireFence);
-    void DumpVkImageInfo(std::string &dumpString);
+    void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
+        RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
+    std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
+        const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;
+
+    void DumpVkImageInfo(std::string &dumpString) override;
 private:
-    std::shared_ptr<NativeVkImageRes> NewImageCacheFromBuffer(
+    std::shared_ptr<VkImageResource> MapVkImageFromSurfaceBuffer(
+        const sptr<OHOS::SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr);
+    std::shared_ptr<VkImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer> buffer,
+        const sptr<SyncFence>& acquireFence) ;
+    std::shared_ptr<VkImageResource> NewImageCacheFromBuffer(
         const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition);
     bool WaitVKSemaphore(Drawing::Surface *drawingSurface, const sptr<SyncFence>& acquireFence);
-    mutable std::mutex opMutex_;
-    std::unordered_map<uint32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs_; // guarded by opMutex_
+
+    std::unordered_map<int32_t, std::shared_ptr<VkImageResource>> imageCacheSeqs_; // guarded by opMutex_
 };
 
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // RS_VK_IMAGE_MANAGER_H

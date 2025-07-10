@@ -98,6 +98,8 @@ public:
     int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) override;
     int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                              GraphicPresentTimestampType &type) override;
+    int32_t SetTunnelLayerId(uint32_t devId, uint32_t layerId, uint64_t tunnleId) override;
+    int32_t SetTunnelLayerProperty(uint32_t devId, uint32_t layerId, uint32_t property) override;
     int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) override;
     int32_t SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo) override;
     /* set & get device layer info end */

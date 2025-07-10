@@ -22,12 +22,14 @@
 #include "common/rs_common_tools.h"
 #endif
 #include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_shader_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "memory/rs_tag_tracker.h"
 #ifdef ROSEN_OHOS
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -38,12 +40,17 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
-
+#include "ge_render.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
+#endif
 #include "common/rs_rect.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -106,8 +113,6 @@ void RSShadowDrawable::OnSync()
 
 Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSHADOWDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         // skip shadow if cache is enabled
@@ -289,6 +294,47 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+RSDrawable::Ptr RSBackgroundNGShaderDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSBackgroundNGShaderDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+};
+
+bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    const auto& shader = properties.GetBackgroundNGShader();
+    if (!shader) {
+        return false;
+    }
+    needSync_ = true;
+    stagingShader_ = shader;
+    return true;
+}
+
+void RSBackgroundNGShaderDrawable::OnSync()
+{
+    if (needSync_ && stagingShader_) {
+        visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingShader_->AppendToGEContainer(visualEffectContainer_);
+        needSync_ = false;
+    }
+}
+
+Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSBackgroundNGShaderDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
+            return;
+        }
+        geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
+    };
+}
+
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -351,8 +397,6 @@ void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSBACKGROUNDIMAGEDRAWABLE_MAKEFROMTEXTUREFORVK);
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
@@ -470,8 +514,6 @@ void RSBackgroundImageDrawable::OnSync()
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() const
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSBACKGROUNDIMAGEDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::const_pointer_cast<RSBackgroundImageDrawable>(
         std::static_pointer_cast<const RSBackgroundImageDrawable>(shared_from_this()));
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
@@ -554,19 +596,28 @@ std::shared_ptr<RSFilter> RSBackgroundFilterDrawable::GetBehindWindowFilter(cons
     float saturation = 1.f;
     float brightness = 1.f;
     RSColor maskColor = {};
+#if defined(MODIFIER_NG)
+    if (GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS, radius) &&
+        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION, saturation) &&
+        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS, brightness) &&
+        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR, maskColor)) {
+        return RSPropertyDrawableUtils::GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
+    }
+#else
     if (GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, saturation) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, brightness) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, maskColor)) {
         return RSPropertyDrawableUtils::GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
     }
+#endif
     return nullptr;
 }
 
 template <typename T>
 bool RSBackgroundFilterDrawable::GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property)
 {
-    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(node.GetDrawCmdModifiers());
     auto iter = drawCmdModifiers.find(type);
     if (iter == drawCmdModifiers.end() || iter->second.empty()) {
         RS_LOGE("RSBackgroundFilterDrawable::GetModifierProperty fail to get, modifierType = %{public}hd.", type);
@@ -574,6 +625,18 @@ bool RSBackgroundFilterDrawable::GetModifierProperty(const RSRenderNode& node, R
     }
     auto& modifier = iter->second.back();
     property = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(modifier->GetProperty())->Get();
+    return true;
+}
+
+template<typename T>
+bool RSBackgroundFilterDrawable::GetBehindWindowFilterProperty(
+    const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property)
+{
+    const auto modifier = node.GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
+    if (!modifier) {
+        return false;
+    }
+    property = modifier->Getter<T>(type, T());
     return true;
 }
 

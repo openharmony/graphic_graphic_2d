@@ -25,33 +25,33 @@
 #include "utils/matrix.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
 #include "visitor/rs_node_visitor.h"
-
 namespace OHOS {
 namespace Rosen {
-bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap,
-    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr);
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(const RSSurfaceCaptureConfig& captureConfig, bool isUniRender);
         ~RSSurfaceCaptureVisitor() noexcept override = default;
         void PrepareChildren(RSRenderNode& node) override {}
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
-        void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+        void PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
         void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
         void PrepareRootRenderNode(RSRootRenderNode& node) override {}
+        void PrepareScreenRenderNode(RSScreenRenderNode& node) override {}
         void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
         void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
 
         void ProcessChildren(RSRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
-        void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override;
+        void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override;
         void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
         void ProcessRootRenderNode(RSRootRenderNode& node) override {}
+        void ProcessScreenRenderNode(RSScreenRenderNode& node) override;
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
@@ -96,7 +96,7 @@ private:
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
         bool isUniRender = false);
 
-    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node,
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSLogicalDisplayRenderNode> node,
         bool isUniRender = false);
 
     NodeId nodeId_ = INVALID_NODEID;

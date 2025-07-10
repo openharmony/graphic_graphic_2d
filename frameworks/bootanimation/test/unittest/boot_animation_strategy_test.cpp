@@ -41,7 +41,7 @@ void BootAnimationStrategyTest::TearDown() {}
  * @tc.desc: Verify the CheckExitAniamtion
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_001, TestSize.Level1)
+HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_001, TestSize.Level0)
 {
     std::shared_ptr<BootAnimationStrategy> bas1 = std::make_shared<BootAnimationStrategy>();
     bas1->isAnimationEnd_ = false;
@@ -69,7 +69,7 @@ HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_001, TestSize.Leve
  * @tc.desc: Verify the IsOtaUpdate
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_002, TestSize.Level1)
+HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_002, TestSize.Level0)
 {
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
     bool result = system::SetParameter("persist.dupdate_engine.update_type", "manual");

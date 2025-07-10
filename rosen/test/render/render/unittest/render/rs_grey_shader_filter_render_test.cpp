@@ -14,7 +14,7 @@
  */
 #include "gtest/gtest.h"
 
-#include "render/rs_grey_shader_filter.h"
+#include "render/rs_render_grey_filter.h"
 
 using namespace testing;
 using namespace testing::ext;

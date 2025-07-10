@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d/rosen/modules/2d_graphics/utils"
 
 ohos_unittest("2d_graphics_utils_test") {
@@ -20,6 +20,8 @@ ohos_unittest("2d_graphics_utils_test") {
 
   sources = [
     "camera3d_test.cpp",
+    "canvas_utils_test.cpp",
+    "colorspace_convertor_test.cpp",
     "data_test.cpp",
     "matrix44_test.cpp",
     "matrix_test.cpp",
@@ -31,8 +33,8 @@ ohos_unittest("2d_graphics_utils_test") {
     "round_rect_test.cpp",
     "sampling_options_test.cpp",
     "size_test.cpp",
+    "utils_path_test.cpp",
     "vertices_test.cpp",
-    "canvas_utils_test.cpp",
   ]
 
   include_dirs = [
@@ -41,9 +43,12 @@ ohos_unittest("2d_graphics_utils_test") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils/color_manager",
   ]
+
 
   cflags = [
     "-Dprivate=public",
@@ -55,6 +60,7 @@ ohos_unittest("2d_graphics_utils_test") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 }

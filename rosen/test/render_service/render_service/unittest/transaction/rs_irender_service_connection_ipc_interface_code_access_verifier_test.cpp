@@ -58,6 +58,20 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemC
     ASSERT_EQ(verifier->IsSystemCalling(callingCode), true);
 }
 
+/**
+ * @tc.name: IsSystemCallingTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemCallingTest002,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    const std::string callingCode = "debug";
+    ASSERT_EQ(verifier->IsSystemCalling(callingCode), true);
+}
+
 #ifdef ENABLE_IPC_SECURITY
 /**
  * @tc.name: CheckNativePermissionTest001
@@ -231,5 +245,19 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsAccessT
     auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = 0;
     ASSERT_EQ(verifier->IsAccessTimesVerificationPassed(code, 0), true);
+}
+
+/**
+ * @tc.name: IsTaskManagerCallingTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsTaskManagerCallingTest,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    const std::string callingCode = "test";
+    ASSERT_EQ(verifier->IsTaskManagerCalling(callingCode), false);
 }
 } // namespace OHOS::Rosen

@@ -14,17 +14,21 @@
  */
 
 #include <string>
+
 #include "gtest/gtest.h"
+#include "surface.h"
+
 #include "animation/rs_render_animation.h"
+#include "modifier/rs_modifier_manager.h"
+#include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_result.h"
 #include "pipeline/rs_render_thread.h"
-#include "pipeline/rs_node_map.h"
-#include "modifier/rs_modifier_manager.h"
-#include "surface.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
-#include "ui/rs_surface_node.h"
 #include "ui/rs_root_node.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 
 #ifdef RS_ENABLE_VK
@@ -117,6 +121,8 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
     director->SetRSSurfaceNode(surfaceNode);
+    auto ret = director->GetRSSurfaceNode();
+    ASSERT_NE(ret, nullptr);
 }
 
 /**
@@ -129,6 +135,21 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002 , TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
     director->SetRSSurfaceNode(nullptr);
+}
+
+/**
+ * @tc.name: GetRSSurfaceNode001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetRSSurfaceNode001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c);
+    director->SetRSSurfaceNode(surfaceNode);
+    ASSERT_EQ(surfaceNode, director->GetRSSurfaceNode());
 }
 
 /**
@@ -209,6 +230,26 @@ HWTEST_F(RSUIDirectorTest, DirectorSendMessages001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DirectorSendMessages002
+ * @tc.desc: test results of SendMessages
+ * @tc.type: FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSUIDirectorTest, DirectorSendMessages002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    bool result = false;
+    FlushEmptyCallback callback = [&result](const uint64_t timestamp) -> bool {
+        result = true;
+        return true;
+    };
+    director->SetFlushEmptyCallback(callback);
+    director->SendMessages();
+    EXPECT_TRUE(result);
+}
+
+/**
  * @tc.name: UIDirectorSetRoot001
  * @tc.desc:
  * @tc.type:FUNC
@@ -223,6 +264,22 @@ HWTEST_F(RSUIDirectorTest, UIDirectorSetRoot001, TestSize.Level1)
     RSNode::SharedPtr testNode = RSCanvasNode::Create();
     director->SetRoot(testNode->GetId());
     director->SetRoot(testNode->GetId());
+}
+
+/**
+ * @tc.name: UIDirectorSetRSRootNode001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, UIDirectorSetRSRootNode001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    director->Init(true, true);
+    RSNode::SharedPtr rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    ASSERT_EQ(rootNode, director->rootNode_.lock());
 }
 
 /**
@@ -515,16 +572,65 @@ HWTEST_F(RSUIDirectorTest, RecvMessages, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessMessages
+ * @tc.name: ProcessMessagesTest001
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSUIDirectorTest, ProcessMessages, TestSize.Level1)
+HWTEST_F(RSUIDirectorTest, ProcessMessagesTest001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     director->ProcessMessages(cmds);
+}
+
+/**
+ * @tc.name: ProcessMessagesTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    director->Init(true, true);
+    director->requestVsyncCallback_ = nullptr;
+    std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    uint64_t token = uiContext->GetToken();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
+    cmds->AddCommand(command, token, FollowType::FOLLOW_TO_SELF);
+    ASSERT_EQ(director->requestVsyncCallback_, nullptr);
+    director->ProcessMessages(cmds, true);
+    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
+    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token)->GetRSTransaction(), nullptr);
+}
+
+/**
+ * @tc.name: ProcessMessagesTest003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    director->Init(true, true);
+    director->requestVsyncCallback_ = nullptr;
+    std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    uint64_t token = uiContext->GetToken();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
+    cmds->AddCommand(command, token, FollowType::FOLLOW_TO_SELF);
+    ASSERT_EQ(director->requestVsyncCallback_, nullptr);
+    uiContext->rsTransactionHandler_ = nullptr;
+    director->ProcessMessages(cmds, true);
+    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
+    ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(token)->GetRSTransaction(), nullptr);
 }
 
 /**
@@ -630,13 +736,9 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->SendMessages();
-    uint32_t index = director->GetIndex();
-    if (RSSystemProperties::GetHybridRenderEnabled()) {
-        EXPECT_TRUE(index == 0);
-    } else {
-        EXPECT_TRUE(index != 0);
-    }
+    ASSERT_TRUE(director != nullptr);
+    director->index_ = g_ExtremeInt_1;
+    ASSERT_EQ(director->GetIndex(), g_ExtremeInt_1);
 }
 
 /**
@@ -650,6 +752,128 @@ HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
     ASSERT_TRUE(director != nullptr);
     bool res = director->HasFirstFrameAnimation();
     ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ReportUiSkipEvent
+ * @tc.desc: test ReportUiSkipEvent
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReportUiSkipEventTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+    director->lastUiSkipTimestamp_ = 0;
+    director->ReportUiSkipEvent("test");
+    director->lastUiSkipTimestamp_ = INT64_MAX;
+    director->ReportUiSkipEvent("test");
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+    director->lastUiSkipTimestamp_ = 0;
+    director->ReportUiSkipEvent("test");
+    director->lastUiSkipTimestamp_ = INT64_MAX;
+    director->ReportUiSkipEvent("test");
+    EXPECT_TRUE(RSTransactionProxy::GetInstance() == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: IsHybridRenderEnabled001
+ * @tc.desc: IsHybridRenderEnabled Test with default param
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, IsHybridRenderEnabled001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderEnabled();
+    bool directorRet = director->IsHybridRenderEnabled();
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch001
+ * @tc.desc: GetHybridRenderSwitch Test with normal param ComponentEnableSwitch::TEXTBLOB
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = ComponentEnableSwitch::TEXTBLOB;
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch002
+ * @tc.desc: GetHybridRenderSwitch Test with abnormal param ComponentEnableSwitch::MAX_VALUE
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = ComponentEnableSwitch::MAX_VALUE;
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch003
+ * @tc.desc: GetHybridRenderSwitch Test with abnormal param -1
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = static_cast<ComponentEnableSwitch>(-1);
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch004
+ * @tc.desc: GetHybridRenderSwitch Test with abnormal param ComponentEnableSwitch::MAX_VALUE + 1
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch004, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    ComponentEnableSwitch bitSeq = static_cast<ComponentEnableSwitch>(
+        static_cast<uint8_t>(ComponentEnableSwitch::MAX_VALUE) + 1);
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
+    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: GetHybridRenderTextBlobLenCount001
+ * @tc.desc: GetHybridRenderTextBlobLenCount Test with default param
+ * @tc.type: FUNC
+ * @tc.require: issueICJVZA
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderTextBlobLenCount001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    uint32_t systemPropertiesRet = RSSystemProperties::GetHybridRenderTextBlobLenCount();
+    uint32_t directorRet = director->GetHybridRenderTextBlobLenCount();
+    EXPECT_EQ(systemPropertiesRet, directorRet);
 }
 
 /**
@@ -668,5 +892,26 @@ HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
         director->StartTextureExport();
         EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
     }
+}
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest001
+ * @tc.desc: SetTypicalResidentProcess Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
+    director->SetTypicalResidentProcess(!enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    director->SetTypicalResidentProcess(enabled);
+    // isTypicalResidentProcess_ will only be set once
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    // recover isTypicalResidentProcess_
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
 } // namespace OHOS::Rosen

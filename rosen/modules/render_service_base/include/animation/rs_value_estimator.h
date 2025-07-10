@@ -28,7 +28,6 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_type.h"
-#include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -45,9 +44,6 @@ public:
     }
 
     Quaternion Estimate(float fraction, const Quaternion& startValue, const Quaternion& endValue);
-
-    std::shared_ptr<RSFilter> Estimate(
-        float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue);
 
     virtual float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator)
     {

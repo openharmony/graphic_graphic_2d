@@ -17,6 +17,9 @@
 
 #include <unistd.h>
 #include <securec.h>
+#ifdef CROSS_PLATFORM
+#include <vector>
+#endif
 
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
@@ -119,7 +122,11 @@ std::shared_ptr<Data> SkiaVertices::Serialize() const
         return nullptr;
     }
 
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     skiaVertices_->priv().encode(writer);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();

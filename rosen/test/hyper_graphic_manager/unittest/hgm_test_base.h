@@ -51,7 +51,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Strategy name="aaa"/>
     </Params>
     <Params name="refreshRate_strategy_config">
-        <Strategy name="8" min="60" max="120" dynamicMode="1"/>
+        <Strategy name="8" min="60" max="120" dynamicMode="1" pointerMode="1"/>
         <Strategy name="12" min="120" max="120" dynamicMode="0"/>
     </Params>
     <Params name="refreshRate_virtual_display_config" switch="1">
@@ -88,7 +88,16 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         </Category>
         <Category name="property_animation_dynamic_settings">
             <DynamicSettings name="aaa">
-            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
+                <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
+            </DynamicSettings>
+            <DynamicSettings name="invalid_preferred_fps">
+                <SpeedThresholds name="1" min="0" max="-1"/>
+            </DynamicSettings>
+            <DynamicSettings name="invalid_max">
+                <SpeedThresholds name="1" min="0"/>
+            </DynamicSettings>
+            <DynamicSettings name="invalid_min">
+                <SpeedThresholds name="1"/>
             </DynamicSettings>
         </Category>
         <Category name="ace_scene_dynamic_settings">
@@ -112,12 +121,17 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         </Category>
         <Category name="app_list" multi_app_strategy="focus">
             <App name="aaa" strategy="12"/>
+            <App name="bbb" nodeName="12"/>
         </Category>
         <Category name="app_types">
             <App name="aaa" strategy="12" />
+            <App name="111" strategy="12" />
+            <App name="333" strategy="33" />
         </Category>
         <Category name="app_page_url_config">
-            <App name="aaa" strategy="12" />
+            <Package name="com.company.pkg0">
+                <Strategy name="pageName" strategy="5">
+            </Package>
         </Category>
         <Category name="performance_config">
             <Ltpo name="pluseNum" value="1" />
@@ -152,6 +166,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     <Params name="vrate_control_config">
         <Vrate name="aaa" value="1"/>
     </Params>
+    <InvalidParams/>
     </HgmConfig>)");
 
 inline xmlDoc* StringToXmlDoc(const std::string& xmlContent)
@@ -175,6 +190,7 @@ public:
         parser->Parse();
         hgmCore.mPolicyConfigData_ = parser->GetParsedData();
         hgmCore.mParser_ = std::move(parser);
+        hgmCore.InitXmlConfig();
     }
     static void TearDownTestCase() {}
     void SetUp() {}

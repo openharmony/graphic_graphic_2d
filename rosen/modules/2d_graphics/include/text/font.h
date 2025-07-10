@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <unordered_map>
 
 #include "impl_interface/font_impl.h"
 #include "text/font_metrics.h"
@@ -31,6 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+using DrawingFontFeatures = std::vector<std::unordered_map<std::string, double>>;
 class DRAWING_API Font {
 public:
     Font();
@@ -215,6 +217,15 @@ public:
     uint16_t UnicharToGlyph(int32_t uni) const;
 
     /**
+     * @brief                  Returns glyph index for Unicode character with DrawingFontFeatures.
+     * @param uni              Unicode character.
+     * @param fontFeatures     Font Features.
+     * @return                 Glyph index.
+     */
+    uint16_t UnicharToGlyphWithFeatures(const char* uni,
+        std::shared_ptr<Drawing::DrawingFontFeatures> fontFeatures) const;
+
+    /**
      * @brief               Converts text into glyph indices.
      * @param text          Character storage encoded with TextEncoding.
      * @param byteLength    Length of character storage in bytes.
@@ -282,6 +293,16 @@ public:
      * @return         The width of a single character.
      */
     scalar MeasureSingleCharacter(int32_t unicode) const;
+
+    /**
+     * @brief              Measure the width of a single character.
+     * @param unicode      unicode encoding of a single character.
+     * @param unicodeId    unicode encoding id of a single character.
+     * @param fontFeatures font features to be applied.
+     * @return             The width of a single character.
+     */
+    scalar MeasureSingleCharacterWithFeatures(const char* unicode, int32_t unicodeId,
+        std::shared_ptr<Drawing::DrawingFontFeatures> fontFeatures) const;
 
     /**
      * @brief          Gets a font where you can draw a single character.

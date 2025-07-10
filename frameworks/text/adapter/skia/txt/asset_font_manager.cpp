@@ -41,18 +41,41 @@ void AssetFontManager::onGetFamilyName(int index, SkString* familyName) const
     familyName->set(fontProvider_->GetFamilyName(index).c_str());
 }
 
+#ifdef USE_M133_SKIA
+sk_sp<SkFontStyleSet> AssetFontManager::onCreateStyleSet(int index) const
+#else
 SkFontStyleSet* AssetFontManager::onCreateStyleSet(int index) const
+#endif
 {
     SkASSERT(false);
     return nullptr;
 }
 
+#ifdef USE_M133_SKIA
+sk_sp<SkFontStyleSet> AssetFontManager::onMatchFamily(const char name[]) const
+{
+    std::string familyName(name);
+    return sk_sp<SkFontStyleSet>(fontProvider_->MatchFamily(familyName));
+}
+#else
 SkFontStyleSet* AssetFontManager::onMatchFamily(const char name[]) const
 {
     std::string familyName(name);
     return fontProvider_->MatchFamily(familyName);
 }
+#endif
 
+#ifdef USE_M133_SKIA
+sk_sp<SkTypeface> AssetFontManager::onMatchFamilyStyle(const char familyName[], const SkFontStyle& style) const
+{
+    sk_sp<SkFontStyleSet> fontStyleSet = sk_sp<SkFontStyleSet>(
+        fontProvider_->MatchFamily(std::string(familyName ? familyName : "")));
+    if (fontStyleSet == nullptr) {
+        return nullptr;
+    }
+    return fontStyleSet->matchStyle(style);
+}
+#else
 SkTypeface* AssetFontManager::onMatchFamilyStyle(const char familyName[], const SkFontStyle& style) const
 {
     SkFontStyleSet* fontStyleSet = fontProvider_->MatchFamily(std::string(familyName ? familyName : ""));
@@ -60,8 +83,13 @@ SkTypeface* AssetFontManager::onMatchFamilyStyle(const char familyName[], const 
         return nullptr;
     return fontStyleSet->matchStyle(style);
 }
+#endif
 
+#ifdef USE_M133_SKIA
+sk_sp<SkTypeface> AssetFontManager::onMatchFamilyStyleCharacter(
+#else
 SkTypeface* AssetFontManager::onMatchFamilyStyleCharacter(
+#endif
     const char familyName[], const SkFontStyle&, const char* bcp47[], int bcp47Count, SkUnichar character) const
 {
     return nullptr;
@@ -103,7 +131,11 @@ TestFontManager::TestFontManager(
 
 TestFontManager::~TestFontManager() = default;
 
+#ifdef USE_M133_SKIA
+sk_sp<SkFontStyleSet> TestFontManager::onMatchFamily(const char familyName[]) const
+#else
 SkFontStyleSet* TestFontManager::onMatchFamily(const char familyName[]) const
+#endif
 {
     std::string requestedName(familyName);
     std::string sanitizedName = testFontFamilyNames_[0];

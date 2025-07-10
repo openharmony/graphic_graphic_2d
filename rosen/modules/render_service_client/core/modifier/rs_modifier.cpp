@@ -24,16 +24,19 @@ namespace OHOS {
 namespace Rosen {
 void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
 {
+#ifndef MODIFIER_NG
     if (property != nullptr && property_ != nullptr) {
         property->target_ = property_->target_;
         property->SetIsCustom(true);
         property->AttachModifier(shared_from_this());
-        property->MarkModifierDirty();
+        property->MarkCustomModifierDirty();
     }
+#endif
 }
 
 void RSModifier::SetDirty(const bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager)
 {
+#ifndef MODIFIER_NG
     if (!isDirty) {
         isDirty_ = isDirty;
         return;
@@ -51,10 +54,12 @@ void RSModifier::SetDirty(const bool isDirty, const std::shared_ptr<RSModifierMa
     }
 
     modifierManager->AddModifier(shared_from_this());
+#endif
 }
 
 void RSModifier::ResetRSNodeExtendModifierDirty()
 {
+#ifndef MODIFIER_NG
     if (property_ == nullptr) {
         return;
     }
@@ -65,6 +70,7 @@ void RSModifier::ResetRSNodeExtendModifierDirty()
     }
 
     target->ResetExtendModifierDirty();
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

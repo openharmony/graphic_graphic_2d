@@ -69,12 +69,12 @@ HWTEST_F(RSDrawWindowCacheTest, ClearCache, TestSize.Level1)
 }
 
 /**
- * @tc.name: DealWithCachedWindow
+ * @tc.name: DealWithCachedWindow001
  * @tc.desc: Test DealWithCachedWindow
  * @tc.type: FUNC
  * @tc.require: issueIAVLLE
  */
-HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow, TestSize.Level1)
+HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow001, TestSize.Level1)
 {
     RSDrawWindowCache drawWindowCache;
     DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable = nullptr;
@@ -101,16 +101,78 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow, TestSize.Level1)
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     drawWindowCache.image_ = bmp.MakeImage();
     surfaceParams.SetUifirstNodeEnableParam(MultiThreadCacheType::NONFOCUS_WINDOW);
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
-        canvas, surfaceParams, *uniParams));
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
     /* OnGlobalPositionEnabled is true */
     surfaceParams.isGlobalPositionEnabled_ = true;
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
-        canvas, surfaceParams, *uniParams));
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
     // To set matrix is singular matrix
     surfaceParams.matrix_.SetMatrix(1, 2, 3, 2, 4, 6, 3, 6, 9);
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
-        canvas, surfaceParams, *uniParams));
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+
+    // test cross-node dfx
+    surfaceParams.isCrossNode_ = true;
+    uniParams->isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE_DFX;
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+
+    uniParams->isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::DISABLED;
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, *uniParams));
+}
+
+/**
+ * @tc.name: DealWithCachedWindow002
+ * @tc.desc: Test DealWithCachedWindow
+ * @tc.type: FUNC
+ * @tc.require: issueICCSTG
+ */
+HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow002, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderThreadParams uniParams;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(
+        DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    // test non-cross-node should clear cache when uifirst disabled
+    RSSurfaceRenderParams surfaceParams(1);
+    surfaceParams.isCrossNode_ = false;
+    surfaceParams.SetIsCloned(false);
+    surfaceParams.SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams));
+    ASSERT_TRUE(drawWindowCache.image_ == nullptr);
+
+    // test cross-node don't reuse cache
+    surfaceParams.isCrossNode_ = true;
+    uniParams.SetIsMirrorScreen(true);
+    uniParams.hasDisplayHdrOn_ = false;
+    uniParams.SetIsFirstVisitCrossNodeDisplay(false);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams));
+
+    // test cross-node don't reuse cache
+    surfaceParams.isCrossNode_ = true;
+    uniParams.SetIsMirrorScreen(false);
+    uniParams.hasDisplayHdrOn_ = true;
+    uniParams.SetIsFirstVisitCrossNodeDisplay(false);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams));
+
+    // test cross-node don't reuse cache
+    surfaceParams.isCrossNode_ = true;
+    uniParams.SetIsMirrorScreen(false);
+    uniParams.hasDisplayHdrOn_ = false;
+    uniParams.SetIsFirstVisitCrossNodeDisplay(true);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams));
+
+    // test invalid cache size
+    surfaceParams.isCrossNode_ = true;
+    uniParams.SetIsMirrorScreen(false);
+    uniParams.hasDisplayHdrOn_ = false;
+    uniParams.SetIsFirstVisitCrossNodeDisplay(false);
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams));
 }
 
 /**
@@ -166,6 +228,7 @@ HWTEST_F(RSDrawWindowCacheTest, DrawCrossNodeOffscreenDFX, TestSize.Level1)
     uniParams.isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE_DFX;
     // rgba: Alpha 128, green 128, blue 128
     Drawing::Color color(0, 128, 128, 128);
+    drawWindowCache.image_ = std::make_shared<Drawing::Image>();
     drawWindowCache.DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
 }
 }

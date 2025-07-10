@@ -243,6 +243,10 @@ void RecordingCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
 void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filterMode, const Brush* brush)
 {
+    if (image == nullptr) {
+        LOGE("RecordingCanvas::DrawImageNine, image is nullptr!");
+        return;
+    }
     if (!addDrawOpImmediate_) {
         cmdList_->AddDrawOp(std::make_shared<DrawImageNineOpItem>(image, center, dst, filterMode, brush));
         return;
@@ -263,6 +267,10 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
     FilterMode filterMode)
 {
+    if (image == nullptr) {
+        LOGE("RecordingCanvas::DrawImageLattice failed, image is nullptr");
+        return;
+    }
     if (!addDrawOpImmediate_) {
         AddDrawOpDeferred<DrawImageLatticeOpItem>(image, lattice, dst, filterMode);
         return;

@@ -29,12 +29,17 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
     const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
     // send mainScreenRect only to reduce ipc data size
-    if (!data.WriteFloat(captureConfig.mainScreenRect.left_) ||
+    if (!data.WriteBool(captureConfig.isHdrCapture) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
         !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
-        !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize)) {
+        !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.left_) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.top_) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.right_) ||
+        !data.WriteFloat(captureConfig.specifiedAreaRect.bottom_)) {
         ROSEN_LOGE("RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig Write CaptureConfig failed");
         return false;
     }
@@ -42,7 +47,7 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
 }
 
 void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-    Media::PixelMap* pixelmap)
+    Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -63,8 +68,14 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceC
         ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteParcelable failed");
         return;
     }
+    if (captureConfig.isHdrCapture && !data.WriteParcelable(pixelmapHDR)) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteParcelable failed");
+        return;
+    }
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
+    uint32_t code = captureConfig.isHdrCapture ?
+        static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR) :
+        static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("SurfaceCaptureCallbackProxy: Remote()->SendRequest() error");

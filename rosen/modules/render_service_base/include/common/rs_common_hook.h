@@ -37,6 +37,9 @@ public:
     void SetAdaptiveColorGamutEnable(bool isAdaptiveColorGamutEnable);
     bool IsAdaptiveColorGamutEnabled() const;
 
+    void SetTvPlayerBundleName(const std::string& bundleName);
+    std::string GetTvPlayerBundleName() const;
+
     // use in updating hwcnode hardware state with background alpha
     void SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
@@ -55,10 +58,13 @@ private:
     // use to implement product isolation for the adaptive P3 scheme
     std::atomic<bool> isAdaptiveColorGamutEnable_{false};
 
-    // use in updating hwcnode hardware state with background alpha
+    std::string tvPlayerBundleName_;
+
+    // use in updating hwc node hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
     std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
+    
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 };
 } // namespace OHOS::Rosen

@@ -243,10 +243,10 @@ bool RSRoundCornerDisplayManagerAPIsTest(
 
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
-    uint32_t u32_1 = GetData<uint32_t>();
-    uint32_t u32_2 = GetData<uint32_t>();
-    uint32_t u32_3 = GetData<uint32_t>();
-    uint32_t u32_4 = GetData<uint32_t>();
+    uint32_t left = GetData<uint32_t>();
+    uint32_t top = GetData<uint32_t>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
 
     int status = static_cast<int>(GetData<uint8_t>() % STATUS_FUZZ_BOUNDS) - 1;
 
@@ -264,7 +264,7 @@ bool RSRoundCornerDisplayManagerAPIsTest(
     Rosen::RectI dirtyRect;
 
     manager.RegisterRcdMsg();
-    manager.UpdateDisplayParameter(id, u32_1, u32_2, u32_3, u32_4);
+    manager.UpdateDisplayParameter(id, left, top, width, height);
     manager.UpdateNotchStatus(id, status);
     manager.UpdateOrientationStatus(id, rotation);
     manager.UpdateHardwareResourcePrepared(id, prepared);

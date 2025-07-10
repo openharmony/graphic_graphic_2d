@@ -31,7 +31,7 @@ class OH_Drawing_TypographyCreateTest : public testing::Test {
  * @tc.desc: test for constuctor of TypographyCreate
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest001, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest001, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -46,7 +46,7 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest001, Te
  * @tc.desc: test for constuctor of TypographyCreate
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest002, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest002, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -73,7 +73,7 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest002, Te
  * @tc.desc: test for constuctor of TypographyCreate
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest003, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest003, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
@@ -97,7 +97,7 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest003, Te
  * @tc.desc: test for constuctor of TypographyCreate
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest004, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest004, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();

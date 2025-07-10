@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.. All rights reserved.
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -20,9 +20,15 @@ drawing_root = "$rosen_root/modules/2d_graphics"
 drawing_ndk_include_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/include"
 drawing_ndk_src_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/src"
 drawing_utils_root = "$rosen_root/modules/2d_graphics/drawing_ndk/drawing_utils"
+if (ohos_indep_compiler_enable) {
+  drawing_indep_build_path = [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+}
 
 config("export_config") {
-  include_dirs = [ "$drawing_ndk_include_dir" ]
+  include_dirs = [
+    "$drawing_ndk_include_dir",
+    "$rosen_text_root/interface/export/ndk_include",
+  ]
 }
 
 if (enable_text_gine) {
@@ -47,10 +53,15 @@ template("drawing_ndk_source_set") {
       blocklist = "./drawingndk_blocklist.txt"
     }
 
+    include_dirs = []
+    if (ohos_indep_compiler_enable) {
+      include_dirs += drawing_indep_build_path
+    }
     public_deps = [
       "$drawing_root:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     ]
+    deps = [ "$rosen_text_root/interface/ndk_src:text_ndk" ]
     public_external_deps = [ "jsoncpp:jsoncpp" ]
     external_deps = [ "napi:ace_napi" ]
     configs = [ ":export_config" ]
@@ -64,8 +75,6 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_error_code.cpp",
       "$drawing_ndk_src_dir/drawing_filter.cpp",
       "$drawing_ndk_src_dir/drawing_font.cpp",
-      "$drawing_ndk_src_dir/drawing_font_collection.cpp",
-      "$drawing_ndk_src_dir/drawing_font_mgr.cpp",
       "$drawing_ndk_src_dir/drawing_gpu_context.cpp",
       "$drawing_ndk_src_dir/drawing_image.cpp",
       "$drawing_ndk_src_dir/drawing_image_filter.cpp",
@@ -80,21 +89,13 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_record_cmd.cpp",
       "$drawing_ndk_src_dir/drawing_rect.cpp",
       "$drawing_ndk_src_dir/drawing_region.cpp",
-      "$drawing_ndk_src_dir/drawing_register_font.cpp",
       "$drawing_ndk_src_dir/drawing_round_rect.cpp",
       "$drawing_ndk_src_dir/drawing_sampling_options.cpp",
       "$drawing_ndk_src_dir/drawing_shader_effect.cpp",
       "$drawing_ndk_src_dir/drawing_shadow_layer.cpp",
       "$drawing_ndk_src_dir/drawing_surface.cpp",
       "$drawing_ndk_src_dir/drawing_text_blob.cpp",
-      "$drawing_ndk_src_dir/drawing_text_font_descriptor.cpp",
-      "$drawing_ndk_src_dir/drawing_text_global.cpp",
-      "$drawing_ndk_src_dir/drawing_text_line.cpp",
-      "$drawing_ndk_src_dir/drawing_text_lineTypography.cpp",
-      "$drawing_ndk_src_dir/drawing_text_run.cpp",
-      "$drawing_ndk_src_dir/drawing_text_typography.cpp",
       "$drawing_ndk_src_dir/drawing_typeface.cpp",
-      "$drawing_ndk_src_dir/font_utils.cpp",
       "$drawing_utils_root/drawing_canvas_utils.cpp",
       "$drawing_utils_root/drawing_font_utils.cpp",
       "$drawing_utils_root/native_pixel_map_manager.cpp",
@@ -114,11 +115,13 @@ template("drawing_ndk_source_set") {
       defines += [ "ROSEN_EMULATOR" ]
     }
 
-    include_dirs = [
+    include_dirs += [
       "$drawing_utils_root",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$graphic_2d_root/rosen/modules/render_service_base/src",
       "$rosen_text_root/service/texgine/src",
+      "$graphic_2d_root/interfaces/inner_api/color_manager",
+      "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
       "$graphic_2d_root/frameworks/text/service/global_config",
     ]
 
@@ -137,6 +140,7 @@ template("drawing_ndk_source_set") {
     }
 
     if (platform == "ohos" || platform == "ohos_ng") {
+      public_deps += ["$graphic_2d_root/utils/color_manager/ndk:libnative_color_space_manager"]
       defines += [ "OHOS_PLATFORM" ]
       external_deps += [
         "bounds_checking_function:libsec_static",
@@ -149,7 +153,6 @@ template("drawing_ndk_source_set") {
 
       remove_configs = [ "//build/config/compiler:default_include_dirs" ]
     } else {
-      deps = []
       cflags = [ "-std=c++17" ]
 
       if (!is_arkui_x) {
@@ -160,7 +163,7 @@ template("drawing_ndk_source_set") {
       defines += [ "MODULE_DRAWING" ]
     }
     if (enable_text_gine) {
-      deps = [ "$rosen_text_root:rosen_text" ]
+      deps += [ "$rosen_text_root:rosen_text" ]
       if (use_skia_txt) {
         include_dirs += [ "$rosen_text_root/adapter/skia" ]
       }

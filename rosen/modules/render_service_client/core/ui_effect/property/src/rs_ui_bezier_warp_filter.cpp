@@ -84,7 +84,7 @@ bool RSUIBezierWarpFilterPara::CreateRenderFilterCtrlPoints(
         return false;
     }
     auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        specifiedProperty->Get(), specifiedProperty->GetId(), RSRenderPropertyType::PROPERTY_VECTOR2F);
+        specifiedProperty->Get(), specifiedProperty->GetId());
     frProperty->Setter(type, renderProperty);
     return true;
 }

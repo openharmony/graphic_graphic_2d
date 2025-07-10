@@ -87,7 +87,7 @@ OH_NativeColorSpaceManager* OH_NativeColorSpaceManager_CreateFromName(
         return nullptr;
     }
     if (colorSpaceName == ColorSpaceName::NONE || colorSpaceName == ColorSpaceName::CUSTOM) {
-        RS_LOGE("ColorSpaceName is invalid: %{public}d",
+        RS_LOGD("ColorSpaceName is invalid: %{public}d",
             OHOS::ColorManager::CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE);
         return nullptr;
     }

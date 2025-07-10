@@ -90,7 +90,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIBlurFilterPara::CreateRSRenderFilter
         return nullptr;
     }
     std::shared_ptr<RSRenderPropertyBase> x = std::make_shared<RSRenderAnimatableProperty<float>>(
-        rx->Get(), rx->GetId(), RSRenderPropertyType::PROPERTY_FLOAT);
+        rx->Get(), rx->GetId());
     frProperty->Setter(RSUIFilterType::BLUR_RADIUS_X, x);
 
     auto ry = std::static_pointer_cast<RSAnimatableProperty<float>>(GetRSProperty(RSUIFilterType::BLUR_RADIUS_Y));
@@ -99,7 +99,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIBlurFilterPara::CreateRSRenderFilter
         return nullptr;
     }
     std::shared_ptr<RSRenderPropertyBase> y = std::make_shared<RSRenderAnimatableProperty<float>>(
-        ry->Get(), ry->GetId(), RSRenderPropertyType::PROPERTY_FLOAT);
+        ry->Get(), ry->GetId());
     frProperty->Setter(RSUIFilterType::BLUR_RADIUS_Y, y);
     return frProperty;
 }

@@ -52,6 +52,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSCompositeLayerUtils;
 /**
  * @struct RSSurfaceNodeConfig
  * @brief Configuration structure for creating or managing a surface node.
@@ -209,6 +210,13 @@ public:
     void DetachToDisplay(uint64_t screenId);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
         bool dynamicHardwareEnable = true);
+
+    /**
+     * @brief Enable Camera Rotation Unchanged
+     *
+     * @param flag If flag is set to true, the camera fix rotation is enabled.
+     * @return void
+     */
     void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
@@ -257,7 +265,17 @@ public:
      */
     void SetWindowId(uint32_t windowId);
 
+    /**
+     * @brief Controls surface content freezing for window snapshot or resource release
+     *
+     * Only works in Unified Render mode (UniRender)
+     *
+     * @param isFreeze Freeze control flag:
+     *                - true: Freeze current frame into static texture
+     *                - false: Resume normal buffer updates
+     */
     void SetFreeze(bool isFreeze) override;
+    
     // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
     void SetSurfaceTexture(const RSSurfaceExtConfig& config);
@@ -285,6 +303,23 @@ public:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
+
+    /**
+     * @brief Determines whether the surfaceNode is a selfDrawing node.
+     * 
+     * @return True if the surfaceNode is a selfDrawing node, otherwise false.
+     */
+    bool IsSelfDrawingNode() const;
+
+    /**
+     * @brief Sets the surfaceNode and its subtree to generate a topLayer.
+     * 
+     * @param zOrder: zOrder of topLayer
+     * 
+     * @return True if the setting is successful, otherwise false.
+     */
+    bool SetCompositeLayer(TopLayerZOrder zOrder);
+    std::shared_ptr<RSCompositeLayerUtils> GetCompositeLayerUtils() const;
     
     /**
      * @brief Sets the API compatible version for the surface node.
@@ -295,7 +330,7 @@ public:
     void SetSourceVirtualDisplayId(ScreenId screenId);
     void AttachToWindowContainer(ScreenId screenId);
     void DetachFromWindowContainer(ScreenId screenId);
-    void SetRegionToBeMagnified(const Vector4f& regionToBeMagnified);
+    void SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
@@ -343,6 +378,8 @@ private:
     bool isGlobalPositionEnabled_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
+    RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
+    std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

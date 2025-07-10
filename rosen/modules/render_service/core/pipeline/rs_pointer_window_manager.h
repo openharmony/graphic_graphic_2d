@@ -17,7 +17,8 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_POINTER_WINDOW_MANAGER_H
 
 #include "params/rs_render_thread_params.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_processor_factory.h"
 
@@ -31,7 +32,7 @@ public:
     static RSPointerWindowManager& Instance();
 
     void UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
-        std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
+        std::shared_ptr<RSScreenRenderNode>& curScreenNode);
 
     static bool GetHardCursorEnabledPass();
     struct BoundParam {
@@ -64,16 +65,17 @@ public:
     }
 
     void CollectAllHardCursor(
-        RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
+        RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSScreenRenderNode>& curScreenNode,
+        std::shared_ptr<RSLogicalDisplayRenderNode>& curDisplayNode);
 
-    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardCursorDrawableMap() const
+    const auto& GetHardCursorDrawableVec() const
     {
-        return hardCursorDrawableMap_;
+        return hardCursorDrawableVec_;
     }
 
     void ResetHardCursorDrawables()
     {
-        hardCursorDrawableMap_.clear();
+        hardCursorDrawableVec_.clear();
         hardCursorNodeMap_.clear();
     }
 
@@ -157,7 +159,7 @@ public:
 private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardCursorDrawableMap_;
+    std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>> hardCursorDrawableVec_;
     std::shared_ptr<RSSurfaceRenderNode> hardCursorNodes_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> hardCursorNodeMap_;
     std::mutex mtx_;

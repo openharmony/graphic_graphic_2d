@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "common/rs_optional_trace.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
@@ -25,9 +26,9 @@ SelfDrawingNodeMonitor &SelfDrawingNodeMonitor::GetInstance()
     return monitor;
 }
 
-void SelfDrawingNodeMonitor::InsertCurRectMap(NodeId id, std::string nodeName, RectI rect)
+void SelfDrawingNodeMonitor::InsertCurRectMap(NodeId id, RectI rect)
 {
-    curRect_[id] = std::make_pair(nodeName, rect);
+    curRect_[id] = rect;
 }
 
 void SelfDrawingNodeMonitor::EraseCurRectMap(NodeId id)
@@ -41,44 +42,95 @@ void SelfDrawingNodeMonitor::ClearRectMap()
     lastRect_.clear();
 }
 
-pid_t SelfDrawingNodeMonitor::GetCallingPid() const
-{
-    return callingPid_;
-}
-
 void SelfDrawingNodeMonitor::RegisterRectChangeCallback(
-    pid_t pid, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    pid_t pid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
-    if (isListeningEnabled_) {
-        RS_LOGI("SelfDrawingNodeRectChangeCallback has registered");
-        return;
-    }
-    callingPid_ = pid;
-    isListeningEnabled_ = true;
-    rectChangeCallbackListenner_ = std::make_pair(pid, callback);
+    RS_TRACE_NAME_FMT("SelfDrawingNodeMonitor::RegisterRectChangeCallback registerPid:%d", pid);
+    rectChangeCallbackListenner_[pid] = callback;
+    rectChangeCallbackConstraint_[pid] = constraint;
 }
 
 void SelfDrawingNodeMonitor::UnRegisterRectChangeCallback(pid_t pid)
 {
-    isListeningEnabled_ = false;
+    RS_TRACE_NAME_FMT("SelfDrawingNodeMonitor::UnRegisterRectChangeCallback unRegisterPid:%d", pid);
+    rectChangeCallbackListenner_.erase(pid);
+    rectChangeCallbackConstraint_.erase(pid);
+    if (rectChangeCallbackListenner_.empty()) {
+        ClearRectMap();
+    }
 }
 
 void SelfDrawingNodeMonitor::TriggerRectChangeCallback()
 {
-    if (!isListeningEnabled_) {
+    RS_OPTIONAL_TRACE_NAME_FMT("SelfDrawingNodeMonitor::TriggerRectChangeCallback");
+    if (rectChangeCallbackListenner_.empty()) {
         return;
     }
     
     if (curRect_ != lastRect_) {
-        RS_TRACE_NAME("SelfDrawingNodeMonitor::TriggerRectChangeCallback");
-        if (rectChangeCallbackListenner_.second) {
-            rectChangeCallbackListenner_.second->OnSelfDrawingNodeRectChange(
-                std::make_shared<RSSelfDrawingNodeRectData>(curRect_));
-        } else {
-            RS_LOGE("SelfDrawingNodeMonitor::TriggerRectChangeCallback callback is null");
+        for (const auto& iter : rectChangeCallbackListenner_) {
+            pid_t pid = iter.first;
+            bool shouldTrigger = false;
+            SelfDrawingNodeRectCallbackData callbackData;
+            auto constraintIter = rectChangeCallbackConstraint_.find(pid);
+            if (constraintIter != rectChangeCallbackConstraint_.end()) {
+                shouldTrigger = ShouldTrigger(constraintIter->second, callbackData);
+            }
+            if (shouldTrigger && iter.second) {
+                iter.second->OnSelfDrawingNodeRectChange(std::make_shared<RSSelfDrawingNodeRectData>(callbackData));
+            } else {
+                RS_LOGD("SelfDrawingNodeMonitor::TriggerRectChangeCallback callback is null or shouldnot trigger "
+                        "%{public}s", shouldTrigger ? "true" : "false");
+            }
         }
         lastRect_ = curRect_;
     }
+}
+
+bool SelfDrawingNodeMonitor::ShouldTrigger(RectConstraint& constraint, SelfDrawingNodeRectCallbackData& callbackData)
+{
+    bool ret = false;
+    for (auto& [nodeId, rect] : curRect_) {
+        if (constraint.pids.find(ExtractPid(nodeId)) == constraint.pids.end()) {
+            continue;
+        }
+        auto iter = lastRect_.find(nodeId);
+        if (iter == lastRect_.end()) {
+            if (CheckStatify(rect, constraint)) {
+                callbackData.insert(std::make_pair(nodeId, rect));
+                ret = true;
+            }
+        } else if (iter->second != rect) {
+            if (CheckStatify(rect, constraint) != CheckStatify(iter->second, constraint)) {
+                callbackData.insert(std::make_pair(nodeId, rect));
+                ret = true;
+            }
+        }
+    }
+
+    for (auto& [nodeId, lastRect] : lastRect_) {
+        if (constraint.pids.find(ExtractPid(nodeId)) == constraint.pids.end()) {
+            continue;
+        }
+        if (curRect_.find(nodeId) == curRect_.end()) {
+            if (CheckStatify(lastRect, constraint)) {
+                callbackData.insert(std::make_pair(nodeId, RectI(0, 0, 0, 0)));
+                ret = true;
+            }
+        }
+    }
+    return ret;
+}
+
+bool SelfDrawingNodeMonitor::CheckStatify(RectI& rect, RectConstraint& constraint) const
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("SelfDrawingNodeMonitor::CheckStatify rect %d %d %d %d", rect.GetTop(), rect.GetLeft(),
+        rect.GetWidth(), rect.GetHeight());
+    if (rect.GetWidth() >= constraint.range.lowLimit.width && rect.GetHeight() >= constraint.range.lowLimit.height &&
+        rect.GetWidth() <= constraint.range.highLimit.width && rect.GetHeight() <= constraint.range.highLimit.height) {
+            return true;
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -34,7 +34,7 @@ namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
 class RSRenderNodeDrawable;
-class RSDisplayRenderNodeDrawable;
+class RSScreenRenderNodeDrawable;
 }
 
 class RSUniRenderThread {
@@ -64,8 +64,8 @@ public:
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
-    void NotifyDisplayNodeBufferReleased();
-    bool WaitUntilDisplayNodeBufferReleased(DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable);
+    void NotifyScreenNodeBufferReleased();
+    bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
     int64_t GetActualTimestamp() const;
@@ -139,7 +139,9 @@ public:
     {
         mainLooping_.store(isMainLooping);
     }
-    void UpdateDisplayNodeScreenId();
+
+    void UpdateScreenNodeScreenId();
+
     uint32_t GetDynamicRefreshRate() const;
     pid_t GetTid() const
     {
@@ -211,14 +213,14 @@ public:
         return handler_->IsIdle();
     }
 
-    void SetEnableVisiableRect(bool enableVisiableRect)
+    void SetEnableVisibleRect(bool enableVisibleRect)
     {
-        enableVisiableRect_.store(enableVisiableRect);
+        enableVisibleRect_.store(enableVisibleRect);
     }
 
-    bool GetEnableVisiableRect() const
+    bool GetEnableVisibleRect() const
     {
-        return enableVisiableRect_.load();
+        return enableVisibleRect_.load();
     }
 
     void DumpVkImageInfo(std::string &dumpString);
@@ -230,7 +232,7 @@ private:
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
     void CollectReleaseTasks(std::vector<std::function<void()>>& releaseTasks);
 
-    bool displayNodeBufferReleased_ = false;
+    bool screenNodeBufferReleased_ = false;
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
@@ -244,12 +246,12 @@ private:
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     // for statistic of jank frames
     std::atomic_bool mainLooping_ = false;
-    std::atomic_bool enableVisiableRect_ = false;
+    std::atomic_bool enableVisibleRect_ = false;
     pid_t tid_ = 0;
     ClearMemoryMoment clearMoment_;
     int imageReleaseCount_ = 0;
     uint32_t vmaCacheCount_ = 0;
-    ScreenId displayNodeScreenId_ = 0;
+    ScreenId screenNodeScreenId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -260,10 +262,10 @@ private:
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     std::vector<NodeId> curDrawStatusVec_;
 
-    // used for blocking renderThread before displayNode has no freed buffer to request
-    mutable std::mutex displayNodeBufferReleasedMutex_;
-    // used for stalling renderThread before displayNode has no freed buffer to request
-    std::condition_variable displayNodeBufferReleasedCond_;
+    // used for blocking renderThread before screenNode has no freed buffer to request
+    mutable std::mutex screenNodeBufferReleasedMutex_;
+    // used for stalling renderThread before screenNode has no freed buffer to request
+    std::condition_variable screenNodeBufferReleasedCond_;
 
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;

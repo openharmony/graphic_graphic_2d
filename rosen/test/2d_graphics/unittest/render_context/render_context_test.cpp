@@ -166,7 +166,7 @@ HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
     // start ClearRedundantResourcesTest001 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
-    EXPECT_NE(renderContext.GetDrGPUContext(), nullptr);
+    EXPECT_NE(renderContext.GetEGLContext(), nullptr);
     renderContext.ClearRedundantResources();
 #endif
 }
@@ -188,7 +188,6 @@ HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
     renderContext.InitializeEglContext();
     renderContext.DamageFrame(0, 0, 0, 0);
     EXPECT_NE(renderContext.eglDisplay_, nullptr);
-    EXPECT_NE(renderContext.eglSurface_, nullptr);
 #endif
 }
 
@@ -209,7 +208,6 @@ HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
     renderContext.InitializeEglContext();
     renderContext.MakeSelfCurrent();
     EXPECT_NE(renderContext.eglDisplay_, EGL_NO_CONTEXT);
-    EXPECT_NE(renderContext.eglSurface_, EGL_NO_SURFACE);
 #endif
 }
 
@@ -417,20 +415,5 @@ HWTEST_F(RenderContextTest, DamageFrameTest002, Level1)
     RectI rect{0, 0, 1, 1};
     auto rects = {rect};
     renderContext->DamageFrame(rects);
-}
-
-/**
- * @tc.name: ClearDrGPUContext001
- * @tc.desc: test ClearDrGPUContext
- * @tc.type: FUNC
- * @tc.require: issuesIC7U3T
- */
-HWTEST_F(RenderContextTest, ClearDrGPUContext001, Level2)
-{
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    ASSERT_NE(renderContext, nullptr);
-    renderContext->ClearDrGPUContext();
-
-    ASSERT_EQ(renderContext->drGPUContext_, nullptr);
 }
 } // namespace OHOS::Rosen

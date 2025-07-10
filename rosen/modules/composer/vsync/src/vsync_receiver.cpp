@@ -50,12 +50,13 @@ VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
 {
 };
 
-void VSyncReceiver::RegisterFileDescriptorListener()
+void VSyncReceiver::RegisterFileDescriptorListener(bool hasVsyncThread)
 {
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(static_cast<uint32_t>(selfToken));
     bool isAppMainThread = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) && (getpid() == gettid());
-    if (isAppMainThread && (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
+    if (!hasVsyncThread && isAppMainThread &&
+        (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
         (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::IDLE) >= APP_VSYNC_PRIORITY)) {
         listener_->SetDeamonWaiter();
         listener_->SetType(AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC);
@@ -76,6 +77,7 @@ VsyncError VSyncReceiver::Init()
         return VSYNC_ERROR_NULLPTR;
     }
 
+    bool hasVsyncThread = false;
     if (looper_ == nullptr) {
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
         if (runner == nullptr) {
@@ -86,6 +88,7 @@ VsyncError VSyncReceiver::Init()
         looper_->PostTask([] {
             SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
         });
+        hasVsyncThread = true;
     }
 
     VsyncError ret = connection_->GetReceiveFd(fd_);
@@ -117,7 +120,7 @@ VsyncError VSyncReceiver::Init()
         return true;
     });
 
-    RegisterFileDescriptorListener();
+    RegisterFileDescriptorListener(hasVsyncThread);
     init_ = true;
     return VSYNC_ERROR_OK;
 }
@@ -165,6 +168,9 @@ VsyncError VSyncReceiver::RequestNextVSync(
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
     }
+    if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
+        looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
+    }
     return connection_->RequestNextVSync(fromWhom, lastVSyncTS, requestVsyncTime);
 }
 
@@ -180,6 +186,9 @@ VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callba
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    }
+    if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
+        looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
     }
     return connection_->RequestNextVSync();
 }

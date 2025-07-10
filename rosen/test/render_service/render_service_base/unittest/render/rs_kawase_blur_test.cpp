@@ -1295,5 +1295,25 @@ HWTEST_F(KawaseBlurFilterTest, ExecutePingPongBlurTestOVER_DRAW, TestSize.Level1
     kawaseBlurFilter->ExecutePingPongBlur(canvas, input, inParam, blur);
     EXPECT_EQ(kawaseBlurFilter->blurEffectAF_, nullptr);
 }
+/**
+ * @tc.name: ApplySimpleFilterTest
+ * @tc.desc: Verify function ApplySimpleFilter
+ * @tc.type: FUNC
+ * @tc.require: #ICEF7K
+ */
+HWTEST_F(KawaseBlurFilterTest, ApplySimpleFilterTest, TestSize.Level1)
+{
+    auto kawaseBlurFilter = std::make_shared<KawaseBlurFilter>();
+    Drawing::Canvas canvas;
+    auto input = std::make_shared<Drawing::Image>();
+    Drawing::Matrix blurMatrix;
+    blurMatrix.Translate(-1, -1);
+    blurMatrix.PostScale(1, 1);
+
+    auto scaledInfo = Drawing::ImageInfo(100, 200, Drawing::COLORTYPE_ALPHA_8, Drawing::ALPHATYPE_OPAQUE, nullptr);
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    auto shaderEffect = kawaseBlurFilter->ApplySimpleFilter(canvas, input, blurMatrix, scaledInfo, linear);
+    EXPECT_EQ(shaderEffect, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

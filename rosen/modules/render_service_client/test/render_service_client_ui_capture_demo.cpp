@@ -198,7 +198,7 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode->SetFrame(0, 0, width, height);
     rootNode->SetBackgroundColor(SK_ColorRED);
 
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(10, 10, 600, 1000);
     canvasNode->SetFrame(10, 10, 600, 1000);
@@ -233,6 +233,8 @@ public:
         }
         cout << "pixelmap write to png sucess" << endl;
     }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 };
 
 void InitNativeTokenInfo()

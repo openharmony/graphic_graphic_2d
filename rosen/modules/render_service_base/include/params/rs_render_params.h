@@ -46,7 +46,6 @@ struct DirtyRegionInfoForDFX {
     }
 };
 struct RSLayerInfo;
-struct ScreenInfo;
 
 typedef enum {
     RS_PARAM_DEFAULT,
@@ -64,6 +63,7 @@ public:
     struct SurfaceParam {
         int width = 0;
         int height = 0;
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     };
 
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
@@ -101,6 +101,9 @@ public:
 
     const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
     void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
+
+    const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
+    void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
 
     inline NodeId GetId() const
     {
@@ -168,14 +171,14 @@ public:
         return globalAlpha_;
     }
 
-    inline bool IsInBlackList() const
+    inline bool NodeGroupHasChildInBlackList() const
     {
-        return isInBlackList_;
+        return isNodeGroupHasChildInBlackList_;
     }
 
-    inline void SetInBlackList(bool isInBlackList)
+    inline void SetNodeGroupHasChildInBlackList(bool isInBlackList)
     {
-        isInBlackList_ = isInBlackList;
+        isNodeGroupHasChildInBlackList_ = isInBlackList;
     }
     
     inline bool IsSnapshotSkipLayer() const
@@ -235,7 +238,8 @@ public:
     bool GetCanvasDrawingSurfaceChanged() const;
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
     SurfaceParam GetCanvasDrawingSurfaceParams();
-    void SetCanvasDrawingSurfaceParams(int width, int height);
+    void SetCanvasDrawingSurfaceParams(int width, int height,
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     void SetStartingWindowFlag(bool b)
     {
@@ -293,7 +297,7 @@ public:
         return absDrawRect_;
     }
 
-    void SetAbsDrawRect(RectI& absRect)
+    void SetAbsDrawRect(const RectI& absRect)
     {
         absDrawRect_ = absRect;
     }
@@ -323,17 +327,13 @@ public:
         return {};
     }
 
+    // hsc toDo: no need to use virtual func
     virtual void SetRotationChanged(bool changed) {}
     virtual bool IsRotationChanged() const
     {
         return false;
     }
 
-    virtual const ScreenInfo& GetScreenInfo() const;
-    virtual uint64_t GetScreenId() const
-    {
-        return 0;
-    }
     virtual ScreenRotation GetScreenRotation() const
     {
         return ScreenRotation::ROTATION_0;
@@ -348,7 +348,6 @@ public:
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const;
     void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    virtual bool GetSecurityDisplay() const { return true; }
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
@@ -375,6 +374,9 @@ public:
 
     bool HasUnobscuredUEC() const;
     void SetHasUnobscuredUEC(bool flag);
+
+    void SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info);
+    const std::unordered_map<ScreenId, bool>& GetVirtualScreenWhiteListInfo() const;
 
     // [Attention] Only used in PC window resize scene now
     void EnableWindowKeyFrame(bool enable);
@@ -416,7 +418,7 @@ private:
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
-    bool isInBlackList_ = false;
+    bool isNodeGroupHasChildInBlackList_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
@@ -426,6 +428,7 @@ private:
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
+    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     bool isOpincSuggestFlag_ = false;
     bool isOpincSupportFlag_ = false;
     bool isOpincRootFlag_ = false;
@@ -454,6 +457,8 @@ private:
 
     // used for DFX
     bool isOnTheTree_ = false;
+
+    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

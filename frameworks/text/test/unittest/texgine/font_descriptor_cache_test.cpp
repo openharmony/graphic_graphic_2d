@@ -23,9 +23,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-static const std::string FILE_NAME = "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json";
-static const std::string FILE_NAME_PATH = "/system/fonts/hm_symbol_config.json";
-static const std::string EFFECTIVE_FILE_NAME = "/system/fonts/HarmonyOS_Sans.ttf";
 constexpr uint32_t WEIGHT_500 = 500;
 
 class FontDescriptorTest : public testing::Test {};
@@ -35,7 +32,7 @@ class FontDescriptorTest : public testing::Test {};
  * @tc.desc: test the ClearFontFileCache function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, ClearFontFileCacheTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, ClearFontFileCacheTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     fontDescriptorCache->ClearFontFileCache();
@@ -47,7 +44,7 @@ HWTEST_F(FontDescriptorTest, ClearFontFileCacheTest, TestSize.Level1)
  * @tc.desc: test the ParserStylishFonts function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, ParserStylishFontsTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, ParserStylishFontsTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     TextEngine::FontParser::FontDescriptor descriptor;
@@ -62,16 +59,15 @@ HWTEST_F(FontDescriptorTest, ParserStylishFontsTest, TestSize.Level1)
  * @tc.desc: test the FontDescriptorScatter function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, FontDescriptorScatterTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, FontDescriptorScatterTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
+    ASSERT_NE(fontDescriptorCache, nullptr);
     FontDescSharedPtr desc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
     desc->symbolic = false;
     fontDescriptorCache->FontDescriptorScatter(desc);
-    EXPECT_EQ(desc->symbolic, false);
     desc->symbolic = true;
     fontDescriptorCache->FontDescriptorScatter(desc);
-    EXPECT_NE(fontDescriptorCache, nullptr);
 }
 
 /**
@@ -79,7 +75,7 @@ HWTEST_F(FontDescriptorTest, FontDescriptorScatterTest, TestSize.Level1)
  * @tc.desc: test the MatchFromFontDescriptor and IsDefault function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, MatchFromFontDescriptorTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, MatchFromFontDescriptorTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -110,7 +106,7 @@ HWTEST_F(FontDescriptorTest, MatchFromFontDescriptorTest, TestSize.Level1)
  * @tc.desc: test the FontDescriptorCacheFilter function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, FontDescriptorCacheFilterTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, FontDescriptorCacheFilterTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -136,7 +132,7 @@ HWTEST_F(FontDescriptorTest, FontDescriptorCacheFilterTest, TestSize.Level1)
  * @tc.desc: test the GetSystemFontFullNamesByType function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, GetSystemFontFullNamesByTypeTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, GetSystemFontFullNamesByTypeTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -153,7 +149,7 @@ HWTEST_F(FontDescriptorTest, GetSystemFontFullNamesByTypeTest, TestSize.Level1)
  * @tc.desc: test the HandleMapIntersection function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, HandleMapIntersectionTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, HandleMapIntersectionTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -189,7 +185,7 @@ HWTEST_F(FontDescriptorTest, HandleMapIntersectionTest, TestSize.Level1)
  * @tc.desc: test the GetFontDescSharedPtrByFullName function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, GetFontDescSharedPtrByFullNameTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, GetFontDescSharedPtrByFullNameTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -229,7 +225,7 @@ HWTEST_F(FontDescriptorTest, GetFontDescSharedPtrByFullNameTest, TestSize.Level1
  * @tc.desc: test the FilterSymbolicCache function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, FilterSymbolicCacheTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, FilterSymbolicCacheTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -259,7 +255,7 @@ HWTEST_F(FontDescriptorTest, FilterSymbolicCacheTest, TestSize.Level1)
  * @tc.desc: test the FilterMonoSpaceCache function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, FilterMonoSpaceCacheTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, FilterMonoSpaceCacheTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -288,7 +284,7 @@ HWTEST_F(FontDescriptorTest, FilterMonoSpaceCacheTest, TestSize.Level1)
  * @tc.desc: test the FilterItalicCache function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, FilterItalicCacheTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, FilterItalicCacheTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -317,7 +313,7 @@ HWTEST_F(FontDescriptorTest, FilterItalicCacheTest, TestSize.Level1)
  * @tc.desc: test the FilterWidthCache function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, FilterWidthCacheTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, FilterWidthCacheTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);
@@ -350,7 +346,7 @@ HWTEST_F(FontDescriptorTest, FilterWidthCacheTest, TestSize.Level1)
  * @tc.desc: test the FilterBoldCache function
  * @tc.type: FUNC
  */
-HWTEST_F(FontDescriptorTest, FilterBoldCacheTest, TestSize.Level1)
+HWTEST_F(FontDescriptorTest, FilterBoldCacheTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
     EXPECT_NE(fontDescriptorCache, nullptr);

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "feature/uifirst/rs_sub_thread.h"
-#include "feature/uifirst/rs_uifirst_manager.h"
 #include "gtest/gtest.h"
 
+#include "feature/uifirst/rs_sub_thread.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -51,14 +51,10 @@ void RsSubThreadTest::TearDown() {}
  */
 HWTEST_F(RsSubThreadTest, PostTaskTest, TestSize.Level1)
 {
-    auto renderContext = new RenderContext();
+    auto renderContext = std::make_shared<RenderContext>();
     ASSERT_TRUE(renderContext != nullptr);
-    renderContext->InitializeEglContext();
-    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
     curThread->PostTask([] {});
-    delete renderContext;
-    renderContext = nullptr;
-    usleep(1000 * 1000); // 1000 * 1000us
 }
 
 /**
@@ -71,13 +67,10 @@ HWTEST_F(RsSubThreadTest, CreateShareEglContextTest, TestSize.Level1)
 {
     auto curThread1 = std::make_shared<RSSubThread>(nullptr, 0);
     curThread1->CreateShareEglContext();
-    auto renderContext = new RenderContext();
+    auto renderContext = std::make_shared<RenderContext>();
     ASSERT_TRUE(renderContext != nullptr);
-    renderContext->InitializeEglContext();
-    auto curThread2 = std::make_shared<RSSubThread>(renderContext, 0);
+    auto curThread2 = std::make_shared<RSSubThread>(renderContext.get(), 0);
     curThread2->CreateShareEglContext();
-    delete renderContext;
-    renderContext = nullptr;
 }
 
 /**
@@ -90,13 +83,10 @@ HWTEST_F(RsSubThreadTest, DestroyShareEglContextTest, TestSize.Level1)
 {
     auto curThread1 = std::make_shared<RSSubThread>(nullptr, 0);
     curThread1->DestroyShareEglContext();
-    auto renderContext = new RenderContext();
+    auto renderContext = std::make_shared<RenderContext>();
     ASSERT_TRUE(renderContext != nullptr);
-    renderContext->InitializeEglContext();
-    auto curThread2 = std::make_shared<RSSubThread>(renderContext, 0);
+    auto curThread2 = std::make_shared<RSSubThread>(renderContext.get(), 0);
     curThread2->DestroyShareEglContext();
-    delete renderContext;
-    renderContext = nullptr;
 }
 
 /**

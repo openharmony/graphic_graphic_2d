@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_LIGHT_UP_EFFECT_FILTER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_LIGHT_UP_EFFECT_FILTER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_LIGHT_UP_EFFECT_FILTER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_LIGHT_UP_EFFECT_FILTER_H
 
 #include <memory>
 #include "include/core/SkColorFilter.h"
@@ -33,17 +33,6 @@ public:
         const std::shared_ptr<RSDrawingFilterOriginal>& other) const override;
     std::string GetDescription() override;
 
-    std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
-    std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
-    std::shared_ptr<RSFilter> Multiply(float rhs) override;
-    std::shared_ptr<RSFilter> Negate() override;
-    bool IsNearEqual(
-        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
-    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
-
-    bool IsEqual(const std::shared_ptr<RSFilter>& other) const override;
-    bool IsEqualZero() const override;
-
 private:
     float lightUpDegree_ = 0.f;
     std::shared_ptr<Drawing::ImageFilter> CreateLightUpEffectFilter(float lightUpDegree);
@@ -53,4 +42,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_LIGHT_UP_EFFECT_FILTER_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_LIGHT_UP_EFFECT_FILTER_H

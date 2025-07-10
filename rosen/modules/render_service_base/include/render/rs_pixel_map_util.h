@@ -29,6 +29,7 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class ImageFit;
 class RSB_EXPORT RSPixelMapUtil {
 public:
     // The generated SkImage already holds the shared_ptr of the source PixelMap,
@@ -37,7 +38,7 @@ public:
         const std::shared_ptr<Media::PixelMap>& pixelMap);
     static std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
     static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
-                                        Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas);
+            Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas, ImageFit imageFit);
     static void DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,
                              const Drawing::scalar px, const Drawing::scalar py);
     static bool IsYUVFormat(std::shared_ptr<Media::PixelMap> pixelMap);

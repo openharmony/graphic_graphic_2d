@@ -17,6 +17,9 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_gpu_context.h"
 #include "text/font.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/mock/GrMockTypes.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -255,6 +258,19 @@ HWTEST_F(SkiaGPUContextTest, RegisterVulkanErrorCallback001, TestSize.Level1)
     auto gpuContext = std::make_shared<SkiaGPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->RegisterVulkanErrorCallback(nullptr);
+}
+
+/**
+ * @tc.name: SetEarlyZFlagTest001
+ * @tc.desc: Test SetEarlyZFlag
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(SkiaGPUContextTest, SetEarlyZFlagTest001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetEarlyZFlag(true);
 }
 
 /**

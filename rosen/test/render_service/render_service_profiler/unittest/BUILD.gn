@@ -65,10 +65,13 @@ ohos_unittest("RSProfilerArchiveTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerBaseTest  ##################################
@@ -76,7 +79,7 @@ ohos_unittest("RSProfilerBaseTest") {
   module_out_path = module_output_path
 
   defines = [ "RS_PROFILER_ENABLED" ]
-  sources = [ "rs_profiler_base.cpp" ]
+  sources = [ "rs_profiler_base_test.cpp" ]
 
   configs = [
     ":render_test",
@@ -95,11 +98,14 @@ ohos_unittest("RSProfilerBaseTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   use_exceptions = true
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerCaptureDataTest  ##################################
@@ -125,10 +131,13 @@ ohos_unittest("RSProfilerCaptureDataTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerNetworkTest  ##################################
@@ -154,10 +163,13 @@ ohos_unittest("RSProfilerNetworkTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerPacketTest  ##################################
@@ -183,10 +195,13 @@ ohos_unittest("RSProfilerPacketTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerSocketTest  ##################################
@@ -212,11 +227,14 @@ ohos_unittest("RSProfilerSocketTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   use_exceptions = true
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerTest  ##################################
@@ -243,6 +261,8 @@ ohos_unittest("RSProfilerTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
@@ -250,6 +270,41 @@ ohos_unittest("RSProfilerTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+
+  use_exceptions = true
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+##############################  RSProfilerTelemetryTest  ##################################
+ohos_unittest("RSProfilerTelemetryTest") {
+  module_out_path = module_output_path
+
+  defines = [ "RS_PROFILER_ENABLED" ]
+  sources = [ "rs_profiler_telemetry_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "--coverage"
+  ]
+
+  ldflags = [
+  "--coverage",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
 
   use_exceptions = true
   subsystem_name = "graphic"
@@ -273,10 +328,13 @@ ohos_unittest("RSProfilerUtilsTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerCommandTest  ##################################
@@ -297,8 +355,11 @@ ohos_unittest("RSProfilerCommandTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }

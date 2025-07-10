@@ -50,7 +50,6 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
 
     RSColor valTest1 { 0, 0, 0, 0 };
 
-    ASSERT_EQ(extractor.GetSurfaceBgColor(), valTest1);
     ASSERT_EQ(extractor.GetBloom(), 0.f);
 
     // Node is not nullptr
@@ -193,6 +192,20 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineRadius001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHDRBrightnessFactor001
+ * @tc.desc: test results of GetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetHDRBrightnessFactor001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float hdrBrightnessFactor = extractor.GetHDRBrightnessFactor();
+    EXPECT_TRUE(hdrBrightnessFactor == 1.0f);
+}
+
+/**
  * @tc.name: GetForegroundEffectRadius001
  * @tc.desc: test results of GetForegroundEffectRadius
  * @tc.type: FUNC
@@ -204,6 +217,20 @@ HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
     RSModifierExtractor extractor(id);
     float radius = extractor.GetForegroundEffectRadius();
     EXPECT_TRUE(radius == 0.f);
+}
+
+/**
+ * @tc.name: GetShadowMask001
+ * @tc.desc: test results of GetShadowMask
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowMask001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    bool res = extractor.GetShadowMask();
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -397,5 +424,95 @@ HWTEST_F(RSModifierExtractorTest, GetPersp, TestSize.Level1)
     NodeId id = 1;
     auto extractor = std::make_shared<RSModifierExtractor>(id);
     EXPECT_EQ(extractor->GetPersp(), Vector4f(0.f, 0.f, 0.f, 1.f));
+}
+
+/**
+ * @tc.name: GetHDRUIBrightnessTest
+ * @tc.desc: test results of GetHDRUIBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetHDRUIBrightnessTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float hdrUIBrightness = extractor.GetHDRUIBrightness();
+    EXPECT_TRUE(hdrUIBrightness == 1.0f);
+}
+
+/**
+ * @tc.name: DumpTest
+ * @tc.desc: test results of DumpTest
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, DumpTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    std::string dumpInfo = extractor->Dump();
+    std::string expected = "Bounds[0.0 0.0 0.0 0.0] Frame[0.0 0.0 0.0 0.0]";
+    EXPECT_EQ(dumpInfo, expected);
+}
+
+/**
+ * @tc.name: GetQuaternionTest
+ * @tc.desc: test results of GetQuaternion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetQuaternionTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    Quaternion quaternion = extractor->GetQuaternion();
+    EXPECT_TRUE(quaternion.IsIdentity());
+}
+
+/**
+ * @tc.name: GetBackgroundShaderTest
+ * @tc.desc: test results of GetBackgroundShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetBackgroundShaderTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetBackgroundShader(), nullptr);
+}
+
+/**
+ * @tc.name: GetBgImageTest
+ * @tc.desc: test results of GetBgImage
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetBgImageTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetBgImage(), nullptr);
+}
+
+/**
+ * @tc.name: GetShadowPathTest
+ * @tc.desc: test results of GetShadowPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowPathTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetShadowPath(), nullptr);
+}
+
+/**
+ * @tc.name: GetMaskTest
+ * @tc.desc: test results of GetMask
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetMaskTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetMask(), nullptr);
 }
 } // namespace OHOS::Rosen

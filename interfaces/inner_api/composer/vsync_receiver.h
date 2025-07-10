@@ -262,7 +262,7 @@ public:
      */
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch);
 private:
-    void RegisterFileDescriptorListener();
+    void RegisterFileDescriptorListener(bool hasVsyncThread = false);
     VsyncError DestroyLocked();
     void RemoveAndCloseFdLocked();
     sptr<IVSyncConnection> connection_;

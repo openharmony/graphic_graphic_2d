@@ -16,10 +16,12 @@
 #include "drawing_error_code.h"
 #include "drawing_image.h"
 #include "drawing_matrix.h"
+#include "drawing_pixel_map.h"
 #include "drawing_point.h"
 #include "drawing_sampling_options.h"
 #include "drawing_shader_effect.h"
 #include "gtest/gtest.h"
+#include "image/pixelmap_native.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -149,6 +151,64 @@ HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateImageShader
         static_cast<OH_Drawing_TileMode>(-1), options, matrix), nullptr);
     EXPECT_EQ(OH_Drawing_ShaderEffectCreateImageShader(image, CLAMP,
         static_cast<OH_Drawing_TileMode>(99), options, matrix), nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_ShaderEffectCreatePixelMapShader
+ * @tc.desc: Test OH_Drawing_ShaderEffectCreatePixelMapShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreatePixelMapShader, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    // 4 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 4);
+    // 4 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 4);
+    // 3 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 255 means rgba data
+    uint8_t data[] = {
+        255, 255, 0, 255, 255, 255, 0, 255,
+        255, 255, 0, 255, 255, 255, 0, 255
+    };
+    // 16 means data length
+    size_t dataLength = 16;
+    OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_SamplingOptions* samplingOptions =
+        OH_Drawing_SamplingOptionsCreate(FILTER_MODE_LINEAR, MIPMAP_MODE_LINEAR);
+    ASSERT_TRUE(options != nullptr);
+    OH_Drawing_ShaderEffect* effect1 = OH_Drawing_ShaderEffectCreatePixelMapShader(
+        drPixelMap, CLAMP, CLAMP, samplingOptions, nullptr);
+    ASSERT_TRUE(effect1 != nullptr);
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_ShaderEffect* effect2 = OH_Drawing_ShaderEffectCreatePixelMapShader(
+        drPixelMap, CLAMP, CLAMP, samplingOptions, matrix);
+    ASSERT_TRUE(effect2 != nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(nullptr, CLAMP, CLAMP, samplingOptions, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, CLAMP, CLAMP, nullptr, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, static_cast<OH_Drawing_TileMode>(-1),
+        CLAMP, samplingOptions, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, static_cast<OH_Drawing_TileMode>(99),
+        CLAMP, samplingOptions, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, CLAMP,
+        static_cast<OH_Drawing_TileMode>(-1), samplingOptions, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap, CLAMP,
+        static_cast<OH_Drawing_TileMode>(99), samplingOptions, matrix), nullptr);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_ShaderEffectDestroy(effect1);
+    OH_Drawing_ShaderEffectDestroy(effect2);
 }
 
 /*

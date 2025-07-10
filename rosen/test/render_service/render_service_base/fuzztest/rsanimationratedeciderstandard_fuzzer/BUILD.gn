@@ -33,6 +33,7 @@ ohos_fuzztest("RSAnimationRateDeciderStandardFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
   cflags = [

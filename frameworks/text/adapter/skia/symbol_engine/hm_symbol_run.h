@@ -47,6 +47,8 @@ public:
 
     void SetRenderColor(const std::vector<RSSColor>& colorList);
 
+    void SetSymbolColor(const SymbolColor& symbolColor);
+
     void SetRenderMode(RSSymbolRenderingStrategy renderMode);
 
     void SetSymbolEffect(const RSEffectStrategy& effectStrategy);
@@ -63,33 +65,30 @@ public:
         const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc);
 
-    uint64_t GetSymbolUid() const
-    {
-        return symbolTxt_.GetSymbolUid();
-    }
+    uint64_t GetSymbolUid() const;
+ 
+    void SetSymbolUid(uint64_t symbolUid);
+ 
+    void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt);
+ 
+    const HMSymbolTxt& GetSymbolTxt();
 
-    void SetSymbolUid(uint64_t symbolUid)
-    {
-        symbolTxt_.SetSymbolUid(symbolUid);
-        symbolId_ = symbolUid;
-    }
-
-    void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
-    {
-        symbolTxt_ = hmsymbolTxt;
-    }
-
-    const HMSymbolTxt& GetSymbolTxt()
-    {
-        return symbolTxt_;
-    }
+    void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
 
 private:
     void OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate);
 
+    void DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPaths, const RSPath& path);
+
+    void DrawSymbolShadow(RSCanvas* canvas, const std::vector<RSPath>& multPaths);
+
     bool GetAnimationGroups(const RSEffectStrategy effectStrategy, RSAnimationSetting& animationOut);
 
     RSSymbolLayers GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText);
+
+    void SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo);
+
+    void SetGradientColor(const RSSymbolRenderingStrategy& renderMode, const RSSymbolLayers& symbolInfo);
 
     void UpdateSymbolLayersGroups(uint16_t glyphId);
 
@@ -99,6 +98,7 @@ private:
 
     RSSymbolLayersGroups symbolLayersGroups_;
     HMSymbolTxt symbolTxt_;
+    std::vector<std::shared_ptr<SymbolGradient>> gradients_;
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
     std::shared_ptr<RSTextBlob> textBlob_ = nullptr;

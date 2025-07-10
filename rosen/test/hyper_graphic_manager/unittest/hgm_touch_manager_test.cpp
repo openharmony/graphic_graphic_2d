@@ -26,8 +26,9 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr int32_t waitTaskFinishNs = 100000;
+constexpr int32_t waitTaskFinishNs = 100000;
 }
+
 class HgmTouchManagerTest : public HgmTestBase {
 public:
     static void SetUpTestCase()
@@ -45,7 +46,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level0)
 {
     int32_t clickNum = 100;
     auto touchManager = HgmTouchManager();
@@ -64,7 +65,7 @@ HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto touchManager = HgmTouchManager();
@@ -104,7 +105,7 @@ HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level0)
 {
     auto touchManager = HgmTouchManager();
     const int32_t rsTimeoutUs = 610000;
@@ -151,7 +152,7 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level1)
+HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
         auto touchManager = HgmTouchManager();
@@ -183,11 +184,42 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level1)
         }
         STEP("ExecuteCallback") {
             touchManager.ExecuteCallback(nullptr);
-            touchManager.ExecuteCallback([] () { usleep(1); });
+            touchManager.ExecuteCallback([]() { usleep(1); });
             touchManager.ExecuteCallback(nullptr);
         }
     }
     sleep(1); // wait for task finished
+}
+
+/**
+ * @tc.name: TestInitTouchManager
+ * @tc.desc: Verify the result of InitTouchManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTouchManagerTest, TestInitTouchManager, Function | SmallTest | Level1)
+{
+    const int32_t upTimeUs = 120000;
+
+    HgmFrameRateManager mgr;
+    mgr.InitTouchManager();
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.voterTouchEffective_.load(), true);
+
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
+
+    mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
+
+    mgr.touchManager_.ChangeState(TouchState::UP_STATE);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, true);
+
+    usleep(upTimeUs);
+    EXPECT_EQ(mgr.frameVoter_.isTouchUpLTPOFirstPeriod_, false);
+
+    mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    EXPECT_EQ(mgr.voterTouchEffective_, false);
 }
 } // namespace Rosen
 } // namespace OHOS

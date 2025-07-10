@@ -17,7 +17,11 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -25,7 +29,12 @@ RSBezierWarpFilter::RSBezierWarpFilter(const std::array<Drawing::Point, BEZIER_W
     :destinationPatch_(destinationPatch)
 {
     type_ = ShaderFilterType::BEZIER_WARP;
-    hash_ = SkOpts::hash(&destinationPatch_, sizeof(destinationPatch_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&destinationPatch_, sizeof(destinationPatch_), hash_);
 }
 
 RSBezierWarpFilter::~RSBezierWarpFilter() = default;

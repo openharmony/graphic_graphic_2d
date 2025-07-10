@@ -17,7 +17,7 @@
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "v2_1/cm_color_space.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 #include "recording/recording_canvas.h"
 
 using namespace testing;
@@ -136,16 +136,17 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawDisplayNodeWithParams001
- * @tc.desc: Test DrawDisplayNodeWithParams
+ * @tc.name: DrawScreenNodeWithParams001
+ * @tc.desc: Test DrawScreenNodeWithParams
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST_F(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, DrawScreenNodeWithParams001, TestSize.Level1)
 {
     NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    ScreenId screenId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
     BufferDrawParam param;
 
     if (RSSystemProperties::IsUseVulkan()) {
@@ -158,19 +159,19 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Leve
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
         auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
         ASSERT_NE(recordingCanvas, nullptr);
-        renderEngine->DrawDisplayNodeWithParams(*recordingCanvas, *node, param);
+        renderEngine->DrawScreenNodeWithParams(*recordingCanvas, *node, param);
 
         param.useCPU = true;
-        renderEngine->DrawDisplayNodeWithParams(*recordingCanvas, *node, param);
+        renderEngine->DrawScreenNodeWithParams(*recordingCanvas, *node, param);
     } else {
         auto renderEngine = std::make_shared<RSRenderEngine>();
         std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
         std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
         ASSERT_NE(canvas, nullptr);
-        renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
+        renderEngine->DrawScreenNodeWithParams(*canvas, *node, param);
 
         param.useCPU = true;
-        renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
+        renderEngine->DrawScreenNodeWithParams(*canvas, *node, param);
     }
 }
 

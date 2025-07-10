@@ -121,6 +121,7 @@ int RsFrameReport::GetEnable()
 
 void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload)
 {
+    std::lock_guard<std::mutex> lock(reportSchedEventFuncLock_);
     if (reportSchedEventFunc_ == nullptr) {
         reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
     }
@@ -130,17 +131,6 @@ void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered
         LOGE("RsFrameReport load ReportSchedEvent function failed!");
     }
 }
-
-#ifdef RS_ENABLE_VK
-void RsFrameReport::ModifierReportSchedEvent(
-    FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
-{
-    if (!frameSchedSoLoaded_) {
-        LoadLibrary();
-    }
-    ReportSchedEvent(event, payload);
-}
-#endif
 
 void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
 {
@@ -205,7 +195,7 @@ void RsFrameReport::PostAndWait()
     ReportSchedEvent(FrameSchedEvent::RS_POST_AND_WAIT, {});
 }
 
-void RsFrameReport::BeginFlush()
+void RsFrameReport::CheckBeginFlushPoint()
 {
     ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
 }
@@ -238,6 +228,17 @@ void RsFrameReport::ReportFrameDeadline(int deadline, uint32_t currentRate)
     payload["rsFrameDeadline"] = std::to_string(deadline);
     payload["currentRate"] = std::to_string(currentRate);
     ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
+}
+
+void RsFrameReport::ReportUnmarshalData(int unmarshalTid, size_t dataSize)
+{
+    if (unmarshalTid <= 0) {
+        return;
+    }
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["unmarshalTid"] = std::to_string(unmarshalTid);
+    payload["dataSize"] = std::to_string(dataSize);
+    ReportSchedEvent(FrameSchedEvent::RS_UNMARSHAL_DATA, payload);
 }
 
 void RsFrameReport::ReportDDGRTaskInfo()

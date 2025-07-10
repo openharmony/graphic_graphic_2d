@@ -158,6 +158,11 @@ bool RSSystemProperties::GetExpandScreenDirtyEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
@@ -205,13 +210,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
 }
-
-#ifndef NEW_SKIA
-bool RSSystemProperties::GetReleaseResourceEnabled()
-{
-    return {};
-}
-#endif
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
@@ -620,6 +618,11 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;
@@ -636,6 +639,11 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 }
 
 bool RSSystemProperties::GetTimeVsyncDisabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTextureExportDFXEnabled()
 {
     return false;
 }
@@ -700,9 +708,9 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
     return false;
 }
 
-int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
-    return 0;
+    return false;
 }
 
 bool RSSystemProperties::ViewDrawNodeType()
@@ -734,5 +742,33 @@ bool RSSystemProperties::GetBehindWindowFilterEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTypicalResidentProcess()
+{
+    return false;
+}
+
+void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+}
+
+bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

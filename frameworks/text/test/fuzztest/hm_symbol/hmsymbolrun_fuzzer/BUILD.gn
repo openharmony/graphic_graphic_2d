@@ -19,7 +19,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("HmSymbolRunFuzzTest") {
-  module_out_path = text_test_out_path
+  module_out_path = text_fuzz_out_path
   fuzz_config_file = "."
 
   configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
@@ -45,6 +45,7 @@ ohos_fuzztest("HmSymbolRunFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$rosen_text_root:rosen_text",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

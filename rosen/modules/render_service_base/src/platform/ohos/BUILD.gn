@@ -85,6 +85,7 @@ ohos_source_set("rosen_ohos_sources") {
         "backend/rs_surface_frame_ohos_vulkan.cpp",
         "backend/rs_surface_ohos_vulkan.cpp",
         "backend/rs_vulkan_context.cpp",
+        "backend/rs_hdr_vulkan_task.cpp",
       ]
     }
     if (graphic_2d_feature_enable_opengl && rs_enable_gpu) {
@@ -147,6 +148,7 @@ ohos_source_set("rosen_ohos_sources") {
 
   external_deps = [
     "c_utils:utils",
+    "cJSON:cjson",
     "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "graphic_surface:sync_fence",
@@ -162,6 +164,10 @@ ohos_source_set("rosen_ohos_sources") {
     "skia:skia_canvaskit",
     "window_manager:libwsutils",
   ]
+
+  if (rosen_is_ohos) {
+    external_deps += ["ffrt:libffrt",]
+  }
 
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]

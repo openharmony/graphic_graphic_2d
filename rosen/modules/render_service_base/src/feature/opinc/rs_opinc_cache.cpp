@@ -62,18 +62,20 @@ void RSOpincCache::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& uncha
     }
     if (isSelfDirty) {
         NodeCacheStateChange(NodeChangeType::SELF_DIRTY);
-        isReseted_ = true;
     } else if (nodeCacheState_ != NodeCacheState::STATE_UNCHANGE) {
         NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
-        isReseted_ = false;
     } else {
         if (waitCount_ > 0) {
             waitCount_--;
         } else {
             unchangeCountUpper_ = MIN_UNCHANGE_COUNT;
         }
-        isReseted_ = false;
     }
+}
+
+void RSOpincCache::UpdateSubTreeSupportFlag(bool childSupportFlag, bool childRootFlag, bool groupTypeIsNone)
+{
+    subTreeSupportFlag_ = subTreeSupportFlag_ && childSupportFlag && !childRootFlag && groupTypeIsNone;
 }
 
 void RSOpincCache::OpincUpdateRootFlag(bool& unchangeMarkEnable, bool isOpincNodeSupportFlag)

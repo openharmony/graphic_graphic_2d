@@ -22,7 +22,7 @@ RSGraphicRootNode::RSGraphicRootNode()
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestScreenSurface";
-    screenSurfaceNode_ = RSSurfaceNode::Create(config);
+    screenSurfaceNode_ = RSSurfaceNode::Create(config, RSSurfaceNodeType::LEASH_WINDOW_NODE);
 }
 
 void RSGraphicRootNode::SetTestSurface(

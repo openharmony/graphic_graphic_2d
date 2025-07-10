@@ -19,6 +19,9 @@
 #include <iomanip>
 #include <sstream>
 
+#ifndef ROSEN_CROSS_PLATFORM
+#include "color_space_convertor.h"
+#endif
 #include "common/rs_common_def.h"
 
 namespace OHOS {
@@ -158,22 +161,22 @@ int16_t RSColor::GetAlpha() const
 
 scalar RSColor::GetRedF() const
 {
-    return static_cast<scalar>(red_) / RGB_MAX;
+    return static_cast<scalar>(red_) / RGB_MAX_VALUE;
 }
 
 scalar RSColor::GetGreenF() const
 {
-    return static_cast<scalar>(green_) / RGB_MAX;
+    return static_cast<scalar>(green_) / RGB_MAX_VALUE;
 }
 
 scalar RSColor::GetBlueF() const
 {
-    return static_cast<scalar>(blue_) / RGB_MAX;
+    return static_cast<scalar>(blue_) / RGB_MAX_VALUE;
 }
 
 scalar RSColor::GetAlphaF() const
 {
-    return static_cast<scalar>(alpha_) / RGB_MAX;
+    return static_cast<scalar>(alpha_) / RGB_MAX_VALUE;
 }
 
 Drawing::Color4f RSColor::GetColor4f() const
@@ -211,7 +214,7 @@ void RSColor::SetAlpha(int16_t alpha)
     alpha_ = alpha;
 }
 
-void RSColor::SetColorSpace(GraphicColorGamut colorSpace)
+void RSColor::SetColorSpace(const GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
 }
@@ -219,6 +222,36 @@ void RSColor::SetColorSpace(GraphicColorGamut colorSpace)
 void RSColor::MultiplyAlpha(float alpha)
 {
     alpha_ = static_cast<int16_t>(alpha_ * std::clamp(alpha, 0.0f, 1.0f));
+}
+
+void RSColor::ConvertToP3ColorSpace()
+{
+    if (colorSpace_ == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        return;
+    }
+#ifndef ROSEN_CROSS_PLATFORM
+    OHOS::ColorManager::Vector3 rgbF = {GetRedF(), GetGreenF(), GetBlueF()};
+    auto rgbInP3 = OHOS::ColorManager::ColorSpaceConvertor::ConvertSRGBToP3ColorSpace(rgbF);
+    red_ = static_cast<int16_t>(round(rgbInP3[COLOR_ARRAY_RED_INDEX] * RGB_MAX_VALUE));
+    green_ = static_cast<int16_t>(round(rgbInP3[COLOR_ARRAY_GREEN_INDEX] * RGB_MAX_VALUE));
+    blue_ = static_cast<int16_t>(round(rgbInP3[COLOR_ARRAY_BLUE_INDEX] * RGB_MAX_VALUE));
+#endif
+    colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+}
+
+void RSColor::ConvertToSRGBColorSpace()
+{
+    if (colorSpace_ == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
+        return;
+    }
+#ifndef ROSEN_CROSS_PLATFORM
+    OHOS::ColorManager::Vector3 rgbF = {GetRedF(), GetGreenF(), GetBlueF()};
+    auto rgbInSRGB = OHOS::ColorManager::ColorSpaceConvertor::ConvertP3ToSRGBColorSpace(rgbF);
+    red_ = static_cast<int16_t>(round(rgbInSRGB[COLOR_ARRAY_RED_INDEX] * RGB_MAX_VALUE));
+    green_ = static_cast<int16_t>(round(rgbInSRGB[COLOR_ARRAY_GREEN_INDEX] * RGB_MAX_VALUE));
+    blue_ = static_cast<int16_t>(round(rgbInSRGB[COLOR_ARRAY_BLUE_INDEX] * RGB_MAX_VALUE));
+#endif
+    colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 }
 
 void RSColor::Dump(std::string& out) const
@@ -239,7 +272,6 @@ void RSColor::Dump(std::string& out) const
             out += " colorSpace: OTHER]";
             break;
     }
-    
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
+#include "ui_effect/property/include/rs_ui_ripple_mask.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,11 +43,22 @@ void RSUIColorGradientFilterTest::TearDown() {}
 HWTEST_F(RSUIColorGradientFilterTest, Equal001, TestSize.Level1)
 {
     auto filterPara1 = std::make_shared<RSUIColorGradientFilterPara>();
+    EXPECT_FALSE(filterPara1->Equals(nullptr));
+
     auto filterPara2 = std::make_shared<RSUIColorGradientFilterPara>();
     auto filterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(filterPara2);
     
-    EXPECT_FALSE(filterPara1->Equals(filterParaBase));
+    EXPECT_TRUE(filterPara1->Equals(filterParaBase));
     EXPECT_FALSE(filterPara1->Equals(nullptr));
+
+    filterParaBase->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    EXPECT_FALSE(filterPara1->Equals(filterParaBase));
+
+    filterPara1->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    filterPara2->properties_[RSUIFilterType::RIPPLE_MASK] = nullptr;
+    auto rippleMaskPara = std::make_shared<RSUIRippleMaskPara>();
+    filterPara2->properties_[RSUIFilterType::RIPPLE_MASK] = rippleMaskPara;
+    EXPECT_FALSE(filterPara1->Equals(filterParaBase));
 }
 
 /**
@@ -177,5 +189,24 @@ HWTEST_F(RSUIColorGradientFilterTest, CreateRSRenderFilter001, TestSize.Level1)
     filterPara1->SetMask(mask);
     rsRenderFilterParaBase = filterPara1->CreateRSRenderFilter();
     EXPECT_NE(rsRenderFilterParaBase, nullptr);
+}
+
+/**
+ * @tc.name: CheckEnableHdrEffect001
+ * @tc.desc: Test CheckEnableHdrEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIColorGradientFilterTest, CheckEnableHdrEffect001, TestSize.Level1)
+{
+    auto filterPara = std::make_shared<RSUIColorGradientFilterPara>();
+    EXPECT_FALSE(filterPara->CheckEnableHdrEffect());
+
+    std::vector<float> colors = { 0.5, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 1.0};
+    auto mask = std::make_shared<MaskPara>();
+
+    auto colorGradientPara =  std::make_shared<ColorGradientPara>();
+    colorGradientPara->SetColors(colors);
+    filterPara->SetColorGradient(colorGradientPara);
+    EXPECT_TRUE(filterPara->CheckEnableHdrEffect());
 }
 } // namespace OHOS::Rosen

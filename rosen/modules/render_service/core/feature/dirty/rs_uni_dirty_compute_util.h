@@ -21,21 +21,69 @@
 #include <set>
 #include <unordered_map>
 
+#include "common/rs_occlusion_region.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSDirtyRectsDfx;
 class RSUniDirtyComputeUtil {
 public:
-    static std::vector<RectI> GetCurrentFrameVisibleDirty(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
-        ScreenInfo& screenInfo, RSDisplayRenderParams& params);
-    static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
+    static std::vector<RectI> GetCurrentFrameVisibleDirty(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
+        ScreenInfo& screenInfo, RSScreenRenderParams& params);
+    static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, const ScreenInfo& screenInfo);
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
+    static void UpdateVirtualExpandScreenAccumulatedParams(
+        RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
+    static bool CheckVirtualExpandScreenSkip(
+        RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
+};
+
+class DirtyStatusAutoUpdate {
+public:
+    DirtyStatusAutoUpdate(RSRenderThreadParams& uniParams, bool isSingleLogicalDisplay) : uniParams_(uniParams)
+    {
+        isVirtualDirtyEnabled_ = uniParams_.IsVirtualDirtyEnabled();
+        uniParams_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_ && isSingleLogicalDisplay);
+    }
+    ~DirtyStatusAutoUpdate()
+    {
+        uniParams_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_);
+    }
+private:
+    RSRenderThreadParams& uniParams_;
+    bool isVirtualDirtyEnabled_;
+};
+
+class RSUniFilterDirtyComputeUtil {
+public:
+    static FilterDirtyRegionInfo GenerateFilterDirtyRegionInfo(
+        RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty, bool isSurface);
+    // Entry for filter dirty region process
+    static void DealWithFilterDirtyRegion(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix,
+        bool dirtyAlign = false);
+private:
+    static bool DealWithFilterDirtyForScreen(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix);
+
+    static bool DealWithFilterDirtyForSurface(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
+        const std::optional<Drawing::Matrix>& matrix);
+    // basic check point
+    static bool CheckMergeFilterDirty(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        RSFilterDirtyCollector& collector, const std::optional<Drawing::Matrix>& matrix,
+        const std::optional<Occlusion::Region>& visibleRegion);
+
+    static void ResetFilterInfoStatus(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& surfaceDrawables);
+
+    static Occlusion::Region GetVisibleEffectRegion(RSRenderNode& filterNode);
+    inline static bool dirtyAlignEnabled_ = false;
 };
 }
 }

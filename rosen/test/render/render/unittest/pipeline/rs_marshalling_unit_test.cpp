@@ -1223,63 +1223,6 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingArrayTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarshallingVecTest
- * @tc.desc: Verify function MarshallingVec
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, MarshallingVecTest, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<int> val;
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec(parcel, val));
-    val.emplace_back(1);
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec(parcel, val));
-}
-
-/**
- * @tc.name: UnmarshallingVecTest
- * @tc.desc: Verify function UnmarshallingVec
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, UnmarshallingVecTest, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<int> val;
-    EXPECT_TRUE(RSMarshallingHelper::UnmarshallingVec(parcel, val));
-}
-
-/**
- * @tc.name: MarshallingVec2Test
- * @tc.desc: Verify function MarshallingVec2
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, MarshallingVec2Test, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<std::vector<int>> val;
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec2(parcel, val));
-    std::vector<int> emptyVector;
-    val.emplace_back(emptyVector);
-    EXPECT_TRUE(RSMarshallingHelper::MarshallingVec2(parcel, val));
-}
-
-/**
- * @tc.name: UnmarshallingVec2Test
- * @tc.desc: Verify function UnmarshallingVec2
- * @tc.type:FUNC
- * @tc.require: issuesI9O78C
- */
-HWTEST_F(RSMarshallingHelperTest, UnmarshallingVec2Test, TestSize.Level1)
-{
-    Parcel parcel;
-    std::vector<std::vector<int>> val;
-    EXPECT_TRUE(RSMarshallingHelper::UnmarshallingVec2(parcel, val));
-}
-
-/**
  * @tc.name: MarshallingTest035
  * @tc.desc: Verify function Marshalling
  * @tc.type:FUNC

@@ -49,7 +49,7 @@ void AssetFontManagerTest::TearDownTestCase()
  * @tc.desc: test for onMatchFamily and some nullptr functions
  * @tc.type: FUNC
  */
-HWTEST_F(AssetFontManagerTest, AssetFontManagerTest001, TestSize.Level1)
+HWTEST_F(AssetFontManagerTest, AssetFontManagerTest001, TestSize.Level0)
 {
     std::string familyName("test");
     EXPECT_EQ(assetFontManager_->onMatchFamily(familyName.c_str()), nullptr);
@@ -77,7 +77,7 @@ HWTEST_F(AssetFontManagerTest, AssetFontManagerTest001, TestSize.Level1)
  * @tc.desc: test for TestFontManager
  * @tc.type: FUNC
  */
-HWTEST_F(AssetFontManagerTest, AssetFontManagerTest012, TestSize.Level1)
+HWTEST_F(AssetFontManagerTest, AssetFontManagerTest012, TestSize.Level0)
 {
     std::unique_ptr<FontAssetProvider> fontProvider = std::make_unique<TypefaceFontAssetProvider>();
     EXPECT_NE(fontProvider, nullptr);
@@ -95,7 +95,7 @@ HWTEST_F(AssetFontManagerTest, AssetFontManagerTest012, TestSize.Level1)
  * @tc.desc: test for match family and style
  * @tc.type: FUNC
  */
-HWTEST_F(AssetFontManagerTest, AssetFontManagerTest013, TestSize.Level1)
+HWTEST_F(AssetFontManagerTest, AssetFontManagerTest013, TestSize.Level0)
 {
     std::unique_ptr<TypefaceFontAssetProvider> fontProvider = std::make_unique<TypefaceFontAssetProvider>();
     std::string familyName("test");

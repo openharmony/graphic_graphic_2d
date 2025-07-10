@@ -163,6 +163,8 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
         }
         // finite iteration animation in the background finished immediately
         if (abilityState == RSSurfaceNodeAbilityState::BACKGROUND) {
+            RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
+                "Animation finish background", animation->GetTargetId(), animation->GetAnimationId(), false);
             animation->Finish();
         }
         bool isFinished = animation->Animate(time, minLeftDelayTime);
@@ -238,7 +240,7 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
     AnimationId animationId = animation->GetAnimationId();
     uint64_t token = animation->GetToken();
 
-    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
         "Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(targetId, animationId, token, FINISHED);

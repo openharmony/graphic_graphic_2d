@@ -14,7 +14,9 @@
  */
 #include "gtest/gtest.h"
 
+#include "command/rs_animation_command.h"
 #include "transaction/rs_transaction.h"
+#include "transaction/rs_transaction_proxy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -50,6 +52,21 @@ HWTEST_F(RSTransactionTest, FlushImplicitTransaction001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FlushImplicitTransaction002
+ * @tc.desc: test results of FlushImplicitTransaction
+ * @tc.type: FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSTransactionTest, FlushImplicitTransaction002, TestSize.Level1)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
+    RSTransaction::FlushImplicitTransaction();
+    EXPECT_NE(RSTransaction::FlushImplicitTransaction, nullptr);
+}
+
+/**
  * @tc.name: Marshalling001
  * @tc.desc:
  * @tc.type:
@@ -66,5 +83,19 @@ HWTEST_F(RSTransactionTest, Marshalling001, TestSize.Level1)
     Parcel parcel;
     EXPECT_TRUE(rsTransaction.Marshalling(parcel));
     EXPECT_NE(rsTransaction.Unmarshalling(parcel), nullptr);
+}
+
+/**
+ * @tc.name: SetTransactionHandler
+ * @tc.desc: test results of SetTransactionHandler
+ * @tc.type: FUNC
+ * @tc.require: issueICJ853
+ */
+HWTEST_F(RSTransactionTest, SetTransactionHandler, TestSize.Level1)
+{
+    RSTransaction rsTransaction;
+    std::shared_ptr<RSTransactionHandler> rsTransactionHandler = std::make_shared<RSTransactionHandler>();
+    rsTransaction.SetTransactionHandler(rsTransactionHandler);
+    EXPECT_NE(rsTransaction.rsTransactionHandler_, nullptr);
 }
 } // namespace OHOS::Rosen

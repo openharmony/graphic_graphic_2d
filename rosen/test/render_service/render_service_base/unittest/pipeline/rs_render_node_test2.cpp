@@ -15,6 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#if defined(MODIFIER_NG)
+#include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#endif
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -22,7 +25,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -37,7 +40,7 @@ namespace Rosen {
 const std::string OUT_STR3 =
     ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, VisibleRegion [Empty], "
     "OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
-    "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0]";
+    "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0], colorSpace: 4, uifirstColorGamut: 4";
 const std::string OUT_STR4 = ", Visible: 1, Size: [-inf, -inf], EnableRender: 1";
 const std::string OUT_STR5 = ", skipLayer: 0";
 
@@ -214,18 +217,6 @@ HWTEST_F(RSRenderNodeTest2, IsClipBound, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRenderContent
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, GetRenderContent, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    ASSERT_NE(node.GetRenderContent(), nullptr);
-}
-
-/**
  * @tc.name: GetStagingRenderParams
  * @tc.desc: test
  * @tc.type: FUNC
@@ -370,7 +361,7 @@ HWTEST_F(RSRenderNodeTest2, CheckAndUpdateGeoTrans002, TestSize.Level1)
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
     map[RSModifierType::GEOMETRYTRANS] = list;
-    node.renderContent_->drawCmdModifiers_ = map;
+    node.drawCmdModifiers_ = map;
     ASSERT_EQ(node.CheckAndUpdateGeoTrans(geoPtr), true);
 }
 
@@ -535,7 +526,6 @@ HWTEST_F(RSRenderNodeTest2, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
     properties.drawRegion_ = std::make_shared<RectF>();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     node.UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
     ASSERT_TRUE(true);
 }
@@ -594,7 +584,7 @@ HWTEST_F(RSRenderNodeTest2, Update002, TestSize.Level1)
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
     map[RSModifierType::GEOMETRYTRANS] = list;
-    node.renderContent_->drawCmdModifiers_ = map;
+    node.drawCmdModifiers_ = map;
     bool parentDirty = true;
     ASSERT_EQ(node.Update(*rsDirtyManager, parentNode, parentDirty, clipRect), true);
 }
@@ -706,8 +696,6 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect002, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.shouldPaint_ = false;
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     node.selfDrawRect_ = {0, 0, 1000, 1000};
     node.MapAndUpdateChildrenRect();
     ASSERT_TRUE(true);
@@ -726,7 +714,6 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect003, TestSize.Level1)
 
     surfaceNode->shouldPaint_ = true;
     auto& properties = nodeTest->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.SetClipToFrame(true);
     surfaceNode->selfDrawRect_ = {0, 0, 1000, 1100};
     surfaceNode->childrenRect_ = {0, 0, 1000, 1000};
@@ -749,7 +736,6 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect004, TestSize.Level1)
 
     surfaceNode->shouldPaint_ = true;
     auto& properties = nodeTest->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.SetClipToFrame(false);
     surfaceNode->selfDrawRect_ = {0, 0, 1000, 1100};
     surfaceNode->childrenRect_ = {0, 0, 1000, 1000};
@@ -813,15 +799,15 @@ HWTEST_F(RSRenderNodeTest2, IsFilterCacheValid002, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAIBarFilterCacheValid
+ * @tc.name: CheckAndUpdateAIBarCacheStatus
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require: issueI9V3BK
  */
-HWTEST_F(RSRenderNodeTest2, IsAIBarFilterCacheValid, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, CheckAndUpdateAIBarCacheStatus, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    ASSERT_EQ(node.IsAIBarFilterCacheValid(), false);
+    ASSERT_EQ(node.CheckAndUpdateAIBarCacheStatus(false), false);
 }
 
 /**
@@ -860,11 +846,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateLastFilterCacheRegion, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RSBaseRenderNode rootNode(id + 1, context);
-    auto& properties1 = node.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     Drawing::Matrix absMatrix;
     node.GetAbsMatrixReverse(rootNode, absMatrix);
     ASSERT_TRUE(true);
@@ -879,11 +861,7 @@ HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse001, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse002, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RSBaseRenderNode rootNode(id + 1, context);
-    auto& properties1 = rootNode.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     Drawing::Matrix absMatrix;
     node.GetAbsMatrixReverse(rootNode, absMatrix);
     ASSERT_TRUE(true);
@@ -898,12 +876,8 @@ HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse002, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RSBaseRenderNode subTreeRoot(id + 1, context);
-    auto& properties1 = subTreeRoot.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RectI filterRect{0, 0, 1000, 1000};
     RectI clipRect{0, 0, 1000, 1000};
     node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
@@ -919,12 +893,8 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Leve
 HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RSBaseRenderNode subTreeRoot(id + 1, context);
-    auto& properties1 = subTreeRoot.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RectI filterRect{0, 0, 1000, 1000};
     node.lastFilterRegion_ = filterRect;
     RectI clipRect{0, 0, 1000, 1000};
@@ -1013,7 +983,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBelowDirty, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     bool isForeground = true;
-    node.UpdateFilterCacheWithBelowDirty(*rsDirtyManager, isForeground);
+    node.UpdateFilterCacheWithBelowDirty(Occlusion::Rect(rsDirtyManager->GetCurrentFrameDirtyRegion()), isForeground);
     ASSERT_TRUE(true);
 }
 
@@ -1145,8 +1115,9 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     nodeTest2->DumpSubClassNode(outTest4);
     EXPECT_EQ(outTest4, OUT_STR4);
 
-    RSDisplayNodeConfig config;
-    std::shared_ptr<RSDisplayRenderNode> nodeTest3 = std::make_shared<RSDisplayRenderNode>(0, config);
+    ScreenId screenId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> nodeTest3 = std::make_shared<RSScreenRenderNode>(0, screenId, rsContext);
     EXPECT_NE(nodeTest3, nullptr);
     std::string outTest5 = "";
     nodeTest3->DumpSubClassNode(outTest5);
@@ -1160,10 +1131,21 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
         std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     EXPECT_NE(propertyTest, nullptr);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)].emplace_back(modifier);
+    auto modifier2 = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    auto property2 = std::make_shared<RSRenderProperty<float>>();
+    modifier2->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property2);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier2);
+#else
     std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
         std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
     EXPECT_NE(drawCmdModifiersTest, nullptr);
-    nodeTest->renderContent_->drawCmdModifiers_[RSModifierType::CHILDREN].emplace_back(drawCmdModifiersTest);
+    nodeTest->drawCmdModifiers_[RSModifierType::CHILDREN].emplace_back(drawCmdModifiersTest);
+#endif
     nodeTest->DumpDrawCmdModifiers(outTest6);
     EXPECT_NE(outTest6, "");
 }
@@ -1189,8 +1171,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_NE(nodeTest->renderContent_->renderProperties_.boundsGeo_, nullptr);
+    EXPECT_NE(nodeTest->renderProperties_.boundsGeo_, nullptr);
     nodeTest->hasChildrenOutOfRect_ = true;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, true, true, clipRectTest2);
 
@@ -1199,7 +1180,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
     nodeTest->srcOrClipedAbsDrawRectChangeFlag_ = true;
     nodeTest->hasChildrenOutOfRect_ = false;
     nodeTest->lastFrameHasChildrenOutOfRect_ = true;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    nodeTest->renderProperties_.boundsGeo_ = nullptr;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest3, false, true, clipRectTest3);
 }
 
@@ -1265,14 +1246,14 @@ HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalDistortionEffectRecttest, TestS
     float width = 100.0f; // 100: set width of bounds
     float height = 100.0f; // 100: set height of bounds
     Vector4f bounds(0.0, 0.0, width, height);
-    node.renderContent_->renderProperties_.SetBounds(bounds);
+    node.renderProperties_.SetBounds(bounds);
     node.CollectAndUpdateLocalDistortionEffectRect();
     EXPECT_FALSE(node.localDistortionEffectRect_.width_ > static_cast<int>(width));
 
-    node.renderContent_->renderProperties_.SetDistortionK(0.5f); // 0.5 is k of value in distortion
-    EXPECT_TRUE(node.renderContent_->renderProperties_.GetDistortionDirty());
+    node.renderProperties_.SetDistortionK(0.5f); // 0.5 is k of value in distortion
+    EXPECT_TRUE(node.renderProperties_.GetDistortionDirty());
     node.CollectAndUpdateLocalDistortionEffectRect();
-    EXPECT_FALSE(node.renderContent_->renderProperties_.GetDistortionDirty());
+    EXPECT_FALSE(node.renderProperties_.GetDistortionDirty());
 }
 
 /**
@@ -1308,9 +1289,9 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowOnTreeStateChangedTest, TestSize.
     node->ProcessBehindWindowOnTreeStateChanged();
     auto rootNode = std::make_shared<RSRenderNode>(1);
     rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = rootNode;
-    node->renderContent_->renderProperties_.SetUseEffect(true);
-    ASSERT_TRUE(node->renderContent_->renderProperties_.GetUseEffect());
-    node->renderContent_->renderProperties_.SetUseEffectType(1);
+    node->renderProperties_.SetUseEffect(true);
+    ASSERT_TRUE(node->renderProperties_.GetUseEffect());
+    node->renderProperties_.SetUseEffectType(1);
     node->isOnTheTree_ = true;
     node->ProcessBehindWindowOnTreeStateChanged();
     node->isOnTheTree_ = false;
@@ -1330,13 +1311,33 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowAfterApplyModifiersTest, TestSize
     node->ProcessBehindWindowAfterApplyModifiers();
     auto rootNode = std::make_shared<RSRenderNode>(1);
     rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = rootNode;
-    node->renderContent_->renderProperties_.SetUseEffect(false);
-    ASSERT_FALSE(node->renderContent_->renderProperties_.GetUseEffect());
+    node->renderProperties_.SetUseEffect(false);
+    ASSERT_FALSE(node->renderProperties_.GetUseEffect());
     node->ProcessBehindWindowAfterApplyModifiers();
-    node->renderContent_->renderProperties_.SetUseEffect(true);
-    ASSERT_TRUE(node->renderContent_->renderProperties_.GetUseEffect());
-    node->renderContent_->renderProperties_.SetUseEffectType(1);
+    node->renderProperties_.SetUseEffect(true);
+    ASSERT_TRUE(node->renderProperties_.GetUseEffect());
+    node->renderProperties_.SetUseEffectType(1);
     node->ProcessBehindWindowAfterApplyModifiers();
+}
+
+/**
+ * @tc.name: SetIsOnTheTree
+ * @tc.desc: SetIsOnTheTree ResetChildRelevantFlags and UpdateChildrenRect test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetIsOnTheTree, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    node->isOnTheTree_ = false;
+    node->hasHdrPresent_ = true;
+    node->renderProperties_.hdrUIBrightness_ = 2.0f; // hdr brightness
+    node->SetIsOnTheTree(true, 0, 1, 1, 1);
+    EXPECT_EQ(node->isOnTheTree_, true);
+
+    node->hasHdrPresent_ = false;
+    node->SetIsOnTheTree(false, 0, 1, 1, 1);
+    EXPECT_EQ(node->isOnTheTree_, false);
 }
 
 /**
@@ -1425,6 +1426,34 @@ HWTEST_F(RSRenderNodeTest2, SetHdrNum, TestSize.Level1)
     EXPECT_EQ(surfaceNode->hdrPhotoNum_, 1);
     node->SetHdrNum(true, 1, HDRComponentType::UICOMPONENT);
     EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 1);
+    node->SetHdrNum(false, 1, HDRComponentType::IMAGE);
+    EXPECT_EQ(surfaceNode->hdrPhotoNum_, 0);
+    node->SetHdrNum(false, 1, HDRComponentType::UICOMPONENT);
+    EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 0);
+}
+
+/**
+ * @tc.name: SetEnableHdrEffect
+ * @tc.desc: SetEnableHdrEffect test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetEnableHdrEffect, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = surfaceNode;
+    node->SetEnableHdrEffect(false);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+    node->SetEnableHdrEffect(true);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+    node->SetIsOnTheTree(true, 0, 1, 1, 1);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
+    node->SetEnableHdrEffect(false);
+    EXPECT_EQ(surfaceNode->hdrEffectNum_, 0);
 }
 
 /**
@@ -1439,7 +1468,7 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
 
     std::string outTest1 = "";
-    nodeTest->DumpNodeType(RSRenderNodeType::DISPLAY_NODE, outTest1);
+    nodeTest->DumpNodeType(RSRenderNodeType::SCREEN_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::RS_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::SURFACE_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::CANVAS_NODE, outTest1);
@@ -1461,11 +1490,11 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest, TestSize.Level1)
     nodeTest->SetBootAnimation(true);
     nodeTest->SetContainBootAnimation(true);
     nodeTest->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
-    nodeTest->renderContent_->renderProperties_.isDirty_ = true;
+    nodeTest->renderProperties_.isDirty_ = true;
     nodeTest->isSubTreeDirty_ = true;
-    nodeTest->renderContent_->renderProperties_.isDrawn_ = false;
-    nodeTest->renderContent_->renderProperties_.alphaNeedApply_ = false;
-    nodeTest->renderContent_->drawCmdModifiers_.clear();
+    nodeTest->renderProperties_.isDrawn_ = false;
+    nodeTest->renderProperties_.alphaNeedApply_ = false;
+    nodeTest->drawCmdModifiers_.clear();
     nodeTest->isFullChildrenListValid_ = false;
     nodeTest->disappearingChildren_.emplace_back(std::make_shared<RSRenderNode>(0), 0);
     nodeTest->DumpTree(257, outTest2);
@@ -1493,8 +1522,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest02, TestSize.Level1)
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_NE(nodeTest->renderContent_->renderProperties_.boundsGeo_, nullptr);
+    EXPECT_NE(nodeTest->renderProperties_.boundsGeo_, nullptr);
     nodeTest->hasChildrenOutOfRect_ = true;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, false, false, clipRectTest2);
 
@@ -1503,7 +1531,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest02, TestSize.Level1)
     nodeTest->srcOrClipedAbsDrawRectChangeFlag_ = true;
     nodeTest->hasChildrenOutOfRect_ = false;
     nodeTest->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    nodeTest->renderProperties_.boundsGeo_ = nullptr;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest3, false, true, clipRectTest3);
 }
 
@@ -1585,11 +1613,11 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest02, TestSize.Level1)
     nodeTest->SetBootAnimation(false);
     nodeTest->SetContainBootAnimation(false);
     nodeTest->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
-    nodeTest->renderContent_->renderProperties_.isDirty_ = false;
+    nodeTest->renderProperties_.isDirty_ = false;
     nodeTest->isSubTreeDirty_ = false;
-    nodeTest->renderContent_->renderProperties_.isDrawn_ = false;
-    nodeTest->renderContent_->renderProperties_.alphaNeedApply_ = false;
-    nodeTest->renderContent_->drawCmdModifiers_.clear();
+    nodeTest->renderProperties_.isDrawn_ = false;
+    nodeTest->renderProperties_.alphaNeedApply_ = false;
+    nodeTest->drawCmdModifiers_.clear();
     nodeTest->isFullChildrenListValid_ = false;
     nodeTest->disappearingChildren_.emplace_back(std::make_shared<RSRenderNode>(0), 0);
     nodeTest->DumpTree(257, outTest);
@@ -1616,8 +1644,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest03, TestSize.Level1)
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameHasChildrenOutOfRect_ = true;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_NE(nodeTest->renderContent_->renderProperties_.boundsGeo_, nullptr);
+    EXPECT_NE(nodeTest->renderProperties_.boundsGeo_, nullptr);
     nodeTest->hasChildrenOutOfRect_ = true;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, true, true, clipRectTest2);
 
@@ -1626,7 +1653,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest03, TestSize.Level1)
     nodeTest->srcOrClipedAbsDrawRectChangeFlag_ = true;
     nodeTest->hasChildrenOutOfRect_ = false;
     nodeTest->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    nodeTest->renderProperties_.boundsGeo_ = nullptr;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest3, false, true, clipRectTest3);
 }
 
@@ -1651,8 +1678,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest04, TestSize.Level1)
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest4->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest4->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_NE(nodeTest4->renderContent_->renderProperties_.boundsGeo_, nullptr);
+    EXPECT_NE(nodeTest4->renderProperties_.boundsGeo_, nullptr);
     nodeTest4->hasChildrenOutOfRect_ = true;
     nodeTest4->SubTreeSkipPrepare(dirtyManagerTest2, false, false, clipRectTest2);
 
@@ -1661,7 +1687,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest04, TestSize.Level1)
     nodeTest4->srcOrClipedAbsDrawRectChangeFlag_ = true;
     nodeTest4->hasChildrenOutOfRect_ = true;
     nodeTest4->lastFrameHasChildrenOutOfRect_ = true;
-    nodeTest4->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    nodeTest4->renderProperties_.boundsGeo_ = nullptr;
     nodeTest4->SubTreeSkipPrepare(dirtyManagerTest3, false, true, clipRectTest3);
 }
 
@@ -1878,7 +1904,6 @@ HWTEST_F(RSRenderNodeTest2, UpdateDirtyRegionTest02, TestSize.Level1)
     node.shouldPaint_ = false;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     bool geoDirty = false;
@@ -2187,10 +2212,10 @@ HWTEST_F(RSRenderNodeTest2, InitCacheSurfaceTest02, TestSize.Level1)
     nodeTest->cacheType_ = CacheType::ANIMATE_PROPERTY;
     RSShadow rsShadow;
     std::optional<RSShadow> shadow(rsShadow);
-    nodeTest->renderContent_->renderProperties_.shadow_ = shadow;
-    nodeTest->renderContent_->renderProperties_.shadow_->radius_ = 1.0f;
-    nodeTest->renderContent_->renderProperties_.isSpherizeValid_ = true;
-    nodeTest->renderContent_->renderProperties_.isAttractionValid_ = true;
+    nodeTest->renderProperties_.shadow_ = shadow;
+    nodeTest->renderProperties_.shadow_->radius_ = 1.0f;
+    nodeTest->renderProperties_.isSpherizeValid_ = true;
+    nodeTest->renderProperties_.isAttractionValid_ = true;
     nodeTest->cacheSurface_ = nullptr;
     nodeTest->InitCacheSurface(&gpuContextTest1, funcTest1, 1);
     EXPECT_EQ(nodeTest->cacheSurface_, nullptr);
@@ -2323,5 +2348,28 @@ HWTEST_F(RSRenderNodeTest2, GenerateIDTest, TestSize.Level1)
     auto id = RSRenderNode::GenerateId();
     ASSERT_EQ(RSRenderNode::GenerateId() - id, 1);
 }
+
+#if defined(MODIFIER_NG)
+/**
+ * @tc.name: DumpModifiersTest
+ * @tc.desc: DumpModifiersTest test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, DumpModifiersTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    std::string outTest = "";
+    nodeTest->DumpModifiers(outTest);
+    EXPECT_EQ(outTest, "");
+    auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier);
+    nodeTest->DumpModifiers(outTest);
+    EXPECT_NE(outTest, "");
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

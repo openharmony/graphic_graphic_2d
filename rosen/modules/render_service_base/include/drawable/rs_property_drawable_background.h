@@ -21,6 +21,7 @@
 #include "common/rs_color.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "property/rs_properties_def.h"
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "external_window.h"
@@ -30,8 +31,11 @@
 namespace OHOS::Rosen {
 class RSProperties;
 class RSFilter;
+class RSNGRenderShaderBase;
 namespace Drawing {
+class GEShader;
 class RuntimeEffect;
+class GEVisualEffectContainer;
 }
 #ifdef RS_ENABLE_VK
 namespace NativeBufferUtils {
@@ -89,8 +93,6 @@ public:
     RSBackgroundColorDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-
-private:
 };
 
 class RSBackgroundShaderDrawable : public RSPropertyDrawable {
@@ -103,6 +105,21 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
+};
+
+class RSBackgroundNGShaderDrawable : public RSDrawable {
+public:
+    RSBackgroundNGShaderDrawable() = default;
+    ~RSBackgroundNGShaderDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+private:
+    bool needSync_ = false;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
+    std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
 };
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {
@@ -146,8 +163,10 @@ public:
     bool FuzePixelStretch(const RSRenderNode& node);
 private:
     static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
-    template <typename T>
+    template<typename T>
     static bool GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property);
+    template<typename T>
+    static bool GetBehindWindowFilterProperty(const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property);
 };
 
 class RSBackgroundEffectDrawable : public RSFilterDrawable {

@@ -19,6 +19,7 @@
 #include "animation/rs_render_animation.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
+#include "platform/common/rs_log.h"
 #include "ui/rs_node.h"
 
 namespace OHOS {
@@ -114,6 +115,8 @@ void RSPropertyAnimation::OnUpdateStagingValue(bool isFirstStart)
     if (isFirstStart) {
         if (GetAutoReverse() && GetRepeatCount() % NUMBER_FOR_HALF == 0) {
             targetValue = startValue;
+            RS_LOGI_LIMIT("For even AutoReverse repeats, end value reverts to start :pro[%{public}" PRIu64 "] "
+                "animate[%{public}" PRIu64 "] repeat[%{public}d]", GetPropertyId(), GetId(), GetRepeatCount());
         } else {
             targetValue = endValue;
         }
@@ -170,18 +173,16 @@ void RSPropertyAnimation::InitAdditiveMode()
 void RSPropertyAnimation::DumpAnimationInfo(std::string& dumpInfo) const
 {
     dumpInfo += ", isCustom:" + std::to_string(isCustom_);
-    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
     if (property_) {
-        type = property_->GetPropertyType();
         dumpInfo += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->type_));
     }
     if (startValue_) {
         dumpInfo += ", StartValue: " +
-            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(startValue_->GetRenderProperty(), type);
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_->GetRenderProperty());
     }
     if (endValue_) {
         dumpInfo += ", EndValue: " +
-            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_->GetRenderProperty(), type);
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_->GetRenderProperty());
     }
 }
 } // namespace Rosen

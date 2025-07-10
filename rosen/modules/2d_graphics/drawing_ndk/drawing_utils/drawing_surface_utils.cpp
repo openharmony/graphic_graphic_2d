@@ -18,6 +18,9 @@
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "sync_fence.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#endif
 #endif
 
 #include "utils/log.h"
@@ -162,8 +165,12 @@ bool FlushVulkanSurface(Drawing::Surface* surface)
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkSemaphore semaphore = vkContext.RequireSemaphore();
 
+#ifdef USE_M133_SKIA
+    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#else
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
+#endif
 
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
 

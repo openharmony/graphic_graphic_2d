@@ -32,6 +32,7 @@ namespace {
 const std::string CLASS_NAME = "Paragraph";
 }
 
+std::mutex JsParagraph::constructorMutex_;
 thread_local napi_ref JsParagraph::constructor_ = nullptr;
 
 napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
@@ -74,6 +75,31 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 
 napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get reference, ret %{public}d", status);
+        return nullptr;
+    }
+
+    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+        return nullptr;
+    }
+    return exportObj;
+}
+
+bool JsParagraph::CreateConstructor(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(constructorMutex_);
+    if (constructor_) {
+        return true;
+    }
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("layoutSync", JsParagraph::Layout),
         DECLARE_NAPI_FUNCTION("paint", JsParagraph::Paint),
@@ -109,23 +135,15 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to define paragraph class, ret %{public}d", status);
-        return nullptr;
+        return false;
     }
-
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to create reference, ret %{public}d", status);
-        return nullptr;
+        return false;
     }
-
-    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
-        return nullptr;
-    }
-    return exportObj;
+    return true;
 }
-
 
 void JsParagraph::Destructor(napi_env env, void *nativeObject, void *finalize)
 {
@@ -772,6 +790,10 @@ std::shared_ptr<Typography> JsParagraph::GetParagraph()
 
 napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
     napi_value constructor = nullptr;
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);

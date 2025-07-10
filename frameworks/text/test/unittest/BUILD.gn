@@ -23,6 +23,7 @@ group("unittest") {
     "skia_txt:unittest",
     "symbol_resource:unittest",
     "texgine:unittest",
+    "text_effect:unittest",
     "util:unittest",
   ]
 }

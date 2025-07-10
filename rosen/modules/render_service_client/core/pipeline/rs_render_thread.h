@@ -120,6 +120,7 @@ public:
             visitor_->RemoveSurfaceChangedCallBack(id);
         }
     }
+    bool GetIsRunning();
 
 private:
     RSRenderThread();

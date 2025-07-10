@@ -17,10 +17,14 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_maskcolor_shader_filter.h"
-#include "render/rs_mesa_blur_shader_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_aibar_filter.h"
+#include "render/rs_render_bezier_warp_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
+#include "render/rs_render_mesa_blur_filter.h"
+#include "render/rs_render_light_blur_filter.h"
+#include "ge_visual_effect_container.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -48,8 +52,8 @@ void RSDrawingFilterTest::TearDown() {}
 HWTEST_F(RSDrawingFilterTest, RSDrawingFilter001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -67,8 +71,8 @@ HWTEST_F(RSDrawingFilterTest, RSDrawingFilter001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, RSDrawingFilter002, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
     EXPECT_TRUE(imageFilter != nullptr);
@@ -85,8 +89,8 @@ HWTEST_F(RSDrawingFilterTest, RSDrawingFilter002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, SetImageFilter001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -102,8 +106,8 @@ HWTEST_F(RSDrawingFilterTest, SetImageFilter001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, SetImageFilter002, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
 
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -120,8 +124,8 @@ HWTEST_F(RSDrawingFilterTest, SetImageFilter002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, ProcessImageFilter001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -140,18 +144,18 @@ HWTEST_F(RSDrawingFilterTest, GetDescription001, TestSize.Level1)
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto filterPtr = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
     drawingFilter.SetFilterType(RSFilter::BLUR);
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
-    filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
+    filterPtr->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
-    filterPtr->type_ = RSShaderFilter::MESA;
+    filterPtr->type_ = RSUIFilterType::MESA;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
-    filterPtr->type_ = RSShaderFilter::NONE;
+    filterPtr->type_ = RSUIFilterType::NONE;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
 }
  
@@ -167,18 +171,18 @@ HWTEST_F(RSDrawingFilterTest, GetDescription002, TestSize.Level1)
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto filterPtr = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
 
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
     drawingFilter.SetFilterType(RSFilter::BLUR);
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
-    filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
+    filterPtr->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
-    filterPtr->type_ = RSShaderFilter::MESA;
+    filterPtr->type_ = RSUIFilterType::MESA;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
-    filterPtr->type_ = RSShaderFilter::NONE;
+    filterPtr->type_ = RSUIFilterType::NONE;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
 }
 
@@ -194,33 +198,33 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription001, TestSize.Level1)
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto filterPtr = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
     drawingFilter.SetFilterType(RSFilter::BLUR);
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::GREY;
+    filterPtr->type_ = RSUIFilterType::GREY;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::MASK_COLOR;
+    filterPtr->type_ = RSUIFilterType::MASK_COLOR;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
+    filterPtr->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::NONE;
+    filterPtr->type_ = RSUIFilterType::NONE;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
     int radius = 1;
     auto filterPtr2 = std::make_shared<RSMESABlurShaderFilter>(radius);
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters2;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters2;
     shaderFilters2.push_back(filterPtr2);
     RSDrawingFilter drawingFilter2(imageFilter, shaderFilters2, hash);
     drawingFilter2.SetFilterType(RSFilter::BLUR);
-    filterPtr2->type_ = RSShaderFilter::MESA;
+    filterPtr2->type_ = RSUIFilterType::MESA;
     EXPECT_TRUE(!drawingFilter2.GetDetailedDescription().empty());
 }
 
@@ -235,33 +239,33 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription002, TestSize.Level1)
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto filterPtr = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
 
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
     drawingFilter.SetFilterType(RSFilter::BLUR);
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::GREY;
+    filterPtr->type_ = RSUIFilterType::GREY;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::MASK_COLOR;
+    filterPtr->type_ = RSUIFilterType::MASK_COLOR;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
+    filterPtr->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::NONE;
+    filterPtr->type_ = RSUIFilterType::NONE;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
     int radius = 1;
     auto filterPtr2 = std::make_shared<RSMESABlurShaderFilter>(radius);
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters2;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters2;
     shaderFilters2.push_back(filterPtr2);
     RSDrawingFilter drawingFilter2(imageFilter, shaderFilters2, hash);
     drawingFilter2.SetFilterType(RSFilter::BLUR);
-    filterPtr2->type_ = RSShaderFilter::MESA;
+    filterPtr2->type_ = RSUIFilterType::MESA;
     EXPECT_TRUE(!drawingFilter2.GetDetailedDescription().empty());
 }
 
@@ -274,8 +278,8 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, Compose001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -297,16 +301,16 @@ HWTEST_F(RSDrawingFilterTest, Compose001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, Compose002, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
-    std::shared_ptr<RSShaderFilter> other = nullptr;
+    std::shared_ptr<RSRenderFilterParaBase> other = nullptr;
     drawingFilter.Compose(other);
     EXPECT_TRUE(imageFilter != nullptr);
 
-    other = std::make_shared<RSShaderFilter>();
+    other = std::make_shared<RSRenderFilterParaBase>();
     drawingFilter.Compose(other);
     EXPECT_TRUE(other != nullptr);
 }
@@ -320,8 +324,8 @@ HWTEST_F(RSDrawingFilterTest, Compose002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, Compose003, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -343,8 +347,8 @@ HWTEST_F(RSDrawingFilterTest, Compose003, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, ApplyColorFilter001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -366,8 +370,8 @@ HWTEST_F(RSDrawingFilterTest, ApplyColorFilter001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -396,8 +400,8 @@ HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied001, TestSize.Level1)
     bool ret5 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
     EXPECT_FALSE(ret5);
 
-    auto rsShaderFilter = std::make_shared<RSShaderFilter>();
-    rsShaderFilter->type_ = RSShaderFilter::ShaderFilterType::MASK_COLOR;
+    auto rsShaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    rsShaderFilter->type_ = RSUIFilterType::MASK_COLOR;
     drawingFilter.shaderFilters_.push_back(rsShaderFilter);
     bool ret6 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
     EXPECT_FALSE(ret6);
@@ -412,8 +416,8 @@ HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied002, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -442,8 +446,8 @@ HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied002, TestSize.Level1)
     bool ret5 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
     EXPECT_FALSE(ret5);
 
-    auto rsShaderFilter = std::make_shared<RSShaderFilter>();
-    rsShaderFilter->type_ = RSShaderFilter::ShaderFilterType::MASK_COLOR;
+    auto rsShaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    rsShaderFilter->type_ = RSUIFilterType::MASK_COLOR;
     drawingFilter.shaderFilters_.push_back(rsShaderFilter);
     bool ret6 = drawingFilter.IsHpsBlurApplied(canvas, image, attr, brush, 1.0f);
     EXPECT_FALSE(ret6);
@@ -458,9 +462,9 @@ HWTEST_F(RSDrawingFilterTest, IsHpsBlurApplied002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -474,7 +478,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
     EXPECT_TRUE(image != nullptr);
 
-    filterPtr->type_ = RSShaderFilter::NONE;
+    filterPtr->type_ = RSUIFilterType::NONE;
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
     EXPECT_TRUE(image != nullptr);
 
@@ -502,9 +506,9 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, PrepareAlphaForOnScreenDraw001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -551,9 +555,9 @@ HWTEST_F(RSDrawingFilterTest, PrepareAlphaForOnScreenDraw001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, PrepareAlphaForOnScreenDraw002, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
 
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -599,8 +603,8 @@ HWTEST_F(RSDrawingFilterTest, PrepareAlphaForOnScreenDraw002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, PreProcess001, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -617,8 +621,8 @@ HWTEST_F(RSDrawingFilterTest, PreProcess001, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, PreProcess002, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
 
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -635,9 +639,9 @@ HWTEST_F(RSDrawingFilterTest, PreProcess002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, GetFilterTypeString002, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
 
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -653,9 +657,9 @@ HWTEST_F(RSDrawingFilterTest, GetFilterTypeString002, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, GetFilterTypeString, TestSize.Level1)
 {
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    filterPtr->type_ = RSShaderFilter::KAWASE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    filterPtr->type_ = RSUIFilterType::KAWASE;
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
     shaderFilters.push_back(filterPtr);
     uint32_t hash = 1;
     RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
@@ -663,4 +667,138 @@ HWTEST_F(RSDrawingFilterTest, GetFilterTypeString, TestSize.Level1)
     EXPECT_TRUE(drawingFilter.GetFilterTypeString() == "RSBlurFilterBlur");
 }
 
+/**
+ * @tc.name: ApplyImageEffect001
+ * @tc.desc: test ApplyImageEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffect001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> nullImage;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+
+    /* image is null */
+    nullImage = nullptr;
+    drawingFilter.ApplyImageEffect(canvas, nullImage, visualEffectContainer, attr);
+
+    /* go to hps branch */
+    int radius = 4;
+    auto kawaseShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
+    drawingFilter.InsertShaderFilter(kawaseShaderFilter);
+    drawingFilter.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    /* go to lightblur branch */
+    int radius0 = 0;
+    auto lightBlurShaderFilter = std::make_shared<RSLightBlurShaderFilter>(radius0);
+    RSDrawingFilter drawingFilter1(lightBlurShaderFilter);
+    lightBlurShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    drawingFilter1.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_FALSE(shaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: ApplyImageEffect002
+ * @tc.desc: test ApplyImageEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffect002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    int radius = 4;
+    int radius0 = 0;
+    auto kawaseShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
+
+    /* go to hps 1.0 kawase ApplyColorFilter branch */
+    auto visualEffectContainer1 = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto kawaseShaderFilter2 = std::make_shared<RSKawaseBlurShaderFilter>(radius0);
+    RSDrawingFilter drawingFilter2(kawaseShaderFilter2);
+    kawaseShaderFilter2->GenerateGEVisualEffect(visualEffectContainer1);
+    auto rsRenderBezierWarpFilterPara = std::make_shared<RSRenderBezierWarpFilterPara>(0);
+    drawingFilter2.InsertShaderFilter(rsRenderBezierWarpFilterPara);
+    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer1);
+    drawingFilter2.ApplyImageEffect(canvas, image, visualEffectContainer1, attr);
+
+    /* go to hps 1.0 kawase branch */
+    auto visualEffectContainer3 = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter drawingFilter3(kawaseShaderFilter);
+    drawingFilter3.InsertShaderFilter(rsRenderBezierWarpFilterPara);
+    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer3);
+    drawingFilter3.ApplyImageEffect(canvas, image, visualEffectContainer3, attr);
+    /* go to ge kawase branch */
+    drawingFilter3.SetFilterType(RSFilter::WATER_RIPPLE);
+    drawingFilter3.ApplyImageEffect(canvas, image, visualEffectContainer3, attr);
+
+    /* go to no blur branch */
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    auto visualEffectContainer4 = std::make_shared<Drawing::GEVisualEffectContainer>();
+    rsAIBarShaderFilter->GenerateGEVisualEffect(visualEffectContainer4);
+    RSDrawingFilter drawingFilter4(rsAIBarShaderFilter);
+    drawingFilter4.ApplyImageEffect(canvas, image, visualEffectContainer4, attr);
+
+    EXPECT_FALSE(kawaseShaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: ApplyHpsImageEffect001
+ * @tc.desc: test ApplyHpsImageEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyHpsImageEffect001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> nullImage;
+    auto image = std::make_shared<Drawing::Image>();
+    auto outImage = std::make_shared<Drawing::Image>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+    Drawing::Brush brush;
+
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+
+    /* normal case */
+    drawingFilter.ApplyHpsImageEffect(canvas, image, outImage, attr, brush);
+
+    /* make outImage nullptr */
+    nullImage = nullptr;
+    drawingFilter.ApplyHpsImageEffect(canvas, nullImage, outImage, attr, brush);
+    EXPECT_FALSE(shaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: DrawKawaseEffect
+ * @tc.desc: test DrawKawaseEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, DrawKawaseEffect, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto outImage = std::make_shared<Drawing::Image>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+    Drawing::Brush brush;
+    int radius = 1;
+    auto kawaseShaderFilter = std::static_pointer_cast<RSRenderFilterParaBase>(
+        std::make_shared<RSKawaseBlurShaderFilter>(radius));
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+
+    /* normal case */
+    drawingFilter.DrawKawaseEffect(canvas, outImage, attr, brush, kawaseShaderFilter);
+
+    /* make blurImage nullptr */
+    outImage = nullptr;
+    drawingFilter.DrawKawaseEffect(canvas, outImage, attr, brush, kawaseShaderFilter);
+
+    EXPECT_FALSE(kawaseShaderFilter == nullptr);
+}
 } // namespace OHOS::Rosen

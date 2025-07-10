@@ -17,16 +17,19 @@
 #include "common/rs_vector2.h"
 #include "filter_para.h"
 #include "ui_effect/mask/include/mask_para.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class DispersionPara : public FilterPara {
+class RSC_EXPORT DispersionPara : public FilterPara {
 public:
     DispersionPara()
     {
         this->type_ = FilterPara::ParaType::DISPERSION;
     }
     ~DispersionPara() override = default;
+
+    DispersionPara(const DispersionPara& other);
 
     void SetMask(std::shared_ptr<MaskPara> maskPara)
     {
@@ -78,10 +81,18 @@ public:
         return blueOffset_;
     }
 
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
+
+    std::shared_ptr<FilterPara> Clone() const override;
+
 private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
 
-    float opacity_;
+    float opacity_ = 0.0f;
     Vector2f redOffset_;
     Vector2f greenOffset_;
     Vector2f blueOffset_;

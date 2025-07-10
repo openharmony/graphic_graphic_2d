@@ -323,38 +323,6 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveModifier, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDrawableVec
- * @tc.desc: test results of UpdateDrawableVec
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, UpdateDrawableVec, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    node->UpdateDrawableVec();
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: UpdateDrawableVecInternal
- * @tc.desc: test results of UpdateDrawableVecInternal
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, UpdateDrawableVecInternal, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    std::unordered_set<RSPropertyDrawableSlot> dirtySlots;
-    node->UpdateDrawableVecInternal(dirtySlots);
-
-    node->drawableVecStatus_ = 1;
-    dirtySlots.insert(RSPropertyDrawableSlot::BOUNDS_MATRIX);
-    RSPropertyDrawable::InitializeSaveRestore(*node->renderContent_, node->renderContent_->propertyDrawablesVec_);
-    node->UpdateDrawableVecInternal(dirtySlots);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: UpdateEffectRegion
  * @tc.desc: test results of UpdateEffectRegion
  * @tc.type:FUNC
@@ -1006,7 +974,7 @@ HWTEST_F(RSBaseRenderNodeTest, DumpDrawCmdModifiers, TestSize.Level1)
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSGeometryTransRenderModifier>(property) };
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> map;
     map[RSModifierType::ENV_FOREGROUND_COLOR] = list;
-    node->renderContent_->drawCmdModifiers_ = map;
+    node->drawCmdModifiers_ = map;
     node->DumpDrawCmdModifiers(out);
     ASSERT_TRUE(true);
 }
@@ -1396,32 +1364,6 @@ HWTEST_F(RSBaseRenderNodeTest, AddGeometryModifier, TestSize.Level1)
         node->AddGeometryModifier(modifier);
         ASSERT_NE(node->frameModifier_, nullptr);
     }
-}
-
-/**
- * @tc.name: OpincUpdateNodeSupportFlag01
- * @tc.desc: test result of OpincGetNodeSupportFlag
- * @tc.type: FUNC
- * @tc.require: issueI9SPVO
- */
-HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag01, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    node->OpincUpdateNodeSupportFlag(false);
-    ASSERT_FALSE(node->OpincGetNodeSupportFlag());
-}
-
-/**
- * @tc.name: OpincUpdateNodeSupportFlag02
- * @tc.desc: test result of OpincGetNodeSupportFlag
- * @tc.type: FUNC
- * @tc.require: issueI9SPVO
- */
-HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag02, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    node->OpincUpdateNodeSupportFlag(true);
-    ASSERT_TRUE(node->OpincGetNodeSupportFlag());
 }
 
 /**

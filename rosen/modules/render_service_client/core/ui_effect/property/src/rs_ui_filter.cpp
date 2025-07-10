@@ -50,20 +50,22 @@ std::shared_ptr<RSRenderPropertyBase> RSUIFilter::CreateRenderProperty(const Pro
     }
     std::shared_ptr<RSRenderPropertyBase> renderProperty =
         std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
-            rsRenderFilter, id, RSRenderPropertyType::PROPERTY_UI_FILTER);
+            rsRenderFilter, id);
     return renderProperty;
 }
 
 void RSUIFilter::Insert(const std::shared_ptr<RSUIFilterParaBase>& value)
 {
+    if (!value) {
+        ROSEN_LOGW("RSUIFilter::Insert value is nullptr.");
+        return;
+    }
     auto type = value->GetType();
     auto it = paras_.find(type);
-    if (it != paras_.end()) {
-        paras_[type] = value;
-    } else {
-        paras_[type] = value;
+    if (it == paras_.end()) {
         propertyTypes_.push_back(type);
     }
+    paras_[type] = value;
 }
 
 bool RSUIFilter::IsStructureSame(const std::shared_ptr<RSUIFilter>& other) const
@@ -85,12 +87,18 @@ bool RSUIFilter::IsStructureSame(const std::shared_ptr<RSUIFilter>& other) const
             return false;
         }
         auto oldFilter = GetUIFilterPara(aTypes[i]);
-        auto newFilter = GetUIFilterPara(bTypes[i]);
-        if ((oldFilter == nullptr && newFilter != nullptr) || !oldFilter->Equals(newFilter)) {
+        auto newFilter = other->GetUIFilterPara(bTypes[i]);
+        // only pass if all nullptr or type equal
+        bool invalid = (oldFilter == nullptr && newFilter != nullptr) ||
+                       (oldFilter != nullptr && !oldFilter->Equals(newFilter));
+        if (invalid) {
             ROSEN_LOGW("RSUIFilter::IsStructureSame value NG %{public}d %{public}d %{public}d %{public}d %{public}d",
                 static_cast<int>(i), static_cast<int>(aTypes[i]), static_cast<int>(bTypes[i]),
                 static_cast<int>(oldFilter == nullptr), static_cast<int>(newFilter == nullptr));
             return false;
+        }
+        if (oldFilter != nullptr && newFilter != nullptr) {
+            oldFilter->SetStagingEnableHdrEffect(newFilter->GetStagingEnableHdrEffect());
         }
     }
     return true;
@@ -113,6 +121,20 @@ void RSUIFilter::SetValue(const std::shared_ptr<RSUIFilter>& other)
                 static_cast<int>(oldFilter == nullptr), static_cast<int>(newFilter == nullptr));
         }
     }
+}
+
+bool RSUIFilter::GetHdrEffectEnable() const
+{
+    for (auto type : propertyTypes_) {
+        auto it = paras_.find(type);
+        if (it != paras_.end()) {
+            auto property = it->second;
+            if (property != nullptr && property->CheckEnableHdrEffect()) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 std::shared_ptr<RSUIFilterParaBase> RSUIFilter::GetUIFilterPara(RSUIFilterType type) const

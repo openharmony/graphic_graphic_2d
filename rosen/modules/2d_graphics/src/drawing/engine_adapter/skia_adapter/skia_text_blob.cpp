@@ -17,6 +17,7 @@
 
 #include <map>
 #include "include/core/SkFontTypes.h"
+#include "include/core/SkPaint.h"
 #include "include/core/SkRSXform.h"
 #include "include/core/SkSerialProcs.h"
 

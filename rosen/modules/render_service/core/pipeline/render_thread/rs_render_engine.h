@@ -36,6 +36,7 @@ public:
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
 #endif
+    void DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override {}
 
 private:
     void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
