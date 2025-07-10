@@ -75,6 +75,9 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     } else {
         nodeBucket_.push({ptr});
     }
+    if (ptr != nullptr) {
+        DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
+    }
 }
 
 bool RSRenderNodeGC::IsBucketQueueEmpty()
