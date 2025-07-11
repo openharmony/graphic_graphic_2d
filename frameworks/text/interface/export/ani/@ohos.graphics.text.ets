@@ -201,6 +201,29 @@ namespace text {
     native layoutSync(width: number): void;
 
     /**
+     * Calculates the positioning of all the glyphs.
+     * @param { number } width - Control how wide the text is allowed to be.
+     * @returns { Promise<void> } The promise returned by the function.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    async layout(width: number): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
+        try {
+          taskpool.execute((): void => {
+            this.layoutSync(width);
+          }).then(() => {
+            resolve(undefined);
+          })
+        } catch (err) {
+          reject(err as BusinessError);
+        }
+      });
+    }
+
+    /**
      * Paint the laid out text onto the supplied canvas at (x, y).
      * @param { drawing.Canvas } canvas - Object
      * @param { number } x - Represents the X-axis position on the canvas.
