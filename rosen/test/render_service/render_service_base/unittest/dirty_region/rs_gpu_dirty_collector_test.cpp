@@ -15,12 +15,16 @@
 
 #include "gtest/gtest.h"
 
+#include "metadata_helper.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "surface_buffer.h"
 
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS::Rosen {
+namespace {
+const Rect DEFAULT_RECT = {0, 0, 100, 100};
+}
 class RSGpuDirtyCollectorTest : public testing::Test {
 public:
     static inline BufferRequestConfig requestConfig = {
@@ -31,6 +35,32 @@ public:
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+
+    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
+        .gpuDirtyEnable = true,
+        .curFrameDirtyEnable = true,
+        .left = 0,
+        .top = 0,
+        .right = 100,
+        .bottom = 100,
+    };
+
+    static inline BufferSelfDrawingData isNotDirty = {
+        .gpuDirtyEnable = true,
+        .curFrameDirtyEnable = true,
+        .left = 100,
+        .top = 100,
+        .right = 0,
+        .bottom = 0,
+    };
+
+    static inline BlobDataType defaultBlobDataType = {
+        .offset = 0,
+        .length = 0,
+        .capacity = 0,
+        .vaddr = 0,
+        .cacheop = CacheOption::CACHE_NOOP,
     };
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -45,17 +75,20 @@ void RSGpuDirtyCollectorTest::TearDown() {}
 
 /**
  * @tc.name: GpuDirtyRegionCompute001
- * @tc.desc: Test GpuDirtyRegionCompute when metadata is nullptr
+ * @tc.desc: Test GpuDirtyRegionCompute when buffer is nullptr and metadata is nullptr
  * @tc.type:FUNC
  * @tc.require: issuesICA3L1
  */
 HWTEST_F(RSGpuDirtyCollectorTest, GpuDirtyRegionCompute001, TestSize.Level1)
 {
+    auto src = RSGpuDirtyCollector::GpuDirtyRegionCompute(nullptr);
+    ASSERT_EQ(src, nullptr);
+
     auto buffer = SurfaceBuffer::Create();
     auto ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    auto src = RSGpuDirtyCollector::GpuDirtyRegionCompute(buffer);
+    src = RSGpuDirtyCollector::GpuDirtyRegionCompute(buffer);
     ASSERT_EQ(src, nullptr);
 }
 
@@ -77,5 +110,120 @@ HWTEST_F(RSGpuDirtyCollectorTest, GpuDirtyRegionCompute002, TestSize.Level1)
 
     auto src = RSGpuDirtyCollector::GpuDirtyRegionCompute(buffer);
     ASSERT_EQ(src, nullptr);
+}
+
+/**
+ * @tc.name: DirtyRegionCompute001
+ * @tc.desc: Test DirtyRegionCompute when gpuDirtyRegion is nullptr or curFrameDirtyEnable is false
+ * @tc.type:FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute001, TestSize.Level1)
+{
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    Rect rect = DEFAULT_RECT;
+    auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+    ASSERT_EQ(isDirtyRectValid, false);
+
+    std::vector<uint8_t> metaData;
+    BufferSelfDrawingData data = defaultSelfDrawingRect;
+    BufferSelfDrawingData *src = &data;
+    src->curFrameDirtyEnable = false;
+    BlobDataType test = defaultBlobDataType;
+    test.vaddr = reinterpret_cast<uintptr_t>(src);
+
+    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+    ASSERT_EQ(isDirtyRectValid, false);
+}
+
+/**
+ * @tc.name: DirtyRegionCompute002
+ * @tc.desc: Test DirtyRegionCompute when gpuDirtyRegion is invalid
+ * @tc.type:FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute002, TestSize.Level1)
+{
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    std::vector<uint8_t> metaData;
+    BufferSelfDrawingData data = defaultSelfDrawingRect;
+    BufferSelfDrawingData *src = &data;
+    src->left = -1;
+    BlobDataType test = defaultBlobDataType;
+    test.vaddr = reinterpret_cast<uintptr_t>(src);
+
+    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    Rect rect = DEFAULT_RECT;
+    auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+    ASSERT_EQ(isDirtyRectValid, false);
+}
+
+/**
+ * @tc.name: DirtyRegionCompute003
+ * @tc.desc: Test DirtyRegionCompute when layer don't have dirty region
+ * @tc.type:FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute003, TestSize.Level1)
+{
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    std::vector<uint8_t> metaData;
+    BufferSelfDrawingData *src = &isNotDirty;
+    BlobDataType test = defaultBlobDataType;
+    test.vaddr = reinterpret_cast<uintptr_t>(src);
+
+    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    Rect rect = DEFAULT_RECT;
+    auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+    ASSERT_EQ(isDirtyRectValid, true);
+}
+
+/**
+ * @tc.name: DirtyRegionCompute004
+ * @tc.desc: Test DirtyRegionCompute when gpuDirtyRegion is valid
+ * @tc.type:FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute004, TestSize.Level1)
+{
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    std::vector<uint8_t> metaData;
+    BufferSelfDrawingData data = defaultSelfDrawingRect;
+    BufferSelfDrawingData *src = &data;
+    BlobDataType test = defaultBlobDataType;
+    test.vaddr = reinterpret_cast<uintptr_t>(src);
+
+    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    Rect rect = DEFAULT_RECT;
+    auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+    ASSERT_EQ(isDirtyRectValid, true);
 }
 } // namespace OHOS::Rosen

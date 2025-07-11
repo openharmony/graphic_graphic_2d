@@ -1037,6 +1037,7 @@ ohos_unittest("RSRenderNodeTest2") {
   ]
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",

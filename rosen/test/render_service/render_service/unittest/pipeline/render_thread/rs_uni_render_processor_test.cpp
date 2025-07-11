@@ -16,9 +16,10 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
-
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "metadata_helper.h"
 #include "params/rs_screen_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
@@ -35,6 +36,33 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class RSUniRenderProcessorTest : public testing::Test {
 public:
+    static inline BufferRequestConfig requestConfig = {
+        .width = 200,
+        .height = 200,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+
+    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
+        .gpuDirtyEnable = true,
+        .curFrameDirtyEnable = true,
+        .left = 0,
+        .top = 0,
+        .right = 100,
+        .bottom = 100,
+    };
+
+    static inline BlobDataType defaultBlobDataType = {
+        .offset = 0,
+        .length = 0,
+        .capacity = 0,
+        .vaddr = 0,
+        .cacheop = CacheOption::CACHE_NOOP,
+    };
+
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -608,6 +636,41 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
  
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: GetLayerInfo002
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo when layer have selfDrawingDirtyRegion
+ * @tc.type:FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(RSUniRenderProcessorTest::requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    std::vector<uint8_t> metaData;
+    BufferSelfDrawingData data = RSUniRenderProcessorTest::defaultSelfDrawingRect;
+    BufferSelfDrawingData *src = &data;
+    BlobDataType test = RSUniRenderProcessorTest::defaultBlobDataType;
+    test.vaddr = reinterpret_cast<uintptr_t>(src);
+
+    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    EXPECT_EQ(params.GetTunnelLayerId(), 1);
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
