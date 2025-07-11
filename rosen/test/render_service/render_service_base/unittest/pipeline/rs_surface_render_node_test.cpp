@@ -2744,18 +2744,18 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Lev
 }
 
 /**
- * @tc.name: GetSourceScreenRenderNodeId
- * @tc.desc: test Set/GetSourceScreenRenderNodeId.
+ * @tc.name: GetSourceDisplayRenderNodeId
+ * @tc.desc: test Set/GetSourceDisplayRenderNodeId.
  * @tc.type: FUNC
  * @tc.require: issueIBJJRI
  */
-HWTEST_F(RSSurfaceRenderNodeTest, GetSourceScreenRenderNodeId, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
 {
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
-    NodeId sourceScreenRenderNodeId = 1;
-    testNode->SetSourceScreenRenderNodeId(sourceScreenRenderNodeId);
-    ASSERT_EQ(testNode->GetSourceScreenRenderNodeId(), sourceScreenRenderNodeId);
+    NodeId sourceDisplayRenderNodeId = 1;
+    testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
+    ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
 
 /**

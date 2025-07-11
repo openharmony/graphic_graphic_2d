@@ -198,7 +198,6 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPidImmediate, Level1)
 {
     auto renderNodeMap = RSRenderNodeMap();
     auto displayId = 1;
-    RSDisplayNodeConfig config;
     auto displayRenderNode = std::make_shared<RSScreenRenderNode>(displayId, 0, context);
     renderNodeMap.RegisterRenderNode(displayRenderNode);
 

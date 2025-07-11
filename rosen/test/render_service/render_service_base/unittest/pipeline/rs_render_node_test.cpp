@@ -1846,7 +1846,7 @@ HWTEST_F(RSRenderNodeTest, MoveChildTest005, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
-HWTEST_F(RSRenderNodeTest, SetContainBootAnimationTest001, TestSize.level1)
+HWTEST_F(RSRenderNodeTest, SetContainBootAnimationTest001, TestSize.Level1)
 {
     NodeId id = 0;
     ScreenId screenId = 1;

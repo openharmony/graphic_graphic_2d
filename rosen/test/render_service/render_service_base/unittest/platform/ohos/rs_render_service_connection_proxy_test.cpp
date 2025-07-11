@@ -442,7 +442,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFrameGravity, TestSize.Lev
 {
     ScreenId id = 100;
     int32_t gravity = 5;
-    proxy->SetScreenOffset(id, gravity);
+    proxy->SetScreenFrameGravity(id, gravity);
     ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
