@@ -29,9 +29,11 @@ MaskTransitionPara::MaskTransitionPara(const MaskTransitionPara& other)
 
 bool MaskTransitionPara::Marshalling(Parcel& parcel) const
 {
-    if (!(parcel.WriteUint16(static_cast<uint16_t>(type_)) && parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+    auto isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+        parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
         maskPara_ && maskPara_->Marshalling(parcel) &&
-        parcel.WriteFloat(factor_) && parcel.WriteBool(inverse_))) {
+        parcel.WriteFloat(factor_) && parcel.WriteBool(inverse_);
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] MaskTransitionPara Marshalling write para failed");
         return false;
     }
@@ -55,8 +57,9 @@ bool MaskTransitionPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterP
     std::shared_ptr<MaskPara> maskPara = nullptr;
     float factor = 1.0f;
     bool inverse = false;
-    if (!(MaskPara::Unmarshalling(parcel, maskPara) && maskPara != nullptr &&
-        parcel.ReadFloat(factor) && parcel.ReadBool(inverse))) {
+    bool isSuccess = MaskPara::Unmarshalling(parcel, maskPara) && maskPara != nullptr &&
+        parcel.ReadFloat(factor) && parcel.ReadBool(inverse);
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] MaskTransitionPara OnUnmarshalling read para failed");
         return false;
     }

@@ -30,12 +30,14 @@ void MaskUnmarshallingSingleton::RegisterCallback(
 {
     std::lock_guard<std::mutex> lock(mutex_);
     unmarshallingFuncs_.insert_or_assign(type, func);
+    RS_LOGD("[ui_effect] Mask register unmarshalling callback, type is %{public}hu", type);
 }
 
 void MaskUnmarshallingSingleton::UnregisterCallback(uint16_t type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     unmarshallingFuncs_.erase(type);
+    RS_LOGD("[ui_effect] Mask unregister unmarshalling callback, type is %{public}hu", type);
 }
 
 MaskUnmarshallingSingleton::UnmarshallingFunc MaskUnmarshallingSingleton::GetCallback(uint16_t type)
@@ -45,7 +47,7 @@ MaskUnmarshallingSingleton::UnmarshallingFunc MaskUnmarshallingSingleton::GetCal
     if (it != unmarshallingFuncs_.end()) {
         return it->second;
     }
-    RS_LOGE("[ui_effect] MaskUnmarshallingSingleton GetCallback find failed, type is %{public}d", type);
+    RS_LOGE("[ui_effect] MaskUnmarshallingSingleton GetCallback find failed, type is %{public}hu", type);
     return nullptr;
 }
 

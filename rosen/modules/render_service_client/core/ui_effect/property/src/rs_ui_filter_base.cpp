@@ -17,17 +17,19 @@
 
 #include <unordered_set>
 
-#include "platform/common/rs_log.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
+#include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
-#include "ui_effect/filter/include/filter_direction_light_para.h"
+#include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
 
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
+
+#include "platform/common/rs_log.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGFilterBase"
@@ -63,11 +65,15 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
         }
     },
     {RSNGEffectType::COLOR_GRADIENT, [] {
-                return std::make_shared<RSNGColorGradientFilter>();
+            return std::make_shared<RSNGColorGradientFilter>();
+        }
+    },
+    {RSNGEffectType::MASK_TRANSITION, [] {
+            return std::make_shared<RSNGMaskTransitionFilter>();
         }
     },
     {RSNGEffectType::VARIABLE_RADIUS_BLUR, [] {
-                return std::make_shared<RSNGVariableRadiusBlurFilter>();
+            return std::make_shared<RSNGVariableRadiusBlurFilter>();
         }
     },
 };
@@ -148,6 +154,21 @@ std::shared_ptr<RSNGFilterBase> ConvertColorGradientFilterPara(std::shared_ptr<F
     return colorGradientFilter;
 }
 
+std::shared_ptr<RSNGFilterBase> ConvertMaskTransitionFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::MASK_TRANSITION);
+    bool isInvalid = (filter == nullptr || filterPara == nullptr);
+    if (isInvalid) {
+        return nullptr;
+    }
+    auto maskTransitionFilter = std::static_pointer_cast<RSNGMaskTransitionFilter>(filter);
+    auto maskTransitionFilterPara = std::static_pointer_cast<MaskTransitionPara>(filterPara);
+    maskTransitionFilter->Setter<MaskTransitionMaskTag>(RSNGMaskBase::Create(maskTransitionFilterPara->GetMask()));
+    maskTransitionFilter->Setter<MaskTransitionFactorTag>(maskTransitionFilterPara->GetFactor());
+    maskTransitionFilter->Setter<MaskTransitionInverseTag>(maskTransitionFilterPara->GetInverse());
+    return maskTransitionFilter;
+}
+
 std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::VARIABLE_RADIUS_BLUR);
@@ -169,6 +190,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::DIRECTION_LIGHT, ConvertDirectionLightFilterPara },
     { FilterPara::ParaType::DISPERSION, ConvertDispersionFilterPara },
     { FilterPara::ParaType::COLOR_GRADIENT, ConvertColorGradientFilterPara },
+    { FilterPara::ParaType::MASK_TRANSITION, ConvertMaskTransitionFilterPara },
     { FilterPara::ParaType::VARIABLE_RADIUS_BLUR, ConvertVariableRadiusBlurFilterPara },
 };
 

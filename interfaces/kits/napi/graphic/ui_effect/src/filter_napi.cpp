@@ -1056,13 +1056,14 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    const size_t requireArgc = NUM_3;
-    size_t realArgc = NUM_3;
-    napi_value argv[NUM_3] = { 0 };
+    static const size_t maxArgc = NUM_3;
+    static const size_t minArgc = NUM_1;
+    size_t realArgc = maxArgc;
+    napi_value argv[maxArgc] = { 0 };
     napi_value thisVar = nullptr;
     napi_status status;
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskTransition parsing input failed"));
 
     auto para = std::make_shared<MaskTransitionPara>();
@@ -1075,7 +1076,7 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
 
     float factor = 1.0f;
     if (UIEffectNapiUtils::GetType(env, argv[NUM_1]) == napi_number) {
-        double tmp = 0.0f;
+        double tmp = 0.0;
         if (napi_get_value_double(env, argv[NUM_1], &tmp) == napi_ok) {
             factor = static_cast<float>(tmp);
         }

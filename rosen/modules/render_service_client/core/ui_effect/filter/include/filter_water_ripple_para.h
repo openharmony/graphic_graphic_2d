@@ -18,7 +18,7 @@
 #include "filter_para.h"
 #include "common/rs_vector2.h"
 #include "common/rs_macros.h"
- 
+
 namespace OHOS {
 namespace Rosen {
 class RSC_EXPORT WaterRipplePara : public FilterPara {
@@ -28,32 +28,34 @@ public:
         this->type_ = FilterPara::ParaType::WATER_RIPPLE;
     }
     ~WaterRipplePara() override = default;
-    
+
+    WaterRipplePara(const WaterRipplePara& other);
+
     void SetProgress(float progress)
     {
         progress_ = progress;
     }
- 
+
     float GetProgress() const
     {
         return progress_;
     }
- 
+
     void SetWaveCount(uint32_t waveCount)
     {
         waveCount_ = waveCount;
     }
- 
+
     uint32_t GetWaveCount () const
     {
         return waveCount_;
     }
- 
+
     void SetRippleCenterX(float rippleCenterX)
     {
         rippleCenterX_ = rippleCenterX;
     }
- 
+
     float GetRippleCenterX() const
     {
         return rippleCenterX_;
@@ -63,7 +65,7 @@ public:
     {
         rippleCenterY_ = rippleCenterY;
     }
- 
+
     float GetRippleCenterY() const
     {
         return rippleCenterY_;

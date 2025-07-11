@@ -105,6 +105,12 @@ DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
     ADD_PROPERTY_TAG(DirectionLight, Intensity)
 );
 
+DECLARE_FILTER(MaskTransition, MASK_TRANSITION,
+    ADD_PROPERTY_TAG(MaskTransition, Mask),
+    ADD_PROPERTY_TAG(MaskTransition, Factor),
+    ADD_PROPERTY_TAG(MaskTransition, Inverse)
+);
+
 DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
     ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
     ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)

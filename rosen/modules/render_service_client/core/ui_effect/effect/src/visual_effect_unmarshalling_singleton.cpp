@@ -30,12 +30,14 @@ void VisualEffectUnmarshallingSingleton::RegisterCallback(
 {
     std::lock_guard<std::mutex> lock(mutex_);
     unmarshallingFuncs_.insert_or_assign(type, func);
+    RS_LOGD("[ui_effect] VisualEffect register unmarshalling callback, type is %{public}hu", type);
 }
 
 void VisualEffectUnmarshallingSingleton::UnregisterCallback(uint16_t type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     unmarshallingFuncs_.erase(type);
+    RS_LOGD("[ui_effect] VisualEffect unregister unmarshalling callback, type is %{public}hu", type);
 }
 
 VisualEffectUnmarshallingSingleton::UnmarshallingFunc VisualEffectUnmarshallingSingleton::GetCallback(uint16_t type)
@@ -45,7 +47,7 @@ VisualEffectUnmarshallingSingleton::UnmarshallingFunc VisualEffectUnmarshallingS
     if (it != unmarshallingFuncs_.end()) {
         return it->second;
     }
-    RS_LOGE("[ui_effect] VisualEffectUnmarshallingSingleton GetCallback find failed, type is %{public}d", type);
+    RS_LOGE("[ui_effect] VisualEffectUnmarshallingSingleton GetCallback find failed, type is %{public}hu", type);
     return nullptr;
 }
 

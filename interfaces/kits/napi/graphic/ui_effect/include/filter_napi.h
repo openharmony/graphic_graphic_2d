@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,23 +17,24 @@
 
 #include <hilog/log.h>
 #include <iostream>
+
 #include "filter/include/filter.h"
 #include "filter/include/filter_bezier_warp_para.h"
 #include "filter/include/filter_blur_para.h"
 #include "filter/include/filter_color_gradient_para.h"
-#include "filter/include/filter_hdr_para.h"
-#include "filter/include/filter_pixel_stretch_para.h"
-#include "filter/include/filter_water_ripple_para.h"
-#include "filter/include/filter_fly_out_para.h"
-#include "filter/include/filter_displacement_distort_para.h"
-#include "filter/include/filter_distort_para.h"
-#include "filter/include/filter_radius_gradient_blur_para.h"
-#include "filter/include/filter_edge_light_para.h"
+#include "filter/include/filter_content_light_para.h"
 #include "filter/include/filter_direction_light_para.h"
 #include "filter/include/filter_dispersion_para.h"
-#include "filter/include/filter_content_light_para.h"
+#include "filter/include/filter_displacement_distort_para.h"
+#include "filter/include/filter_distort_para.h"
+#include "filter/include/filter_edge_light_para.h"
+#include "filter/include/filter_fly_out_para.h"
+#include "filter/include/filter_hdr_para.h"
 #include "filter/include/filter_mask_transition_para.h"
+#include "filter/include/filter_pixel_stretch_para.h"
+#include "filter/include/filter_radius_gradient_blur_para.h"
 #include "filter/include/filter_variable_radius_blur_para.h"
+#include "filter/include/filter_water_ripple_para.h"
 #include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"

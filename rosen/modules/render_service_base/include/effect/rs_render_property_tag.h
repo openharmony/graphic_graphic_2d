@@ -79,6 +79,7 @@ enum class RSNGEffectType : int16_t {
     LIGHT_BLUR,
     LINEAR_GRADIENT_BLUR,
     ALWAYS_SNAPSHOT,
+    MASK_TRANSITION,
     VARIABLE_RADIUS_BLUR,
     // mask type
     RIPPLE_MASK,
