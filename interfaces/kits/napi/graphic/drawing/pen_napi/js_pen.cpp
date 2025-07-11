@@ -27,7 +27,7 @@
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "js_color_space.h"
 #include "utils/colorspace_convertor.h"
 #endif
@@ -734,7 +734,7 @@ napi_value JsPen::GetColor(napi_env env, napi_callback_info info)
 
 napi_value JsPen::SetColor4f(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
     if (!jsPen) {
         return nullptr;

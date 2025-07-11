@@ -17,7 +17,7 @@
 #define OHOS_JS_DRAWING_UTILS_H
 
 #include <map>
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "hilog/log.h"
 #endif
 
@@ -541,7 +541,7 @@ extern std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media
 } // namespace Drawing
 } // namespace OHOS::Rosen
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001400

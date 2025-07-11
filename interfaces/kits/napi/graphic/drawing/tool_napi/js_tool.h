@@ -20,14 +20,14 @@
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "resource_manager.h"
 #endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 struct ResourceInfo {
     int32_t resId = 0;
     int32_t type = 0;
@@ -53,7 +53,7 @@ public:
 
     static napi_value makeColorFromResourceColor(napi_env env, napi_callback_info info);
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     static size_t GetParamLen(napi_env env, napi_value param);
     static std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager();
     static bool GetResourceInfo(napi_env env, napi_value value, ResourceInfo& info);
