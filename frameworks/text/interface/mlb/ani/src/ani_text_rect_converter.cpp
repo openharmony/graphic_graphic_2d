@@ -37,14 +37,14 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
         TEXT_LOGE("Object mismatch:%{public}d", ret);
         return ret;
     }
-    ani_double startTmp = 0;
-    ret = env->Object_GetPropertyByName_Double(obj, "start", &startTmp);
+    ani_int startTmp = 0;
+    ret = env->Object_GetPropertyByName_Int(obj, "start", &startTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get start, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
-    ani_double endTmp = 0;
-    ret = env->Object_GetPropertyByName_Double(obj, "end", &endTmp);
+    ani_int endTmp = 0;
+    ret = env->Object_GetPropertyByName_Int(obj, "end", &endTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
@@ -96,8 +96,8 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
 ani_status AniTextRectConverter::ParseBoundaryToAni(ani_env* env, OHOS::Rosen::Boundary& Boundary, ani_object& aniObj)
 {
     aniObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_RANGE, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "start", Boundary.leftIndex);
-    env->Object_SetPropertyByName_Double(aniObj, "end", Boundary.rightIndex);
+    env->Object_SetPropertyByName_Int(aniObj, "start", Boundary.leftIndex);
+    env->Object_SetPropertyByName_Int(aniObj, "end", Boundary.rightIndex);
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

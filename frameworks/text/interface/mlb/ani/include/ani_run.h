@@ -29,7 +29,7 @@ public:
     static ani_object CreateRun(ani_env* env, Rosen::Run* run);
 
 private:
-    static ani_double GetGlyphCount(ani_env* env, ani_object object);
+    static ani_int GetGlyphCount(ani_env* env, ani_object object);
     static ani_object GetGlyphs(ani_env* env, ani_object object);
     static ani_object GetGlyphsByRange(ani_env* env, ani_object object, ani_object range);
     static ani_object GetPositions(ani_env* env, ani_object object);

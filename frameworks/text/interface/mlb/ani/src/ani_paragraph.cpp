@@ -43,7 +43,7 @@ namespace {
     const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGN = "DD:" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY);
     const std::string GET_WORD_BOUNDARY_SIGN = "D:" + std::string(ANI_INTERFACE_RANGE);
     const std::string GET_TEXT_LINES_SIGN = ":" + std::string(ANI_ARRAY);
-    const std::string GET_ACTUAL_TEXT_RANGE_SIGN = "DZ:" + std::string(ANI_INTERFACE_RANGE);
+    const std::string GET_ACTUAL_TEXT_RANGE_SIGN = "IZ:" + std::string(ANI_INTERFACE_RANGE);
 } // namespace
 
 ani_object ThrowErrorAndReturnUndefined(ani_env* env)
@@ -103,15 +103,15 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
             reinterpret_cast<void*>(GetGlyphPositionAtCoordinate)},
         ani_native_function{
             "getWordBoundary", GET_WORD_BOUNDARY_SIGN.c_str(), reinterpret_cast<void*>(GetWordBoundary)},
-        ani_native_function{"getLineCount", ":D", reinterpret_cast<void*>(GetLineCount)},
-        ani_native_function{"getLineHeight", "D:D", reinterpret_cast<void*>(GetLineHeight)},
-        ani_native_function{"getLineWidth", "D:D", reinterpret_cast<void*>(GetLineWidth)},
+        ani_native_function{"getLineCount", ":I", reinterpret_cast<void*>(GetLineCount)},
+        ani_native_function{"getLineHeight", "I:D", reinterpret_cast<void*>(GetLineHeight)},
+        ani_native_function{"getLineWidth", "I:D", reinterpret_cast<void*>(GetLineWidth)},
         ani_native_function{"didExceedMaxLines", ":Z", reinterpret_cast<void*>(DidExceedMaxLines)},
         ani_native_function{
             "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
         ani_native_function{"getTextLines", GET_TEXT_LINES_SIGN.c_str(), reinterpret_cast<void*>(GetTextLines)},
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
-        ani_native_function{"nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;",
+        ani_native_function{"nativeGetLineMetricsAt", "I:L@ohos/graphics/text/text/LineMetrics;",
             reinterpret_cast<void*>(GetLineMetricsAt)},
     };
 
@@ -384,7 +384,7 @@ ani_object AniParagraph::GetWordBoundary(ani_env* env, ani_object object, ani_do
     return boundaryObj;
 }
 
-ani_double AniParagraph::GetLineCount(ani_env* env, ani_object object)
+ani_int AniParagraph::GetLineCount(ani_env* env, ani_object object)
 {
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
@@ -395,7 +395,7 @@ ani_double AniParagraph::GetLineCount(ani_env* env, ani_object object)
     return typography->GetLineCount();
 }
 
-ani_double AniParagraph::GetLineHeight(ani_env* env, ani_object object, ani_double line)
+ani_double AniParagraph::GetLineHeight(ani_env* env, ani_object object, ani_int line)
 {
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
@@ -406,7 +406,7 @@ ani_double AniParagraph::GetLineHeight(ani_env* env, ani_object object, ani_doub
     return typography->GetLineHeight(static_cast<int>(line));
 }
 
-ani_double AniParagraph::GetLineWidth(ani_env* env, ani_object object, ani_double line)
+ani_double AniParagraph::GetLineWidth(ani_env* env, ani_object object, ani_int line)
 {
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
@@ -431,7 +431,7 @@ ani_boolean AniParagraph::DidExceedMaxLines(ani_env* env, ani_object object)
 }
 
 ani_object AniParagraph::GetActualTextRange(
-    ani_env* env, ani_object object, ani_double lineNumber, ani_boolean includeSpaces)
+    ani_env* env, ani_object object, ani_int lineNumber, ani_boolean includeSpaces)
 {
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
@@ -519,7 +519,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     return arrayObj;
 }
 
-ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber)
+ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_int lineNumber)
 {
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {

@@ -34,7 +34,7 @@ private:
     static void AddPlaceholder(ani_env* env, ani_object object, ani_object placeholderSpan);
     static ani_object Build(ani_env* env, ani_object object);
     static ani_object BuildLineTypeset(ani_env* env, ani_object object);
-    static void AddSymbol(ani_env* env, ani_object object, ani_double symbolId);
+    static void AddSymbol(ani_env* env, ani_object object, ani_int symbolId);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H
