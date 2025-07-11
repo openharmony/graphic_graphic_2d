@@ -515,8 +515,8 @@ HWTEST_F(RSSurfaceRenderParamsTest, GetSourceScreenRenderNodeDrawable, TestSize.
 {
     constexpr NodeId id = 124;
     RSSurfaceRenderParams params(id);
-    params.sourceScreenRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
-    EXPECT_TRUE(params.GetSourceScreenRenderNodeDrawable().expired());
+    params.sourceDisplayRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    EXPECT_TRUE(params.GetSourceDisplayRenderNodeDrawable().expired());
 }
 
 /**

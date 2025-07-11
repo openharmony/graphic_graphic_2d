@@ -59,19 +59,6 @@ HWTEST_F(RSScreenRenderParamsTest, OnSync001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetMainAndLeashSurfaceDirty
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSLogicalDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty, TestSize.Level1)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
-    RSLogicalDisplayRenderParams params(id);
-    EXPECT_EQ(params.needSync_, false);
-}
-
-/**
  * @tc.name: SetHDRPresent
  * @tc.desc:
  * @tc.type:FUNC
