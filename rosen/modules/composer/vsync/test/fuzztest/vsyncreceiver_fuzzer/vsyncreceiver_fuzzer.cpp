@@ -164,6 +164,8 @@ namespace OHOS {
         int64_t timestamp = GetData<int64_t>();
         bool isThreadShared = GetData<bool>();
         bool needCreateNewThread = GetData<bool>();
+        bool delayEnable = GetData<bool>();
+        bool nativeDelayEnable = GetData<bool>();
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -183,7 +185,7 @@ namespace OHOS {
         vsyncReceiver->SetVSyncRate(fcb, rate);
         vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
         vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
-        vsyncReceiver->SetUiDvsyncConfig(bufferCount);
+        vsyncReceiver->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
         vsyncReceiver->RequestNextVSync(fcb);
         vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
 

@@ -1102,7 +1102,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetLayerTopForHWCTest, TestSize.Leve
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteString("13456");
+    data.WriteUint64(0);
     data.WriteBool(true);
     data.WriteUint32(1);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -1125,5 +1125,31 @@ HWTEST_F(RSRenderServiceConnectionStubTest, ClearUifirstCacheTest, TestSize.Leve
     data.WriteUint64(0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest002
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, RegisterSelfDrawingNodeRectChangeCallbackTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t size = UINT32_MAX;
+    data.WriteUint32(size);
+    int pid = 0;
+    data.WriteInt32(pid);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
 }
 } // namespace OHOS::Rosen

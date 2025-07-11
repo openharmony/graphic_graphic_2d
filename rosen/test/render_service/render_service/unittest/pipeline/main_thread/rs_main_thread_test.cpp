@@ -32,9 +32,12 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "screen_manager/rs_screen.h"
+#include "pipeline/rs_render_node_gc.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -146,24 +149,24 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
 
 std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode()
 {
-    NodeId displayId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, 0, rsContext);
-    auto screenManager = CreateOrGetScreenManager();
+    auto context = std::make_shared<RSContext>();
     ScreenId screenId = 0xFFFF;
+    NodeId displayId = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, context);
+    auto screenManager = CreateOrGetScreenManager();
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     if (hdiOutput == nullptr) {
-        return displayNode;
+        return screenNode;
     }
     auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
     if (rsScreen == nullptr) {
-        return displayNode;
+        return screenNode;
     }
 
     rsScreen->phyWidth_ = SCREEN_PHYSICAL_WIDTH;
     rsScreen->phyHeight_ = SCREEN_PHYSICAL_HEIGHT;
     screenManager->MockHdiScreenConnected(rsScreen);
-    return displayNode;
+    return screenNode;
 }
 
 void RSMainThreadTest::ChangeHardwareEnabledNodesBufferData(
@@ -1522,6 +1525,29 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsSurfaceConsumerNeedSkip001
+ * @tc.desc: IsSurfaceConsumerNeedSkip test
+ * @tc.type: FUNC
+ * @tc.require: issueICKWDL
+ */
+HWTEST_F(RSMainThreadTest, IsSurfaceConsumerNeedSkip001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto distributor = mainThread->rsVSyncDistributor_;
+    sptr<IConsumerSurface> cSurface = nullptr;
+    auto res = mainThread->IsSurfaceConsumerNeedSkip(cSurface);
+    ASSERT_EQ(res, false);
+    cSurface = IConsumerSurface::Create();
+    auto vsyncGenerator = CreateVSyncGenerator();
+    auto vsyncController = new VSyncController(vsyncGenerator, 0);
+    mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    res = mainThread->IsSurfaceConsumerNeedSkip(cSurface);
+    ASSERT_EQ(res, false);
+    mainThread->rsVSyncDistributor_ = distributor;
+}
+
+/**
  * @tc.name: CheckSubThreadNodeStatusIsDoing001
  * @tc.desc: CheckSubThreadNodeStatusIsDoing test
  * @tc.type: FUNC
@@ -1655,11 +1681,30 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->CheckIfHardwareForcedDisabled();
+    mainThread->context_->globalRootRenderNode_ = nullptr;
+    mainThread->CheckIfHardwareForcedDisabled();
+    NodeId id = 0;
+    mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(id++, true);
+
+    std::vector<std::shared_ptr<OHOS::Rosen::RSRenderNode>> vec;
+    vec.push_back(nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode1 = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
+    auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
+    displayNode1->mirrorSource_ = mirrorSourceNode;
+    vec.push_back(displayNode1);
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
+    vec.push_back(displayNode2);
+    const std::vector<std::shared_ptr<OHOS::Rosen::RSRenderNode>> vec1 = vec;
+    auto vec1Ptr = std::make_shared<std::vector<std::shared_ptr<OHOS::Rosen::RSRenderNode>>>(vec1);
+    mainThread->context_->globalRootRenderNode_->fullChildrenList_ = vec1Ptr;
+
+    mainThread->CheckIfHardwareForcedDisabled();
 }
 
 /**
  * @tc.name: CheckIfHardwareForcedDisabled
- * @tc.desc: CheckIfHardwareForcedDisabled002 test child = nullptr and type != DISPLAY_NODE
+ * @tc.desc: CheckIfHardwareForcedDisabled002 test child = nullptr and type != SCREEN_NODE
  * @tc.type: FUNC
  * @tc.require: issueIAS924
  */
@@ -4083,6 +4128,40 @@ HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateScreenNodeScreenId004
+ * @tc.desc: UpdateScreenNodeScreenId, root node has a display child node and a canvas child node
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, UpdateScreenNodeScreenId004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto backUpRootNode = mainThread->context_->globalRootRenderNode_;
+    mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(rootId);
+
+    std::weak_ptr<RSContext> weakContext = {};
+    NodeId canvasId = 1;
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(canvasId, weakContext);
+    mainThread->context_->globalRootRenderNode_->AddChild(rsCanvasDrawingRenderNode);
+
+    NodeId displayId = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, 0, rsContext->weak_from_this());
+    std::shared_ptr<RSRenderNode> tempNode = nullptr;
+
+    displayNode->children_.emplace_back(tempNode);
+    mainThread->context_->globalRootRenderNode_->AddChild(displayNode);
+    mainThread->context_->globalRootRenderNode_->GenerateFullChildrenList();
+
+    ASSERT_FALSE(mainThread->context_->globalRootRenderNode_->children_.empty());
+    mainThread->UpdateScreenNodeScreenId();
+    mainThread->context_->globalRootRenderNode_ = backUpRootNode;
+}
+
+/**
  * @tc.name: ProcessScreenHotPlugEvents
  * @tc.desc: Test ProcessScreenHotPlugEvents
  * @tc.type: FUNC
@@ -4366,6 +4445,38 @@ HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Leve
     mainThread->lastFrameUIExtensionDataEmpty_ = false;
     mainThread->uiExtensionCallbackData_.clear();
     ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
+}
+
+/**
+ * @tc.name: UpdateLuminanceAndColorTempTest
+ * @tc.desc: test UpdateLuminanceAndColorTemp
+ * @tc.type: FUNC
+ * @tc.require: issueIAIIEP
+ */
+HWTEST_F(RSMainThreadTest, UpdateLuminanceAndColorTempTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto backUpNode = mainThread->context_->globalRootRenderNode_;
+    NodeId id = 1;
+    auto node1 = std::make_shared<RSRenderNode>(id);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode1 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    id++;
+    node1->AddChild(displayNode1);
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    id++;
+    node1->AddChild(displayNode2);
+    std::weak_ptr<RSContext> weakContext = {};
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(id, weakContext);
+    node1->AddChild(rsCanvasDrawingRenderNode);
+    node1->GenerateFullChildrenList();
+    mainThread->context_->globalRootRenderNode_ = node1;
+
+    mainThread->UpdateLuminanceAndColorTemp();
+
+    mainThread->context_->globalRootRenderNode_ = backUpNode;
 }
 
 /**
@@ -4727,6 +4838,59 @@ HWTEST_F(RSMainThreadTest, HasMirrorDisplay002, TestSize.Level2)
     ASSERT_TRUE(node1->GetChildrenCount() > 1);
     mainThread->context_->globalRootRenderNode_ = node1;
     ASSERT_EQ(mainThread->HasMirrorDisplay(), true);
+    mainThread->context_->globalRootRenderNode_ = rootNode;
+}
+
+/**
+ * @tc.name: HasMirrorDisplay003
+ * @tc.desc: test HasMirrorDisplay, rootNode != nullptr, and childNode is canvas node
+ * @tc.type: FUNC
+ * @tc.require: issueIB5EAA
+ */
+HWTEST_F(RSMainThreadTest, HasMirrorDisplay003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    NodeId id = 1;
+    auto node1 = std::make_shared<RSRenderNode>(id);
+    id++;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode1 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    id++;
+    node1->AddChild(displayNode1);
+    node1->GenerateFullChildrenList();
+    ASSERT_TRUE(node1->GetChildrenCount() <= 1);
+    mainThread->context_->globalRootRenderNode_ = node1;
+    ASSERT_EQ(mainThread->HasMirrorDisplay(), false);
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    id++;
+    auto mirrorSourceNode1 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    id++;
+    displayNode2->isMirroredScreen_ = true;
+    displayNode2->SetMirrorSource(mirrorSourceNode1);
+    displayNode2->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    node1->AddChild(displayNode2);
+    node1->GenerateFullChildrenList();
+
+    auto displayNode3 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    id++;
+    auto mirrorSourceNode2 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    id++;
+    displayNode3->isMirroredScreen_ = true;
+    displayNode3->SetMirrorSource(mirrorSourceNode2);
+    displayNode2->compositeType_ = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    node1->AddChild(displayNode3);
+    node1->GenerateFullChildrenList();
+
+    std::weak_ptr<RSContext> weakContext = {};
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(id, weakContext);
+    node1->AddChild(rsCanvasDrawingRenderNode);
+    node1->GenerateFullChildrenList();
+
+    mainThread->context_->globalRootRenderNode_ = node1;
+    EXPECT_TRUE(mainThread->HasMirrorDisplay());
     mainThread->context_->globalRootRenderNode_ = rootNode;
 }
 
@@ -5226,6 +5390,75 @@ HWTEST_F(RSMainThreadTest, MultiDisplayChangeTest, TestSize.Level2)
     mainThread->MultiDisplayChange(getMultiDisplayStatus);
 }
 
+/**
+ * @tc.name: RegisterScreenNodeListenerTest
+ * @tc.desc: test RegisterScreenNodeListenerTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSMainThreadTest, RegisterScreenNodeListenerTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->RegisterScreenNodeListener();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    EXPECT_NE(screenManager->screenNodeListener_, nullptr);
+
+    screenManager->screens_.insert(std::make_pair(100, nullptr));
+    mainThread->RegisterScreenNodeListener();
+
+    screenManager->NotifyScreenNodeChange(0, true);
+    screenManager->NotifyScreenNodeChange(0, false);
+}
+
+/**
+ * @tc.name: OnScreenConnectTest
+ * @tc.desc: test OnScreenDisConnect
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSMainThreadTest, OnScreenConnectTest, TestSize.Level2)
+{
+    auto mainThread1 = RSMainThread::Instance();
+    ASSERT_NE(mainThread1, nullptr);
+
+    bool backUpState = mainThread1->isRunning_;
+    mainThread1->isRunning_ = false;
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId1 = 1;
+    auto displayNode1 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId1, config);
+    uint64_t screenId = 1;
+    displayNode1->SetScreenId(screenId);
+    displayNode1->waitToSetOnTree_ = true;
+    mainThread1->context_->nodeMap.logicalDisplayNodeMap_.insert({displayNodeId1, displayNode1});
+
+    NodeId displayNodeId2 = 2;
+    auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
+    mainThread1->context_->nodeMap.logicalDisplayNodeMap_.insert({displayNodeId2, displayNode2});
+
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    screenManager->screenNodeListener_->OnScreenConnect(1);
+    mainThread1->isRunning_ = backUpState;
+}
+
+/**
+ * @tc.name: OnScreenDisconnectTest
+ * @tc.desc: test OnScreenDisconnectTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSMainThreadTest, OnScreenDisconnectTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    screenManager->screenNodeListener_->OnScreenDisconnect(0);
+}
 /**
  * @tc.name: IsFastComposeVsyncTimeSync001
  * @tc.desc: test IsFastComposeVsyncTimeSync input value error condition

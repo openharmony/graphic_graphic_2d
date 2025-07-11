@@ -342,6 +342,7 @@ void RSUIDirector::Destroy(bool isTextureExport)
         rootNode_.reset();
     }
     GoBackground(isTextureExport);
+    SendMessages();
     if (rsUIContext_ != nullptr) {
         RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
         rsUIContext_ = nullptr;
