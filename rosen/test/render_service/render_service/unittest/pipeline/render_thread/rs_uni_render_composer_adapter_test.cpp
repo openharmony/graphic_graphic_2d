@@ -1161,7 +1161,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     screenDrawable->surfaceCreated_ = true;
     OHOS::sptr<SurfaceBuffer> cbuffer = new SurfaceBufferImpl();
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandleOnDraw();
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
     surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0);
     surfaceHandler->SetAvailableBufferCount(0);
@@ -1297,7 +1297,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     SetUp();
 
     using namespace HDI::Display::Graphic::Common::V1_0;
-
+    auto rsContext = std::make_shared<RSContext>();
     RSScreenRenderNode::SharedPtr nodePtr = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
     auto screenDrawable =std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr));

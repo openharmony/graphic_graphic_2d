@@ -255,12 +255,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestS
 }
 
 /*
- * @tc.name: CreatePixelMapByDisplayNode003
+ * @tc.name: CreatePixelMapByDisplayNode004
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with not nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
 */
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestSize.Level2)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode004, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTaskParallel task(0, captureConfig);
@@ -270,9 +270,9 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestS
     
     NodeId id = 0;
     ScreenId screenId = 0;
-    std::make_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    ASSERT_NE(screeNode, nullptr);
+    ASSERT_NE(screenId, nullptr);
     node->SetAncestorScreenNode(screenNode);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
 }

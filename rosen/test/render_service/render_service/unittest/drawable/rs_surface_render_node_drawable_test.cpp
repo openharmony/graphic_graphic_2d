@@ -1440,7 +1440,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView002, T
     auto renderNode = std::make_shared<RSRenderNode>(id);
     auto screenRenderNodeDrawable = std::make_shared<RSScreenRenderNodeDrawable>(renderNode);
     screenRenderNodeDrawable->cachedImageByCapture_ = nullptr;
-    surfaceParams->sourceScreenRenderNodeDrawable_ = screenRenderNodeDrawable;
+    surfaceParams->sourceDisplayRenderNodeDrawable_ = screenRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }
 
@@ -1460,7 +1460,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView003, T
     auto screenRenderNodeDrawable = std::make_shared<RSScreenRenderNodeDrawable>(renderNode);
     auto cacheImg = std::make_shared<Drawing::Image>();
     screenRenderNodeDrawable->cachedImageByCapture_ = cacheImg;
-    surfaceParams->sourceScreenRenderNodeDrawable_ = screenRenderNodeDrawable;
+    surfaceParams->sourceDisplayRenderNodeDrawable_ = screenRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }
 

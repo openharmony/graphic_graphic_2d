@@ -3761,7 +3761,7 @@ HWTEST_F(RSScreenManagerTest, RemoveScreenChangeCallback, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenManagerTest, RegisterScreenNodeListener001, TestSize.level1)
+HWTEST_F(RSScreenManagerTest, RegisterScreenNodeListener001, TestSize.Level1)
 {
     auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
     EXPECT_NE(screenManagerImpl, nullptr);
@@ -3775,7 +3775,7 @@ HWTEST_F(RSScreenManagerTest, RegisterScreenNodeListener001, TestSize.level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenManagerTest, SetScreenOffset001, TestSize.level1)
+HWTEST_F(RSScreenManagerTest, SetScreenOffset001, TestSize.Level1)
 {
     auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
     EXPECT_NE(screenManagerImpl, nullptr);
@@ -3793,7 +3793,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenOffset001, TestSize.level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenManagerTest, NotifyScreenNodeChange001, TestSize.level1)
+HWTEST_F(RSScreenManagerTest, NotifyScreenNodeChange001, TestSize.Level1)
 {
     auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
     EXPECT_NE(screenManagerImpl, nullptr);

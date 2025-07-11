@@ -78,6 +78,6 @@ HWTEST_F(RSSurfaceNodeCommandTypeTest, FixSurfaceNodeCommandTest, Level1 | Stand
     EXPECT_EQ(static_cast<uint16_t>(SURFACE_NODE_SET_HARDWARE_ENABLE_HINT), value++);
     EXPECT_EQ(static_cast<uint16_t>(SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER), value++);
     EXPECT_EQ(static_cast<uint16_t>(SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER), value++);
-    EXPECT_EQ(static_cast<uint16_t>(SURFACE_NODE_SET_SOURCE_VIRTUAL_SCREEN_ID), value++);
+    EXPECT_EQ(static_cast<uint16_t>(SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID), value++);
 }
 } // namespace OHOS::Rosen
