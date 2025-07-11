@@ -38,12 +38,14 @@ namespace Rosen {
 static const std::string ANI_UIEFFECT_SPACE = "L@ohos/graphics/uiEffect/uiEffect";
 static const std::string ANI_UIEFFECT_VISUAL_EFFECT = ANI_UIEFFECT_SPACE + "/VisualEffectInternal;";
 static const std::string ANI_UIEFFECT_BRIGHTNESS_BLENDER = ANI_UIEFFECT_SPACE + "/BrightnessBlenderInternal;";
+static const std::string ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER = ANI_UIEFFECT_SPACE + "/HdrBrightnessBlenderInternal;";
 class AniEffect {
 public:
     AniEffect();
     ~AniEffect();
     static ani_object CreateEffect(ani_env* env);
     static ani_object CreateBrightnessBlender(ani_env* env, ani_object para);
+    static ani_object CreateHdrBrightnessBlender(ani_env* env, ani_object para);
     static ani_object BackgroundColorBlender(ani_env* env, ani_object obj, ani_object para);
 
 private:
