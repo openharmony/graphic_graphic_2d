@@ -25,6 +25,10 @@
 #include "render/rs_pixel_map_util.h"
 #include "render_context/render_context.h"
 
+#ifdef RS_ENABLE_VK
+#include "effect_vulkan_context.h"
+#endif
+
 namespace OHOS::Rosen {
 Drawing::ColorType ImageUtil::PixelFormatToDrawingColorType(const Media::PixelFormat& pixelFormat)
 {
@@ -300,11 +304,21 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
         return Drawing::Surface::MakeRasterDirect(imageInfo_, address, dstPixelMap_->GetRowStride());
     }
 
-#if RS_ENABLE_GPU
-    auto renderContext = std::make_shared<RenderContext>();
-    renderContext->InitializeEglContext();
-    renderContext->SetUpGpuContext(); // create context by gl or vk
-    auto context = renderContext->GetSharedDrGPUContext();
+#ifdef RS_ENABLE_GPU
+    std::shared_ptr<Drawing::GPUContext> context = nullptr;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        auto renderContext = std::make_shared<RenderContext>();
+        renderContext->InitializeEglContext();
+        renderContext->SetUpGpuContext();
+        context = renderContext->GetSharedDrGPUContext();
+    }
+
+#ifdef RS_ENABLE_VK
+    if (RsSystemProperties::IsUseVulkan()) {
+        context = EffectVulkanContext::GetSingleton().CreateDrawingContext();
+    }
+#endif
+
     if (context == nullptr) {
         EFFECT_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return nullptr;
