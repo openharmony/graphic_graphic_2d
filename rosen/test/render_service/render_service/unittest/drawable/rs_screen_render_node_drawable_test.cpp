@@ -329,39 +329,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
 }
 
 /**
- * @tc.name: CheckAndUpdateFilterCacheOcclusion
- * @tc.desc: Test CheckAndUpdateFilterCacheOcclusion
- * @tc.type: FUNC
- * @tc.require: issueIAL2EA
- */
-HWTEST_F(RSscreenRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
-
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_SURFACE_NODE_ID);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    auto surfaceDrawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    ASSERT_NE(surfaceDrawableAdapter, nullptr);
-
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    ScreenInfo screenInfo = {};
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> allSurfaceDrawable { surfaceDrawableAdapter };
-    params->SetAllMainAndLeashSurfaceDrawables(allSurfaceDrawable);
-
-    surfaceParams->windowInfo_.isMainWindowType_ = false;
-    RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
-
-    surfaceParams->windowInfo_.isMainWindowType_ = true;
-    RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
-}
-
-/**
  * @tc.name: CheckFilterCacheFullyCovered
  * @tc.desc: Test CheckFilterCacheFullyCovered
  * @tc.type: FUNC
@@ -658,47 +625,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnDraw010
- * @tc.desc: Test OnDraw when SkipFrame is true/false
- * @tc.type: FUNC
- * @tc.require: issueICCV9N
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest010, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    Drawing::Canvas canvas;
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    params->mirrorSourceDrawable_.reset();
-    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
-    params->isAccumulatedDirty_ = true;
-
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
-    RSUniRenderThread::Instance().uniRenderEngine_->Init();
-    EXPECT_EQ(params->GetMirrorSourceDrawable().lock(), nullptr);
-    EXPECT_EQ(params->GetCompositeType(), CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
-
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->cacheImgForCapture_, nullptr);
-    RSSurfaceRenderNodeConfig config;
-    config.id = id;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
-    surfaceNode->InitRenderParams();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(surfaceNode->GetRenderDrawable());
-    ASSERT_NE(surfaceDrawable, nullptr);
-    params->targetSurfaceRenderNodeDrawable_ = surfaceDrawable;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->cacheImgForCapture_, nullptr);
-    // when hasMirrorScreen is true
-    params->targetSurfaceRenderNodeDrawable_.reset();
-    params->hasMirrorScreen_ = true;
-    screenDrawable_->OnDraw(canvas);
-    EXPECT_EQ(screenDrawable_->cacheImgForCapture_, nullptr);
-}
-
-/**
  * @tc.name: OnDraw011
  * @tc.desc: Test OnDraw when SkipFrame is true/false
  * @tc.type: FUNC
@@ -814,7 +740,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Lev
     if (!rtThread.GetRSRenderThreadParams()) {
         rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
-    screenDrawable_->PrepareOffscreenRender(*screenDrawable_);
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     if (mirroredNode_->GetRenderDrawable() == nullptr) {
         mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
