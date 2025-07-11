@@ -1093,7 +1093,7 @@ ErrCode RSRenderServiceConnection::GetRefreshInfoToSP(NodeId id, std::string& en
             return;
         }
         RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
-    }
+    };
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(dumpTask).wait();
