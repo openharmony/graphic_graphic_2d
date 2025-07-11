@@ -1909,6 +1909,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByRefreshRate, TestSize.Level
     EXPECT_EQ(result, false);
 }
 
+
 /**
  * @tc.name: SkipFrameBy_DefaultStrategy
  * @tc.desc: Test SkipFrameBy_DefaultStrategy
