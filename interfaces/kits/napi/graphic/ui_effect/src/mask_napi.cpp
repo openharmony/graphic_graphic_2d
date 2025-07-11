@@ -46,22 +46,8 @@ bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMa
 
     napi_valuetype res = napi_undefined;
     ret = napi_typeof(env, argv, &res);
-    if (ret != napi_ok) {
-        MASK_LOG_E("ParsePixelMap napi_typeof failed!");
-        return false;
-    }
-
-    Media::PixelMapNapi* tempPixelMap = nullptr;
-    if (res == napi_object) {
-        if (napi_unwrap(env, argv, reinterpret_cast<void**>(&tempPixelMap)) != napi_ok) {
-            MASK_LOG_E("Get PixelMapNapi napi_unwrap failed!");
-            return false;
-        }
-        if (tempPixelMap == nullptr) {
-            MASK_LOG_E("Get PixelMapNapi tempPixelMap is nullptr!");
-            return false;
-        }
-        pixelMap = tempPixelMap->GetPixelNapiInner();
+    if (ret == napi_ok && res == napi_object) {
+        pixelMap = Media::PixelMapNapi::GetPixelMap(env, argv);
         return true;
     }
 
@@ -71,7 +57,7 @@ bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMa
         return true;
     }
 
-    MASK_LOG_E("InValued type! ret: %{public}d, isInstance: %{public}d", ret, isInstance);
+    MASK_LOG_E("InValued type! ret: %{public}d, isInstance: %{public}d, res: %{public}d", ret, isInstance, res);
 #else
     MASK_LOG_E("ImageNapi disabled, parse pixel map failed");
 #endif
