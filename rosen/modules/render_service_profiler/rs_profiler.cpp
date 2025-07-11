@@ -1265,16 +1265,16 @@ void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
 uint64_t RSProfiler::GetDisplayArea()
 {
     if (!context_) {
-        return 0;
+        return 1;
     }
     std::shared_ptr<RSScreenRenderNode> displayNode = GetScreenNode(*context_);
     if (!displayNode) {
-        return 0;
+        return 1;
     }
 
     auto params = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
     if (!params) {
-        return 0;
+        return 1;
     }
     auto screenInfo = params->GetScreenInfo();
     return static_cast<uint64_t>(screenInfo.width * screenInfo.height);
