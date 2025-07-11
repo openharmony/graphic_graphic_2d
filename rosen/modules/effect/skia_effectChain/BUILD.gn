@@ -30,6 +30,7 @@ config("effect_SKeffectChian_config") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
   ]
 
@@ -104,6 +105,14 @@ if (is_arkui_x) {
       "src/sk_image_chain.cpp",
       "src/sk_image_filter_factory.cpp",
     ]
+  
+    if (rs_enable_gpu) {
+      if (graphic_2d_feature_enable_vulkan) {
+        sources += [
+          "src/effect_vulkan_context.cpp",
+        ]
+      }
+    }
 
     configs = [ ":effect_SKeffectChian_config" ]
 
@@ -154,6 +163,13 @@ if (is_arkui_x) {
       "src/sk_image_chain.cpp",
       "src/sk_image_filter_factory.cpp",
     ]
+    if (rs_enable_gpu) {
+      if (graphic_2d_feature_enable_vulkan) {
+        sources += [
+          "src/effect_vulkan_context.cpp",
+        ]
+      }
+    }
 
     configs = [ ":effect_SKeffectChian_config" ]
 
