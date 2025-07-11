@@ -1008,7 +1008,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, IsHardwareForcedDisabledTest002, TestSize
  */
 HWTEST_F(RSSurfaceRenderNodeThreeTest, IsCollaborationForcedHwcTest, TestSize.Level1)
 {
-    const std::string collaborationBundleName = "com.huawei.hmos.devicecollaboration";
+    const std::string collaborationBundleName = "com.example.devicecollaboration";
 
     RSSurfaceRenderNodeConfig config{};
     config.id = ++id;

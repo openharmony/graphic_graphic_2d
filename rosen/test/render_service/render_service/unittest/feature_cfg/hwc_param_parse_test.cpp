@@ -33,7 +33,7 @@ const xmlChar TV_PLAYER_BUNDLE_NAME_KEY[] = "TvPlayerBundleName";
 const xmlChar TV_PLAYER_BUNDLE_NAME_VALUE[] = "com.example.tvplayer";
 
 const xmlChar COLLABORATION_BUNDLE_NAME_KEY[] = "CollaborationBundleName";
-const xmlChar COLLABORATION_BUNDLE_NAME_VALUE[] = "com.huawei.hmos.devicecollaboration";
+const xmlChar COLLABORATION_BUNDLE_NAME_VALUE[] = "com.example.devicecollaboration";
 
 const xmlChar ATTRIBUTE_OTHERS[] = "Others";
 
