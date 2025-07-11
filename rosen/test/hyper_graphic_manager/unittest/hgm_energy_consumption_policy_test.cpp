@@ -560,6 +560,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, HgmFrameRateManager, TestSize.Level1)
 {
     HgmFrameRateManager mgr;
     mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
+    std::shared_ptr<RSRenderFrameRateLinker> linker = std::make_shared<RSRenderFrameRateLinker>();
     FrameRateLinkerMap appFrameRateLinkers_;
     mgr.currRefreshRate_ = DEFAULT_MAX_FPS;
     appFrameRateLinkers_[((NodeId)1000) << 32] = linker;
