@@ -45,7 +45,12 @@ bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMa
     }
 
     napi_valuetype res = napi_undefined;
-    napi_typeof(env, argv, &res);
+    ret = napi_typeof(env, argv, &res);
+    if (ret != napi_ok) {
+        MASK_LOG_E("ParsePixelMap napi_typeof failed!");
+        return false;
+    }
+
     Media::PixelMapNapi* tempPixelMap = nullptr;
     if (res == napi_object) {
         if (napi_unwrap(env, argv, reinterpret_cast<void**>(&tempPixelMap)) != napi_ok) {
