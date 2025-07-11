@@ -57,10 +57,10 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
         "D" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "Lstd/core/String;:" + std::string(ANI_ClASS_TEXT_LINE);
     std::string getTypographicBoundsSignature = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
     std::string getImageBoundsSignature = ":" + std::string(ANI_INTERFACE_RECT);
-    std::string getStringIndexForPositionSignature = std::string(ANI_INTERFACE_POINT) + ":D";
+    std::string getStringIndexForPositionSignature = std::string(ANI_INTERFACE_POINT) + ":I";
 
     std::array methods = {
-        ani_native_function{"getGlyphCount", ":D", reinterpret_cast<void*>(GetGlyphCount)},
+        ani_native_function{"getGlyphCount", ":I", reinterpret_cast<void*>(GetGlyphCount)},
         ani_native_function{"getTextRange", getTextRangeSignature.c_str(), reinterpret_cast<void*>(GetTextRange)},
         ani_native_function{"getGlyphRuns", getGlyphRunsSignature.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
         ani_native_function{"paint", paintSignature.c_str(), reinterpret_cast<void*>(Paint)},
@@ -72,7 +72,7 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"getTrailingSpaceWidth", ":D", reinterpret_cast<void*>(GetTrailingSpaceWidth)},
         ani_native_function{"getStringIndexForPosition", getStringIndexForPositionSignature.c_str(),
             reinterpret_cast<void*>(GetStringIndexForPosition)},
-        ani_native_function{"getOffsetForStringIndex", "D:D", reinterpret_cast<void*>(GetOffsetForStringIndex)},
+        ani_native_function{"getOffsetForStringIndex", "I:D", reinterpret_cast<void*>(GetOffsetForStringIndex)},
         // Lstd/core/Function<number>: <number> is an int from 0 to N, means the number of parameters in the function
         ani_native_function{
             "enumerateCaretOffsets", "Lstd/core/Function3;:V", reinterpret_cast<void*>(EnumerateCaretOffsets)},
@@ -102,7 +102,7 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
     return textLineObj;
 }
 
-ani_double AniTextLine::GetGlyphCount(ani_env* env, ani_object object)
+ani_int AniTextLine::GetGlyphCount(ani_env* env, ani_object object)
 {
     TextLineBase* textline = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
     if (textline == nullptr) {
@@ -291,7 +291,7 @@ ani_double AniTextLine::GetTrailingSpaceWidth(ani_env* env, ani_object object)
     return textLineBase->GetTrailingSpaceWidth();
 }
 
-ani_double AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object object, ani_object point)
+ani_int AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object object, ani_object point)
 {
     TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
     if (textLineBase == nullptr) {
@@ -306,7 +306,7 @@ ani_double AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object objec
     return textLineBase->GetStringIndexForPosition(SkPoint);
 }
 
-ani_double AniTextLine::GetOffsetForStringIndex(ani_env* env, ani_object object, ani_double index)
+ani_double AniTextLine::GetOffsetForStringIndex(ani_env* env, ani_object object, ani_int index)
 {
     TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
     if (textLineBase == nullptr) {
@@ -350,8 +350,8 @@ void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_objec
     double leftOffset = 0.0;
     for (auto it = offsetMap.begin(); it != offsetMap.end(); ++it) {
         std::vector<ani_ref> vec;
-        vec.push_back(AniTextUtils::CreateAniDoubleObj(env, it->first));
-        vec.push_back(AniTextUtils::CreateAniDoubleObj(env, leftOffset));
+        vec.push_back(AniTextUtils::CreateAniIntObj(env, it->first));
+        vec.push_back(AniTextUtils::CreateAniIntObj(env, leftOffset));
         vec.push_back(AniTextUtils::CreateAniBooleanObj(env, it->second));
         if (!CaretOffsetsCallBack(env, callback, vec)) {
             return;
@@ -360,8 +360,8 @@ void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_objec
     }
     if (isHardBreak && offsetMap.size() > 0) {
         std::vector<ani_ref> vec;
-        vec.push_back(AniTextUtils::CreateAniDoubleObj(env, offsetMap.rbegin()->first + 1));
-        vec.push_back(AniTextUtils::CreateAniDoubleObj(env, leftOffset));
+        vec.push_back(AniTextUtils::CreateAniIntObj(env, offsetMap.rbegin()->first + 1));
+        vec.push_back(AniTextUtils::CreateAniIntObj(env, leftOffset));
         vec.push_back(AniTextUtils::CreateAniBooleanObj(env, leftOffset));
         if (!CaretOffsetsCallBack(env, callback, vec)) {
             return;

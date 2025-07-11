@@ -106,7 +106,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(Build)},
         ani_native_function{
             "buildLineTypeset", buildLineTypesetSignature.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
-        ani_native_function{"addSymbol", "D:V", reinterpret_cast<void*>(AddSymbol)},
+        ani_native_function{"addSymbol", "I:V", reinterpret_cast<void*>(AddSymbol)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -223,7 +223,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
     return lineTypographyObj;
 }
 
-void AniParagraphBuilder::AddSymbol(ani_env* env, ani_object object, ani_double symbolId)
+void AniParagraphBuilder::AddSymbol(ani_env* env, ani_object object, ani_int symbolId)
 {
     TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
     if (typographyCreate == nullptr) {

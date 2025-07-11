@@ -187,8 +187,8 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
                 return "";
             }
 
-            ani_double valueDouble;
-            ret = env->Object_GetPropertyByName_Double(obj, "value", &valueDouble);
+            ani_int valueDouble;
+            ret = env->Object_GetPropertyByName_Int(obj, "value", &valueDouble);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get value, ret %{public}d", ret);
                 return "";
@@ -367,7 +367,7 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
         env, featureSet, featureSet.size(), [](ani_env* env, const std::pair<std::string, int>& feature) {
             ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_FEATURE, ":V");
             env->Object_SetPropertyByName_Ref(aniObj, "name", AniTextUtils::CreateAniStringObj(env, feature.first));
-            env->Object_SetPropertyByName_Double(aniObj, "value", feature.second);
+            env->Object_SetPropertyByName_Int(aniObj, "value", feature.second);
             return aniObj;
         });
     return arrayObj;

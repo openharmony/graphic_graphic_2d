@@ -285,7 +285,7 @@ ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, cons
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "intValue", ":I", &value);
+        env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "unboxed", ":I", &value);
     }
     return result;
 }
@@ -320,7 +320,7 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_boolean aniBool;
-        result = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(ref), "isTrue", ":Z", &aniBool);
+        result = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(ref), "unboxed", ":Z", &aniBool);
         if (result == ANI_OK) {
             value = static_cast<bool>(aniBool);
         }

@@ -55,7 +55,7 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
     std::string getTypographicBoundsSignature = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
     std::string getImageBoundsSignature = ":" + std::string(ANI_INTERFACE_RECT);
     std::array methods = {
-        ani_native_function{"getGlyphCount", ":D", reinterpret_cast<void*>(GetGlyphCount)},
+        ani_native_function{"getGlyphCount", ":I", reinterpret_cast<void*>(GetGlyphCount)},
         ani_native_function{"getGlyphs", (":" + std::string(ANI_ARRAY)).c_str(), reinterpret_cast<void*>(GetGlyphs)},
         ani_native_function{
             "nativeGetGlyphs", nativeGetGlyphsSignature.c_str(), reinterpret_cast<void*>(GetGlyphsByRange)},
@@ -97,7 +97,7 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     return runObj;
 }
 
-ani_double AniRun::GetGlyphCount(ani_env* env, ani_object object)
+ani_int AniRun::GetGlyphCount(ani_env* env, ani_object object)
 {
     Run* run = AniTextUtils::GetNativeFromObj<Run>(env, object);
     if (run == nullptr) {
@@ -128,7 +128,7 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, glpyh));
+            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -354,7 +354,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& stringIndex : stringIndices) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, stringIndex));
+            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set stringIndices item %{public}zu", index);
             continue;

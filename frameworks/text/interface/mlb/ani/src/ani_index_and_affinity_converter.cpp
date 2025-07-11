@@ -25,7 +25,7 @@ ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
     ani_env* env, const OHOS::Rosen::IndexAndAffinity indexAndAffinity, ani_object& aniObj)
 {
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POSITION_WITH_AFFINITY, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "position", indexAndAffinity.index);
+    env->Object_SetPropertyByName_Int(aniObj, "position", indexAndAffinity.index);
     env->Object_SetPropertyByName_Ref(aniObj, "affinity",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_AFFINITY, static_cast<int>(indexAndAffinity.affinity)));
     return ANI_OK;

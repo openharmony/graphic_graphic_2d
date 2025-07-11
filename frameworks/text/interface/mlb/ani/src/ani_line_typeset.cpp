@@ -44,9 +44,9 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
-    std::string createLineSignature = "DD:" + std::string(ANI_ClASS_TEXT_LINE);
+    std::string createLineSignature = "II:" + std::string(ANI_ClASS_TEXT_LINE);
     std::array methods = {
-        ani_native_function{"getLineBreak", "DD:D", reinterpret_cast<void*>(GetLineBreak)},
+        ani_native_function{"getLineBreak", "ID:I", reinterpret_cast<void*>(GetLineBreak)},
         ani_native_function{"createLine", createLineSignature.c_str(), reinterpret_cast<void*>(GreateLine)},
     };
 
@@ -58,7 +58,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
     return ANI_OK;
 }
 
-ani_double AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_double startIndex, ani_double width)
+ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width)
 {
     LineTypography* lineTypography = AniTextUtils::GetNativeFromObj<LineTypography>(env, object);
     if (lineTypography == nullptr) {
@@ -67,10 +67,10 @@ ani_double AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_dou
         return 0;
     }
 
-    return static_cast<ani_double>(lineTypography->GetLineBreak(static_cast<size_t>(startIndex), width));
+    return static_cast<ani_int>(lineTypography->GetLineBreak(static_cast<size_t>(startIndex), width));
 }
 
-ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_double startIndex, ani_double count)
+ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count)
 {
     LineTypography* lineTypography = AniTextUtils::GetNativeFromObj<LineTypography>(env, object);
     if (lineTypography == nullptr) {
@@ -82,7 +82,7 @@ ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_doubl
     size_t limitSize = lineTypography->GetUnicodeSize();
     if (startIndex < 0 || (limitSize <= static_cast<size_t>(startIndex)) || count < 0
         || (limitSize < static_cast<size_t>(count + startIndex))) {
-        TEXT_LOGE("Params exceeds reasonable range. %{public}f %{public}f %{public}zu", startIndex, count, limitSize);
+        TEXT_LOGE("Params exceeds reasonable range. %{public}d %{public}d %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Params exceeds reasonable range.");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -90,7 +90,7 @@ ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_doubl
     std::unique_ptr<TextLineBase> textLineBase =
         lineTypography->CreateLine(static_cast<size_t>(startIndex), static_cast<size_t>(count));
     if (textLineBase == nullptr) {
-        TEXT_LOGE("Failed to create line. %{public}f %{public}f %{public}zu", startIndex, count, limitSize);
+        TEXT_LOGE("Failed to create line. %{public}d %{public}d %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Create line failed.");
         return AniTextUtils::CreateAniUndefined(env);
     }
