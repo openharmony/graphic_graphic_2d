@@ -1541,20 +1541,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrameByInterval, TestSize.Level1)
 }
 
 /**
- * @tc.name: EnablescRGBForP3AndUiFirstTest
- * @tc.desc: Test ScRGB For P3 Controller
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, EnablescRGBForP3AndUiFirstTest, TestSize.Level2)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    auto result = screenDrawable_->EnablescRGBForP3AndUiFirst(currentGamut);
-    EXPECT_FALSE(result);
-}
-
-/**
  * @tc.name: RenderOverDraw_Disabled
  * @tc.desc: Test RenderOverDraw when overdraw is disabled
  * @tc.type: FUNC
@@ -1746,86 +1732,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SetDamageRegion_Empty, TestSize.Level1)
     ASSERT_NE(screenDrawable_, nullptr);
     std::vector<RectI> rects;
     screenDrawable_->SetDamageRegion(rects);
-}
-
-/**
- * @tc.name: FinishHdrDraw
- * @tc.desc: Test FinishHdrDraw
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, FinishHdrDraw, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    Drawing::Brush brush;
-    screenDrawable_->FinishHdrDraw(brush, 1.0f);
-}
-
-/**
- * @tc.name: FinishHdrDraw_DifferentRatio
- * @tc.desc: Test FinishHdrDraw with different ratio
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, FinishHdrDraw_DifferentRatio, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    Drawing::Brush brush;
-    screenDrawable_->FinishHdrDraw(brush, 0.5f);
-}
-
-/**
- * @tc.name: EnablescRGBForP3AndUiFirst_SRGB
- * @tc.desc: Test EnablescRGBForP3AndUiFirst with SRGB
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, EnablescRGBForP3AndUiFirst_SRGB, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    bool result = screenDrawable_->EnablescRGBForP3AndUiFirst(GRAPHIC_COLOR_GAMUT_SRGB);
-    EXPECT_EQ(result, false);
-}
-
-/**
- * @tc.name: EnablescRGBForP3AndUiFirst_P3
- * @tc.desc: Test EnablescRGBForP3AndUiFirst with P3
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, EnablescRGBForP3AndUiFirst_P3, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    bool result = screenDrawable_->EnablescRGBForP3AndUiFirst(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    EXPECT_EQ(result, false);
-}
-
-/**
- * @tc.name: MakeBrightnessAdjustmentShader001
- * @tc.desc: Test MakeBrightnessAdjustmentShader001
- * @tc.type: FUNC
- * @tc.require: issueIAWIC7
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, MakeBrightnessAdjustmentShader001, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    auto image = std::make_shared<Drawing::Image>();
-    Drawing::SamplingOptions sampling;
-    auto shader = screenDrawable_->MakeBrightnessAdjustmentShader(image, sampling, 0.8f);
-}
-
-/**
- * @tc.name: FinishOffscreenRender_NullBackup
- * @tc.desc: Test FinishOffscreenRender_NullBackup when canvasBackup_ is null
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, FinishOffscreenRender_NullBackup, TestSize.Level1)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    Drawing::SamplingOptions sampling;
-    screenDrawable_->FinishOffscreenRender(sampling, 1.0f);
-    ASSERT_FALSE(screenDrawable_->canvasBackup_);
 }
 
 /**
