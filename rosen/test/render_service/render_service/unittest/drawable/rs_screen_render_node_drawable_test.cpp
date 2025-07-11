@@ -94,7 +94,6 @@ void RSScreenRenderNodeDrawableTest::SetUp()
         RS_LOGE("RSScreenRenderNodeDrawableTest: failed to create display node.");
         return;
     }
-
     // init RSScreen
     auto screenManager = CreateOrGetScreenManager();
     auto output = std::make_shared<HdiOutput>(renderNode_->GetScreenId());
@@ -1476,7 +1475,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnCapture, TestSize.Level1)
     RSUniRenderThread::GetCaptureParam().isMirror_ = false;
     screenDrawable_->OnCapture(paintFilterCanvas);
 
-    ASSERT_FALSE( RSUniRenderThread::GetCaptureParam().isMirror_);
+    ASSERT_FALSE(RSUniRenderThread::GetCaptureParam().isMirror_);
 }
 
 /**
@@ -1834,7 +1833,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByRefreshRate, TestSize.Level
     bool result = screenDrawable_->SkipFrame(60, screenInfo);
     EXPECT_EQ(result, false);
 }
-
 
 /**
  * @tc.name: SkipFrameBy_DefaultStrategy
