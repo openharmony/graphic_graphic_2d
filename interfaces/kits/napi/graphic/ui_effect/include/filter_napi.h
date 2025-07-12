@@ -33,6 +33,7 @@
 #include "filter/include/filter_dispersion_para.h"
 #include "filter/include/filter_content_light_para.h"
 #include "filter/include/filter_mask_transition_para.h"
+#include "filter/include/filter_variable_radius_blur_para.h"
 #include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -78,6 +79,7 @@ private:
     static napi_value SetHDRBrightnessRatio(napi_env env, napi_callback_info info);
     static napi_value SetContentLight(napi_env env, napi_callback_info info);
     static napi_value SetMaskTransition(napi_env env, napi_callback_info info);
+    static napi_value SetVariableRadiusBlur(napi_env env, napi_callback_info info);
 
     static void RegisterFilterParaUnmarshallingCallback();
 

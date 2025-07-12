@@ -105,6 +105,11 @@ DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
     ADD_PROPERTY_TAG(DirectionLight, Intensity)
 );
 
+DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
+    ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
+    ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)
+);
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER
 

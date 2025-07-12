@@ -247,6 +247,59 @@ HWTEST_F(RSNodeTest, LifeCycle005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: test destruction001
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSNodeTest, destruction001, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rootNode != nullptr);
+    rootNode->rsUIContext_ = std::make_shared<RSUIContext>();
+    rootNode->skipDestroyCommandInDestructor_ = true;
+}
+
+/**
+ * @tc.name: test destruction002
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueICL3ND
+ */
+HWTEST_F(RSNodeTest, destruction002, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rootNode != nullptr);
+    rootNode->rsUIContext_ = std::make_shared<RSUIContext>();
+    rootNode->skipDestroyCommandInDestructor_ = false;
+}
+
+/**
+ * @tc.name: test destruction003
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueICL3ND
+ */
+HWTEST_F(RSNodeTest, destruction003, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rootNode != nullptr);
+    rootNode->skipDestroyCommandInDestructor_ = true;
+}
+
+/**
+ * @tc.name: test destruction004
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueICL3ND
+ */
+HWTEST_F(RSNodeTest, destruction004, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rootNode != nullptr);
+}
+
+/**
  * @tc.name: Recording001
  * @tc.desc:
  * @tc.type:FUNC

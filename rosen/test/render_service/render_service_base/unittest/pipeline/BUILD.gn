@@ -1491,6 +1491,7 @@ group("unittest") {
     ":RSCanvasRenderNodeTest",
     ":RSContextTest",
     ":RSDirtyRegionManagerTest",
+    ":RSScreenRenderNodeTest",
     ":RSDrawCmdListTest",
     ":RSDrawCmdTest",
     ":RSEffectRenderNodeTest",

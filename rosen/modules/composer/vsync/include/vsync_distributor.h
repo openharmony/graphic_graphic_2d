@@ -69,7 +69,7 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
     bool AddRequestVsyncTimestamp(const int64_t& timestamp);
     void RemoveTriggeredVsync(const int64_t &currentTime);
@@ -159,7 +159,7 @@ public:
     void RecordVsyncModeChange(uint32_t refreshRate, int64_t period);
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
-    VsyncError SetUiDvsyncConfig(int32_t bufferCount);
+    VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
     int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
@@ -179,6 +179,7 @@ public:
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
     void SetTaskEndWithTime(uint64_t time);
+    bool NeedSkipForSurfaceBuffer(uint64_t id);
 
 private:
 

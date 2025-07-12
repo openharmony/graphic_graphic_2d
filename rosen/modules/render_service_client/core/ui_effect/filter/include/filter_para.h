@@ -61,6 +61,7 @@ public:
         CONTENT_LIGHT,
         MASK_TRANSITION,
         DIRECTION_LIGHT,
+        VARIABLE_RADIUS_BLUR,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
