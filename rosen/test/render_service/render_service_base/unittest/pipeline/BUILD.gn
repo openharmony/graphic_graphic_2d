@@ -252,14 +252,14 @@ ohos_unittest("RSDirtyRegionManagerTest") {
   subsystem_name = "graphic"
 }
 
-##############################  RSDisplayRenderNodeTest  ##################################
-ohos_unittest("RSDisplayRenderNodeTest") {
+##############################  RSScreenRenderNodeTest  ##################################
+ohos_unittest("RSScreenRenderNodeTest") {
   module_out_path = module_output_path
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
 
-  sources = [ "rs_display_render_node_test.cpp" ]
+  sources = [ "rs_screen_render_node_test.cpp" ]
 
   cflags = [
     "-Wall",
@@ -1491,7 +1491,7 @@ group("unittest") {
     ":RSCanvasRenderNodeTest",
     ":RSContextTest",
     ":RSDirtyRegionManagerTest",
-    ":RSDisplayRenderNodeTest",
+    ":RSScreenRenderNodeTest",
     ":RSDrawCmdListTest",
     ":RSDrawCmdTest",
     ":RSEffectRenderNodeTest",
