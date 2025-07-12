@@ -1603,7 +1603,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level
     surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
     surfaceNode2->instanceRootNodeId_ = 1;
     surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(101);
-    
     constexpr NodeId id = 3;
     auto filterNode = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(filterNode, nullptr);
@@ -1630,6 +1629,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level
     surfaceNode2->SetHardwareForcedDisabledState(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
     ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+    
+    surfaceNode2->parent_ = filterNode;
+    filterNode->parent_ = surfaceNode1;
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_FALSE(surfaceNode2->IsHardwareForcedDisabled());
 }
 
 /**
@@ -1659,7 +1664,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level
     surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
     surfaceNode2->instanceRootNodeId_ = 1;
     surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(101);
-    constexpr NodeId id = 3;
+    constexpr NodeId id = 4;
     auto filterNode = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(filterNode, nullptr);
     filterNode->SetOldDirtyInSurface(rect);
@@ -1668,12 +1673,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level
     filterNode->GetHwcRecorder().SetBlendWithBackground(true);
 
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(filterNode);
-    surfaceNode2->parent_ = filterNode;
-    filterNode->parent_ = surfaceNode1;
-    surfaceNode2->SetHardwareForcedDisabledState(false);
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
-    ASSERT_FALSE(surfaceNode2->IsHardwareForcedDisabled());
-
     surfaceNode2->parent_ = surfaceNode1;
     filterNode->parent_ = surfaceNode1;
     surfaceNode2->SetHardwareForcedDisabledState(false);
@@ -1689,6 +1688,11 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level
     surfaceNode2->SetHardwareForcedDisabledState(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
     ASSERT_FALSE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(101);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
 }
 
 /**
