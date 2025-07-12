@@ -3561,6 +3561,56 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeDirtyRegionAndCreateLayer002, Test
 }
 
 /**
+ * @tc.name: UpdateHwcNodeDirtyRegionAndCreateLayer
+ * @tc.desc: Test UpdateHwcNodeDirtyRegionAndCreateLayer for toplayer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeDirtyRegionAndCreateLayer003, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto childNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    childNode->SetIsOnTheTree(true);
+    childNode->SetLayerTop(true);
+    node->AddChildHardwareEnabledNode(childNode);
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    EXPECT_NE(rsUniRenderVisitor->hasMirrorDisplay_, true);
+    ASSERT_NE(childNode->GetRSSurfaceHandler(), nullptr);
+    EXPECT_FALSE(childNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed());
+    EXPECT_TRUE(node->GetVisibleRegion().IsEmpty());
+    EXPECT_EQ(rsUniRenderVisitor->curScreenDirtyManager_, nullptr);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node);
+
+    rsUniRenderVisitor->hasMirrorDisplay_ = true;
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node);
+
+    auto handler = childNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(handler, nullptr);
+    handler->SetCurrentFrameBufferConsumed();
+    EXPECT_TRUE(childNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed());
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node);
+
+    Occlusion::Rect r;
+    node->visibleRegion_.rects_.push_back(r);
+    node->visibleRegion_.bound_.left_ = 0;
+    node->visibleRegion_.bound_.right_ = 1;
+    node->visibleRegion_.bound_.top_ = 0;
+    node->visibleRegion_.bound_.bottom_ = 1;
+    EXPECT_FALSE(node->GetVisibleRegion().IsEmpty());
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node);
+
+    rsUniRenderVisitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(rsUniRenderVisitor->curScreenDirtyManager_, nullptr);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node);
+}
+
+/**
  * @tc.name: UpdateHwcNodeDirtyRegionForApp
  * @tc.desc: Test UpdateHwcNodeDirtyRegionForApp, current frame enable status different from last frame.
  * @tc.type: FUNC

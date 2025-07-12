@@ -2135,6 +2135,12 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         if (hwcNodePtr->IsLayerTop()) {
             topLayers.emplace_back(hwcNodePtr);
+            if (hasMirrorDisplay_ && hwcNodePtr->GetRSSurfaceHandler() &&
+                hwcNodePtr->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
+                !(node->GetVisibleRegion().IsEmpty()) && curScreenDirtyManager_) {
+                // merge hwc top node dst rect for virtual screen dirty, in case the main display node skip
+                curScreenDirtyManager_->MergeHwcDirtyRect(hwcNodePtr->GetDstRect());
+            }
             continue;
         }
         if (((curScreenNode_->GetHasUniRenderHdrSurface() && !RSHdrUtil::GetRGBA1010108Enabled()) ||
