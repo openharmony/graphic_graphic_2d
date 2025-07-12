@@ -17,7 +17,6 @@
 
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "parameters.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "skia_adapter/skia_surface.h"
@@ -278,7 +277,6 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable002, TestSize.Level1)
     RSRenderNode node(id);
     ASSERT_EQ(DrawableV2::RSBeginBlenderDrawable::OnGenerate(node), nullptr);
 
-    system::SetParameter("persist.sys.graphic.openDebugTrace", "2");
     auto params = std::optional<RSShadowBlenderPara>({0, 0, 0, 0});
     node.GetMutableRenderProperties().SetShadowBlenderParams(params);
     auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
