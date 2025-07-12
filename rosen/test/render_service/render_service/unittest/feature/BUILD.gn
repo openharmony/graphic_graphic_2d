@@ -486,7 +486,10 @@ ohos_unittest("RSSubThreadTest") {
 ## Build RSSubThreadCacheTest
 ohos_unittest("RSSubThreadCacheTest") {
   module_out_path = module_output_path
-  sources = [ "uifirst/rs_sub_thread_cache_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "uifirst/rs_sub_thread_cache_test.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",

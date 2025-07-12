@@ -17,12 +17,13 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "parameters.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_surface.h"
 
 using namespace testing;
@@ -1127,5 +1128,30 @@ HWTEST_F(RSSubThreadCacheTest, GetSurfaceSkipPriorityTest, TestSize.Level1)
     ASSERT_EQ(subCache.GetSurfaceSkipCount(), 0);
     ASSERT_EQ(subCache.isSurfaceSkipPriority_, 0);
     ASSERT_EQ(subCache.GetSurfaceSkipPriority(), 1);
+}
+
+/**
+ * @tc.name: GetSurfaceSkipPriorityTest
+ * @tc.desc: Test surface skip priority
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, CheckSurfaceDrawableValidDfxTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    // nullptr
+    subCache.CheckSurfaceDrawableValidDfx(nullptr);
+    NodeId id = 99;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(surfaceAdapter, nullptr);
+    // correct nodeType
+    subCache.CheckSurfaceDrawableValidDfx(surfaceAdapter);
+    id = 100;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
+    auto canvasAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode);
+    ASSERT_NE(canvasAdapter, nullptr);
+    // no correct nodeType
+    subCache.CheckSurfaceDrawableValidDfx(canvasAdapter);
 }
 }
