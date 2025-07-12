@@ -471,6 +471,14 @@
               "header_files": [],
               "header_base": "//foundation/graphic/graphic_2d/frameworks/text/interface/export"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/ani/color_manager:ani_color_space_object_convertor",
+            "header": {
+              "header_files": [ "ani_color_space_object_convertor.h" ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/ani/color_manager/src/color_space_object_convertor"
+            }
           }
         ],
         "test": [
