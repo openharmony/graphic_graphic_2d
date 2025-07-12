@@ -23,7 +23,7 @@ group("unittest") {
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
-    ":RSDisplayRenderNodeDrawableTest",
+    ":RSScreenRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
@@ -69,10 +69,10 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
   ]
 }
 
-## Build RSDisplayRenderNodeDrawableTest
-ohos_unittest("RSDisplayRenderNodeDrawableTest") {
+## Build RSScreenRenderNodeDrawableTest
+ohos_unittest("RSScreenRenderNodeDrawableTest") {
   module_out_path = module_output_path
-  sources = [ "rs_display_render_node_drawable_test.cpp" ]
+  sources = [ "rs_screen_render_node_drawable_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
