@@ -1528,7 +1528,7 @@ HWTEST_F(PropertiesTest, ShadowBlenderTest, TestSize.Level1)
     properties.SetShadowBlenderParams(paramsNull);
     EXPECT_FALSE(properties.isDrawn_);
     std::string description = "shadowBlenderParams_ is nullopt";
-    EXCEPT_EQ(description, properties.GetShadowBlenderDescription());
+    EXPECT_EQ(description, properties.GetShadowBlenderDescription());
 
     float cubic = 0;
     float quadratic = 0;
@@ -1543,7 +1543,7 @@ HWTEST_F(PropertiesTest, ShadowBlenderTest, TestSize.Level1)
         ", quadratic: " + std::to_string(quadratic) +
         ", linear: " + std::to_string(linear) +
         ", constant: " + std::to_string(constant);
-    EXCEPT_EQ(description, properties.GetShadowBlenderDescription());
+    EXPECT_EQ(description, properties.GetShadowBlenderDescription());
 }
 } // namespace Rosen
 } // namespace OHOS
