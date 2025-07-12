@@ -70,6 +70,9 @@ void RsFrameBlurPredict::TakeEffectBlurScene(const EventInfo& eventInfo)
 
 void RsFrameBlurPredict::PredictDrawLargeAreaBlur(RSRenderNode& node)
 {
+    if (!isValidBlurFrame_.load()) {
+        return;
+    }
     std::pair<bool, bool> nodeDrawLargeAreaBlur = {false, false};
     node.NodeDrawLargeAreaBlur(nodeDrawLargeAreaBlur);
     predictDrawLargeAreaBlur_.first = predictDrawLargeAreaBlur_.first || nodeDrawLargeAreaBlur.first;
