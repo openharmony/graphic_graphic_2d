@@ -237,6 +237,7 @@ private:
         RSPaintFilterCanvas& rscanvas, NodeId id);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
+    void CheckSurfaceDrawableValidDfx(const DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr& drawable);
 
     NodeId nodeId_ = 0;
     // Cache in RT
