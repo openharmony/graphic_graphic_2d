@@ -431,9 +431,11 @@ bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::sh
     for (const auto& filter : shaderFilters_) {
         filter->GenerateGEVisualEffect(hpsVisualEffectContainer);
     }
+    GraphicsEffectEngine::GERender::HpsGEImageEffectContext context = {
+        image, attr.src, attr.dst, Drawing::SamplingOptions(), true};
 
     bool kawaseHpsProcess = geRender->ApplyHpsGEImageEffect(canvas, *hpsVisualEffectContainer,
-        image, outImage, attr.src, attr.dst, brush, Drawing::SamplingOptions());
+        context, outImage, brush);
     if (outImage == nullptr) {
         ROSEN_LOGD("RSDrawingFilter::ApplyHpsImageEffect ApplyHpsGEEffect failed");
     }
@@ -479,7 +481,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
            shaderFilters_ contain Kawase or Mesa and HPS draw shaderFilters_ succ,
        if outImage != nullptr and return false means:
            shaderFilters_ not contain Kawase and Mesa and HPS draw shaderFilters_ succ.
-     * Why does visualEffectContainer NOT used when calling ApplyHpsImageEffect()?
+     * Why are visualEffectContainer NOT used when calling ApplyHpsImageEffect()?
        Due to compatibility issues with HPS 1.0, Kawase filter is skipped when generating visualEffectContainer
        in RSDrawingFilter::DrawImageRectInternal() and applied later in the following lines. If calling HPS
        successfully, it will return, skipping the following lines. Therefore, visualEffectContainer must be regenerated
@@ -551,6 +553,8 @@ void RSDrawingFilter::DrawImageRectInternal(Drawing::Canvas& canvas, const std::
     for (const auto& filter : shaderFilters_) {
         if (filter->GetType() == RSUIFilterType::KAWASE) {
             kawaseHpsFilter = true;
+            // If this Kawase skip is removed, set the compatiblity switch
+            // for HpsGEImageEffectContext to false in ApplyHpsImageEffect()
             continue;
         }
         filter->GenerateGEVisualEffect(visualEffectContainer);
