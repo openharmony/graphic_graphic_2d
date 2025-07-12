@@ -23,8 +23,9 @@ Filter::Filter(const Filter& filter)
 {
     const auto& filterParas = filter.GetAllPara();
     for (const auto& para : filterParas) {
-        if (para == nullptr) {
-            RS_LOGE("[ui_effect] Filter para is nullptr");
+        bool isInvalid = (para == nullptr || !FilterPara::IsWhitelistPara(static_cast<uint16_t>(para->GetParaType())));
+        if (isInvalid) {
+            RS_LOGE("[ui_effect] Filter para copy failed");
             continue;
         }
         if (auto paraCopy = para->Clone(); paraCopy) {
@@ -37,11 +38,14 @@ bool Filter::Marshalling(Parcel& parcel) const
 {
     const auto& filterParas = GetAllPara();
     size_t validParaCount = 0;
-    std::for_each(filterParas.begin(), filterParas.end(), [&validParaCount](const auto& para) {
-        if (para != nullptr) {
+    std::vector<std::shared_ptr<FilterPara>> validFilterParas;
+    for (auto const& para : filterParas) {
+        bool isInvalid = (para == nullptr || !FilterPara::IsWhitelistPara(static_cast<uint16_t>(para->GetParaType())));
+        if (!isInvalid) {
             validParaCount++;
+            validFilterParas.emplace_back(para);
         }
-    });
+    }
     if (validParaCount > FilterPara::UNMARSHALLING_MAX_VECTOR_SIZE) {
         RS_LOGE("[ui_effect] Filter Marshalling validParaCount is illegal");
         return false;
@@ -50,14 +54,10 @@ bool Filter::Marshalling(Parcel& parcel) const
         RS_LOGE("[ui_effect] Filter Marshalling write validParaCount failed");
         return false;
     }
-    for (const auto& para : filterParas) {
-        if (para == nullptr) {
-            RS_LOGE("[ui_effect] Filter Marshalling para is nullptr");
-            continue;
-        }
+    for (const auto& para : validFilterParas) {
         if (!para->Marshalling(parcel)) {
             RS_LOGE("[ui_effect] Filter Marshalling failed, type is %{public}d", para->GetParaType());
-            continue;
+            return false;
         }
     }
     return true;
@@ -78,12 +78,9 @@ bool Filter::Unmarshalling(Parcel& parcel, std::shared_ptr<Filter>& val)
     auto filter = std::make_unique<Filter>();
     for (uint32_t i = 0; i < size; ++i) {
         std::shared_ptr<FilterPara> para = nullptr;
-        if (!FilterPara::Unmarshalling(parcel, para)) {
+        bool isSuccess = (FilterPara::Unmarshalling(parcel, para) && para != nullptr);
+        if (!isSuccess) {
             RS_LOGE("[ui_effect] Filter Unmarshalling para failed");
-            return false;
-        }
-        if (para == nullptr) {
-            RS_LOGE("[ui_effect] Filter Unmarshalling para is nullptr");
             return false;
         }
         filter->AddPara(para);

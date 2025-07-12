@@ -14,6 +14,9 @@
  */
 
 #include "ui_effect/mask/include/mask_para.h"
+
+#include <unordered_set>
+
 #include "ui_effect/mask/include/mask_unmarshalling_singleton.h"
 #include "platform/common/rs_log.h"
 
@@ -22,14 +25,15 @@ namespace Rosen {
 
 bool MaskPara::Marshalling(Parcel& parcel) const
 {
-    RS_LOGE("[ui_effect] MaskPara Marshalling not implemented, type is %{public}d", type_);
+    RS_LOGE("[ui_effect] MaskPara do not marshalling non-specified type: %{public}d", type_);
     return false;
 }
 
 bool MaskPara::RegisterUnmarshallingCallback(uint16_t type, UnmarshallingFunc func)
 {
-    if (type == Type::NONE || func == nullptr) {
-        RS_LOGE("[ui_effect] MaskPara RegisterUnmarshallingCallback type:%{public}d or func is invalid", type);
+    bool isInvalid = (func == nullptr || !MaskPara::IsWhitelistPara(type));
+    if (isInvalid) {
+        RS_LOGE("[ui_effect] MaskPara register unmarshalling type:%{public}hu callback failed", type);
         return false;
     }
     MaskUnmarshallingSingleton::GetInstance().RegisterCallback(type, func);
@@ -44,7 +48,8 @@ bool MaskPara::Unmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val)
         RS_LOGE("[ui_effect] MaskPara Unmarshalling read type failed");
         return false;
     }
-    if (type == Type::NONE) {
+    bool isInvalid = (!MaskPara::IsWhitelistPara(type));
+    if (isInvalid) {
         RS_LOGE("[ui_effect] MaskPara Unmarshalling read type invalid");
         return false;
     }
@@ -53,14 +58,30 @@ bool MaskPara::Unmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val)
     if (func != nullptr) {
         return func(parcel, val);
     }
-    RS_LOGE("[ui_effect] MaskPara Unmarshalling func invalid, type is %{public}d", type);
+    RS_LOGE("[ui_effect] MaskPara Unmarshalling func invalid, type is %{public}hu", type);
     return false;
 }
 
 std::shared_ptr<MaskPara> MaskPara::Clone() const
 {
-    RS_LOGE("[ui_effect] MaskPara Clone not implemented, type is %{public}d", type_);
+    RS_LOGE("[ui_effect] MaskPara do not clone non-specified type: %{public}d", type_);
     return nullptr;
+}
+
+bool MaskPara::IsWhitelistPara(uint16_t type)
+{
+    static const std::unordered_set<uint16_t> whitelist = {
+        static_cast<uint16_t>(Type::RADIAL_GRADIENT_MASK),
+        static_cast<uint16_t>(Type::PIXEL_MAP_MASK)
+    };
+
+    auto find = whitelist.find(type);
+    if (find != whitelist.end()) {
+        return true;
+    }
+
+    RS_LOGE("[ui_effect] MaskPara This %{public}hu para is not allowed to be operated", type);
+    return false;
 }
 
 } // namespace Rosen

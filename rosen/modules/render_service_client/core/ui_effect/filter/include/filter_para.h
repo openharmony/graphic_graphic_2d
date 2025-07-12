@@ -78,6 +78,8 @@ public:
 
     virtual std::shared_ptr<FilterPara> Clone() const;
 
+    static bool IsWhitelistPara(uint16_t type);
+
     ParaType GetParaType()
     {
         return type_;

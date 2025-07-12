@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 
 PixelMapMaskPara::PixelMapMaskPara(const PixelMapMaskPara& other)
-    : pixelMap_(nullptr), src_(other.src_), dst_(other.dst_), fillColor_(other.fillColor_)
+    : MaskPara(other), pixelMap_(nullptr), src_(other.src_), dst_(other.dst_), fillColor_(other.fillColor_)
 {
 #ifdef ROSEN_OHOS
     if (other.pixelMap_ != nullptr) {
@@ -40,14 +40,16 @@ PixelMapMaskPara::PixelMapMaskPara(const PixelMapMaskPara& other)
 
 bool PixelMapMaskPara::Marshalling(Parcel& parcel) const
 {
-    if (!(parcel.WriteUint16(static_cast<uint16_t>(type_)) && parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+    bool isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+        parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
         pixelMap_ != nullptr && pixelMap_->Marshalling(parcel) &&
         parcel.WriteFloat(src_.x_) && parcel.WriteFloat(src_.y_) &&
         parcel.WriteFloat(src_.z_) && parcel.WriteFloat(src_.w_) &&
         parcel.WriteFloat(dst_.x_) && parcel.WriteFloat(dst_.y_) &&
         parcel.WriteFloat(dst_.z_) && parcel.WriteFloat(dst_.w_) &&
         parcel.WriteFloat(fillColor_.x_) && parcel.WriteFloat(fillColor_.y_) &&
-        parcel.WriteFloat(fillColor_.z_) && parcel.WriteFloat(fillColor_.w_))) {
+        parcel.WriteFloat(fillColor_.z_) && parcel.WriteFloat(fillColor_.w_);
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] PixelMapMaskPara Marshalling write para failed");
         return false;
     }
@@ -79,12 +81,13 @@ bool PixelMapMaskPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>
     Vector4f src;
     Vector4f dst;
     Vector4f fillColor;
-    if (!(parcel.ReadFloat(src.x_) && parcel.ReadFloat(src.y_) &&
+    auto isSuccess = parcel.ReadFloat(src.x_) && parcel.ReadFloat(src.y_) &&
         parcel.ReadFloat(src.z_) && parcel.ReadFloat(src.w_) &&
         parcel.ReadFloat(dst.x_) && parcel.ReadFloat(dst.y_) &&
         parcel.ReadFloat(dst.z_) && parcel.ReadFloat(dst.w_) &&
         parcel.ReadFloat(fillColor.x_) && parcel.ReadFloat(fillColor.y_) &&
-        parcel.ReadFloat(fillColor.z_) && parcel.ReadFloat(fillColor.w_))) {
+        parcel.ReadFloat(fillColor.z_) && parcel.ReadFloat(fillColor.w_);
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] PixelMapMaskPara OnUnmarshalling read para failed");
         return false;
     }

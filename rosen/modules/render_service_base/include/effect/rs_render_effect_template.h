@@ -261,6 +261,7 @@ public:
             case RSNGEffectType::PARTICLE_CIRCULAR_HALO: return "ParticleCircularHalo";
             case RSNGEffectType::RADIAL_GRADIENT_MASK: return "RadialGradientMask";
             case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
+            case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
             default:
                 return "UNKNOWN";

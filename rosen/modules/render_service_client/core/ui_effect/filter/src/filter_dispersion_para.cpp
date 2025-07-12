@@ -72,9 +72,9 @@ bool DispersionPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>
     }
 
     std::shared_ptr<MaskPara> maskPara = nullptr;
-    bool isMasPara = false;
-    bool isInvalidMask = !parcel.ReadBool(isMasPara) ||
-        (isMasPara && (!MaskPara::Unmarshalling(parcel, maskPara) || maskPara == nullptr));
+    bool isMaskPara = false;
+    bool isInvalidMask = !parcel.ReadBool(isMaskPara) ||
+        (isMaskPara && (!MaskPara::Unmarshalling(parcel, maskPara) || maskPara == nullptr));
     if (isInvalidMask) {
         RS_LOGE("[ui_effect] DispersionPara OnUnmarshalling read mask failed");
         return false;

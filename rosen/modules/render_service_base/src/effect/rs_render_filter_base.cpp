@@ -57,6 +57,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderColorGradientFilter>();
         }
     },
+    {RSNGEffectType::MASK_TRANSITION, [] {
+            return std::make_shared<RSNGRenderMaskTransitionFilter>();
+        }
+    },
     {RSNGEffectType::VARIABLE_RADIUS_BLUR, [] {
             return std::make_shared<RSNGRenderVariableRadiusBlurFilter>();
         }
