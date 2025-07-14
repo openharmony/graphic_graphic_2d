@@ -67,6 +67,7 @@ const uint8_t DO_SET_SCREEN_SKIP_FRAME_INTERVAL = 11;
 const uint8_t DO_GET_BITMAP = 12;
 const uint8_t DO_GET_PIXELMAP = 13;
 const uint8_t TARGET_SIZE = 14;
+const uint8_t DO_GET_SCREEN_HDR_STATUS = 15;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -333,6 +334,18 @@ void DoGetPixelmap()
     }
     rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
 }
+
+void DoGetScreenHDRStatus()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    rsConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -403,6 +416,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_PIXELMAP:
             OHOS::Rosen::DoGetPixelmap();
+            break;
+        case OHOS::Rosen::DO_GET_SCREEN_HDR_STATUS:
+            OHOS::Rosen::DoGetScreenHDRStatus();
             break;
         default:
             return -1;

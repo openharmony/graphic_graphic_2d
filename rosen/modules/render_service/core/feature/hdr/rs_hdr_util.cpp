@@ -261,7 +261,7 @@ void RSHdrUtil::UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node)
 }
 
 void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode,
-    RSScreenRenderNode& displayNode)
+    RSScreenRenderNode& screenNode)
 {
     if (!surfaceNode.IsOnTheTree()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is not on the tree",
@@ -272,16 +272,11 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode surfaceHandler is null");
         return;
     }
-    auto screenId = displayNode.GetScreenId();
+    auto screenId = screenNode.GetScreenId();
     UpdateSurfaceNodeNit(surfaceNode, screenId);
-    displayNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
+    screenNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
     if (RSLuminanceControl::Get().IsForceCloseHdr()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr.",
-            surfaceNode.GetName().c_str());
-        return;
-    }
-    if (displayNode.GetForceCloseHdr()) {
-        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceclosehdr.",
             surfaceNode.GetName().c_str());
         return;
     }
@@ -291,8 +286,8 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
         return;
     }
     if (surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
-        SetHDRParam(surfaceNode, true);
-        if (displayNode.GetIsLuminanceStatusChange()) {
+        SetHDRParam(screenNode, surfaceNode, true);
+        if (screenNode.GetIsLuminanceStatusChange() && !screenNode.GetForceCloseHdr()) {
             surfaceNode.SetContentDirty();
         }
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode HDRService surfaceNode %{public}s is HDR",
@@ -307,8 +302,12 @@ bool RSHdrUtil::GetRGBA1010108Enabled()
     return isDDGR && rgba1010108;
 }
 
-void RSHdrUtil::SetHDRParam(RSSurfaceRenderNode& node, bool flag)
+void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag)
 {
+    if (screenNode.GetForceCloseHdr()) {
+        RS_LOGD("RSHdrUtil::SetHDRParam curScreenNode forceclosehdr.");
+        return;
+    }
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
     if (firstLevelNode != nullptr && node.GetFirstLevelNodeId() != node.GetId()) {
         firstLevelNode->SetHDRPresent(flag);

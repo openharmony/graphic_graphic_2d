@@ -2122,6 +2122,48 @@ ErrCode RSRenderServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeI
     }
 }
 
+ErrCode RSRenderServiceConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
+{
+    if (mainThread_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    HdrStatus hdrStatusRet = HdrStatus::NO_HDR;
+    StatusCode resCodeRet = StatusCode::SCREEN_NOT_FOUND;
+    auto isTimeout = std::make_shared<bool>(0);
+    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
+    auto task = [id, mainThread = mainThread_, &resCodeRet, &hdrStatusRet, isTimeoutWeak]() {
+        if (isTimeoutWeak.expired()) {
+            RS_LOGE("GetScreenHDRStatus time out, ScreenId: [%{public}" PRIu64 "]", id);
+            return;
+        }
+        std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+        auto& nodeMap = mainThread->GetContext().GetNodeMap();
+        nodeMap.TraverseScreenNodes([id, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == id) {
+                screenNode = node;
+            }
+        });
+        if (screenNode == nullptr) {
+            resCodeRet = StatusCode::SCREEN_NOT_FOUND;
+            return;
+        }
+        hdrStatusRet = screenNode->GetLastDisplayHDRStatus();
+        resCodeRet = StatusCode::SUCCESS;
+    };
+    auto span = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100)); // timeout 100 ms
+    if (mainThread_->ScheduleTask(task).wait_for(span) == std::future_status::timeout) {
+        isTimeout.reset();
+    }
+    if (isTimeoutWeak.expired() && resCodeRet != StatusCode::SUCCESS) {
+        return ERR_TIMED_OUT;
+    }
+    if (resCodeRet == StatusCode::SUCCESS) {
+        hdrStatus = hdrStatusRet;
+    }
+    resCode = resCodeRet;
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnection::GetScreenSupportedColorSpaces(
     ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode)
 {

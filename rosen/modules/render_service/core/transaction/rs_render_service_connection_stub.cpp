@@ -126,6 +126,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE),
@@ -2168,6 +2169,34 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetScreenHDRFormat(id, modeIdx, resCode);
             if (!reply.WriteInt32(resCode)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_HDR_FORMAT Write resCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS): {
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_SCREEN_HDR_STATUS Read id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            HdrStatus hdrStatus;
+            int32_t resCode;
+            ret = GetScreenHDRStatus(id, hdrStatus, resCode);
+            if (ret != ERR_OK) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_SCREEN_HDR_STATUS Business error(%{public}d)!", ret);
+                resCode = ret;
+            }
+            if (!reply.WriteInt32(resCode)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_SCREEN_HDR_STATUS Write resCode failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (resCode != StatusCode::SUCCESS) {
+                break;
+            }
+            if (!reply.WriteUint32(hdrStatus)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_SCREEN_HDR_STATUS Write hdrStatus failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

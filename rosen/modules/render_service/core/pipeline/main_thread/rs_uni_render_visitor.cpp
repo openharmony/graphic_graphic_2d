@@ -444,8 +444,8 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         if (node.IsHdrEffectColorGamut()) {
             curScreenNode_->CollectHdrStatus(HdrStatus::HDR_EFFECT);
         }
-        RSHdrUtil::SetHDRParam(node, true);
-        if (curScreenNode_->GetIsLuminanceStatusChange()) {
+        RSHdrUtil::SetHDRParam(*curScreenNode_, node, true);
+        if (curScreenNode_->GetIsLuminanceStatusChange() && !curScreenNode_->GetForceCloseHdr()) {
             node.SetContentDirty();
         }
     }
@@ -2174,11 +2174,9 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
                 node->GetName().c_str(), node->GetId());
             hwcVisitor_->PrintHiperfLog(node, "uniRender HDR");
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            if (!curScreenNode_->GetForceCloseHdr()) {
-                // DRM will force HDR to use unirender
-                curScreenNode_->SetHasUniRenderHdrSurface(curScreenNode_->GetHasUniRenderHdrSurface() ||
+            // DRM will force HDR to use unirender
+            curScreenNode_->SetHasUniRenderHdrSurface(curScreenNode_->GetHasUniRenderHdrSurface() ||
                 RSHdrUtil::CheckIsHdrSurface(*hwcNodePtr) != HdrStatus::NO_HDR);
-            }
             hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
                 HwcDisabledReasons::DISABLED_BY_RENDER_HDR_SURFACE, hwcNodePtr->GetName());
         }

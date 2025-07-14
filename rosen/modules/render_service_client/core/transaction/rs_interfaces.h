@@ -675,6 +675,14 @@ public:
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
 
     /**
+     * @brief Get the HDR status of the current screen.
+     * @param id Id of the screen.
+     * @param hdrStatus The HDR status of the current screen.
+     * @return 0 success, others failed.
+     */
+    int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
+
+    /**
      * @brief Set the HDR format of the current screen.
      * @param id Id of the screen.
      * @param modeIdx This parameter will set to the currentHDRFormatIdx.
