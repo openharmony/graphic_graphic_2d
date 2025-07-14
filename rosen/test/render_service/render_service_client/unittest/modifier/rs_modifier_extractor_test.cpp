@@ -77,6 +77,29 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
     ASSERT_EQ(extractor.GetForegroundBlurRadiusY(), 0.f);
     RSColor valTest2 { SIZE_RSCOLOR, SIZE_RSCOLOR, SIZE_RSCOLOR };
     ASSERT_EQ(extractor.GetLightColor(), valTest2);
+
+    EXPECT_EQ(extractor.GetPositionZ(), 0.f);
+    EXPECT_EQ(extractor.GetRotation(), 0.f);
+    EXPECT_EQ(extractor.GetRotationX(), 0.f);
+    EXPECT_EQ(extractor.GetRotationY(), 0.f);
+
+    EXPECT_EQ(extractor.GetAlphaOffscreen(), true);
+    EXPECT_EQ(extractor.GetForegroundColor(), RgbPalette::Transparent());
+    EXPECT_EQ(extractor.GetBgImageWidth(), 0.f);
+    EXPECT_EQ(extractor.GetBgImageHeight(), 0.f);
+    EXPECT_EQ(extractor.GetBgImagePositionX(), 0.f);
+    EXPECT_EQ(extractor.GetBgImagePositionY(), 0.f);
+    EXPECT_EQ(extractor.GetBorderColor(), Vector4<Color>(RgbPalette::Transparent()));
+    EXPECT_EQ(extractor.GetBorderWidth(), Vector4f(0.f));
+    EXPECT_EQ(extractor.GetBorderStyle(), Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)));
+
+    EXPECT_EQ(extractor.GetFrameGravity(), Gravity::DEFAULT);
+    EXPECT_EQ(extractor.GetClipBounds(), nullptr);
+    EXPECT_EQ(extractor.GetClipToBounds(), false);
+    EXPECT_EQ(extractor.GetClipToFrame(), false);
+
+    EXPECT_EQ(extractor.GetTranslate(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(extractor.GetTranslateZ(), 0.f);
 }
 
 /**
