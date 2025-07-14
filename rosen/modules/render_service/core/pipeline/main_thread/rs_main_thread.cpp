@@ -1915,8 +1915,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // In the process of cutting the state, the self-drawing layer with the size before the cut state is probably
     // sent, resulting in abnormal display, and this problem is solved by disabling HWC in the cutting state
     auto screenManager = CreateOrGetScreenManager();
-    bool isFoldScreenSwitching = RSSystemProperties::IsFoldScreenFlag() && screenManager != nullptr &&
-        screenManager->IsScreenSwitching();
+    bool isFoldScreenSwitching = screenManager != nullptr && screenManager->IsScreenSwitching();
 
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
