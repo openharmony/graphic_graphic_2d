@@ -120,7 +120,7 @@ public:
             visitor_->RemoveSurfaceChangedCallBack(id);
         }
     }
-    bool GetIsRunning();
+    static bool GetIsRunning();
 
 private:
     RSRenderThread();
@@ -144,7 +144,7 @@ private:
     void PrepareCommandForCrossPlatform(std::vector<std::unique_ptr<RSTransactionData>>& cmds);
 #endif
 
-    std::atomic_bool running_ = false;
+    static std::atomic_bool running_;
     std::atomic_bool hasSkipVsync_ = false;
     std::atomic_int activeWindowCnt_ = 0;
     std::unique_ptr<std::thread> thread_ = nullptr;
