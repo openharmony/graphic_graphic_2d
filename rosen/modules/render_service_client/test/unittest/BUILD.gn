@@ -167,8 +167,8 @@ ohos_static_library("rs_client_test_common") {
   public_configs = [ ":rs_client_test_common_public_config" ]
 
   public_deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   public_external_deps = [
