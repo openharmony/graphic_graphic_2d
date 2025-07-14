@@ -247,6 +247,10 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
         return nullptr;
     }
+    if (type >= RSModifierType::MAX) {
+        RS_LOGE("%{public}s: type[%{public}u] out of limit.", __func__, static_cast<uint16_t>(type));
+        return nullptr;
+    }
     auto constructor = ConstructorLUT_[static_cast<uint16_t>(type)];
     if (constructor == nullptr) {
         return nullptr;

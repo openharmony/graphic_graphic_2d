@@ -177,6 +177,7 @@ enum class RSModifierType : uint16_t {
     FOREGROUND_NG_FILTER = 140,
     BACKGROUND_NG_FILTER = 141,
     FG_BRIGHTNESS_HDR = 142,
+    SHADOW_BLENDER_PARAMS = 143,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -353,6 +354,7 @@ public:
             case RSModifierType::HDR_BRIGHTNESS_FACTOR: return "HDRBrightnessFactor";
             case RSModifierType::BACKGROUND_NG_FILTER: return "BackgroundNgFilter";
             case RSModifierType::FOREGROUND_NG_FILTER: return "ForegroundNgFilter";
+            case RSModifierType::SHADOW_BLENDER_PARAMS: return "ShadowBlenderParams";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

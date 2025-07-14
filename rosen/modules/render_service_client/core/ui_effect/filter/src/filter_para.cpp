@@ -14,6 +14,9 @@
  */
 
 #include "ui_effect/filter/include/filter_para.h"
+
+#include <unordered_set>
+
 #include "ui_effect/filter/include/filter_unmarshalling_singleton.h"
 #include "platform/common/rs_log.h"
 
@@ -22,14 +25,15 @@ namespace Rosen {
 
 bool FilterPara::Marshalling(Parcel& parcel) const
 {
-    RS_LOGE("[ui_effect] FilterPara Marshalling not implemented, type is %{public}d", type_);
+    RS_LOGE("[ui_effect] FilterPara do not marshalling non-specified type: %{public}d", type_);
     return false;
 }
 
 bool FilterPara::RegisterUnmarshallingCallback(uint16_t type, UnmarshallingFunc func)
 {
-    if (type == ParaType::NONE || func == nullptr) {
-        RS_LOGE("[ui_effect] FilterPara RegisterUnmarshallingCallback type:%{public}d or func is invalid", type);
+    bool isInvalid = (func == nullptr || !FilterPara::IsWhitelistPara(type));
+    if (isInvalid) {
+        RS_LOGE("[ui_effect] FilterPara register unmarshalling type:%{public}hu callback failed", type);
         return false;
     }
     FilterUnmarshallingSingleton::GetInstance().RegisterCallback(type, func);
@@ -44,7 +48,8 @@ bool FilterPara::Unmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val)
         RS_LOGE("[ui_effect] FilterPara Unmarshalling read type failed");
         return false;
     }
-    if (type == ParaType::NONE) {
+    bool isInvalid = (!FilterPara::IsWhitelistPara(type));
+    if (isInvalid) {
         RS_LOGE("[ui_effect] FilterPara Unmarshalling read type invalid");
         return false;
     }
@@ -53,14 +58,34 @@ bool FilterPara::Unmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val)
     if (func != nullptr) {
         return func(parcel, val);
     }
-    RS_LOGE("[ui_effect] FilterPara Unmarshalling func invalid, type is %{public}d", type);
+    RS_LOGE("[ui_effect] FilterPara Unmarshalling func invalid, type is %{public}hu", type);
     return false;
 }
 
 std::shared_ptr<FilterPara> FilterPara::Clone() const
 {
-    RS_LOGE("[ui_effect] FilterPara Clone not implemented, type is %{public}d", type_);
+    RS_LOGE("[ui_effect] FilterPara do not clone non-specified type: %{public}d", type_);
     return nullptr;
+}
+
+bool FilterPara::IsWhitelistPara(uint16_t type)
+{
+    static const std::unordered_set<uint16_t> whitelist = {
+        static_cast<uint16_t>(ParaType::CONTENT_LIGHT),
+        static_cast<uint16_t>(ParaType::DISPERSION),
+        static_cast<uint16_t>(ParaType::DISPLACEMENT_DISTORT),
+        static_cast<uint16_t>(ParaType::MASK_TRANSITION),
+        static_cast<uint16_t>(ParaType::WATER_RIPPLE),
+        static_cast<uint16_t>(ParaType::DIRECTION_LIGHT)
+    };
+
+    auto find = whitelist.find(type);
+    if (find != whitelist.end()) {
+        return true;
+    }
+
+    RS_LOGE("[ui_effect] FilterPara This %{public}hu para is not allowed to be operated", type);
+    return false;
 }
 
 } // namespace Rosen

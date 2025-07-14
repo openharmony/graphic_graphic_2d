@@ -709,8 +709,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    RSAncoManager::UpdateCropRectForAnco(surfaceNodeParams->GetAncoFlags(),
-                                         surfaceNodeParams->GetAncoSrcCrop(), params.srcRect);
+    RSAncoManager::UpdateCropRectForAnco(surfaceNodeParams->GetAncoFlags(), surfaceNodeParams->GetAncoSrcCrop(),
+                                         buffer, params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
@@ -906,7 +906,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         RS_LOGE("buffer or surface is nullptr");
         return params;
     }
-    RSAncoManager::UpdateCropRectForAnco(layer->GetAncoFlags(), layer->GetCropRect(), params.srcRect);
+    RSAncoManager::UpdateCropRectForAnco(layer->GetAncoFlags(), layer->GetCropRect(), buffer, params.srcRect);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, surface, localBounds);

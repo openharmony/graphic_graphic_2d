@@ -44,6 +44,7 @@ class RSSurfaceHandler;
 class RSContext;
 class RSDirtyRegionManager;
 class RSDrawWindowCache;
+class RSRenderNodeGC;
 namespace Drawing {
 class Canvas;
 }
@@ -369,6 +370,7 @@ private:
     friend class RSRenderNodeDrawable;
     friend class OHOS::Rosen::RSDrawWindowCache;
     friend class ModifierNG::RSUseEffectRenderModifier;
+    friend class OHOS::Rosen::RSRenderNodeGC;
 };
 
 // RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.

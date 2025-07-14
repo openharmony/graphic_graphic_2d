@@ -15,15 +15,27 @@
 
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "platform/common/rs_log.h"
- 
+
 namespace OHOS {
 namespace Rosen {
 
+WaterRipplePara::WaterRipplePara(const WaterRipplePara& other)
+{
+    this->type_ = other.type_;
+    this->rippleCenterX_ = other.rippleCenterX_;
+    this->rippleCenterY_ = other.rippleCenterY_;
+    this->progress_ = other.progress_;
+    this->waveCount_ = other.waveCount_;
+    this->rippleMode_ = other.rippleMode_;
+}
+
 bool WaterRipplePara::Marshalling(Parcel& parcel) const
 {
-    if (!(parcel.WriteUint16(static_cast<uint16_t>(type_)) && parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+    auto isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+        parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
         parcel.WriteFloat(rippleCenterX_) && parcel.WriteFloat(rippleCenterY_) &&
-        parcel.WriteFloat(progress_) && parcel.WriteUint32(waveCount_) && parcel.WriteUint32(rippleMode_))) {
+        parcel.WriteFloat(progress_) && parcel.WriteUint32(waveCount_) && parcel.WriteUint32(rippleMode_);
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] WaterRipplePara Marshalling write para failed");
         return false;
     }
@@ -49,8 +61,9 @@ bool WaterRipplePara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara
     float progress = 0.0f;
     uint32_t waveCount = 0;
     uint32_t rippleMode = 0;
-    if (!(parcel.ReadFloat(rippleCenterX) && parcel.ReadFloat(rippleCenterY) && parcel.ReadFloat(progress) &&
-        parcel.ReadUint32(waveCount) && parcel.ReadUint32(rippleMode))) {
+    auto isSuccess = parcel.ReadFloat(rippleCenterX) && parcel.ReadFloat(rippleCenterY) &&
+        parcel.ReadFloat(progress) && parcel.ReadUint32(waveCount) && parcel.ReadUint32(rippleMode);
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] WaterRipplePara OnUnmarshalling read para failed");
         return false;
     }

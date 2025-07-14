@@ -48,6 +48,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationSha
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicDimShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessBlenderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessLinearBlenderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::shadowBlenderEffect_ = nullptr;
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
 {
@@ -826,6 +827,39 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         if (dynamicBrightnessBlenderEffect_ == nullptr) { return nullptr; }
     }
     return std::make_shared<Drawing::RuntimeBlenderBuilder>(dynamicBrightnessBlenderEffect_);
+}
+
+std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeShadowBlender(const RSShadowBlenderPara& params)
+{
+    static constexpr char prog[] = R"(
+        uniform half ubo_cubic;
+        uniform half ubo_quadratic;
+        uniform half ubo_linear;
+        uniform half ubo_constant;
+
+        float4 main(float4 src, float4 dst) {
+            float lum = dot(dst, float3(0.2126, 0.7152, 0.0722));
+            float opacity = saturate(ubo_cubic * lum * lum * lum +
+                ubo_quadratic * lum * lum + ubo_linear * lum + ubo_constant);
+            return float4(src.rgb, src.a * opacity);
+        }
+    )";
+    if (shadowBlenderEffect_ == nullptr) {
+        shadowBlenderEffect_ = Drawing::RuntimeEffect::CreateForBlender(prog);
+    }
+    std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder =
+        std::make_shared<Drawing::RuntimeBlenderBuilder>(shadowBlenderEffect_);
+    if (!builder) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::MakeShadowBlender make builder fail");
+        return nullptr;
+    }
+    builder->SetUniform("ubo_cubic", params.cubic_);
+    builder->SetUniform("ubo_quadratic", params.quadratic_);
+    builder->SetUniform("ubo_linear", params.linear_);
+    builder->SetUniform("ubo_constant", params.constant_);
+    RS_OPTIONAL_TRACE_FMT("RSPropertyDrawableUtils::MakeShadowBlender params[%f,%f,%f,%f]",
+        params.cubic_, params.quadratic_, params.linear_, params.constant_);
+    return builder->MakeBlender();
 }
 
 void RSPropertyDrawableUtils::DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert)

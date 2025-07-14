@@ -77,6 +77,7 @@ void RSModifiersDrawThread::Destroy()
 
 void RSModifiersDrawThread::ClearEventResource()
 {
+    RSModifiersDraw::ClearBackGroundMemory();
     if (handler_ != nullptr) {
         handler_->RemoveAllEvents();
         handler_ = nullptr;

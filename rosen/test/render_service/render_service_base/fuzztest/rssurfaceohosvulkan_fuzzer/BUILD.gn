@@ -26,7 +26,6 @@ ohos_fuzztest("RSSurfaceOhosVulkanFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "//third_party/vulkan-headers/include",
     "$graphic_2d_root/rosen/modules/render_service_client",
   ]
   if (graphic_2d_feature_upgrade_skia) {
@@ -40,7 +39,6 @@ ohos_fuzztest("RSSurfaceOhosVulkanFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/vulkan-headers:vulkan_headers",
   ]
   external_deps = [
     "c_utils:utils",

@@ -19,10 +19,19 @@
 namespace OHOS {
 namespace Rosen {
 
+ContentLightPara::ContentLightPara(const ContentLightPara& other)
+{
+    this->type_ = other.type_;
+    this->lightPosition_ = other.lightPosition_;
+    this->lightColor_ = other.lightColor_;
+    this->lightIntensity_ = other.lightIntensity_;
+}
+
 bool ContentLightPara::Marshalling(Parcel& parcel) const
 {
-    if (!parcel.WriteUint16(static_cast<uint16_t>(type_)) ||
-        !parcel.WriteUint16(static_cast<uint16_t>(type_))) {
+    bool isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+        parcel.WriteUint16(static_cast<uint16_t>(type_));
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] ContentLightPara Marshalling write type failed");
         return false;
     }

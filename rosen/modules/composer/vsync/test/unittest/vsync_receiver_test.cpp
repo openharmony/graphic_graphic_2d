@@ -414,7 +414,7 @@ HWTEST_F(VsyncReceiverTest, SetUiDvsyncSwitchTest, Function | MediumTest| Level3
 HWTEST_F(VsyncReceiverTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
 {
     vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 

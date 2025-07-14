@@ -304,6 +304,8 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
                                                                 prop->SetForegroundNGFilter({}); }},
     { RSModifierType::BACKGROUND_NG_FILTER,                 [](RSProperties* prop) {
                                                                 prop->SetBackgroundNGFilter({}); }},
+    { RSModifierType::SHADOW_BLENDER_PARAMS,                [](RSProperties* prop) {
+                                                                prop->SetShadowBlenderParams({}); }},
 };
 
 } // namespace
@@ -1948,6 +1950,40 @@ std::string RSProperties::GetBgBrightnessDescription() const
         ", saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
         ", fgBrightnessFract: " + std::to_string(bgBrightnessParams_->fraction_) +
         ", fgBrightnessHdr: " + std::to_string(fgBrightnessParams_->enableHdr_);
+    return description;
+}
+
+void RSProperties::SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params)
+{
+    shadowBlenderParams_ = params;
+    if (shadowBlenderParams_.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<RSShadowBlenderPara> RSProperties::GetShadowBlenderParams() const
+{
+    return shadowBlenderParams_;
+}
+
+bool RSProperties::IsShadowBlenderValid() const
+{
+    return shadowBlenderParams_.has_value() && shadowBlenderParams_->IsValid();
+}
+
+std::string RSProperties::GetShadowBlenderDescription() const
+{
+    if (!shadowBlenderParams_.has_value()) {
+        return "shadowBlenderParams_ is nullopt";
+    }
+    std::string description =
+        "ShadowBlender, cubic: " + std::to_string(shadowBlenderParams_->cubic_) +
+        ", quadratic: " + std::to_string(shadowBlenderParams_->quadratic_) +
+        ", linear: " + std::to_string(shadowBlenderParams_->linear_) +
+        ", constant: " + std::to_string(shadowBlenderParams_->constant_);
     return description;
 }
 

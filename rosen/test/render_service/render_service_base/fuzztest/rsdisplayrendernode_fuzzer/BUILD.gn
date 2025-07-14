@@ -18,7 +18,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("RSDisplayRenderNodeFuzzTest") {
+ohos_fuzztest("RSScreenRenderNodeFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service_base/fuzztest/rsdisplayrendernode_fuzzer"
   include_dirs = [
@@ -56,7 +56,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RSDisplayRenderNodeFuzzTest",
+    ":RSScreenRenderNodeFuzzTest",
   ]
 }
 ###############################################################################

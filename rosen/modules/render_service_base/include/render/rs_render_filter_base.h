@@ -58,6 +58,7 @@ enum class RSUIFilterType : int16_t {
     FLY_OUT,
     DISTORTION,
     ALWAYS_SNAPSHOT,
+    MASK_TRANSITION,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,
@@ -155,6 +156,11 @@ enum class RSUIFilterType : int16_t {
 
     // edge light if use raw color value type
     EDGE_LIGHT_USE_RAW_COLOR, // bool
+
+    // mask transition value type
+    MASK_TRANSITION_MASK, // std::shared_ptr<MaskPara>
+    MASK_TRANSITION_FACTOR, // float
+    MASK_TRANSITION_INVERSE, // bool
 };
 
 using RSUIFilterTypeUnderlying = std::underlying_type<RSUIFilterType>::type;

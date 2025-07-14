@@ -57,10 +57,15 @@ HWTEST_F(RSPointerWindowManagerTest, UpdatePointerDirtyToGlobalDirtyTest, TestSi
     node->name_ = "pointer window";
     node->GetDirtyManager()->SetCurrentFrameDirtyRect(RectI{1, 1, 1, 1});
     // run
+    std::shared_ptr<RSSurfaceRenderNode> node1 = nullptr;
+    rsPointerWindowManager->UpdatePointerDirtyToGlobalDirty(node1, displayNode);
+    ASSERT_EQ(rsPointerWindowManager->IsNeedForceCommitByPointer(), false);
+    std::shared_ptr<RSScreenRenderNode> displayNode1 = nullptr;
+    rsPointerWindowManager->UpdatePointerDirtyToGlobalDirty(node, displayNode1);
+    ASSERT_EQ(rsPointerWindowManager->IsNeedForceCommitByPointer(), false);
     rsPointerWindowManager->UpdatePointerDirtyToGlobalDirty(node, displayNode);
     ASSERT_NE(rsPointerWindowManager->IsNeedForceCommitByPointer(), true);
 }
-
 
 /**
  * @tc.name: SetHardCursorNodeInfo001
@@ -214,5 +219,82 @@ HWTEST_F(RSPointerWindowManagerTest, UpdatePointerInfoTest, TestSize.Level1)
     EXPECT_EQ(node->GetMutableRenderProperties().GetBounds().y_, 1.0f);
     EXPECT_EQ(node->GetMutableRenderProperties().GetBounds().z_, 1.0f);
     EXPECT_EQ(node->GetMutableRenderProperties().GetBounds().w_, 1.0f);
+}
+
+/**
+ * @tc.name: HasMirrorDisplay
+ * @tc.desc: Test HasMirrorDisplay
+ * @tc.type: FUNC
+ * @tc.require: issueIB2O0L
+ */
+HWTEST_F(RSPointerWindowManagerTest, HasMirrorDisplay, TestSize.Level1)
+{
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    auto result1 = rsPointerWindowManager.HasMirrorDisplay();
+    ASSERT_EQ(result1, false);
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    // prepare nodes
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto childDisplayNode1 = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    auto childDisplayNode2 = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext->weak_from_this());
+    rootNode->AddChild(childDisplayNode1, 0);
+    rootNode->AddChild(childDisplayNode2, 0);
+    rootNode->InitRenderParams();
+    childDisplayNode1->InitRenderParams();
+    childDisplayNode2->InitRenderParams();
+    mainThread->UniRender(rootNode);
+    auto result2 = rsPointerWindowManager.HasMirrorDisplay();
+    ASSERT_EQ(result2, false);
+}
+
+/**
+ * @tc.name: HasMirrorDisplay001
+ * @tc.desc: Test HasMirrorDisplay
+ * @tc.type: FUNC
+ * @tc.require: issueIB2O0L
+ */
+HWTEST_F(RSPointerWindowManagerTest, HasMirrorDisplay001, TestSize.Level1)
+{
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    auto result1 = rsPointerWindowManager.HasMirrorDisplay();
+    ASSERT_EQ(result1, false);
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    // prepare nodes
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    NodeId id = 1;
+    auto node1 = std::make_shared<RSRenderNode>(id);
+    auto rsContext = std::make_shared<RSContext>();
+    auto childDisplayNode1 = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext->weak_from_this());
+    node1->AddChild(childDisplayNode1);
+    node1->GenerateFullChildrenList();
+    ASSERT_TRUE(node1->GetChildrenCount() <= 1);
+    mainThread->context_->globalRootRenderNode_ = node1;
+    ASSERT_EQ(rsPointerWindowManager.HasMirrorDisplay(), false);
+    auto childDisplayNode2 = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext->weak_from_this());
+    auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext->weak_from_this());
+    childDisplayNode2->isMirroredScreen_ = true;
+    childDisplayNode2->SetMirrorSource(mirrorSourceNode);
+    node1->AddChild(childDisplayNode2);
+    node1->GenerateFullChildrenList();
+    ASSERT_TRUE(node1->GetChildrenCount() > 1);
+    mainThread->context_->globalRootRenderNode_ = node1;
+    ASSERT_EQ(rsPointerWindowManager.HasMirrorDisplay(), true);
+    auto childDisplayNode3 = std::make_shared<RSSurfaceRenderNode>(++id);
+    node1->AddChild(childDisplayNode3);
+    node1->GenerateFullChildrenList();
+    mainThread->context_->globalRootRenderNode_ = node1;
+    ASSERT_EQ(rsPointerWindowManager.HasMirrorDisplay(), true);
+    node1->AddChild(nullptr);
+    node1->GenerateFullChildrenList();
+    mainThread->context_->globalRootRenderNode_ = node1;
+    ASSERT_EQ(rsPointerWindowManager.HasMirrorDisplay(), true);
+    mainThread->context_->globalRootRenderNode_ = rootNode;
 }
 } // OHOS::Rosen

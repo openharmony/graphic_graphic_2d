@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <thread>
+#include <cstdlib>
+#include <ctime>
 #include "native_display_soloist.h"
 
 using namespace testing;
@@ -28,6 +31,7 @@ namespace {
     constexpr uint32_t SLEEP_TIME_US = 100000;
     constexpr int32_t EXEC_SUCCESS = 0;
     constexpr int32_t SOLOIST_ERROR = -1;
+    constexpr int32_t WAIT_TASK_FINISH_NS = 100000;
 }
 class NativeDisplaySoloistTest : public testing::Test {
 public:
@@ -201,6 +205,48 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy002, Function | Medi
     EXPECT_EQ(EXEC_SUCCESS, result);
 }
 
+/*
+* Function: OH_DisplaySoloist_ThreadNums
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_DisplaySoloist_ThreadNums by normal input
+ */
+HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_ThreadNums, Function | MediumTest | Level0)
+{
+    srand(time(nullptr));
+    auto displaySoloistTask = [this]() {
+        OH_DisplaySoloist_FrameCallback callback = OnVSync;
+        OH_DisplaySoloist* dSoloist = OH_DisplaySoloist_Create(false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 10 + 1));
+        DisplaySoloist_ExpectedRateRange validRange = { FRAME_RATE_30_HZ, FRAME_RATE_120_HZ, FRAME_RATE_60_HZ };
+        OH_DisplaySoloist_SetExpectedFrameRateRange(dSoloist, &validRange);
+        std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 10 + 1));
+        OH_DisplaySoloist_Start(dSoloist, callback, nullptr);
+        std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 10 + 1));
+        OH_DisplaySoloist_Stop(dSoloist);
+        std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 10 + 1));
+        OH_DisplaySoloist_Destroy(dSoloist);
+    };
+
+    uint32_t threadNums = 1000;
+    uint32_t threadNumsMax = 5000;
+    std::vector<std::thread> thds;
+    for (int i = 0; i < threadNums; i++) {
+        thds.emplace_back(std::thread([&] () { displaySoloistTask(); }));
+        thds.emplace_back(std::thread([&] () { displaySoloistTask(); }));
+        thds.emplace_back(std::thread([&] () { displaySoloistTask(); }));
+        thds.emplace_back(std::thread([&] () { displaySoloistTask(); }));
+    }
+    for (auto& thd : thds) {
+        ++threadNums;
+        if (thd.joinable()) {
+            thd.join();
+        }
+    }
+    usleep(WAIT_TASK_FINISH_NS);
+    EXPECT_EQ(threadNums, threadNumsMax);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

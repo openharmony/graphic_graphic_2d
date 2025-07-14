@@ -236,12 +236,12 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
 #endif
 
 /**
- * @tc.name: RSBeginBlenderDrawable
+ * @tc.name: RSBeginBlenderDrawable001
  * @tc.desc: Test OnGenerate
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
-HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable, TestSize.Level1)
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable001, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
@@ -255,6 +255,30 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable, TestSize.Level1)
     std::optional<RSDynamicBrightnessPara> paramsTwo = std::nullopt;
     node.GetMutableRenderProperties().SetFgBrightnessParams(paramsTwo);
     node.GetMutableRenderProperties().SetColorBlendMode(12);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable002
+ * @tc.desc: Test OnGenerate for shadow blender
+ * @tc.type:FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSBeginBlenderDrawable::OnGenerate(node), nullptr);
+
+    auto params = std::optional<RSShadowBlenderPara>({0, 0, 0, 0});
+    node.GetMutableRenderProperties().SetShadowBlenderParams(params);
     auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
         DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
     ASSERT_NE(drawable, nullptr);

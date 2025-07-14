@@ -35,7 +35,7 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) override;
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
 
 private:

@@ -30,7 +30,7 @@ public:
         NONE,
         BACKGROUND_COLOR_EFFECT,
         BORDER_LIGHT_EFFECT,
-        // Endogenous projects HDS start type, Open source projects should be smaller than this value
+        // The value in the OpenHarmony project should be less than this value.
         HDS_EFFECT_BEGIN = 2048,
     };
 
@@ -47,6 +47,8 @@ public:
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<VisualEffectPara>& val);
 
     virtual std::shared_ptr<VisualEffectPara> Clone() const;
+
+    static bool IsWhitelistPara(uint16_t type);
 
     ParaType GetParaType()
     {

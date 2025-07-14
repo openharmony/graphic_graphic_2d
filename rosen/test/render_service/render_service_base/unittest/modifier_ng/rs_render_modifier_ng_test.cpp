@@ -42,6 +42,43 @@ public:
     void TearDown() override;
 };
 
+class RSMaxRenderModifier : public ModifierNG::RSRenderModifier {
+public:
+    RSMaxRenderModifier() = default;
+    ~RSMaxRenderModifier() override = default;
+
+    static inline constexpr auto Type = ModifierNG::RSModifierType::MAX;
+    ModifierNG::RSModifierType GetType() const override
+    {
+        return Type;
+    };
+};
+
+class RSIllegalTypeRenderModifier : public ModifierNG::RSRenderModifier {
+public:
+    RSIllegalTypeRenderModifier() = default;
+    ~RSIllegalTypeRenderModifier() override = default;
+
+    // 10000 is illegal modifier type for test
+    static inline constexpr auto type = static_cast<ModifierNG::RSModifierType>(10000);
+    ModifierNG::RSModifierType GetType() const override
+    {
+        return type;
+    };
+};
+
+class RSInvalidRenderModifier : public ModifierNG::RSRenderModifier {
+public:
+    RSInvalidRenderModifier() = default;
+    ~RSInvalidRenderModifier() override = default;
+
+    static inline constexpr auto Type = ModifierNG::RSModifierType::INVALID;
+    ModifierNG::RSModifierType GetType() const override
+    {
+        return Type;
+    };
+};
+
 void RSRenderModifierNGTest::SetUpTestCase() {}
 void RSRenderModifierNGTest::TearDownTestCase() {}
 void RSRenderModifierNGTest::SetUp() {}
@@ -154,10 +191,45 @@ HWTEST_F(RSRenderModifierNGTest, MarshallingTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderModifierNGTest, UnmarshallingTest, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
     Parcel parcel;
-    auto res = modifier->Unmarshalling(parcel);
-    EXPECT_EQ(res, nullptr);
+    auto renderModifier1 = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
+    EXPECT_EQ(renderModifier1, nullptr);
+
+    Parcel parcel1;
+    auto renderModifier2 = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    bool ret = renderModifier2->Marshalling(parcel1);
+    EXPECT_TRUE(ret);
+    auto renderModifier3 = ModifierNG::RSRenderModifier::Unmarshalling(parcel1);
+    EXPECT_NE(renderModifier3, nullptr);
+
+    Parcel parcel2;
+    auto property = std::make_shared<RSRenderProperty<float>>();
+    renderModifier2->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    ret = renderModifier2->Marshalling(parcel2);
+    EXPECT_TRUE(ret);
+    renderModifier3 = ModifierNG::RSRenderModifier::Unmarshalling(parcel2);
+    EXPECT_NE(renderModifier3, nullptr);
+
+    Parcel parcel3;
+    auto renderModifier4 = std::make_shared<RSMaxRenderModifier>();
+    ret = renderModifier4->Marshalling(parcel3);
+    EXPECT_TRUE(ret);
+    auto renderModifier5 = ModifierNG::RSRenderModifier::Unmarshalling(parcel3);
+    EXPECT_EQ(renderModifier5, nullptr);
+
+    Parcel parcel4;
+    auto renderModifier6 = std::make_shared<RSInvalidRenderModifier>();
+    ret = renderModifier6->Marshalling(parcel4);
+    EXPECT_TRUE(ret);
+    auto renderModifier7 = ModifierNG::RSRenderModifier::Unmarshalling(parcel4);
+    EXPECT_EQ(renderModifier7, nullptr);
+
+    Parcel parcel5;
+    auto renderModifier8 = std::make_shared<RSIllegalTypeRenderModifier>();
+    ret = renderModifier8->Marshalling(parcel5);
+    EXPECT_TRUE(ret);
+    auto renderModifier9 = ModifierNG::RSRenderModifier::Unmarshalling(parcel5);
+    EXPECT_EQ(renderModifier9, nullptr);
 }
 
 /**

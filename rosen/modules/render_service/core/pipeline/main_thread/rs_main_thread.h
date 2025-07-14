@@ -514,6 +514,7 @@ private:
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
     void CacheCommands();
+    bool IsSurfaceConsumerNeedSkip(sptr<IConsumerSurface> consumer);
     bool CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes

@@ -182,6 +182,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION, ThresholdType::COARSE },
     { RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS, ThresholdType::COARSE },
     { RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR, ThresholdType::COARSE },
+    { RSPropertyType::SHADOW_BLENDER_PARAMS, ThresholdType::ZERO },
     { RSPropertyType::CHILDREN, ThresholdType::DEFAULT }
 };
 

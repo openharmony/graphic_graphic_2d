@@ -115,6 +115,7 @@ enum class RSPropertyType : uint8_t {
     RS_NG_RENDER_FILTER_BASE,
     RS_NG_RENDER_MASK_BASE,
     RS_NG_RENDER_SHADER_BASE,
+    SHADOW_BLENDER_PARAMS,
 };
 
 enum class RSPropertyUnit : uint8_t {

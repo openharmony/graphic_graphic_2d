@@ -14,9 +14,17 @@
  */
 
 #include "gtest/gtest.h"
-#include "ui_effect/property/include/rs_ui_filter_para_base.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_color_gradient_para.h"
+#include "ui_effect/filter/include/filter_direction_light_para.h"
+#include "ui_effect/filter/include/filter_dispersion_para.h"
+#include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
 #include "ui_effect/property/include/rs_ui_blur_filter.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/property/include/rs_ui_filter_para_base.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,6 +42,60 @@ void RSUIFilterParaBaseTest::SetUpTestCase() {}
 void RSUIFilterParaBaseTest::TearDownTestCase() {}
 void RSUIFilterParaBaseTest::SetUp() {}
 void RSUIFilterParaBaseTest::TearDown() {}
+
+/**
+ * @tc.name: RSNGFilterBaseCreate
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIFilterParaBaseTest, RSNGFilterBaseCreate001, TestSize.Level1)
+{
+    auto filter1 = RSNGFilterBase::Create(RSNGEffectType::BLUR);
+    EXPECT_NE(filter1, nullptr);
+    EXPECT_EQ(filter1->GetType(), RSNGEffectType::BLUR);
+
+    auto filter2 = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
+    EXPECT_NE(filter2, nullptr);
+    EXPECT_EQ(filter2->GetType(), RSNGEffectType::DIRECTION_LIGHT);
+
+    auto filter3 = RSNGFilterBase::Create(RSNGEffectType::VARIABLE_RADIUS_BLUR);
+    EXPECT_NE(filter3, nullptr);
+    EXPECT_EQ(filter3->GetType(), RSNGEffectType::VARIABLE_RADIUS_BLUR);
+}
+
+/**
+ * @tc.name: RSNGFilterBaseCreate
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIFilterParaBaseTest, RSNGFilterBaseCreate002, TestSize.Level1)
+{
+    EXPECT_EQ(RSNGFilterBase::Create(nullptr), nullptr);
+
+    auto para1 = std::make_shared<DisplacementDistortPara>();
+    auto filter1 = RSNGFilterBase::Create(para1);
+    EXPECT_EQ(filter1, nullptr);
+
+    auto para2 = std::make_shared<EdgeLightPara>();
+    auto filter2 = RSNGFilterBase::Create(para2);
+    EXPECT_EQ(filter2, nullptr);
+
+    auto para3 = std::make_shared<DirectionLightPara>();
+    auto filter3 = RSNGFilterBase::Create(para3);
+    EXPECT_NE(filter3, nullptr);
+
+    auto para4 = std::make_shared<DispersionPara>();
+    auto filter4 = RSNGFilterBase::Create(para4);
+    EXPECT_EQ(filter4, nullptr);
+
+    auto para5 = std::make_shared<ColorGradientPara>();
+    auto filter5 = RSNGFilterBase::Create(para5);
+    EXPECT_EQ(filter5, nullptr);
+
+    auto para6 = std::make_shared<VariableRadiusBlurPara>();
+    auto filter6 = RSNGFilterBase::Create(para6);
+    EXPECT_NE(filter6, nullptr);
+}
 
 /**
  * @tc.name: GetType001

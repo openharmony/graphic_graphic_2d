@@ -567,10 +567,12 @@ void RSDisplaySoloistManager::InsertFrameRateRange(SoloistIdType id, FrameRateRa
 
 void RSDisplaySoloistManager::InsertUseExclusiveThreadFlag(SoloistIdType id, bool useExclusiveThread)
 {
+    std::unique_lock<std::mutex> lock(dataUpdateMtx_);
     if (!idToSoloistMap_.count(id)) {
         idToSoloistMap_[id] = std::make_shared<RSDisplaySoloist>(id);
     }
     idToSoloistMap_[id]->useExclusiveThread_ = useExclusiveThread;
+    lock.unlock();
     ROSEN_LOGD("%{public}s, SoloistId:%{public}d useExclusiveThread:%{public}d.", __func__, id, useExclusiveThread);
     return;
 }
@@ -596,7 +598,11 @@ void RSDisplaySoloistManager::SetMainFrameRateLinkerEnable(bool enabled)
         frameRateLinker_->SetEnable(enabled);
     }
 
-    for (const auto& [id, displaySoloist] : idToSoloistMap_) {
+    std::unique_lock<std::mutex> lock(dataUpdateMtx_);
+    IdToSoloistMapType idToSoloistMapBackup(idToSoloistMap_);
+    lock.unlock();
+
+    for (const auto& [id, displaySoloist] : idToSoloistMapBackup) {
         displaySoloist->SetSubFrameRateLinkerEnable(enabled);
     }
 

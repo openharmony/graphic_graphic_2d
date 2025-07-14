@@ -103,7 +103,17 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read bufferCount failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
-            int32_t ret = SetUiDvsyncConfig(bufferCount);
+            bool delayEnable{false};
+            if (!data.ReadBool(delayEnable)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read delayEnable failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            bool nativeDelayEnable{false};
+            if (!data.ReadBool(nativeDelayEnable)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read nativeDelayEnable failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            int32_t ret = SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
             if (!reply.WriteInt32(ret)) {
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Write ret failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
