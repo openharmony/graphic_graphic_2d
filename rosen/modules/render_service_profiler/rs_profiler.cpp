@@ -50,7 +50,6 @@ namespace OHOS::Rosen {
 namespace {
 // (user): Move to RSProfiler
 static RSRenderService* g_renderService = nullptr;
-RSContext* RSProfiler::context_ = nullptr;
 static RSMainThread* g_mainThread = nullptr;
 static std::atomic<int32_t> g_renderServiceCpuId = 0;
 static std::atomic<int32_t> g_renderServiceRenderCpuId = 0;
@@ -104,6 +103,8 @@ static uint32_t g_recordParcelNumber = 0;
 static bool g_playbackImmediate = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
 } // namespace
+
+RSContext* RSProfiler::context_ = nullptr;
 
 #pragma pack(push, 1)
 struct AlignedMessageParcel {
