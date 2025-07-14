@@ -25,6 +25,7 @@
 
 #include "command/rs_base_node_command.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -1840,9 +1841,8 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
     
     auto rsContext = std::make_shared<RSContext>();
     auto rootNode = rsContext->GetGlobalRootRenderNode();
-    
     NodeId id = 1;
-    auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->week_from_this());
+    auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     rootNode->AddChild(childDisplayNode, 0);
     rootNode->InitRenderParams();
     childDisplayNode->InitRenderParams();
