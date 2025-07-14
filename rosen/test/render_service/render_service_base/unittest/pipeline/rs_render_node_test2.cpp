@@ -2487,15 +2487,15 @@ HWTEST_F(RSRenderNodeTest2, ApplyPositionZModifierTest, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(1);
     EXPECT_NE(node, nullptr);
     node->ApplyPositionZModifier();
-    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
-    node->diryTypesNG_.set(transformModifierType, true);
+    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
+    node->dirtyTypesNG_.set(transformModifierType, true);
     node->ApplyPositionZModifier();
-    EXPECT_TRUE(node->diryTypesNG_.test[transformModifierType]);
+    EXPECT_TRUE(node->dirtyTypesNG_.test(transformModifierType));
 
     auto transformModifier = std::make_shared<ModifierNG::RSTransfromRenderModifier>();
     node->AddModifier(transformModifier);
     node->ApplyPositionZModifier();
-    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
+    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
 
     RSDisplayNodeConfig config;
     NodeId nodeId = 2;
@@ -2503,11 +2503,11 @@ HWTEST_F(RSRenderNodeTest2, ApplyPositionZModifierTest, TestSize.Level1)
     displayNode->AddModifier(transformModifier);
     displayNode->currentScbPid_ = 0;
     displayNode->ApplyPositionZModifier();
-    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
+    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
     displayNode->currentScbPid_ = 1;
-    displayNode->diryTypesNG_.set(transformModifierType, true);
+    displayNode->dirtyTypesNG_.set(transformModifierType, true);
     displayNode->ApplyPositionZModifier();
-    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
+    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
 }
 
 /**
