@@ -38,13 +38,13 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "png.h"
 #include "rs_frame_rate_vote.h"
+#include "rs_profiler.h"
 #include "rs_trace.h"
 #include "rs_uni_render_thread.h"
 #include "rs_uni_render_util.h"
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
-#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
