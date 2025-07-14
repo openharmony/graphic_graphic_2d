@@ -88,6 +88,7 @@ constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint64_t INPUT_HWC_LAYERS = 3;
+constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -819,10 +820,12 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
 
 void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareScreenRenderNode nodeId[%llu]", node.GetId());
     UpdateCurFrameInfoDetail(node);
     // 0. init display info
     RS_TRACE_NAME("RSUniRender:QuickPrepareScreenRenderNode " + std::to_string(node.GetScreenId()));
     if (!InitScreenInfo(node)) {
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     UpdateDisplayZoomState();
@@ -878,6 +881,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     PrepareForMultiScreenViewDisplayNode(node);
     node.ResetDirtyFlag();
     RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareScreenRenderNode childNumber: %d", rsScreenNodeChildNum_);
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node)
@@ -904,9 +908,12 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
 
 void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID,
+        "QuickPrepareLogicalDisplayRenderNode nodeId[%llu]", node.GetId());
     RS_TRACE_NAME("RSUniRender:QuickPrepareLogicalDisplayRenderNode " + std::to_string(node.GetScreenId()));
     UpdateCurFrameInfoDetail(node);
     if (!InitLogicalDisplayInfo(node)) {
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     // 0. check ......
@@ -945,6 +952,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     globalShouldPaint_ = preGlobalShouldPaint;
     node.UpdateOffscreenRenderParams(node.IsRotationChanged());
     node.RenderTraceDebug();
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node)
@@ -1048,6 +1056,7 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
 
 void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareSurfaceRenderNode nodeId[%llu]", node.GetId());
     UpdateCurFrameInfoDetail(node);
     RS_TRACE_NAME_FMT("RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "] pid[%d] nodeType[%u]"
         " subTreeDirty[%d], crossDisplay:[%d]", node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
@@ -1058,6 +1067,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.IsFirstLevelCrossNode());
 
     if (PrepareForCloneNode(node)) {
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
 
@@ -1073,6 +1083,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     UpdateBlackListRecord(node);
     node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
     if (CheckSkipAndPrepareForCrossNode(node)) {
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     // 0. init curSurface info and check node info
@@ -1082,6 +1093,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         RS_LOGE("QuickPrepareSurfaceRenderNode BeforeUpdateSurfaceDirtyCalc fail");
         RSUifirstManager::Instance().DisableUifirstNode(node);
         node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
 
@@ -1089,6 +1101,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         RS_LOGE("QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager is nullptr",
             node.GetName().c_str());
         node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     curSurfaceDirtyManager_->SetAdvancedDirtyRegionType(advancedDirtyType_);
@@ -1120,6 +1133,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (!geoPtr) {
         node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
         globalShouldPaint_ = preGlobalShouldPaint;
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
@@ -1128,6 +1142,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         RSUifirstManager::Instance().DisableUifirstNode(node);
         node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
         globalShouldPaint_ = preGlobalShouldPaint;
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     bool isDimmingOn = RSLuminanceControl::Get().IsDimmingOn(curScreenNode_->GetScreenId());
@@ -1153,6 +1168,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             "is set to nullptr by QuickPrepareChildren", node.GetName().c_str());
         node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
         globalShouldPaint_ = preGlobalShouldPaint;
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     if (!node.IsFirstLevelCrossNode()) {
@@ -1200,6 +1216,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     HandleTunnelLayerId(node);
     PrepareForMultiScreenViewSurfaceNode(node);
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSUniRenderVisitor::PrepareForMultiScreenViewSurfaceNode(RSSurfaceRenderNode& node)
@@ -1538,11 +1555,13 @@ RSVisibleLevel RSUniRenderVisitor::GetRegionVisibleLevel(const Occlusion::Region
 
 void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "CheckCacheTypeAndDraw nodeId[%llu]", node.GetId());
     UpdateCurFrameInfoDetail(node);
     // 0. check current node need to tranverse
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curScreenDirtyManager_;
     if (!dirtyManager) {
         RS_LOGE("QuickPrepareEffectRenderNode dirtyManager is nullptr");
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     auto dirtyFlag = dirtyFlag_;
@@ -1570,6 +1589,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
     node.RenderTraceDebug();
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSUniRenderVisitor::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node)
@@ -1597,6 +1617,7 @@ void RSUniRenderVisitor::UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node)
 
 void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareCanvasRenderNode nodeId[%llu]", node.GetId());
     UpdateCurFrameInfoDetail(node);
     // 0. check current node need to traverse
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curScreenDirtyManager_;
@@ -1629,6 +1650,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     bool hasAccumulatedClip = hasAccumulatedClip_;
 
     if (!dirtyManager) {
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     dirtyFlag_ =
@@ -1676,6 +1698,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     hwcVisitor_->RestoreIsOffscreen(isCurrOffscreen);
 
     node.RenderTraceDebug();
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& node)
