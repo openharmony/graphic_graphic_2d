@@ -17,6 +17,7 @@
 
 #if defined(MODIFIER_NG)
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #endif
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
@@ -27,6 +28,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -2471,6 +2473,61 @@ HWTEST_F(RSRenderNodeTest2, DumpModifiersTest, TestSize.Level1)
     nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier);
     nodeTest->DumpModifiers(outTest);
     EXPECT_NE(outTest, "");
+}
+
+/**
+ * @tc.name: ApplyPositionZModifierTest
+ * @tc.desc: ApplyPositionZModifier test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyPositionZModifierTest, TestSize.Level1)
+{
+    constexpr auto transformModifierType = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM);
+    auto node = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(node, nullptr);
+    node->ApplyPositionZModifier();
+    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
+    node->diryTypesNG_.set(transformModifierType, true);
+    node->ApplyPositionZModifier();
+    EXPECT_TRUE(node->diryTypesNG_.test[transformModifierType]);
+
+    auto transformModifier = std::make_shared<ModifierNG::RSTransfromRenderModifier>();
+    node->AddModifier(transformModifier);
+    node->ApplyPositionZModifier();
+    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
+
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 2;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    displayNode->AddModifier(transformModifier);
+    displayNode->currentScbPid_ = 0;
+    displayNode->ApplyPositionZModifier();
+    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
+    displayNode->currentScbPid_ = 1;
+    displayNode->diryTypesNG_.set(transformModifierType, true);
+    displayNode->ApplyPositionZModifier();
+    EXPECT_FALSE(node->diryTypesNG_.test[transformModifierType]);
+}
+
+/**
+ * @tc.name: FilterModifiersByPidTest
+ * @tc.desc: FilterModifiersByPid test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, FilterModifiersByPidTest, TestSize.Level1)
+{
+    constexpr auto transformModifierType = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM);
+    auto node = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(node, nullptr);
+    node->ApplyPositionZModifier();
+    auto transformModifier = std::make_shared<ModifierNG::RSTransfromRenderModifier>();
+    node->AddModifier(transformModifier);
+    node->FilterModifiersByPid(1);
+    EXPECT_FALSE(node->modifiersNG_[transformModifierType].empty());
+    node->FilterModifiersByPid(0);
+    EXPECT_TRUE(node->modifiersNG_[transformModifierType].empty());
 }
 #endif
 } // namespace Rosen
