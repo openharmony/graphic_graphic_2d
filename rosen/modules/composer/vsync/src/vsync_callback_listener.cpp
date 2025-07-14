@@ -49,11 +49,12 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         if (auto self = weak.lock()) {
             int64_t newData[3] = {now, period, vsyncId};
             DVSyncDelay::Instance().UpdateDelayInfo();
-            self.HandleVsyncCallbacks(newData, dataCount, fileDescriptor);
+            self->HandleVsyncCallbacks(newData, dataCount, fileDescriptor);
         } else {
             VLOGE("VSyncCallBackListener::OnReadable, weak.lock error");
         }
     };
+    DVSyncDelay::Instance().ToDelay(taskFunc, name_, fileDescriptor);
 #else
     HandleVsyncCallbacks(data, dataCount, fileDescriptor);
 #endif

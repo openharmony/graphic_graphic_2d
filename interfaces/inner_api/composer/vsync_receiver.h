@@ -36,7 +36,7 @@
 namespace OHOS {
 namespace Rosen {
 class VSyncCallBackListener : public OHOS::AppExecFwk::FileDescriptorListener,
-    public std:enable_shared_from_this<VSyncCallBackListener> {
+    public std::enable_shared_from_this<VSyncCallBackListener> {
 public:
     using VSyncCallback = std::function<void(int64_t, void*)>;
     using VSyncCallbackWithId = std::function<void(int64_t, int64_t, void*)>;
