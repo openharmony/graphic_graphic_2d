@@ -1835,20 +1835,21 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->siUniRender_ = true;
+    mainThread->isUniRender_ = true;
     mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     
     auto rsContext = std::make_shared<RSContext>();
-    const std::shared_ptr<RSBaseRenderNode> rootNode = rsContext->GetGlobalRootRenderNode();
+    auto rootNode = rsContext->GetGlobalRootRenderNode();
     
     NodeId id = 1;
     auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->week_from_this());
     rootNode->AddChild(childDisplayNode, 0);
     rootNode->InitRenderParams();
-    screenNode->InitRenderParams();
     childDisplayNode->InitRenderParams();
+
     NodeId nodeId = 2;
     RSUifirstManager::Instance().AddProcessSkippedNode(nodeId);
+
     mainThread->doDirectComposition_ = true;
     mainThread->isDirty_ = false;
     mainThread->isAccessibilityConfigChanged_ = false;
