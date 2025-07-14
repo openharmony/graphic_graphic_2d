@@ -2719,7 +2719,18 @@ void RSNode::SetBlender(const Blender* blender)
                 SetEnableHDREffect(HdrEffectType::HDR_EFFECT_BRIGHTNESS_BLENDER, true);
             }
         }
+    } else if (Blender::SHADOW_BLENDER == blender->GetBlenderType()) {
+        auto shadowBlender = static_cast<const ShadowBlender*>(blender);
+        if (shadowBlender != nullptr) {
+            SetShadowBlenderParams({ shadowBlender->GetCubicCoeff(), shadowBlender->GetQuadraticCoeff(),
+                shadowBlender->GetLinearCoeff(), shadowBlender->GetConstantTerm() });
+        }
     }
+}
+
+void RSNode::SetShadowBlenderParams(const RSShadowBlenderPara& params)
+{
+    SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetShadowBlenderParams>(params);
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)

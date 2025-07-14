@@ -923,4 +923,18 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetAbsRectByStrategyForImageTest001, testi
     EXPECT_TRUE(absImageRect == expectAbsImageRect);
     EXPECT_TRUE(absDrawRect == expectAbsDrawRect);
 }
+
+/**
+ * @tc.name: MakeShadowBlenderTest001
+ * @tc.desc: MakeShadowBlender Test
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeShadowBlenderTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    RSShadowBlenderPara shadowBlenderParams;
+    EXPECT_NE(rsPropertyDrawableUtils->MakeShadowBlender(shadowBlenderParams), nullptr);
+}
 } // namespace OHOS::Rosen
