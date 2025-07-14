@@ -2492,7 +2492,7 @@ HWTEST_F(RSRenderNodeTest2, ApplyPositionZModifierTest, TestSize.Level1)
     node->ApplyPositionZModifier();
     EXPECT_TRUE(node->dirtyTypesNG_.test(transformModifierType));
 
-    auto transformModifier = std::make_shared<ModifierNG::RSTransfromRenderModifier>();
+    auto transformModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
     node->AddModifier(transformModifier);
     node->ApplyPositionZModifier();
     EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
@@ -2503,11 +2503,11 @@ HWTEST_F(RSRenderNodeTest2, ApplyPositionZModifierTest, TestSize.Level1)
     displayNode->AddModifier(transformModifier);
     displayNode->currentScbPid_ = 0;
     displayNode->ApplyPositionZModifier();
-    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
+    EXPECT_FALSE(displayNode->dirtyTypesNG_.test(transformModifierType));
     displayNode->currentScbPid_ = 1;
     displayNode->dirtyTypesNG_.set(transformModifierType, true);
     displayNode->ApplyPositionZModifier();
-    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
+    EXPECT_FALSE(displayNode->dirtyTypesNG_.test(transformModifierType));
 }
 
 /**
@@ -2521,8 +2521,7 @@ HWTEST_F(RSRenderNodeTest2, FilterModifiersByPidTest, TestSize.Level1)
     constexpr auto transformModifierType = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM);
     auto node = std::make_shared<RSRenderNode>(1);
     EXPECT_NE(node, nullptr);
-    node->ApplyPositionZModifier();
-    auto transformModifier = std::make_shared<ModifierNG::RSTransfromRenderModifier>();
+    auto transformModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
     node->AddModifier(transformModifier);
     node->FilterModifiersByPid(1);
     EXPECT_FALSE(node->modifiersNG_[transformModifierType].empty());
