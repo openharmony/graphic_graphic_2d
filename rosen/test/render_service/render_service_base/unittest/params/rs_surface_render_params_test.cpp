@@ -520,45 +520,6 @@ HWTEST_F(RSSurfaceRenderParamsTest, GetSourceDisplayRenderNodeDrawable, TestSize
 }
 
 /**
- * @tc.name: SetOffsetXTest
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetXTest, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(125);
-    params.SetOffsetX(1);
-    EXPECT_EQ(params.GetOffsetX(), 1);
-}
-
-/**
- * @tc.name: SetOffsetY
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetYTest, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(126);
-    params.SetOffsetY(1);
-    EXPECT_EQ(params.GetOffsetY(), 1);
-}
-
-/**
- * @tc.name: SetOffsetY
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetRogWidthRatioTest, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(127);
-    params.SetRogWidthRatio(1.0);
-    EXPECT_EQ(params.GetRogWidthRatio(), 1.0);
-}
-
-/**
  * @tc.name: SetFrameGravityNewVersionEnabledTest
  * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
  * @tc.type: FUNC

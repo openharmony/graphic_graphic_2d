@@ -578,6 +578,8 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        protectedSurfaceBufferList_.clear();
     }
 }
 
@@ -594,6 +596,8 @@ void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        protectedSurfaceBufferList_.clear();
     }
     pixelFormat_ = pixelFormat;
 }

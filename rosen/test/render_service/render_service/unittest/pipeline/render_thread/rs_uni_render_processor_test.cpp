@@ -674,4 +674,73 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
+
+/**
+ * @tc.name: GetLayerInfo003
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    params.SetHwcGlobalPositionEnabled(true);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: GetLayerInfo004
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
+{
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->uniComposerAdapter_->screenInfo_ = screenInfo;
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    params.SetHwcGlobalPositionEnabled(true);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: GetLayerInfo005
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
+{
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = true;
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->uniComposerAdapter_->screenInfo_ = screenInfo;
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    params.SetHwcGlobalPositionEnabled(true);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
 }

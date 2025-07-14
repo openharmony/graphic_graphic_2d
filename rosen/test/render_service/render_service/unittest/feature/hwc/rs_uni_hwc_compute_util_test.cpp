@@ -659,6 +659,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsHwcEnabledByGravityTest, Function | SmallTes
     EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByGravity(node, Gravity::RESIZE_ASPECT_FILL));
     EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByGravity(node, Gravity::RESIZE_ASPECT_FILL_TOP_LEFT));
     EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByGravity(node, Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT));
+    node.SetProtectedLayer(true);
+    EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByGravity(node, Gravity::CENTER));
 }
 
 /*

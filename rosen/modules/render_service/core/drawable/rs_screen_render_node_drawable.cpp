@@ -390,16 +390,6 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
             auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-            if (surfaceParams && surfaceParams->GetHwcGlobalPositionEnabled()) {
-                surfaceParams->SetOffsetX(offsetX_);
-                surfaceParams->SetOffsetY(offsetY_);
-                surfaceParams->SetRogWidthRatio(surfaceParams->IsHwcCrossNode() ?
-                    params.GetScreenInfo().GetRogWidthRatio() : 1.0f);
-            } else {
-                surfaceParams->SetOffsetX(0);
-                surfaceParams->SetOffsetY(0);
-                surfaceParams->SetRogWidthRatio(1.0f);
-            }
             // hpae offline
             if (surfaceParams->GetLayerInfo().useDeviceOffline &&
                 ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, false)) {
@@ -998,16 +988,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-            if (surfaceParams && surfaceParams->GetHwcGlobalPositionEnabled()) {
-                surfaceParams->SetOffsetX(offsetX_);
-                surfaceParams->SetOffsetY(offsetY_);
-                surfaceParams->SetRogWidthRatio(surfaceParams->IsHwcCrossNode() ?
-                    params->GetScreenInfo().GetRogWidthRatio() : 1.0f);
-            } else {
-                surfaceParams->SetOffsetX(0);
-                surfaceParams->SetOffsetY(0);
-                surfaceParams->SetRogWidthRatio(1.0f);
-            }
             // hpae offline: wait task and create layer
             if (surfaceParams->GetLayerInfo().useDeviceOffline &&
                 ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, true)) {

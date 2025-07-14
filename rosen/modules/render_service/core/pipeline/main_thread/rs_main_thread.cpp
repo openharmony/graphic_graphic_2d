@@ -2526,21 +2526,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetPreBuffer(nullptr);
                 surfaceNode->AddToPendingSyncList();
             }
-            auto displayLock = surfaceNode->GetAncestorScreenNode().lock();
-            std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
-            if (displayLock != nullptr) {
-                ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
-            }
-            if (ancestor != nullptr && params->GetHwcGlobalPositionEnabled()) {
-                auto screenInfo = screenManager->QueryScreenInfo(ancestor->GetScreenId());
-                params->SetOffsetX(screenInfo.offsetX);
-                params->SetOffsetY(screenInfo.offsetY);
-                params->SetRogWidthRatio(params->IsHwcCrossNode() ? screenInfo.GetRogWidthRatio() : 1.0f);
-            } else {
-                params->SetOffsetX(0);
-                params->SetOffsetY(0);
-                params->SetRogWidthRatio(1.0f);
-            }
             if (surfaceNode->GetDeviceOfflineEnable() && processor->ProcessOfflineLayer(surfaceNode)) {
                 // use offline buffer instead of original buffer,
                 // if succeed, params->SetBufferSynced will not be set true,

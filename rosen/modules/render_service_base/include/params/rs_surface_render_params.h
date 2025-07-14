@@ -155,30 +155,6 @@ public:
     {
         return stencilVal_;
     }
-    void SetOffsetX(int32_t offsetX)
-    {
-        offsetX_ = offsetX;
-    }
-    int32_t GetOffsetX() const
-    {
-        return offsetX_;
-    }
-    void SetOffsetY(int32_t offsetY)
-    {
-        offsetY_ = offsetY;
-    }
-    int32_t GetOffsetY() const
-    {
-        return offsetY_;
-    }
-    void SetRogWidthRatio(float rogWidthRatio)
-    {
-        rogWidthRatio_ = rogWidthRatio;
-    }
-    float GetRogWidthRatio() const
-    {
-        return rogWidthRatio_;
-    }
     void SetIsOutOfScreen(bool isOutOfScreen)
     {
         if (isOutOfScreen_ == isOutOfScreen) {
@@ -859,9 +835,6 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
 
-    int32_t offsetX_ = 0;
-    int32_t offsetY_ = 0;
-    float rogWidthRatio_ = 1.0f;
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
 

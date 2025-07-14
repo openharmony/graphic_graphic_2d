@@ -114,10 +114,6 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
 void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto dstRect = absRect;
-    if (node.GetHwcGlobalPositionEnabled()) {
-        dstRect.left_ -= uniRenderVisitor_.curScreenNode_->GetScreenOffsetX();
-        dstRect.top_ -= uniRenderVisitor_.curScreenNode_->GetScreenOffsetY();
-    }
     if (!node.IsHardwareEnabledTopSurface() && !node.GetHwcGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
         dstRect = dstRect.IntersectRect(RectI(0, 0, uniRenderVisitor_.curScreenNode_->GetScreenInfo().width,
@@ -130,16 +126,10 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
             dstRect = dstRect.IntersectRect(clipRect);
         }
     }
-    auto offsetX = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curScreenNode_->GetScreenOffsetX() : 0;
-    auto offsetY = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curScreenNode_->GetScreenOffsetY() : 0;
-    dstRect.left_ = static_cast<int32_t>(std::floor(dstRect.left_ *
-        uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()) + offsetX);
-    dstRect.top_ = static_cast<int32_t>(std::floor(dstRect.top_ *
-        uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()) + offsetY);
-    dstRect.width_ = static_cast<int32_t>(std::ceil(dstRect.width_ *
-        uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()));
-    dstRect.height_ = static_cast<int32_t>(std::ceil(dstRect.height_ *
-        uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()));
+    dstRect.left_ = static_cast<int32_t>(std::floor(dstRect.left_));
+    dstRect.top_ = static_cast<int32_t>(std::floor(dstRect.top_));
+    dstRect.width_ = static_cast<int32_t>(std::ceil(dstRect.width_));
+    dstRect.height_ = static_cast<int32_t>(std::ceil(dstRect.height_));
 
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&
         !node.GetHwcGlobalPositionEnabled()) {
@@ -160,6 +150,7 @@ void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const 
     const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
     auto surfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
     ((surfaceParams != nullptr && surfaceParams->GetIsHwcEnabledBySolidLayer()) || apiCompatibleVersion >= API18 ||
+        node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) ||
         node.GetName().find("RenderFitSurface") != std::string::npos) ?
         RSUniHwcComputeUtil::DealWithNodeGravity(node, totalMatrix) :
         RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(node, uniRenderVisitor_.curScreenNode_->GetScreenInfo());
@@ -1226,7 +1217,8 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
                             uniRenderVisitor_.isScreenRotationAnimating_);
     if (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
-        IsDisableHwcOnExpandScreen() || uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
+        IsDisableHwcOnExpandScreen() || !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) ||
+        uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
         !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
         auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
@@ -1247,7 +1239,19 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     UpdateSrcRect(node, absMatrix);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
     UpdateHwcNodeByTransform(node, absMatrix);
+    UpdateDstRectByGlobalPosition(node);
     UpdateHwcNodeEnableByBufferSize(node);
+}
+
+void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
+{
+    if (node.GetHwcGlobalPositionEnabled()) {
+        auto dstRect = node.GetDstRect();
+        dstRect.left_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetX();
+        dstRect.top_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetY();
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " dstRect:[%s] ",
+            node.GetName().c_str(), node.GetId(), dstRect.ToString().c_str());
+    }
 }
 
 void RSUniHwcVisitor::QuickPrepareChildrenOnlyOrder(RSRenderNode& node)

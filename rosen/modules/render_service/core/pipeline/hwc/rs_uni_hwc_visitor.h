@@ -29,6 +29,7 @@ public:
     void UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
+    void UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node);
 
     RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI& globalFilterRect) const;
 

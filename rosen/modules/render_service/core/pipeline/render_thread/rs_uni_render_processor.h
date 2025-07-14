@@ -63,6 +63,7 @@ private:
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
     void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
     void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, LayerInfoPtr& layer);
+    void ScaleLayerIfNeeded(RSLayerInfo& layerInfo);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
 };

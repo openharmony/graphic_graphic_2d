@@ -5190,4 +5190,31 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2
     rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);
 }
+
+/*
+ * @tc.name: UpdateDstRectByGlobalPosition001
+ * @tc.desc: Test function UpdateDstRectByGlobalPosition
+ * @tc.type: FUNC
+ * @tc.require: issueICB4RP
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDstRectByGlobalPosition001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    node.isHwcGlobalPositionEnabled_ = true;
+    node.SetDstRect({0, 1000, 2440, 1080});
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ScreenInfo screenInfo;
+    screenInfo.width = 1440;
+    screenInfo.height = 1080;
+    rsUniRenderVisitor->curScreenNode_->SetScreenInfo(screenInfo);
+    rsUniRenderVisitor->hwcVisitor_->UpdateDstRectByGlobalPosition(node);
+    RectI expectedDstRect = {0, 1000, 2440, 1080};
+    EXPECT_TRUE(node.GetDstRect() == expectedDstRect);
+}
 } // OHOS::Rosen
