@@ -82,7 +82,7 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
     EXPECT_EQ(extractor.GetRotation(), 0.f);
     EXPECT_EQ(extractor.GetRotationX(), 0.f);
     EXPECT_EQ(extractor.GetRotationY(), 0.f);
-    
+
     EXPECT_EQ(extractor.GetAlphaOffscreen(), true);
     EXPECT_EQ(extractor.GetForegroundColor(), RgbPalette::Transparent());
     EXPECT_EQ(extractor.GetBgImageWidth(), 0.f);
@@ -97,6 +97,9 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
     EXPECT_EQ(extractor.GetClipBounds(), nullptr);
     EXPECT_EQ(extractor.GetClipToBounds(), false);
     EXPECT_EQ(extractor.GetClipToFrame(), false);
+
+    EXPECT_EQ(extractor.GetTranslate(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(extractor.GetTranslateZ(), 0.f);
 }
 
 /**
