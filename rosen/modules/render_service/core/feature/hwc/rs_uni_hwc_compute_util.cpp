@@ -103,10 +103,10 @@ Drawing::Rect RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(const SurfaceBuff
         default:
             break;
     }
-    newSrcRect.left_ = std::clamp<int>(std::floor(newSrcRect.GetLeft()), 0, frameWidth);
-    newSrcRect.top_ = std::clamp<int>(std::floor(newSrcRect.GetTop()), 0, frameHeight);
-    newSrcRect.right_ = std::clamp<int>(std::ceil(newSrcRect.GetRight()), left, frameWidth);
-    newSrcRect.bottom_ = std::clamp<int>(std::ceil(newSrcRect.GetBottom()), top, frameHeight);
+    newSrcRect.left_ = std::clamp<int32_t>(std::floor(newSrcRect.GetLeft()), 0, frameWidth);
+    newSrcRect.top_ = std::clamp<int32_t>(std::floor(newSrcRect.GetTop()), 0, frameHeight);
+    newSrcRect.right_ = std::clamp<int32_t>(std::ceil(newSrcRect.GetRight()), newSrcRect.left_, frameWidth);
+    newSrcRect.bottom_ = std::clamp<int32_t>(std::ceil(newSrcRect.GetBottom()), newSrcRect.top_, frameHeight);
     return newSrcRect;
 }
 

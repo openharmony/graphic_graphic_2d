@@ -765,7 +765,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shar
                  (rect.GetBottom() - dst.GetTop() <= MIN_OVERLAP && rect.GetBottom() - dst.GetTop() >= 0))) {
                 return;
             }
-            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:" PRIu64 " disabled by hwc node below self in app",
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by hwc node below self in app",
                 hwcNode->GetName().c_str(), hwcNode->GetId());
             PrintHiperfLog(hwcNode, "hwc node below self in app");
             hwcNode->SetHardwareForcedDisabledState(true);
