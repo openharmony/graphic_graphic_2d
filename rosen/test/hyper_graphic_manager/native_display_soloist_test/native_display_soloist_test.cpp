@@ -12,10 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
-#include <thread>
+
 #include <cstdlib>
 #include <ctime>
+#include <gtest/gtest.h>
+#include <thread>
+
 #include "native_display_soloist.h"
 
 using namespace testing;
@@ -230,7 +232,7 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_ThreadNums, Function | Medi
     };
 
     uint32_t threadNums = 1000;
-    uint32_t threadNumsMax = 5000;
+    uint32_t thdsJoinNums = 0;
     std::vector<std::thread> thds;
     for (int i = 0; i < threadNums; i++) {
         thds.emplace_back(std::thread([&] () { displaySoloistTask(); }));
@@ -239,13 +241,13 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_ThreadNums, Function | Medi
         thds.emplace_back(std::thread([&] () { displaySoloistTask(); }));
     }
     for (auto& thd : thds) {
-        ++threadNums;
+        ++thdsJoinNums;
         if (thd.joinable()) {
             thd.join();
         }
     }
     usleep(WAIT_TASK_FINISH_NS);
-    EXPECT_EQ(threadNums, threadNumsMax);
+    EXPECT_EQ(thdsJoinNums, threadNums * 4); // 4 times of add thds
 }
 } // namespace
 } // namespace Rosen
