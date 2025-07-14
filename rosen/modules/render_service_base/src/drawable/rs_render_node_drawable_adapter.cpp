@@ -102,7 +102,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
                 ROSEN_LOGE("%{public}s, node id in Cache is %{public}" PRIu64
                     ", nodeType: %{public}u, drawableType: %{public}u", __func__, id, node->GetType(),
                     ptr->GetNodeType());
-                if (node->GetType() == ptr->GetNodeType) {
+                if (node->GetType() == ptr->GetNodeType()) {
                     return ptr;
                 }
             }
