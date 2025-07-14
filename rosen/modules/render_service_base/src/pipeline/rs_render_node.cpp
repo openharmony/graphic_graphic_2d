@@ -2975,9 +2975,13 @@ void RSRenderNode::ApplyPositionZModifier()
     if (transformModifiers.empty()) {
         return;
     }
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(shared_from_this());
+    int32_t currentScbPid = displayNode == nullptr ? -1 : displayNode->GetCurrentScbPid();
     ModifierNG::RSTransformRenderModifier::ResetProperties(GetMutableRenderProperties());
     for (auto& modifier : transformModifiers) {
-        modifier->ApplyLegacyProperty(GetMutableRenderProperties());
+        if (currentScbPid == -1 || ExtractPid(modifier->GetId()) == currentScbPid) {
+            modifier->ApplyLegacyProperty(GetMutableRenderProperties());
+        }
     }
     dirtyTypesNG_.reset(transformModifierTypeNG);
 #else
@@ -3392,7 +3396,6 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
             [pid](const auto& modifier) -> bool { return ExtractPid(modifier->GetId()) == pid; });
         if (it != slot.end()) {
             slot.erase(it);
-            return;
         }
     }
 #else
