@@ -607,7 +607,9 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
+    RS_TRACE_BEGIN("HdiOutput::SyncFileReadTimestamp");
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
+    RS_TRACE_END();
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
         startSample = sampler_->GetVsyncSamplerEnabled() && sampler_->AddPresentFenceTime(screenId_, timestamp);
@@ -616,6 +618,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         LayerPtr uniRenderLayer = nullptr;
         for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
             const LayerPtr &layer = iter->second;
+            RS_TRACE_NAME_FMT("HdiOutput::Iterate layerIdMap_ %u", iter->first);
             if (layer->RecordPresentTime(timestamp)) {
                 presentTimeUpdated = true;
             }
@@ -624,6 +627,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
             }
         }
         if (presentTimeUpdated && uniRenderLayer) {
+            RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %llu", timestamp);
             uniRenderLayer->RecordMergedPresentTime(timestamp);
         }
     }
@@ -632,6 +636,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (startSample) {
         ret = StartVSyncSampler();
     }
+    RS_TRACE_NAME_FMT("presentFenceIndex_ = %d", presentFenceIndex_);
     if (historicalPresentfences_.size() == NUMBER_OF_HISTORICAL_FRAMES) {
         thirdFrameAheadPresentFence_ = historicalPresentfences_[presentFenceIndex_];
         historicalPresentfences_[presentFenceIndex_] = fbFence;
@@ -684,7 +689,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
     auto releaseBuffer = [](sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence,
         sptr<IConsumerSurface> cSurface) -> void {
         if (cSurface == nullptr) {
-            HLOGE("HdiOutput:: ReleaseBuffer failed, no consumer!");
+            HLOGD("HdiOutput:: ReleaseBuffer failed, no consumer!");
             return;
         }
         if (buffer == nullptr) {
@@ -706,7 +711,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         for (const auto& [id, layer] : layerIdMap_) {
             if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
                 layer->GetLayerInfo()->GetSurface() == nullptr) {
-                HLOGW("HdiOutput::ReleaseLayers: layer or layerInfo or layer's cSurface is nullptr");
+                HLOGD("HdiOutput::ReleaseLayers: layer or layerInfo or layer's cSurface is nullptr");
                 continue;
             }
             auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
