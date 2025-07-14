@@ -400,6 +400,10 @@ protected:
             brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
         }
 
+        if (envStack_.top().blender_) {
+            brush.SetBlender(envStack_.top().blender_);
+        }
+
         // use alphaStack_.top() to multiply alpha
         if (alpha < 1 && alpha > 0) {
             brush.SetAlpha(brush.GetAlpha() * alpha);

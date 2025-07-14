@@ -2007,6 +2007,8 @@ private:
     void SetForegroundBlurRadiusY(float blurRadiusY);
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
+    void SetShadowBlenderParams(const RSShadowBlenderPara& params);
+
     void NotifyPageNodeChanged();
     void CheckModifierType(RSModifierType modifierType);
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);

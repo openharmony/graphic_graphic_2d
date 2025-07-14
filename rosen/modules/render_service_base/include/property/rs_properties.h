@@ -311,6 +311,9 @@ public:
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
 
+    void SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params);
+    std::optional<RSShadowBlenderPara> GetShadowBlenderParams() const;
+
     void SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params);
     std::optional<RSWaterRipplePara> GetWaterRippleParams() const;
     void SetWaterRippleProgress(const float& progress);
@@ -533,6 +536,7 @@ public:
     bool IsDynamicDimValid() const;
     bool IsFgBrightnessValid() const;
     bool IsBgBrightnessValid() const;
+    bool IsShadowBlenderValid() const;
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
     bool IsDistortionKValid() const;
@@ -540,6 +544,7 @@ public:
     bool GetDistortionDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
+    std::string GetShadowBlenderDescription() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -796,6 +801,7 @@ private:
     std::optional<float> distortionK_ = std::nullopt;
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
+    std::optional<RSShadowBlenderPara> shadowBlenderParams_;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
     std::optional<Decoration> decoration_;
     std::optional<Matrix3f> sublayerTransform_;
