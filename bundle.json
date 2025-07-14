@@ -124,7 +124,8 @@
           "rust_cxx",
           "media_foundation",
           "selinux_adapter",
-          "runtime_core"
+          "runtime_core",
+          "graphic_2d_ext"
         ],
         "third_party": [
           "skia"
@@ -499,6 +500,24 @@
             "header": {
               "header_files": [],
               "header_base": "//foundation/graphic/graphic_2d/frameworks/text/interface/export"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+            "header": {
+              "header_files": [
+                "ivsync_connection.h",
+                "vsync_connection_proxy.h",
+                "vsync_connection_stub.h",
+                "vsync_controller.h",
+                "vsync_distributor.h",
+                "vsync_generator.h",
+                "vsync_log.h",
+                "vsync_sampler.h",
+                "vsync_system_ability_listener.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include"
             }
           }
         ],

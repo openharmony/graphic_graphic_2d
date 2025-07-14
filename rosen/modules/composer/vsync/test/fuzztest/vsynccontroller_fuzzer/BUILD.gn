@@ -37,6 +37,7 @@ ohos_fuzztest("VsyncControllerFuzzTest") {
   sources = [ "vsynccontroller_fuzzer.cpp" ]
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "c_utils:utils",
