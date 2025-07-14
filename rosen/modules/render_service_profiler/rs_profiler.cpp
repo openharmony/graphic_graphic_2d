@@ -47,6 +47,7 @@
 
 namespace OHOS::Rosen {
 
+namespace {
 // (user): Move to RSProfiler
 static RSRenderService* g_renderService = nullptr;
 RSContext* RSProfiler::context_ = nullptr;
@@ -85,13 +86,13 @@ static NodeId g_calcPerfNode = 0;
 static uint32_t g_calcPerfNodeTry = 0;
 static bool g_calcPerfNodeExcludeDown = false;
 
-static std::vector<std::pair<std::shared_ptr<RSRenderNode>,
-            std::vector<std::shared_ptr<RSRenderNode>>>> g_calcPerfSavedChildren;
+static std::vector<std::pair<std::shared_ptr<RSRenderNode>, std::vector<std::shared_ptr<RSRenderNode>>>>
+    g_calcPerfSavedChildren;
 static NodeId g_blinkNodeId = 0;
 static uint32_t g_blinkNodeCount = 0;
 static std::vector<std::shared_ptr<RSRenderNode>> g_blinkSavedParentChildren;
 
-constexpr int CALC_PERF_NODE_TIME_COUNT_MIN = 128; // min render tries
+constexpr int CALC_PERF_NODE_TIME_COUNT_MIN = 128;  // min render tries
 constexpr int CALC_PERF_NODE_TIME_COUNT_MAX = 4096; // max render tries
 static uint32_t g_effectiveNodeTimeCount = CALC_PERF_NODE_TIME_COUNT_MAX;
 static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT_MAX];
@@ -102,6 +103,7 @@ static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
 static bool g_playbackImmediate = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
+} // namespace
 
 #pragma pack(push, 1)
 struct AlignedMessageParcel {
