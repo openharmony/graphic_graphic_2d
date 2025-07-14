@@ -27,6 +27,7 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_render_animation.h"
 #include "animation/rs_keyframe_animation.h"
+#include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_modifier_manager.h"
 #include "transaction/rs_interfaces.h"
 #include "render/rs_blur_filter.h"
@@ -598,6 +599,13 @@ public:
     }
 };
 
+class TransitionModifier : public RSTransitionModifier {
+public:
+    void Draw(RSDrawingContext& context) const override {}
+    void Active() override {}
+    void Identity() override {}
+};
+
 /**
  * @tc.name: RSTransitionTest001
  * @tc.desc: Verify the RSTransition
@@ -618,7 +626,11 @@ HWTEST_F(RSAnimationTest, RSTransitionTest001, TestSize.Level1)
  */
 HWTEST_F(RSAnimationTest, RSTransitionTest002, TestSize.Level1)
 {
-    std::shared_ptr<const RSTransitionEffect> effect;
+    auto transitionModifier = std::make_shared<TransitionModifier>();
+    auto transitionInEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    auto transitionOutEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    auto effect = std::make_shared<RSTransitionEffect>(transitionInEffect, transitionOutEffect);
+
     auto animation = std::make_shared<RSTransitionMock>(effect, true);
     ASSERT_NE(animation, nullptr);
     animation->SetIsCustom(true);
@@ -1102,6 +1114,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     auto springAnimation = std::make_shared<RSSpringAnimationMock>(animatablProperty, value);
     modifierManager.RegisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
     modifierManager.UnregisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
+    modifierManager.QuerySpringAnimation(springAnimation->GetPropertyId());
+    modifierManager.FlushStartAnimation(0);
 
     std::string str;
     RSMotionPathOption option(str);
