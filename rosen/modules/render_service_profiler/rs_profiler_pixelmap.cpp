@@ -763,7 +763,7 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
     constexpr uint64_t flagIsImage = 1ull << 62;
     id |= flagIsImage;
 
-    if (!parcel.WriteUint64(id) || !map->Marshalling(parcel)) {
+    if (!parcel.WriteUint64(id)) {
         HRPE("MarshalPixelMap: Unable to write id");
         return false;
     }
