@@ -161,7 +161,7 @@ void CanvasDrawingDumpToPngImpl(std::shared_ptr<Drawing::Bitmap> bitmap, std::st
 void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 {
     if (image_ == nullptr) {
-        RS_LOGE("No image to drawing");
+        RS_LOGD("No image to drawing");
         return;
     }
 

@@ -591,6 +591,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsTaskManagerCalling(codeEnumTypeName_ + "::CLEAR_UIFIRST_CACHE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_HDR_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_HDR_STATUS");
+            break;
+        }
         default: {
             break;
         }

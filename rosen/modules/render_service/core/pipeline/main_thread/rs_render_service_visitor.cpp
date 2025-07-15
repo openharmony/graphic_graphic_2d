@@ -62,7 +62,7 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
-        RS_LOGE("RSRenderServiceVisitor::PrepareScreenRenderNode ScreenManager is nullptr");
+        RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
         return;
     }
     node.SetScreenInfo(screenManager->QueryScreenInfo(node.GetScreenId()));
@@ -110,15 +110,14 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
 
 void RSRenderServiceVisitor::ProcessScreenRenderNode(RSScreenRenderNode& node)
 {
-    /* need reset isSecurityDisplay_ on ProcessScreenRenderNode */
-    RS_LOGD("RsDebug RSRenderServiceVisitor::ProcessScreenRenderNode: nodeid:[%{public}" PRIu64 "]"
-        " screenid:[%{public}" PRIu64 "] \
-        isSecurityDisplay:[%{public}s] child size:[%{public}d]",
+    // need reset isSecurityDisplay_ on ProcessScreenRenderNode
+    RS_LOGD("RsDebug ProcessScreenRenderNode: nodeid:[%{public}" PRIu64 "]"
+        " screenid:[%{public}" PRIu64 "] isSecurityDisplay:[%{public}s] child size:[%{public}d]",
         node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount());
     globalZOrder_ = 0.0f;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
-        RS_LOGE("RSRenderServiceVisitor::ProcessScreenRenderNode ScreenManager is nullptr");
+        RS_LOGE("ProcessScreenRenderNode ScreenManager is nullptr");
         return;
     }
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
@@ -144,7 +143,7 @@ void RSRenderServiceVisitor::ProcessScreenRenderNode(RSScreenRenderNode& node)
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
-            RS_LOGI("RSRenderServiceVisitor::ProcessScreenRenderNode mirrorSource haven't existed");
+            RS_LOGI("ProcessScreenRenderNode mirrorSource haven't existed");
             return;
         }
         if (isSecurityDisplay_ && displayHasSecSurface_[node.GetScreenId()]) {

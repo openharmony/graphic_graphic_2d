@@ -30,6 +30,8 @@ public:
     }
     ~RadialGradientMaskPara() override = default;
 
+    RadialGradientMaskPara(const RadialGradientMaskPara& other);
+
     void SetCenter(Vector2f& center)
     {
         center_ = center;
@@ -87,6 +89,7 @@ public:
     [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
 
     std::shared_ptr<MaskPara> Clone() const override;
+
 private:
     Vector2f center_ = { 0.0f, 0.0f };
     float radiusX_ = 0.0f;

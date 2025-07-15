@@ -709,9 +709,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
         RS_LOGE("%{public}s: curDisplayNode is null", __func__);
         return;
     }
-    bool isForceCloseHdr = uniRenderVisitor_.curScreenNode_->GetForceCloseHdr();
     if (hwcNode->IsHardwareForcedDisabled()) {
-        if (!isForceCloseHdr && RSHdrUtil::CheckIsHdrSurface(*hwcNode) != HdrStatus::NO_HDR) {
+        if (RSHdrUtil::CheckIsHdrSurface(*hwcNode) != HdrStatus::NO_HDR) {
             uniRenderVisitor_.curScreenNode_->SetHasUniRenderHdrSurface(true);
         }
         return;
@@ -733,7 +732,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
                     parentNode ? parentNode->GetId() : 0, rect.ToString().c_str());
                 PrintHiperfLog(hwcNode, "corner radius + hwc node below");
                 hwcNode->SetHardwareForcedDisabledState(true);
-                if (!isForceCloseHdr && RSHdrUtil::CheckIsHdrSurface(*hwcNode) != HdrStatus::NO_HDR) {
+                if (RSHdrUtil::CheckIsHdrSurface(*hwcNode) != HdrStatus::NO_HDR) {
                     uniRenderVisitor_.curScreenNode_->SetHasUniRenderHdrSurface(true);
                 }
                 Statistics().UpdateHwcDisabledReasonForDFX(hwcNode->GetId(),
@@ -765,7 +764,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shar
                  (rect.GetBottom() - dst.GetTop() <= MIN_OVERLAP && rect.GetBottom() - dst.GetTop() >= 0))) {
                 return;
             }
-            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:" PRIu64 " disabled by hwc node below self in app",
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by hwc node below self in app",
                 hwcNode->GetName().c_str(), hwcNode->GetId());
             PrintHiperfLog(hwcNode, "hwc node below self in app");
             hwcNode->SetHardwareForcedDisabledState(true);

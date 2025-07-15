@@ -49,6 +49,7 @@ ohos_unittest("RSRenderServiceBaseDirtyRegionTest") {
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "googletest:gtest_main",
     "init:libbegetutil",
   ]

@@ -61,6 +61,7 @@ public:
         CONTENT_LIGHT,
         MASK_TRANSITION,
         DIRECTION_LIGHT,
+        VARIABLE_RADIUS_BLUR,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
@@ -76,6 +77,8 @@ public:
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
 
     virtual std::shared_ptr<FilterPara> Clone() const;
+
+    static bool IsWhitelistPara(uint16_t type);
 
     ParaType GetParaType()
     {

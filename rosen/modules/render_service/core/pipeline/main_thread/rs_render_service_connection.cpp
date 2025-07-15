@@ -1082,36 +1082,24 @@ ErrCode RSRenderServiceConnection::GetRefreshInfoToSP(NodeId id, std::string& en
     }
     std::string dumpString;
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    auto dumpTask = [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr) {
+            RS_LOGE("GetRefreshInfoToSP connection is nullptr");
+            return;
+        }
+        if (connection->screenManager_ == nullptr) {
+            RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
+            return;
+        }
+        RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
+    };
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
-                sptr<RSRenderServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
-                    return;
-                }
-                if (connection->screenManager_ == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
-                    return;
-                }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
-            }).wait();
+        RSHardwareThread::Instance().ScheduleTask(dumpTask).wait();
 #endif
     } else {
-        mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
-                sptr<RSRenderServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
-                    return;
-                }
-                if (connection->screenManager_ == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
-                    return;
-                }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
-            }).wait();
+        mainThread_->ScheduleTask(dumpTask).wait();
     }
     enable = dumpString;
     return ERR_OK;
@@ -2132,6 +2120,48 @@ ErrCode RSRenderServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeI
         resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
+}
+
+ErrCode RSRenderServiceConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
+{
+    if (mainThread_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    HdrStatus hdrStatusRet = HdrStatus::NO_HDR;
+    StatusCode resCodeRet = StatusCode::SCREEN_NOT_FOUND;
+    auto isTimeout = std::make_shared<bool>(0);
+    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
+    auto task = [id, mainThread = mainThread_, &resCodeRet, &hdrStatusRet, isTimeoutWeak]() {
+        if (isTimeoutWeak.expired()) {
+            RS_LOGE("GetScreenHDRStatus time out, ScreenId: [%{public}" PRIu64 "]", id);
+            return;
+        }
+        std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+        auto& nodeMap = mainThread->GetContext().GetNodeMap();
+        nodeMap.TraverseScreenNodes([id, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == id) {
+                screenNode = node;
+            }
+        });
+        if (screenNode == nullptr) {
+            resCodeRet = StatusCode::SCREEN_NOT_FOUND;
+            return;
+        }
+        hdrStatusRet = screenNode->GetLastDisplayHDRStatus();
+        resCodeRet = StatusCode::SUCCESS;
+    };
+    auto span = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100)); // timeout 100 ms
+    if (mainThread_->ScheduleTask(task).wait_for(span) == std::future_status::timeout) {
+        isTimeout.reset();
+    }
+    if (isTimeoutWeak.expired() && resCodeRet != StatusCode::SUCCESS) {
+        return ERR_TIMED_OUT;
+    }
+    if (resCodeRet == StatusCode::SUCCESS) {
+        hdrStatus = hdrStatusRet;
+    }
+    resCode = resCodeRet;
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::GetScreenSupportedColorSpaces(

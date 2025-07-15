@@ -14,6 +14,9 @@
  */
 
 #include "ui_effect/effect/include/visual_effect_para.h"
+
+#include <unordered_set>
+
 #include "ui_effect/effect/include/visual_effect_unmarshalling_singleton.h"
 #include "platform/common/rs_log.h"
 
@@ -22,14 +25,15 @@ namespace Rosen {
 
 bool VisualEffectPara::Marshalling(Parcel& parcel) const
 {
-    RS_LOGE("[ui_effect] VisualEffectPara Marshalling not implemented, type is %{public}d", type_);
+    RS_LOGE("[ui_effect] VisualEffectPara do not marshalling non-specified type: %{public}d", type_);
     return false;
 }
 
 bool VisualEffectPara::RegisterUnmarshallingCallback(uint16_t type, UnmarshallingFunc func)
 {
-    if (type == ParaType::NONE || func == nullptr) {
-        RS_LOGE("[ui_effect] VisualEffectPara RegisterUnmarshallingCallback type:%{public}d or func is invalid", type);
+    bool isInvalid = (func == nullptr || !VisualEffectPara::IsWhitelistPara(type));
+    if (isInvalid) {
+        RS_LOGE("[ui_effect] VisualEffectPara register unmarshalling type:%{public}hu callback failed", type);
         return false;
     }
     VisualEffectUnmarshallingSingleton::GetInstance().RegisterCallback(type, func);
@@ -44,7 +48,8 @@ bool VisualEffectPara::Unmarshalling(Parcel& parcel, std::shared_ptr<VisualEffec
         RS_LOGE("[ui_effect] VisualEffectPara Unmarshalling read type failed");
         return false;
     }
-    if (type == ParaType::NONE) {
+    bool isInvalid = (!VisualEffectPara::IsWhitelistPara(type));
+    if (isInvalid) {
         RS_LOGE("[ui_effect] VisualEffectPara Unmarshalling read type invalid");
         return false;
     }
@@ -53,14 +58,19 @@ bool VisualEffectPara::Unmarshalling(Parcel& parcel, std::shared_ptr<VisualEffec
     if (func != nullptr) {
         return func(parcel, val);
     }
-    RS_LOGE("[ui_effect] VisualEffectPara Unmarshalling func invalid, type is %{public}d", type);
+    RS_LOGE("[ui_effect] VisualEffectPara Unmarshalling func invalid, type is %{public}hu", type);
     return false;
 }
 
 std::shared_ptr<VisualEffectPara> VisualEffectPara::Clone() const
 {
-    RS_LOGE("[ui_effect] VisualEffectPara Clone not implemented, type is %{public}d", type_);
+    RS_LOGE("[ui_effect] VisualEffectPara do not clone non-specified type: %{public}d", type_);
     return nullptr;
+}
+
+bool VisualEffectPara::IsWhitelistPara(uint16_t type)
+{
+    return (type == static_cast<uint16_t>(ParaType::HDS_EFFECT_BEGIN));
 }
 
 } // namespace Rosen

@@ -104,16 +104,6 @@ ohos_shared_library("libvsync") {
   deps = [
     "$graphic_2d_root/utils:rs_frame_report_ext",
     "$graphic_2d_root/utils:sandbox_utils",
-  ]
-
-  if (graphic_2d_feature_enable_dvsync) {
-    deps += [ "$graphic_2d_ext_root/dvsync:libdvsync" ]
-    include_dirs += [ "$graphic_2d_ext_root/dvsync/dvsync_2/include" ]
-    sources +=
-        [ "$graphic_2d_ext_root/dvsync/dvsync_2/src/dvsync_controller.cpp" ]
-  }
-
-  public_deps = [
     "$graphic_2d_root/utils:scoped_bytrace",
     "$graphic_2d_root/utils:socketpair",
   ]
@@ -136,6 +126,15 @@ ohos_shared_library("libvsync") {
     "c_utils:utils",
     "samgr:samgr_proxy",
   ]
+
+  if (graphic_2d_feature_enable_dvsync) {
+    external_deps += [ "graphic_2d_ext:libdvsync" ]
+    include_dirs += [ "$graphic_2d_ext_root/dvsync/dvsync_2/include" ]
+    sources +=
+        [ "$graphic_2d_ext_root/dvsync/dvsync_2/src/dvsync_controller.cpp" ]
+  }
+
+  public_external_deps = [ "c_utils:utils" ]
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {

@@ -35,6 +35,16 @@ enum MEMORY_TYPE {
     MEM_RENDER_NODE
 };
 
+#ifdef RS_MEMORY_INFO_MANAGER
+enum NODE_ON_TREE_STATUS {
+    STATUS_INVALID,
+    STATUS_ON_TREE,
+    STATUS_ON_TREE_IN_ROOT,
+    STATUS_OFF_TREE_IN_ROOT,
+    STATUS_OFF_TREE,
+};
+#endif
+
 struct MemoryInfo {
     size_t size = 0;
     int pid = 0;
@@ -44,6 +54,10 @@ struct MemoryInfo {
     int initialPid = 0; // Do not update it
     OHOS::Media::AllocatorType allocType;
     OHOS::Media::PixelFormat pixelMapFormat;
+#ifdef RS_MEMORY_INFO_MANAGER
+    bool rootNodeStatusChangeFlag = false;
+    bool isOnTree = true;
+#endif
 };
 
 class MemoryNodeOfPid {
@@ -74,6 +88,12 @@ public:
     MemoryGraphic CountRSMemory(const pid_t pid);
     float GetAppMemorySizeInMB();
     const std::unordered_map<NodeId, MemoryInfo>& GetMemNodeMap() { return memNodeMap_; }
+#ifdef RS_MEMORY_INFO_MANAGER
+    void SetGlobalRootNodeStatusChangeFlag(bool flag);
+    bool GetGlobalRootNodeStatusChangeFlag();
+    NODE_ON_TREE_STATUS GetNodeOnTreeStatus(const void* addr);
+    void SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFlag, bool isOnTree);
+#endif
 private:
     MemoryTrack() = default;
     ~MemoryTrack() = default;
@@ -99,6 +119,10 @@ private:
 
     // Data to statistic information of Pid
     std::unordered_map<pid_t, std::vector<MemoryNodeOfPid>> memNodeOfPidMap_;
+
+#ifdef RS_MEMORY_INFO_MANAGER
+    std::atomic<bool> globalRootNodeStatusChangeFlag{false};
+#endif
 };
 } // namespace OHOS
 } // namespace Rosen

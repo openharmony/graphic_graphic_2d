@@ -61,6 +61,7 @@ constexpr int64_t REMAINING_TIME_THRESHOLD = 100000; // 100000ns == 0.1ms
 constexpr int64_t REMAINING_TIME_THRESHOLD_FOR_LISTENER = 1000000; // 1000000ns == 1ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
+constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
 
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
@@ -1173,7 +1174,8 @@ void VSyncGenerator::Dump(std::string &result)
 bool VSyncGenerator::CheckSampleIsAdaptive(int64_t hardwareVsyncInterval)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    return hardwareVsyncInterval > period_ + PERIOD_CHECK_THRESHOLD;
+    return hardwareVsyncInterval > period_ + PERIOD_CHECK_THRESHOLD
+        && hardwareVsyncInterval < MAX_ADAPTIVE_PERIOD * period_;
 }
 
 void VSyncGenerator::PrintGeneratorStatus()

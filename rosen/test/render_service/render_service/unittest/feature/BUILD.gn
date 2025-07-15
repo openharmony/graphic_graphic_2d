@@ -486,7 +486,10 @@ ohos_unittest("RSSubThreadTest") {
 ## Build RSSubThreadCacheTest
 ohos_unittest("RSSubThreadCacheTest") {
   module_out_path = module_output_path
-  sources = [ "uifirst/rs_sub_thread_cache_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "uifirst/rs_sub_thread_cache_test.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
@@ -1090,6 +1093,7 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

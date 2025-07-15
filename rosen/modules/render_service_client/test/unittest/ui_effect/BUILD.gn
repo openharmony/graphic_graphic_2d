@@ -44,6 +44,10 @@ config("rs_ui_effect_test_config") {
   include_dirs = [
     "$rosen_root/modules/render_service_client/core/ui_effect",
   ]
+
+  cflags = [
+    "-Dprotected=public",
+  ]
 }
 
 group("unittest") {

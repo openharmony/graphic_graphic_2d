@@ -76,6 +76,7 @@ RSLogicalDisplayRenderNodeDrawable::RSLogicalDisplayRenderNodeDrawable(std::shar
 
 RSLogicalDisplayRenderNodeDrawable::~RSLogicalDisplayRenderNodeDrawable()
 {
+    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
 }
 
 RSRenderNodeDrawable::Ptr RSLogicalDisplayRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

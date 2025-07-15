@@ -28,8 +28,9 @@ DisplacementDistortPara::DisplacementDistortPara(const DisplacementDistortPara& 
 
 bool DisplacementDistortPara::Marshalling(Parcel& parcel) const
 {
-    if (!parcel.WriteUint16(static_cast<uint16_t>(type_)) ||
-        !parcel.WriteUint16(static_cast<uint16_t>(type_))) {
+    bool isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+        parcel.WriteUint16(static_cast<uint16_t>(type_));
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] DisplacementDistortPara Marshalling write type failed");
         return false;
     }
@@ -66,9 +67,9 @@ bool DisplacementDistortPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<Fi
     }
 
     std::shared_ptr<MaskPara> maskPara = nullptr;
-    bool isMasPara = false;
-    bool isInvalidMask = !parcel.ReadBool(isMasPara) ||
-        (isMasPara && (!MaskPara::Unmarshalling(parcel, maskPara) || maskPara == nullptr));
+    bool isMaskPara = false;
+    bool isInvalidMask = !parcel.ReadBool(isMaskPara) ||
+        (isMaskPara && (!MaskPara::Unmarshalling(parcel, maskPara) || maskPara == nullptr));
     if (isInvalidMask) {
         RS_LOGE("[ui_effect] DisplacementDistortPara OnUnmarshalling read mask failed");
         return false;
@@ -76,8 +77,9 @@ bool DisplacementDistortPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<Fi
     auto displacementDistortPara = std::make_shared<DisplacementDistortPara>();
     displacementDistortPara->SetMask(maskPara);
     Vector2f factor;
-    if (!parcel.ReadFloat(factor.x_) || !parcel.ReadFloat(factor.y_)) {
-        RS_LOGE("[ui_effect] DisplacementDistortPara OnUnmarshalling read factor failed");
+    bool isInvalid = (!parcel.ReadFloat(factor.x_) || !parcel.ReadFloat(factor.y_));
+    if (isInvalid) {
+        RS_LOGE("[ui_effect] DisplacementDistortPara OnUnmarshalling read para failed");
         return false;
     }
     displacementDistortPara->SetFactor(factor);

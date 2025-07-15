@@ -23,6 +23,9 @@
 #include "render/rs_resource_manager.h"
 #endif
 #include "common/rs_common_def.h"
+#ifdef RS_MEMORY_INFO_MANAGER
+#include "feature/memory_info_manager/rs_memory_info_manager.h"
+#endif
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
@@ -294,6 +297,9 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
 void RSImageBase::Purge()
 {
 #ifdef ROSEN_OHOS
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap_);
+#endif
     if (canPurgeShareMemFlag_ != CanPurgeFlag::ENABLED ||
         uniqueId_ <= 0 || !pixelMap_ || pixelMap_->IsUnMap()) {
         return;
@@ -322,6 +328,9 @@ void RSImageBase::Purge()
 void RSImageBase::DePurge()
 {
 #ifdef ROSEN_OHOS
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap_);
+#endif
     if (canPurgeShareMemFlag_ != CanPurgeFlag::ENABLED ||
         uniqueId_ <= 0 || !pixelMap_ || !pixelMap_->IsUnMap()) {
         return;

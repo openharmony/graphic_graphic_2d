@@ -30,12 +30,14 @@ void FilterUnmarshallingSingleton::RegisterCallback(
 {
     std::lock_guard<std::mutex> lock(mutex_);
     unmarshallingFuncs_.insert_or_assign(type, func);
+    RS_LOGD("[ui_effect] Filter register unmarshalling callback, type is %{public}hu", type);
 }
 
 void FilterUnmarshallingSingleton::UnregisterCallback(uint16_t type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     unmarshallingFuncs_.erase(type);
+    RS_LOGD("[ui_effect] Filter unregister unmarshalling callback, type is %{public}hu", type);
 }
 
 FilterUnmarshallingSingleton::UnmarshallingFunc FilterUnmarshallingSingleton::GetCallback(uint16_t type)
@@ -45,7 +47,7 @@ FilterUnmarshallingSingleton::UnmarshallingFunc FilterUnmarshallingSingleton::Ge
     if (it != unmarshallingFuncs_.end()) {
         return it->second;
     }
-    RS_LOGE("[ui_effect] FilterUnmarshallingSingleton GetCallback find failed, type is %{public}d", type);
+    RS_LOGE("[ui_effect] FilterUnmarshallingSingleton GetCallback find failed, type is %{public}hu", type);
     return nullptr;
 }
 

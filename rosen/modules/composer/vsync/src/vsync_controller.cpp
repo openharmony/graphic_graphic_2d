@@ -52,6 +52,14 @@ void VSyncController::ResetOffset()
 {
     std::lock_guard<std::mutex> locker(offsetMutex_);
     phaseOffset_ = normalPhaseOffset_;
+    if (generator_ == nullptr) {
+        return;
+    }
+    const sptr<VSyncGenerator> generator = generator_.promote();
+    if (generator == nullptr) {
+        return;
+    }
+    generator->ChangePhaseOffset(this, phaseOffset_);
 }
 
 bool VSyncController::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period)

@@ -63,9 +63,11 @@ typedef std::list<FilterDirtyRegionInfo> FilterDirtyRegionInfoList;
 /**
 * this class is closed-loop within the dirty region feature.
 * For other features, DO NOT modify it.
+* This class can only be obtained by reference and copy assignment is forbidden.
  */
 class RSB_EXPORT RSFilterDirtyCollector {
 public:
+    RSFilterDirtyCollector& operator=(const RSFilterDirtyCollector& collector) = delete;
     void CollectFilterDirtyRegionInfo(const FilterDirtyRegionInfo& filterInfo, bool syncToRT);
     FilterDirtyRegionInfoList& GetFilterDirtyRegionInfoList(bool syncToRT);
     void OnSync(RSFilterDirtyCollector& target) const;

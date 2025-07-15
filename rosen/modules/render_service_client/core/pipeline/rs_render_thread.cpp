@@ -554,6 +554,7 @@ void RSRenderThread::Render()
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    // Need ClearResource of RSRenderNodeDrawableAdapter if RSCustomModifierDrawable release delayed.
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

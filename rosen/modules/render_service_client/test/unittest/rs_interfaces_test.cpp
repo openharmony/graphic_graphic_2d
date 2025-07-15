@@ -2614,5 +2614,35 @@ HWTEST_F(RSInterfacesTest, ClearUifirstCache, Function | SmallTest | Level2)
     NodeId nodeId = 1;
     rsInterfaces->ClearUifirstCache(nodeId);
 }
+
+/*
+ * @tc.name: GetScreenHDRStatus001
+ * @tc.desc: Test GetScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSInterfacesTest, GetScreenHDRStatus001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    HdrStatus hdrStatus = HdrStatus::NO_HDR;
+    int ret = rsInterfaces->GetScreenHDRStatus(screenId, hdrStatus);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenHDRStatus002
+ * @tc.desc: Test GetScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSInterfacesTest, GetScreenHDRStatus002, Function | SmallTest | Level2)
+{
+    HdrStatus hdrStatus = HdrStatus::NO_HDR;
+    int ret = rsInterfaces->GetScreenHDRStatus(INVALID_SCREEN_ID, hdrStatus);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(hdrStatus, HdrStatus::NO_HDR);
+}
 } // namespace Rosen
 } // namespace OHOS

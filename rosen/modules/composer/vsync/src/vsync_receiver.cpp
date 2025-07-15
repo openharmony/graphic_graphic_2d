@@ -90,7 +90,6 @@ VsyncError VSyncReceiver::Init()
         });
         hasVsyncThread = true;
     }
-
     VsyncError ret = connection_->GetReceiveFd(fd_);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
@@ -281,14 +280,15 @@ VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return connection_->SetUiDvsyncSwitch(dvsyncSwitch);
 }
 
-VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount)
+VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    VLOGI("%{public}s bufferCount:%{public}d", __func__, bufferCount);
-    return connection_->SetUiDvsyncConfig(bufferCount);
+    VLOGI("SetUiDvsyncConfig bufferCount:%d delayEnable:%d nativeDelayEnable:%d",
+        bufferCount, delayEnable, nativeDelayEnable);
+    return connection_->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
 }
 
 VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)

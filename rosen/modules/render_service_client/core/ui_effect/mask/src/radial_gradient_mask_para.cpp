@@ -19,11 +19,23 @@
 namespace OHOS {
 namespace Rosen {
 
+RadialGradientMaskPara::RadialGradientMaskPara(const RadialGradientMaskPara& other)
+{
+    this->type_ = other.type_;
+    this->center_ = other.center_;
+    this->radiusX_ = other.radiusX_;
+    this->radiusY_ = other.radiusY_;
+    this->colors_ = other.colors_;
+    this->positions_ = other.positions_;
+}
+
 bool RadialGradientMaskPara::Marshalling(Parcel& parcel) const
 {
-    if (!(parcel.WriteUint16(static_cast<uint16_t>(type_)) && parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+    auto isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
+        parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
         parcel.WriteFloat(center_.x_) && parcel.WriteFloat(center_.y_) &&
-        parcel.WriteFloat(radiusX_) && parcel.WriteFloat(radiusY_))) {
+        parcel.WriteFloat(radiusX_) && parcel.WriteFloat(radiusY_);
+    if (!isSuccess) {
         RS_LOGE("[ui_effect] RadialGradientMaskPara Marshalling write type failed");
         return false;
     }

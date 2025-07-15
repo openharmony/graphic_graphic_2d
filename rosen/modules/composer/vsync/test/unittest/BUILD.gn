@@ -86,7 +86,8 @@ ohos_unittest("vsync_generator_test") {
 
   sources = [ "vsync_generator_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [ ":vsync_test_common",
+          "$graphic_2d_root/utils:socketpair", ]
 
   external_deps = [
     "eventhandler:libeventhandler",

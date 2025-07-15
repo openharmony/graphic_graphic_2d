@@ -253,6 +253,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::FOREGROUND_UI_FILTER Unmarshalling failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::FOREGROUND_UI_FILTER prop is nullptr");
+                return nullptr;
+            }
             auto modifier = new RSForegroundUIFilterRenderModifier(prop);
             return modifier;
         },
@@ -265,7 +269,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 return nullptr;
             }
             if (!prop) {
-                ROSEN_LOGE("RSModifierType::FOREGROUND_UI_FILTER prop is nullptr");
+                ROSEN_LOGE("RSModifierType::FOREGROUND_NG_FILTER prop is nullptr");
                 return nullptr;
             }
             auto modifier = new RSForegroundNGFilterRenderModifier(prop);

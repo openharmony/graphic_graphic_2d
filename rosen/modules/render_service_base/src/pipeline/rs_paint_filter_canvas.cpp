@@ -1560,7 +1560,6 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Dr
 
 std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
 {
-    // std::shared_ptr<Drawing::Image> cachedImage = cachedImage_;
     if (cachedImage_ == nullptr) {
         return "No valid cacheImage found.";
     }

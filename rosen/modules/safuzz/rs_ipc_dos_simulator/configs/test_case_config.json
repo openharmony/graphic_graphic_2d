@@ -2330,5 +2330,12 @@
     "inputParams": "",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "GET_SCREEN_HDR_STATUS_TEST_001",
+    "interfaceName": "GET_SCREEN_HDR_STATUS",
+    "inputParams": "WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]

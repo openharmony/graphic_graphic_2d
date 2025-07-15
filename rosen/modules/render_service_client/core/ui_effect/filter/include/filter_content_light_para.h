@@ -30,6 +30,8 @@ public:
     }
     ~ContentLightPara() override = default;
 
+    ContentLightPara(const ContentLightPara& other);
+
     void SetLightPosition(const Vector3f& lightPosition)
     {
         lightPosition_ = lightPosition;

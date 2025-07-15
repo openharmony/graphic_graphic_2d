@@ -539,6 +539,19 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
     return true;
 }
 
+void RsSubThreadCache::CheckSurfaceDrawableValidDfx(const DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr& drawable)
+{
+    if (UNLIKELY(!drawable)) {
+        RS_LOGE("CheckSurfaceDrawableValidDfx drawable is nullptr");
+        return;
+    }
+
+    if (UNLIKELY(drawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE)) {
+        RS_LOGE("CheckSurfaceDrawableValidDfx error Type %{public}d %{public}" PRIu64,
+            static_cast<int>(drawable->GetNodeType()), drawable->GetId());
+    }
+}
+
 void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable)
 {
     if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
@@ -561,6 +574,7 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
     // nested surfacenode uifirstDirtyManager update is required
     for (const auto& nestedDrawable : surfaceDrawable->
         GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        CheckSurfaceDrawableValidDfx(nestedDrawable);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             isRecordCompletate = isRecordCompletate && surfaceNodeDrawable->GetRsSubThreadCache()
@@ -696,6 +710,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
     dirtyRects.Join(tempRect);
     for (const auto& nestedDrawable : surfaceDrawable->
         GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        CheckSurfaceDrawableValidDfx(nestedDrawable);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             tempRect = {};
@@ -730,6 +745,7 @@ void RsSubThreadCache::UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSur
     }
     for (const auto& nestedDrawable : surfaceDrawable->
         GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        CheckSurfaceDrawableValidDfx(nestedDrawable);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             surfaceNodeDrawable->GetRsSubThreadCache().SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);

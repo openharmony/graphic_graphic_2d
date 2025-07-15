@@ -48,6 +48,8 @@ public:
 
     virtual std::shared_ptr<MaskPara> Clone() const;
 
+    static bool IsWhitelistPara(uint16_t type);
+
     Type GetMaskParaType()
     {
         return type_;

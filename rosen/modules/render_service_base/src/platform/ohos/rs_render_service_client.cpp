@@ -1306,6 +1306,21 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
     return resCode;
 }
 
+int32_t RSRenderServiceClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t resCode;
+    auto err = renderService->GetScreenHDRStatus(id, hdrStatus, resCode);
+    if (err != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::GetScreenHDRStatus err(%{public}d)!", err);
+        resCode = err;
+    }
+    return resCode;
+}
+
 int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
     ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {

@@ -25,7 +25,7 @@ namespace Rosen {
 using namespace testing;
 using namespace testing::ext;
 
-class RSUIEffecEffectTest : public testing::Test {
+class RSUIEffectEffectTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -33,19 +33,17 @@ public:
     void TearDown() override;
 };
 
-void RSUIEffecEffectTest::SetUpTestCase() {}
-void RSUIEffecEffectTest::TearDownTestCase() {}
-void RSUIEffecEffectTest::SetUp() {}
-void RSUIEffecEffectTest::TearDown() {}
+void RSUIEffectEffectTest::SetUpTestCase() {}
+void RSUIEffectEffectTest::TearDownTestCase() {}
+void RSUIEffectEffectTest::SetUp() {}
+void RSUIEffectEffectTest::TearDown() {}
 
 /**
  * @tc.name: RSUIEffectVisualEffectTest
  * @tc.desc: Verify the VisualEffect func
  * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
  */
-HWTEST_F(RSUIEffecEffectTest, RSUIEffectVisualEffectTest, TestSize.Level1)
+HWTEST_F(RSUIEffectEffectTest, RSUIEffectVisualEffectTest, TestSize.Level1)
 {
     auto visualEffectPara = std::make_shared<VisualEffectPara>();
 
@@ -53,33 +51,56 @@ HWTEST_F(RSUIEffecEffectTest, RSUIEffectVisualEffectTest, TestSize.Level1)
     EXPECT_EQ(false, visualEffectPara->Marshalling(parcel));
     uint16_t type = 0;
     auto unmarshallingFunc = [](Parcel& parcel, std::shared_ptr<VisualEffectPara>& val) -> bool { return true; };
-
     EXPECT_EQ(false, visualEffectPara->RegisterUnmarshallingCallback(type, unmarshallingFunc));
-    EXPECT_EQ(true, visualEffectPara->RegisterUnmarshallingCallback(666, unmarshallingFunc));
+    EXPECT_EQ(false, visualEffectPara->RegisterUnmarshallingCallback(666, nullptr));
+    EXPECT_EQ(false, visualEffectPara->RegisterUnmarshallingCallback(666, unmarshallingFunc));
+    EXPECT_EQ(true, visualEffectPara->RegisterUnmarshallingCallback(VisualEffectPara::ParaType::HDS_EFFECT_BEGIN,
+        unmarshallingFunc));
     std::shared_ptr<VisualEffectPara> val = nullptr;
     EXPECT_EQ(false, VisualEffectPara::Unmarshalling(parcel, val));
     EXPECT_EQ(nullptr, val);
     EXPECT_EQ(nullptr, visualEffectPara->Clone());
+    parcel.WriteUint16(0);
+    EXPECT_EQ(false, VisualEffectPara::Unmarshalling(parcel, val));
+    parcel.FlushBuffer();
+    parcel.WriteUint16(111);
+    EXPECT_EQ(false, VisualEffectPara::Unmarshalling(parcel, val));
+    parcel.FlushBuffer();
+    parcel.WriteUint16(static_cast<uint16_t>(VisualEffectPara::ParaType::HDS_EFFECT_BEGIN));
+    EXPECT_EQ(true, VisualEffectPara::Unmarshalling(parcel, val));
 
     auto visualEffect = std::make_shared<VisualEffect>();
+    EXPECT_NE(nullptr, visualEffect);
     visualEffect->AddPara(visualEffectPara);
+    visualEffect->AddPara(nullptr);
+    auto visualEffectTemp = std::make_shared<VisualEffect>(*visualEffect);
+    EXPECT_NE(nullptr, visualEffectTemp);
     Parcel parcel2;
     EXPECT_EQ(true, visualEffect->Marshalling(parcel2));
     std::shared_ptr<VisualEffect> valVisualEffect = nullptr;
+    EXPECT_EQ(true, VisualEffect::Unmarshalling(parcel2, valVisualEffect));
+    EXPECT_NE(nullptr, valVisualEffect);
+    parcel2.FlushBuffer();
     EXPECT_EQ(false, VisualEffect::Unmarshalling(parcel2, valVisualEffect));
-    EXPECT_EQ(nullptr, valVisualEffect);
-    auto visualEffectTemp = std::make_shared<VisualEffect>(*visualEffect.get());
-    EXPECT_NE(nullptr, visualEffectTemp);
+    parcel2.FlushBuffer();
+    parcel2.WriteUint32(VisualEffectPara::UNMARSHALLING_MAX_VECTOR_SIZE + 1);
+    EXPECT_EQ(false, VisualEffect::Unmarshalling(parcel2, valVisualEffect));
+
+    auto visualEffect1 = std::make_shared<VisualEffect>();
+    for (int i = 0; i < (VisualEffectPara::UNMARSHALLING_MAX_VECTOR_SIZE + 1); ++i) {
+        auto filterPara = std::make_shared<VisualEffectPara>();
+        filterPara->type_ = VisualEffectPara::ParaType::HDS_EFFECT_BEGIN;
+        visualEffect->AddPara(filterPara);
+    }
+    EXPECT_EQ(false, visualEffect->Marshalling(parcel2)); // test large count
 }
 
 /**
  * @tc.name: RSUIEffectVisualEffectUnmarshallingSingletonTest
  * @tc.desc: Verify the VisualEffectUnmarshallingSingleton func
  * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
  */
-HWTEST_F(RSUIEffecEffectTest, RSUIEffectVisualEffectUnmarshallingSingletonTest, TestSize.Level1)
+HWTEST_F(RSUIEffectEffectTest, RSUIEffectVisualEffectUnmarshallingSingletonTest, TestSize.Level1)
 {
     uint16_t type = 666;
     auto unmarshallingFunc = [](Parcel& parcel, std::shared_ptr<VisualEffectPara>& val) -> bool { return true; };

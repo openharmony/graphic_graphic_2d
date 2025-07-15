@@ -26,6 +26,9 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#ifdef RS_MEMORY_INFO_MANAGER
+#include "feature/memory_info_manager/rs_memory_info_manager.h"
+#endif
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
@@ -3037,6 +3040,9 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::SetSurfaceMemoryInfo(onTree, GetRSSurfaceHandler());
+#endif
     if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         std::string uniqueIdStr = "null";
 #ifndef ROSEN_CROSS_PLATFORM

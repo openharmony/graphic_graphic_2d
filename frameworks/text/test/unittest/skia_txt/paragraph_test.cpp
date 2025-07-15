@@ -386,7 +386,7 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level0)
     ASSERT_NE(paragraph, nullptr);
     paragraph->Layout(560);
     std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
-    ASSERT_EQ(textLines.size(), 6);
+    ASSERT_EQ(textLines.size(), 7);
     //expect lines 0,2,4 to have hyphenation breakpoints,
     //and the last charater of each line to have a hyphen glyphid of 800
     size_t breakArr[3] = {0, 2, 4};

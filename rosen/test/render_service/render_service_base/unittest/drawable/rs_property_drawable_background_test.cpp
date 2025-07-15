@@ -41,6 +41,13 @@ public:
     static void DisplayTestInfo();
 };
 
+class ConcreteRSRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit ConcreteRSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node)) {}
+    void Draw(Drawing::Canvas& canvas);
+};
+
 void RSRSBinarizationDrawableTest::SetUpTestCase() {}
 void RSRSBinarizationDrawableTest::TearDownTestCase() {}
 void RSRSBinarizationDrawableTest::SetUp() {}
@@ -670,7 +677,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable006, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
     node.GetMutableRenderProperties().SetUseEffect(true);
-    node.GetMutableRenderProperties().SetUseEffectType(2);
+    node.GetMutableRenderProperties().SetUseEffectType(1);
     auto drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
@@ -694,7 +701,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable007, TestSize.Level1)
     filterCanvas->SetEffectIntersectWithDRM(true);
     ASSERT_TRUE(filterCanvas->GetEffectIntersectWithDRM());
     auto rect = std::make_shared<Drawing::Rect>();
-    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>();
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffect(true);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffectType(0);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawableTwo = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(rsRenderNode);
+    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
 }
@@ -712,7 +725,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable008, TestSize.Level1)
     filterCanvas->SetEffectIntersectWithDRM(false);
     ASSERT_FALSE(filterCanvas->GetEffectIntersectWithDRM());
     auto rect = std::make_shared<Drawing::Rect>();
-    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>();
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffect(true);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffectType(0);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawableTwo = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(rsRenderNode);
+    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
 }

@@ -1608,8 +1608,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
                 surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
             auto parentNode = surfaceNode->GetParent().lock();
+            bool needSkip = IsSurfaceConsumerNeedSkip(surfaceHandler->GetConsumer());
             LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
-            if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
+            if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
                     IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume,
                     parentNode ? parentNode->GetId() : 0)) {
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
@@ -1701,6 +1702,16 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         RequestNextVSync("unknown", 0, requestNextVsyncTime_);
     }
     RS_OPTIONAL_TRACE_END();
+}
+
+bool RSMainThread::IsSurfaceConsumerNeedSkip(sptr<IConsumerSurface> consumer)
+{
+    bool needSkip = false;
+    if (consumer != nullptr && rsVSyncDistributor_ != nullptr) {
+        uint64_t uniqueId = consumer->GetUniqueId();
+        needSkip = rsVSyncDistributor_->NeedSkipForSurfaceBuffer(uniqueId);
+    }
+    return needSkip;
 }
 
 bool RSMainThread::CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const
@@ -4442,7 +4453,7 @@ bool RSMainThread::CheckAdaptiveCompose()
         return false;
     }
     auto adaptiveStatus = frameRateMgr->AdaptiveStatus();
-    if (adaptiveStatus == SupportASStatus::NOT_SUPPORT) {
+    if (adaptiveStatus != SupportASStatus::SUPPORT_AS) {
         return false;
     }
     bool onlyGameNodeOnTree = frameRateMgr->HandleGameNode(GetContext().GetNodeMap());

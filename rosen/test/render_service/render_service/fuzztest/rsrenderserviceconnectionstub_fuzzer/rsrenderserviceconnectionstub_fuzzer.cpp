@@ -3878,6 +3878,27 @@ bool DoProfilerIsSecureScreen(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
+{
+    NodeId nodeId = GetData<NodeId>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(nodeId)) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 bool DoClearUifirstCache(const uint8_t* data, size_t size)
 {
     NodeId nodeId = GetData<NodeId>();
@@ -4031,5 +4052,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerServicePopulateFiles(data, size);
     OHOS::Rosen::DoProfilerIsSecureScreen(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
+    OHOS::Rosen::DoGetScreenHDRStatus(data, size);
     return 0;
 }

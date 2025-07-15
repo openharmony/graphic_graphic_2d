@@ -23,7 +23,7 @@ group("unittest") {
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
-    ":RSDisplayRenderNodeDrawableTest",
+    ":RSScreenRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
@@ -69,10 +69,10 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
   ]
 }
 
-## Build RSDisplayRenderNodeDrawableTest
-ohos_unittest("RSDisplayRenderNodeDrawableTest") {
+## Build RSScreenRenderNodeDrawableTest
+ohos_unittest("RSScreenRenderNodeDrawableTest") {
   module_out_path = module_output_path
-  sources = [ "rs_display_render_node_drawable_test.cpp" ]
+  sources = [ "rs_screen_render_node_drawable_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -259,6 +259,7 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

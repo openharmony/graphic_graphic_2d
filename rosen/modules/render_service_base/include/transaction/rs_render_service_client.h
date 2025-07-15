@@ -328,6 +328,8 @@ public:
 
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
 
+    int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
+
     int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
 
     int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces);

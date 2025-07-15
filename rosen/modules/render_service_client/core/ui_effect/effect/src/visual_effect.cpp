@@ -23,8 +23,10 @@ VisualEffect::VisualEffect(const VisualEffect& visualEffect)
 {
     const auto& visualEffectParas = visualEffect.GetAllPara();
     for (const auto& para : visualEffectParas) {
-        if (para == nullptr) {
-            RS_LOGE("[ui_effect] VisualEffect para is nullptr");
+        bool isInvalid =
+            (para == nullptr || !VisualEffectPara::IsWhitelistPara(static_cast<uint16_t>(para->GetParaType())));
+        if (isInvalid) {
+            RS_LOGE("[ui_effect] VisualEffect para copy failed");
             continue;
         }
         if (auto paraCopy = para->Clone(); paraCopy) {
@@ -37,11 +39,15 @@ bool VisualEffect::Marshalling(Parcel& parcel) const
 {
     const auto& visualEffectParas = GetAllPara();
     size_t validParaCount = 0;
-    std::for_each(visualEffectParas.begin(), visualEffectParas.end(), [&validParaCount](const auto& para) {
-        if (para != nullptr) {
+    std::vector<std::shared_ptr<VisualEffectPara>> validVisualEffectParas;
+    for (const auto& para : visualEffectParas) {
+        bool isInvalid =
+            (para == nullptr || !VisualEffectPara::IsWhitelistPara(static_cast<uint16_t>(para->GetParaType())));
+        if (!isInvalid) {
             validParaCount++;
+            validVisualEffectParas.emplace_back(para);
         }
-    });
+    }
     if (validParaCount > VisualEffectPara::UNMARSHALLING_MAX_VECTOR_SIZE) {
         RS_LOGE("[ui_effect] VisualEffect Marshalling validParaCount is illegal");
         return false;
@@ -50,14 +56,10 @@ bool VisualEffect::Marshalling(Parcel& parcel) const
         RS_LOGE("[ui_effect] VisualEffect Marshalling write validParaCount failed");
         return false;
     }
-    for (const auto& visualEffectPara : visualEffectParas) {
-        if (visualEffectPara == nullptr) {
-            RS_LOGE("[ui_effect] VisualEffect Marshalling para is nullptr");
-            continue;
-        }
+    for (const auto& visualEffectPara : validVisualEffectParas) {
         if (!visualEffectPara->Marshalling(parcel)) {
             RS_LOGE("[ui_effect] VisualEffect Marshalling failed, type is %{public}d", visualEffectPara->GetParaType());
-            continue;
+            return false;
         }
     }
     return true;
@@ -78,12 +80,9 @@ bool VisualEffect::Unmarshalling(Parcel& parcel, std::shared_ptr<VisualEffect>& 
     auto visualEffect = std::make_shared<VisualEffect>();
     for (uint32_t i = 0; i < size; ++i) {
         std::shared_ptr<VisualEffectPara> para = nullptr;
-        if (!VisualEffectPara::Unmarshalling(parcel, para)) {
+        bool isSuccess = (VisualEffectPara::Unmarshalling(parcel, para) && para != nullptr);
+        if (!isSuccess) {
             RS_LOGE("[ui_effect] VisualEffect Unmarshalling para failed");
-            return false;
-        }
-        if (para == nullptr) {
-            RS_LOGE("[ui_effect] VisualEffect Unmarshalling para is nullptr");
             return false;
         }
         visualEffect->AddPara(para);

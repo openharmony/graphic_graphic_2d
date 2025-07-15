@@ -368,7 +368,7 @@ VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
     return distributor->SetNativeDVSyncSwitch(dvsyncSwitch, this);
 }
 
-VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
+VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
 {
     sptr<VSyncDistributor> distributor;
     {
@@ -385,7 +385,7 @@ VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
             return VSYNC_ERROR_NULLPTR;
         }
     }
-    return distributor->SetUiDvsyncConfig(bufferCount);
+    return distributor->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
 }
 
 void VSyncConnection::RegisterRequestNativeVSyncCallback(const RequestNativeVSyncCallback &callback)
@@ -1631,14 +1631,14 @@ VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSy
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount)
+VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
 {
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
     dvsync_->SetUiDvsyncConfig(bufferCount);
 #endif
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().SetUiDVSyncConfig(bufferCount);
+    DVSync::Instance().SetUiDVSyncConfig(bufferCount, bool delayEnable, bool nativeDelayEnable);
 #endif
     return VSYNC_ERROR_OK;
 }
@@ -1939,6 +1939,15 @@ void VSyncDistributor::SetTaskEndWithTime(uint64_t time)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
     DVSync::Instance().SetTaskEndWithTime(time);
+#endif
+}
+
+bool VSyncDistributor::NeedSkipForSurfaceBuffer(uint64_t id)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    return DVSync::Instance().NeedSkipForSurfaceBuffer(id);
+#else
+    return false;
 #endif
 }
 }

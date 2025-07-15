@@ -125,9 +125,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
     RSDisplayNodeConfig config { .screenId = screenId, .isMirrored = isMirror };
 
     SharedPtr displayNode(new RSDisplayNode(config, id));
-    if (!displayNode->isMultiInstanceOpen_) {
-        RSNodeMap::MutableInstance().RegisterNode(displayNode);
-    }
+    RSNodeMap::MutableInstance().RegisterNode(displayNode);
 
     // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
     displayNode->skipDestroyCommandInDestructor_ = true;
@@ -273,7 +271,9 @@ void RSDisplayNode::SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)
         "virtualScreenMuteStatus: %{public}d", GetId(), virtualScreenMuteStatus);
 }
 
-RSDisplayNode::~RSDisplayNode() = default;
-
+RSDisplayNode::~RSDisplayNode()
+{
+    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
+}
 } // namespace Rosen
 } // namespace OHOS

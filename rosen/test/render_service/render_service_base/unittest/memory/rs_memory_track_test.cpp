@@ -536,4 +536,64 @@ HWTEST_F(RSMemoryTrackTest, GetPictureRecordMemInfoTest001, testing::ext::TestSi
     ret = MemoryTrack::Instance().GetPictureRecordMemInfo(addr, testInfo);
     ASSERT_FALSE(ret);
 }
+
+#ifdef RS_MEMORY_INFO_MANAGER
+/**
+ * @tc.name: SetNodeOnTreeStatusTest001
+ * @tc.desc: Test setting non-existent node on tree status.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, SetNodeOnTreeStatusTest001, testing::ext::TestSize.Level1)
+{
+    NodeId invalidId = 9999;
+    bool isRootNodeOnTreeChanged = true;
+    bool isOnTree = true;
+    MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
+    int ret = 0;
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: GetNodeOnTreeStatusTest001
+ * @tc.desc: Test getting non-existent node on tree status.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest001, testing::ext::TestSize.Level1)
+{
+    NodeId invalidId = 9999;
+    const void* addr = &invalidId;
+    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_INVALID);
+}
+
+/**
+ * @tc.name: GetNodeOnTreeStatusTest002
+ * @tc.desc: Test getting node on tree status and get it.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest002, testing::ext::TestSize.Level1)
+{
+    NodeId invalidId = 9999;
+    bool isRootNodeOnTreeChanged = true;
+    bool isOnTree = true;
+    MemoryInfo info;
+    info.nid = invalidId;
+    const void* addr = &invalidId;
+    MemoryTrack::Instance().AddNodeRecord(invalidId, info);
+    MemoryTrack::Instance().AddPictureRecord(addr, info);
+    MemoryTrack::Instance().SetNodeOnTreeStatus(invalidId, isRootNodeOnTreeChanged, isOnTree);
+    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE_IN_ROOT);
+    isRootNodeOnTreeChanged = false;
+    isOnTree = true;
+    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_ON_TREE);
+    isRootNodeOnTreeChanged = true;
+    isOnTree = false;
+    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE_IN_ROOT);
+    isRootNodeOnTreeChanged = false;
+    isOnTree = false;
+    ASSERT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE);
+}
+#endif
 } // namespace OHOS::Rosen
