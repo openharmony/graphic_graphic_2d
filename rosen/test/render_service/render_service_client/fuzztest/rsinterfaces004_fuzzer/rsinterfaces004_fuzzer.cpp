@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,6 @@ namespace {
 const uint8_t DO_SET_POINTER_COLOR_INVERSION_CONFIG = 1;
 const uint8_t DO_SET_POINTER_COLOR_INVERSION_ENABLED = 2;
 const uint8_t DO_REGISTER_POINTER_LUMINANCE_CALLBACK = 3;
-const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 4;
 const uint8_t TARGET_SIZE = 4;
 
 const uint8_t* DATA = nullptr;
@@ -48,19 +47,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -74,21 +60,36 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-
-} // namespace Mock
-
 void DoSetPointerColorInversionConfig()
-{}
+{
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    float darkBuffer = GetData<float>();
+    float brightBuffer = GetData<float>();
+    int64_t interval = GetData<int64_t>();
+    int32_t rangeSize = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
+#endif
+}
 
 void DoSetPointerColorInversionEnabled()
-{}
+{
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    bool enable = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetPointerColorInversionEnabled(enable);
+#endif
+}
 
 void DoRegisterPointerLuminanceChangeCallback()
-{}
+{
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 
-void DoUnRegisterPointerLuminanceChangeCallback()
-{}
+    PointerLuminanceChangeCallback callback = [](int32_t brightness) {};
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -109,9 +110,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REGISTER_POINTER_LUMINANCE_CALLBACK:
             OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback();
-            break;
-        case OHOS::Rosen::DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK:
-            OHOS::Rosen::DoUnRegisterPointerLuminanceChangeCallback();
             break;
         default:
             return -1;

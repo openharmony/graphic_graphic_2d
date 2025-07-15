@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,12 +22,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t DO_GET_DEFAULT_SCREEN_ID = 0;
-const uint8_t DO_GET_ACTIVE_SCREEN_ID = 1;
-const uint8_t DO_GET_ALL_SCREEN_IDS = 2;
-const uint8_t TARGET_SIZE = 3;
 
-const uint8_t* DATA = nullptr;
+const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 
@@ -36,78 +32,81 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
     g_pos += objectSize;
     return object;
 }
+} // namespace
+class SurfaceCaptureFuture : public SurfaceCaptureCallback {
+    public:
+        SurfaceCaptureFuture() = default;
+        ~SurfaceCaptureFuture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+        {
+            pixelMap_ = pixelmap;
+        }
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+        std::shared_ptr<Media::PixelMap> GetPixelMap()
+        {
+            return pixelMap_;
+        }
+    private:
+        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+};
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
-bool Init(const uint8_t* data, size_t size)
+bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
+
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    float darkBuffer = GetData<float>();
+    float brightBuffer = GetData<float>();
+    int64_t interval = GetData<int64_t>();
+    int32_t rangeSize = GetData<int32_t>();
+#endif
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
+    PointerLuminanceChangeCallback callback = [](int32_t) {};
+    rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
+#endif
+    auto callback1 = std::make_shared<SurfaceCaptureFuture>();
+    rsInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
+    
+    auto callback2 = std::make_shared<SurfaceCaptureFuture>();
+    RSDisplayNodeConfig displayConfig = {
+        static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
+    auto displayNode = RSDisplayNode::Create(displayConfig);
+    rsInterfaces.TakeSurfaceCapture(displayNode, callback2);
+
+    auto callback3 = std::make_shared<SurfaceCaptureFuture>();
+    RSSurfaceNodeConfig surfaceConfig;
+    surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
+    auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
+    rsInterfaces.TakeSurfaceCapture(surfaceNode, callback3);
+    rsInterfaces.MarkPowerOffNeedProcessOneFrame();
+    rsInterfaces.NotifyScreenSwitched();
     return true;
 }
-} // namespace
-
-namespace Mock {
-
-} // namespace Mock
-
-void DoGetDefaultScreenId()
-{}
-
-void DoGetActiveScreenId()
-{}
-
-void DoGetAllScreenIds()
-{}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (!OHOS::Rosen::Init(data, size)) {
-        return -1;
-    }
-    /* Run your code on data */
-    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
-    switch (tarPos) {
-        case OHOS::Rosen::DO_GET_DEFAULT_SCREEN_ID:
-            OHOS::Rosen::DoGetDefaultScreenId();
-            break;
-        case OHOS::Rosen::DO_GET_ACTIVE_SCREEN_ID:
-            OHOS::Rosen::DoGetActiveScreenId();
-            break;
-        case OHOS::Rosen::DO_GET_ALL_SCREEN_IDS:
-            OHOS::Rosen::DoGetAllScreenIds();
-            break;
-        default:
-            return -1;
-    }
+    OHOS::Rosen::RSPhysicalScreenFuzzTest(data, size);
     return 0;
 }

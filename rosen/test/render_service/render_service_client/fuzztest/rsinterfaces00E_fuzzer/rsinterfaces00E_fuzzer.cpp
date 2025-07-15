@@ -24,8 +24,7 @@ namespace Rosen {
 namespace {
 const uint8_t DO_REGISTER_TYPEFACE = 0;
 const uint8_t DO_UNREGISTER_TYPEFACE = 1;
-const uint8_t DO_NEED_REGISTER_TYPEFACE = 2;
-const uint8_t TARGET_SIZE = 3;
+const uint8_t TARGET_SIZE = 2;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -43,19 +42,6 @@ T GetData()
     if (ret != EOK) {
         return {};
     }
-    g_pos += objectSize;
-    return object;
-}
-
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
     g_pos += objectSize;
     return object;
 }
@@ -78,14 +64,18 @@ namespace Mock {
 } // namespace Mock
 
 void DoRegisterTypeface()
-{}
+{
+    std::shared_ptr<Drawing::Typeface> typeface;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterTypeface(typeface);
+}
 
 void DoUnRegisterTypeface()
-{}
-
-// DO NOTHING
-void DoNeedRegisterTypeface()
-{}
+{
+    std::shared_ptr<Drawing::Typeface> typeface;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.UnRegisterTypeface(typeface);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -103,9 +93,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_UNREGISTER_TYPEFACE:
             OHOS::Rosen::DoUnRegisterTypeface();
-            break;
-        case OHOS::Rosen::DO_NEED_REGISTER_TYPEFACE:
-            OHOS::Rosen::DoRegisterTypeface();
             break;
         default:
             return -1;

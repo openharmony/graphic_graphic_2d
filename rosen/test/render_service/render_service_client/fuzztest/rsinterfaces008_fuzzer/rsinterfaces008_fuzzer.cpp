@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,10 @@ const uint8_t DO_GET_SCREEN_HDR_STATUS = 15;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr uint8_t GRPAHIC_PIXEL_FORMAT_SIZE = 43;
+constexpr uint8_t SCREEN_HDR_FORMAT_SIZE = 8;
+constexpr uint8_t GRPAHIC_CM_COLOR_SPACE_TPYE_SIZE = 32;
+constexpr uint8_t SCREEN_TYPE_SIZE = 4;
 
 template<class T>
 T GetData()
@@ -55,19 +59,6 @@ T GetData()
     if (ret != EOK) {
         return {};
     }
-    g_pos += objectSize;
-    return object;
-}
-
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
     g_pos += objectSize;
     return object;
 }
@@ -90,46 +81,104 @@ namespace Mock {
 } // namespace Mock
 
 void DoCreatePixelMapFromSurface()
-{}
+{
+    uint64_t surfaceId = GetData<uint64_t>();
+    Rect srcRect = {0, 0, 100, 100};
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.CreatePixelMapFromSurfaceId(surfaceId, srcRect);
+}
 
 void DoGetScreenHDRCapability()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    RSScreenHDRCapability screenHdrCapability;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenHDRCapability(id, screenHdrCapability);
+}
 
 void DoSetPixelFormat()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    GraphicPixelFormat format = static_cast<GraphicPixelFormat>(GetData<uint8_t>() % GRPAHIC_PIXEL_FORMAT_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetPixelFormat(id, format);
+}
 
 void DoGetPixelFormat()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    GraphicPixelFormat format = static_cast<GraphicPixelFormat>(GetData<uint8_t>() % GRPAHIC_PIXEL_FORMAT_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetPixelFormat(id, format);
+}
 
 void DoGetScreenSupportedHDRFormats()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenHDRFormat hdrFormat = static_cast<ScreenHDRFormat>(GetData<uint8_t>() % SCREEN_HDR_FORMAT_SIZE);
+    std::vector<ScreenHDRFormat> hdrFormats = { hdrFormat };
+    client->GetScreenSupportedHDRFormats(id, hdrFormats);
+}
 
 void DoGetScreenHDRFormat()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenHDRFormat format = static_cast<ScreenHDRFormat>(GetData<uint8_t>() % SCREEN_HDR_FORMAT_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenHDRFormat(id, format);
+}
 
 void DoSetScreenHDRFormat()
-{}
+{
+    ScreenId id = GetData<uint64_t>();
+    int32_t modeIdx = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenHDRFormat(id, modeIdx);
+}
 
 void DoGetScreenSupportedColorSpaces()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    GraphicCM_ColorSpaceType colorSpace =
+        static_cast<GraphicCM_ColorSpaceType>(GetData<uint8_t>() % GRPAHIC_CM_COLOR_SPACE_TPYE_SIZE);
+    std::vector<GraphicCM_ColorSpaceType> colorSpaces = { colorSpace };
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenSupportedColorSpaces(id, colorSpaces);
+}
 
 void DoGetScreenColorSpace()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    GraphicCM_ColorSpaceType colorSpace =
+        static_cast<GraphicCM_ColorSpaceType>(GetData<uint8_t>() % GRPAHIC_CM_COLOR_SPACE_TPYE_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenColorSpace(id, colorSpace);
+}
 
 void DoSetScreenColorSpace()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    GraphicCM_ColorSpaceType colorSpace =
+        static_cast<GraphicCM_ColorSpaceType>(GetData<uint8_t>() % GRPAHIC_CM_COLOR_SPACE_TPYE_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenColorSpace(id, colorSpace);
+}
 
 void DoGetScreenType()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    RSScreenType screenType = static_cast<RSScreenType>(GetData<uint8_t>() % SCREEN_TYPE_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenType(id, screenType);
+}
 
 void DoSetScreenSkipFrameInterval()
-{}
-
-void DoGetBitmap()
-{}
-
-void DoGetPixelmap()
-{}
+{
+    ScreenId id = GetData<uint64_t>();
+    uint32_t skipFrameInterval = GetData<uint32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenSkipFrameInterval(id, skipFrameInterval);
+}
 
 void DoGetScreenHDRStatus()
 {
@@ -187,12 +236,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_SCREEN_SKIP_FRAME_INTERVAL:
             OHOS::Rosen::DoSetScreenSkipFrameInterval();
-            break;
-        case OHOS::Rosen::DO_GET_BITMAP:
-            OHOS::Rosen::DoGetBitmap();
-            break;
-        case OHOS::Rosen::DO_GET_PIXELMAP:
-            OHOS::Rosen::DoGetPixelmap();
             break;
         case OHOS::Rosen::DO_GET_SCREEN_HDR_STATUS:
             OHOS::Rosen::DoGetScreenHDRStatus();

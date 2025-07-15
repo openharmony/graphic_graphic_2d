@@ -22,62 +22,41 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t DO_COMMIT_TRANSACTION = 0;
-const uint8_t DO_GET_UNI_RENDER_ENABLED = 1;
-const uint8_t DO_CREATE_NODE = 2;
-const uint8_t DO_CREATE_NODE_AND_SURFACE = 3;
-const uint8_t DO_SET_FOCUS_APP_INFO = 4;
-const uint8_t DO_SET_PHYSICAL_SCREEN_RESOLUTION = 5;
-const uint8_t DO_SET_SCREEN_SECURITY_MASK = 6;
-const uint8_t DO_SET_MIRROR_SCREEN_VISIBLE_RECT = 7;
-const uint8_t DO_SET_CAST_SCREEN_ENABLE_SKIP_WINDOW = 8;
-const uint8_t DO_MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME = 9;
-const uint8_t DO_DISABLE_RENDER_CONTROL_SCREEN = 10;
-const uint8_t DO_SET_SCREEN_POWER_STATUS = 11;
-const uint8_t DO_SET_SCREEN_BACK_LIGHT = 12;
-const uint8_t DO_TAKE_SURFACE_CAPTURE = 13;
-const uint8_t DO_SET_WINDOW_FREEZE_IMMEDIATELY = 14;
-const uint8_t DO_SET_POINTER_POSITION = 15;
-const uint8_t DO_GET_PIXELMAP_BY_PROCESSID = 16;
-const uint8_t DO_REGISTER_APPLICATION_AGENT = 17;
-const uint8_t DO_SET_BUFFER_AVAILABLE_LISTENER = 18;
-const uint8_t DO_SET_BUFFER_CLEAR_LISTENER = 19;
-const uint8_t DO_CREATE_VSYNC_CONNECTION = 20;
-const uint8_t DO_REGISTER_OCCLUSION_CHANGE_CALLBACK = 21;
-const uint8_t DO_SET_APP_WINDOW_NUM = 22;
-const uint8_t DO_SET_SYSTEM_ANIMATED_SCENES = 23;
-const uint8_t DO_REGISTER_HGM_CFG_CALLBACK = 24;
-const uint8_t DO_SET_ROTATION_CACHE_ENABLED = 25;
-const uint8_t DO_SET_TP_FEATURE_CONFIG = 26;
-const uint8_t DO_SET_CURTAIN_SCREEN_USING_STATUS = 27;
-const uint8_t DO_DROP_FRAME_BY_PID = 28;
-const uint8_t DO_GET_LAYER_COMPOSE_INFO = 29;
-const uint8_t DO_GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO = 30;
-const uint8_t DO_GET_HDR_ON_DURATION = 31;
-const uint8_t DO_REGISTER_UIEXTENSION_CALLBACK = 32;
-const uint8_t DO_SET_ANCO_FORCE_DO_DIRECT = 33;
-const uint8_t DO_SET_VMA_CACHE_STATUS = 34;
-const uint8_t DO_CREATE_DISPLAY_NODE = 35;
-const uint8_t DO_SET_FREE_MULTI_WINDOW_STATUS = 36;
-const uint8_t DO_REGISTER_SURFACE_BUFFER_CALLBACK = 37;
-const uint8_t DO_UNREGISTER_SURFACE_BUFFER_CALLBACK = 38;
-const uint8_t DO_SET_LAYER_TOP = 39;
-const uint8_t DO_SET_SCREEN_ACTIVE_RECT = 40;
-const uint8_t DO_SET_HIDE_PRIVACY_CONTENT = 41;
-const uint8_t DO_REPAINT_EVERYTHING = 42;
-const uint8_t DO_FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC = 43;
-const uint8_t DO_SET_WINDOW_CONTAINER = 44;
-const uint8_t DO_REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK = 45;
-const uint8_t DO_NOTIFY_PAGE_NAME = 46;
-const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 47;
-const uint8_t DO_SET_COLOR_FOLLOW = 48;
-const uint8_t DO_SET_FORCE_REFRESH = 49;
-const uint8_t DO_CLEAR_UIFIRST_CACHE = 50;
-const uint8_t TARGET_SIZE = 51;
+const uint8_t DO_SET_FOCUS_APP_INFO = 0;
+const uint8_t DO_SET_PHYSICAL_SCREEN_RESOLUTION = 1;
+const uint8_t DO_SET_SCREEN_SECURITY_MASK = 2;
+const uint8_t DO_SET_MIRROR_SCREEN_VISIBLE_RECT = 3;
+const uint8_t DO_SET_CAST_SCREEN_ENABLE_SKIP_WINDOW = 4;
+const uint8_t DO_DISABLE_RENDER_CONTROL_SCREEN = 5;
+const uint8_t DO_SET_SCREEN_POWER_STATUS = 6;
+const uint8_t DO_SET_SCREEN_BACK_LIGHT = 7;
+const uint8_t DO_TAKE_SURFACE_CAPTURE = 8;
+const uint8_t DO_SET_WINDOW_FREEZE_IMMEDIATELY = 9;
+const uint8_t DO_SET_POINTER_POSITION = 10;
+const uint8_t DO_SET_APP_WINDOW_NUM = 11;
+const uint8_t DO_SET_SYSTEM_ANIMATED_SCENES = 12;
+const uint8_t DO_SET_TP_FEATURE_CONFIG = 13;
+const uint8_t DO_SET_CURTAIN_SCREEN_USING_STATUS = 14;
+const uint8_t DO_DROP_FRAME_BY_PID = 15;
+const uint8_t DO_REGISTER_UIEXTENSION_CALLBACK = 16;
+const uint8_t DO_SET_ANCO_FORCE_DO_DIRECT = 17;
+const uint8_t DO_SET_VMA_CACHE_STATUS = 18;
+const uint8_t DO_SET_FREE_MULTI_WINDOW_STATUS = 19;
+const uint8_t DO_REGISTER_SURFACE_BUFFER_CALLBACK = 20;
+const uint8_t DO_UNREGISTER_SURFACE_BUFFER_CALLBACK = 21;
+const uint8_t DO_SET_LAYER_TOP = 22;
+const uint8_t DO_SET_SCREEN_ACTIVE_RECT = 23;
+const uint8_t DO_SET_WINDOW_CONTAINER = 24;
+const uint8_t DO_NOTIFY_PAGE_NAME = 25;
+const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 26;
+const uint8_t DO_SET_COLOR_FOLLOW = 27;
+const uint8_t TARGET_SIZE = 28;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr size_t STR_LEN = 10;
+constexpr uint8_t SCREEN_POWER_STATUS_SIZE = 11;
 
 template<class T>
 T GetData()
@@ -108,6 +87,27 @@ std::string GetData()
     return object;
 }
 
+/*
+ * get a string from g_data
+ */
+std::string GetStringFromData(int strlen)
+{
+    if (strlen <= 0) {
+        return "fuzz";
+    }
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
+    }
+    std::string str(cstr);
+    return str;
+}
+
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -125,158 +125,336 @@ namespace Mock {
 
 } // namespace Mock
 
-void DoCommitTransaction()
-{}
-
-void DoGetUniRenderEnabled()
-{}
-
-void DoCreateNode()
-{}
-
-void DoCreateNodeAndSurface()
-{}
-
 void DoSetFocusAppInfo()
-{}
+{
+    FocusAppInfo info;
+    info.pid = GetData<int32_t>();
+    info.uid = GetData<int32_t>();
+    info.bundleName = GetStringFromData(STR_LEN);
+    info.abilityName = GetStringFromData(STR_LEN);
+    info.focusNodeId = GetData<uint64_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetFocusAppInfo(info);
+}
 
 void DoSetPhysicalScreenResolution()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+    ScreenId id = GetData<uint64_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetPhysicalScreenResolution(id, width, height);
+#endif
+}
 
 void DoSetScreenSecurityMask()
-{}
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    ScreenId id = GetData<ScreenId>();
+    Media::InitializationOptions opts;
+    opts.size.width = GetData<int32_t>();
+    opts.size.height = GetData<int32_t>();
+    opts.srcPixelFormat = static_cast<Media::PixelFormat>(GetData<int32_t>());
+    opts.pixelFormat = static_cast<Media::PixelFormat>(GetData<int32_t>());
+    opts.alphaType = static_cast<Media::AlphaType>(GetData<int32_t>());
+    opts.scaleMode = static_cast<Media::ScaleMode>(GetData<int32_t>());
+    opts.editable = GetData<bool>();
+    opts.useSourceIfMatch = GetData<bool>();
+    std::shared_ptr<Media::PixelMap> securityMask = Media::PixelMap::Create(opts);
+    rsInterfaces.SetScreenSecurityMask(id, securityMask);
+}
 
 void DoSetMirrorScreenVisibleRect()
-{}
+{
+    Rect rect;
+    rect.x = GetData<int32_t>();
+    rect.y = GetData<int32_t>();
+    rect.w = GetData<int32_t>();
+    rect.h = GetData<int32_t>();
+    ScreenId id = GetData<uint64_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetMirrorScreenVisibleRect(id, rect);
+}
 
 void DoSetCastScreenEnableSkipWindow()
-{}
-
-void DoMarkPowerOffNeedProcessOneFrame()
-{}
+{
+    uint64_t id = GetData<uint64_t>();
+    bool enable = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetCastScreenEnableSkipWindow(id, enable);
+}
 
 void DoDisablePowerOffRenderControl()
-{}
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    ScreenId id = GetData<ScreenId>();
+    rsInterfaces.DisablePowerOffRenderControl(id);
+}
 
 void DoSetScreenPowerStatus()
-{}
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    ScreenId id = GetData<ScreenId>();
+    ScreenPowerStatus status = static_cast<ScreenPowerStatus>(GetData<uint8_t>() % SET_SCREEN_POWER_STATUS);
+    rsInterfaces.SetScreenPowerStatus(id, status);
+}
 
 void DoSetScreenBacklight()
-{}
+{
+    ScreenId id = GetData<uint64_t>();
+    uint32_t level = GetData<uint32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenBacklight(id, level);
+}
+
+class TestSurfaceCaptureCallback : public SurfaceCaptureCallback {
+public:
+    explicit TestSurfaceCaptureCallback() {}
+    ~TestSurfaceCaptureCallback() override {}
+    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+    {
+    }
+};
 
 void DoTakeSurfaceCapture()
-{}
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    RSDisplayNodeConfig config;
+    config.mirrorNodeId = GetData<uint64_t>();
+    config.screenId = GetData<uint64_t>();
+    config.isMirrored = GetData<bool>();
+    config.isSync = GetData<bool>();
+    auto displayNode = RSDisplayNode::Create(config);
+
+    std::shared_ptr<TestSurfaceCaptureCallback> callback = std::make_shared<TestSurfaceCaptureCallback>();
+    RSSurfaceNodeConfig surfaceConfig;
+    surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
+    auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(type);
+    captureConfig.isSync = GetData<bool>();
+    uint8_t listSize = GetData<uint8_t>();
+    for (auto i = 0; i < listSize; i++) {
+        uint64_t nodeId = GetData<uint64_t>();
+        captureConfig.blackList.push_back(nodeId);
+    }
+    captureConfig.mainScreenRect.left_ = GetData<float>();
+    captureConfig.mainScreenRect.top_ = GetData<float>();
+    captureConfig.mainScreenRect.right_ = GetData<float>();
+    captureConfig.mainScreenRect.bottom_ = GetData<float>();
+    rsInterfaces.TakeSurfaceCapture(surfaceNode, callback, captureConfig);
+    uint64_t nodeId2 = GetData<uint64_t>();
+    rsInterfaces.TakeSurfaceCapture(nodeId2, callback, captureConfig);
+    rsInterfaces.TakeSurfaceCapture(displayNode, callback, captureConfig);
+}
 
 void DoSetWindowFreezeImmediately()
-{}
+{
+    RSSurfaceNodeConfig surfaceConfig;
+    surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
+    auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
+    bool isFreeze = GetData<bool>();
+    std::shared_ptr<TestSurfaceCaptureCallback> callback = std::make_shared<TestSurfaceCaptureCallback>();
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(type);
+    captureConfig.isSync = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetWindowFreezeImmediately(surfaceNode, isFreeze, callback, captureConfig);
+}
 
 void DoSetHwcNodeBounds()
-{}
-
-void DoGetPixelMapByProcessId()
-{}
-
-void DoRegisterApplicationAgent()
-{}
-
-void DoRegisterBufferAvailableListener()
-{}
-
-void DoRegisterBufferClearListener()
-{}
-
-void DoCreateVSyncConnection()
-{}
-
-void DoRegisterOcclusionChangeCallback()
-{}
+{
+    NodeId id = GetData<uint64_t>();
+    float positionX = GetData<float>();
+    float positionY = GetData<float>();
+    float positionZ = GetData<float>();
+    float positionW = GetData<float>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetWindowFreezeImmediately(id, positionX, positionY, positionZ, positionW);
+}
 
 void DoSetAppWindowNum()
-{}
+{
+    uint32_t num = GetData<uint32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetAppWindowNum(num);
+}
 
 void DoSetSystemAnimatedScenes()
-{}
-
-void DoRegisterHgmConfigChangeCallback()
-{}
-
-void DoSetCacheEnabledForRotation()
-{}
+{
+    uint32_t systemAnimatedScenes = GetData<uint32_t>();
+    bool isRegularAnimation = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+}
 
 void DoSetTpFeatureConfig()
-{}
+{
+#ifdef TP_FEATURE_ENABLE
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    int32_t feature = GetData<int32_t>();
+    char config = GetData<char>();
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
+    rsInterfaces.SetTpFeatureConfig(feature, config.c_str(), tpFeatureConfigType);
+#endif
+}
 
 void DoSetCurtainScreenUsingStatus()
-{}
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    bool isCurtainScreenOn = GetData<bool>();
+    rsInterfaces.SetCurtainScreenUsingStatus(isCurtainScreenOn);
+}
 
 void DoDropFrameByPid()
-{}
-
-void DoGetLayerComposeInfo()
-{}
-
-void DoGetHwcDisabledReasonInfo()
-{}
-
-void DoGetHdrOnDuration()
-{}
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    }
+    rsInterfaces.DropFrameByPid(pidList);
+}
 
 void DoRegisterUIExtensionCallback()
-{}
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    uint64_t userId = GetData<uint64_t>();
+    UIExtensionCallback callback;
+    bool unobscured = GetData<bool>();
+    rsInterfaces.RegisterUIExtensionCallback(userId, callback, unobscured);
+}
 
 void DoSetAncoForceDoDirect()
-{}
+{
+    bool direct = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetAncoForceDoDirect(direct);
+}
 
 void DoSetVmaCacheStatus()
-{}
-
-void DoCreateDisplayNode()
-{}
+{
+    bool flag = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetVmaCacheStatus(flag);
+}
 
 void DoSetFreeMultiWindowStatus()
-{}
+{
+    bool enable = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetFreeMultiWindowStatus(enable);
+}
 
 void DoRegisterSurfaceBufferCallback()
-{}
+{
+    pid_t pid = GetData<pid_t>();
+    uint64_t uid = GetData<uint64_t>();
+    std::shared_ptr<SurfaceBufferCallback> callback;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterSurfaceBufferCallback(pid, uid, callback);
+}
 
 void DoUnregisterSurfaceBufferCallback()
-{}
+{
+    pid_t pid = GetData<pid_t>();
+    uint64_t uid = GetData<uint64_t>();
+    std::shared_ptr<SurfaceBufferCallback> callback;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterSurfaceBufferCallback(pid, uid, callback);
+    rsInterfaces.UnregisterSurfaceBufferCallback(pid, uid);
+}
 
 void DoSetLayerTop()
-{}
-
-void DoSetForceRefresh()
-{}
+{
+    std::string nodeIdStr = GetStringFromData(STR_LEN);
+    bool isTop = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetLayerTop(nodeIdStr, isTop);
+}
 
 void DoSetScreenActiveRect()
-{}
-
-void DoSetHidePrivacyContent()
-{}
-
-void DoRepaintEverything()
-{}
-
-void DoForceRefreshOneFrameWithNextVSync()
-{}
+{
+    ScreenId id = GetData<uint64_t>();
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenActiveRect(id, activeRect);
+}
 
 void DoSetWindowContainer()
-{}
-
-void DoRegisterSelfDrawingNodeRectChangeCallback()
-{}
+{
+    NodeId nodeId = GetData<NodeId>();
+    bool value = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetWindowContainer(nodeId, value);
+}
 
 void DoNotifyPageName()
-{}
+{
+    std::string packageName = GetStringFromData(STR_LEN);
+    std::string pageName = GetStringFromData(STR_LEN);
+    bool isEnter = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.NotifyPageName(packageName, pageName, isEnter);
+}
 
 void DoTakeSelfSurfaceCapture()
-{}
+{
+    RSSurfaceNodeConfig surfaceConfig;
+    surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
+    auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
+    std::shared_ptr<SurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(type);
+    captureConfig.isSync = GetData<bool>();
+    uint8_t listSize = GetData<uint8_t>();
+    for (auto i = 0; i < listSize; i++) {
+        uint64_t nodeId = GetData<uint64_t>();
+        captureConfig.blackList.push_back(nodeId);
+    }
+    captureConfig.mainScreenRect.left_ = GetData<float>();
+    captureConfig.mainScreenRect.top_ = GetData<float>();
+    captureConfig.mainScreenRect.right_ = GetData<float>();
+    captureConfig.mainScreenRect.bottom_ = GetData<float>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.TakeSelfSurfaceCapture(surfaceNode, callback, captureConfig);
+}
 
 void DoSetColorFollow()
-{}
-
-void DoClearUifirstCache()
-{}
+{
+    std::string nodeIdStr = GetStringFromData(STR_LEN);
+    bool isColorFollow = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetColorFollow(nodeIdStr, isColorFollow);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -289,18 +467,6 @@ if (!OHOS::Rosen::Init(data, size)) {
     /* Run your code on data */
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
-        case OHOS::Rosen::DO_COMMIT_TRANSACTION:
-            OHOS::Rosen::DoCommitTransaction();
-            break;
-        case OHOS::Rosen::DO_GET_UNI_RENDER_ENABLED:
-            OHOS::Rosen::DoGetUniRenderEnabled();
-            break;
-        case OHOS::Rosen::DO_CREATE_NODE:
-            OHOS::Rosen::DoCreateNode();
-            break;
-        case OHOS::Rosen::DO_CREATE_NODE_AND_SURFACE:
-            OHOS::Rosen::DoCreateNodeAndSurface();
-            break;
         case OHOS::Rosen::DO_SET_FOCUS_APP_INFO:
             OHOS::Rosen::DoSetFocusAppInfo();
             break;
@@ -315,9 +481,6 @@ if (!OHOS::Rosen::Init(data, size)) {
             break;
         case OHOS::Rosen::DO_SET_CAST_SCREEN_ENABLE_SKIP_WINDOW:
             OHOS::Rosen::DoSetCastScreenEnableSkipWindow();
-            break;
-        case OHOS::Rosen::DO_MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME:
-            OHOS::Rosen::DoMarkPowerOffNeedProcessOneFrame();
             break;
         case OHOS::Rosen::DO_DISABLE_RENDER_CONTROL_SCREEN:
             OHOS::Rosen::DoDisablePowerOffRenderControl();
@@ -337,35 +500,11 @@ if (!OHOS::Rosen::Init(data, size)) {
         case OHOS::Rosen::DO_SET_POINTER_POSITION:
             OHOS::Rosen::DoSetHwcNodeBounds();
             break;
-        case OHOS::Rosen::DO_GET_PIXELMAP_BY_PROCESSID:
-            OHOS::Rosen::DoGetPixelMapByProcessId();
-            break;
-        case OHOS::Rosen::DO_REGISTER_APPLICATION_AGENT:
-            OHOS::Rosen::DoRegisterApplicationAgent();
-            break;
-        case OHOS::Rosen::DO_SET_BUFFER_AVAILABLE_LISTENER:
-            OHOS::Rosen::DoRegisterBufferAvailableListener();
-            break;
-        case OHOS::Rosen::DO_SET_BUFFER_CLEAR_LISTENER:
-            OHOS::Rosen::DoRegisterBufferClearListener();
-            break;
-        case OHOS::Rosen::DO_CREATE_VSYNC_CONNECTION:
-            OHOS::Rosen::DoCreateVSyncConnection();
-            break;
-        case OHOS::Rosen::DO_REGISTER_OCCLUSION_CHANGE_CALLBACK:
-            OHOS::Rosen::DoRegisterOcclusionChangeCallback();
-            break;
         case OHOS::Rosen::DO_SET_APP_WINDOW_NUM:
             OHOS::Rosen::DoSetAppWindowNum();
             break;
         case OHOS::Rosen::DO_SET_SYSTEM_ANIMATED_SCENES:
             OHOS::Rosen::DoSetSystemAnimatedScenes();
-            break;
-        case OHOS::Rosen::DO_REGISTER_HGM_CFG_CALLBACK:
-            OHOS::Rosen::DoRegisterHgmConfigChangeCallback();
-            break;
-        case OHOS::Rosen::DO_SET_ROTATION_CACHE_ENABLED:
-            OHOS::Rosen::DoSetCacheEnabledForRotation();
             break;
         case OHOS::Rosen::DO_SET_TP_FEATURE_CONFIG:
             OHOS::Rosen::DoSetTpFeatureConfig();
@@ -376,15 +515,6 @@ if (!OHOS::Rosen::Init(data, size)) {
         case OHOS::Rosen::DO_DROP_FRAME_BY_PID:
             OHOS::Rosen::DoDropFrameByPid();
             break;
-        case OHOS::Rosen::DO_GET_LAYER_COMPOSE_INFO:
-            OHOS::Rosen::DoGetLayerComposeInfo();
-            break;
-        case OHOS::Rosen::DO_GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO:
-            OHOS::Rosen::DoGetHwcDisabledReasonInfo();
-            break;
-        case OHOS::Rosen::DO_GET_HDR_ON_DURATION:
-            OHOS::Rosen::DoGetHdrOnDuration();
-            break;
         case OHOS::Rosen::DO_REGISTER_UIEXTENSION_CALLBACK:
             OHOS::Rosen::DoRegisterUIExtensionCallback();
             break;
@@ -393,9 +523,6 @@ if (!OHOS::Rosen::Init(data, size)) {
             break;
         case OHOS::Rosen::DO_SET_VMA_CACHE_STATUS:
             OHOS::Rosen::DoSetVmaCacheStatus();
-            break;
-        case OHOS::Rosen::DO_CREATE_DISPLAY_NODE:
-            OHOS::Rosen::DoCreateDisplayNode();
             break;
         case OHOS::Rosen::DO_SET_FREE_MULTI_WINDOW_STATUS:
             OHOS::Rosen::DoSetFreeMultiWindowStatus();
@@ -409,26 +536,11 @@ if (!OHOS::Rosen::Init(data, size)) {
         case OHOS::Rosen::DO_SET_LAYER_TOP:
             OHOS::Rosen::DoSetLayerTop();
             break;
-        case OHOS::Rosen::DO_SET_FORCE_REFRESH:
-            OHOS::Rosen::DoSetForceRefresh();
-            break;
         case OHOS::Rosen::DO_SET_SCREEN_ACTIVE_RECT:
             OHOS::Rosen::DoSetScreenActiveRect();
             break;
-        case OHOS::Rosen::DO_SET_HIDE_PRIVACY_CONTENT:
-            OHOS::Rosen::DoSetHidePrivacyContent();
-            break;
-        case OHOS::Rosen::DO_REPAINT_EVERYTHING:
-            OHOS::Rosen::DoRepaintEverything();
-            break;
-        case OHOS::Rosen::DO_FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC:
-            OHOS::Rosen::DoForceRefreshOneFrameWithNextVSync();
-            break;
         case OHOS::Rosen::DO_SET_WINDOW_CONTAINER:
             OHOS::Rosen::DoSetWindowContainer();
-            break;
-        case OHOS::Rosen::DO_REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK:
-            OHOS::Rosen::DoRegisterSelfDrawingNodeRectChangeCallback();
             break;
         case OHOS::Rosen::DO_NOTIFY_PAGE_NAME:
             OHOS::Rosen::DoNotifyPageName();
@@ -438,9 +550,6 @@ if (!OHOS::Rosen::Init(data, size)) {
             break;
         case OHOS::Rosen::DO_SET_COLOR_FOLLOW:
             OHOS::Rosen::DoSetColorFollow();
-            break;
-        case OHOS::Rosen::DO_CLEAR_UIFIRST_CACHE:
-            OHOS::Rosen::DoClearUifirstCache();
             break;
         default:
             return -1;
