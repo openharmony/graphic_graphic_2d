@@ -78,6 +78,15 @@ generate_static_abc("uiEffect") {
   is_boot_abc = "True"
   device_dst_file = "/system/framework/uiEffect.abc"
 }
+
+generate_static_abc("uiEffect_entry") {
+  base_url = "./ets"
+  files = [ "./ets/uiEffect_entry.ets"]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/uiEffect_entry.abc"
+
+}
+
 ohos_prebuilt_etc("uiEffect_etc") {
   source = "$target_out_dir/uiEffect.abc"
   module_install_dir = "framework"
