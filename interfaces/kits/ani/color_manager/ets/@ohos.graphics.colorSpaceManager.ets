@@ -40,30 +40,31 @@ namespace colorSpaceManager {
     P3_PQ_LIMIT = 22,
     LINEAR_P3 = 23,
     LINEAR_SRGB = 24,
-    LINEAR_BT709 = 24,
+    LINEAR_BT709 = LINEAR_SRGB,
     LINEAR_BT2020 = 25,
-    DISPLAY_SRGB = 4,
-    DISPLAY_P3_SRGB = 3,
-    DISPLAY_P3_HLG = 11,
-    DISPLAY_P3_PQ = 12,
+    DISPLAY_SRGB = SRGB,
+    DISPLAY_P3_SRGB = DISPLAY_P3,
+    DISPLAY_P3_HLG = P3_HLG,
+    DISPLAY_P3_PQ = P3_PQ,
+    H_LOG = 26,
     CUSTOM = 5
   }
 
   export interface ColorSpacePrimaries {
-    redX: number;
-    redY: number;
-    greenX: number;
-    greenY: number;
-    blueX: number;
-    blueY: number;
-    whitePointX: number;
-    whitePointY: number;
+    redX: double;
+    redY: double;
+    greenX: double;
+    greenY: double;
+    blueX: double;
+    blueY: double;
+    whitePointX: double;
+    whitePointY: double;
   }
 
   export interface ColorSpaceManager {
     getColorSpaceName(): ColorSpace;
-    getWhitePoint(): Array<number>;
-    getGamma(): number;
+    getWhitePoint(): Array<double>;
+    getGamma(): double;
   }
 
   class ColorSpaceManagerInner implements ColorSpaceManager {
@@ -76,17 +77,17 @@ namespace colorSpaceManager {
       }
     }
     native getColorSpaceName(): ColorSpace
-    native getWhitePoint(): Array<number>
-    native getGamma(): number
+    native getWhitePoint(): Array<double>
+    native getGamma(): double
   }
   
   native function createByColorSpace(colorSpaceName: ColorSpace): ColorSpaceManager;
-  native function createByColorSpacePrimaries(primaries: ColorSpacePrimaries, gamma: number): ColorSpaceManager;
+  native function createByColorSpacePrimaries(primaries: ColorSpacePrimaries, gamma: double): ColorSpaceManager;
 
   export function create(colorSpaceName: ColorSpace) {
     return createByColorSpace(colorSpaceName);
   }
-  export function create(primaries: ColorSpacePrimaries, gamma: number) {
+  export function create(primaries: ColorSpacePrimaries, gamma: double) {
     return createByColorSpacePrimaries(primaries, gamma);
   }
 }
