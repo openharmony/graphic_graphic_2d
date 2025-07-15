@@ -1635,5 +1635,10 @@ bool RSSystemProperties::GetAIBarOptEnabled()
     static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 1) != 0;
     return isAIBarOptEnabled;
 }
+
+bool RSSystemProperties::GetRSMemoryInfoManagerParam()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

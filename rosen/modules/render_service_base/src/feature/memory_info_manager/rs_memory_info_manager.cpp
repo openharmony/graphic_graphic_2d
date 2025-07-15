@@ -48,7 +48,7 @@ void RSMemoryInfoManager::SetSurfaceMemoryInfo(bool onTree, const std::shared_pt
     }
 }
 
-void RSMemoryInfoManager::SetImageMemoryInfo(const std::shared_ptr<Media::Pixelmap> pixelmap)
+void RSMemoryInfoManager::SetImageMemoryInfo(const std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (!RSSystemProperties::GetRSMemoryInfoManagerParam()) {
         return;
