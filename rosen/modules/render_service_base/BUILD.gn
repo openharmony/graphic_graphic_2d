@@ -713,6 +713,11 @@ ohos_source_set("render_service_base_src") {
     defines += [ "_USE_MATH_DEFINES" ]
   }
 
+  if (rosen_is_ohos && graphic_2d_feature_enable_memory_info_manager) {
+    defines += [ "RS_MEMORY_INFO_MANAGER" ]
+    sources += [ "src/feature/memory_info_manager/rs_memory_info_manager.cpp" ]
+  }
+
   if (defined(ddgr_ext_configs)) {
     libs = ddgr_ext_configs.ddgr_libs
     defines += ddgr_ext_configs.ddgr_defines

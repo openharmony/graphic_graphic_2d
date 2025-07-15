@@ -56,6 +56,7 @@ declare_args() {
   graphic_2d_modifier_ng_enable = true
   graphic_2d_feature_upgrade_skia = true
   graphic_2d_feature_enable_rdo = false
+  graphic_2d_feature_enable_memory_info_manager = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true

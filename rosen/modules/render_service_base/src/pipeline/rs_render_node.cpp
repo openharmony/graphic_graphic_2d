@@ -34,6 +34,9 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#ifdef RS_MEMORY_INFO_MANAGER
+#include "feature/memory_info_manager/rs_memory_info_manager.h"
+#endif
 #include "modifier/rs_modifier_type.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
@@ -444,6 +447,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         return;
     }
 
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::RecordNodeOnTreeStatus(flag, GetId(), instanceRootNodeId);
+#endif
+
     if (autoClearCloneNode_ && !flag) {
         ClearCloneCrossNode();
     }
@@ -525,6 +532,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
             uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
     }
+
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::ResetRootNodeStatusChangeFlag(GetId(), instanceRootNodeId);
+#endif
 #endif
 }
 
