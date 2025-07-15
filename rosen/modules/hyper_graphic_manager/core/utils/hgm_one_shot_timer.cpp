@@ -30,13 +30,11 @@ HgmSimpleTimer::HgmSimpleTimer(std::string name, const Interval& interval,
       startCallback_(startCallback),
       expiredCallback_(expiredCallback),
       clock_(std::move(clock))
-{
-    handler_ = HgmTaskHandleThread::Instance().CreateHandler();
-}
+{}
 
 void HgmSimpleTimer::Start()
 {
-    if (handler_ == nullptr) {
+    if (HgmTaskHandleThread::Instance().GetQueue() == nullptr) {
         return;
     }
 
@@ -46,17 +44,17 @@ void HgmSimpleTimer::Start()
     // start
     if (!isRunning) {
         if (startCallback_) {
-            handler_->PostTask(startCallback_);
+            HgmTaskHandleThread::Instance().PostTask(startCallback_);
         }
         auto time = interval_.load();
-        handler_->PostTask([this]() { Loop(); }, name_, time.count());
+        HgmTaskHandleThread::Instance().PostEvent(name_, [this]() { Loop(); }, time.count());
     }
 }
 
 void HgmSimpleTimer::Stop()
 {
-    if (running_.exchange(false) && handler_ != nullptr) {
-        handler_->RemoveTask(name_);
+    if (running_.exchange(false) && HgmTaskHandleThread::Instance().GetQueue() != nullptr) {
+        HgmTaskHandleThread::Instance().RemoveEvent(name_);
     }
 }
 
@@ -80,14 +78,14 @@ void HgmSimpleTimer::Loop()
         resetTimePoint_.load() + interval_.load() - clock_->Now());
     if (delay > ZERO) {
         // reset
-        if (running_.load() && handler_ != nullptr) {
-            handler_->PostTask([this]() { Loop(); }, name_, delay.count());
+        if (running_.load() && HgmTaskHandleThread::Instance().GetQueue() != nullptr) {
+            HgmTaskHandleThread::Instance().PostEvent(name_, [this]() { Loop(); }, delay.count());
             return;
         }
     } else {
         // cb
         if (expiredCallback_ != nullptr) {
-            handler_->PostTask(expiredCallback_);
+            HgmTaskHandleThread::Instance().PostTask(expiredCallback_);
         }
     }
     running_.store(false);

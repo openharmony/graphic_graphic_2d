@@ -16,6 +16,7 @@
 #include "transaction/rs_unmarshal_thread.h"
 
 #include "app_mgr_client.h"
+#include "c/queue_ext.h"
 #include "hisysevent.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -41,6 +42,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
+constexpr uint32_t DEFAULT_RS_UNMARSHAL_THREAD_CONCURRENCY = 16;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::shared_ptr<AppExecFwk::AppMgrClient> GetAppMgrClient()
@@ -59,33 +61,22 @@ RSUnmarshalThread& RSUnmarshalThread::Instance()
 
 void RSUnmarshalThread::Start()
 {
-    runner_ = AppExecFwk::EventRunner::Create("RSUnmarshalThread");
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-#ifdef RES_SCHED_ENABLE
-    PostTask([this]() {
-        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
-        unmarshalTid_ = gettid();
-        RS_LOGI("RSUnmarshalThread: SetThreadQos retcode = %{public}d", ret);
-    });
-#endif
+    queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "RSUnmarshalThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_RS_UNMARSHAL_THREAD_CONCURRENCY));
 }
 
 void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
-    if (handler_) {
-        handler_->PostTask(
-            [task, taskName = name]() mutable {
-                auto handle = RSUnmarshalTaskManager::Instance().BeginTask(std::move(taskName));
-                std::invoke(task);
-                RSUnmarshalTaskManager::Instance().EndTask(handle);
-            }, name, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (queue_) {
+        queue_->submit(std::move(task), ffrt::task_attr().name(name.c_str()).delay(0));
     }
 }
 
 void RSUnmarshalThread::RemoveTask(const std::string& name)
 {
-    if (handler_) {
-        handler_->RemoveTask(name);
+    if (queue_) {
+        ffrt_queue_t* queue = reinterpret_cast<ffrt_queue_t*>(queue_.get());
+        ffrt_queue_cancel_by_name(*queue, name.c_str());
     }
 }
 
@@ -93,9 +84,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     std::unique_ptr<AshmemFdWorker> ashmemFdWorker, std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit,
     uint32_t parcelNumber)
 {
-    if (!handler_ || !parcel) {
-        RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
-            (!handler_), (!parcel));
+    if (!queue_ || !parcel) {
+        RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, queue_: %{public}d, parcel: %{public}d",
+            (!queue_), (!parcel));
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);

@@ -19,7 +19,7 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "event_handler.h"
+#include "ffrt.h"
 #include "ffrt_inner.h"
 #include "message_parcel.h"
 
@@ -47,7 +47,10 @@ public:
 
 private:
     RSUnmarshalThread() = default;
-    ~RSUnmarshalThread() = default;
+    ~RSUnmarshalThread()
+    {
+        queue_ = nullptr;
+    }
     RSUnmarshalThread(const RSUnmarshalThread&);
     RSUnmarshalThread(const RSUnmarshalThread&&);
     RSUnmarshalThread& operator=(const RSUnmarshalThread&);
@@ -55,9 +58,6 @@ private:
 
     bool IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const;
     static constexpr uint32_t MIN_PENDING_REQUEST_SYNC_DATA_SIZE = 32 * 1024;
-
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
     std::mutex transactionDataMutex_;
     TransactionDataMap cachedTransactionDataMap_;
@@ -68,6 +68,8 @@ private:
 
     std::mutex statisticsMutex_;
     std::unordered_map<pid_t, size_t> transactionDataStatistics_;
+
+    std::unique_ptr<ffrt::queue> queue_ = nullptr;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H

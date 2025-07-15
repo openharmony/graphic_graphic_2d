@@ -38,11 +38,17 @@ void HgmTaskHandleThreadTest::SetUpTestCase()
     HgmTestBase::SetUpTestCase();
 }
 void HgmTaskHandleThreadTest::TearDownTestCase() {}
-void HgmTaskHandleThreadTest::SetUp() {}
+void HgmTaskHandleThreadTest::SetUp()
+{
+    if (!HgmTaskHandleThread::Instance().queue_) {
+        HgmTaskHandleThread::Instance().queue_ =
+            std::make_shared<ffrt::queue>("HgmTaskHandleThread", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+    }
+}
 void HgmTaskHandleThreadTest::TearDown() {}
 
 
-/*
+/**
  * @tc.name: Instance
  * @tc.desc: Test Instance
  * @tc.type: FUNC
@@ -55,7 +61,7 @@ HWTEST_F(HgmTaskHandleThreadTest, Instance, TestSize.Level0)
     EXPECT_EQ(&instance1, &instance2);
 }
 
-/*
+/**
  * @tc.name: PostTask001
  * @tc.desc: Test PostTask
  * @tc.type: FUNC
@@ -63,14 +69,30 @@ HWTEST_F(HgmTaskHandleThreadTest, Instance, TestSize.Level0)
  */
 HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level0)
 {
+    HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
     std::function<void()> func = []() -> void {};
-    HgmTaskHandleThread::Instance().PostTask(func);
-    int64_t delayTime = 1;
-    HgmTaskHandleThread::Instance().PostTask(func, delayTime);
-    EXPECT_TRUE(HgmTaskHandleThread::Instance().handler_);
+    int64_t delayTime = 100;
+
+    EXPECT_NE(instance.queue_, nullptr);
+    auto taskCount = instance.queue_->get_task_cnt();
+    instance.PostTask(func, delayTime);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
+
+    delayTime = -1;
+    instance.PostTask(func, delayTime);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    taskCount = instance.queue_->get_task_cnt();
+    delayTime = UINT64_MAX / 100;
+    instance.PostTask(func, delayTime);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 1);
+
+    instance.queue_ = nullptr;
+    instance.PostTask(func, delayTime);
 }
 
-/*
+/**
  * @tc.name: PostTask002
  * @tc.desc: Test PostTask
  * @tc.type: FUNC
@@ -85,7 +107,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask002, TestSize.Level0)
     EXPECT_EQ(count, 1);
 }
 
-/*
+/**
  * @tc.name: PostTask003
  * @tc.desc: Test PostTask
  * @tc.type: FUNC
@@ -107,7 +129,84 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level0)
     EXPECT_GE(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count(), time1);
 }
 
-/*
+/**
+ * @tc.name: PostSyncTask001
+ * @tc.desc: Test PostSyncTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTaskHandleThreadTest, PostSyncTask001, TestSize.Level0)
+{
+    HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
+    std::function<void()> func = []() -> void {};
+
+    EXPECT_NE(instance.queue_, nullptr);
+    bool res = instance.PostSyncTask(func);
+    EXPECT_TRUE(res);
+
+    instance.queue_ = nullptr;
+    res = instance.PostSyncTask(func);
+    EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: PostEvent001
+ * @tc.desc: Test PostEvent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTaskHandleThreadTest, PostEvent001, TestSize.Level0)
+{
+    HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
+    std::function<void()> func = []() -> void {};
+    int64_t delayTime = 100;
+    std::string eventId = "eventId";
+
+    EXPECT_NE(instance.queue_, nullptr);
+    auto taskCount = instance.queue_->get_task_cnt();
+    instance.PostEvent(eventId, func, delayTime);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 1);
+
+    delayTime = -1;
+    instance.PostEvent(eventId, func, delayTime);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 2);
+
+    delayTime = UINT64_MAX / 100;
+    instance.PostEvent(eventId, func, delayTime);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 3);
+
+    instance.RemoveEvent(eventId);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount);
+
+    instance.queue_ = nullptr;
+    instance.PostEvent(eventId, func, delayTime);
+}
+
+/**
+ * @tc.name: RemoveEvent001
+ * @tc.desc: Test RemoveEvent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTaskHandleThreadTest, RemoveEvent001, TestSize.Level0)
+{
+    HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
+    std::function<void()> func = []() -> void {};
+    int64_t delayTime = 5000;
+    std::string eventId = "eventId";
+
+    EXPECT_NE(instance.queue_, nullptr);
+    auto taskCount = instance.queue_->get_task_cnt();
+    instance.PostEvent(eventId, func, delayTime);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 1);
+    instance.RemoveEvent(eventId);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount);
+
+    instance.queue_ = nullptr;
+    instance.RemoveEvent(eventId);
+}
+
+/**
  * @tc.name: DetectMultiThreadingCalls
  * @tc.desc: Test DetectMultiThreadingCalls
  * @tc.type: FUNC

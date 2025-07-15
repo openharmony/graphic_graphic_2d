@@ -118,12 +118,12 @@ public:
 void HgmFrameRateMgrTest::SetUpTestCase()
 {
     HgmTestBase::SetUpTestCase();
-    HgmTaskHandleThread::Instance().runner_ = AppExecFwk::EventRunner::Create(false);
+    HgmTaskHandleThread::Instance();
 }
 
 void HgmFrameRateMgrTest::TearDownTestCase()
 {
-    HgmTaskHandleThread::Instance().runner_ = AppExecFwk::EventRunner::Create("HgmTaskHandleThread");
+    HgmTaskHandleThread::Instance().queue_ = nullptr;
     HgmTestBase::TearDownTestCase();
 }
 
@@ -131,6 +131,10 @@ void HgmFrameRateMgrTest::SetUp()
 {
     auto& hgmCore = HgmCore::Instance();
     hgmCore.hgmFrameRateMgr_ = std::make_unique<HgmFrameRateManager>();
+    if (!HgmTaskHandleThread::Instance().queue_) {
+        HgmTaskHandleThread::Instance().queue_ =
+            std::make_shared<ffrt::queue>("HgmTaskHandleThread", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+    }
 }
 
 void HgmFrameRateMgrTest::TearDown() {}
@@ -818,7 +822,6 @@ HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Lev
 HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level0)
 {
     auto timer = HgmSimpleTimer("HgmSimpleTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
-    ASSERT_NE(timer.handler_, nullptr);
     ASSERT_EQ(timer.name_, "HgmSimpleTimer");
     ASSERT_EQ(timer.interval_.load(), std::chrono::milliseconds(delay_60Ms));
     ASSERT_EQ(timer.startCallback_, nullptr);
@@ -1487,7 +1490,6 @@ HWTEST_F(HgmFrameRateMgrTest, TestMarkVoteChange, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmFrameRateMgrTest, InitTimers, Function | SmallTest | Level0)
 {
-    HgmTaskHandleThread::Instance().runner_ = AppExecFwk::EventRunner::Create("HgmTaskHandleThread");
     HgmFrameRateManager mgr;
     mgr.SetVsyncRateDiscountLTPO({}, 0);
     ASSERT_TRUE(mgr.changeGeneratorRateValid_);

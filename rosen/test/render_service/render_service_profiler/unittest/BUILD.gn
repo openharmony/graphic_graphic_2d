@@ -265,6 +265,7 @@ ohos_unittest("RSProfilerTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

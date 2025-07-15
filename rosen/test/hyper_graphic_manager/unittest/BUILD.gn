@@ -115,6 +115,7 @@ ohos_unittest("frame_rate_manager_test") {
     "hgm_frame_rate_manager_test.cpp",
     "hgm_soft_vsync_manager_test.cpp",
     "hgm_voter_test.cpp",
+    "hgm_one_shot_timer_test.cpp",
   ]
 
   include_dirs = [
