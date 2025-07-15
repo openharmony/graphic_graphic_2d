@@ -25,7 +25,10 @@ RSLogicalDisplayRenderNode::RSLogicalDisplayRenderNode(NodeId id,
     const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSRenderNode(id, context, isTextureExportNode), screenId_(config.screenId) {}
 
-RSLogicalDisplayRenderNode::~RSLogicalDisplayRenderNode() {}
+RSLogicalDisplayRenderNode::~RSLogicalDisplayRenderNode()
+{
+    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
+}
 
 void RSLogicalDisplayRenderNode::InitRenderParams()
 {
