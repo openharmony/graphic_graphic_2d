@@ -182,7 +182,6 @@ public:
      */
     static SharedPtr Unmarshalling(Parcel& parcel);
 
-#ifdef RS_ENABLE_VK
     /**
      * @brief Sets the hybrid render canvas state.
      *
@@ -221,7 +220,6 @@ public:
      * @return true if the surface was successfully reset; false otherwise.
      */
     bool ResetSurface(int width, int height);
-#endif
 
 protected:
     RSCanvasNode(

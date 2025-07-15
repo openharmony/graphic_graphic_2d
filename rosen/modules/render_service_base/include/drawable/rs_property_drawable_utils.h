@@ -20,6 +20,29 @@
 
 namespace OHOS {
 namespace Rosen {
+
+/*
+Feature:
+    NodeGroup recommendation:ROUND_STATIC_CAST_INT
+    HardwareComposer recommendation: clip hole-ROUND_IN, draw-ROUND_OUT
+    RSUniRenderComposerAdapter: ROUND_IN
+Dirty Region and Occlusion:
+    Dirty Region: ROUND_OUT
+    Occlusion: ROUND_IN
+Roration and Drag: ROUND_OFF
+SnapShot and Draw:
+    SnapShot:ROUND_IN
+    Draw：ROUND_OUT
+Default:ROUND_BUTT(ROUND_OUT)
+ */
+enum class RoundingStrategyType : uint8_t {
+    ROUND_IN = 0,
+    ROUND_OUT,
+    ROUND_OFF,
+    ROUND_STATIC_CAST_INT,
+    ROUND_BUTT,
+};
+
 class RSPropertyDrawableUtils {
 public:
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
@@ -37,7 +60,6 @@ public:
     static std::shared_ptr<Drawing::Image> GpuScaleImage(Drawing::Canvas* canvas,
         const std::shared_ptr<Drawing::Image> image);
     static void GetDarkColor(RSColor& color);
-    static void CeilMatrixTrans(Drawing::Canvas* canvas);
     static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
@@ -55,6 +77,7 @@ public:
     static std::shared_ptr<Drawing::RuntimeBlenderBuilder> MakeDynamicBrightnessBuilder();
     static std::shared_ptr<Drawing::RuntimeBlenderBuilder> MakeDynamicBrightnessLinearBuilder();
     static std::shared_ptr<Drawing::Blender> MakeDynamicBrightnessBlender(const RSDynamicBrightnessPara& params);
+    static std::shared_ptr<Drawing::Blender> MakeShadowBlender(const RSShadowBlenderPara& params);
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
         const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode);
@@ -87,12 +110,21 @@ public:
     static bool IsBlurFilterType(const RSFilter::FilterType& filterType);
 
     static float GetBlurFilterRadius(const std::shared_ptr<RSFilter>& rsFilter);
+
+    RSB_EXPORT static Drawing::RectI GetRectByStrategy(
+        const Drawing::Rect& rect, RoundingStrategyType roundingStrategy);
+    RSB_EXPORT static Drawing::RectI GetAbsRectByStrategy(const Drawing::Surface* surface,
+        const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect, RoundingStrategyType roundingStrategy);
+    RSB_EXPORT static std::tuple<Drawing::RectI, Drawing::RectI> GetAbsRectByStrategyForImage(
+        const Drawing::Surface* surface, const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect);
+
 private:
     static std::shared_ptr<Drawing::ColorFilter> GenerateMaterialColorFilter(float sat, float brt);
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessLinearBlenderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> shadowBlenderEffect_;
     inline static int g_blurCnt = 0;
 };
 } // namespace Rosen

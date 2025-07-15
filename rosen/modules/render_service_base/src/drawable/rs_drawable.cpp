@@ -76,6 +76,7 @@ static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDraw
     { RSModifierType::FG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BLENDER },
     { RSModifierType::FG_BRIGHTNESS_NEGCOEFF,                    RSDrawableSlot::BLENDER },
     { RSModifierType::FG_BRIGHTNESS_FRACTION,                    RSDrawableSlot::BLENDER },
+    { RSModifierType::FG_BRIGHTNESS_HDR,                         RSDrawableSlot::BLENDER },
     { RSModifierType::BG_BRIGHTNESS_RATES,                       RSDrawableSlot::BACKGROUND_COLOR },
     { RSModifierType::BG_BRIGHTNESS_SATURATION,                  RSDrawableSlot::BACKGROUND_COLOR },
     { RSModifierType::BG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BACKGROUND_COLOR },
@@ -199,6 +200,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::FOREGROUND_COLOR,             RSDrawableSlot::FOREGROUND_COLOR },
     { ModifierNG::RSModifierType::BACKGROUND_COLOR,             RSDrawableSlot::BACKGROUND_COLOR },
     { ModifierNG::RSModifierType::BACKGROUND_SHADER,            RSDrawableSlot::BACKGROUND_SHADER },
+    { ModifierNG::RSModifierType::BACKGROUND_NG_SHADER,         RSDrawableSlot::BACKGROUND_NG_SHADER },
     { ModifierNG::RSModifierType::BACKGROUND_IMAGE,             RSDrawableSlot::BACKGROUND_IMAGE },
     { ModifierNG::RSModifierType::BORDER,                       RSDrawableSlot::BORDER },
     { ModifierNG::RSModifierType::OUTLINE,                      RSDrawableSlot::OUTLINE },
@@ -225,6 +227,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::NODE_MODIFIER,                RSDrawableSlot::INVALID },
     { ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR,         RSDrawableSlot::ENV_FOREGROUND_COLOR },
     { ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER,         RSDrawableSlot::BACKGROUND_FILTER },
+    { ModifierNG::RSModifierType::FOREGROUND_SHADER,            RSDrawableSlot::FOREGROUND_SHADER },
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
 
@@ -254,6 +257,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSBeginBlenderDrawable::OnGenerate,                  // BLENDER,
     RSBackgroundColorDrawable::OnGenerate,               // BACKGROUND_COLOR,
     RSBackgroundShaderDrawable::OnGenerate,              // BACKGROUND_SHADER,
+    RSBackgroundNGShaderDrawable::OnGenerate,            // BACKGROUND_NG_SHADER,
     RSBackgroundImageDrawable::OnGenerate,               // BACKGROUND_IMAGE,
     RSBackgroundFilterDrawable::OnGenerate,              // BACKGROUND_FILTER,
     RSUseEffectDrawable::OnGenerate,                     // USE_EFFECT,
@@ -281,6 +285,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSDynamicDimDrawable::OnGenerate,        // DYNAMIC_DIM,
     RSCompositingFilterDrawable::OnGenerate, // COMPOSITING_FILTER,
     RSForegroundColorDrawable::OnGenerate,   // FOREGROUND_COLOR,
+    RSForegroundShaderDrawable::OnGenerate,  // FOREGROUND_SHADER,
     nullptr,                                 // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
@@ -624,6 +629,8 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::SHADOW))) {
         dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
+        // adapt to USE_SHADOW_BATCHING
+        dirtySlots.emplace(RSDrawableSlot::CHILDREN);
     }
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::FRAME))) {

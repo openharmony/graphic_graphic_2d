@@ -291,6 +291,10 @@ public:
 
     void SetForegroundNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetForegroundNGFilter() const;
+    void SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
+    std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
+    void SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
+    std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -302,8 +306,13 @@ public:
     Vector4f GetFgBrightnessNegCoeff() const;
     void SetFgBrightnessFract(const float& fraction);
     float GetFgBrightnessFract() const;
+    void SetFgBrightnessHdr(const bool enableHdr);
+    bool GetFgBrightnessHdr() const;
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
+
+    void SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params);
+    std::optional<RSShadowBlenderPara> GetShadowBlenderParams() const;
 
     void SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params);
     std::optional<RSWaterRipplePara> GetWaterRippleParams() const;
@@ -527,6 +536,7 @@ public:
     bool IsDynamicDimValid() const;
     bool IsFgBrightnessValid() const;
     bool IsBgBrightnessValid() const;
+    bool IsShadowBlenderValid() const;
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
     bool IsDistortionKValid() const;
@@ -534,6 +544,7 @@ public:
     bool GetDistortionDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
+    std::string GetShadowBlenderDescription() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -668,6 +679,8 @@ private:
     void GenerateRenderFilterDispersion();
     void GenerateForegroundRenderFilter();
     void GenerateContentLightFilter();
+    void ComposeNGRenderFilter(
+        std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter);
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
@@ -752,6 +765,8 @@ private:
     std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSRenderFilter> backgroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
@@ -786,6 +801,7 @@ private:
     std::optional<float> distortionK_ = std::nullopt;
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
+    std::optional<RSShadowBlenderPara> shadowBlenderParams_;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
     std::optional<Decoration> decoration_;
     std::optional<Matrix3f> sublayerTransform_;

@@ -51,6 +51,7 @@ constexpr size_t MAX_OBJECTNUM = 512;
 constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 const uint32_t MAX_VOTER_SIZE = 100;
+constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
@@ -132,6 +133,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_OFFSET),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
@@ -2467,6 +2470,29 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_OFFSET): {
+            ScreenId id = INVALID_SCREEN_ID;
+            int32_t offsetX = 0;
+            int32_t offsetY = 0;
+            if (!data.ReadUint64(id) || !data.ReadInt32(offsetX) || !data.ReadInt32(offsetY)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_OFFSET Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetScreenOffset(id, offsetX, offsetY);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY): {
+            ScreenId id = INVALID_SCREEN_ID;
+            int32_t gravity = 0;
+            if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetScreenFrameGravity(id, gravity);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -2857,6 +2883,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+            break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT) : {
             std::string eventName;
@@ -3375,20 +3402,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            uint64_t mirrorId{0};
+            uint64_t mirroredId{0};
             uint64_t screenId{0};
-            bool isMirrored{false};
-            if (!data.ReadUint64(mirrorId) ||
+            bool isMirror{false};
+            if (!data.ReadUint64(mirroredId) ||
                 !data.ReadUint64(screenId) ||
-                !data.ReadBool(isMirrored)) {
+                !data.ReadBool(isMirror)) {
                 RS_LOGE("RSRenderServiceConnectionStub::CREATE_DISPLAY_NODE Read config failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             RSDisplayNodeConfig config = {
                 .screenId = screenId,
-                .isMirrored = isMirrored,
-                .mirrorNodeId = mirrorId,
+                .isMirrored = isMirror,
+                .mirrorNodeId = mirroredId,
                 .isSync = true,
             };
             bool success;
@@ -3455,15 +3482,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER) : {
-            std::string nodeIdStr;
+            NodeId nodeId = {};
             bool isTop{false};
             uint32_t topLayerZOrder = 0;
-            if (!data.ReadString(nodeIdStr) || !data.ReadBool(isTop) || !data.ReadUint32(topLayerZOrder)) {
+            if (!data.ReadUint64(nodeId) || !data.ReadBool(isTop) || !data.ReadUint32(topLayerZOrder)) {
                 RS_LOGE("RSRenderServiceConntionStub::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER Read parcel failed");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SetLayerTopForHWC(nodeIdStr, isTop, topLayerZOrder);
+            SetLayerTopForHWC(nodeId, isTop, topLayerZOrder);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
@@ -3532,6 +3559,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RectConstraint constraint;
+            if (size > MAX_PID_SIZE_NUMBER) {
+                ROSEN_LOGE("RSRenderServiceConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK "
+                           "size number is too large.");
+                break;
+            }
             for (uint32_t i = 0; i < size; ++i) {
                 pid_t pid;
                 if (!data.ReadInt32(pid)) {
@@ -3580,7 +3612,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK): {
-            auto pid = data.ReadInt32();
+            uint64_t token = data.ReadUint64();
             uint64_t timeStamp = data.ReadUint64();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -3596,8 +3628,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RS_LOGD("RSRenderServiceConnectionStub: already decode unicode, timeStamp: %{public}"
-                PRIu64 " pid: %{public}d", timeStamp, pid);
-            RegisterTransactionDataCallback(pid, timeStamp, callback);
+                PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+            RegisterTransactionDataCallback(token, timeStamp, callback);
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -3747,6 +3779,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteBool(retValue);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE) : {
+            NodeId nodeId = {};
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CLEAR_UIFIRST_CACHE : read data err!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ClearUifirstCache(nodeId);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -3821,6 +3863,7 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
+        !data.ReadBool(captureConfig.isHdrCapture) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||

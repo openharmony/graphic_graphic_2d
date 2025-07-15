@@ -971,7 +971,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdatePartialRenderParams, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     node->UpdatePartialRenderParams();
     node->UpdateRenderParams();
-    node->UpdateAncestorDisplayNodeInRenderParams();
+    node->UpdateAncestorScreenNodeInRenderParams();
     node->SetUifirstChildrenDirtyRectParam(RectI());
     node->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
     node->SetIsParentUifirstNodeEnableParam(true);

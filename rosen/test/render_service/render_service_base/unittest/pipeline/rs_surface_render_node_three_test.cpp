@@ -48,7 +48,8 @@ public:
     RSTestVisitor() = default;
     ~RSTestVisitor() override {}
 
-    void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) override {}
+    void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
     void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) override {}
@@ -56,19 +57,21 @@ public:
 
     void PrepareChildren(RSRenderNode& node) override {}
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
-    void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void PrepareScreenRenderNode(RSScreenRenderNode& node) override {}
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override {}
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void PrepareEffectRenderNode(RSEffectRenderNode& node) override {}
+    void PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
 
     void ProcessChildren(RSRenderNode& node) override {}
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
-    void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void ProcessScreenRenderNode(RSScreenRenderNode& node) override {}
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
     void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
+    void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
 };
 
 /**
@@ -322,7 +325,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, UpdatePartialRenderParams, TestSize.Level
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     node->UpdatePartialRenderParams();
     node->UpdateRenderParams();
-    node->UpdateAncestorDisplayNodeInRenderParams();
+    node->UpdateAncestorScreenNodeInRenderParams();
     node->SetUifirstChildrenDirtyRectParam(RectI());
     node->SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
     node->SetIsParentUifirstNodeEnableParam(true);

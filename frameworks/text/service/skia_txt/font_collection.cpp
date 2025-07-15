@@ -152,9 +152,8 @@ LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string& familyName
 LoadSymbolErrorCode FontCollection::LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen)
 {
     TEXT_TRACE_FUNC();
-    return CustomSymbolConfig::GetInstance()->ParseConfig(familyName, data, datalen);
+    return OHOS::Rosen::Symbol::CustomSymbolConfig::GetInstance()->ParseConfig(familyName, data, datalen);
 }
-
 
 static std::shared_ptr<Drawing::Typeface> CreateTypeface(const uint8_t *data, size_t datalen)
 {

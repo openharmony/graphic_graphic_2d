@@ -1831,5 +1831,24 @@ HWTEST_F(RSPaintFilterCanvasTest, IsDarkColorModeTestTest, TestSize.Level1)
     paintFilterCanvas_->SetDarkColorMode(true);
     EXPECT_EQ(paintFilterCanvas_->isDarkColorMode_, true);
 }
+
+/**
+ * @tc.name: DrawImageEffectHPSTest
+ * @tc.desc: DrawImageEffectHPS test
+ * @tc.type: FUNC
+ * @tc.require:issuesICI3Q0
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawImageEffectHPSTest, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<PaintFilterCanvasBaseTest> paintFilterCanvasBase =
+        std::make_shared<PaintFilterCanvasBaseTest>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+
+    Drawing::Image image;
+    std::vector<std::shared_ptr<Drawing::HpsEffectParameter>> hpsEffectParams{};
+    paintFilterCanvasBase->DrawImageEffectHPS(image, hpsEffectParams);
+}
+
 } // namespace Rosen
 } // namespace OHOS

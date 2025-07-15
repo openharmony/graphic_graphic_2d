@@ -17,10 +17,14 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "drawable/rs_screen_render_node_drawable.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "params/rs_surface_render_params.h"
+#include "params/rs_logical_display_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -33,7 +37,6 @@ using namespace OHOS::Rosen::DrawableV2;
 namespace OHOS::Rosen {
 namespace {
 constexpr NodeId DEFAULT_ID = 0xFFFF;
-constexpr NodeId DEFAULT_RENDER_NODE_ID = 10;
 }
 class RSUniDirtyComputeUtilTest : public testing::Test {
 public:
@@ -45,17 +48,34 @@ public:
     static inline RectI DEFAULT_RECT2 {500, 500, 1000, 1000};
 };
 
-RSDisplayRenderNodeDrawable* GenerateDisplayDrawableById(NodeId id, RSDisplayNodeConfig config)
+RSScreenRenderNodeDrawable* GenerateScreenDrawableById(NodeId id,
+    ScreenId screenId, const std::weak_ptr<RSContext>& context)
 {
-    std::shared_ptr<RSDisplayRenderNode> renderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    std::shared_ptr<RSScreenRenderNode> renderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     if (!renderNode) {
         return nullptr;
     }
-    RSRenderNodeDrawableAdapter* displayAdapter = RSDisplayRenderNodeDrawable::OnGenerate(renderNode);
+    RSRenderNodeDrawableAdapter* screenAdapter = RSScreenRenderNodeDrawable::OnGenerate(renderNode);
+    if (!screenAdapter) {
+        return nullptr;
+    }
+    return static_cast<RSScreenRenderNodeDrawable*>(screenAdapter);
+}
+
+RSLogicalDisplayRenderNodeDrawable* GenerateLogicalscreenDrawableById(
+    NodeId id, const std::weak_ptr<RSContext>& context)
+{
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> renderNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
+    if (!renderNode) {
+        return nullptr;
+    }
+    RSRenderNodeDrawableAdapter* displayAdapter = RSLogicalDisplayRenderNodeDrawable::OnGenerate(renderNode);
     if (!displayAdapter) {
         return nullptr;
     }
-    return static_cast<RSDisplayRenderNodeDrawable*>(displayAdapter);
+    return static_cast<RSLogicalDisplayRenderNodeDrawable*>(displayAdapter);
 }
 
 void RSUniDirtyComputeUtilTest::SetUpTestCase()
@@ -85,12 +105,12 @@ public:
  */
 HWTEST_F(RSUniDirtyComputeUtilTest, GetCurrentFrameVisibleDirty001, TestSize.Level1)
 {
-    NodeId defaultDisplayId = 5;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
-    params->isFirstVisitCrossNodeDisplay_ = false;
+    NodeId defaultScreenNodeId = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(defaultScreenNodeId, screenId, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultScreenNodeId);
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
 
     NodeId defaultSurfaceId = 10;
@@ -99,11 +119,37 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetCurrentFrameVisibleDirty001, TestSize.Lev
     // default surface
     surfaceAdapters.emplace_back(surfaceAdapter);
     
+    auto createDrawableWithDirtyManager = [](NodeId id, bool isApp, bool emptyDstRect) -> RSRenderNodeDrawable::Ptr {
+        std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(id);
+        auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+        auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
+        if (surfaceDrawable == nullptr) {
+            return nullptr;
+        }
+        surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+        surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+        if (surfaceDrawable->syncDirtyManager_ == nullptr || surfaceDrawable->renderParams_ == nullptr) {
+            return nullptr;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+        surfaceParams->isLeashorMainWindow_ = isApp;
+        surfaceParams->dstRect_ = emptyDstRect ? RectI() : DEFAULT_RECT1;
+        return surfaceDrawable;
+    };
+
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, true));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, false));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, false, true));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, false, false));
+
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
     ScreenInfo screenInfo;
-    auto rects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*displayDrawable, screenInfo, *params);
+    auto rects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*screenDrawable, screenInfo, *params);
     EXPECT_EQ(rects.empty(), true);
-    displayDrawable = nullptr;
+    screenDrawable->syncDirtyManager_ = nullptr;
+    rects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*screenDrawable, screenInfo, *params);
+    EXPECT_EQ(rects.empty(), true);
+    screenDrawable = nullptr;
 }
 
 /**
@@ -120,102 +166,110 @@ HWTEST_F(RSUniDirtyComputeUtilTest, ScreenIntersectDirtyRectsTest, Function | Sm
 }
 
 /**
- * @tc.name: UpdateVirtualExpandDisplayAccumulatedParams001
- * @tc.desc: UpdateVirtualExpandDisplayAccumulatedParams can update params
+ * @tc.name: UpdateVirtualExpandScreenAccumulatedParams001
+ * @tc.desc: UpdateVirtualExpandScreenAccumulatedParams can update params
  * @tc.type: FUNC
  * @tc.require: issueICCV9N
  */
-HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandDisplayAccumulatedParams001, TestSize.Level1)
+HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams001, TestSize.Level1)
 {
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     params->SetMainAndLeashSurfaceDirty(true);
     params->SetHDRStatusChanged(true);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandDisplayAccumulatedParams(*params, *displayDrawable);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
     ASSERT_TRUE(params->GetAccumulatedDirty());
     ASSERT_TRUE(params->GetAccumulatedHdrStatusChanged());
 }
 
 /**
- * @tc.name: CheckVirtualExpandDisplaySkip001
- * @tc.desc: CheckVirtualExpandDisplaySkip return true when no accumulate status
+ * @tc.name: CheckVirtualExpandScreenSkip001
+ * @tc.desc: CheckVirtualExpandScreenSkip return true when no accumulate status
  * @tc.type: FUNC
  * @tc.require: issueICCV9N
  */
-HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip001, TestSize.Level1)
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip001, TestSize.Level1)
 {
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     params->SetAccumulatedDirty(false);
     params->SetAccumulatedHdrStatusChanged(false);
-    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *screenDrawable);
     ASSERT_TRUE(result);
 }
 
 /**
- * @tc.name: CheckVirtualExpandDisplaySkip002
- * @tc.desc: CheckVirtualExpandDisplaySkip return false when skip enabled is false
+ * @tc.name: CheckVirtualExpandScreenSkip002
+ * @tc.desc: CheckVirtualExpandScreenSkip return false when skip enabled is false
  * @tc.type: FUNC
  * @tc.require: issueICCV9N
  */
-HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip002, TestSize.Level1)
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip002, TestSize.Level1)
 {
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     auto type = system::GetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
     system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", "0");
-    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *screenDrawable);
     ASSERT_FALSE(result);
     system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", type);
 }
 
 /**
- * @tc.name: CheckVirtualExpandDisplaySkip003
- * @tc.desc: CheckVirtualExpandDisplaySkip return false when has special layer
+ * @tc.name: CheckVirtualExpandScreenSkip003
+ * @tc.desc: CheckVirtualExpandScreenSkip return false when has special layer
  * @tc.type: FUNC
  * @tc.require: issueICCV9N
  */
-HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip003, TestSize.Level1)
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip003, TestSize.Level1)
 {
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+    RSLogicalDisplayRenderNodeDrawable* displayDrawable = GenerateLogicalscreenDrawableById(DEFAULT_ID + 1, context);
     ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    params->specialLayerManager_.AddIds(SpecialLayerType::SKIP, DEFAULT_RENDER_NODE_ID);
-    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    displayDrawable->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(DEFAULT_ID + 1);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+    RSSpecialLayerManager specialLayerManager;
+    specialLayerManager.Set(SpecialLayerType::HAS_SECURITY, true);
+    displayParams->specialLayerManager_ = specialLayerManager;
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*screenParams, *screenDrawable);
     ASSERT_FALSE(result);
 }
 
 /**
- * @tc.name: CheckVirtualExpandDisplaySkip004
- * @tc.desc: CheckVirtualExpandDisplaySkip return false when has accumulate dirty
+ * @tc.name: CheckVirtualExpandScreenSkip004
+ * @tc.desc: CheckVirtualExpandScreenSkip return false when has accumulate dirty
  * @tc.type: FUNC
  * @tc.require: issueICCV9N
  */
-HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip004, TestSize.Level1)
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandScreenSkip004, TestSize.Level1)
 {
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     params->SetAccumulatedDirty(true);
-    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *screenDrawable);
     ASSERT_FALSE(result);
 }
 
@@ -320,17 +374,17 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_002, TestSize.
 HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_001, TestSize.Level1)
 {
     NodeId defaultDisplayId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
-    ASSERT_NE(displayDrawable, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(defaultDisplayId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
     Occlusion::Region damageRegion;
     Occlusion::Region drawRegion;
     // test with null param.
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *displayDrawable, std::nullopt);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *screenDrawable, std::nullopt);
     ASSERT_TRUE(damageRegion.IsEmpty());
     // test with non-null param.
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *displayDrawable, std::nullopt);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *screenDrawable, std::nullopt);
     ASSERT_TRUE(damageRegion.IsEmpty());
 }
 
@@ -343,28 +397,28 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_001, TestSize.Leve
 HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_002, TestSize.Level1)
 {
     NodeId defaultDisplayId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
-    ASSERT_NE(displayDrawable->renderParams_, nullptr);
-    displayDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
-    ASSERT_NE(displayDrawable->syncDirtyManager_, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(defaultDisplayId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    ASSERT_NE(screenDrawable->renderParams_, nullptr);
+    screenDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(screenDrawable->syncDirtyManager_, nullptr);
 
     Occlusion::Region filterRegion = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1));
     FilterDirtyRegionInfo filterInfo = {
         .intersectRegion_ = filterRegion,
         .filterDirty_ = filterRegion
     };
-    displayDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
+    screenDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
     Occlusion::Region damageRegion = Occlusion::Region();
     // test with empty damageRegion.
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *screenDrawable, std::nullopt);
     ASSERT_TRUE(damageRegion.IsEmpty());
 
     // test with non-empty damageRegion.
     damageRegion = Occlusion::Region(Occlusion::Rect{0, 0, 1, 1});
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *screenDrawable, std::nullopt);
     ASSERT_FALSE(damageRegion.Area() == 1);
 }
 
@@ -377,12 +431,12 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_002, TestSize.Leve
 HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_003, TestSize.Level1)
 {
     NodeId nodeId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(nodeId, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(nodeId);
-    ASSERT_NE(displayDrawable->renderParams_, nullptr);
-    auto& surfaceDrawables = displayDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(nodeId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId);
+    ASSERT_NE(screenDrawable->renderParams_, nullptr);
+    auto& surfaceDrawables = screenDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++nodeId);
     auto surfaceDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(surfaceNode);
@@ -390,7 +444,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_003, TestSize.Leve
     surfaceDrawables.push_back(surfaceDrawable);
 
     Occlusion::Region damageRegion = Occlusion::Region();
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *screenDrawable, std::nullopt);
     ASSERT_TRUE(damageRegion.IsEmpty());
 }
 
@@ -403,12 +457,12 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_003, TestSize.Leve
 HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_004, TestSize.Level1)
 {
     NodeId nodeId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(nodeId, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(nodeId);
-    ASSERT_NE(displayDrawable->renderParams_, nullptr);
-    auto& surfaceDrawables = displayDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(nodeId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId);
+    ASSERT_NE(screenDrawable->renderParams_, nullptr);
+    auto& surfaceDrawables = screenDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++nodeId);
     auto surfaceDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(surfaceNode);
@@ -433,13 +487,13 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_004, TestSize.Leve
     surfaceDrawables.push_back(surfaceDrawable);
 
     Occlusion::Region damageRegion = Occlusion::Region(Occlusion::Rect{0, 0, 1, 1});
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *screenDrawable, std::nullopt);
     ASSERT_TRUE(damageRegion.Area() == 1);
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->SetVisibleRegion(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1)));
-    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *screenDrawable, std::nullopt);
     ASSERT_FALSE(damageRegion.Area() == 1);
 }
 
@@ -452,20 +506,20 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_004, TestSize.Leve
 HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_005, TestSize.Level1)
 {
     NodeId nodeId = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(nodeId, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    displayDrawable->syncDirtyManager_ = nullptr;
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(nodeId);
-    ASSERT_NE(displayDrawable->renderParams_, nullptr);
-    auto& surfaceDrawables = displayDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(nodeId, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->syncDirtyManager_ = nullptr;
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId);
+    ASSERT_NE(screenDrawable->renderParams_, nullptr);
+    auto& surfaceDrawables = screenDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
     surfaceDrawables.push_back(nullptr);
 
     Occlusion::Region damageRegion;
-    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForDisplay(
-        damageRegion, damageRegion, *displayDrawable, std::nullopt));
+    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForScreen(
+        damageRegion, damageRegion, *screenDrawable, std::nullopt));
     ASSERT_FALSE(RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(
         damageRegion, damageRegion, surfaceDrawables, std::nullopt));
-    RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(*displayDrawable, surfaceDrawables);
+    RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(*screenDrawable, surfaceDrawables);
 }
 } // namespace OHOS::Rosen

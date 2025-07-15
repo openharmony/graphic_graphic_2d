@@ -30,9 +30,10 @@
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -454,8 +455,8 @@ void RSSurfaceRenderNode::FindScreenId()
         if (nodeTemp->GetId() == 0) {
             break;
         }
-        if (nodeTemp->GetType() == RSRenderNodeType::DISPLAY_NODE) {
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(nodeTemp);
+        if (nodeTemp->GetType() == RSRenderNodeType::SCREEN_NODE) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(nodeTemp);
             screenId_ = displayNode->GetScreenId();
             break;
         }
@@ -944,7 +945,7 @@ void RSSurfaceRenderNode::SetHwcCrossNode(bool isDRMCrossNode)
     isHwcCrossNode_ = isDRMCrossNode;
 }
 
-bool RSSurfaceRenderNode::IsDRMCrossNode() const
+bool RSSurfaceRenderNode::IsHwcCrossNode() const
 {
     return isHwcCrossNode_;
 }
@@ -1471,10 +1472,11 @@ void RSSurfaceRenderNode::SetTopLayerZOrder(uint32_t zOrder)
     topLayerZOrder_ = zOrder;
 }
 
-void RSSurfaceRenderNode::SetLayerTop(bool isTop)
+void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
 {
 #ifdef RS_ENABLE_GPU
     isLayerTop_ = isTop;
+    isTopLayerForceRefresh_ = isTopLayerForceRefresh;
     SetContentDirty();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
@@ -2040,6 +2042,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     layer.ancoFlags = surfaceParams->GetAncoFlags();
     const Rect& cropRect = surfaceParams->GetAncoSrcCrop();
     layer.ancoCropRect = {cropRect.x, cropRect.y, cropRect.w, cropRect.h};
+    layer.useDeviceOffline = GetDeviceOfflineEnable();
     if (isHardCursorEnable) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
@@ -3032,7 +3035,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 }
 
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
+    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
     if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         std::string uniqueIdStr = "null";
@@ -3041,11 +3044,11 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
                         std::to_string(GetRSSurfaceHandler()->GetConsumer()->GetUniqueId()) : "null";
 #endif
         RS_LOGI("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %{public}s, id: %{public}" PRIu64 "], "
-            "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s, displayNodeId: %{public}" PRIu64,
-            GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), displayNodeId);
+            "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s, screenNodeId: %{public}" PRIu64,
+            GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), screenNodeId);
     }
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
-    SendSurfaceNodeTreeStatus(onTree);
+    UpdateSurfaceNodeTreeStatusForAps(onTree);
 #endif
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
         "on tree: %d, nodeType: %d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
@@ -3081,17 +3084,19 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
     RSBaseRenderNode::SetIsOnTheTree(onTree, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-        INVALID_NODEID, displayNodeId);
+        INVALID_NODEID, screenNodeId, logicalDisplayNodeId);
 }
 
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
-void RSSurfaceRenderNode::SendSurfaceNodeTreeStatus(bool onTree)
+void RSSurfaceRenderNode::UpdateSurfaceNodeTreeStatusForAps(bool onTree)
 {
-    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && !onTree) {
-        std::shared_ptr<ApsMonitorImpl> apsMonitor = std::make_shared<ApsMonitorImpl>();
-        apsMonitor->SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
-        prevSelfDrawHeight_ = 0.0f;
-        prevSelfDrawWidth_ = 0.0f;
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        ApsMonitorImpl::GetInstance().SetApsSurfaceNodeTreeChange(onTree, name_);
+        if (!onTree) {
+            ApsMonitorImpl::GetInstance().SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
+            prevSelfDrawHeight_ = 0.0f;
+            prevSelfDrawWidth_ = 0.0f;
+        }
     }
 }
 
@@ -3274,7 +3279,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         surfaceParams->SetVisibleRegionInVirtual(visibleRegionInVirtual_);
         surfaceParams->SetIsParentScaling(isParentScaling_);
     }
-    surfaceParams->absDrawRect_ = GetAbsDrawRect();
+    surfaceParams->SetAbsDrawRect(GetAbsDrawRect());
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
     surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
@@ -3343,8 +3348,9 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();
     surfaceParams->isAppWindow_ = IsAppWindow();
+    surfaceParams->isLeashorMainWindow_ = IsLeashOrMainWindow();
     surfaceParams->isCloneNode_ = isCloneNode_;
-    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
+    surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
     surfaceParams->specialLayerManager_ = specialLayerManager_;
     surfaceParams->blackListIds_ = blackListIds_;
     surfaceParams->animateState_ = animateState_;
@@ -3445,15 +3451,15 @@ void RSSurfaceRenderNode::SetSourceDisplayRenderNodeDrawable(
     AddToPendingSyncList();
 }
 
-void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
+void RSSurfaceRenderNode::UpdateAncestorScreenNodeInRenderParams()
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
-        RS_LOGE("RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams surfaceParams is null");
+        RS_LOGE("RSSurfaceRenderNode::UpdateAncestorScreenNodeInRenderParams surfaceParams is null");
         return;
     }
-    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
+    surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
     surfaceParams->SetNeedSync(true);
 #endif
 }

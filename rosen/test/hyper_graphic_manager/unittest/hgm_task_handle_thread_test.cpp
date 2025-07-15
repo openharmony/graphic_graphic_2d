@@ -48,7 +48,7 @@ void HgmTaskHandleThreadTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTaskHandleThreadTest, Instance, TestSize.Level1)
+HWTEST_F(HgmTaskHandleThreadTest, Instance, TestSize.Level0)
 {
     HgmTaskHandleThread& instance1 = HgmTaskHandleThread::Instance();
     HgmTaskHandleThread& instance2 = HgmTaskHandleThread::Instance();
@@ -61,7 +61,7 @@ HWTEST_F(HgmTaskHandleThreadTest, Instance, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level1)
+HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level0)
 {
     std::function<void()> func = []() -> void {};
     HgmTaskHandleThread::Instance().PostTask(func);
@@ -76,7 +76,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTaskHandleThreadTest, PostTask002, TestSize.Level1)
+HWTEST_F(HgmTaskHandleThreadTest, PostTask002, TestSize.Level0)
 {
     HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
     int count = 0;
@@ -91,7 +91,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level1)
+HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level0)
 {
     HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
     int count = 0;
@@ -113,7 +113,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:IB3MVN
  */
-HWTEST_F(HgmTaskHandleThreadTest, DetectMultiThreadingCalls, TestSize.Level1)
+HWTEST_F(HgmTaskHandleThreadTest, DetectMultiThreadingCalls, TestSize.Level0)
 {
     HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
     instance.DetectMultiThreadingCalls();

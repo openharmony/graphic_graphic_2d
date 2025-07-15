@@ -17,12 +17,13 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "parameters.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_surface.h"
 
 using namespace testing;
@@ -35,7 +36,7 @@ constexpr NodeId DEFAULT_ID = 0xFFFF;
 class RSSubThreadCacheTest : public testing::Test {
 public:
     std::shared_ptr<RSSurfaceRenderNode> renderNode_;
-    std::shared_ptr<RSDisplayRenderNode> displayRenderNode_;
+    std::shared_ptr<RSScreenRenderNode> displayRenderNode_;
     std::shared_ptr<RSSurfaceRenderNodeDrawable> surfaceDrawable_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::shared_ptr<Drawing::Canvas> drawingCanvas_;
@@ -57,8 +58,8 @@ void RSSubThreadCacheTest::TearDownTestCase() {}
 void RSSubThreadCacheTest::SetUp()
 {
     renderNode_ = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
-    RSDisplayNodeConfig config;
-    displayRenderNode_ = std::make_shared<RSDisplayRenderNode>(DEFAULT_ID, config);
+    auto context = std::make_shared<RSContext>();
+    displayRenderNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, 0, context);
     if (!renderNode_) {
         RS_LOGE("RSSubThreadCacheTest: failed to create surface node.");
         return;
@@ -1127,5 +1128,30 @@ HWTEST_F(RSSubThreadCacheTest, GetSurfaceSkipPriorityTest, TestSize.Level1)
     ASSERT_EQ(subCache.GetSurfaceSkipCount(), 0);
     ASSERT_EQ(subCache.isSurfaceSkipPriority_, 0);
     ASSERT_EQ(subCache.GetSurfaceSkipPriority(), 1);
+}
+
+/**
+ * @tc.name: GetSurfaceSkipPriorityTest
+ * @tc.desc: Test surface skip priority
+ * @tc.type: FUNC
+ * @tc.require: issuesICFWAC
+ */
+HWTEST_F(RSSubThreadCacheTest, CheckSurfaceDrawableValidDfxTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    // nullptr
+    subCache.CheckSurfaceDrawableValidDfx(nullptr);
+    NodeId id = 99;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(surfaceAdapter, nullptr);
+    // correct nodeType
+    subCache.CheckSurfaceDrawableValidDfx(surfaceAdapter);
+    id = 100;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
+    auto canvasAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode);
+    ASSERT_NE(canvasAdapter, nullptr);
+    // no correct nodeType
+    subCache.CheckSurfaceDrawableValidDfx(canvasAdapter);
 }
 }

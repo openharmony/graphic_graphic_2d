@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_canvas_render_node_drawable.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
 
@@ -76,7 +77,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 
     drawable->isOpDropped_ = false;
     drawable->isDrawingCacheEnabled_ = true;
-    drawable->GetOpincDrawCache().autoCacheEnable_ = false;
+    RSOpincManager::Instance().SetOPIncSwitch(false);
     drawable->drawBlurForCache_ = false;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);

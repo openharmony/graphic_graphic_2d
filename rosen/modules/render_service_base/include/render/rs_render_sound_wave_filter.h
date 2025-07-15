@@ -52,6 +52,11 @@ public:
     bool ParseFilterValues() override;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 
+    void SetDisplayHeadroom(float headroom) override
+    {
+        maxHeadroom_ = headroom;
+    }
+
 private:
     void CalculateHash();
     static constexpr char GE_FILTER_SOUND_WAVE_COLOR_A[] = "COLORA";
@@ -77,6 +82,9 @@ private:
     float shockWaveProgressA_ = 0.0f;
     float shockWaveProgressB_ = 0.0f;
     float shockWaveTotalAlpha_ = 0.0f;
+
+    // HDR settings
+    float maxHeadroom_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

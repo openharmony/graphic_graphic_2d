@@ -74,6 +74,8 @@ public:
     void SetDrawingArea(const std::vector<RectI>& rects) override;
     void ClearDrawingArea() override;
 #endif
+    void SetHeadroom(float headroom) override;
+    float GetHeadroom() const override;
     sk_sp<SkSurface> GetSkSurface() const;
     int Width() const override;
     int Height() const override;

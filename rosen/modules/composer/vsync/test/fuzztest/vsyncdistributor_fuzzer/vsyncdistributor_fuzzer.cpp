@@ -80,7 +80,6 @@ namespace OHOS {
         if (data == nullptr) {
             return false;
         }
-
         // initialize
         data_ = data;
         size_ = size;
@@ -100,6 +99,9 @@ namespace OHOS {
         bool isSystemAnimateScene = GetData<bool>();
         uint64_t id = GetData<uint64_t>();
         bool isRender = GetData<bool>();
+        bool delayEnable = GetData<bool>();
+        bool nativeDelayEnable = GetData<bool>();
+
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
@@ -108,9 +110,8 @@ namespace OHOS {
         vsyncDistributor->SetVSyncRate(rate, conn);
         vsyncDistributor->SetNativeDVSyncSwitch(nativeDVSyncSwitch, conn);
         vsyncDistributor->SetUiDvsyncSwitch(uiDVSyncSwitch, conn);
-        vsyncDistributor->SetUiDvsyncConfig(bufferCount);
+        vsyncDistributor->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
         vsyncDistributor->SetHighPriorityVSyncRate(highPriorityRate, conn);
-
         vsyncDistributor->AddConnection(conn, windowNodeId);
         vsyncDistributor->RemoveConnection(conn);
         std::mutex mutex;
@@ -120,7 +121,6 @@ namespace OHOS {
         vsyncDistributor->PostVSyncEventPreProcess(timestamp, conns);
         vsyncDistributor->EnableVSync();
         vsyncDistributor->DisableVSync();
-
         std::string name = GetStringFromData(STR_LEN);
         vsyncDistributor->QosGetPidByName(name, pid);
         vsyncDistributor->SetQosVSyncRateByPid(pid, rate, isSystemAnimateScene);

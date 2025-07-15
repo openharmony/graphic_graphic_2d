@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #include "ge_visual_effect.h"
+#include "ge_visual_effect_impl.h"
 #include "ge_visual_effect_container.h"
 
 #include "effect/rs_render_mask_base.h"
@@ -46,6 +47,22 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::EDGE_LIGHT, [] {
             return std::make_shared<RSNGRenderEdgeLightFilter>();
+        }
+    },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGRenderDirectionLightFilter>();
+        }
+    },
+    {RSNGEffectType::COLOR_GRADIENT, [] {
+            return std::make_shared<RSNGRenderColorGradientFilter>();
+        }
+    },
+    {RSNGEffectType::MASK_TRANSITION, [] {
+            return std::make_shared<RSNGRenderMaskTransitionFilter>();
+        }
+    },
+    {RSNGEffectType::VARIABLE_RADIUS_BLUR, [] {
+            return std::make_shared<RSNGRenderVariableRadiusBlurFilter>();
         }
     },
 };
@@ -90,60 +107,66 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
     return false;
 }
 
-void RSNGRenderFilterBase::Dump(std::string& out) const
+void RSNGRenderFilterBase::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
+                                           std::shared_ptr<Drawing::GEVisualEffect> dest)
 {
-    std::string descStr = ": ";
-    std::string splitStr = ", ";
-
-    out += RSNGRenderFilterHelper::GetFilterTypeString(GetType());
-    out += descStr;
-    DumpProperty(out);
-    if (nextEffect_) {
-        out += splitStr;
-        nextEffect_->Dump(out);
-    }
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, float value)
-{
-    geFilter->SetParam(desc, value);
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const Vector4f& value)
-{
-    geFilter->SetParam(desc, value.x_);
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, const Vector2f& value)
-{
-    geFilter->SetParam(desc, std::make_pair(value.x_, value.y_));
-}
-
-void RSNGRenderFilterHelper::UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-    const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value)
-{
-    geFilter->SetParam(desc, value->GenerateGEShaderMask());
-}
-
-std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderFilterHelper::CreateGEFilter(RSNGEffectType type)
-{
-    return std::make_shared<Drawing::GEVisualEffect>(GetFilterTypeString(type), Drawing::DrawingPaintType::BRUSH);
+    RSUIFilterHelper::UpdateCacheData(src, dest);
 }
 
 void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
     std::shared_ptr<Drawing::GEVisualEffectContainer> container)
 {
-    if (!filter || !container) {
-        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: filter or container nullptr");
+    if (!container) {
+        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: container nullptr");
         return;
     }
 
-    std::for_each(filter->geFilters_.begin(), filter->geFilters_.end(), [&container](const auto& filter) {
-        container->AddToChainedFilter(filter);
-    });
+    auto current = filter;
+    while (current) {
+        container->AddToChainedFilter(current->geFilter_);
+        current = current->nextEffect_;
+    }
 }
+
+void RSUIFilterHelper::SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
+    const Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+{
+    auto current = filter;
+    auto dst = canvas.GetDeviceClipBounds();
+    Drawing::CanvasInfo info { std::ceil(geoWidth), std::ceil(geoHeight),
+        dst.GetLeft(), dst.GetTop(), canvas.GetTotalMatrix() };
+    while (current) {
+        if (current->geFilter_) {
+            // note: need calculte hash here when reopen filter cache
+            current->geFilter_->SetCanvasInfo(info);
+        }
+        current = current->nextEffect_;
+    }
+}
+
+void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
+                                       std::shared_ptr<Drawing::GEVisualEffect> dest)
+{
+    if (src == nullptr) {
+        RS_LOGE("RSUIFilterHelper::UpdateCacheData: src is nullptr");
+        return;
+    }
+    if (dest == nullptr) {
+        RS_LOGE("RSUIFilterHelper::UpdateCacheData: dest is nullptr");
+        return;
+    }
+    auto srcImpl = src->GetImpl();
+    auto destImpl = dest->GetImpl();
+    if (srcImpl == nullptr || destImpl == nullptr || srcImpl->GetFilterType() != destImpl->GetFilterType()) {
+        RS_LOGE("RSUIFilterHelper::UpdateCacheData: effect impl type mismatch");
+        return;
+    }
+
+    auto cache = srcImpl->GetCache();
+    if (cache != nullptr) {
+        destImpl->SetCache(cache);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

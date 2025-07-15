@@ -31,7 +31,21 @@
 #include "vulkan/vulkan.h"
 #include "rs_vulkan_mem_statistic.h"
 
+#include "draw/surface.h"
 #include "image/gpu_context.h"
+#include "rs_trace.h"
+
+typedef enum VkSemaphoreExtTypeHUAWEI {
+    VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
+    VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,
+}VkSemaphoreExtTypeHUAWEI;
+
+typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {
+    OHOS::Rosen::VkStructureTypeHUAWEI sType;
+    const void*                        pNext;
+    VkSemaphoreExtTypeHUAWEI           semaphoreExtType;
+    uint32_t                           eventId;
+}VkSemaphoreExtTypeCreateInfoHUAWEI;
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/vk/VulkanExtensions.h"
@@ -258,6 +272,7 @@ public:
     }
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(std::string cacheDir = "");
+    std::shared_ptr<Drawing::GPUContext> DoCreateDrawingContext(std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
     VulkanInterfaceType GetInterfaceType() const
@@ -439,6 +454,7 @@ public:
     static bool GetIsInited();
 
     static bool IsRecyclableSingletonValid();
+
 private:
     static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
     static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");

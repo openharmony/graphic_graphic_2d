@@ -834,4 +834,107 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateMaterialColorFilterTest001, testin
     auto filter = rsPropertyDrawableUtilsTest1->GenerateMaterialColorFilter(saturation, brightness);
     ASSERT_NE(filter, nullptr);
 }
+
+/**
+ * @tc.name: GetRectByStrategyTest001
+ * @tc.desc: GetRectByStrategyTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetRectByStrategyTest001, testing::ext::TestSize.Level1)
+{
+    Drawing::Rect bounds(2.1, 2.5, 102.1, 102.5);
+
+    auto boundIn = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_IN);
+    Drawing::RectI expectBoundIn(3, 3, 102, 102);
+    EXPECT_TRUE(boundIn == expectBoundIn);
+
+    auto boundOut = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_OUT);
+    Drawing::RectI expectBoundOut(2, 2, 103, 103);
+    EXPECT_TRUE(boundOut == expectBoundOut);
+
+    auto boundOff = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_OFF);
+    Drawing::RectI expectBoundOff(2, 3, 102, 103);
+    EXPECT_TRUE(boundOff == expectBoundOff);
+
+    auto boundCastInt = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_STATIC_CAST_INT);
+    Drawing::RectI expectBoundCastInt(2, 2, 102, 102);
+    EXPECT_TRUE(boundCastInt == expectBoundCastInt);
+
+    auto boundButt = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_BUTT);
+    Drawing::RectI expectBoundButt(2, 2, 103, 103);
+    EXPECT_TRUE(boundButt == expectBoundButt);
+}
+
+/**
+ * @tc.name: GetAbsRectByStrategyTest001
+ * @tc.desc: GetAbsRectByStrategy
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetAbsRectByStrategyTest001, testing::ext::TestSize.Level1)
+{
+    auto surface = Drawing::Surface::MakeRasterN32Premul(2000, 1000).get();
+    Drawing::Matrix matrix;
+    Drawing::Rect relativeRect(2.1, 2.5, 102.1, 102.5);
+
+    auto boundIn =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_IN);
+    Drawing::RectI expectBoundIn(3, 3, 102, 102);
+    EXPECT_TRUE(boundIn == expectBoundIn);
+
+    auto boundOut =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_OUT);
+    Drawing::RectI expectBoundOut(2, 2, 103, 103);
+    EXPECT_TRUE(boundOut == expectBoundOut);
+
+    auto boundOff =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_OFF);
+    Drawing::RectI expectBoundOff(2, 3, 102, 103);
+    EXPECT_TRUE(boundOff == expectBoundOff);
+
+    auto boundCastInt = RSPropertyDrawableUtils::GetAbsRectByStrategy(
+        surface, matrix, relativeRect, RoundingStrategyType::ROUND_STATIC_CAST_INT);
+    Drawing::RectI expectBoundCastInt(2, 2, 102, 102);
+    EXPECT_TRUE(boundCastInt == expectBoundCastInt);
+
+    auto boundButt =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_BUTT);
+    Drawing::RectI expectBoundButt(2, 2, 103, 103);
+    EXPECT_TRUE(boundButt == expectBoundButt);
+}
+
+/**
+ * @tc.name: GetAbsRectByStrategyForImageTest001
+ * @tc.desc: GetAbsRectByStrategyForImage
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetAbsRectByStrategyForImageTest001, testing::ext::TestSize.Level1)
+{
+    auto surface = Drawing::Surface::MakeRasterN32Premul(2000, 1000).get();
+    Drawing::Matrix matrix;
+    Drawing::Rect relativeRect(2.1, 2.5, 102.1, 102.5);
+
+    auto [absImageRect, absDrawRect] =
+        RSPropertyDrawableUtils::GetAbsRectByStrategyForImage(surface, matrix, relativeRect);
+    Drawing::RectI expectAbsImageRect(3, 3, 102, 102);
+    Drawing::RectI expectAbsDrawRect(2, 2, 103, 103);
+    EXPECT_TRUE(absImageRect == expectAbsImageRect);
+    EXPECT_TRUE(absDrawRect == expectAbsDrawRect);
+}
+
+/**
+ * @tc.name: MakeShadowBlenderTest001
+ * @tc.desc: MakeShadowBlender Test
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeShadowBlenderTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    RSShadowBlenderPara shadowBlenderParams;
+    EXPECT_NE(rsPropertyDrawableUtils->MakeShadowBlender(shadowBlenderParams), nullptr);
+}
 } // namespace OHOS::Rosen

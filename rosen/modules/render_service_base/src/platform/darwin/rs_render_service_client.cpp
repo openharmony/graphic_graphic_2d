@@ -228,6 +228,14 @@ void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
 }
 
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+{
+}
+
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+}
+
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
 }
@@ -779,7 +787,7 @@ bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t 
     return false;
 }
 
-void RSRenderServiceClient::SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder)
+void RSRenderServiceClient::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
 }
 
@@ -791,7 +799,8 @@ void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool i
 {
 }
 
-bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+bool RSRenderServiceClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+    std::function<void()> callback)
 {
     return false;
 }
@@ -842,6 +851,10 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 {
     return {};
+}
+
+void RSRenderServiceClient::ClearUifirstCache(NodeId id)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

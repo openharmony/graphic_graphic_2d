@@ -153,7 +153,7 @@ bool RSMagicPointerRenderManager::CheckColorPickerEnabled()
     }
     const auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
 
-    for (const auto& [_, drawable] : hardwareDrawables) {
+    for (const auto& [_, __, drawable] : hardwareDrawables) {
         if (drawable == nullptr) {
             continue;
         }
@@ -202,7 +202,7 @@ bool RSMagicPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Draw
     }
     const auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
-    for (const auto& [_, drawable] : hardwareDrawables) {
+    for (const auto& [_, __, drawable] : hardwareDrawables) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
         if (surfaceDrawable == nullptr || !surfaceDrawable->IsHardwareEnabledTopSurface()) {
             continue;

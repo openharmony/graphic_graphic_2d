@@ -25,7 +25,7 @@
 #include <securec.h>
 #include <unistd.h>
 
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -67,14 +67,14 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int pid = GetData<int>();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
-    RSDisplayRenderNode* rsDisplayRenderNode = new RSDisplayRenderNode(id, config);
-    std::shared_ptr<RSDisplayRenderNode> nodePtr(rsDisplayRenderNode);
+    RSLogicalDisplayRenderNode* rsDisplayRenderNode = new RSLogicalDisplayRenderNode(id, config);
+    std::shared_ptr<RSLogicalDisplayRenderNode> nodePtr(rsDisplayRenderNode);
     std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap;
     auto func = [](const std::shared_ptr<RSBaseRenderNode>& node) {};
     auto surfaceNode = std::make_shared<OHOS::Rosen::RSSurfaceRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.RegisterRenderNode(node);
-    rsRenderNodeMap.RegisterDisplayRenderNode(nodePtr);
+    rsRenderNodeMap.RegisterRenderNode(nodePtr);
     rsRenderNodeMap.UnregisterRenderNode(id);
     rsRenderNodeMap.GetRenderNode(id);
     rsRenderNodeMap.GetAnimationFallbackNode();

@@ -71,6 +71,8 @@ public:
     virtual void SetDrawingArea(const std::vector<RectI>& rects) = 0;
     virtual void ClearDrawingArea() = 0;
 #endif
+    virtual void SetHeadroom(float headroom) = 0;
+    virtual float GetHeadroom() const = 0;
     virtual int Width() const = 0;
     virtual int Height() const = 0;
 };

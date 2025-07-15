@@ -1,0 +1,58 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/render_service_client/render_service_client.gni")
+
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_client"
+
+ohos_unittest("RSUIEffectTest") {
+  module_out_path = module_output_path
+
+   sources = [
+      "rs_ui_effect_mask_test.cpp",
+      "rs_ui_effect_filter_test.cpp",
+      "rs_ui_effect_effect_test.cpp",
+   ]
+
+   configs = [ ":rs_ui_effect_test_config" ]
+
+   deps = [
+      "$rosen_root/modules/render_service_client:librender_service_client",
+      "$rosen_root/modules/2d_graphics:2d_graphics",
+   ]
+
+   external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "image_framework:image_native",
+   ]
+}
+
+config("rs_ui_effect_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$rosen_root/modules/render_service_client/core/ui_effect",
+  ]
+
+  cflags = [
+    "-Dprotected=public",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":RSUIEffectTest",
+  ]
+}

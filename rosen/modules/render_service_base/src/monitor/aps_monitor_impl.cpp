@@ -22,77 +22,105 @@
 
 namespace OHOS {
 namespace Rosen {
-using namespace std;
 namespace {
-    const std::string APS_CLIENT_SO = "libaps_client.z.so";
+const std::string APS_CLIENT_SO = "libaps_client.z.so";
+const int32_t SURFACE_NODE_TREE_CHANGE = 1;
 }
 
 ApsMonitorImpl::~ApsMonitorImpl()
 {
-    if (loadfilehandle_ != nullptr) {
+    if (loadFileHandle_ != nullptr) {
 #ifdef _WIN32
-        FreeLibrary((HMODULE)loadfilehandle_);
+        FreeLibrary((HMODULE)loadFileHandle_);
 #else
-        dlclose(loadfilehandle_);
+        dlclose(loadFileHandle_);
 #endif
-        loadfilehandle_ = nullptr;
+        loadFileHandle_ = nullptr;
     }
 }
 
-void ApsMonitorImpl::SetApsSurfaceBoundChange(std::string height, std::string width, std::string id)
+ApsMonitorImpl& ApsMonitorImpl::GetInstance()
 {
-    LoadApsFuncOnce();
+    static ApsMonitorImpl apsMonitorImpl;
+    return apsMonitorImpl;
+}
+
+void ApsMonitorImpl::SetApsSurfaceBoundChange(std::string height, std::string width,
+    std::string id)
+{
+    LoadApsFuncsOnce();
     if (setBoundChangeFunc_ == nullptr) {
         return;
     }
-    setBoundChangeFunc_(height, width, id);
+    setBoundChangeFunc_(std::move(height), std::move(width), std::move(id));
     return;
 }
 
 void ApsMonitorImpl::SetApsSurfaceDestroyedInfo(std::string id)
 {
-    LoadApsFuncOnce();
-    if (setSurfaceDestroyFunc_ == nullptr) {
+    LoadApsFuncsOnce();
+    if (setSurfaceDestroyedFunc_ == nullptr) {
         return;
     }
-    setSurfaceDestroyFunc_(id);
+    setSurfaceDestroyedFunc_(std::move(id));
 }
 
-void ApsMonitorImpl::LoadApsFuncOnce()
+void ApsMonitorImpl::SetApsSurfaceNodeTreeChange(bool onTree, std::string name)
 {
-    if (isloadapsfunc_) {
+    LoadApsFuncsOnce();
+    if (sendApsEventFunc_ == nullptr) {
         return;
     }
-#ifdef _WIN32
-    loadfilehandle_ = (void*)LoadLibraryA(APS_CLIENT_SO.c_str());
-#else
-    loadfilehandle_ = dlopen(APS_CLIENT_SO.c_str(), RTLD_NOW);
-#endif
-    if (loadfilehandle_ == nullptr) {
-        return;
-    }
+    std::map<std::string, std::string> apsData;
+    apsData["onTree"] = std::to_string(onTree);
+    apsData["name"] = name;
+    sendApsEventFunc_(SURFACE_NODE_TREE_CHANGE, apsData);
+}
+
+bool ApsMonitorImpl::IsCloseAps()
+{
 #ifdef _WIN32
     setBoundChangeFunc_ = reinterpret_cast<SetBoundChangeFunc>(
-        (void*)GetProcAddress((HMODULE)loadfilehandle_, "SetApsSurfaceBoundChange")
-    );
-    setSurfaceDestroyFunc_ = reinterpret_cast<SetSurfaceDestroyFunc>(
-        (void*)GetProcAddress((HMODULE)loadfilehandle_, "SetApsSurfaceDestroyedInfo")
-    );
+        (void*)GetProcAddress((HMODULE)loadFileHandle_, "SetApsSurfaceBoundChange"));
+    setSurfaceDestroyedFunc_ = reinterpret_cast<SetSurfaceDestroyedFunc>(
+        (void*)GetProcAddress((HMODULE)loadFileHandle_, "SetApsSurfaceDestroyedInfo"));
+    sendApsEventFunc_ = reinterpret_cast<SendApsEventFunc>(
+        (void*)GetProcAddress((HMODULE)loadFileHandle_, "SendApsEvent"));
 #else
     setBoundChangeFunc_ =
-        reinterpret_cast<SetBoundChangeFunc>(dlsym(loadfilehandle_, "SetApsSurfaceBoundChange"));
-    setSurfaceDestroyFunc_ =
-        reinterpret_cast<SetSurfaceDestroyFunc>(dlsym(loadfilehandle_, "SetApsSurfaceDestroyedInfo"));
+        reinterpret_cast<SetBoundChangeFunc>(dlsym(loadFileHandle_, "SetApsSurfaceBoundChange"));
+    setSurfaceDestroyedFunc_ =
+        reinterpret_cast<SetSurfaceDestroyedFunc>(dlsym(loadFileHandle_, "SetApsSurfaceDestroyedInfo"));
+    sendApsEventFunc_ = reinterpret_cast<SendApsEventFunc>(dlsym(loadFileHandle_, "SendApsEvent"));
 #endif
-    if (setBoundChangeFunc_ == nullptr || setSurfaceDestroyFunc_ == nullptr) {
-#ifdef _WIN32
-        FreeLibrary((HMODULE)loadfilehandle_);
-#else
-        dlclose(loadfilehandle_);
-#endif
+    return setBoundChangeFunc_ == nullptr || setSurfaceDestroyedFunc_ == nullptr || sendApsEventFunc_ == nullptr;
+}
+
+void ApsMonitorImpl::LoadApsFuncsOnce()
+{
+    if (!isApsFuncsAvailable_ || isApsFuncsLoad_) {
         return;
     }
-    isloadapsfunc_ = true;
+#ifdef _WIN32
+    loadFileHandle_ = (void*)LoadLibraryA(APS_CLIENT_SO.c_str());
+#else
+    loadFileHandle_ = dlopen(APS_CLIENT_SO.c_str(), RTLD_NOW);
+#endif
+    if (loadFileHandle_ == nullptr) {
+        isApsFuncsAvailable_ = false;
+        return;
+    }
+
+    if (IsCloseAps()) {
+#ifdef _WIN32
+        FreeLibrary((HMODULE)loadFileHandle_);
+#else
+        dlclose(loadFileHandle_);
+#endif
+        isApsFuncsAvailable_ = false;
+        return;
+    }
+    isApsFuncsLoad_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

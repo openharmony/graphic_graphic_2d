@@ -42,6 +42,19 @@ public:
     Vector3 Convert(const Vector3& v) const;
     Vector3 ConvertLinear(const Vector3& v) const;
 
+    static Vector3 ConvertSRGBToP3ColorSpace(const Vector3& sRGBColorValue)
+    {
+        return ColorSpaceConvertor::sRGBtoP3ColorSpaceConvertor.Convert(sRGBColorValue);
+    }
+
+    static Vector3 ConvertP3ToSRGBColorSpace(const Vector3& p3ColorValue)
+    {
+        return ColorSpaceConvertor::P3toSRGBColorSpaceConvertor.Convert(p3ColorValue);
+    }
+
+    static ColorSpaceConvertor sRGBtoP3ColorSpaceConvertor;
+    static ColorSpaceConvertor P3toSRGBColorSpaceConvertor;
+
 private:
     ColorSpace srcColorSpace;
     ColorSpace dstColorSpace;

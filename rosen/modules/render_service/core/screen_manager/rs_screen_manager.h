@@ -52,6 +52,7 @@ struct LoadOptParamsForScreen {
 };
 
 class RSScreen;
+class RSIScreenNodeListener;
 class RSScreenManager : public RefBase {
 public:
     RSScreenManager() = default;
@@ -77,6 +78,7 @@ public:
 
     virtual int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) = 0;
     virtual void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) = 0;
+    virtual void RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener) = 0;
 
     virtual void DisplayDump(std::string& dumpString) = 0;
     virtual void SurfaceDump(std::string& dumpString) = 0;
@@ -212,6 +214,8 @@ public:
     virtual int32_t GetVirtualScreenSecLayerOption(ScreenId id) const = 0;
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+    
+    virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
     virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
 
@@ -256,6 +260,7 @@ public:
 
     int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) override;
     void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) override;
+    void RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener) override;
 
     void DisplayDump(std::string& dumpString) override;
     void SurfaceDump(std::string& dumpString) override;
@@ -389,6 +394,7 @@ public:
     int32_t GetVirtualScreenSecLayerOption(ScreenId id) const override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
 
     // Get all whiteList and their screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
@@ -444,6 +450,7 @@ private:
     std::shared_ptr<OHOS::Rosen::RSScreen> GetScreen(ScreenId id) const;
     void TriggerCallbacks(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason = ScreenChangeReason::DEFAULT) const;
+    void NotifyScreenNodeChange(ScreenId id, bool connected) const;
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
@@ -464,6 +471,8 @@ private:
 
     mutable std::shared_mutex screenChangeCallbackMutex_;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
+    std::shared_ptr<RSIScreenNodeListener> screenNodeListener_;
+
     std::atomic<bool> mipiCheckInFirstHotPlugEvent_ = false;
     std::atomic<bool> isHwcDead_ = false;
 
@@ -485,9 +494,7 @@ private:
 
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> castScreenBlackList_ = {};
-
     // a blacklist node may exist in multiple virtual screens
-    mutable std::mutex blackListScreenMutex_;
     std::unordered_map<uint64_t, std::unordered_set<ScreenId>> blackListInVirtualScreen_ = {};
 
     mutable std::mutex typeBlackListMutex_;

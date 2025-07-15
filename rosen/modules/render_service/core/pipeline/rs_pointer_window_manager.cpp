@@ -40,20 +40,20 @@ RSPointerWindowManager::RSPointerWindowManager()
 }
 
 void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
-    std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
+    std::shared_ptr<RSScreenRenderNode>& curScreenNode)
 {
-    if (pointWindow == nullptr || curDisplayNode == nullptr) {
+    if (pointWindow == nullptr || curScreenNode == nullptr) {
         return;
     }
     auto dirtyManager = pointWindow->GetDirtyManager();
     if (dirtyManager && pointWindow->GetHardCursorStatus()) {
         if (!pointWindow->GetHardCursorLastStatus()) {
-            RectI lastFrameSurfacePos = curDisplayNode->GetLastFrameSurfacePos(pointWindow->GetId());
-            curDisplayNode->GetDirtyManager()->MergeDirtyRect(lastFrameSurfacePos);
+            RectI lastFrameSurfacePos = curScreenNode->GetLastFrameSurfacePos(pointWindow->GetId());
+            curScreenNode->GetDirtyManager()->MergeDirtyRect(lastFrameSurfacePos);
         }
         auto pointerWindowDirtyRegion = dirtyManager->GetCurrentFrameDirtyRegion();
         if (!pointerWindowDirtyRegion.IsEmpty()) {
-            curDisplayNode->GetDirtyManager()->MergeHwcDirtyRect(pointerWindowDirtyRegion);
+            curScreenNode->GetDirtyManager()->MergeHwcDirtyRect(pointerWindowDirtyRegion);
             dirtyManager->SetCurrentFrameDirtyRect(RectI());
             isNeedForceCommitByPointer_ = true;
         } else {
@@ -201,14 +201,14 @@ bool RSPointerWindowManager::HasMirrorDisplay() const
         return false;
     }
     for (auto& child : *rootNode->GetSortedChildren()) {
-        if (!child || !child->IsInstanceOf<RSDisplayRenderNode>()) {
+        if (!child || !child->IsInstanceOf<RSScreenRenderNode>()) {
             continue;
         }
-        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (!displayNode) {
+        auto screenNode = child->ReinterpretCastTo<RSScreenRenderNode>();
+        if (!screenNode) {
             continue;
         }
-        if (displayNode->IsMirrorDisplay()) {
+        if (screenNode->IsMirrorScreen()) {
             return true;
         }
     }
@@ -216,14 +216,16 @@ bool RSPointerWindowManager::HasMirrorDisplay() const
 }
 
 void RSPointerWindowManager::CollectAllHardCursor(
-    RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
+    RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSScreenRenderNode>& curScreenNode,
+    std::shared_ptr<RSLogicalDisplayRenderNode>& curDisplayNode)
 {
     if (hardCursorNode.IsHardwareEnabledTopSurface() &&
         (hardCursorNode.ShouldPaint() || hardCursorNode.GetHardCursorStatus())) {
         auto surfaceNodeDrawable =
             std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorNode.GetRenderDrawable());
         if (surfaceNodeDrawable && hardCursorNode.IsOnTheTree()) {
-            hardCursorDrawableMap_.emplace(curDisplayNode->GetId(), hardCursorNode.GetRenderDrawable());
+            hardCursorDrawableVec_.emplace_back(curScreenNode->GetId(),
+                curDisplayNode->GetId(), hardCursorNode.GetRenderDrawable());
         }
     }
 }
@@ -238,11 +240,13 @@ std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager:
     if (hardCursorDrawables.empty()) {
         return nullptr;
     }
-    auto iter = hardCursorDrawables.find(id);
+    auto iter = std::find_if(hardCursorDrawables.begin(), hardCursorDrawables.end(), [id](const auto& node) {
+        return id == std::get<0>(node);
+    });
     if (iter == hardCursorDrawables.end()) {
         return nullptr;
     }
-    auto& hardCursorDrawable = iter->second;
+    auto& hardCursorDrawable = std::get<2>(*iter);
     if (!hardCursorDrawable) {
         return nullptr;
     }

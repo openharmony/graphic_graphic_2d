@@ -21,6 +21,7 @@
 
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "render/rs_render_filter_base.h"
 #include "render/rs_render_radial_gradient_mask.h"
 #include "render/rs_render_pixel_map_mask.h"
@@ -33,6 +34,7 @@ static const std::vector<RSUIFilterType> FILTER_TYPE_WITHOUT_MASK = {
     RSUIFilterType::EDGE_LIGHT_ALPHA,
     RSUIFilterType::EDGE_LIGHT_BLOOM,
     RSUIFilterType::EDGE_LIGHT_COLOR,
+    RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR
 };
 
 void RSRenderEdgeLightFilterPara::CalculateHash()
@@ -45,6 +47,7 @@ void RSRenderEdgeLightFilterPara::CalculateHash()
     hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
     hash_ = hashFunc(&bloom_, sizeof(bloom_), hash_);
     hash_ = hashFunc(&color_, sizeof(color_), hash_);
+    hash_ = hashFunc(&useRawColor_, sizeof(useRawColor_), hash_);
     if (mask_) {
         auto maskHash = mask_->Hash();
         hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
@@ -61,6 +64,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderEdgeLightFilterPara::DeepCopy() 
     copyFilter->bloom_ = bloom_;
     copyFilter->color_ = color_;
     copyFilter->mask_ = mask_;
+    copyFilter->useRawColor_ = useRawColor_;
     copyFilter->CalculateHash();
     return copyFilter;
 }
@@ -81,6 +85,9 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderP
         }
         case RSUIFilterType::EDGE_LIGHT_COLOR: {
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(), 0);
+        }
+        case RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR: {
+            return std::make_shared<RSRenderProperty<bool>>(true, 0);
         }
         case RSUIFilterType::RIPPLE_MASK: {
             return std::make_shared<RSRenderRippleMaskPara>(0);
@@ -245,17 +252,24 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
     // bloom
     auto edgeLightBloom = std::static_pointer_cast<RSRenderProperty<bool>>(
         GetRenderProperty(RSUIFilterType::EDGE_LIGHT_BLOOM));
-    if (edgeLightBloom == nullptr) {
-        return false;
+    if (edgeLightBloom != nullptr) {
+        bloom_ = edgeLightBloom->Get();
     }
-    bloom_ = edgeLightBloom->Get();
-
+    
     // color
     auto edgeLightColor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
         GetRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR));
     if (edgeLightColor != nullptr) {
         color_ = edgeLightColor->Get();
     }
+
+    // bloom
+    auto edgeLightUseRawColor = std::static_pointer_cast<RSRenderProperty<bool>>(
+        GetRenderProperty(RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR));
+    if (edgeLightUseRawColor != nullptr) {
+        useRawColor_ = edgeLightUseRawColor->Get();
+    }
+
     // mask
     if (maskType_ != RSUIFilterType::NONE) {
         auto edgeLightMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderProperty(maskType_));
@@ -276,19 +290,17 @@ void RSRenderEdgeLightFilterPara::GenerateGEVisualEffect(
         return;
     }
 
-    Vector4f color;
-    if (color_.has_value()) {
-        color = color_.value();
+    Vector4f color = color_;
+    if (ROSEN_GNE(color.x_, 1.0f) || ROSEN_GNE(color.y_, 1.0f) || ROSEN_GNE(color.z_, 1.0f)) {
+        color = RSEffectLuminanceManager::GetBrightnessMapping(maxHeadroom_, color);
     }
 
     auto edgeLightShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
         Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_ALPHA, alpha_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_BLOOM, bloom_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_R, color.x_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_G, color.y_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_B, color.z_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_USE_RAW_COLOR, !color_.has_value());
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_COLOR, color);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_USE_RAW_COLOR, useRawColor_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_MASK,
         mask_ != nullptr ? mask_->GenerateGEShaderMask() : nullptr);
     visualEffectContainer->AddToChainedFilter(edgeLightShaderFilter);

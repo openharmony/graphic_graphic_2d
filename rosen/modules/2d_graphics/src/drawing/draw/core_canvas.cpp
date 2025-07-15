@@ -19,6 +19,11 @@
 #include "impl_factory.h"
 #include "utils/log.h"
 
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
+#include "src/utils/SkUTF.h"
+#endif
 namespace OHOS {
 namespace Rosen {
 #define DRAW_API_WITH_PAINT(func, ...)                                                     \
@@ -534,6 +539,33 @@ void CoreCanvas::DrawSingleCharacter(int32_t unicode, const Font& font, scalar x
     }
 }
 
+void CoreCanvas::DrawSingleCharacterWithFeatures(const char* str, const Font& font, scalar x, scalar y,
+    std::shared_ptr<Drawing::DrawingFontFeatures> fontFeatures)
+{
+    std::function<void(int, const Font&)> drawSingleCharacterProc = [&](int currentGlyph, const Font& currentFont) {
+        TextBlobBuilder textBlobBuilder;
+        const TextBlobBuilder::RunBuffer& runBuffer = textBlobBuilder.AllocRunPos(currentFont, 1);
+        runBuffer.glyphs[0] = currentGlyph;
+        runBuffer.pos[0] = 0;
+        runBuffer.pos[1] = 0;
+        std::shared_ptr<TextBlob> textBlob = textBlobBuilder.Make();
+        DrawTextBlob(textBlob.get(), x, y);
+    };
+
+    uint16_t glyph = font.UnicharToGlyphWithFeatures(str, fontFeatures);
+    if (glyph != 0) {
+        drawSingleCharacterProc(glyph, font);
+    } else {
+        const char* currentStr = str;
+        int32_t unicode = SkUTF::NextUTF8(&currentStr, str + strlen(str));
+        std::shared_ptr<Font> fallbackFont = font.GetFallbackFont(unicode);
+        if (fallbackFont) {
+            uint16_t fallbackGlyph = fallbackFont->UnicharToGlyphWithFeatures(str, fontFeatures);
+            drawSingleCharacterProc(fallbackGlyph, *fallbackFont);
+        }
+    }
+}
+
 void CoreCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
 {
 #ifdef DRAWING_DISABLE_API
@@ -721,7 +753,10 @@ CoreCanvas& CoreCanvas::AttachPaint(const Paint& paint)
     paintBrush_.Disable();
     paintPen_ = paint;
 #ifdef RS_ENABLE_GPU
-    paintPen_.SetGPUContext(GetGPUContext());
+    auto shaderEffect = paintPen_.GetShaderEffect();
+    if (shaderEffect != nullptr) {
+        shaderEffect->SetGPUContext(GetGPUContext());
+    }
 #endif
     return *this;
 }

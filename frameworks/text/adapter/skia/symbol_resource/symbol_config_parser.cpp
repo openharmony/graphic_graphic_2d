@@ -18,8 +18,13 @@
 #include <cstdlib>
 #include <functional>
 #include <utility>
-
+namespace OHOS {
+namespace Rosen {
+namespace Symbol {
 namespace {
+
+constexpr char SPECIAL_ANIMATIONS[] = "special_animations";
+constexpr char COMMON_ANIMATIONS[] = "common_animations";
 constexpr char SYMBOL_LAYERS_GROUPING[] = "symbol_layers_grouping";
 constexpr char NATIVE_GLYPH_ID[] = "native_glyph_id";
 constexpr char SYMBOL_GLYPH_ID[] = "symbol_glyph_id";
@@ -47,6 +52,7 @@ const char CURVE_ARGS[] = "curve_args";
 const char DURATION[] = "duration";
 const char DELAY[] = "delay";
 const char PROPERTIES[] = "properties";
+const char SLOPE[] = "slope";
 
 constexpr uint32_t DEFAULT_COLOR_HEX_LEN = 9;
 constexpr uint32_t DEFAULT_COLOR_STR_LEN = 7;
@@ -69,6 +75,7 @@ const std::unordered_map<std::string, RSAnimationType> ANIMATIONS_TYPES = {
     {"pulse", RSAnimationType::PULSE_TYPE},
     {"replace_appear", RSAnimationType::REPLACE_APPEAR_TYPE},
     {"replace_disappear", RSAnimationType::REPLACE_DISAPPEAR_TYPE},
+    {"disable", RSAnimationType::DISABLE_TYPE},
     {"quick_replace_appear", RSAnimationType::QUICK_REPLACE_APPEAR_TYPE},
     {"quick_replace_disappear", RSAnimationType::QUICK_REPLACE_DISAPPEAR_TYPE}
 };
@@ -92,17 +99,41 @@ const std::unordered_map<std::string, RSCommonSubType> SYMBOL_ANIMATION_DIRECTIO
 };
 };
 
+bool SymbolConfigParser::ParseSymbolConfig(const Json::Value& root,
+    std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig,
+    std::unordered_map<RSAnimationType, RSAnimationInfo>& animationInfos)
+{
+    const char* key = nullptr;
+    std::vector<std::string> tags = {COMMON_ANIMATIONS, SPECIAL_ANIMATIONS, SYMBOL_LAYERS_GROUPING};
+    for (unsigned int i = 0; i < tags.size(); i++) {
+        key = tags[i].c_str();
+        if (!root.isMember(key) || !root[key].isArray()) {
+            continue;
+        }
+        if (!strcmp(key, COMMON_ANIMATIONS) || !strcmp(key, SPECIAL_ANIMATIONS)) {
+            if (!ParseSymbolAnimations(root[key], animationInfos)) {
+                return false;
+            }
+        } else if (!strcmp(key, SYMBOL_LAYERS_GROUPING)) {
+            if (!ParseSymbolLayersGrouping(root[key], symbolConfig)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool SymbolConfigParser::ParseSymbolLayersGrouping(const Json::Value& root,
     std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig)
 {
-    if (!root.isMember(SYMBOL_LAYERS_GROUPING) || !root[SYMBOL_LAYERS_GROUPING].isArray()) {
+    if (!root.isArray()) {
         return false;
     }
-    for (uint32_t i = 0; i < root[SYMBOL_LAYERS_GROUPING].size(); i++) {
-        if (!root[SYMBOL_LAYERS_GROUPING][i].isObject()) {
+    for (uint32_t i = 0; i < root.size(); i++) {
+        if (!root[i].isObject()) {
             continue;
         }
-        ParseOneSymbol(root[SYMBOL_LAYERS_GROUPING][i], symbolConfig);
+        ParseOneSymbol(root[i], symbolConfig);
     }
     return true;
 }
@@ -308,6 +339,15 @@ void SymbolConfigParser::ParseAnimationSetting(const Json::Value& root, RSAnimat
     if (root.isMember(GROUP_SETTINGS) && root[GROUP_SETTINGS].isArray()) {
         ParseGroupSettings(root[GROUP_SETTINGS], animationSetting.groupSettings);
     }
+
+    if (root.isMember(COMMON_SUB_TYPE) && root[COMMON_SUB_TYPE].isString()) {
+        const std::string subTypeStr = root[COMMON_SUB_TYPE].asString();
+        MatchCommonSubType(subTypeStr, animationSetting.commonSubType);
+    }
+
+    if (root.isMember(SLOPE) && root[SLOPE].isDouble()) {
+        animationSetting.slope = root[SLOPE].asDouble();
+    }
 }
 
 void SymbolConfigParser::ParseAnimationTypes(const Json::Value& root, std::vector<RSAnimationType>& animationTypes)
@@ -341,6 +381,14 @@ void SymbolConfigParser::ParseGroupSettings(const Json::Value& root, std::vector
         ParseGroupSetting(root[i], groupSetting);
         groupSettings.push_back(groupSetting);
     }
+}
+
+void SymbolConfigParser::MatchCommonSubType(const std::string& subTypeStr, RSCommonSubType& commonSubType)
+{
+    if (SYMBOL_ANIMATION_DIRECTION.count(subTypeStr) == 0) {
+        return;
+    }
+    commonSubType = SYMBOL_ANIMATION_DIRECTION.at(subTypeStr);
 }
 
 void SymbolConfigParser::ParseGroupSetting(const Json::Value& root, RSGroupSetting& groupSetting)
@@ -397,9 +445,12 @@ uint32_t SymbolConfigParser::EncodeAnimationAttribute(uint16_t groupSum,
     return result;
 }
 
-void SymbolConfigParser::ParseSymbolAnimations(const Json::Value& root,
+bool SymbolConfigParser::ParseSymbolAnimations(const Json::Value& root,
     std::unordered_map<RSAnimationType, RSAnimationInfo>& animationInfos)
 {
+    if (!root.isArray()) {
+        return false;
+    }
     for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             continue;
@@ -421,6 +472,7 @@ void SymbolConfigParser::ParseSymbolAnimations(const Json::Value& root,
         ParseSymbolAnimationParas(root[i][ANIMATION_PARAMETERS], animationInfo.animationParas);
         animationInfos.emplace(animationInfo.animationType, animationInfo);
     }
+    return true;
 }
 
 void SymbolConfigParser::ParseSymbolAnimationParas(const Json::Value& root,
@@ -472,10 +524,7 @@ void SymbolConfigParser::ParseSymbolCommonSubType(const char* key, const Json::V
     }
 
     std::string subTypeStr = root[key].asString();
-    if (SYMBOL_ANIMATION_DIRECTION.count(subTypeStr) == 0) {
-        return;
-    }
-    animationPara.commonSubType = SYMBOL_ANIMATION_DIRECTION.at(subTypeStr);
+    MatchCommonSubType(subTypeStr, animationPara.commonSubType);
 }
 
 void SymbolConfigParser::ParseSymbolGroupParas(const char* key, const Json::Value& root,
@@ -596,3 +645,6 @@ void SymbolConfigParser::ParseSymbolProperties(const char* key, const Json::Valu
         piecewiseParameter.properties.emplace(std::string(memberName), propertyValues);
     }
 }
+} // namespace Symbol
+} // namespace Rosen
+} // namespace OHOS

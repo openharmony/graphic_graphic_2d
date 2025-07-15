@@ -36,6 +36,8 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createEffect", CreateEffect),
         DECLARE_NAPI_STATIC_FUNCTION("createBrightnessBlender", CreateBrightnessBlender),
+        DECLARE_NAPI_STATIC_FUNCTION("createHdrBrightnessBlender", CreateHdrBrightnessBlender),
+        DECLARE_NAPI_STATIC_FUNCTION("createShadowBlender", CreateShadowBlender),
     };
  
     napi_value constructor = nullptr;
@@ -211,6 +213,51 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     return nativeObj;
 }
 
+napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateHdrBrightnessBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateHdrBrightnessBlender failed, is not system app");
+        return nullptr;
+    }
+
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[NUM_1];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender parsing input fail"));
+
+    napi_value nativeObj = argv[0];
+    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender nativeObj is nullptr"));
+
+    BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender blender is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckCreateBrightnessBlender(env, nativeObj) &&
+        ParseBrightnessBlender(env, nativeObj, blender), nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender fail"));
+
+    blender->SetHdr(true);
+
+    status = napi_wrap(
+        env, nativeObj, blender,
+        [](napi_env env, void* data, void* hint) {
+            BrightnessBlender* blenderObj = (BrightnessBlender*)data;
+            delete blenderObj;
+        },
+        nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender wrap fail"));
+
+    return nativeObj;
+}
+
 napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
@@ -237,7 +284,7 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateBorderLight para is nullptr"));
 
-    UIEFFECT_NAPI_CHECK_RET_D(GetBorderLight(env, argValue, para), nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(GetBorderLight(env, argValue, argCount, para), nullptr,
         UIEFFECT_LOG_E("EffectNapi GetBorderLight fail"));
 
     float lightIntensity = 0.f;
@@ -257,8 +304,14 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, std::shared_ptr<BorderLightEffectPara>& para)
+bool EffectNapi::GetBorderLight(napi_env env, napi_value *param, size_t length,
+    std::shared_ptr<BorderLightEffectPara>& para)
 {
+    if (length < NUM_2) {
+        UIEFFECT_LOG_E("FilterNapi GetBorderLight array length is less than 2");
+        return false;
+    }
+
     Vector3f lightPosition = {0.0f, 0.0f, 0.0f};
     Vector4f lightColor = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -375,6 +428,94 @@ bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, Brigh
         parseTimes++;
     }
     return (parseTimes == NUM_8);
+}
+
+napi_value EffectNapi::CreateShadowBlender(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateShadowBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateShadowBlender failed, is not system app");
+        return nullptr;
+    }
+
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[NUM_1];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateShadowBlender parsing input fail"));
+
+    napi_value nativeObj = argv[0];
+    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateShadowBlender nativeObj is nullptr"));
+
+    ShadowBlender* blender = new(std::nothrow) ShadowBlender();
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateShadowBlender blender is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckCreateShadowBlender(env, nativeObj) &&
+        ParseShadowBlender(env, nativeObj, blender), nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateShadowBlender parse failed"));
+
+    status = napi_wrap(
+        env, nativeObj, blender,
+        [](napi_env env, void* data, void* hint) {
+            ShadowBlender* blenderObj = (ShadowBlender*)data;
+            delete blenderObj;
+        },
+        nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateShadowBlender wrap fail"));
+
+    return nativeObj;
+}
+
+bool EffectNapi::CheckCreateShadowBlender(napi_env env, napi_value jsObject)
+{
+    bool result = true;
+    napi_status status = napi_has_named_property(env, jsObject, "cubicCoeff", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "quadraticCoeff", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "linearCoeff", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "constantTerm", &result);
+    if (!((status == napi_ok) && result)) {
+        return false;
+    }
+    return true;
+}
+
+bool EffectNapi::ParseShadowBlender(napi_env env, napi_value jsObject, ShadowBlender* blender)
+{
+    double val;
+    int parseTimes = 0;
+    if (ParseJsDoubleValue(env, jsObject, "cubicCoeff", val)) {
+        blender->SetCubicCoeff(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, jsObject, "quadraticCoeff", val)) {
+        blender->SetQuadraticCoeff(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, jsObject, "linearCoeff", val)) {
+        blender->SetLinearCoeff(static_cast<float>(val));
+        parseTimes++;
+    }
+    if (ParseJsDoubleValue(env, jsObject, "constantTerm", val)) {
+        blender->SetConstantTerm(static_cast<float>(val));
+        parseTimes++;
+    }
+    return (parseTimes == NUM_4);
 }
  
 napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_info info)

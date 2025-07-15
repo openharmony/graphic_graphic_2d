@@ -16,7 +16,7 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #ifdef RS_ENABLE_GPU
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #endif
 #include <memory>
 #include "memory/rs_tag_tracker.h"
@@ -40,6 +40,7 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "rs_base_render_engine.h"
+#include "feature/hdr/rs_hdr_util.h"
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef USE_M133_SKIA
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
@@ -52,6 +53,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+constexpr float DEGAMMA = 1.0f / 2.2f;
 
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
@@ -293,7 +295,7 @@ void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& re
     surfaceOhos->SetUiTimeStamp(frame);
 }
 
-void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
+void RSBaseRenderEngine::DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSScreenRenderNode& node,
     BufferDrawParam& params)
 {
     if (params.useCPU) {
@@ -305,14 +307,14 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
         if (!drawable) {
             return;
         }
-        auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-        RegisterDeleteBufferListener(displayDrawable->GetRSSurfaceHandlerOnDraw()->GetConsumer());
+        auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+        RegisterDeleteBufferListener(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetConsumer());
         DrawImage(canvas, params);
     }
 #endif
 }
 
-void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
+void RSBaseRenderEngine::DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
     BufferDrawParam& drawParam)
 {
     if (drawParam.useCPU) {
@@ -510,7 +512,8 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isTmoNitsFixed) {
         parameter.sdrNits = DEFAULT_DISPLAY_NIT;
-        parameter.tmoNits = DEFAULT_DISPLAY_NIT;
+        parameter.tmoNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
+            RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
         parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     } else if (hdrProperties.isHDREnabledVirtualScreen) {
@@ -699,6 +702,28 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: SRGB color gamut drawing completed");
     } else {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+
+    if (params.isHeterog) {
+        RS_LOGD("hdr video comin heterog");
+        float hrRatio = std::pow((params.displayNits / params.sdrNits), DEGAMMA);
+        Drawing::Matrix scaleMat;
+        auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+            Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
+        
+        RSHdrUtil util;
+        auto shader = util.MakeHdrHeadroomShader(hrRatio, imageShader);
+        if (shader == nullptr) {
+            RS_LOGE("RSHdrUtil::MakeHdrHeadroomShader shader is null");
+            return;
+        }
+        params.paint.SetShaderEffect(shader);
+ 
+        canvas.AttachBrush(params.paint);
+        canvas.DrawRect(params.dstRect);
+        canvas.DetachBrush();
+        return;
+    }
+
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying brightness ratio: %{public}.2f", params.brightnessRatio);
@@ -749,6 +774,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         !params.hasMetadata &&
         !rsLuminance.IsScreenNoHeadroom(canvas.GetScreenId())) ||
         !RSSystemProperties::GetHdrVideoEnabled();
+    auto shotType = canvas.GetScreenshotType();
+    if (shotType == RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT) {
+        params.isTmoNitsFixed = false;
+    }
     RS_LOGD_IF(DEBUG_COMPOSER, "- Fix tonemapping: %{public}d", params.isTmoNitsFixed);
 
     Drawing::Matrix matrix;

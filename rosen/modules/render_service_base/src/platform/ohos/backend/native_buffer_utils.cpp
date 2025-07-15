@@ -30,6 +30,9 @@
 
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
+namespace {
+constexpr uint32_t FORMAT_R10G10B10A8 = 0x7FFFFFFF - 255;
+}
 void DeleteVkImage(void* context)
 {
     VulkanCleanupHelper* cleanupHelper = static_cast<VulkanCleanupHelper*>(context);
@@ -253,6 +256,8 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
     if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
         colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+    } else if (nbFormatProps.format == static_cast<VkFormat>(FORMAT_R10G10B10A8)) {
+        colorType = Drawing::ColorType::COLORTYPE_RGBA_1010108;
     }
 
     nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendTexture(

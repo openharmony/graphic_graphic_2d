@@ -22,6 +22,7 @@ public:
     enum BlenderType {
         NONE,
         BRIGHTNESS_BLENDER,
+        SHADOW_BLENDER,
     };
     Blender() = default;
     virtual ~Blender() = default;

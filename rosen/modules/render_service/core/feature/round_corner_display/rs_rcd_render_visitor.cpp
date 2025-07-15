@@ -15,7 +15,6 @@
 
 #include "rs_rcd_render_visitor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "params/rs_display_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "rs_rcd_render_listener.h"

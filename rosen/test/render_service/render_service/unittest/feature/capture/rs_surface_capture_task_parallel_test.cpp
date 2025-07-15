@@ -30,7 +30,8 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -83,7 +84,7 @@ public:
     RSSurfaceCaptureCallbackStubMock() = default;
     virtual ~RSSurfaceCaptureCallbackStubMock() = default;
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        Media::PixelMap* pixelmap) override {};
+        Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR = nullptr) override {};
 };
 
 class RSSurfaceCaptureTaskParallelTest : public testing::Test {
@@ -249,7 +250,29 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestS
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTaskParallel task(0, captureConfig);
     RSDisplayNodeConfig config;
-    std::shared_ptr<RSDisplayRenderNode> node = std::make_shared<RSDisplayRenderNode>(0, config);
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNode003
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode003 with pixelmap is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_EQ(screenNode, nullptr);
+    node->SetAncestorScreenNode(screenNode);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
 }
 

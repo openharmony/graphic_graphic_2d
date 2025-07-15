@@ -72,6 +72,7 @@ using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 using ExportTypeChangedCallback = std::function<void(bool)>;
 using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
+using PropertyNodeChangeCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -81,6 +82,7 @@ class RSObjAbsGeometry;
 class RSUIContext;
 class RSUIFilter;
 class RSNGFilterBase;
+class RSNGShaderBase;
 enum class CancelAnimationStatus;
 
 namespace ModifierNG {
@@ -1168,6 +1170,20 @@ public:
     void SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter);
 
     /**
+     * @brief Sets the background shader.
+     *
+     * @param backgroundShader Indicates the background shader to be applied.
+     */
+    void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
+
+    /**
+     * @brief Sets the foreground shader.
+     *
+     * @param foregroundShader Indicates the foreground shader to be applied.
+     */
+    void SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader);
+
+    /**
      * @brief Sets the filter.
      *
      * @param filter Indicates the filter to be applied.
@@ -1253,6 +1269,13 @@ public:
      */
     void SetFgBrightnessNegCoeff(const Vector4f& coeff);
     void SetFgBrightnessFract(const float& fract);
+
+    /**
+     * @brief Sets the hdr using for foreground brightness.
+     *
+     * @param hdr Indicates the hdr using for foreground brightness.
+     */
+    void SetFgBrightnessHdr(const bool hdr);
 
     /**
      * @brief Sets the parameters for background brightness.
@@ -1370,7 +1393,7 @@ public:
      */
     void SetShadowMask(bool shadowMask);
 
-        /**
+    /**
      * @brief Sets the strategy of the shadow mask.
      *
      * @param strategy Indicates the strategy of the shadow mask.
@@ -1513,7 +1536,7 @@ public:
     void SetUseEffectType(UseEffectType useEffectType);
     void SetAlwaysSnapshot(bool enable);
 
-    void SetEnableHDREffect(bool enableHdrEffect);
+    void SetEnableHDREffect(uint32_t type, bool enableHdrEffect);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -1576,6 +1599,13 @@ public:
      * @param rect Indicates a rectF object representing the drawing region.
      */
     void SetDrawRegion(std::shared_ptr<RectF> rect);
+
+    /**
+     * @brief Sets if need use the cmdlist drawing region for the node.
+     *
+     * @param needUseCmdlistDrawRegion Whether to need use the cmdlist drawing region for this node.
+     */
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
 
     /**
      * @brief Mark the node as a group node for rendering pipeline optimization
@@ -1712,6 +1742,20 @@ public:
 
     static DrawNodeChangeCallback drawNodeChangeCallback_;
     static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    static PropertyNodeChangeCallback propertyNodeChangeCallback_;
+    /**
+     * @brief Sets the callback function for property node change events
+     *
+     * @param callback Function pointer to the callback handler
+     */
+    static void SetPropertyNodeChangeCallback(PropertyNodeChangeCallback callback);
+
+    /**
+     * @brief Enables or disables property node change callback notifications
+     *
+     * @param needCallback Boolean flag to control callback triggering
+     */
+    static void SetNeedCallbackNodeChange(bool needCallback);
     bool GetIsDrawn();
     void SetDrawNode();
     DrawNodeType GetDrawNodeType() const;
@@ -1746,7 +1790,6 @@ public:
      */
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 
-#ifdef RS_ENABLE_VK
     /**
      * @brief Gets whether the canvas enables hybrid rendering.
      *
@@ -1763,7 +1806,6 @@ public:
      * @param hybridRenderCanvas true to enable hybrid rendering; false otherwise.
      */
     virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
-#endif
 
     /**
      * @brief Gets whether the node is on the tree.
@@ -1799,6 +1841,8 @@ protected:
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
+    void DumpModifiers(std::string& out) const;
+
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
@@ -1810,9 +1854,7 @@ protected:
 
     bool drawContentLast_ = false;
 
-#ifdef RS_ENABLE_VK
     bool hybridRenderCanvas_ = false;
-#endif
 
     /**
      * @brief Called when child nodes are added to this node.
@@ -1885,7 +1927,6 @@ protected:
     void SetIsOnTheTree(bool flag);
 
     std::array<std::shared_ptr<ModifierNG::RSModifier>, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNGCreatedBySetter_;
-
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -1966,6 +2007,10 @@ private:
     void SetForegroundBlurRadiusY(float blurRadiusY);
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
+    void SetShadowBlenderParams(const RSShadowBlenderPara& params);
+
+    void NotifyPageNodeChanged();
+    void CheckModifierType(RSModifierType modifierType);
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -1998,10 +2043,6 @@ private:
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
-    void AttachProperty(std::shared_ptr<RSPropertyBase> property);
-    void DettachProperty(PropertyId id);
-    void AttachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
-    void DetachModifierProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
     void DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
 
     /**
@@ -2030,6 +2071,7 @@ private:
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
+    static bool isNeedCallbackNodeChange_;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
@@ -2038,7 +2080,7 @@ private:
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::weak_ptr<RSUIContext> rsUIContext_;
 
-    bool enableHdrEffect_ = false;
+    uint32_t hdrEffectType_ = 0;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

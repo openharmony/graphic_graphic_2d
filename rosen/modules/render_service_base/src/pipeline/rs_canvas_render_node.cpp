@@ -26,7 +26,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
@@ -135,22 +135,6 @@ void RSCanvasRenderNode::OnTreeStateChanged()
 
     // When the canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
     ModifyWindowWideColorGamutNum(IsOnTheTree(), graphicColorGamut_);
-}
-
-bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
-{
-    const auto& property = GetRenderProperties();
-    if (GetSharedTransitionParam() ||
-        property.IsSpherizeValid() ||
-        property.IsAttractionValid() ||
-        property.NeedFilter() ||
-        property.GetUseEffect() ||
-        property.GetColorBlend().has_value() ||
-        (GetOpincCache().IsSuggestOpincNode() &&
-            (ChildHasVisibleFilter() || ChildHasVisibleEffect() || IsSelfDrawingNode()))) {
-        return false;
-    }
-    return true && GetOpincCache().OpincGetSupportFlag();
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -326,22 +310,22 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
 
 // When the HDR node status changed, update the node list in the ancestor display node.
 // Support to add animation on canvas nodes when display node is forced to close HDR.
-void RSCanvasRenderNode::UpdateDisplayHDRNodeList(bool flag, NodeId displayNodeId) const
+void RSCanvasRenderNode::UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid context");
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateScreenHDRNodeList Invalid context");
         return;
     }
-    auto displayNode = context->GetNodeMap().GetRenderNode<RSDisplayRenderNode>(displayNodeId);
-    if (!displayNode) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid displayNode");
+    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(screenNodeId);
+    if (!screenNode) {
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateScreenHDRNodeList Invalid screenNode");
         return;
     }
     if (flag) {
-        displayNode->InsertHDRNode(GetId());
+        screenNode->InsertHDRNode(GetId());
     } else {
-        displayNode->RemoveHDRNode(GetId());
+        screenNode->RemoveHDRNode(GetId());
     }
 }
 
@@ -352,7 +336,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
     if (IsOnTheTree()) {
         SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
-        UpdateDisplayHDRNodeList(hasHdrPresent, GetDisplayNodeId());
+        UpdateScreenHDRNodeList(hasHdrPresent, GetScreenNodeId());
     }
     hasHdrPresent_ = hasHdrPresent;
 }

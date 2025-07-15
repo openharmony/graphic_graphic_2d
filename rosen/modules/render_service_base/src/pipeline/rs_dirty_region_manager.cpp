@@ -191,6 +191,7 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 
 void RSDirtyRegionManager::SetCurrentFrameDirtyRect(const RectI& dirtyRect)
 {
+    currentFrameAdvancedDirtyRegion_ = { dirtyRect };
     currentFrameDirtyRegion_ = dirtyRect;
 }
 

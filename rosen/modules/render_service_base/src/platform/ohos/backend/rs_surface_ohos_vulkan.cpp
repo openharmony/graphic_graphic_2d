@@ -28,6 +28,8 @@
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
 #include "rs_trace.h"
+#include "hetero_hdr/rs_hdr_pattern_manager.h"
+#include "rs_hdr_vulkan_task.h"
 
 #if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
 #include "cpp/ffrt_dynamic_graph.h"
@@ -83,7 +85,7 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
     if (RSSystemProperties::GetAFBCEnabled() && !isProtected) {
         int32_t format = 0;
         NativeWindowHandleOpt(mNativeWindow, GET_FORMAT, &format);
-        if (format == GRAPHIC_PIXEL_FMT_RGBA_8888 && useAFBC) {
+        if ((format == GRAPHIC_PIXEL_FMT_RGBA_8888 || format == GRAPHIC_PIXEL_FMT_RGBA_1010108) && useAFBC) {
             bufferUsage_ =
                 (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
         }
@@ -436,6 +438,22 @@ void SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& curFrameId, const uin
 }
 #endif
 
+void RSSurfaceOhosVulkan::PrepareHdrSemaphoreVector(
+    GrBackendSemaphore& backendSemaphore, NativeBufferUtils::NativeSurfaceInfo& surface,
+    std::vector<uint64_t> &frameIdVec,
+    std::vector<GrBackendSemaphore> &semphoreVec)
+{
+    VkSemaphore notifySemaphore;
+    for (auto frameId : frameIdVec) {
+        if (RSHDRVulkanTask::GetHTSNotifySemaphore(notifySemaphore, frameId)) {
+            GrBackendSemaphore htsSemaphore;
+            htsSemaphore.initVulkan(notifySemaphore);
+            semphoreVec.emplace_back(std::move(htsSemaphore));
+        }
+        RSHDRVulkanTask::InsertHTSWaitSemaphore(surface.drawingSurface, frameId);
+    }
+}
+
 bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     if (mSurfaceList.empty()) {
@@ -461,13 +479,13 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     }
 
     auto& surface = mSurfaceMap[mSurfaceList.front()];
-
     RSTagTracker tagTracker(mSkContext, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
-
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
-
     std::vector<GrBackendSemaphore> semphoreVec = {backendSemaphore};
+    std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGpuTask();
 
+    PrepareHdrSemaphoreVector(backendSemaphore, surface, frameIdVec, semphoreVec);
+   
 #if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
     RSHpaeScheduler::GetInstance().WaitBuildTask();
     uint32_t event_handle = 0;
@@ -500,6 +518,10 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         RSTimer timer("Submit", 50); // 50ms
         mSkContext->Submit();
         mSkContext->EndFrame();
+    }
+    
+    for (auto frameId : frameIdVec) {
+        RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
     }
 
     int fenceFd = -1;

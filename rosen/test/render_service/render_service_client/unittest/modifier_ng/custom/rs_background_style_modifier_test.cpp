@@ -50,5 +50,6 @@ HWTEST_F(RSBackgroundStyleModifierNGTypeTest, RSBackgroundStyleModifierTest, Tes
     ModifierNG::RSDrawingContext context;
     modifier->Draw(context);
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::BACKGROUND_STYLE);
+    EXPECT_EQ(modifier->GetInnerPropertyType(), ModifierNG::RSPropertyType::BACKGROUND_STYLE);
 }
 } // namespace OHOS::Rosen

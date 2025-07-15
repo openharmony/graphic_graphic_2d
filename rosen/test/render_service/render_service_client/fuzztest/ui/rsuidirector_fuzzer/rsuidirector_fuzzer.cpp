@@ -68,7 +68,10 @@ const uint8_t DO_GET_INDEX = 33;
 const uint8_t DO_DUMP_NODE_TREE_PROCESSOR = 34;
 const uint8_t DO_POST_DELAY_TASK = 35;
 const uint8_t DO_SET_TYPICAL_RESIDENT_PROCESS = 36;
-const uint8_t TARGET_SIZE = 37;
+const uint8_t DO_IS_HYBRID_RENDER_ENABLED = 37;
+const uint8_t DO_GET_HYBRID_RENDER_SWITCH = 38;
+const uint8_t DO_GET_HYBRID_RENDER_TEXTBLOB_LEN_COUNT = 39;
+const uint8_t TARGET_SIZE = 40;
 
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
@@ -120,6 +123,7 @@ void DoGoForeground(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     bool isTextureExport = GetData<bool>();
     director->GoForeground(isTextureExport);
+    director->StartTextureExport();
 }
 
 void DoInit(const uint8_t* data, size_t size)
@@ -184,6 +188,9 @@ void DoSetRoot(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     NodeId root = GetData<NodeId>();
     director->SetRoot(root);
+
+    auto rootNode = std::make_shared<RSRootNode>(root);
+    director->SetRSRootNode(rootNode);
 }
 
 void DoSetUITaskRunner(const uint8_t* data, size_t size)
@@ -293,6 +300,10 @@ void DoRecvMessages002(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
+    NodeId id = GetData<NodeId>();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
+    cmds->AddCommand(command, id, FollowType::FOLLOW_TO_SELF);
+    
     director->RecvMessages(cmds);
 }
 
@@ -366,6 +377,25 @@ void DoSetTypicalResidentProcess(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     bool isTypicalResidentProcess = GetData<bool>();
     director->SetTypicalResidentProcess(isTypicalResidentProcess);
+}
+
+void DoIsHybridRenderEnabled(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->IsHybridRenderEnabled();
+}
+
+void DoGetHybridRenderSwitch(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ComponentEnableSwitch bitSeq = GetData<ComponentEnableSwitch>();
+    director->GetHybridRenderSwitch(bitSeq);
+}
+
+void DoGetHybridRenderTextBlobLenCount(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->GetHybridRenderTextBlobLenCount();
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -489,6 +519,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_TYPICAL_RESIDENT_PROCESS:
             OHOS::Rosen::DoSetTypicalResidentProcess(data, size);
+            break;
+        case OHOS::Rosen::DO_IS_HYBRID_RENDER_ENABLED:
+            OHOS::Rosen::DoIsHybridRenderEnabled(data, size);
+            break;
+        case OHOS::Rosen::DO_GET_HYBRID_RENDER_SWITCH:
+            OHOS::Rosen::DoGetHybridRenderSwitch(data, size);
+            break;
+        case OHOS::Rosen::DO_GET_HYBRID_RENDER_TEXTBLOB_LEN_COUNT:
+            OHOS::Rosen::DoGetHybridRenderTextBlobLenCount(data, size);
             break;
         default:
             return -1;

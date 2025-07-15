@@ -59,7 +59,7 @@ public:
 
     void SetIndex(int16_t index)
     {
-        Setter<RSProperty>(RSPropertyType::CUSTOM_INDEX, index);
+        Setter<RSProperty, int16_t>(RSPropertyType::CUSTOM_INDEX, index);
     }
 
 protected:

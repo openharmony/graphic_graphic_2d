@@ -36,8 +36,10 @@ void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std:
     std::vector<RectI> rectIs)
 {
     std::lock_guard<std::mutex> lock(activeMtx_);
-    for (const auto& rectI : rectIs) {
+    if (rectIs.size() > 0) {
         ++activeDirtyRegionInfoMap_[id].activeFramesNumber;
+    }
+    for (const auto& rectI : rectIs) {
         activeDirtyRegionInfoMap_[id].activeDirtyRegionArea += rectI.width_ * rectI.height_;
         activeDirtyRegionInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
         activeDirtyRegionInfoMap_[id].windowName = windowName;

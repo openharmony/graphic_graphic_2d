@@ -1580,8 +1580,8 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation001, TestSize.Level1)
      * @tc.steps: step2.2 test Text FLip animation with valid animation parameters
      */
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-    parameters.push_back({DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS});
-    parameters.push_back({APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS});
+    parameters.push_back({DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS, TRANSITION_FIRST_PARAS});
+    parameters.push_back({APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS, TRANSITION_SECOND_PARAS});
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
     symbolAnimationConfig->parameters = parameters;
     bool flag1 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
@@ -1603,8 +1603,8 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
      * @tc.steps: step1. init data
      */
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-    parameters.push_back({DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS});
-    parameters.push_back({APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS});
+    parameters.push_back({DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS, BLUR_FIRST_PARAS});
+    parameters.push_back({APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS, BLUR_SECOND_PARAS});
     auto symbolAnimation = RSSymbolAnimation();
     symbolAnimation.SetNode(rootNode);
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
@@ -1782,6 +1782,8 @@ HWTEST_F(RSSymbolAnimationTest, TranslateAnimationBase, TestSize.Level1)
     Drawing::DrawingPiecewiseParameter flipParameter1 = TRANSITION_FIRST_PARAS;
     flipParameter1.duration = 0;
     flipParameter1.delay = 300; // 300 is animation delay
+    FrameRateRange range = {60, 60, 60}; // the fixed frame rate is 60 of text flip animation
+    symbolAnimation.range_ = range;
     symbolAnimation.TranslateAnimationBase(canvasNode, translateProperty, flipParameter1, groupAnimation);
     EXPECT_FALSE(groupAnimation.empty());
     NotifyStartAnimation();
@@ -1834,7 +1836,8 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation004, TestSize.Level1) {
     auto symbolAnimation = RSSymbolAnimation();
     symbolAnimation.SetNode(rootNode);
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
-    symbolAnimationConfig->symbolNodes.resize(1); // symbolNodes size is 3
+    symbolAnimationConfig->symbolNodes.resize(3); // symbolNodes size is 3
+    symbolAnimationConfig->numNodes = 3;
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::DISABLE;
     bool result = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
     EXPECT_FALSE(result);
@@ -1976,6 +1979,22 @@ HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation002, TestSize.Level1) {
 
     rootNode->canvasNodesListMap_[symbolId][symbolId] = nullptr;
     result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters, rootNode);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetDisableAnimation003
+ * @tc.desc: Test SetDisableAnimation by symbolNodes with path and parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation003, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    InitSymbolConfigData();
+    bool result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_);
     EXPECT_FALSE(result);
 }
 

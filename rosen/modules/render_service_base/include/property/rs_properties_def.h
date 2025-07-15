@@ -31,6 +31,8 @@ class RSShader;
 
 constexpr float INVALID_INTENSITY = -1.f;
 constexpr int RGB_NUM = 3;
+constexpr float SHADOW_BLENDER_LOWER_LIMIT = -100.f;
+constexpr float SHADOW_BLENDER_UPPER_LIMIT = 100.f;
 
 enum class Gravity {
     CENTER = 0,
@@ -123,11 +125,12 @@ struct RSDynamicBrightnessPara {
     Vector4f posCoeff_ {};
     Vector4f negCoeff_ {};
     float fraction_ = 1.0;
+    bool enableHdr_ = false;
 
     RSDynamicBrightnessPara() = default;
 
     RSDynamicBrightnessPara(float rate, float lightUpDegree, float cubicCoeff, float quadCoeff,
-        float saturation, std::array<float, RGB_NUM> posRGB, std::array<float, RGB_NUM> negRGB)
+        float saturation, std::array<float, RGB_NUM> posRGB, std::array<float, RGB_NUM> negRGB, bool enableHdr = false)
     {
         constexpr size_t INDEX_0 = 0;
         constexpr size_t INDEX_1 = 1;
@@ -137,6 +140,7 @@ struct RSDynamicBrightnessPara {
         posCoeff_ = Vector4f(posRGB[INDEX_0], posRGB[INDEX_1], posRGB[INDEX_2], 0.0f);
         negCoeff_ =  Vector4f(negRGB[INDEX_0], negRGB[INDEX_1], negRGB[INDEX_2], 0.0f);
         fraction_ = 1.0f;
+        enableHdr_ = enableHdr;
     }
 
     inline bool IsValid() const
@@ -148,6 +152,32 @@ struct RSDynamicBrightnessPara {
     {
         return (rates_ == other.rates_ && saturation_ == other.saturation_ && posCoeff_ == other.posCoeff_ &&
             negCoeff_ == other.negCoeff_ && fraction_ == other.fraction_);
+    }
+};
+
+struct RSShadowBlenderPara {
+    float cubic_ = 0.0f;
+    float quadratic_ = 0.0f;
+    float linear_ = 0.0f;
+    float constant_ = 0.0f;
+
+    RSShadowBlenderPara() = default;
+
+    RSShadowBlenderPara(float cubic, float quadratic, float linear, float constant)
+        : cubic_(cubic), quadratic_(quadratic), linear_(linear), constant_(constant) {}
+
+    inline bool IsValid() const
+    {
+        return ROSEN_GNE(cubic_, SHADOW_BLENDER_LOWER_LIMIT) && ROSEN_LNE(cubic_, SHADOW_BLENDER_UPPER_LIMIT) &&
+            ROSEN_GNE(quadratic_, SHADOW_BLENDER_LOWER_LIMIT) && ROSEN_LNE(quadratic_, SHADOW_BLENDER_UPPER_LIMIT) &&
+            ROSEN_GNE(linear_, SHADOW_BLENDER_LOWER_LIMIT) && ROSEN_LNE(linear_, SHADOW_BLENDER_UPPER_LIMIT) &&
+            ROSEN_GNE(constant_, SHADOW_BLENDER_LOWER_LIMIT) && ROSEN_LNE(constant_, SHADOW_BLENDER_UPPER_LIMIT);
+    }
+
+    bool operator==(const RSShadowBlenderPara& other) const
+    {
+        return (cubic_ == other.cubic_ && quadratic_ == other.quadratic_ &&
+            linear_ == other.linear_ && constant_ == other.constant_);
     }
 };
 

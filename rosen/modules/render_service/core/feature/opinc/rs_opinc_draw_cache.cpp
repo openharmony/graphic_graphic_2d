@@ -19,6 +19,7 @@
 #endif
 #include "common/rs_optional_trace.h"
 #include "feature_cfg/feature_param/performance_feature/opinc_param.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
 #include "string_utils.h"
 namespace OHOS::Rosen::DrawableV2 {
@@ -34,9 +35,14 @@ constexpr float RECT_PEN_ALPHA = 0.2f;
 constexpr float DFX_FONT_SIZE = 30.f;
 }
 
+bool RSOpincDrawCache::IsAutoCacheEnable()
+{
+    return RSOpincManager::Instance().GetOPIncSwitch();
+}
+
 bool RSOpincDrawCache::IsAutoCacheDebugEnable()
 {
-    return RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
+    return RSSystemProperties::GetAutoCacheDebugEnabled() && IsAutoCacheEnable();
 }
 
 int32_t RSOpincDrawCache::GetOpincCacheMaxWidth() const
@@ -56,7 +62,7 @@ void RSOpincDrawCache::OpincCalculateBefore(Drawing::Canvas& canvas,
 #ifdef RS_ENABLE_GPU
     isOpincDropNodeExtTemp_ = isOpincDropNodeExt;
     isOpincCaculateStart_ = false;
-    if (autoCacheEnable_ && IsOpListDrawAreaEnable()) {
+    if (IsAutoCacheEnable() && IsOpListDrawAreaEnable()) {
         isOpincCaculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
         isOpincDropNodeExt = false;
     }
@@ -178,7 +184,7 @@ void RSOpincDrawCache::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
     const RSRenderParams& params, bool& isOpincDropNodeExt)
 {
 #ifdef RS_ENABLE_GPU
-    if (autoCacheEnable_ && !params.OpincGetRootFlag()) {
+    if (IsAutoCacheEnable() && !params.OpincGetRootFlag()) {
         return;
     }
     auto size = params.GetCacheSize();
@@ -201,7 +207,7 @@ void RSOpincDrawCache::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
 
 void RSOpincDrawCache::BeforeDrawCache(Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt)
 {
-    if (!autoCacheEnable_) {
+    if (!IsAutoCacheEnable()) {
         return;
     }
     temNodeStragyType_ = nodeCacheType_;
@@ -245,7 +251,7 @@ bool RSOpincDrawCache::IsOpincNodeInScreenRect(RSRenderParams& params)
 void RSOpincDrawCache::AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt,
     int& opincRootTotalCount)
 {
-    if (!autoCacheEnable_) {
+    if (!IsAutoCacheEnable()) {
         return;
     }
     OpincCalculateAfter(canvas, isOpincDropNodeExt);
@@ -256,12 +262,10 @@ void RSOpincDrawCache::AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& p
         if (IsTranslate(totalMatrix) && (ROSEN_EQ(rootAlpha, 0.0f) || ROSEN_EQ(rootAlpha, 1.0f))) {
             isOnlyTranslate = true;
         }
-        if (autoCacheEnable_) {
-            if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_ENABLE && isOnlyTranslate) {
-                recordState_ = NodeRecordState::RECORD_CACHING;
-            } else if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_DISABLE) {
-                NodeCacheStateDisable();
-            }
+        if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_ENABLE && isOnlyTranslate) {
+            recordState_ = NodeRecordState::RECORD_CACHING;
+        } else if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_DISABLE) {
+            NodeCacheStateDisable();
         }
     } else if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE &&
         recordState_ == NodeRecordState::RECORD_CACHING) {

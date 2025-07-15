@@ -30,8 +30,8 @@ namespace Rosen {
 // 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, elsewise it will not work
 // 3. Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //    If a command is not used and you want to delete it, just COMMENT it
-// 4. MAX_RS_MODIFIER_TYPE always MUST be equla (GREATEST_ID_VALUE_IN_ENUM + 1)
-//    Example: If you added new enum value which id equal 400 and it greatest value in enum,
+// 4. MAX_RS_MODIFIER_TYPE always MUST be equal (GREATEST_ID_VALUE_IN_ENUM + 1)
+//    Example: If you added new enum value which id equals 400 and is the greatest value in enum,
 //    you HAVE TO change MAX_RS_MODIFIER_TYPE id to 401
 enum class RSModifierType : uint16_t {
     INVALID = 0,
@@ -176,6 +176,8 @@ enum class RSModifierType : uint16_t {
     HDR_BRIGHTNESS_FACTOR = 139,
     FOREGROUND_NG_FILTER = 140,
     BACKGROUND_NG_FILTER = 141,
+    FG_BRIGHTNESS_HDR = 142,
+    SHADOW_BLENDER_PARAMS = 143,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -264,6 +266,7 @@ public:
             case RSModifierType::FG_BRIGHTNESS_POSCOEFF: return "FgBrightnessPoscoeff";
             case RSModifierType::FG_BRIGHTNESS_NEGCOEFF: return "FgBrightnessNegcoeff";
             case RSModifierType::FG_BRIGHTNESS_FRACTION: return "FgBrightnessFraction";
+            case RSModifierType::FG_BRIGHTNESS_HDR: return "FgBrightnessHdr";
             case RSModifierType::BG_BRIGHTNESS_RATES: return "BgBrightnessRates";
             case RSModifierType::BG_BRIGHTNESS_SATURATION: return "BgBrightnessSaturation";
             case RSModifierType::BG_BRIGHTNESS_POSCOEFF: return "BgBrightnessPoscoeff";
@@ -351,6 +354,7 @@ public:
             case RSModifierType::HDR_BRIGHTNESS_FACTOR: return "HDRBrightnessFactor";
             case RSModifierType::BACKGROUND_NG_FILTER: return "BackgroundNgFilter";
             case RSModifierType::FOREGROUND_NG_FILTER: return "ForegroundNgFilter";
+            case RSModifierType::SHADOW_BLENDER_PARAMS: return "ShadowBlenderParams";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

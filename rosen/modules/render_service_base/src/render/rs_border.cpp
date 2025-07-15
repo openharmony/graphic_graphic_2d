@@ -444,7 +444,7 @@ void RSBorder::DrawBorders(Drawing::Canvas& canvas, Drawing::Pen& pen, RSBorderG
             DrawBorderImpl(canvas, pen, borderGeo, RSBorder::BOTTOM, RSBorder::LEFT);
             break;
 
-        case 0b0101: // RB same, LT same
+        case 0b0101: // TR same, BL same
             DrawBorderImpl(canvas, pen, borderGeo, RSBorder::TOP, RSBorder::RIGHT);
             DrawBorderImpl(canvas, pen, borderGeo, RSBorder::BOTTOM, RSBorder::LEFT);
             break;

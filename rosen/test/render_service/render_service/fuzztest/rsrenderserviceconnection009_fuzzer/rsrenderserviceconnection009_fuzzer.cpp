@@ -21,35 +21,35 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <fuzzer/FuzzedDataProvider.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 #include <unistd.h>
 #include <unordered_map>
 
-#include "accesstoken_kit.h"
-#ifdef SUPPORT_ACCESS_TOKEN
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
-#endif
-#include "ipc_object_proxy.h"
-#include "ipc_object_stub.h"
-#include "iremote_object.h"
 #include "message_parcel.h"
 #include "securec.h"
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
-#endif
-#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
-#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
-#include "platform/ohos/rs_render_service_connect_hub.cpp"
-#include "screen_manager/rs_screen_manager.h"
-#include "transaction/rs_render_service_client.h"
+#include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
+DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
+auto g_pid = getpid();
+auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+auto mainThread_ = RSMainThread::Instance();
+sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+
+DVSyncFeatureParam dvsyncParam;
+auto generator = CreateVSyncGenerator();
+auto appVSyncController = new VSyncController(generator, 0);
+sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
+sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
 const uint8_t DO_SHOW_WATERMARK = 0;
 const uint8_t DO_SET_WATERMARK = 1;
@@ -120,22 +120,38 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 } // namespace Mock
 
 void DoShowWatermark()
-{}
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    bool isShow = GetData<bool>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBool(isShow);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 
 void DoSetWatermark()
-{}
+{
+    std::string name = "name";
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    dataP.WriteString(name);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK);
+    if (connectionStub_ == nullptr) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+}
 
 void DoRegisterTransactionDataCallback()
 {
-    if (data == nullptr) {
-        return;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;

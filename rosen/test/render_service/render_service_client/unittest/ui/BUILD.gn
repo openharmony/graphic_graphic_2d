@@ -59,10 +59,6 @@ ohos_unittest("RSCanvasNodeTest") {
 
   sources = [ "rs_canvas_node_test.cpp" ]
 
-  if (graphic_2d_feature_enable_vulkan) {
-    defines = [ "RS_ENABLE_VK" ]
-  }
-
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
   configs = [
@@ -170,10 +166,6 @@ ohos_unittest("RSNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_node_test.cpp" ]
-
-  if (graphic_2d_feature_enable_vulkan) {
-    defines = [ "RS_ENABLE_VK" ]
-  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 

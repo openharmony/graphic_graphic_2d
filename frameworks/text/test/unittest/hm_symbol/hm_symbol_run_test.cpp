@@ -130,6 +130,33 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level0)
 }
 
 /*
+ * @tc.name: DrawSymbol004
+ * @tc.desc: test DrawSymbol for custom symbol
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawSymbol004, TestSize.Level0)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint paint_ = {100, 100};              // 100, 100 is the offset
+    const char* str = "A"; // "A" is Glyphs
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolType(SymbolType::CUSTOM);
+    symbolTxt.SetSymbolEffect(RSEffectStrategy::REPLACE_APPEAR);
+    symbolTxt.SetAnimationMode(1); // the 1 is the byLayer or iterative effect
+
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) { return true; };
+
+    HMSymbolRun hmSymbolRun = HMSymbolRun(2, symbolTxt, textblob, animationFunc);
+    hmSymbolRun.SetAnimationStart(true);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+}
+
+/*
  * @tc.name: SetSymbolRenderColor001
  * @tc.desc: test SetSymbolRenderColor with multi colors
  * @tc.type: FUNC

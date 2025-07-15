@@ -49,6 +49,7 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
             auto iter = config.videoExtPath.find(status);
             if (iter != config.videoExtPath.end()) {
                 config.videoDefaultPath = iter->second;
+                config.screenStatus = status;
             }
             LOGI("status: %{public}s, videoDefaultPath: %{public}s", status.c_str(), config.videoDefaultPath.c_str());
         }

@@ -22,6 +22,7 @@
 #include "utils/matrix.h"
 
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render_thread/rs_base_render_engine.h"
 
@@ -29,11 +30,10 @@ namespace OHOS {
 namespace Rosen {
 class RSRcdSurfaceRenderNode;
 #ifdef RS_ENABLE_GPU
-class RSDisplayRenderParams;
+class RSScreenRenderParams;
 #endif
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
-class RSDisplayRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
 }
 class RSProcessor : public std::enable_shared_from_this<RSProcessor> {
@@ -49,18 +49,19 @@ public:
 
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
-    virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+    virtual bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
-    virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
+    virtual void ProcessScreenSurface(RSScreenRenderNode& node) = 0;
     virtual void PostProcess() = 0;
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
 
-    virtual bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
+    virtual bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    virtual bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
     virtual void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
-    virtual void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) {}
+    virtual void ProcessScreenSurfaceForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable) {}
     virtual void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
     virtual void ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) {}
 
@@ -95,11 +96,16 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
 
+    // hpae offline
+    virtual bool ProcessOfflineLayer(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
+        bool async) { return false; }
+    virtual bool ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNode>& node) { return false; }
+
 protected:
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
-    void CalculateScreenTransformMatrix(const RSDisplayRenderNode& node);
-    void SetMirrorScreenSwap(const RSDisplayRenderNode& node);
+    void CalculateScreenTransformMatrix(const RSScreenRenderNode& node);
+    void SetMirrorScreenSwap(const RSScreenRenderNode& node);
     void CalculateMirrorAdaptiveMatrix();
 
     void RequestPerf(uint32_t layerLevel, bool onOffTag);
@@ -119,6 +125,7 @@ protected:
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;
+    bool isMirror_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

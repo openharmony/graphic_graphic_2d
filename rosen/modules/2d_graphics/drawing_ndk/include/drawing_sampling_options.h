@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,6 +82,17 @@ typedef enum {
  * @version 1.0
  */
 OH_Drawing_SamplingOptions* OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMode, OH_Drawing_MipmapMode);
+
+/**
+ * @brief Creates an <b>OH_Drawing_SamplingOptions</b> copy object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param samplingOptions Indicates the pointer to an <b>OH_Drawing_SamplingOptions</b> object.
+ * @return Returns the pointer to the <b>OH_Drawing_SamplingOptions</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_SamplingOptions* OH_Drawing_SamplingOptionsCopy(OH_Drawing_SamplingOptions* samplingOptions);
 
 /**
  * @brief Destroys an <b>OH_Drawing_SamplingOptions</b> object and reclaims the memory occupied by the object.

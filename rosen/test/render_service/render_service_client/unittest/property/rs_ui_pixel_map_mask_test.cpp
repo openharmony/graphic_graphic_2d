@@ -14,7 +14,6 @@
 */
 
 #include "gtest/gtest.h"
-#include "platform/image_native/pixel_map.h"
 #include "render/rs_render_pixel_map_mask.h"
 #include "ui_effect/property/include/rs_ui_pixel_map_mask.h"
 #include "ui_effect/mask/include/pixel_map_mask_para.h"

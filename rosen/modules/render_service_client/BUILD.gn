@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 import("render_service_client.gni")
@@ -134,6 +135,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/appearance/rs_visibility_modifier.cpp",
       "core/modifier_ng/background/rs_background_color_modifier.cpp",
       "core/modifier_ng/background/rs_background_image_modifier.cpp",
+      "core/modifier_ng/background/rs_background_ng_shader_modifier.cpp",
       "core/modifier_ng/background/rs_background_shader_modifier.cpp",
       "core/modifier_ng/custom/rs_background_style_modifier.cpp",
       "core/modifier_ng/custom/rs_content_style_modifier.cpp",
@@ -143,6 +145,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/custom/rs_transition_style_modifier.cpp",
       "core/modifier_ng/foreground/rs_env_foreground_color_modifier.cpp",
       "core/modifier_ng/foreground/rs_foreground_color_modifier.cpp",
+      "core/modifier_ng/foreground/rs_foreground_shader_modifier.cpp",
       "core/modifier_ng/geometry/rs_bounds_clip_modifier.cpp",
       "core/modifier_ng/geometry/rs_bounds_modifier.cpp",
       "core/modifier_ng/geometry/rs_frame_clip_modifier.cpp",
@@ -190,6 +193,22 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_director.cpp",
 
       #ui_effect
+      "core/ui_effect/effect/src/visual_effect_para.cpp",
+      "core/ui_effect/effect/src/visual_effect_unmarshalling_singleton.cpp",
+      "core/ui_effect/effect/src/visual_effect.cpp",
+      "core/ui_effect/filter/src/filter_content_light_para.cpp",
+      "core/ui_effect/filter/src/filter_direction_light_para.cpp",
+      "core/ui_effect/filter/src/filter_dispersion_para.cpp",
+      "core/ui_effect/filter/src/filter_displacement_distort_para.cpp",
+      "core/ui_effect/filter/src/filter_mask_transition_para.cpp",
+      "core/ui_effect/filter/src/filter_para.cpp",
+      "core/ui_effect/filter/src/filter_unmarshalling_singleton.cpp",
+      "core/ui_effect/filter/src/filter_water_ripple_para.cpp",
+      "core/ui_effect/filter/src/filter.cpp",
+      "core/ui_effect/mask/src/mask_para.cpp",
+      "core/ui_effect/mask/src/mask_unmarshalling_singleton.cpp",
+      "core/ui_effect/mask/src/pixel_map_mask_para.cpp",
+      "core/ui_effect/mask/src/radial_gradient_mask_para.cpp",
       "core/ui_effect/property/src/rs_ui_bezier_warp_filter.cpp",
       "core/ui_effect/property/src/rs_ui_blur_filter.cpp",
       "core/ui_effect/property/src/rs_ui_color_gradient_filter.cpp",
@@ -200,10 +219,12 @@ template("render_service_client_source_set") {
       "core/ui_effect/property/src/rs_ui_filter_base.cpp",
       "core/ui_effect/property/src/rs_ui_filter_para_base.cpp",
       "core/ui_effect/property/src/rs_ui_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_mask_base.cpp",
       "core/ui_effect/property/src/rs_ui_mask_para.cpp",
       "core/ui_effect/property/src/rs_ui_pixel_map_mask.cpp",
       "core/ui_effect/property/src/rs_ui_radial_gradient_mask.cpp",
       "core/ui_effect/property/src/rs_ui_ripple_mask.cpp",
+      "core/ui_effect/property/src/rs_ui_shader_base.cpp",
       "core/ui_effect/property/src/rs_ui_sound_wave_filter.cpp",
     ]
 
@@ -256,7 +277,10 @@ template("render_service_client_source_set") {
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+      deps += [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$rosen_text_root:rosen_text",
+      ]
       if (rs_enable_gpu) {
         defines += [ "RS_ENABLE_GPU" ]
       }
@@ -267,6 +291,7 @@ template("render_service_client_source_set") {
 
     if (is_arkui_x) {
       defines += [ "ARKUI_X_ENABLE" ]
+      deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
     }
 
     if (rosen_is_ohos) {
@@ -312,6 +337,10 @@ template("render_service_client_source_set") {
       external_deps += [ "hilog:libhilog" ]
     } else {
       external_deps = [ "hilog:libhilog" ]
+    }
+
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      external_deps += [ "jsoncpp:jsoncpp" ]
     }
 
     external_deps += [ "graphic_surface:surface_headers" ]

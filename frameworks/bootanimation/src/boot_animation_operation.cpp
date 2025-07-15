@@ -89,7 +89,7 @@ std::thread& BootAnimationOperation::GetThread()
 bool BootAnimationOperation::InitRsDisplayNode()
 {
     LOGI("InitRsDisplayNode start");
-    OHOS::Rosen::RSDisplayNodeConfig config = {currentScreenId_, false, 0};
+    OHOS::Rosen::RSDisplayNodeConfig config = { currentScreenId_ };
     rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
     rsUIDirector_->Init(false, false);
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
@@ -98,10 +98,10 @@ bool BootAnimationOperation::InitRsDisplayNode()
         LOGE("init display node failed");
         return false;
     }
-    rsDisplayNode_->SetDisplayOffset(0, 0);
     rsDisplayNode_->SetFrame(0, 0, windowWidth_, windowHeight_);
     rsDisplayNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
     rsDisplayNode_->SetBootAnimation(true);
+    rsDisplayNode_->SetBackgroundColor(0xFF000000);
     if (rsUIContext != nullptr) {
         auto transaction = rsUIContext->GetRSTransaction();
         if (transaction == nullptr) {

@@ -25,6 +25,7 @@ ohos_unittest("RSRenderServiceClientCustomModifierNGTest") {
     "rs_foreground_style_modifier_test.cpp",
     "rs_node_modifier_test.cpp",
     "rs_transition_style_modifier_test.cpp",
+    "rs_custom_modifier_test.cpp",
   ]
 
   include_dirs = [

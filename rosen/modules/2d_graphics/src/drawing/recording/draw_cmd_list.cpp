@@ -851,6 +851,40 @@ const std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::GetDrawOpItems() con
     std::vector<std::shared_ptr<DrawOpItem>> drawOpItems(drawOpItems_);
     return drawOpItems;
 }
+
+RectF DrawCmdList::GetCmdlistDrawRegion()
+{
+    Rect cmdlistDrawRegion;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        for (const auto& op : drawOpItems_) {
+            if (!op) {
+                continue;
+            }
+            const auto& type = op->GetType();
+            switch (type) {
+                // dst opItem
+                case DrawOpItem::PATH_OPITEM:
+                case DrawOpItem::TEXT_BLOB_OPITEM:
+                case DrawOpItem::RECT_OPITEM:
+                    cmdlistDrawRegion.Join(op->GetOpItemCmdlistDrawRegion());
+                    break;
+                // not dst opItem, but will appear in dst scene
+                case DrawOpItem::CLIP_RECT_OPITEM:
+                case DrawOpItem::CLIP_ROUND_RECT_OPITEM:
+                case DrawOpItem::CONCAT_MATRIX_OPITEM:
+                case DrawOpItem::SCALE_OPITEM:
+                case DrawOpItem::SAVE_OPITEM:
+                case DrawOpItem::RESTORE_OPITEM:
+                case DrawOpItem::PIXELMAP_RECT_OPITEM:
+                    break;
+                default:
+                    return Rect(0, 0, 0, 0);
+            }
+        }
+    }
+    return cmdlistDrawRegion;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

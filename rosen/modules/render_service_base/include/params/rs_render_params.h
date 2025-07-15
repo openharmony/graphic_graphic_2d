@@ -46,7 +46,6 @@ struct DirtyRegionInfoForDFX {
     }
 };
 struct RSLayerInfo;
-struct ScreenInfo;
 
 typedef enum {
     RS_PARAM_DEFAULT,
@@ -102,6 +101,9 @@ public:
 
     const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
     void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
+
+    const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
+    void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
 
     inline NodeId GetId() const
     {
@@ -295,7 +297,7 @@ public:
         return absDrawRect_;
     }
 
-    void SetAbsDrawRect(RectI& absRect)
+    void SetAbsDrawRect(const RectI& absRect)
     {
         absDrawRect_ = absRect;
     }
@@ -325,17 +327,13 @@ public:
         return {};
     }
 
+    // hsc toDo: no need to use virtual func
     virtual void SetRotationChanged(bool changed) {}
     virtual bool IsRotationChanged() const
     {
         return false;
     }
 
-    virtual const ScreenInfo& GetScreenInfo() const;
-    virtual uint64_t GetScreenId() const
-    {
-        return 0;
-    }
     virtual ScreenRotation GetScreenRotation() const
     {
         return ScreenRotation::ROTATION_0;
@@ -350,7 +348,6 @@ public:
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const;
     void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    virtual bool GetSecurityDisplay() const { return true; }
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
@@ -431,6 +428,7 @@ private:
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
+    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     bool isOpincSuggestFlag_ = false;
     bool isOpincSupportFlag_ = false;
     bool isOpincRootFlag_ = false;

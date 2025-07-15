@@ -20,7 +20,7 @@
 
 #include "common/rs_macros.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -45,7 +45,8 @@ private:
         ~RSDividedUICaptureVisitor() noexcept override = default;
         void PrepareChildren(RSRenderNode& node) override;
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
-        void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {};
+        void PrepareScreenRenderNode(RSScreenRenderNode& node) override {}
+        void PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
         void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
         void PrepareRootRenderNode(RSRootRenderNode& node) override;
         void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
@@ -53,7 +54,8 @@ private:
 
         void ProcessChildren(RSRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
-        void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override {};
+        void ProcessScreenRenderNode(RSScreenRenderNode& node) override {}
+        void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
         void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
         void ProcessRootRenderNode(RSRootRenderNode& node) override;
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;

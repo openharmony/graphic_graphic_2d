@@ -39,7 +39,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmUserDefineTest, Init, Function | SmallTest | Level2)
+HWTEST_F(HgmUserDefineTest, Init, Function | SmallTest | Level0)
 {
     HgmUserDefine userDefine;
     userDefine.Init();

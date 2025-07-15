@@ -59,7 +59,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
         }
     }
     ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64 " config[screenId=%{public}" PRIu64
-        ", isMirrored=%{public}d, mirrorNodeId=%{public}" PRIu64 ", isSync=%{public}d]",
+        ", isMirror=%{public}d, mirroredNodeId=%{public}" PRIu64 ", isSync=%{public}d]",
         node->GetId(), displayNodeConfig.screenId, displayNodeConfig.isMirrored,
         displayNodeConfig.mirrorNodeId, displayNodeConfig.isSync);
     node->SetUIContextToken();
@@ -100,7 +100,7 @@ void RSDisplayNode::RemoveDisplayNodeFromTree()
 
 bool RSDisplayNode::Marshalling(Parcel& parcel) const
 {
-    bool success = parcel.WriteUint64(GetId()) && parcel.WriteUint64(screenId_) && parcel.WriteBool(isMirroredDisplay_);
+    bool success = parcel.WriteUint64(GetId()) && parcel.WriteUint64(screenId_) && parcel.WriteBool(isMirrorDisplay_);
     if (!success) {
         ROSEN_LOGE("RSDisplayNode::Marshalling failed");
     }
@@ -111,8 +111,8 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
 {
     uint64_t id = UINT64_MAX;
     uint64_t screenId = UINT64_MAX;
-    bool isMirrored = false;
-    if (!(parcel.ReadUint64(id) && parcel.ReadUint64(screenId) && parcel.ReadBool(isMirrored))) {
+    bool isMirror = false;
+    if (!(parcel.ReadUint64(id) && parcel.ReadUint64(screenId) && parcel.ReadBool(isMirror))) {
         ROSEN_LOGE("RSDisplayNode::Unmarshalling, read param failed");
         return nullptr;
     }
@@ -122,7 +122,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
         return prevNode->ReinterpretCastTo<RSDisplayNode>();
     }
 
-    RSDisplayNodeConfig config { .screenId = screenId, .isMirrored = isMirrored };
+    RSDisplayNodeConfig config { .screenId = screenId, .isMirrored = isMirror };
 
     SharedPtr displayNode(new RSDisplayNode(config, id));
     RSNodeMap::MutableInstance().RegisterNode(displayNode);
@@ -131,6 +131,20 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
     displayNode->skipDestroyCommandInDestructor_ = true;
 
     return displayNode;
+}
+
+void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
+{
+    isSecurityDisplay_ = isSecurityDisplay;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetSecurityDisplay>(GetId(), isSecurityDisplay);
+    AddCommand(command, true);
+    ROSEN_LOGD("RSDisplayNode::SetSecurityDisplay, displayNodeId:[%{public}" PRIu64 "]"
+        " isSecurityDisplay:[%{public}s]", GetId(), isSecurityDisplay ? "true" : "false");
+}
+
+bool RSDisplayNode::GetSecurityDisplay() const
+{
+    return isSecurityDisplay_;
 }
 
 void RSDisplayNode::ClearChildren()
@@ -164,36 +178,6 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     RS_TRACE_NAME_FMT("RSDisplayNode::SetScreenId, DisplayNode: %" PRIu64 ", ScreenId: %" PRIu64, GetId(), screenId);
 }
 
-void RSDisplayNode::OnBoundsSizeChanged() const
-{
-    auto bounds = GetStagingProperties().GetBounds();
-    ROSEN_LOGD("RSDisplayNode::OnBoundsSizeChanged, w: %{public}d, h: %{public}d.",
-        (uint32_t)bounds.z_, (uint32_t)bounds.w_);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetRogSize>(GetId(), bounds.z_, bounds.w_);
-    AddCommand(command, true);
-}
-
-void RSDisplayNode::SetDisplayOffset(int32_t offsetX, int32_t offsetY)
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetDisplayOffset>(GetId(), offsetX, offsetY);
-    AddCommand(command, true);
-    ROSEN_LOGD("RSDisplayNode::SetDisplayOffset, offsetX:%{public}d, offsetY:%{public}d", offsetX, offsetY);
-}
-
-void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
-{
-    isSecurityDisplay_ = isSecurityDisplay;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetSecurityDisplay>(GetId(), isSecurityDisplay);
-    AddCommand(command, true);
-    ROSEN_LOGD("RSDisplayNode::SetSecurityDisplay, displayNodeId:[%{public}" PRIu64 "]"
-        " isSecurityDisplay:[%{public}s]", GetId(), isSecurityDisplay ? "true" : "false");
-}
-
-bool RSDisplayNode::GetSecurityDisplay() const
-{
-    return isSecurityDisplay_;
-}
-
 void RSDisplayNode::SetForceCloseHdr(bool isForceCloseHdr)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeForceCloseHdr>(GetId(), isForceCloseHdr);
@@ -205,11 +189,16 @@ void RSDisplayNode::SetForceCloseHdr(bool isForceCloseHdr)
 
 void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig)
 {
-    isMirroredDisplay_ = displayNodeConfig.isMirrored;
+    isMirrorDisplay_ = displayNodeConfig.isMirrored;
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetDisplayMode>(GetId(), displayNodeConfig);
     AddCommand(command, true);
     ROSEN_LOGD("RSDisplayNode::SetDisplayNodeMirrorConfig, displayNodeId:[%{public}" PRIu64 "]"
-        " isMirrored:[%{public}s]", GetId(), displayNodeConfig.isMirrored ? "true" : "false");
+        " isMirror:[%{public}d]", GetId(), displayNodeConfig.isMirrored);
+}
+
+bool RSDisplayNode::IsMirrorDisplay() const
+{
+    return isMirrorDisplay_;
 }
 
 void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
@@ -238,23 +227,12 @@ void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
                " screenRotation:[%{public}d]", GetId(), rotation);
 }
 
-bool RSDisplayNode::IsMirrorDisplay() const
-{
-    return isMirroredDisplay_;
-}
-
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(true, false, rsUIContext, true), screenId_(config.screenId), offsetX_(0), offsetY_(0),
-      isMirroredDisplay_(config.isMirrored)
-{
-    (void)screenId_;
-    (void)offsetX_;
-    (void)offsetY_;
-}
+    : RSNode(true, false, rsUIContext, true), screenId_(config.screenId), isMirrorDisplay_(config.isMirrored)
+{}
 
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(true, id, false, rsUIContext, true), screenId_(config.screenId), offsetX_(0), offsetY_(0),
-      isMirroredDisplay_(config.isMirrored)
+    : RSNode(true, id, false, rsUIContext, true), screenId_(config.screenId), isMirrorDisplay_(config.isMirrored)
 {}
 
 void RSDisplayNode::SetBootAnimation(bool isBootAnimation)

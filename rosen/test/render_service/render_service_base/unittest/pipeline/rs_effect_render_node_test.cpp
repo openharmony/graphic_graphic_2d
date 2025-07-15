@@ -347,4 +347,36 @@ HWTEST_F(RSEffectRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestS
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
 }
+
+/**
+ * @tc.name: SetEffectIntersectWithDRMTest001
+ * @tc.desc: Test function SetEffectIntersectWithDRM
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSEffectRenderNodeTest, SetEffectIntersectWithDRMTest001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.SetEffectIntersectWithDRM(true);
+    rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
+    rsEffectRenderNode.SetEffectIntersectWithDRM(true);
+    EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: SetDarkColorModeTest001
+ * @tc.desc: Test function SetDarkColorMode
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSEffectRenderNodeTest, SetDarkColorModeTest001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.SetDarkColorMode(true);
+    rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
+    rsEffectRenderNode.SetDarkColorMode(true);
+    EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+}
 } // namespace OHOS::Rosen

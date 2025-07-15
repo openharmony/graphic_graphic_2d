@@ -151,12 +151,9 @@ HWTEST_F(RSRenderDispersionFilterTest, GenerateGEVisualEffect001, TestSize.Level
 
     filter->mask_ = nullptr;
     filter->opacity_ = 0.5f;
-    filter->redOffsetX_ = 0.5f;
-    filter->redOffsetY_ = 0.5f;
-    filter->greenOffsetX_ = 0.5f;
-    filter->greenOffsetY_ = 0.5f;
-    filter->blueOffsetX_ = 0.5f;
-    filter->blueOffsetY_ = 0.5f;
+    filter->redOffset_ = Vector2f(0.5f, 0.5f);
+    filter->greenOffset_ = Vector2f(0.5f, 0.5f);
+    filter->blueOffset_ = Vector2f(0.5f, 0.5f);
 
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     filter->GenerateGEVisualEffect(nullptr);
@@ -165,7 +162,7 @@ HWTEST_F(RSRenderDispersionFilterTest, GenerateGEVisualEffect001, TestSize.Level
     filter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 
-    filter->mask_ = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK));
+    filter->mask_ = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::NONE));
     filter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }

@@ -68,6 +68,7 @@ private:
     void OnVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
     void OnPhaseOffsetChanged(int64_t phaseOffset);
+    int64_t GetPhaseOffset();
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     wptr<VSyncGenerator> generator_;

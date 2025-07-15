@@ -279,6 +279,10 @@ private:
 
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
 
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -384,13 +388,13 @@ private:
 
     void SetFreeMultiWindowStatus(bool enable) override;
 
-    ErrCode SetLayerTopForHWC(const std::string &nodeIdStr, bool isTop, uint32_t zOrder) override;
+    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
@@ -431,6 +435,8 @@ private:
     RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
+
+    void ClearUifirstCache(NodeId id) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

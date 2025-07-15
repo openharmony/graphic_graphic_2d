@@ -1319,4 +1319,44 @@ HWTEST_F(RSImageTest, SetImageRotateDegreeTest, TestSize.Level1)
     rsImage->SetImageRotateDegree(180);
     EXPECT_EQ(rsImage->rotateDegree_, 180);
 }
+
+/**
+ * @tc.name: CalcRepeatBoundsTest
+ * @tc.desc: Verify function CalcRepeatBounds
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBoundsTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    RectF srcRf(0.f, 0.f, 0.f, 0.f);
+    int minX = 0;
+    int maxX = 0;
+    int minY = 0;
+    int maxY = 0;
+    rsImage->srcRect_ = srcRf;
+
+    rsImage->srcRect_.width_ = 0;
+    rsImage->srcRect_.height_ = 100;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    rsImage->srcRect_.width_ = 0;
+    rsImage->srcRect_.height_ = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    rsImage->srcRect_.width_ = 100;
+    rsImage->srcRect_.height_ = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+}
 } // namespace OHOS::Rosen

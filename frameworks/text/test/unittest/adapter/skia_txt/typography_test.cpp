@@ -416,11 +416,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level
     ASSERT_EQ(paintRegion, Drawing::RectI(5, 5, 5, 5));
     typography->Layout(maxWidth);
     paintRegion = typography->GeneratePaintRegion(5.5, 5.1);
-#ifdef USE_M133_SKIA
-    ASSERT_EQ(paintRegion, Drawing::RectI(0, 7, 54, 401));
-#else
     ASSERT_EQ(paintRegion, Drawing::RectI(0, 7, 60, 385));
-#endif
 }
 
 /*

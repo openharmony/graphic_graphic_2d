@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_RENDER_PROPERTY_TAG_H
 
 #include "modifier/rs_render_property.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,7 +44,7 @@ using RSRenderAnimatablePropertyTag  = RenderPropertyTagBase<Name, RSRenderAnima
 
 class RSNGRenderMaskBase; // forward declaration, impl in rs_render_mask_base.h
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
-
+using VectorVector2F = std::vector<Vector2f>;
 #include "effect/rs_render_property_tag_def.in"
 
 #undef MASK_PTR
@@ -66,6 +67,7 @@ enum class RSNGEffectType : int16_t {
     EDGE_LIGHT,
     BEZIER_WARP,
     DISPERSION,
+    DIRECTION_LIGHT,
 
     AIBAR,
     GREY,
@@ -77,10 +79,19 @@ enum class RSNGEffectType : int16_t {
     LIGHT_BLUR,
     LINEAR_GRADIENT_BLUR,
     ALWAYS_SNAPSHOT,
+    MASK_TRANSITION,
+    VARIABLE_RADIUS_BLUR,
     // mask type
     RIPPLE_MASK,
+    DOUBLE_RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
     PIXEL_MAP_MASK,
+    WAVE_GRADIENT_MASK,
+    // shader type
+    CONTOUR_DIAGONAL_FLOW_LIGHT,
+    WAVY_RIPPLE_LIGHT,
+    AURORA_NOISE,
+    PARTICLE_CIRCULAR_HALO,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

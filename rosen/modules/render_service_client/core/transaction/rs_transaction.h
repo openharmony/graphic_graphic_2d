@@ -100,15 +100,16 @@ public:
         return syncId_;
     }
 
+    void SetTransactionHandler(std::shared_ptr<RSTransactionHandler> rsTransactionHandler)
+    {
+        rsTransactionHandler_ = rsTransactionHandler;
+    }
+
 private:
     uint64_t GenerateSyncId();
     void ResetSyncTransactionInfo();
     bool UnmarshallingParam(Parcel& parcel);
 
-    void SetTransactionHandler(std::shared_ptr<RSTransactionHandler> rsTransactionHandler)
-    {
-        rsTransactionHandler_ = rsTransactionHandler;
-    }
     uint64_t syncId_ { 0 };
     std::mutex mutex_;
     mutable int32_t transactionCount_ { 0 };

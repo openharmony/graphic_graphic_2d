@@ -1119,7 +1119,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | 
  * @tc.type: FUNC
  * @tc.require: I7EM2R
  */
-HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest | Level0)
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
@@ -1142,7 +1142,7 @@ HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest 
  * @tc.type: FUNC
  * @tc.require: I7EM2R
  */
-HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level0)
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
@@ -1186,7 +1186,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require: I7EM2R
  */
-HWTEST_F(RSInterfacesTest, SetShowRefreshRateEnabled, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetShowRefreshRateEnabled, Function | SmallTest | Level0)
 {
     bool enabled = true;
     int32_t type = 0;
@@ -1200,7 +1200,7 @@ HWTEST_F(RSInterfacesTest, SetShowRefreshRateEnabled, Function | SmallTest | Lev
  * @tc.type: FUNC
  * @tc.require: I7EM2R
  */
-HWTEST_F(RSInterfacesTest, GetRealtimeRefreshRate, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, GetRealtimeRefreshRate, Function | SmallTest | Level0)
 {
     ScreenId id = 0;
     EXPECT_GE(rsInterfaces->GetRealtimeRefreshRate(id), 0);
@@ -1212,7 +1212,7 @@ HWTEST_F(RSInterfacesTest, GetRealtimeRefreshRate, Function | SmallTest | Level2
  * @tc.type: FUNC
  * @tc.require: I7EM2R
  */
-HWTEST_F(RSInterfacesTest, SetScreenRefreshRate002, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetScreenRefreshRate002, Function | SmallTest | Level0)
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
@@ -1234,7 +1234,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate002, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require: I7EM2R
  */
-HWTEST_F(RSInterfacesTest, SetScreenRefreshRate003, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetScreenRefreshRate003, Function | SmallTest | Level0)
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
@@ -1272,7 +1272,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate003, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require: I7EM2R
  */
-HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level0)
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
@@ -1310,7 +1310,7 @@ HWTEST_F(RSInterfacesTest, SetRefreshRateMode001, Function | SmallTest | Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     HgmRefreshRateUpdateCallback cb = [](int32_t refreshRate){};
@@ -1324,7 +1324,7 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateUpdateCallback_Test, Function |
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, UnRegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, UnRegisterHgmRefreshRateUpdateCallback_Test, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t ret = rsInterfaces->UnRegisterHgmRefreshRateUpdateCallback();
@@ -1364,7 +1364,7 @@ HWTEST_F(RSInterfacesTest, UnRegisterFirstFrameCommitCallback_Test, Function | S
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     HgmConfigChangeCallback cb = [](std::shared_ptr<RSHgmConfigData> data){};
@@ -1392,7 +1392,7 @@ HWTEST_F(RSInterfacesTest, NotifyLightFactorStatus001, Function | SmallTest | Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     std::vector<std::string> packageList;
@@ -1426,7 +1426,7 @@ HWTEST_F(RSInterfacesTest, NotifyAppStrategyConfigChangeEvent001, Function | Sma
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Level0)
 {
     constexpr int32_t maxFps = 1000;
     constexpr int32_t minFps = 1;
@@ -1505,7 +1505,7 @@ HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate002, Function | SmallTest
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t touchStatus = 0;
@@ -1564,7 +1564,7 @@ HWTEST_F(RSInterfacesTest, NotifyXComponentExpectedFrameRate, Function | SmallTe
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback_Test, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback_Test, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     HgmRefreshRateModeChangeCallback cb = [](int32_t refreshRateMode){};
@@ -1578,7 +1578,7 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback_Test, Functi
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t savedModeName = -2;
@@ -1595,7 +1595,7 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level0)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     FrameRateLinkerExpectedFpsUpdateCallback cb = [](int32_t pid, int32_t fps){};
@@ -1765,7 +1765,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest 
  * @tc.type: FUNC
  * @tc.require: issueI9ABGS
  */
-HWTEST_F(RSInterfacesTest, GetCurrentRefreshRateMode, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, GetCurrentRefreshRateMode, Function | SmallTest | Level0)
 {
     EXPECT_TRUE(rsInterfaces->GetCurrentRefreshRateMode() >= -1);
 }
@@ -2586,6 +2586,33 @@ HWTEST_F(RSInterfacesTest, SetColorFollow002, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     std::string nodeIdStr = "1";
     rsInterfaces->SetColorFollow(nodeIdStr, true);
+}
+
+/*
+ * @tc.name: SetLayerTopForHWCTest
+ * @tc.desc: Test SetLayerTopForHWC
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTopForHWCTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    RSSurfaceNodeConfig c;
+    auto node = RSSurfaceNode::Create(c);
+    NodeId id = node->GetId();
+    rsInterfaces->SetLayerTopForHWC(id, true, static_cast<uint32_t>(TopLayerZOrder::CHARGE_ACTION_TEXT));
+}
+
+/*
+ * @tc.name: ClearUifirstCache
+ * @tc.desc: Test ClearUifirstCache
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSInterfacesTest, ClearUifirstCache, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    NodeId nodeId = 1;
+    rsInterfaces->ClearUifirstCache(nodeId);
 }
 } // namespace Rosen
 } // namespace OHOS

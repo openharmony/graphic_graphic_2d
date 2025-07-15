@@ -74,6 +74,7 @@ napi_value TileModeInit(napi_env env)
 
 napi_value FilterNapi::Init(napi_env env, napi_value exports)
 {
+    RegisterFilterParaUnmarshallingCallback();
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createFilter", CreateFilter),
     };
@@ -166,10 +167,13 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("radiusGradientBlur", SetRadiusGradientBlurPara),
         DECLARE_NAPI_FUNCTION("displacementDistort", SetDisplacementDistort),
         DECLARE_NAPI_FUNCTION("edgeLight", SetEdgeLight),
+        DECLARE_NAPI_FUNCTION("directionLight", SetBumpMaskDirectionLight),
         DECLARE_NAPI_FUNCTION("bezierWarp", SetBezierWarp),
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
-        DECLARE_NAPI_FUNCTION("contentLight", SetContentLight)
+        DECLARE_NAPI_FUNCTION("contentLight", SetContentLight),
+        DECLARE_NAPI_FUNCTION("maskTransition", SetMaskTransition),
+        DECLARE_NAPI_FUNCTION("variableRadiusBlur", SetVariableRadiusBlur),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -358,8 +362,13 @@ napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
-static bool GetContentLight(napi_env env, napi_value* param, std::shared_ptr<ContentLightPara>& para)
+static bool GetContentLight(napi_env env, napi_value* param, size_t length, std::shared_ptr<ContentLightPara>& para)
 {
+    if (length < NUM_2) {
+        FILTER_LOG_E("FilterNapi GetContentLight array length is less than 2");
+        return false;
+    }
+
     Vector3f lightPosition = Vector3f(0.0f, 0.0f, 0.0f);
     Vector4f lightColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -405,7 +414,7 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
         return thisVar;
     }
 
-    UIEFFECT_NAPI_CHECK_RET_D(GetContentLight(env, argValue, para), nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(GetContentLight(env, argValue, argCount, para), nullptr,
         FILTER_LOG_E("FilterNapi GetContentLight fail"));
 
     float lightIntensity = 0.f;
@@ -423,13 +432,14 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
 
 GradientDirection FilterNapi::ParserGradientDirection(napi_env env, napi_value argv)
 {
-    if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
-        int32_t direction = 0;
-        if (napi_get_value_int32(env, argv, &direction) == napi_ok) {
-            auto iter = INDEX_TO_DIRECTION.find(direction);
-            if (iter != INDEX_TO_DIRECTION.end()) {
-                return iter->second;
-            }
+    if (UIEffectNapiUtils::GetType(env, argv) != napi_number) {
+        return GradientDirection::NONE;
+    }
+    int32_t direction = 0;
+    if (napi_get_value_int32(env, argv, &direction) == napi_ok) {
+        auto iter = INDEX_TO_DIRECTION.find(direction);
+        if (iter != INDEX_TO_DIRECTION.end()) {
+            return iter->second;
         }
     }
     return GradientDirection::NONE;
@@ -472,10 +482,9 @@ static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_p
         if (blurPosition < lastPos) {
             FILTER_LOG_E("GetLinearFractionStops is not increasing");
             return false;
-        } else {
-            lastPos = blurPosition;
         }
-        tmpPercent.push_back(std::pair(blurPercent, blurPosition));
+        lastPos = blurPosition;
+        tmpPercent.emplace_back(static_cast<float>(blurPercent), static_cast<float>(blurPosition));
     }
     para->SetFractionStops(tmpPercent);
     return true;
@@ -506,6 +515,7 @@ napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_inf
 
     if (argCount != NUM_2) {
         FILTER_LOG_E("Args number less than 2");
+        return thisVar;
     }
 
     float blurRadius = GetSpecialValue(env, argValue[NUM_0]);
@@ -530,7 +540,6 @@ napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_inf
 
     return thisVar;
 }
-
 
 float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
 {
@@ -858,6 +867,8 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
     Vector4f color;
     if (realArgc >= NUM_2 && ParseJsRGBAColor(env, argv[NUM_1], color)) {
         para->SetColor(color);
+    } else {
+        para->SetUseRawColor(true);
     }
 
     Mask* mask = nullptr;
@@ -887,15 +898,16 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
             "FilterNapi SetMaskDispersion failed, is not system app");
         return nullptr;
     }
-    static const size_t requireArgc = NUM_5;
-    size_t realArgc = NUM_5;
+    static const size_t maxArgc = NUM_5;
+    static const size_t minArgc = NUM_2;
+    size_t realArgc = maxArgc;
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
-    napi_value argv[requireArgc] = {0};
+    napi_value argv[maxArgc] = {0};
     napi_value thisVar = nullptr;
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireArgc == realArgc, nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskDispersion parsing input fail"));
 
     auto para = std::make_shared<DispersionPara>();
@@ -906,34 +918,86 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetMaskDispersion unwrap mask fail"));
     para->SetMask(mask->GetMaskPara());
 
-    float opacity = 0.0f;
-    if (UIEffectNapiUtils::GetType(env, argv[NUM_1]) == napi_number) {
-        double tmp = 0.0f;
-        if (napi_get_value_double(env, argv[NUM_1], &tmp) == napi_ok) {
-            opacity = static_cast<float>(tmp);
-        }
-    }
+    float opacity = GetSpecialValue(env, argv[NUM_1]);
     para->SetOpacity(opacity);
 
-    Vector2f redOffset;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_2], redOffset), nullptr,
-        FILTER_LOG_E("FilterNapi SetMaskDispersion parse redOffset fail"));
-    para->SetRedOffset(redOffset);
-
-    Vector2f greenOffset;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_2], greenOffset), nullptr,
-        FILTER_LOG_E("FilterNapi SetMaskDispersion parse greenOffset fail"));
-    para->SetRedOffset(greenOffset);
-
-    Vector2f blueOffset;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_2], blueOffset), nullptr,
-        FILTER_LOG_E("FilterNapi SetMaskDispersion parse blueOffset fail"));
-    para->SetBlueOffset(blueOffset);
+    Vector2f offset;
+    if (realArgc >= NUM_3) {
+        UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_2], offset), nullptr,
+            FILTER_LOG_E("FilterNapi SetMaskDispersion parse redOffset fail"));
+        para->SetRedOffset(offset);
+    }
+    if (realArgc >= NUM_4) {
+        UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_3], offset), nullptr,
+            FILTER_LOG_E("FilterNapi SetMaskDispersion parse greenOffset fail"));
+        para->SetGreenOffset(offset);
+    }
+    if (realArgc >= NUM_5) {
+        UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_4], offset), nullptr,
+            FILTER_LOG_E("FilterNapi SetMaskDispersion parse blueOffset fail"));
+        para->SetBlueOffset(offset);
+    }
 
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskDispersion unwrap filterObj fail"));
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetBumpMaskDirectionLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetBumpMaskDirectionLight failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetBumpMaskDirectionLight failed, is not system app");
+        return nullptr;
+    }
+    static const size_t minArgc = NUM_3;
+    static const size_t maxArgc = NUM_4;
+    size_t realArgc = maxArgc;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[maxArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight parsing input fail"));
+
+    auto para = std::make_shared<DirectionLightPara>();
+
+    Vector3f lightDirection = Vector3f(0.0f, 0.0f, 0.0f);
+    if (!ParseJsVector3f(env, argv[NUM_0], lightDirection)) {
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight parse lightDirection fail");
+        return thisVar;
+    }
+    para->SetLightDirection(lightDirection);
+
+    Vector4f lightColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+    if (!ParseJsRGBAColor(env, argv[NUM_1], lightColor)) {
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight parse lightColor fail");
+        return thisVar;
+    }
+    para->SetLightColor(lightColor);
+
+    float lightIntensity = 0.f;
+    lightIntensity = GetSpecialValue(env, argv[NUM_2]);
+    para->SetLightIntensity(lightIntensity);
+
+    if (realArgc == NUM_4) {
+        Mask* mask = nullptr;
+        status = napi_unwrap(env, argv[NUM_3], reinterpret_cast<void**>(&mask));
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, thisVar,
+            FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight unwrap mask fail"));
+        para->SetMask(mask->GetMaskPara());
+    }
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, thisVar,
+        FILTER_LOG_E("FilterNapi SetBumpMaskDirectionLight unwrap filterObj fail"));
     filterObj->AddPara(para);
     return thisVar;
 }
@@ -983,6 +1047,70 @@ napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info in
     return thisVar;
 }
 
+napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetMaskTransition failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi transition failed, is not system app");
+        return nullptr;
+    }
+
+    static const size_t maxArgc = NUM_3;
+    static const size_t minArgc = NUM_1;
+    size_t realArgc = maxArgc;
+    napi_value argv[maxArgc] = { 0 };
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetMaskTransition parsing input failed"));
+
+    auto para = std::make_shared<MaskTransitionPara>();
+
+    Mask* mask = nullptr;
+    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&mask));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetMaskTransition napi_unwrap mask failed"));
+    para->SetMask(mask->GetMaskPara());
+
+    float factor = 1.0f;
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_1]) == napi_number) {
+        double tmp = 0.0;
+        if (napi_get_value_double(env, argv[NUM_1], &tmp) == napi_ok) {
+            factor = static_cast<float>(tmp);
+        }
+    }
+    para->SetFactor(factor);
+
+    bool inverse = false;
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_2]) == napi_boolean) {
+        bool tmp = inverse;
+        if (napi_get_value_bool(env, argv[NUM_2], &tmp) == napi_ok) {
+            inverse = tmp;
+        }
+    }
+    para->SetInverse(inverse);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetMaskTransition napi_unwrap fail"));
+    filterObj->AddPara(para);
+
+    return thisVar;
+}
+
+void FilterNapi::RegisterFilterParaUnmarshallingCallback()
+{
+    ContentLightPara::RegisterUnmarshallingCallback();
+    DispersionPara::RegisterUnmarshallingCallback();
+    DisplacementDistortPara::RegisterUnmarshallingCallback();
+    MaskTransitionPara::RegisterUnmarshallingCallback();
+    WaterRipplePara::RegisterUnmarshallingCallback();
+    DirectionLightPara::RegisterUnmarshallingCallback();
+}
+
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
 {
     if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
@@ -997,6 +1125,48 @@ Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
     }
 
     return Drawing::TileMode::CLAMP;
+}
+
+napi_value FilterNapi::SetVariableRadiusBlur(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetVariableRadiusBlur failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetVariableRadiusBlur failed, is not system app");
+        return nullptr;
+    }
+    static const size_t requireArgc = NUM_2;
+    size_t realArgc = NUM_2;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[requireArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireArgc == realArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetVariableRadiusBlur parsing input fail"));
+    
+    auto para = std::make_shared<VariableRadiusBlurPara>();
+    double blurRadius = 0.0;
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_0]) != napi_number ||
+        napi_get_value_double(env, argv[NUM_0], &blurRadius) != napi_ok) {
+        FILTER_LOG_E("FilterNapi SetVariableRadiusBlur parsing blurRadius fail");
+        return thisVar;
+    }
+    para->SetBlurRadius(static_cast<float>(blurRadius));
+
+    Mask* mask = nullptr;
+    status = napi_unwrap(env, argv[NUM_1], reinterpret_cast<void**>(&mask));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetVariableRadiusBlur unwrap mask fail"));
+    para->SetMask(mask->GetMaskPara());
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetVariableRadiusBlur napi_unwrap fail"));
+    filterObj->AddPara(para);
+    return thisVar;
 }
 
 }  // namespace Rosen

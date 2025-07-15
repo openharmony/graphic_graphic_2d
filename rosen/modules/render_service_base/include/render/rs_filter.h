@@ -58,6 +58,7 @@ public:
         bool disableSystemAdaptation = true);
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
+    virtual void SetDisplayHeadroom(float headroom) {};
 
     enum FilterType {
         NONE = 0,

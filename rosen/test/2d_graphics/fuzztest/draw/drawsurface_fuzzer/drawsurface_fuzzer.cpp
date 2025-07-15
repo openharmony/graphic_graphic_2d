@@ -96,6 +96,8 @@ bool SurfaceFuzzTest001(const uint8_t* data, size_t size)
  * 10. Flush(...)
  * 11. Width()
  * 12. Height()
+ * 13. GetHeadroom()
+ * 14. SetHeadroom(float)
  */
 bool SurfaceFuzzTest002(const uint8_t* data, size_t size)
 {
@@ -142,6 +144,9 @@ bool SurfaceFuzzTest002(const uint8_t* data, size_t size)
     surface.Flush(&drawingflushInfo);
     surface.Width();
     surface.Height();
+    float headroom = GetObject<float>();
+    surface.SetHeadroom(headroom);
+    surface.GetHeadroom();
     return true;
 }
 

@@ -116,6 +116,38 @@ HWTEST_F(RSRenderEdgeLightFilterTest, GenerateGEVisualEffect001, TestSize.Level1
 }
 
 /**
+ * @tc.name: GenerateGEVisualEffect002
+ * @tc.desc: Test hdr support of GenerateGEVisualEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, GenerateGEVisualEffect002, TestSize.Level1)
+{
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto rsEdgeLightFilter = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+    rsEdgeLightFilter->alpha_ = 0.8f;
+    rsEdgeLightFilter->bloom_ = true;
+
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(1.5f, 0.5f, 0.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(0.5f, 1.5f, 0.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(0.5f, 0.5f, 1.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsEdgeLightFilter->color_ = Vector4f(0.5f, 0.5f, 0.5f, 0.0f);
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
  * @tc.name: ParseFilterValuesTest001
  * @tc.desc: Verify function ParseFilterValues
  * @tc.type:FUNC

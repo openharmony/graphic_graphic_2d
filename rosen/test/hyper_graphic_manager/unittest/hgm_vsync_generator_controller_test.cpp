@@ -58,7 +58,7 @@ void HgmVSyncGeneratorControllerTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeGeneratorRate, TestSize.Level1)
+HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeGeneratorRate, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = { { 1, 30 }, { 2, 60 }, { 3, 120 } };
@@ -79,7 +79,7 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeGeneratorRate, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level1)
+HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = { { 1, 30 }, { 2, 60 }, { 3, 120 } };
@@ -108,7 +108,7 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level1)
+HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = { { 1, 30 }, { 2, 60 }, { 3, 120 } };
@@ -126,7 +126,7 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeAdaptiveStatus, TestSize.Level1)
+HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeAdaptiveStatus, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
     controller->ChangeAdaptiveStatus(true);

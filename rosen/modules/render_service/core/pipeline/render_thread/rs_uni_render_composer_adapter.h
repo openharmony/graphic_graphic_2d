@@ -20,42 +20,52 @@
 #include "rs_composer_adapter.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_base_render_util.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
 class RSRcdSurfaceRenderNode;
 namespace DrawableV2 {
-class RSDisplayRenderNodeDrawable;
+class RSScreenRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
+class RSLogicalDisplayRenderNodeDrawable;
 class RSRcdSurfaceRenderNodeDrawable;
 }
 class RSUniRenderComposerAdapter {
 public:
     RSUniRenderComposerAdapter() = default;
     ~RSUniRenderComposerAdapter() noexcept = default;
-    LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
+    LayerInfoPtr CreateLayer(RSScreenRenderNode& node);
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
     LayerInfoPtr CreateLayer(RSRcdSurfaceRenderNode& node);
-    bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient);
+    bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY);
+    bool UpdateMirrorInfo(float mirrorAdaptiveCoefficient);
 
-    LayerInfoPtr CreateLayer(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    LayerInfoPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     LayerInfoPtr CreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable &surfaceDrawable) const;
     LayerInfoPtr CreateLayer(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
+
+    // hpae offline
+    LayerInfoPtr CreateOfflineLayer(RSSurfaceRenderNode& node, ProcessOfflineResult& processOfflineResult) const;
+    LayerInfoPtr CreateOfflineLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+        ProcessOfflineResult& processOfflineResult) const;
+
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static RectI SrcRectRotateTransform(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
 
-    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    ComposeInfo BuildComposeInfo(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         const std::vector<RectI>& dirtyRegion);
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
@@ -66,7 +76,7 @@ private:
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
         const sptr<IConsumerSurface>& surface) const;
-    static void SetBufferColorSpace(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    static void SetBufferColorSpace(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     void LayerRotate(const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const;
     void LayerRotate(const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
@@ -87,6 +97,13 @@ private:
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
     bool CheckStatusBeforeCreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
+
+    // hpae offline
+    ComposeInfo BuildOfflineComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+        const ProcessOfflineResult& processOfflineResult) const;
+    ComposeInfo BuildOfflineComposeInfo(RSSurfaceRenderNode& node,
+        const ProcessOfflineResult& processOfflineResult) const;
+    void OfflineLayerRotate(const LayerInfoPtr& layer) const;
 
     std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;

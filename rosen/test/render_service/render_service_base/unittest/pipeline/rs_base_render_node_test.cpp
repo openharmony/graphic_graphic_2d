@@ -1367,38 +1367,6 @@ HWTEST_F(RSBaseRenderNodeTest, AddGeometryModifier, TestSize.Level1)
 }
 
 /**
- * @tc.name: OpincUpdateNodeSupportFlag01
- * @tc.desc: test result of OpincGetNodeSupportFlag
- * @tc.type: FUNC
- * @tc.require: issueI9SPVO
- */
-HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag01, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    node->OpincUpdateNodeSupportFlag(false, false);
-    ASSERT_FALSE(node->GetOpincCache().OpincGetSupportFlag());
-
-    node->OpincUpdateNodeSupportFlag(false, true);
-    ASSERT_FALSE(node->GetOpincCache().OpincGetSupportFlag());
-}
-
-/**
- * @tc.name: OpincUpdateNodeSupportFlag02
- * @tc.desc: test result of OpincGetNodeSupportFlag
- * @tc.type: FUNC
- * @tc.require: issueI9SPVO
- */
-HWTEST_F(RSBaseRenderNodeTest, OpincUpdateNodeSupportFlag02, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    node->OpincUpdateNodeSupportFlag(true, false);
-    ASSERT_TRUE(node->GetOpincCache().OpincGetSupportFlag());
-
-    node->OpincUpdateNodeSupportFlag(true, true);
-    ASSERT_FALSE(node->GetOpincCache().OpincGetSupportFlag());
-}
-
-/**
  * @tc.name: MarkSuggestOpincNode
  * @tc.desc: test MarkSuggestOpincNode
  * @tc.type: FUNC

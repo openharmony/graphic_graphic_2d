@@ -31,7 +31,7 @@ RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
 {
 }
 
-bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+bool RSPhysicalScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
                                      std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
 #ifdef RS_ENABLE_GPU
@@ -65,9 +65,9 @@ void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     layers_.emplace_back(layer);
 }
 
-void RSPhysicalScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
+void RSPhysicalScreenProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
 {
-    RS_LOGI("RSPhysicalScreenProcessor::ProcessDisplaySurface() is not supported.");
+    RS_LOGI("RSPhysicalScreenProcessor::ProcessScreenSurface() is not supported.");
 }
 
 void RSPhysicalScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

@@ -75,7 +75,7 @@ bool RSAncoManager::IsAncoOptimize(ScreenRotation rotation)
     return true;
 }
 
-bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+bool RSAncoManager::AncoOptimizeScreenNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
     std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes,
     ScreenRotation rotation, uint32_t width, uint32_t height)
 {
@@ -93,7 +93,7 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
         isHebc = false;
     }
 
-    // process displayNode rect
+    // process ScreenNode rect
     uint32_t minArea = width * height / 2;
     if (minArea == 0) {
         return false;
@@ -132,46 +132,39 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
     return AncoOptimizeCheck(isHebc, nodesCnt, sfvNodesCnt);
 }
 
-void RSAncoManager::UpdateCropRectForAnco(const uint32_t ancoFlags, const Rect& cropRect, Drawing::Rect& srcRect)
+void RSAncoManager::UpdateCropRectForAnco(const uint32_t ancoFlags, const Rect& cropRect,
+    const sptr<SurfaceBuffer>& buffer, Drawing::Rect& outSrcRect)
 {
-    if (IsAncoSfv(ancoFlags)) {
-        Drawing::Rect srcCrop{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
-        float left = std::max(srcCrop.left_, srcRect.left_);
-        float top = std::max(srcCrop.top_, srcRect.top_);
-        float right = std::min(srcCrop.right_, srcRect.right_);
-        float bottom = std::min(srcCrop.bottom_, srcRect.bottom_);
-        Drawing::Rect intersectedRect(left, top, right, bottom);
-        if (intersectedRect.IsValid()) {
-            srcRect = intersectedRect;
-        }
+    // The buffer is already determined to be non-empty before the call
+    GraphicIRect srcCrop{cropRect.x, cropRect.y, cropRect.w, cropRect.h};
+    UpdateCropRectForAnco(ancoFlags, srcCrop, buffer, outSrcRect);
+}
+
+void RSAncoManager::UpdateCropRectForAnco(const uint32_t ancoFlags, const GraphicIRect& cropRect,
+    const sptr<SurfaceBuffer>& buffer, Drawing::Rect& outSrcRect)
+{
+    // The buffer is already determined to be non-empty before the call
+    if (IsAncoSfv(ancoFlags) && ValidCropRect(cropRect)) {
+        ShrinkAmountIfNeed(buffer, cropRect, outSrcRect);
     }
 }
 
-void RSAncoManager::UpdateCropRectForAnco(const uint32_t ancoFlags,
-                                          const GraphicIRect& cropRect, Drawing::Rect& srcRect)
+void RSAncoManager::UpdateLayerSrcRectForAnco(const uint32_t ancoFlags, const GraphicIRect& cropRect,
+    const sptr<SurfaceBuffer>& buffer, GraphicIRect& outSrcRect)
 {
-    if (IsAncoSfv(ancoFlags)) {
-        Drawing::Rect srcCrop{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
-        if (srcCrop.IsValid()) {
-            srcRect = srcCrop;
-        }
-    }
-}
-
-void RSAncoManager::UpdateLayerSrcRectForAnco(const uint32_t ancoFlags,
-                                              const GraphicIRect& cropRect, GraphicIRect& srcRect)
-{
-    if (IsAncoSfv(ancoFlags)) {
-        int32_t left = std::max(srcRect.x, cropRect.x);
-        int32_t top = std::max(srcRect.y, cropRect.y);
-        int32_t right = std::min(srcRect.x + srcRect.w, cropRect.x + cropRect.w);
-        int32_t bottom = std::min(srcRect.y + srcRect.h, cropRect.y + cropRect.h);
+    // The buffer is already determined to be non-empty before the call
+    if (IsAncoSfv(ancoFlags) && ValidCropRect(cropRect)) {
+        outSrcRect = {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
+        int32_t left = std::max(outSrcRect.x, cropRect.x);
+        int32_t top = std::max(outSrcRect.y, cropRect.y);
+        int32_t right = std::min(outSrcRect.x + outSrcRect.w, cropRect.x + cropRect.w);
+        int32_t bottom = std::min(outSrcRect.y + outSrcRect.h, cropRect.y + cropRect.h);
         int32_t width = right - left;
         int32_t height = bottom - top;
         if (width <= 0 || height <= 0) {
             return;
         }
-        srcRect = { left, top, width, height };
+        outSrcRect = { left, top, width, height };
     }
 }
 
@@ -179,5 +172,59 @@ bool RSAncoManager::IsAncoSfv(const uint32_t ancoFlags)
 {
     return (ancoFlags & static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) ==
            static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
+}
+
+void RSAncoManager::ShrinkAmountIfNeed(const sptr<SurfaceBuffer>& buffer,
+    const GraphicIRect& cropRect, Drawing::Rect& outSrcRect)
+{
+    // The buffer is already determined to be non-empty before the call
+    // cropRect has also been verified
+    float shrinkAmount = 0.0f;
+    constexpr float GENERALLY_SHRINK_AMOUNT = 0.5f;
+    constexpr float WORST_SHRINK_AMOUNT = 1.0f;
+    constexpr float DB = 2.0f;
+    switch (buffer->GetFormat()) {
+        case GRAPHIC_PIXEL_FMT_RGBA_8888:
+        case GRAPHIC_PIXEL_FMT_RGBX_8888:
+        case GRAPHIC_PIXEL_FMT_RGBA16_FLOAT:
+        case GRAPHIC_PIXEL_FMT_RGBA_1010102:
+        case GRAPHIC_PIXEL_FMT_RGB_888:
+        case GRAPHIC_PIXEL_FMT_RGB_565:
+        case GRAPHIC_PIXEL_FMT_BGRA_8888:
+            shrinkAmount = GENERALLY_SHRINK_AMOUNT;
+            break;
+        default:
+            shrinkAmount = WORST_SHRINK_AMOUNT;
+            break;
+    }
+    int32_t bufferWidth = buffer->GetSurfaceBufferWidth();
+    int32_t bufferHeight = buffer->GetSurfaceBufferHeight();
+    outSrcRect = Drawing::Rect(0, 0, bufferWidth, bufferHeight);
+    if (bufferWidth > cropRect.w) {
+        if (static_cast<float>(cropRect.w) - DB * shrinkAmount > 0) {
+            outSrcRect.left_ = static_cast<float>(cropRect.x) + shrinkAmount;
+            outSrcRect.right_ = outSrcRect.left_ + static_cast<float>(cropRect.w) - DB * shrinkAmount;
+        } else {
+            outSrcRect.left_ = static_cast<float>(cropRect.x);
+            outSrcRect.right_ = outSrcRect.left_ + static_cast<float>(cropRect.w);
+        }
+    }
+    if (bufferHeight > cropRect.h) {
+        if (static_cast<float>(cropRect.h) - DB * shrinkAmount > 0) {
+            outSrcRect.top_ = static_cast<float>(cropRect.y) + shrinkAmount;
+            outSrcRect.bottom_ = outSrcRect.top_ + static_cast<float>(cropRect.h) - DB * shrinkAmount;
+        } else {
+            outSrcRect.top_ = static_cast<float>(cropRect.y);
+            outSrcRect.bottom_ = outSrcRect.top_ + static_cast<float>(cropRect.h);
+        }
+    }
+}
+
+bool RSAncoManager::ValidCropRect(const GraphicIRect& cropRect)
+{
+    if (cropRect.w > 0 && cropRect.h > 0 && cropRect.x >= 0 && cropRect.y >= 0) {
+        return true;
+    }
+    return false;
 }
 } // namespace OHOS::Rosen

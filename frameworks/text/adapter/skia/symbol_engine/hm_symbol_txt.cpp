@@ -31,11 +31,10 @@ bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
         return false;
     }
     for (size_t i = 0; i < symbolColor_.gradients.size(); i++) {
-        bool isUnequal = symbolColor_.gradients[i] == nullptr || symbolColor.gradients[i] == nullptr;
-        if (isUnequal) {
-            return false;
-        }
-        if (!symbolColor_.gradients[i]->IsNearlyEqual(symbolColor.gradients[i])) {
+        const auto& l = symbolColor_.gradients[i];
+        const auto& r = symbolColor.gradients[i];
+        bool isEqual = (l == nullptr && r == nullptr) || (l != nullptr && r != nullptr && l->IsNearlyEqual(r));
+        if (!isEqual) {
             return false;
         }
     }
@@ -48,7 +47,7 @@ void HMSymbolTxt::SetRenderColor(const std::vector<RSSColor>& colorList)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
-    for (auto color : colorList) {
+    for (const auto& color : colorList) {
         auto gradient =  std::make_shared<SymbolGradient>();
         std::vector<Drawing::ColorQuad> colors;
         Drawing::Color color1;

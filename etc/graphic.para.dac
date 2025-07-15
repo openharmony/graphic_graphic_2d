@@ -22,4 +22,4 @@ rosen.drawingCache.enabledDfx = graphics:servicectrl:0775
 bootevent.renderservice.ready = graphics:graphics:0777
 persist.sys.graphic.hideNotch.status = graphics:graphics:0777
 sys.graphic.openTestModeTrace = hiview:hiview:0775
-persist.rosen.animationtrace.enabled = graphics:graphics:0700
+persist.rosen.animationtrace.enabled = graphics:graphics:0706

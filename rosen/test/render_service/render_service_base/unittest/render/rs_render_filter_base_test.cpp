@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
-
+#include "ge_visual_effect_impl.h"
 #include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_render_filter_base.h"
@@ -35,6 +35,27 @@ void RSRenderFilterBaseTest::SetUpTestCase() {}
 void RSRenderFilterBaseTest::TearDownTestCase() {}
 void RSRenderFilterBaseTest::SetUp() {}
 void RSRenderFilterBaseTest::TearDown() {}
+
+/**
+ * @tc.name: SetGeometry
+ * @tc.desc: Test the SetGeometry method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, SetGeometry, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSNGRenderBlurFilter>();
+    Drawing::Canvas canvas;
+    float testValue = 20.f;
+    RSUIFilterHelper::SetGeometry(nullptr, canvas, testValue, testValue);
+    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    EXPECT_EQ(filter->geFilter_, nullptr);
+
+    filter->GenerateGEVisualEffect();
+    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    EXPECT_NE(filter->geFilter_, nullptr);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoWidth_, testValue);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoHeight_, testValue);
+}
 
 /**
  * @tc.name: CreateAndGetType001
@@ -62,6 +83,34 @@ HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType001, TestSize.Level1)
     EXPECT_EQ(invalidFilter, nullptr);
     auto noneFilter = RSNGRenderFilterBase::Create(RSNGEffectType::NONE);
     EXPECT_EQ(noneFilter, nullptr);
+}
+
+/**
+ * @tc.name: UpdateCacheData
+ * @tc.desc: Test the UpdateCacheData method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, UpdateCacheData, TestSize.Level1)
+{
+    auto src = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
+    auto dest = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
+    auto other = std::make_shared<Drawing::GEVisualEffect>("MESA_BLUR");
+    RSUIFilterHelper::UpdateCacheData(src, dest);
+    EXPECT_EQ(dest->GetImpl()->GetCache(), nullptr);
+    src->GetImpl()->SetCache(std::make_shared<std::any>(std::make_any<float>(1.0)));
+    std::shared_ptr<Drawing::GEVisualEffect> null = nullptr;
+    RSUIFilterHelper::UpdateCacheData(null, null);
+    EXPECT_EQ(null, nullptr);
+    RSUIFilterHelper::UpdateCacheData(null, dest);
+    RSUIFilterHelper::UpdateCacheData(src, null);
+    EXPECT_EQ(null, nullptr);
+    ASSERT_NE(src->GetImpl()->GetFilterType(), other->GetImpl()->GetFilterType());
+    RSUIFilterHelper::UpdateCacheData(src, other);
+    EXPECT_EQ(other->GetImpl()->GetCache(), nullptr);
+    RSUIFilterHelper::UpdateCacheData(src, dest);
+    auto cachePtr = dest->GetImpl()->GetCache();
+    auto cache = std::any_cast<float>(*cachePtr);
+    EXPECT_EQ(cache, 1.0);
 }
 
 /**
@@ -315,16 +364,16 @@ HWTEST_F(RSRenderFilterBaseTest, SetModifierTypeChain, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpProperty001
- * @tc.desc: Test the DumpProperty method outputs correct filter properties
+ * @tc.name: DumpProperties001
+ * @tc.desc: Test the DumpProperties method outputs correct filter properties
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, DumpProperty001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, DumpProperties001, TestSize.Level1)
 {
     using BlurFilter = RSNGRenderBlurFilter;
     auto filter1 = std::make_shared<BlurFilter>();
     std::string out;
-    filter1->DumpProperty(out);
+    filter1->DumpProperties(out);
     EXPECT_FALSE(out.empty());
 }
 

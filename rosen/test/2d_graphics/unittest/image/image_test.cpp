@@ -430,6 +430,33 @@ HWTEST_F(ImageTest, IsTextureBackedTest001, TestSize.Level1)
     EXPECT_FALSE(image.IsTextureBacked());
 }
 
+/**
+ * @tc.name: SetHeadroom001
+ * @tc.desc: test for setting headroom for Image.
+ * @tc.type: FUNC
+ * @tc.require: I70OWN
+*/
+HWTEST_F(ImageTest, SetHeadroom001, TestSize.Level1)
+{
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    image->SetHeadroom(2.0f);
+    ASSERT_EQ(image->GetHeadroom(), 1.0f);
+}
+
+/**
+ * @tc.name: GetHeadroom001
+ * @tc.desc: test for getting headroom from Image.
+ * @tc.type: FUNC
+ * @tc.require: I70OWN
+*/
+HWTEST_F(ImageTest, GetHeadroom001, TestSize.Level1)
+{
+    std::unique_ptr<Image> image = std::make_unique<Image>();
+    ASSERT_TRUE(image != nullptr);
+    ASSERT_EQ(image->GetHeadroom(), 1.0f);
+}
+
 #ifdef RS_ENABLE_GPU
 /**
  * @tc.name: BuildFromCompressedTest001

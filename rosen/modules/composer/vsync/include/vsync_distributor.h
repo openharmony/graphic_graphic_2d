@@ -69,11 +69,12 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
-    void AddRequestVsyncTimestamp(const int64_t& timestamp);
+    bool AddRequestVsyncTimestamp(const int64_t& timestamp);
     void RemoveTriggeredVsync(const int64_t &currentTime);
     bool NeedTriggeredVsync(const int64_t& currentTime);
+    bool IsRequestVsyncTimestampEmpty();
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
     inline void SetGCNotifyTask(GCNotifyTask hook)
     {
@@ -86,6 +87,7 @@ public:
     int32_t highPriorityRate_ = -1;
     bool highPriorityState_ = false;
     ConnectionInfo info_;
+    bool triggerThisTime_ = false; // used for LTPO
     uint64_t id_ = 0;
     uint64_t windowNodeId_ = 0;
     uint32_t vsyncPulseFreq_ = 1;
@@ -119,6 +121,7 @@ private:
     bool isFirstRequestVsync_ = true;
     bool isFirstSendVsync_ = true;
     RequestNativeVSyncCallback requestNativeVSyncCallback_ = nullptr;
+    bool isRsConn_ = false;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
@@ -156,7 +159,7 @@ public:
     void RecordVsyncModeChange(uint32_t refreshRate, int64_t period);
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
-    VsyncError SetUiDvsyncConfig(int32_t bufferCount);
+    VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
     int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
@@ -176,6 +179,7 @@ public:
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
     void SetTaskEndWithTime(uint64_t time);
+    bool NeedSkipForSurfaceBuffer(uint64_t id);
 
 private:
 
@@ -215,7 +219,7 @@ private:
     void CheckNeedDisableDvsync(int64_t now, int64_t period);
     void OnVSyncTrigger(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
-
+    void UpdateTriggerFlagForRNV(const sptr<VSyncConnection> &connection, const int64_t& requestVsyncTime);
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
     sptr<VSyncController> controller_;

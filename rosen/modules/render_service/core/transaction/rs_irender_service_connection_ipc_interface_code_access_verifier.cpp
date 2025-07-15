@@ -165,6 +165,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FOCUS_APP_INFO");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_OFFSET): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_OFFSET");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_FRAME_GRAVITY): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GRAVITY");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_ACTIVE_MODE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_ACTIVE_MODE");
             break;
@@ -577,6 +585,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::PROFILER_IS_SECURE_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::PROFILER_IS_SECURE_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CLEAR_UIFIRST_CACHE): {
+            hasPermission = IsTaskManagerCalling(codeEnumTypeName_ + "::CLEAR_UIFIRST_CACHE");
             break;
         }
         default: {

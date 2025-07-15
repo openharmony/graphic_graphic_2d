@@ -12,11 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <parameters.h>
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "params/rs_render_params.h"
+#include "multiscreen_param.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
@@ -25,7 +30,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "surface_buffer_impl.h"
@@ -39,16 +44,28 @@ namespace {
     constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
 }
 namespace OHOS::Rosen {
+BufferRequestConfig requestConfig = {
+    .width = 0x100,
+    .height = 0x100,
+    .strideAlignment = 0x8,
+    .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+    .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+    .timeout = 0,
+};
+
 class RSUniRenderVirtualProcessorTest : public testing::Test {
 public:
     std::shared_ptr<RSProcessor> processor_ = nullptr;
     std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcessor_ = nullptr;
     std::shared_ptr<Drawing::Canvas> drawingCanvas_ = nullptr;
-    std::shared_ptr<RSDisplayRenderNode> rsDisplayRenderNode_ = nullptr;
-    RSDisplayRenderNodeDrawable* displayDrawable_ = nullptr;
+    std::shared_ptr<RSScreenRenderNode> rsScreenRenderNode_ = nullptr;
+    RSScreenRenderNodeDrawable* screenDrawable_ = nullptr;
+    RSLogicalDisplayRenderNodeDrawable* displayDrawable_ = nullptr;
 
     RSDisplayNodeConfig config_;
     NodeId nodeId_ = 0;
+    ScreenId screenNodeId_ = 1;
+    std::shared_ptr<RSContext> context_ = std::make_shared<RSContext>();
 
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -67,11 +84,12 @@ void RSUniRenderVirtualProcessorTest::SetUpTestCase()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 }
 void RSUniRenderVirtualProcessorTest::TearDownTestCase() {}
 void RSUniRenderVirtualProcessorTest::SetUp()
 {
-    processor_ = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    processor_ = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     ASSERT_NE(processor_, nullptr);
     virtualProcessor_ = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
     ASSERT_NE(virtualProcessor_, nullptr);
@@ -81,13 +99,13 @@ void RSUniRenderVirtualProcessorTest::SetUp()
     virtualProcessor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas_.get());
     ASSERT_NE(virtualProcessor_->canvas_, nullptr);
 
-    rsDisplayRenderNode_ = std::make_shared<RSDisplayRenderNode>(nodeId_, config_);
-    ASSERT_NE(rsDisplayRenderNode_, nullptr);
-    displayDrawable_ =
-        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(rsDisplayRenderNode_));
-    ASSERT_NE(displayDrawable_, nullptr);
-    displayDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId_);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    rsScreenRenderNode_ = std::make_shared<RSScreenRenderNode>(nodeId_, screenNodeId_, context_);
+    ASSERT_NE(rsScreenRenderNode_, nullptr);
+    screenDrawable_ =
+        static_cast<RSScreenRenderNodeDrawable*>(RSScreenRenderNodeDrawable::OnGenerate(rsScreenRenderNode_));
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId_);
+    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderVirtualProcessorTest::TearDown() {}
@@ -109,7 +127,7 @@ sptr<SurfaceBuffer> RSUniRenderVirtualProcessorTest::RSSurfaceOhosRasterTest::Ge
 HWTEST_F(RSUniRenderVirtualProcessorTest, CreateAndDestroy, TestSize.Level2)
 {
     // The best way to create RSUniRenderVirtualProcessor.
-    auto type = RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
+    auto type = CompositeType::UNI_RENDER_MIRROR_COMPOSITE;
     auto processor = RSProcessorFactory::CreateProcessor(type);
     auto rsUniRenderVirtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, rsUniRenderVirtualProcessor);
@@ -124,18 +142,16 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CreateAndDestroy, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, Init001, TestSize.Level2)
 {
-    RSDisplayNodeConfig config;
     NodeId id = 0;
     int32_t offsetX = 0;
     int32_t offsetY = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
+    RSScreenRenderNode rsScreenRenderNode(id, screenNodeId_, context_);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, processor);
-    ASSERT_EQ(false, processor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    ASSERT_EQ(false, processor->Init(rsScreenRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
 }
 
 /**
@@ -154,48 +170,43 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
-    RSDisplayNodeConfig mainConfig{0, false, 0, false};
-    auto mainNode = std::make_shared<RSDisplayRenderNode>(mainNodeId, mainConfig);
+    auto mainNode = std::make_shared<RSScreenRenderNode>(mainNodeId, screenNodeId_, context_);
     mainNode->InitRenderParams();
-    RSDisplayNodeConfig virtualConfig{screenId, true, mainNodeId, false};
-    auto virtualNode = std::make_shared<RSDisplayRenderNode>(virtualNodeId, virtualConfig);
+    auto virtualNode = std::make_shared<RSScreenRenderNode>(virtualNodeId, screenNodeId_, context_);
     virtualNode->InitRenderParams();
     ASSERT_NE(mainNode->renderDrawable_, nullptr);
     ASSERT_NE(virtualNode->renderDrawable_, nullptr);
     ASSERT_NE(mainNode->renderDrawable_->renderParams_, nullptr);
     ASSERT_NE(virtualNode->renderDrawable_->renderParams_, nullptr);
 
-    auto mainRenderDrawable = static_cast<RSDisplayRenderNodeDrawable* >(mainNode->renderDrawable_.get());
-    auto virtualRenderDrawable = static_cast<RSDisplayRenderNodeDrawable* >(virtualNode->renderDrawable_.get());
+    auto mainRenderDrawable = static_cast<RSScreenRenderNodeDrawable*>(mainNode->renderDrawable_.get());
+    auto virtualRenderDrawable = static_cast<RSScreenRenderNodeDrawable*>(virtualNode->renderDrawable_.get());
     ASSERT_NE(mainRenderDrawable, nullptr);
     ASSERT_NE(virtualRenderDrawable, nullptr);
-    auto mainRenderParams = static_cast<RSDisplayRenderParams* >(mainRenderDrawable->GetRenderParams().get());
-    auto virtualRenderParams = static_cast<RSDisplayRenderParams* >(virtualRenderDrawable->GetRenderParams().get());
+    auto mainRenderParams = static_cast<RSScreenRenderParams*>(mainRenderDrawable->GetRenderParams().get());
+    auto virtualRenderParams = static_cast<RSScreenRenderParams*>(virtualRenderDrawable->GetRenderParams().get());
     ASSERT_NE(mainRenderParams, nullptr);
     ASSERT_NE(virtualRenderParams, nullptr);
     virtualRenderParams->mirrorSourceDrawable_ = mainNode->renderDrawable_;
-    virtualRenderParams->screenId_ = screenId;
+    virtualRenderParams->screenInfo_.id = screenId;
 
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    ASSERT_NE(renderEngine, nullptr);
-    renderEngine->Init();
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
 
     virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
-    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    ASSERT_EQ(virtualProcessor->renderFrameConfig_.colorGamut, mainRenderParams->GetNewColorSpace());
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
 
     mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    auto newProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto newProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto newVirtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(newProcessor);
     ASSERT_NE(newVirtualProcessor, nullptr);
-    newVirtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    ASSERT_EQ(newVirtualProcessor->renderFrameConfig_.colorGamut, mainRenderParams->GetNewColorSpace());
+    newVirtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
 }
 
 /**
@@ -215,47 +226,46 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
     RSDisplayNodeConfig mainConfig{0, false, INVALID_SCREEN_ID, false};
-    auto mainNode = std::make_shared<RSDisplayRenderNode>(mainNodeId, mainConfig);
+    auto mainNode = std::make_shared<RSScreenRenderNode>(mainNodeId, mainConfig.screenId);
     mainNode->InitRenderParams();
     RSDisplayNodeConfig virtualConfig{screenId, true, mainNodeId, false};
-    auto virtualNode = std::make_shared<RSDisplayRenderNode>(virtualNodeId, virtualConfig);
+    auto virtualNode = std::make_shared<RSScreenRenderNode>(virtualNodeId, virtualConfig.screenId);
     virtualNode->InitRenderParams();
     ASSERT_NE(mainNode->renderDrawable_, nullptr);
     ASSERT_NE(virtualNode->renderDrawable_, nullptr);
     ASSERT_NE(mainNode->renderDrawable_->renderParams_, nullptr);
     ASSERT_NE(virtualNode->renderDrawable_->renderParams_, nullptr);
 
-    auto mainRenderDrawable = static_cast<RSDisplayRenderNodeDrawable* >(mainNode->renderDrawable_.get());
-    auto virtualRenderDrawable = static_cast<RSDisplayRenderNodeDrawable* >(virtualNode->renderDrawable_.get());
+    auto mainRenderDrawable = static_cast<RSScreenRenderNodeDrawable*>(mainNode->renderDrawable_.get());
+    auto virtualRenderDrawable = static_cast<RSScreenRenderNodeDrawable*>(virtualNode->renderDrawable_.get());
     ASSERT_NE(mainRenderDrawable, nullptr);
     ASSERT_NE(virtualRenderDrawable, nullptr);
-    auto mainRenderParams = static_cast<RSDisplayRenderParams* >(mainRenderDrawable->GetRenderParams().get());
-    auto virtualRenderParams = static_cast<RSDisplayRenderParams* >(virtualRenderDrawable->GetRenderParams().get());
+    auto mainRenderParams = static_cast<RSScreenRenderParams*>(mainRenderDrawable->GetRenderParams().get());
+    auto virtualRenderParams = static_cast<RSScreenRenderParams*>(virtualRenderDrawable->GetRenderParams().get());
     ASSERT_NE(mainRenderParams, nullptr);
     ASSERT_NE(virtualRenderParams, nullptr);
     virtualRenderParams->mirrorSourceDrawable_ = mainNode->renderDrawable_;
-    virtualRenderParams->screenId_ = screenId;
+    virtualRenderParams->screenInfo_.id = screenId;
 
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     ASSERT_NE(renderEngine, nullptr);
-    renderEngine->Init();
 
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
 
-    virtualProcessor->InitForRenderThread(*mainRenderDrawable, 0, renderEngine);
-    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
+    virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
     
     screenManager->SetVirtualScreenAutoRotation(screenId, true);
-    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
 
     virtualRenderDrawable->SetFirstBufferRotation(ScreenRotation::ROTATION_90);
-    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    virtualProcessor->InitForRenderThread(*mainRenderDrawable, INVALID_SCREEN_ID, renderEngine);
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+    virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
     mainRenderParams->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    virtualProcessor->InitForRenderThread(*mainRenderDrawable, INVALID_SCREEN_ID, renderEngine);
+    virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
     screenManager->RemoveVirtualScreen(screenId);
 }
 
@@ -270,28 +280,27 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessSurface, TestSize.Level2)
 {
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     ASSERT_NE(processor, nullptr);
     processor->ProcessSurface(rsSurfaceRenderNode);
 }
 
 /**
- * @tc.name: ProcessDisplaySurface
+ * @tc.name: ProcessScreenSurface
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurface, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurface, TestSize.Level2)
 {
-    RSDisplayNodeConfig config;
     NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    RSScreenRenderNode screenRenderNode(id, 1);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     ASSERT_NE(nullptr, processor);
-    processor->ProcessDisplaySurface(rsDisplayRenderNode);
+    processor->ProcessScreenSurface(screenRenderNode);
 }
 
 /**
@@ -303,7 +312,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurface, TestSize.Level2
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     ASSERT_NE(processor, nullptr);
     processor->PostProcess();
@@ -317,7 +326,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
@@ -339,7 +348,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, Fill, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
@@ -358,8 +367,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, Fill, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, UniScale, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
     auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
@@ -388,40 +396,46 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessRcdSurfaceTest, TestSize.Level2
 }
 
 /**
- * @tc.name: ProcessDisplaySurfaceTest
- * @tc.desc: Verify function ProcessDisplaySurface
+ * @tc.name: ProcessScreenSurfaceTest
+ * @tc.desc: Verify function ProcessScreenSurface
  * @tc.type:FUNC
  * @tc.require:issuesI9KRF1
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceTest, TestSize.Level2)
 {
-    RSDisplayNodeConfig config;
     NodeId id = 0;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(id, 1);
+    ASSERT_NE(screenRenderNode, nullptr);
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     ASSERT_NE(processor, nullptr);
-    processor->ProcessDisplaySurface(*rsDisplayRenderNode);
+    processor->ProcessScreenSurface(*screenRenderNode);
     Drawing::Canvas canvas;
     processor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
-    auto displayDrawable =
-        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(rsDisplayRenderNode));
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto screenDrawable =
+        static_cast<RSScreenRenderNodeDrawable*>(RSScreenRenderNodeDrawable::OnGenerate(screenRenderNode));
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    processor->ProcessDisplaySurface(*rsDisplayRenderNode);
+    processor->ProcessScreenSurface(*screenRenderNode);
     EXPECT_FALSE(processor->forceCPU_);
 }
 
 /**
  * @tc.name: CanvasInit_001
- * @tc.desc: CanvasInit Test, displayDrawable isFirstTimeToProcessor
+ * @tc.desc: CanvasInit Test, screenDrawable isFirstTimeToProcessor
  * @tc.type:FUNC
  * @tc.require:issuesIAJ4FW
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_001, TestSize.Level2)
 {
-    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
     ASSERT_NE(virtualProcessor_, nullptr);
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, config);
+    renderNode->InitRenderParams();
+    displayDrawable_ =
+        std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(renderNode->GetRenderDrawable()).get();
+    ASSERT_NE(displayDrawable_, nullptr);
     displayDrawable_->isFirstTimeToProcessor_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
     ASSERT_FALSE(displayDrawable_->isFirstTimeToProcessor_);
@@ -429,14 +443,19 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_001, TestSize.Level2)
 
 /**
  * @tc.name: CanvasInit_002
- * @tc.desc: CanvasInit Test, displayDrawable_ is not FirstTimeToProcessor, canvasRotation of virtualProcessor_ is true
+ * @tc.desc: CanvasInit Test, screenDrawable_ is not FirstTimeToProcessor, canvasRotation of virtualProcessor_ is true
  * @tc.type:FUNC
  * @tc.require:issuesIAJ4FW
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_002, TestSize.Level2)
 {
-    ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(virtualProcessor_, nullptr);
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, config);
+    renderNode->InitRenderParams();
+    displayDrawable_ =
+        std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(renderNode->GetRenderDrawable()).get();
     displayDrawable_->isFirstTimeToProcessor_ = false;
     virtualProcessor_->canvasRotation_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
@@ -451,8 +470,13 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_002, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_003, TestSize.Level2)
 {
-    ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(virtualProcessor_, nullptr);
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, config);
+    renderNode->InitRenderParams();
+    displayDrawable_ =
+        std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(renderNode->GetRenderDrawable()).get();
     displayDrawable_->isFirstTimeToProcessor_ = false;
     virtualProcessor_->canvasRotation_ = false;
     virtualProcessor_->CanvasInit(*displayDrawable_);
@@ -470,7 +494,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_003, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CheckIfBufferSizeNeedChangeTest, TestSize.Level2)
 {
-    ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(virtualProcessor_, nullptr);
     EXPECT_TRUE(virtualProcessor_->CheckIfBufferSizeNeedChange(
         ScreenRotation::ROTATION_0, ScreenRotation::ROTATION_90));
@@ -539,89 +562,84 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetRoiRegionToCodec001, TestSize.Level
 }
 
 /**
- * @tc.name: ProcessDisplaySurfaceForRenderThread_001
- * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is true, return directly
+ * @tc.name: ProcessScreenSurfaceForRenderThread_001
+ * @tc.desc: ProcessScreenSurfaceForRenderThread Test, isExpand_ is true, return directly
  * @tc.type:FUNC
  * @tc.require:issuesIAJ4FW
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_001, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread_001, TestSize.Level2)
 {
     ASSERT_NE(virtualProcessor_, nullptr);
-    virtualProcessor_->isExpand_ = true;
-    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable_);
 }
 
 /**
- * @tc.name: ProcessDisplaySurfaceForRenderThread_002
- * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas and Buffer are not null ,
+ * @tc.name: ProcessScreenSurfaceForRenderThread_002
+ * @tc.desc: ProcessScreenSurfaceForRenderThread Test, isExpand_ is false, canvas and Buffer are not null ,
  * renderEngine_  is not null, return
  * @tc.type:FUNC
  * @tc.require:issuesIAJ4FW
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_002, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread_002, TestSize.Level2)
 {
-    virtualProcessor_->isExpand_ = false;
     ASSERT_NE(virtualProcessor_->canvas_, nullptr);
-    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable_->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    processor_->ProcessDisplaySurface(*rsDisplayRenderNode_);
-    ASSERT_NE(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    processor_->ProcessScreenSurface(*rsScreenRenderNode_);
+    ASSERT_NE(screenDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
 
     virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
     ASSERT_NE(virtualProcessor_->renderEngine_, nullptr);
-    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable_);
 }
 
 /**
- * @tc.name: ProcessDisplaySurfaceForRenderThread_003
- * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas_ is null, buffer not null, return
+ * @tc.name: ProcessScreenSurfaceForRenderThread_003
+ * @tc.desc: ProcessScreenSurfaceForRenderThread Test, isExpand_ is false, canvas_ is null, buffer not null, return
  * directly
  * @tc.type:FUNC
  * @tc.require:issuesIAJ4FW
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_003, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread_003, TestSize.Level2)
 {
-    virtualProcessor_->isExpand_ = false;
     virtualProcessor_->canvas_ = nullptr;
-    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable_->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    processor_->ProcessDisplaySurface(*rsDisplayRenderNode_);
-    ASSERT_NE(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
-    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+    processor_->ProcessScreenSurface(*rsScreenRenderNode_);
+    ASSERT_NE(screenDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable_);
 }
 
 /**
- * @tc.name: ProcessDisplaySurfaceForRenderThread_004
- * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas_ is null, buffer is null, return
+ * @tc.name: ProcessScreenSurfaceForRenderThread_004
+ * @tc.desc: ProcessScreenSurfaceForRenderThread Test, isExpand_ is false, canvas_ is null, buffer is null, return
  * directly
  * @tc.type:FUNC
  * @tc.require:issuesIAJ4FW
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_004, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread_004, TestSize.Level2)
 {
-    virtualProcessor_->isExpand_ = false;
     virtualProcessor_->canvas_ = nullptr;
-    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable_->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->buffer_.buffer = nullptr;
-    ASSERT_EQ(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
-    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+    ASSERT_EQ(screenDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable_);
 }
 
 /**
- * @tc.name: ProcessDisplaySurfaceForRenderThread_005
- * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas_ is not null, buffer is null, return
+ * @tc.name: ProcessScreenSurfaceForRenderThread_005
+ * @tc.desc: ProcessScreenSurfaceForRenderThread Test, isExpand_ is false, canvas_ is not null, buffer is null, return
  * directly
  * @tc.type:FUNC
  * @tc.require:issuesIAJ4FW
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_005, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread_005, TestSize.Level2)
 {
-    virtualProcessor_->isExpand_ = false;
     ASSERT_NE(nullptr, virtualProcessor_->canvas_);
-    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable_->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->buffer_.buffer = nullptr;
-    ASSERT_EQ(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
-    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+    ASSERT_EQ(screenDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable_);
 }
 
 /**
@@ -632,11 +650,10 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_0
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
-    virtualProcessor_->CanvasClipRegionForUniscaleMode();
 }
 
 /**
@@ -647,7 +664,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestS
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessCacheImage, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
@@ -681,7 +698,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessCacheImage, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, EnableSlrScale, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     virtualProcessor->EnableSlrScale();
@@ -696,7 +713,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, EnableSlrScale, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetSpecialLayerType, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
@@ -711,7 +728,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetSpecialLayerType, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetColorSpaceForMetadata, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     EXPECT_NE(nullptr, virtualProcessor);
@@ -753,7 +770,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetColorSpaceForMetadata, TestSize.Lev
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetRoiRegionToCodec002, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     EXPECT_NE(nullptr, virtualProcessor);
@@ -782,5 +799,111 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetRoiRegionToCodec002, TestSize.Level
     vRect.emplace_back(rect);
     res = virtualProcessor->SetRoiRegionToCodec(vRect);
     EXPECT_EQ(GSERROR_NOT_INIT, res);
+}
+
+/**
+ * @tc.name: UpdateMirrorInfo001
+ * @tc.desc: test UpdateMirrorInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo001, TestSize.Level2)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig displayConfig;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayConfig);
+    displayNode->InitRenderParams();
+    ASSERT_NE(displayNode->renderDrawable_->renderParams_, nullptr);
+
+    auto displayDrawable = static_cast<RSLogicalDisplayRenderNodeDrawable*>(displayNode->renderDrawable_.get());
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+    auto result1 = virtualProcessor->UpdateMirrorInfo(*displayDrawable);
+    ASSERT_EQ(result1, true);
+
+    displayDrawable->renderParams_ = nullptr;
+    auto result2 = virtualProcessor->UpdateMirrorInfo(*displayDrawable);
+    ASSERT_EQ(result2, false);
+}
+
+/**
+ * @tc.name: ProcessScreenSurfaceForRenderThread001
+ * @tc.desc: test ProcessScreenSurfaceForRenderThread
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread001, TestSize.Level2)
+{
+    NodeId screenNodeId = 100;
+    auto context1 = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, context1->weak_from_this());
+    screenNode->InitRenderParams();
+    ASSERT_NE(screenNode->renderDrawable_, nullptr);
+    ASSERT_NE(screenNode->renderDrawable_->renderParams_, nullptr);
+
+    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(screenNode->renderDrawable_.get());
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+    screenDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
+    ASSERT_NE(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable);
+
+    auto context2 = std::make_shared<RSContext>();
+    auto newScreenNode = std::make_shared<RSScreenRenderNode>(1, 0, context1->weak_from_this());
+    newScreenNode->InitRenderParams();
+    auto newScreenDrawable = static_cast<RSScreenRenderNodeDrawable*>(newScreenNode->renderDrawable_.get());
+    newScreenDrawable->renderParams_ = nullptr;
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*newScreenDrawable);
+    ASSERT_NE(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+}
+
+/**
+ * @tc.name: UpdateMirrorInfo002
+ * @tc.desc: test UpdateMirrorInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, UpdateMirrorInfo002, TestSize.Level2)
+{
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    RSDisplayNodeConfig config;
+    auto renderNode_ = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, config);
+    renderNode_->InitRenderParams();
+    displayDrawable_ =
+        std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(renderNode_->GetRenderDrawable()).get();
+
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+    auto result = virtualProcessor->UpdateMirrorInfo(*displayDrawable_);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessScreenSurfaceForRenderThread002
+ * @tc.desc: test ProcessScreenSurfaceForRenderThread
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread002, TestSize.Level2)
+{
+    NodeId screenNodeId = 1;
+    ScreenId screenId = 2;
+    auto context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, context->weak_from_this());
+    screenNode->InitRenderParams();
+    ASSERT_NE(screenNode->renderDrawable_, nullptr);
+    ASSERT_NE(screenNode->renderDrawable_->renderParams_, nullptr);
+
+    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(screenNode->renderDrawable_.get());
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    std::shared_ptr<RSBaseRenderEngine> renderEngine = nullptr;
+    virtualProcessor->InitForRenderThread(*screenDrawable, renderEngine);
+    virtualProcessor->visibleRect_ = Drawing::RectI(0, 0, 1044, 2088);
+
+    auto context2 = std::make_shared<RSContext>();
+    auto newScreenNode = std::make_shared<RSScreenRenderNode>(1, 0, context2->weak_from_this());
+    virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable);
+    ASSERT_EQ(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr, true);
 }
 } // namespace OHOS::Rosen

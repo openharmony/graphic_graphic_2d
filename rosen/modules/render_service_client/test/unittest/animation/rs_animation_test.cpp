@@ -24,7 +24,9 @@
 #include "animation/rs_transition.h"
 #include "render/rs_path.h"
 #include "ui/rs_canvas_node.h"
-
+#if defined(MODIFIER_NG)
+#include "modifier_ng/geometry/rs_bounds_modifier.h"
+#endif
 using namespace testing;
 using namespace testing::ext;
 
@@ -34,8 +36,6 @@ using namespace ANIMATIONTEST;
 class RSAnimationTest : public RSAnimationBaseTest {
 };
 
-#if defined(MODIFIER_NG)
-#else
 /**
  * @tc.name: AnimationGetId001
  * @tc.desc: Verify the AnimationGetId of Animation
@@ -48,7 +48,12 @@ HWTEST_F(RSAnimationTest, AnimationGetId001, TestSize.Level1)
      * @tc.steps: step1. init AnimationGetId
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -85,7 +90,12 @@ HWTEST_F(RSAnimationTest, AnimationGetId002, TestSize.Level1)
      * @tc.steps: step1. init AnimationGetId
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -121,7 +131,12 @@ HWTEST_F(RSAnimationTest, AnimationSetFinishCallback001, TestSize.Level1)
      * @tc.steps: step1. init AnimationSetFinishCallback
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -162,7 +177,12 @@ HWTEST_F(RSAnimationTest, AnimationSetFinishCallback002, TestSize.Level1)
      * @tc.steps: step1. init AnimationSetFinishCallback
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -202,7 +222,12 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget001, TestSize.Level1)
      * @tc.steps: step1. init AnimationGetTarget
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -239,7 +264,12 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget002, TestSize.Level1)
      * @tc.steps: step1. init AnimationGetTarget
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -276,7 +306,12 @@ HWTEST_F(RSAnimationTest, AnimationStatus001, TestSize.Level1)
      * @tc.steps: step1. init AnimationStatus
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -320,7 +355,12 @@ HWTEST_F(RSAnimationTest, AnimationStatus002, TestSize.Level1)
      * @tc.steps: step1. init AnimationStatus
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -361,7 +401,12 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 start";
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -414,7 +459,12 @@ HWTEST_F(RSAnimationTest, InteractivePause, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationTest InteractivePause start";
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -455,7 +505,12 @@ HWTEST_F(RSAnimationTest, InteractiveContinue, TestSize.Level1)
      * @tc.steps: step1. init InteractiveContinue
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -499,7 +554,12 @@ HWTEST_F(RSAnimationTest, InteractiveReverse, TestSize.Level1)
      * @tc.steps: step1. init InteractiveReverse
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -543,7 +603,12 @@ HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
      * @tc.steps: step1. init Finish
      */
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, property);
+#else
     auto modifier = std::make_shared<RSBoundsModifier>(property);
+#endif
     canvasNode->AddModifier(modifier);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
@@ -569,7 +634,6 @@ HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
     EXPECT_FALSE(rsNode.lock() != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest Finish end";
 }
-#endif
 
 /**
  * @tc.name: PropertyAnimationGetModifierTypeTest001

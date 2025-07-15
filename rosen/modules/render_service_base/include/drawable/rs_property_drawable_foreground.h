@@ -25,10 +25,13 @@
 namespace OHOS::Rosen {
 class RSFilter;
 class RSBorder;
+class RSNGRenderShaderBase;
 class RSProperties;
 namespace Drawing {
+class GEShader;
 class RuntimeEffect;
 class RuntimeShaderBuilder;
+class GEVisualEffectContainer;
 } // namespace Drawing
 
 namespace DrawableV2 {
@@ -155,6 +158,21 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
+};
+
+class RSForegroundShaderDrawable : public RSDrawable {
+public:
+    RSForegroundShaderDrawable() = default;
+    ~RSForegroundShaderDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+private:
+    bool needSync_ = false;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
+    std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
 };
 
 class RSPointLightDrawable : public RSDrawable {

@@ -76,7 +76,7 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
 {
     if (!CreateConstructor(env)) {
-        TEXT_LOGE("Failed to CreateConstructor");
+        TEXT_LOGE("Failed to create constructor");
         return nullptr;
     }
     napi_value constructor = nullptr;
@@ -791,7 +791,7 @@ std::shared_ptr<Typography> JsParagraph::GetParagraph()
 napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography)
 {
     if (!CreateConstructor(env)) {
-        TEXT_LOGE("Failed to CreateConstructor");
+        TEXT_LOGE("Failed to create constructor");
         return nullptr;
     }
     napi_value constructor = nullptr;

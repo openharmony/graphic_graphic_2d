@@ -29,7 +29,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_tag_tracker.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -539,6 +539,19 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
     return true;
 }
 
+void RsSubThreadCache::CheckSurfaceDrawableValidDfx(const DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr& drawable)
+{
+    if (UNLIKELY(!drawable)) {
+        RS_LOGE("CheckSurfaceDrawableValidDfx drawable is nullptr");
+        return;
+    }
+
+    if (UNLIKELY(drawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE)) {
+        RS_LOGE("CheckSurfaceDrawableValidDfx error Type %{public}d %{public}" PRIu64,
+            static_cast<int>(drawable->GetNodeType()), drawable->GetId());
+    }
+}
+
 void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable)
 {
     if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
@@ -561,6 +574,7 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
     // nested surfacenode uifirstDirtyManager update is required
     for (const auto& nestedDrawable : surfaceDrawable->
         GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        CheckSurfaceDrawableValidDfx(nestedDrawable);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             isRecordCompletate = isRecordCompletate && surfaceNodeDrawable->GetRsSubThreadCache()
@@ -696,6 +710,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
     dirtyRects.Join(tempRect);
     for (const auto& nestedDrawable : surfaceDrawable->
         GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        CheckSurfaceDrawableValidDfx(nestedDrawable);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             tempRect = {};
@@ -730,6 +745,7 @@ void RsSubThreadCache::UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSur
     }
     for (const auto& nestedDrawable : surfaceDrawable->
         GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        CheckSurfaceDrawableValidDfx(nestedDrawable);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             surfaceNodeDrawable->GetRsSubThreadCache().SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
@@ -1009,11 +1025,6 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
             __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
             cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
     }
-    if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
-        (surfaceParams.HasBlackListByScreenId(RSUniRenderThread::GetCaptureParam().virtualScreenId_) ||
-        surfaceParams.HasBlackListByScreenId(INVALID_SCREEN_ID))) {
-        return true;
-    }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d",
         surfaceParams.GetName().c_str(), surfaceParams.GetId(), enableType, cacheState);
     Drawing::Rect bounds = surfaceParams.GetBounds();
@@ -1048,7 +1059,12 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         surfaceDrawable->DrawBackground(canvas, bounds);
     }
     canvas.SetStencilVal(stencilVal);
-    bool drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    bool drawCacheSuccess = true;
+    if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
+        drawCacheSuccess = DrawUIFirstCacheWithStarting(surfaceDrawable, canvas, surfaceParams.GetUifirstUseStarting());
+    } else {
+        drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
+    }
     canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);

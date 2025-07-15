@@ -45,9 +45,9 @@ void RotateOffScreenParamTest::TearDown() {}
 HWTEST_F(RotateOffScreenParamTest, SetRotateOffScreenDisplayNodeEnable, Function | SmallTest | Level1)
 {
     RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable (true);
-    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), true);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable(), true);
     RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(false);
-    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), false);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable(), false);
 }
 
 /**

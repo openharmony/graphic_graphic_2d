@@ -774,5 +774,117 @@ HWTEST_F(RSJankStatsTest, IsAnimationEmptyTest002, TestSize.Level1)
     rsJankStats->explicitAnimationTotal_ = 0;
     EXPECT_EQ(rsJankStats->IsAnimationEmpty(), true);
 }
+
+HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest011, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    std::pair<int64_t, std::string> animationId = { 0, "test" };
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    jankFrames.traceId_ = 0;
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->implicitAnimationTotal_, 1);
+
+    jankFrames.info_.isDisplayAnimator = true;
+    jankFrames.info_.sceneId = SWITCH_SCENE_NAME;
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->explicitAnimationTotal_, 1);
+    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnableFlag_);
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+    EXPECT_FALSE(rsJankStats->ddgrEarlyZEnableFlag_);
+}
+
+HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest012, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    std::pair<int64_t, std::string> animationId = { 0, "test" };
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    jankFrames.traceId_ = 0;
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->implicitAnimationTotal_, 1);
+
+    jankFrames.info_.isDisplayAnimator = true;
+    jankFrames.info_.sceneId = SWITCH_SCENE_NAME;
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->explicitAnimationTotal_, 1);
+    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnableFlag_);
+    jankFrames.traceId_ = 5;
+    rsJankStats->animationAsyncTraces_.emplace(jankFrames.traceId_, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnableFlag_);
+}
+
+HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest013, TestSize.Level1)
+{
+    RSSystemProperties::isEnableEarlyZ_ = false;
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    std::pair<int64_t, std::string> animationId = { 0, "test" };
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    jankFrames.traceId_ = 0;
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->implicitAnimationTotal_, 1);
+
+    jankFrames.info_.isDisplayAnimator = true;
+    jankFrames.info_.sceneId = SWITCH_SCENE_NAME;
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    jankFrames.traceId_ = 5;
+    rsJankStats->animationAsyncTraces_.emplace(jankFrames.traceId_, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+    EXPECT_NE(rsJankStats->lastReportEarlyZTraceId_, jankFrames.traceId_);
+    RSSystemProperties::isEnableEarlyZ_ = true;
+}
+
+HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest014, TestSize.Level1)
+{
+    RSSystemProperties::isEnableEarlyZ_ = false;
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    std::pair<int64_t, std::string> animationId = { 0, "test" };
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    jankFrames.traceId_ = 0;
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+
+    rsJankStats->animationAsyncTraces_.clear();
+    rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
+    EXPECT_EQ(rsJankStats->implicitAnimationTotal_, 1);
+
+    jankFrames.traceId_ = 5;
+    rsJankStats->lastReportEarlyZTraceId_ = jankFrames.traceId_;
+    rsJankStats->animationAsyncTraces_.emplace(jankFrames.traceId_, AnimationTraceStats());
+    rsJankStats->SetAnimationTraceEnd(jankFrames);
+    EXPECT_FALSE(rsJankStats->ddgrEarlyZEnableFlag_);
+    RSSystemProperties::isEnableEarlyZ_ = true;
+}
+
 } // namespace Rosen
 } // namespace OHOS

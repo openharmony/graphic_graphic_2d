@@ -454,4 +454,65 @@ HWTEST_F(RSModifierExtractorTest, DumpTest, TestSize.Level1)
     std::string expected = "Bounds[0.0 0.0 0.0 0.0] Frame[0.0 0.0 0.0 0.0]";
     EXPECT_EQ(dumpInfo, expected);
 }
+
+/**
+ * @tc.name: GetQuaternionTest
+ * @tc.desc: test results of GetQuaternion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetQuaternionTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    Quaternion quaternion = extractor->GetQuaternion();
+    EXPECT_TRUE(quaternion.IsIdentity());
+}
+
+/**
+ * @tc.name: GetBackgroundShaderTest
+ * @tc.desc: test results of GetBackgroundShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetBackgroundShaderTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetBackgroundShader(), nullptr);
+}
+
+/**
+ * @tc.name: GetBgImageTest
+ * @tc.desc: test results of GetBgImage
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetBgImageTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetBgImage(), nullptr);
+}
+
+/**
+ * @tc.name: GetShadowPathTest
+ * @tc.desc: test results of GetShadowPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowPathTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetShadowPath(), nullptr);
+}
+
+/**
+ * @tc.name: GetMaskTest
+ * @tc.desc: test results of GetMask
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetMaskTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetMask(), nullptr);
+}
 } // namespace OHOS::Rosen

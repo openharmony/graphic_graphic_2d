@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-
+#include <sstream>
 
 #include "common/rs_common_def.h"
 #include "draw/canvas.h"
@@ -37,6 +37,21 @@ static const Int32Parameter MSKP_COUNTER("mskp.counter");
 static const Int32Parameter MSKP_MAX("mskp.max");
 static const StringParameter MSKP_PATH("mskp.path");
 static const BoolParameter IS_MSKP("mskp.isMskp");
+
+// 0 - default capturing from canvas in DisplayNode::OnDraw (which is used for imgCache via snapshot())
+// 1 - capturing from mirroredDrawable::OnCapture() call in DisplayNode::DrawMirror + security/black screen
+// 2 - capturing offscreen rendering in DisplayNode::OnDraw for extended screen
+// 3 - capturing the actual drawing of imgCache as texture in DisplayNode::DrawMirrorCopy
+static Uint32Parameter CAPTURE_TYPE("capture.type");
+
+bool RSCaptureRecorder::PrintMessage(std::string message, bool forcedSend)
+{
+    if (RSSystemProperties::GetInstantRecording() || forcedSend) {
+        Network::SendMessage(message);
+        return true;
+    }
+    return false;
+}
 
 RSCaptureRecorder::RSCaptureRecorder()
 {
@@ -71,7 +86,17 @@ void RSCaptureRecorder::SetComponentScreenshotFlag(bool flag)
     isComponentScreenshot_ = flag;
 }
 
-Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
+void RSCaptureRecorder::SetCaptureType(SkpCaptureType type)
+{
+    CAPTURE_TYPE = static_cast<uint32_t>(type);
+}
+
+void RSCaptureRecorder::SetCaptureTypeClear(bool flag)
+{
+    captureTypeToClear_ = flag;
+}
+
+Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height, SkpCaptureType type)
 {
     if (!IsRecordingEnabled()) {
         return nullptr;
@@ -96,12 +121,17 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
     if (isMskpActive_) {
         return nullptr;
     }
+
+    if (static_cast<uint32_t>(type) != CAPTURE_TYPE.Get()) {
+        return nullptr;
+    }
+
     // for saving .skp file
     recordingTriggeredFullFrame_ = true;
     return TryInstantCaptureSKP(width, height);
 }
 
-void RSCaptureRecorder::EndInstantCapture()
+void RSCaptureRecorder::EndInstantCapture(SkpCaptureType type)
 {
     if (!(IsRecordingEnabled() && recordingTriggeredFullFrame_) && !isMskpActive_) {
         return;
@@ -115,6 +145,10 @@ void RSCaptureRecorder::EndInstantCapture()
     if (((mskpMaxLocal_ > 0) && isPageActive_) || isMskpActive_) {
         recordingTriggeredFullFrame_ = false;
         return EndCaptureMSKP();
+    }
+
+    if (static_cast<uint32_t>(type) != CAPTURE_TYPE.Get()) {
+        return;
     }
 
     // for saving .skp file
@@ -289,22 +323,25 @@ void RSCaptureRecorder::EndInstantCaptureSKP()
             procs.SetHasTypefaceProc(true);
             auto data = picture_->Serialize(&procs);
             if (data && (data->GetSize() > 0)) {
+                    Network::SendMessage("Sending SKP");
                     Network::SendSkp(data->GetData(), data->GetSize());
                 }
         }
     } else {
         Network::SendMessage("Empty, nothing to record to .skp");
     }
-    recordingSkpCanvas_.reset();
-    recorder_.reset();
-
     RSSystemProperties::SetInstantRecording(false);
+    if (captureTypeToClear_) {
+        SetCaptureType(SkpCaptureType::DEFAULT);
+        captureTypeToClear_ = false;
+    }
 }
 
 Drawing::Canvas* RSCaptureRecorder::TryCaptureMSKP(float width, float height)
 {
     if (!isMskpActive_) {
         Network::SendMessage("Starting .mskp capturing.");
+        SetCaptureType(SkpCaptureType::DEFAULT);
         InitMSKP();
     }
     mskpIdxCurrent_ = mskpIdxNext_;

@@ -19,7 +19,7 @@
 #include "surface_type.h"
  
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"

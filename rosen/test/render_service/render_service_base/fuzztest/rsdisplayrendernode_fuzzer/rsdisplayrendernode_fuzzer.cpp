@@ -26,10 +26,10 @@
 #include <securec.h>
 #include <unistd.h>
 
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "render_thread/rs_render_thread_visitor.cpp"
 #include "screen_manager/screen_types.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,103 +65,36 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint64_t id = GetData<uint64_t>();
-    uint32_t rogWidth = GetData<uint32_t>();
-    uint32_t rogHeight = GetData<uint32_t>();
+    NodeId id = GetData<uint64_t>();
+    ScreenId screenId = GetData<uint64_t>();
     int32_t offsetX = GetData<int32_t>();
-    int32_t offsetY = GetData<int32_t>();
     uint32_t refreshRate = GetData<uint32_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
-    ScreenRotation screenRotation = (ScreenRotation)rogWidth;
-    RSDisplayRenderNode::CompositeType type = (RSDisplayRenderNode::CompositeType)rogWidth;
+    CompositeType type = CompositeType::UNI_RENDER_COMPOSITE;
     auto node = std::make_shared<RSBaseRenderNode>(id);
     std::vector<std::shared_ptr<RSRenderNode>> vec;
     std::shared_ptr<RSRenderThreadVisitor> visitor;
-    RSDisplayNodeConfig config;
-    config.mirrorNodeId = id;
-    config.screenId = id;
-    config.isMirrored = true;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     std::string name = "text";
     std::vector<std::string> windowsName;
     windowsName.push_back(name);
     RectI dirtyShadow;
     Drawing::Matrix matrix;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    rsDisplayRenderNode.stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
-    auto sptr = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsDisplayRenderNode.SetIsOnTheTree(true);
-    rsDisplayRenderNode.SetScreenId(id);
-    rsDisplayRenderNode.GetScreenId();
-    rsDisplayRenderNode.SetRogSize(rogWidth, rogHeight);
-    rsDisplayRenderNode.GetRogWidth();
-    rsDisplayRenderNode.GetRogHeight();
-    rsDisplayRenderNode.SetDisplayOffset(offsetX, offsetY);
-    rsDisplayRenderNode.GetDisplayOffsetX();
-    rsDisplayRenderNode.GetDisplayOffsetY();
-    rsDisplayRenderNode.GetFingerprint();
-    rsDisplayRenderNode.SetFingerprint(true);
-    rsDisplayRenderNode.SetScreenRotation(screenRotation);
-    rsDisplayRenderNode.GetScreenRotation();
-    rsDisplayRenderNode.CollectSurface(node, vec, true, true);
-    rsDisplayRenderNode.QuickPrepare(visitor);
-    rsDisplayRenderNode.Prepare(visitor);
-    rsDisplayRenderNode.Process(visitor);
-    rsDisplayRenderNode.GetType();
-    rsDisplayRenderNode.IsMirrorDisplay();
-    rsDisplayRenderNode.SetCompositeType(type);
-    rsDisplayRenderNode.GetCompositeType();
-    rsDisplayRenderNode.SetForceSoftComposite(true);
-    rsDisplayRenderNode.IsForceSoftComposite();
-    rsDisplayRenderNode.SetMirrorSource(sptr);
-    rsDisplayRenderNode.ResetMirrorSource();
-    rsDisplayRenderNode.SetIsMirrorDisplay(true);
-    rsDisplayRenderNode.SetSecurityDisplay(true);
-    rsDisplayRenderNode.GetSecurityDisplay();
-    rsDisplayRenderNode.SkipFrame(refreshRate, skipFrameInterval);
-    rsDisplayRenderNode.SetBootAnimation(true);
-    rsDisplayRenderNode.GetBootAnimation();
-    rsDisplayRenderNode.GetMirrorSource();
-    rsDisplayRenderNode.SetIsParallelDisplayNode(true);
-    rsDisplayRenderNode.IsParallelDisplayNode();
-    rsDisplayRenderNode.GetRotation();
-    rsDisplayRenderNode.GetDirtyManager();
-    rsDisplayRenderNode.UpdateDisplayDirtyManager(offsetX);
-    rsDisplayRenderNode.ClearCurrentSurfacePos();
-    rsDisplayRenderNode.UpdateSurfaceNodePos(id, dirtyShadow);
-    rsDisplayRenderNode.GetLastFrameSurfacePos(id);
-    rsDisplayRenderNode.GetCurrentFrameSurfacePos(id);
-    rsDisplayRenderNode.GetSurfaceChangedRects();
-    rsDisplayRenderNode.GetCurAllSurfaces();
-    rsDisplayRenderNode.GetCurAllSurfaces(true);
-    rsDisplayRenderNode.UpdateRenderParams();
-    rsDisplayRenderNode.UpdatePartialRenderParams();
-    rsDisplayRenderNode.IsRotationChanged();
-    rsDisplayRenderNode.IsLastRotationChanged();
-    rsDisplayRenderNode.GetPreRotationStatus();
-    rsDisplayRenderNode.GetCurRotationStatus();
-    rsDisplayRenderNode.IsFirstTimeToProcessor();
-    rsDisplayRenderNode.SetOriginScreenRotation(screenRotation);
-    rsDisplayRenderNode.GetOriginScreenRotation();
-    rsDisplayRenderNode.SetInitMatrix(matrix);
-    rsDisplayRenderNode.GetInitMatrix();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
+    rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto sptr = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode.CollectSurface(node, vec, true, true);
+    rsScreenRenderNode.QuickPrepare(visitor);
+    rsScreenRenderNode.Prepare(visitor);
+    rsScreenRenderNode.Process(visitor);
+    rsScreenRenderNode.SetCompositeType(type);
+    rsScreenRenderNode.SetMirrorSource(sptr);
+    rsScreenRenderNode.SkipFrame(refreshRate, skipFrameInterval);
+    rsScreenRenderNode.UpdateDisplayDirtyManager(offsetX);
+    rsScreenRenderNode.UpdateSurfaceNodePos(id, dirtyShadow);
+    rsScreenRenderNode.SetInitMatrix(matrix);
     auto cacheImgForCapture = std::make_shared<Drawing::Image>();
-    rsDisplayRenderNode.GetOffScreenCacheImgForCapture();
-    rsDisplayRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
-    rsDisplayRenderNode.GetDirtySurfaceNodeMap();
-    rsDisplayRenderNode.ClearSurfaceSrcRect();
-    rsDisplayRenderNode.ClearSurfaceDstRect();
-    rsDisplayRenderNode.ClearSurfaceTotalMatrix();
-    rsDisplayRenderNode.SetSurfaceSrcRect(id, dirtyShadow);
-    rsDisplayRenderNode.SetSurfaceDstRect(id, dirtyShadow);
-    rsDisplayRenderNode.SetSurfaceTotalMatrix(id, matrix);
-    rsDisplayRenderNode.GetSurfaceSrcRect(id);
-    rsDisplayRenderNode.GetSurfaceDstRect(id);
-    rsDisplayRenderNode.GetSurfaceTotalMatrix(id);
-    rsDisplayRenderNode.GetLastSurfaceIds();
-    std::vector<NodeId> lastSurfaceIds;
-    lastSurfaceIds.push_back(id);
-    rsDisplayRenderNode.SetLastSurfaceIds(lastSurfaceIds);
-    rsDisplayRenderNode.OnSync();
+    rsScreenRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
     return true;
 }
 
@@ -176,22 +109,17 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint64_t id = GetData<uint64_t>();
-    RSDisplayNodeConfig config;
-    config.mirrorNodeId = id;
-    config.screenId = id;
-    config.isMirrored = true;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    rsDisplayRenderNode.stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
-    RSDisplayRenderNode::ScreenRenderParams screenRenderParams;
-    rsDisplayRenderNode.UpdateScreenRenderParams(screenRenderParams);
-    rsDisplayRenderNode.UpdateOffscreenRenderParams(GetData<bool>());
-    rsDisplayRenderNode.SetDisplayGlobalZOrder(GetData<float>());
-    rsDisplayRenderNode.UpdateRotation();
-    rsDisplayRenderNode.SetMainAndLeashSurfaceDirty(GetData<bool>());
-    rsDisplayRenderNode.SetHDRPresent(GetData<bool>());
-    rsDisplayRenderNode.GetSortedChildren();
-    rsDisplayRenderNode.GetDisappearedSurfaceRegionBelowCurrent(GetData<uint64_t>());
+    NodeId id = GetData<uint64_t>();
+    ScreenId screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
+    rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    rsScreenRenderNode.UpdateScreenRenderParams();
+    rsScreenRenderNode.SetDisplayGlobalZOrder(GetData<uint64_t>());
+    rsScreenRenderNode.SetMainAndLeashSurfaceDirty(GetData<bool>());
+    rsScreenRenderNode.SetHDRPresent(GetData<bool>());
+    rsScreenRenderNode.GetSortedChildren();
+    rsScreenRenderNode.GetDisappearedSurfaceRegionBelowCurrent(GetData<uint64_t>());
     return true;
 }
 
@@ -206,15 +134,13 @@ bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint64_t id = GetData<uint64_t>();
-    RSDisplayNodeConfig config;
-    config.mirrorNodeId = id;
-    config.screenId = id;
-    config.isMirrored = true;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    NodeId id = GetData<uint64_t>();
+    ScreenId screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     auto surface = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
-    rsDisplayRenderNode.RecordMainAndLeashSurfaces(surface);
-    rsDisplayRenderNode.HandleCurMainAndLeashSurfaceNodes();
+    rsScreenRenderNode.RecordMainAndLeashSurfaces(surface);
+    rsScreenRenderNode.HandleCurMainAndLeashSurfaceNodes();
     return true;
 }
 
@@ -229,15 +155,13 @@ bool DoIsZoomStateChange(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint64_t id = GetData<uint64_t>();
-    RSDisplayNodeConfig config;
-    config.mirrorNodeId = id;
-    config.screenId = id;
-    config.isMirrored = true;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    NodeId id = GetData<uint64_t>();
+    ScreenId screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     bool state = GetData<bool>();
-    rsDisplayRenderNode.UpdateZoomState(state);
-    rsDisplayRenderNode.IsZoomStateChange();
+    rsScreenRenderNode.UpdateZoomState(state);
+    rsScreenRenderNode.IsZoomStateChange();
     return true;
 }
 
@@ -254,14 +178,12 @@ bool DoGetSortedChildren(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
-    NodeId mirrorNodeId = GetData<NodeId>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     auto oldScbPids = std::vector<int32_t>();
-    int32_t currentScbPid = GetData<int32_t>();
-    rsDisplayRenderNode.SetScbNodePid(oldScbPids, currentScbPid);
-    rsDisplayRenderNode.GetSortedChildren();
+    rsScreenRenderNode.GetSortedChildren();
+    rsScreenRenderNode.isNeedWaitNewScbPid_ = false;
+    rsScreenRenderNode.GetSortedChildren();
     return true;
 }
 
@@ -278,13 +200,11 @@ bool DoSetBrightnessRatio(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
-    NodeId mirrorNodeId = GetData<NodeId>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    rsDisplayRenderNode.stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
+    rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
     float brightnessRatio = GetData<float>();
-    rsDisplayRenderNode.SetBrightnessRatio(brightnessRatio);
+    rsScreenRenderNode.SetBrightnessRatio(brightnessRatio);
     return true;
 }
 
@@ -301,14 +221,12 @@ bool DoOnSyncWithDrawable(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    bool isMirrored = GetData<bool>();
-    NodeId mirrorNodeId = GetData<NodeId>();
-    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsDisplayRenderNode->stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
-    auto node = std::static_pointer_cast<RSRenderNode>(rsDisplayRenderNode);
-    rsDisplayRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
-    rsDisplayRenderNode->OnSync();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    rsScreenRenderNode->OnSync();
     return true;
 }
 } // namespace Rosen

@@ -22,6 +22,7 @@
 #include "common/rs_common_tools.h"
 #endif
 #include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_shader_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "memory/rs_tag_tracker.h"
 #ifdef ROSEN_OHOS
@@ -39,7 +40,9 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
-
+#include "ge_render.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
@@ -289,6 +292,47 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     canvas.DetachBrush();
     return true;
+}
+
+RSDrawable::Ptr RSBackgroundNGShaderDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSBackgroundNGShaderDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+};
+
+bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    const auto& shader = properties.GetBackgroundNGShader();
+    if (!shader) {
+        return false;
+    }
+    needSync_ = true;
+    stagingShader_ = shader;
+    return true;
+}
+
+void RSBackgroundNGShaderDrawable::OnSync()
+{
+    if (needSync_ && stagingShader_) {
+        visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingShader_->AppendToGEContainer(visualEffectContainer_);
+        needSync_ = false;
+    }
+}
+
+Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSBackgroundNGShaderDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
+            return;
+        }
+        geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
+    };
 }
 
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
@@ -557,14 +601,16 @@ std::shared_ptr<RSFilter> RSBackgroundFilterDrawable::GetBehindWindowFilter(cons
         GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION, saturation) &&
         GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS, brightness) &&
         GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR, maskColor)) {
+        return RSPropertyDrawableUtils::GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
+    }
 #else
     if (GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, saturation) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, brightness) &&
         GetModifierProperty(node, RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, maskColor)) {
-#endif
         return RSPropertyDrawableUtils::GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
     }
+#endif
     return nullptr;
 }
 

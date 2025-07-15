@@ -59,6 +59,12 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
     node.GetMutableRenderProperties().SetAiInvert(aiInvert);
     ASSERT_TRUE(node.GetRenderProperties().GetAiInvert());
     ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 34);
+#if defined(MODIFIER_NG)
+    ModifierNG::ModifierDirtyTypes dirtyTypesNG;
+    dirtyTypesNG.set(static_cast<int>(ModifierNG::RSModifierType::SHADOW), true);
+    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG, drawableVec);
+    ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::CHILDREN) != dirtySlots.end());
+#endif
 }
 
 /**

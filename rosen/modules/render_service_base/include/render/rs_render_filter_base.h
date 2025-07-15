@@ -58,10 +58,13 @@ enum class RSUIFilterType : int16_t {
     FLY_OUT,
     DISTORTION,
     ALWAYS_SNAPSHOT,
+    MASK_TRANSITION,
     // mask type
     RIPPLE_MASK,
+    DOUBLE_RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
     PIXEL_MAP_MASK,
+    WAVE_GRADIENT_MASK,
 
     // value type
     BLUR_RADIUS_X,  // float
@@ -73,6 +76,13 @@ enum class RSUIFilterType : int16_t {
     RIPPLE_MASK_WIDTH, // float
     RIPPLE_MASK_WIDTH_CENTER_OFFSET, // float
     DISPLACEMENT_DISTORT_FACTOR, // Vector2f
+
+    // value type
+    DOUBLE_RIPPLE_MASK_CENTER1, // Vector2f
+    DOUBLE_RIPPLE_MASK_CENTER2, // Vector2f
+    DOUBLE_RIPPLE_MASK_RADIUS, // float
+    DOUBLE_RIPPLE_MASK_WIDTH, // float
+    DOUBLE_RIPPLE_MASK_TURBULENCE, // float
 
     // value type
     COLOR_GRADIENT_COLOR, // vector<float>
@@ -131,11 +141,26 @@ enum class RSUIFilterType : int16_t {
     RADIAL_GRADIENT_MASK_COLORS, // vector<float>
     RADIAL_GRADIENT_MASK_POSITIONS, // vector<float>
 
+    // wave gradient mask value type
+    WAVE_GRADIENT_MASK_WAVE_CENTER, // Vector2f
+    WAVE_GRADIENT_MASK_WAVE_WIDTH, // float
+    WAVE_GRADIENT_MASK_TURBULENCE_STRENGTH, // float
+    WAVE_GRADIENT_MASK_BLUR_RADIUS, // float
+    WAVE_GRADIENT_MASK_PROPAGATION_RADIUS, // float
+
     //content light filter value type
     CONTENT_LIGHT,
     LIGHT_POSITION,
     LIGHT_COLOR,
     LIGHT_INTENSITY,
+
+    // edge light if use raw color value type
+    EDGE_LIGHT_USE_RAW_COLOR, // bool
+
+    // mask transition value type
+    MASK_TRANSITION_MASK, // std::shared_ptr<MaskPara>
+    MASK_TRANSITION_FACTOR, // float
+    MASK_TRANSITION_INVERSE, // bool
 };
 
 using RSUIFilterTypeUnderlying = std::underlying_type<RSUIFilterType>::type;
@@ -190,6 +215,8 @@ public:
 
     virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) {};
     virtual void PostProcess(Drawing::Canvas& canvas) {};
+    
+    virtual void SetDisplayHeadroom(float headroom) {};
 
     uint32_t Hash() const
     {

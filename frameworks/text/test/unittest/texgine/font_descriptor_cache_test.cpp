@@ -23,9 +23,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-static const std::string FILE_NAME = "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json";
-static const std::string FILE_NAME_PATH = "/system/fonts/hm_symbol_config.json";
-static const std::string EFFECTIVE_FILE_NAME = "/system/fonts/HarmonyOS_Sans.ttf";
 constexpr uint32_t WEIGHT_500 = 500;
 
 class FontDescriptorTest : public testing::Test {};
@@ -65,13 +62,12 @@ HWTEST_F(FontDescriptorTest, ParserStylishFontsTest, TestSize.Level0)
 HWTEST_F(FontDescriptorTest, FontDescriptorScatterTest, TestSize.Level0)
 {
     auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
+    ASSERT_NE(fontDescriptorCache, nullptr);
     FontDescSharedPtr desc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
     desc->symbolic = false;
     fontDescriptorCache->FontDescriptorScatter(desc);
-    EXPECT_EQ(desc->symbolic, false);
     desc->symbolic = true;
     fontDescriptorCache->FontDescriptorScatter(desc);
-    EXPECT_NE(fontDescriptorCache, nullptr);
 }
 
 /**

@@ -20,9 +20,8 @@
 #include <mutex>
 #include <vector>
 
-#include "include/core/SkImageFilter.h"
 #include "pixelmap_native_impl.h"
-#include "sk_image_filter_factory.h"
+#include "effect_image_render.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,16 +30,16 @@ public:
     Filter(){};
     explicit Filter(std::shared_ptr<OHOS::Media::PixelMap> pixelMap);
 
-    std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap();
-    bool Blur(float radius, SkTileMode skTileMode = SkTileMode::kDecal);
+    std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap(bool useCpuRender = false);
+    bool Blur(float radius, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
     bool Brightness(float brightness);
     bool Grayscale();
     bool Invert();
-    bool SetColorMatrix(const PixelColorMatrix& matrix);
+    bool SetColorMatrix(const Drawing::ColorMatrix& matrix);
     private:
-    void AddNextFilter(sk_sp<SkImageFilter> filter);
+    void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
     bool Render(bool forceCPU);
-    std::vector<sk_sp<SkImageFilter> > skFilters_;
+    std::vector<std::shared_ptr<EffectImageFilter>> effectFilters_;
     std::shared_ptr<OHOS::Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<OHOS::Media::PixelMap> dstPixelMap_ = nullptr;
 };

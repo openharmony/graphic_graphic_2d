@@ -22,6 +22,7 @@
 #include "effect/include/blender.h"
 #include "effect/include/border_light_effect_para.h"
 #include "effect/include/brightness_blender.h"
+#include "effect/include/shadow_blender.h"
 #include "effect/include/visual_effect.h"
 #include "effect/include/visual_effect_para.h"
 #include "napi/native_api.h"
@@ -52,11 +53,16 @@ private:
 
     static napi_value CreateEffect(napi_env env, napi_callback_info info);
     static napi_value CreateBrightnessBlender(napi_env env, napi_callback_info info);
+    static napi_value CreateHdrBrightnessBlender(napi_env env, napi_callback_info info);
     static napi_value SetBackgroundColorBlender(napi_env env, napi_callback_info info);
     static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender);
     static napi_value SetHDRUIBrightness(napi_env env, napi_callback_info info);
+    static napi_value CreateShadowBlender(napi_env env, napi_callback_info info);
+    static bool CheckCreateShadowBlender(napi_env env, napi_value jsObject);
+    static bool ParseShadowBlender(napi_env env, napi_value jsObject, ShadowBlender* blender);
     static napi_value CreateBorderLight(napi_env env, napi_callback_info info);
-    static bool GetBorderLight(napi_env env, napi_value* param, std::shared_ptr<BorderLightEffectPara>& para);
+    static bool GetBorderLight(napi_env env, napi_value* param, size_t length,
+        std::shared_ptr<BorderLightEffectPara>& para);
     static float GetSpecialValue(napi_env env, napi_value argValue);
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };

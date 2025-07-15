@@ -35,6 +35,9 @@
 #include "ge_mesa_blur_shader_filter.h"
 
 #include "common/rs_singleton.h"
+#ifdef RS_ENABLE_RDO
+#include "feature/rdo/rs_rdo.h"
+#endif
 #ifdef RS_ENABLE_GPU
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
@@ -178,11 +181,15 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
         return false;
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
-	
+
     RSGfxDumpInit(); // Gfx Init
 
     RS_PROFILER_INIT(this);
-
+ 
+#ifdef RS_ENABLE_RDO
+    EnableRSCodeCache();
+#endif
+ 
     return true;
 }
 

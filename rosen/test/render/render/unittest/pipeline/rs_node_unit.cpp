@@ -1637,7 +1637,7 @@ HWTEST_F(RSNodeUnitTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
-	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
+        "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
         "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0]");
 }
 
