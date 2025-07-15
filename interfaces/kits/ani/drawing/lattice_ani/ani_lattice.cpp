@@ -35,13 +35,17 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
     if (dividersSize != 0) {
         dividers.reserve(dividersSize);
         for (uint32_t i = 0; i < dividersSize; i++) {
-            ani_double divider;
+            ani_int divider;
             ani_ref dividerRef;
-            if (ANI_OK != env->Object_CallMethodByName_Ref(
-                dividersArray, "$_get", "I:Lstd/core/Object;", &dividerRef, (ani_int)i) ||
-                ANI_OK != env->Object_CallMethodByName_Double(
-                    static_cast<ani_object>(dividerRef), "unboxed", ":D", &divider)) {
-                ROSEN_LOGE("AniLattice::CreateImageLattice Incorrect parameter dividers type.");
+            int ret = 0;
+            if ((ret = env->Object_CallMethodByName_Ref(dividersArray,
+                "$_get", "I:Lstd/core/Object;", &dividerRef, (ani_int)i)) != ANI_OK) {
+                ROSEN_LOGE("AniLattice::CreateImageLattice  get divider ref failed. ret: %{public}d", ret);
+                return false;
+            }
+            if ((ret = env->Object_CallMethodByName_Int(
+                static_cast<ani_object>(dividerRef), "unboxed", ":I", &divider)) != ANI_OK) {
+                ROSEN_LOGE("AniLattice::CreateImageLattice Get divider failed. ret: %{public}d", ret);
                 return false;
             }
             dividers.push_back(divider);
@@ -104,7 +108,7 @@ bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std:
         latticeColors.reserve(colorsSize);
         for (uint32_t i = 0; i < colorsSize; i++) {
             ani_ref colorRef;
-            ani_double aniColor;
+            ani_int aniColor;
             Drawing::ColorQuad colorQuad;
             if (ANI_OK != env->Object_CallMethodByName_Ref(
                 colorsArray, "$_get", "I:Lstd/core/Object;", &colorRef, (ani_int)i)) {
@@ -118,7 +122,7 @@ bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std:
             }
 
             if ((isColorClass && !GetColorQuadFromColorObj(env, static_cast<ani_object>(colorRef), colorQuad)) ||
-                (!isColorClass && ANI_OK != env->Object_CallMethodByName_Double(
+                (!isColorClass && ANI_OK != env->Object_CallMethodByName_Int(
                     static_cast<ani_object>(colorRef), "unboxed", ":D", &aniColor))) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice colors is invalid");
                 return false;
@@ -146,9 +150,9 @@ ani_status AniLattice::AniInit(ani_env *env)
             reinterpret_cast<void*>(CreateImageLattice) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_ANI_LATTICE_NAME);
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_ANI_LATTICE_NAME, ret);
         return ANI_NOT_FOUND;
     }
 
@@ -161,8 +165,8 @@ AniLattice::~AniLattice()
 }
 
 ani_object AniLattice::CreateImageLattice(ani_env* env,
-    ani_object obj, ani_object xDivs, ani_object yDivs, ani_double fXCount,
-    ani_double fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors)
+    ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
+    ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors)
 {
     uint32_t xCount = fXCount;
     uint32_t yCount = fYCount;

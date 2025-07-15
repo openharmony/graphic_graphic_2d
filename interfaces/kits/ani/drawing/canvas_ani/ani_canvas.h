@@ -40,17 +40,17 @@ public:
         ani_object pixelmapObj, ani_object rectObj, ani_object samplingOptionsObj);
 
     static void DrawPixelMapMesh(ani_env* env, ani_object obj,
-        ani_object pixelmapObj, ani_double aniMeshWidth, ani_double aniMeshHeight,
-        ani_object verticesObj, ani_double aniVertOffset, ani_object colorsObj, ani_double aniColorOffset);
+        ani_object pixelmapObj, ani_int aniMeshWidth, ani_int aniMeshHeight,
+        ani_object verticesObj, ani_int aniVertOffset, ani_object colorsObj, ani_int aniColorOffset);
 
     static void AttachBrush(ani_env* env, ani_object obj, ani_object brushObj);
     static void AttachPen(ani_env* env, ani_object obj, ani_object penObj);
     static void DetachBrush(ani_env* env, ani_object obj);
     static void DetachPen(ani_env* env, ani_object obj);
-    static ani_double Save(ani_env* env, ani_object obj);
-    static ani_double SaveLayer(ani_env* env, ani_object obj, ani_object rectObj, ani_object brushObj);
+    static ani_int Save(ani_env* env, ani_object obj);
+    static ani_long SaveLayer(ani_env* env, ani_object obj, ani_object rectObj, ani_object brushObj);
     static void Restore(ani_env* env, ani_object obj);
-    static ani_double GetSaveCount(ani_env* env, ani_object obj);
+    static ani_int GetSaveCount(ani_env* env, ani_object obj);
     static void Rotate(ani_env* env, ani_object obj, ani_double degrees, ani_double sx, ani_double sy);
 
     Canvas* GetCanvas();

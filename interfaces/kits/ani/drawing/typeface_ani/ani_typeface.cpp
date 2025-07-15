@@ -33,6 +33,9 @@ ani_status AniTypeface::AniInit(ani_env *env)
         ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "getFamilyName", ":Lstd/core/String;",
             reinterpret_cast<void*>(GetFamilyName) },
+    };
+
+    std::array statitMethods = {
         ani_native_function { "makeFromFile", "Lstd/core/String;:L@ohos/graphics/drawing/drawing/Typeface;",
             reinterpret_cast<void*>(MakeFromFile) },
         ani_native_function { "makeFromFileWithArguments", "Lstd/core/String;"
@@ -42,7 +45,13 @@ ani_status AniTypeface::AniInit(ani_env *env)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_TYPEFACE_NAME);
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_TYPEFACE_NAME, ret);
+        return ANI_NOT_FOUND;
+    }
+
+    ret = env->Class_BindStaticNativeMethods(cls, statitMethods.data(), statitMethods.size());
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] bind static methods fail: %{public}s ret: %{public}d", ANI_CLASS_TYPEFACE_NAME, ret);
         return ANI_NOT_FOUND;
     }
 

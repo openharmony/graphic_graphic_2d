@@ -33,9 +33,9 @@ ani_status AniBrush::AniInit(ani_env *env)
         ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Brush;:V",
             reinterpret_cast<void*>(ConstructorWithBrush) },
-        ani_native_function { "getAlpha", ":D", reinterpret_cast<void*>(GetAlpha) },
+        ani_native_function { "getAlpha", ":I", reinterpret_cast<void*>(GetAlpha) },
         ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setAlpha", "D:V", reinterpret_cast<void*>(SetAlpha) },
+        ani_native_function { "setAlpha", "I:V", reinterpret_cast<void*>(SetAlpha) },
         ani_native_function { "setBlendMode", "L@ohos/graphics/drawing/drawing/BlendMode;:V",
             reinterpret_cast<void*>(SetBlendMode) },
         ani_native_function { "setColorFilter", "L@ohos/graphics/drawing/drawing/ColorFilter;:V",
@@ -77,7 +77,7 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
     }
 }
 
-ani_double AniBrush::GetAlpha(ani_env* env, ani_object obj)
+ani_int AniBrush::GetAlpha(ani_env* env, ani_object obj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr) {
@@ -99,7 +99,7 @@ void AniBrush::Reset(ani_env* env, ani_object obj)
     aniBrush->GetBrush().Reset();
 }
 
-void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_double alpha)
+void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr) {
@@ -107,7 +107,7 @@ void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_double alpha)
         return;
     }
 
-    if (CheckDoubleOutOfRange(alpha, 0, Color::RGB_MAX)) {
+    if (CheckInt32OutOfRange(alpha, 0, Color::RGB_MAX)) {
         AniThrowError(env, "alpha out of range. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
