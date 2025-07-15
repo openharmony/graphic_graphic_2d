@@ -13,6 +13,8 @@
 
 import("//build/ohos.gni")
 
+text_ani = "//foundation/graphic/graphic_2d/frameworks/text/interface/mlb/ani"
+
 group("ani_packages") {
   deps = [
     "color_manager:ani_color_space_manager",
@@ -22,5 +24,6 @@ group("ani_packages") {
     "hdr_capability:ani_hdr_capability",
     "ui_effect:uiEffect_ani",
     "ui_effect:uiEffect_etc",
+    "$text_ani:text_engine_ani_group",
   ]
 }
