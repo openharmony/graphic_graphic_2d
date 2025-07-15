@@ -141,7 +141,7 @@ HWTEST_F(RSFilterCacheManagerTest, GetCacheStateTest, TestSize.Level1)
         rsFilterCacheManager->GetCacheState(), "Snapshot found in cache. Generating filtered image using cached data.");
     rsFilterCacheManager->cachedSnapshot_->cachedImage_ = image;
     rsFilterCacheManager->cachedSnapshot_->cachedRect_ = cachedRectSize;
-    ss1 += "Snapshot found in cache. Generating filtered image using cached data"
+    ss1 += "Snapshot found in cache. Generating filtered image using cached data."
         " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss1);
     rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();

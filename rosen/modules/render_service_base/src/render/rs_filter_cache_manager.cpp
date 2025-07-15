@@ -59,7 +59,7 @@ std::string RSFilterCacheManager::GetCacheState() const
         return "Filtered image found in cache. Reusing cached result." +
             cachedFilteredSnapshot_->GetInfo();
     } else if (cachedSnapshot_ != nullptr) {
-        return "Snapshot found in cache. Generating filtered image using cached data"+
+        return "Snapshot found in cache. Generating filtered image using cached data." +
             cachedSnapshot_->GetInfo();
     } else {
         return "No valid cache found.";
