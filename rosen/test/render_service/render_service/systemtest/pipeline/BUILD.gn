@@ -176,7 +176,6 @@ ohos_static_library("rs_test_common") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "window_manager:libwm",
-    "window_manager:libwms",
   ]
 
   external_deps = [ "hisysevent:libhisysevent" ]
