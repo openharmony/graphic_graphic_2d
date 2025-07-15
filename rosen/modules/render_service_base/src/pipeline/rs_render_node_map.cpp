@@ -220,6 +220,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     }
     residentSurfaceNodeMap_.erase(id);
     screenNodeMap_.erase(id);
+    logicalDisplayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
 }
 
@@ -297,7 +298,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         return pair.first == pid;
     });
 
-    EraseIf(screenNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(logicalDisplayNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid && pair.second) {
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
                 (unsigned long long)pid);
