@@ -428,6 +428,11 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     auto curScreenParams = static_cast<RSScreenRenderParams*>(curScreenDrawable.GetRenderParams().get());
     auto drawable = curScreenParams->GetMirrorSourceDrawable().lock();
+    if (!drawable) {
+        RS_LOGE("%{public}s mirroredDrawable nullptr", __func__);
+        virtualProcesser->SetRoiRegionToCodec(mappedDamageRegionRects);
+        return mappedDamageRegionRects;
+    }
     auto mirroredDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(drawable);
     auto mirrorParams = static_cast<RSScreenRenderParams*>(mirroredDrawable->GetRenderParams().get());
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();

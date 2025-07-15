@@ -85,6 +85,26 @@ ohos_unittest("RSScreenRenderNodeDrawableTest") {
   }
 }
 
+## Build RSLogicalDisplayRenderNodeDrawableTest
+ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  if (current_os == "ohos" && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines = [ "RS_PROFILER_ENABLED" ]
+  }
+  include_dirs = ["$graphic_2d_root/rosen/modules/render_service_profiler"]
+  sources = [ "rs_logical_display_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "graphic_surface:surface_headers",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
 ## Build RSEffectRenderNodeDrawableTest
 ohos_unittest("RSEffectRenderNodeDrawableTest") {
   module_out_path = module_output_path
