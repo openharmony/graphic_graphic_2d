@@ -171,7 +171,8 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const L
         auto skMatrix = Drawing::Matrix();
         skMatrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
             layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-        skMatrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
+        skMatrix.PostTranslate(screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
+        skMatrix.PostScale(screenInfo.samplingScale, screenInfo.samplingScale);
         Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.ConcatMatrix(skMatrix);
         Drawing::Rect drawRect = Drawing::Rect(0.f, 0.f,

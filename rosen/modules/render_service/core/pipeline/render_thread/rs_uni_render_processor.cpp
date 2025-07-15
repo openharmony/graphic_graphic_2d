@@ -243,6 +243,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto layerInfo = params.layerInfo_;
     if (params.GetHwcGlobalPositionEnabled()) {
+        // dst and matrix transform to screen position
         layerInfo.matrix.PostTranslate(-offsetX_, -offsetY_);
         layerInfo.dstRect.x -= offsetX_;
         layerInfo.dstRect.y -= offsetY_;
@@ -342,20 +343,21 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
 
 void RSUniRenderProcessor::ScaleLayerIfNeeded(RSLayerInfo& layerInfo)
 {
+    // dstRect transforms to physical screen
     if (!screenInfo_.isSamplingOn) {
         return;
     }
     Drawing::Matrix matrix;
-    matrix.PreTranslate(screenInfo_.samplingTranslateX, screenInfo_.samplingTranslateY);
+    matrix.PostTranslate(screenInfo_.samplingTranslateX, screenInfo_.samplingTranslateY);
     matrix.PostScale(screenInfo_.samplingScale, screenInfo_.samplingScale);
     Drawing::Rect dstRect = {layerInfo.dstRect.x, layerInfo.dstRect.y,
         layerInfo.dstRect.x + layerInfo.dstRect.w, layerInfo.dstRect.y + layerInfo.dstRect.h
     };
     matrix.MapRect(dstRect, dstRect);
-    layerInfo.dstRect.x = dstRect.left_;
-    layerInfo.dstRect.y = dstRect.top_;
-    layerInfo.dstRect.w = dstRect.right_ - dstRect.left_;
-    layerInfo.dstRect.h = dstRect.bottom_ - dstRect.top_;
+    layerInfo.dstRect.x = static_cast<int>(std::floor(dstRect.left_));
+    layerInfo.dstRect.y = static_cast<int>(std::floor(dstRect.top_));
+    layerInfo.dstRect.w = static_cast<int>(std::ceil(dstRect.right_ - dstRect.left_));
+    layerInfo.dstRect.h = static_cast<int>(std::ceil(dstRect.bottom_ - dstRect.top_));
 }
 
 bool RSUniRenderProcessor::ProcessOfflineLayer(

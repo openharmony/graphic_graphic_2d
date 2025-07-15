@@ -126,10 +126,6 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
             dstRect = dstRect.IntersectRect(clipRect);
         }
     }
-    dstRect.left_ = static_cast<int32_t>(std::floor(dstRect.left_));
-    dstRect.top_ = static_cast<int32_t>(std::floor(dstRect.top_));
-    dstRect.width_ = static_cast<int32_t>(std::ceil(dstRect.width_));
-    dstRect.height_ = static_cast<int32_t>(std::ceil(dstRect.height_));
 
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&
         !node.GetHwcGlobalPositionEnabled()) {
@@ -1216,10 +1212,11 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     node.HwcSurfaceRecorder().SetIntersectWithPreviousFilter(false);
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
                             uniRenderVisitor_.isScreenRotationAnimating_);
-    if (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
-        IsDisableHwcOnExpandScreen() || !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) ||
+    if (!node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
+        (!uniRenderVisitor_.IsHardwareComposerEnabled() ||
+        !node.IsDynamicHardwareEnable() || IsDisableHwcOnExpandScreen() ||
         uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
-        !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
+        !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer())) {
         auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "param/invisible/no buffer, IsHardwareComposerEnabled[%d], IsDynamicHardwareEnable[%d], "
@@ -1246,6 +1243,7 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
 
 void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
 {
+    // dstRect transform to globalposition when node is move
     if (node.GetHwcGlobalPositionEnabled()) {
         auto dstRect = node.GetDstRect();
         dstRect.left_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetX();
