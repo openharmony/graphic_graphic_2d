@@ -25,6 +25,7 @@
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "skia_txt/default_symbol_config.h"
 #include "utils/point.h"
 
@@ -125,6 +126,7 @@ RSSymbolAnimation::~RSSymbolAnimation() {}
 bool RSSymbolAnimation::SetSymbolAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
+    RS_TRACE_FUNC();
     if (rsNode_ == nullptr || symbolAnimationConfig == nullptr) {
         ROSEN_LOGD("HmSymbol RSSymbolAnimation::getNode or get symbolAnimationConfig:failed");
         return false;
