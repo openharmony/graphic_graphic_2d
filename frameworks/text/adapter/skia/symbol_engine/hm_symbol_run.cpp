@@ -19,6 +19,7 @@
 #include "hm_symbol_node_build.h"
 #include "include/pathops/SkPathOps.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -191,6 +192,7 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
 
 void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 {
+    TEXT_TRACE_FUNC();
     if (!textBlob_) {
         TEXT_LOGD("Null text blob");
         return;
@@ -263,6 +265,7 @@ void HMSymbolRun::SetAnimationMode(uint16_t animationMode)
 void HMSymbolRun::SetAnimationStart(bool animationStart)
 {
     symbolTxt_.SetAnimationStart(animationStart);
+    currentAnimationHasPlayed_ = false;
 }
 
 void HMSymbolRun::SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
@@ -361,6 +364,7 @@ void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPat
 
 void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate)
 {
+    TEXT_TRACE_FUNC();
     RSPath path(symbolData.path_);
 
     // 1.0 move path
@@ -432,6 +436,7 @@ void HMSymbolRun::DrawSymbolShadow(RSCanvas* canvas, const std::vector<RSPath>& 
 
 bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset)
 {
+    TEXT_TRACE_FUNC();
     RSEffectStrategy effectMode = symbolTxt_.GetEffectStrategy();
     uint16_t animationMode = symbolTxt_.GetAnimationMode();
     if (effectMode == RSEffectStrategy::NONE) {
