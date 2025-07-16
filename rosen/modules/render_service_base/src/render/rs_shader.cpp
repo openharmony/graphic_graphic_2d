@@ -57,6 +57,7 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(const ShaderType& type)
         }
         case ShaderType::BORDER_LIGHT: {
             shader = std::make_shared<RSBorderLightShader>();
+            break;
         }
         default:
             break;
