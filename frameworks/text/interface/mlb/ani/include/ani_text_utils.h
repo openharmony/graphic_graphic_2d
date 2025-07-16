@@ -110,7 +110,7 @@ T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj, const char* name
     ani_status ret;
     ani_long nativeObj{};
     if ((ret = env->Object_GetFieldByName_Long(obj, name, &nativeObj)) != ANI_OK) {
-        TEXT_LOGE("Failed to get native obj");
+        TEXT_LOGE("Failed to get native obj, ani_status: %{public}d", ret);
         return nullptr;
     }
     T* object = reinterpret_cast<T*>(nativeObj);
@@ -127,7 +127,7 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        ani_size index;
+        ani_size index = 0;
         result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK) {
             value = static_cast<EnumType>(index);
@@ -142,7 +142,7 @@ ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const char*
     ani_ref ref = nullptr;
     ani_status result = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
     if (result == ANI_OK && ref != nullptr) {
-        ani_size index;
+        ani_size index = 0;
         result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK) {
             value = static_cast<EnumType>(index);

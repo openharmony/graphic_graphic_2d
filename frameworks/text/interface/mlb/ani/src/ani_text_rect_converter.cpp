@@ -15,7 +15,6 @@
 
 #include <cstddef>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_text_rect_converter.h"
@@ -33,18 +32,20 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
     }
     ani_boolean isObj = false;
     ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj) {
+    if (!isObj || ret != ANI_OK) {
         TEXT_LOGE("Object mismatch:%{public}d", ret);
         return ret;
     }
-    ani_double startTmp{0};
-    if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "start", &startTmp)) {
-        TEXT_LOGE("Failed to get start");
+    ani_double startTmp = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "start", &startTmp);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to get start, ani_status: %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
-    ani_double endTmp{0};
-    if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "end", &endTmp)) {
-        TEXT_LOGE("Failed to get end");
+    ani_double endTmp = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "end", &endTmp);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to get end, ani_status: %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     rectRange.start = static_cast<size_t>(startTmp);
@@ -55,10 +56,10 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
 ani_status AniTextRectConverter::ParseWidthStyleToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::TextRectWidthStyle& widthStyle)
 {
-    ani_size index;
+    ani_size index = 0;
     ani_status result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(obj), &index);
     if (result != ANI_OK) {
-        TEXT_LOGE("Failed to enum widthStyle");
+        TEXT_LOGE("Failed to enum widthStyle, ani_status: %{public}d", result);
         return result;
     }
     widthStyle = static_cast<TextRectWidthStyle>(index);
@@ -68,17 +69,18 @@ ani_status AniTextRectConverter::ParseWidthStyleToNative(
 ani_status AniTextRectConverter::ParseHeightStyleToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::TextRectHeightStyle& heightStyle)
 {
-    ani_size index;
+    ani_size index = 0;
     ani_status result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(obj), &index);
     if (result != ANI_OK) {
-        TEXT_LOGE("Failed to enum heightStyle");
+        TEXT_LOGE("Failed to enum heightStyle, ani_status: %{public}d", result);
         return result;
     }
     heightStyle = static_cast<TextRectHeightStyle>(index);
     return ANI_OK;
 }
 
-ani_status AniTextRectConverter::ParseTextBoxToAni(ani_env* env, const OHOS::Rosen::TextRect textRect, ani_object& aniObj)
+ani_status AniTextRectConverter::ParseTextBoxToAni(
+    ani_env* env, const OHOS::Rosen::TextRect textRect, ani_object& aniObj)
 {
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_BOX, ":V");
     ani_object rectObj{nullptr};

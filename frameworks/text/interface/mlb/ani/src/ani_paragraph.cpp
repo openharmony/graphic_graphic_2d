@@ -18,7 +18,6 @@
 #include <cstdint>
 #include <memory>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_index_and_affinity_converter.h"
 #include "ani_line_metrics_converter.h"
@@ -106,7 +105,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[Paragraph] Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods for Paragraph, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
@@ -271,12 +270,12 @@ ani_object AniParagraph::GetRectsForRange(
         return AniTextUtils::CreateAniUndefined(env);
     }
     if (ANI_OK != AniTextRectConverter::ParseWidthStyleToNative(env, widthStyle, widthStyleInner)) {
-        TEXT_LOGE("Failed to parse heightStyle");
+        TEXT_LOGE("Failed to parse width style");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
     if (ANI_OK != AniTextRectConverter::ParseHeightStyleToNative(env, heightStyle, heightStyleInner)) {
-        TEXT_LOGE("Failed to parse widthStyle");
+        TEXT_LOGE("Failed to parse height style");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -416,7 +415,7 @@ ani_boolean AniParagraph::DidExceedMaxLines(ani_env* env, ani_object object)
     if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return 0;
+        return false;
     }
 
     return typography->DidExceedMaxLines();
