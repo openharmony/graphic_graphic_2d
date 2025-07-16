@@ -203,10 +203,12 @@ private:
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, const RectI& globalHwcFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
 
+    // This function is used for solving display problems caused by dirty blurfilter node half-obscured.
+    void UpdateDisplayDirtyAndExtendVisibleRegion();
     // This function is used to update global dirty and visibleRegion
     // by processing dirty blurfilter node obscured.
     void ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        Occlusion::Region& extendRegion, const Occlusion::Region& accumulatedDirtyRegion);
+        Occlusion::Region& extendRegion, const RSRenderNodeMap& nodeMap);
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
     void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
@@ -234,8 +236,8 @@ private:
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 
-    void UpdateVisibilityAndAccumulateSurfaceDirtyRegion(
-        std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion);
+    void AccumulateSurfaceDirtyRegion(
+        std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion) const;
     void CheckMergeDisplayDirtyByCrossDisplayWindow(RSSurfaceRenderNode& surfaceNode) const;
     void PrepareForSkippedCrossNode(RSSurfaceRenderNode& surfaceNode);
     void CollectFilterInCrossDisplayWindow(
