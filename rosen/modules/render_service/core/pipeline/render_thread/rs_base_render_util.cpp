@@ -50,6 +50,7 @@ namespace Rosen {
 namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
+const std::string DISPLAYNODE = "DisplayNode";
 constexpr uint32_t API14 = 14;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
@@ -1059,8 +1060,10 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     }
     RSJankStats::GetInstance().AvcodecVideoCollect(consumer->GetUniqueId(), surfaceBuffer->buffer->GetSeqNum());
     surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
-        consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
+    if (consumer->GetName() != DISPLAYNODE) {
+        DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
+            consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
+    }
     if (consumer->GetSurfaceSourceType() == OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
         RS_TRACE_NAME_FMT("lpp node: %" PRIu64 "", surfaceHandler.GetNodeId());
         surfaceHandler.SetSourceType(static_cast<uint32_t>(consumer->GetSurfaceSourceType()));
