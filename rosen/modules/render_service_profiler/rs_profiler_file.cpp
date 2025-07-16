@@ -36,7 +36,7 @@ const std::string& RSFile::GetDefaultPath()
     return PATH;
 }
 
-void RSFile::Create(const std::string& fname)
+bool RSFile::Create(const std::string& fname)
 {
     if (file_ != nullptr) {
         Close();
@@ -49,7 +49,7 @@ void RSFile::Create(const std::string& fname)
     file_ = Utils::FileOpen(fname, "wbe");
 #endif
     if (file_ == nullptr) {
-        return;
+        return false;
     }
 
     uint32_t headerId = 'ROHR';
@@ -62,6 +62,7 @@ void RSFile::Create(const std::string& fname)
     writeDataOff_ = Utils::FileTell(file_);
 
     wasChanged_ = true;
+    return true;
 }
 
 bool RSFile::Open(const std::string& fname)
@@ -340,6 +341,9 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     if (versionId_ >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
         LayerWriteHeaderOfTrack(layerData.renderMetrics);
     }
+    if (versionId_ >= RSFILE_VERSION_LOG_EVENTS_ADDED) {
+        LayerWriteHeaderOfTrack(layerData.logEvents);
+    }
     LayerWriteHeaderOfTrack(layerData.oglMetrics);
     LayerWriteHeaderOfTrack(layerData.gfxMetrics);
     layerData.layerHeader = { layerHeaderOff, Utils::FileTell(file_) - layerHeaderOff }; // position of layer table
@@ -374,6 +378,9 @@ std::string RSFile::LayerReadHeader(uint32_t layer)
     LayerReadHeaderOfTrack(layerData.rsMetrics);
     if (versionId_ >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
         LayerReadHeaderOfTrack(layerData.renderMetrics);
+    }
+    if (versionId_ >= RSFILE_VERSION_LOG_EVENTS_ADDED) {
+        LayerReadHeaderOfTrack(layerData.logEvents);
     }
     LayerReadHeaderOfTrack(layerData.oglMetrics);
     LayerReadHeaderOfTrack(layerData.gfxMetrics);
@@ -432,6 +439,11 @@ void RSFile::WriteGFXMetrics(uint32_t layer, double time, uint32_t /*frame*/, co
     WriteTrackData(&RSFileLayer::gfxMetrics, layer, time, data, size);
 }
 
+void RSFile::WriteLogEvent(uint32_t layer, double time, const void* data, size_t size)
+{
+    WriteTrackData(&RSFileLayer::logEvents, layer, time, data, size);
+}
+
 // ***********************************
 // *** LAYER DATA - READ
 
@@ -465,6 +477,11 @@ void RSFile::ReadGFXMetricsRestart(uint32_t layer)
     ReadTrackDataRestart(&RSFileLayer::readindexGfxMetrics, layer);
 }
 
+void RSFile::ReadLogEventRestart(uint32_t layer)
+{
+    ReadTrackDataRestart(&RSFileLayer::readindexLogEvents, layer);
+}
+
 bool RSFile::RSDataEOF() const
 {
     return TrackEOF({ &RSFileLayer::readindexRsData, &RSFileLayer::rsData }, 0);
@@ -493,6 +510,11 @@ bool RSFile::OGLMetricsEOF(uint32_t layer) const
 bool RSFile::GFXMetricsEOF(uint32_t layer) const
 {
     return TrackEOF({ &RSFileLayer::readindexGfxMetrics, &RSFileLayer::gfxMetrics }, layer);
+}
+
+bool RSFile::LogEventEOF(uint32_t layer) const
+{
+    return TrackEOF({ &RSFileLayer::readindexLogEvents, &RSFileLayer::logEvents }, layer);
 }
 
 bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime)
@@ -554,6 +576,12 @@ bool RSFile::ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_
 {
     return ReadTrackData(
         { &RSFileLayer::readindexGfxMetrics, &RSFileLayer::gfxMetrics }, untilTime, layer, data, readTime);
+}
+
+bool RSFile::ReadLogEvent(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime)
+{
+    return ReadTrackData(
+        { &RSFileLayer::readindexLogEvents, &RSFileLayer::logEvents }, untilTime, layer, data, readTime);
 }
 
 bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
@@ -751,31 +779,29 @@ void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>&
     wasChanged_ = true;
 }
 
+int64_t RSFile::GetClosestVsyncId(int64_t vsyncId)
+{
+    if (mapVsyncId2Time_.count(vsyncId)) {
+        return vsyncId;
+    }
+    if (!mapVsyncId2Time_.size()) {
+        return 0;
+    }
+
+    int64_t minVSync = mapVsyncId2Time_.begin()->first;
+    int64_t maxVSync = mapVsyncId2Time_.rbegin()->first;
+
+    auto it = mapVsyncId2Time_.lower_bound(vsyncId);
+    if (it != mapVsyncId2Time_.end()) {
+        return it->first;
+    }
+    return minVSync;
+}
+
 double RSFile::ConvertVsyncId2Time(int64_t vsyncId)
 {
     if (mapVsyncId2Time_.count(vsyncId)) {
         return mapVsyncId2Time_[vsyncId];
-    }
-    constexpr int64_t maxInt64t = std::numeric_limits<int64_t>::max();
-    int64_t minVSync = std::numeric_limits<int64_t>::max();
-    int64_t maxVSync = -1;
-    for (const auto& item : mapVsyncId2Time_) {
-        if (minVSync > item.first) {
-            minVSync = item.first;
-        }
-        if (maxVSync < item.first) {
-            maxVSync = item.first;
-        }
-    }
-    if (vsyncId < minVSync) {
-        if (mapVsyncId2Time_.count(minVSync)) {
-            return mapVsyncId2Time_[minVSync];
-        }
-    }
-    if (vsyncId > maxVSync) {
-        if (mapVsyncId2Time_.count(maxVSync)) {
-            return mapVsyncId2Time_[maxVSync];
-        }
     }
     return 0.0;
 }
@@ -805,7 +831,6 @@ void RSFile::CacheVsyncId2Time(uint32_t layer)
     const auto& trackData = layerData.*track.markup;
 
     double readTime;
-    std::vector<char> data;
 
     for (const auto& trackItem : trackData) {
         Utils::FileSeek(file_, trackItem.first, SEEK_SET);
@@ -824,6 +849,7 @@ void RSFile::CacheVsyncId2Time(uint32_t layer)
         if (dataLen < 0 || dataLen > dataLenMax) {
             continue;
         }
+        std::vector<char> data;
         data.resize(dataLen);
         Utils::FileRead(data.data(), dataLen, 1, file_);
 

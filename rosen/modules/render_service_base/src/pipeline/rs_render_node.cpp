@@ -192,13 +192,17 @@ static inline bool IsPurgeAble()
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()), id_(id), context_(context)
-{}
+{
+    RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
+}
 
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()),
-      id_(id), context_(context)
-{}
+    : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()), id_(id),
+      context_(context)
+{
+    RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
+}
 
 void RSRenderNode::AddUIExtensionChild(SharedPtr child)
 {
@@ -458,12 +462,12 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     // Need to count upeer or lower trees of HDR nodes
     if (GetType() == RSRenderNodeType::CANVAS_NODE) {
         auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
-        if (canvasNode != nullptr && (canvasNode->GetHDRPresent() ||
-            canvasNode->GetRenderProperties().IsHDRUIBrightnessValid())) {
+        if (canvasNode != nullptr &&
+            (canvasNode->GetHDRPresent() || canvasNode->GetRenderProperties().IsHDRUIBrightnessValid())) {
             NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
             ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDRClient canvasNode[id:%{public}" PRIu64 " name:%{public}s]"
-                " parent'S id:%{public}" PRIu64 " ", canvasNode->GetId(), canvasNode->GetNodeName().c_str(),
-                parentNodeId);
+                       " parent'S id:%{public}" PRIu64 " ",
+                canvasNode->GetId(), canvasNode->GetNodeName().c_str(), parentNodeId);
             if (canvasNode->GetHDRPresent()) {
                 SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
                 canvasNode->UpdateScreenHDRNodeList(flag, screenNodeId);
@@ -477,9 +481,13 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     if (enableHdrEffect_) {
         NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
         ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDREffect Node[id:%{public}" PRIu64 " name:%{public}s]"
-            " parent's id:%{public}" PRIu64 " ", GetId(), GetNodeName().c_str(),
-            parentNodeId);
+                   " parent's id:%{public}" PRIu64 " ",
+            GetId(), GetNodeName().c_str(), parentNodeId);
         SetHdrNum(flag, parentNodeId, HDRComponentType::EFFECT);
+    }
+
+    if (isOnTheTree_ != flag) {
+        RS_PROFILER_RENDERNODE_CHANGE(flag);
     }
 
     isNewOnTree_ = flag && !isOnTheTree_;
@@ -524,13 +532,13 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         if (isOnTheTree_) {
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
-        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId, screenNodeId,
+            logicalDisplayNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
-        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            uifirstRootNodeId, screenNodeId, logicalDisplayNodeId);
+        child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId, screenNodeId,
+            logicalDisplayNodeId);
     }
 
 #ifdef RS_MEMORY_INFO_MANAGER
@@ -1525,6 +1533,7 @@ void RSRenderNode::InternalRemoveSelfFromDisappearingChildren()
 
 RSRenderNode::~RSRenderNode()
 {
+    RS_PROFILER_RENDERNODE_DEC(isOnTheTree_);
     if (appPid_ != 0) {
         RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, appPid_);
     }
@@ -1598,6 +1607,7 @@ void RSRenderNode::UpdateDisplaySyncRange()
 std::tuple<bool, bool, bool> RSRenderNode::Animate(
     int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled)
 {
+    RS_PROFILER_ANIMATION_NODE(GetType(), selfDrawRect_.GetWidth() * selfDrawRect_.GetWidth());
     if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
         minLeftDelayTime = 0;
         return displaySync_->GetAnimateResult();

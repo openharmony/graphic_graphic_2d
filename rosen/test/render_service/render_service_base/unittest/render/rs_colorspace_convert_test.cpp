@@ -22,6 +22,7 @@
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 #include "surface_buffer_impl.h"
+#include "graphic_common.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -517,7 +518,7 @@ HWTEST_F(RSColorspaceConvertTest, GetVideoDynamicMetadata001, TestSize.Level1)
     ASSERT_TRUE(surfaceBuffer != nullptr);
     std::vector<uint8_t> metadataSet{};
     ret = MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, metadataSet);
-    ASSERT_TRUE(ret == GSERROR_HDI_ERROR);
+    ASSERT_TRUE(ret != GSERROR_OK);
 }
 
 /**

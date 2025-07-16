@@ -119,6 +119,11 @@ ohos_shared_library("libvsync") {
     "ipc:ipc_core",
     "qos_manager:qos",
     "safwk:system_ability_fwk",
+  ]
+
+  public_external_deps = 
+  [ 
+    "c_utils:utils",
     "samgr:samgr_proxy",
   ]
 
@@ -128,8 +133,6 @@ ohos_shared_library("libvsync") {
     sources +=
         [ "$graphic_2d_ext_root/dvsync/dvsync_2/src/dvsync_controller.cpp" ]
   }
-
-  public_external_deps = [ "c_utils:utils" ]
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {

@@ -26,6 +26,7 @@
 #include "rs_profiler_utils.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_pixelmap.h"
+#include "rs_profiler_json.h"
 
 #include "transaction/rs_marshalling_helper.h"
 #include "platform/common/rs_system_properties.h"
@@ -44,14 +45,15 @@
 
 namespace OHOS::Rosen {
 
-ImageProperties::ImageProperties(const ImageInfo& info)
-    : format(info.pixelFormat), width(info.size.width), height(info.size.height),
+ImageProperties::ImageProperties(const ImageInfo& info, AllocatorType type)
+    : format(static_cast<int16_t>(info.pixelFormat)), allocType(static_cast<int8_t>(type)),
+      width(info.size.width), height(info.size.height),
       stride(PixelMap::GetRGBxRowDataSize(info))
 {}
 
 ImageProperties::ImageProperties(PixelMap& map)
-    : format(map.GetPixelFormat()), width(map.GetWidth()), height(map.GetHeight()),
-      stride(map.GetRowStride())
+    : format(static_cast<int16_t>(map.GetPixelFormat())), allocType(static_cast<int8_t>(map.GetAllocatorType())),
+      width(map.GetWidth()), height(map.GetHeight()), stride(map.GetRowStride())
 {}
 
 bool PixelMapStorage::IsSharedMemory(const PixelMap& map)
@@ -121,7 +123,7 @@ bool PixelMapStorage::Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& mem
     if (!retCode) {
         retCode = DefaultHeapMemory(id, info, memory, skipBytes);
     }
-    
+
     return retCode;
 }
 
@@ -172,7 +174,8 @@ bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, Pixel
 
 void PixelMapStorage::PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
-    PushImage(AllocatorType::SHARE_MEM_ALLOC, id, GenerateImageData(info, memory), skipBytes);
+    ImageProperties properties(info, AllocatorType::SHARE_MEM_ALLOC);
+    PushImage(id, GenerateImageData(info, memory), skipBytes, nullptr, &properties);
 }
 
 void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
@@ -185,8 +188,7 @@ void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
     const auto size = static_cast<size_t>(map.GetByteCount());
     const ImageProperties properties(map);
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
-        PushImage(
-            AllocatorType::SHARE_MEM_ALLOC, id, GenerateImageData(image, size, map), skipBytes, nullptr, &properties);
+        PushImage(id, GenerateImageData(image, size, map), skipBytes, nullptr, &properties);
         UnmapImage(image, size);
     }
 }
@@ -233,7 +235,8 @@ void PixelMapStorage::PushDmaMemory(uint64_t id, const ImageInfo& info, const Pi
     auto buffer = surfaceBuffer ? surfaceBuffer->GetBufferHandle() : nullptr;
     if (buffer) {
         const auto pixels = GenerateImageData(memory.base, buffer->size, memory.isAstc, GetBytesPerPixel(info));
-        PushImage(AllocatorType::DMA_ALLOC, id, pixels, skipBytes, buffer);
+        ImageProperties properties(info, AllocatorType::DMA_ALLOC);
+        PushImage(id, pixels, skipBytes, buffer, &properties);
     }
 }
 
@@ -249,13 +252,13 @@ void PixelMapStorage::PushDmaMemory(uint64_t id, PixelMap& map)
         GenerateImageData(reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()), buffer->size, map);
     MessageParcel parcel;
     surfaceBuffer->WriteToMessageParcel(parcel);
-    PushImage(AllocatorType::DMA_ALLOC, id, pixels, parcel.GetReadableBytes(), buffer, &properties);
+    PushImage(id, pixels, parcel.GetReadableBytes(), buffer, &properties);
 }
 
 void PixelMapStorage::PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
-    ImageProperties properties(info);
-    PushImage(AllocatorType::HEAP_ALLOC, id, GenerateImageData(info, memory), skipBytes, nullptr, &properties);
+    ImageProperties properties(info, AllocatorType::HEAP_ALLOC);
+    PushImage(id, GenerateImageData(info, memory), skipBytes, nullptr, &properties);
 }
 
 void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
@@ -270,18 +273,18 @@ void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
     const uint8_t *base = map.GetPixels();
     if (base && baseSize) {
         const auto pixels = GenerateImageData(base, baseSize, map);
-        PushImage(AllocatorType::HEAP_ALLOC, id, pixels, skipBytes, nullptr, &properties);
+        PushImage(id, pixels, skipBytes, nullptr, &properties);
     }
 }
 
 bool PixelMapStorage::PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
 {
-    if (static_cast<size_t>(memory.bufferSize) <= PixelMap::MIN_IMAGEDATA_SIZE) {
+    if (memory.bufferSize <= PixelMap::MIN_IMAGEDATA_SIZE) {
         return false;
     }
 
     auto retCode = PullSharedMemory(id, info, memory, skipBytes);
-    
+
     constexpr size_t skipFdSize = 24u;
     skipBytes = skipFdSize;
 
@@ -327,7 +330,7 @@ int32_t PixelMapStorage::EncodeSeqLZ4(const ImageData& source, ImageData& dst)
 int32_t PixelMapStorage::EncodeJpeg(const ImageData& source, ImageData& dst, const ImageProperties& properties)
 {
     Media::InitializationOptions opts = { .size = { .width = properties.width, .height = properties.height },
-        .srcPixelFormat = properties.format,
+        .srcPixelFormat = properties.GetFormat(),
         .pixelFormat = Media::PixelFormat::RGBA_8888,
         .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE,
         .srcRowStride = properties.stride };
@@ -373,19 +376,29 @@ void PixelMapStorage::ExtractAlpha(const ImageData& image, ImageData& alpha, con
     }
 }
 
-void PixelMapStorage::PushImage(AllocatorType allocType,
+void PixelMapStorage::PushImage(
     uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer, const ImageProperties* properties)
 {
-    if (data.empty()) {
-        return;
-    }
-
-    if (buffer && ((buffer->width == 0) || (buffer->height == 0))) {
+    if (data.empty() || (buffer && ((buffer->width == 0) || (buffer->height == 0)))) {
         return;
     }
 
     Image image;
     image.parcelSkipBytes = skipBytes;
+
+    JsonWriter json;
+    json.PushObject();
+    json["id"] = id;
+    if (!properties) {
+        json["type"] = std::string("HEAP");
+    } else if (properties->GetAllocType() == AllocatorType::SHARE_MEM_ALLOC) {
+        json["type"] = std::string("SHARED");
+    } else if (properties->GetAllocType() == AllocatorType::DMA_ALLOC) {
+        json["type"] = std::string("DMA");
+    } else {
+        json["type"] = std::string("HEAP");
+    }
+
     if (buffer) {
         image.dmaSize = static_cast<size_t>(buffer->size);
         image.dmaWidth = buffer->width;
@@ -393,6 +406,20 @@ void PixelMapStorage::PushImage(AllocatorType allocType,
         image.dmaStride = buffer->stride;
         image.dmaFormat = buffer->format;
         image.dmaUsage = buffer->usage;
+
+        json["width"] = buffer->width;
+        json["height"] = buffer->height;
+        json["stride"] = buffer->stride;
+        json["format"] = buffer->format;
+        json.PopObject();
+        RSProfiler::SendRSLogBase(RSProfilerLogType::PIXELMAP, json.GetDumpString());
+    } else if (properties) {
+        json["width"] = properties->width;
+        json["height"] = properties->height;
+        json["stride"] = properties->stride;
+        json["format"] = static_cast<int>(properties->format);
+        json.PopObject();
+        RSProfiler::SendRSLogBase(RSProfilerLogType::PIXELMAP, json.GetDumpString());
     }
 
     EncodedType encodedType = EncodedType::NONE;
@@ -415,7 +442,8 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
 
     image.data.resize(sizeof(TextureHeader));
     if (properties && RSProfiler::GetTextureRecordType() == TextureRecordType::JPEG &&
-        (properties->format == Media::PixelFormat::RGBA_8888 || properties->format == Media::PixelFormat::BGRA_8888) &&
+        (properties->GetFormat() == Media::PixelFormat::RGBA_8888 ||
+        properties->GetFormat() == Media::PixelFormat::BGRA_8888) &&
         static_cast<int32_t>(data.size()) == properties->stride * properties->height) {
         int32_t rgbEncodedSize = EncodeJpeg(data, image.data, *properties);
         if (rgbEncodedSize != -1) {
@@ -427,9 +455,9 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
                 TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
                 header->magicNumber = 'JPEG';
                 header->properties = *properties;
-                header->totalOriginalSize = static_cast<int32_t>(data.size());
+                header->totalOriginalSize = data.size();
                 header->rgbEncodedSize = rgbEncodedSize;
-                header->alphaOriginalSize = static_cast<int32_t>(alpha.size());
+                header->alphaOriginalSize = alpha.size();
                 header->alphaEncodedSize = alphaEncodedSize;
             }
         }
@@ -440,7 +468,7 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
             encodedType = EncodedType::XLZ4;
             TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
             header->magicNumber = 'XLZ4';
-            header->totalOriginalSize = static_cast<int32_t>(data.size());
+            header->totalOriginalSize = data.size();
         }
     }
     return encodedType;
@@ -552,7 +580,7 @@ int32_t PixelMapStorage::DecodeJpeg(
     const char* source, ImageData& dst, int32_t sourceSize, const ImageProperties& properties)
 {
     Media::SourceOptions opts = { .formatHint = "image/jpeg",
-        .pixelFormat = properties.format,
+        .pixelFormat = properties.GetFormat(),
         .size = { .width = properties.width, .height = properties.height } };
     uint32_t err;
     auto src = Media::ImageSource::CreateImageSource(reinterpret_cast<const uint8_t*>(source), sourceSize, opts, err);
@@ -612,7 +640,7 @@ bool PixelMapStorage::CopyImageData(Image* image, uint8_t* dstImage, size_t dstS
                 header->totalOriginalSize);
         }
     } else if (header->magicNumber == 'XLZ4' && image->data.size() >= sizeof(TextureHeader)) {
-        int32_t sourceSize = static_cast<int32_t>(image->data.size() - sizeof(TextureHeader));
+        int32_t sourceSize = image->data.size() - sizeof(TextureHeader);
         int32_t decodedTotalBytes = DecodeSeqLZ4(srcStart, result, sourceSize, header->totalOriginalSize);
         if (decodedTotalBytes == header->totalOriginalSize) {
             image->data.clear();
@@ -729,7 +757,12 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
         return map->Marshalling(parcel);
     }
 
-    const uint64_t id = ImageCache::New();
+    uint64_t id =
+        IsWriteEmulationMode() ? ImageCache::New() : Utils::ComposeNodeId(Utils::GetPid(), map->GetUniqueId());
+
+    constexpr uint64_t flagIsImage = 1ull << 62;
+    id |= flagIsImage;
+
     if (!parcel.WriteUint64(id)) {
         HRPE("MarshalPixelMap: Unable to write id");
         return false;
@@ -842,7 +875,39 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
             RequestRecordAbort();
         }
     }
-    return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
+
+    auto retPixelMap = PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
+    if (retPixelMap && (IsWriteMode() || IsWriteEmulationMode()) && retPixelMap->IsYuvFormat()) {
+        Media::YUVDataInfo yuvInfo;
+        retPixelMap->GetImageYUVInfo(yuvInfo);
+        LogYUVDataInfo(id, yuvInfo);
+    }
+    return retPixelMap;
+}
+
+void RSProfiler::LogYUVDataInfo(uint64_t id, const Media::YUVDataInfo& yuvInfo)
+{
+    JsonWriter json;
+
+    json.PushObject();
+    json["id"] = id;
+    json["imageSizeW"] = yuvInfo.imageSize.width;
+    json["imageSizeH"] = yuvInfo.imageSize.height;
+    json["yWidth"] = yuvInfo.yWidth;
+    json["yHeight"] = yuvInfo.yHeight;
+    json["uvWidth"] = yuvInfo.uvWidth;
+    json["uvHeight"] = yuvInfo.uvHeight;
+    json["yStride"] = yuvInfo.yStride;
+    json["uStride"] = yuvInfo.uStride;
+    json["vStride"] = yuvInfo.vStride;
+    json["uvStride"] = yuvInfo.uvStride;
+    json["yOffset"] = yuvInfo.yOffset;
+    json["uOffset"] = yuvInfo.uOffset;
+    json["vOffset"] = yuvInfo.vOffset;
+    json["uvOffset"] = yuvInfo.uvOffset;
+    json.PopObject();
+
+    RSProfiler::SendRSLogBase(RSProfilerLogType::PIXELMAP_YUV, json.GetDumpString());
 }
 
 } // namespace OHOS::Rosen

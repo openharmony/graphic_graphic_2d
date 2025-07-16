@@ -38,6 +38,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "png.h"
 #include "rs_frame_rate_vote.h"
+#include "rs_profiler.h"
 #include "rs_trace.h"
 #include "rs_uni_render_thread.h"
 #include "rs_uni_render_util.h"
@@ -1560,6 +1561,7 @@ pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     MessageParcel& parcel, uint32_t parcelNumber)
 {
+    RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
     auto transactionData = parcel.ReadParcelable<RSTransactionData>();
     if (!transactionData) {

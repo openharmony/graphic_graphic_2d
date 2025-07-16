@@ -3223,7 +3223,7 @@ bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)
     for (auto supportedFlag : supportedParcelVerFlags) {
         flags[supportedFlag / bitsPerUint64] |= static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64);
     }
-    for (int i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
+    for (size_t i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
         parcel.WriteUint64(flags[i]);
     }
     return true;
@@ -3235,7 +3235,7 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
     size_t offset = parcel.GetReadPosition();
     headerCode = parcel.ReadInt64();
     if (headerCode == -1) {
-        for (int i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
+        for (size_t i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
             parcel.ReadUint64();
         }
     } else {
