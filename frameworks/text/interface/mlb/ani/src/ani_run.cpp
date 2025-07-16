@@ -34,10 +34,10 @@ constexpr const char* NATIVE_PARAGRAPH_OBJ = "nativeParagraphObj";
 
 ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env;
+    ani_env* env{nullptr};
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env, ret %{public}d", ret);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -78,7 +78,7 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[Run] Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods for Run, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
@@ -140,9 +140,9 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
     }
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
-        if (ANI_OK
-            != env->Object_CallMethodByName_Void(
-                arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, glpyh))) {
+        ani_status ret = env->Object_CallMethodByName_Void(
+            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, glpyh));
+        if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
         }
@@ -161,8 +161,9 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     }
 
     OHOS::Text::ANI::RectRange rectRange;
-    if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
-        TEXT_LOGE("Failed to parse range");
+    ani_status ret =AniTextRectConverter::ParseRangeToNative(env, range, rectRange);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to parse range, ani_status: %{public}d", ret);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -178,9 +179,9 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     }
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
-        if (ANI_OK
-            != env->Object_CallMethodByName_Void(
-                arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, glpyh))) {
+        ret = env->Object_CallMethodByName_Void(
+            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, glpyh));
+        if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
         }
@@ -358,9 +359,9 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     }
     ani_size index = 0;
     for (const auto& stringIndex : stringIndices) {
-        if (ANI_OK
-            != env->Object_CallMethodByName_Void(
-                arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, stringIndex))) {
+        ani_status ret = env->Object_CallMethodByName_Void(
+            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, stringIndex));
+        if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set stringIndices item %{public}zu", index);
             continue;
         }
@@ -397,12 +398,15 @@ ani_object AniRun::GetTypographicBounds(ani_env* env, ani_object object)
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    float ascent, descent, leading = 0.0;
+    float ascent = 0.0;
+    float descent = 0.0;
+    float leading = 0.0;
     double width = run->GetTypographicBounds(&ascent, &descent, &leading);
     ani_object typographicBoundsObj{nullptr};
     ani_status result = AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
         env, typographicBoundsObj, ascent, descent, leading, width);
     if (result != ANI_OK) {
+        TEXT_LOGE("Failed to parse typographic bounds to ani");
         return AniTextUtils::CreateAniUndefined(env);
     }
 

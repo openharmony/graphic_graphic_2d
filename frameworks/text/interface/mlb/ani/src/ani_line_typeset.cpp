@@ -30,10 +30,10 @@ using namespace OHOS::Rosen;
 
 ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env;
+    ani_env* env{nullptr};
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env, ret %{public}d", ret);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -51,7 +51,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[LineTypeset] Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods for LineTypeset, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
@@ -79,8 +79,8 @@ ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_doubl
     }
 
     size_t limitSize = lineTypography->GetUnicodeSize();
-    if (startIndex < 0 || limitSize <= static_cast<size_t>(startIndex) || count < 0
-        || static_cast<size_t>(count + startIndex) > limitSize) {
+    if (startIndex < 0 || (limitSize <= static_cast<size_t>(startIndex)) || count < 0
+        || (limitSize < static_cast<size_t>(count + startIndex))) {
         TEXT_LOGE("Params exceeds reasonable range. %{public}f %{public}f %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Params exceeds reasonable range.");
         return AniTextUtils::CreateAniUndefined(env);
@@ -97,6 +97,7 @@ ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_doubl
     ani_boolean isUndefined = false;
     ani_status result = env->Reference_IsUndefined(textlineObj, &isUndefined);
     if (result != ANI_OK || isUndefined) {
+        TEXT_LOGE("Failed to create ani line, line is undefined");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create TextLine object.");
         return AniTextUtils::CreateAniUndefined(env);
     }

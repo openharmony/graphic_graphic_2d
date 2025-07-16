@@ -66,7 +66,7 @@ void SafeDelete(ani_long& ptr)
 
 static void Clean(ani_env* env, ani_object object)
 {
-    ani_long ptr;
+    ani_long ptr = 0;
     ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptr);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to clean ptr");
@@ -101,10 +101,10 @@ static void Clean(ani_env* env, ani_object object)
 
 static ani_status AniCleanerInit(ani_vm* vm)
 {
-    ani_env* env;
+    ani_env* env{nullptr};
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env, ret %{public}d", ret);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 

@@ -47,10 +47,10 @@ ani_object AniParagraph::SetTypography(ani_env* env, std::unique_ptr<OHOS::Rosen
 
 ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env;
+    ani_env* env{nullptr};
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env, ret %{public}d", ret);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 

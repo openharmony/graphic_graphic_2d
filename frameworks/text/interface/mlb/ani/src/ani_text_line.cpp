@@ -38,10 +38,10 @@ constexpr const char* NATIVE_PARAGRAPH_OBJ = "nativeParagraphObj";
 
 ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env;
+    ani_env* env{nullptr};
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env, ret %{public}d", ret);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -83,7 +83,7 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[TextLine] Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods for TextLine, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
@@ -95,9 +95,10 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, std::unique_ptr<Rosen::Text
     TextLineBase* textLineBase = textLine.release();
     ani_status ret = env->Object_SetFieldByName_Long(textLineObj, NATIVE_OBJ, reinterpret_cast<ani_long>(textLineBase));
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to set type set textLine");
+        TEXT_LOGE("Failed to set type set textLine, ani_status: %{public}d", ret);
         delete textLineBase;
         textLineBase = nullptr;
+        return AniTextUtils::CreateAniUndefined(env);
     }
     return textLineObj;
 }
@@ -214,28 +215,28 @@ void AniTextLine::Paint(ani_env* env, ani_object object, ani_object canvas, ani_
 ani_object AniTextLine::CreateTruncatedLine(
     ani_env* env, ani_object object, ani_double width, ani_object ellipsisMode, ani_object ellipsis)
 {
-    TextLineBase* textline_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textline_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    std::string ellipsisStr_;
-    ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ellipsis), ellipsisStr_);
+    std::string ellipsisStr;
+    ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ellipsis), ellipsisStr);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to convert ellipsisStr");
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    ani_size index;
-    EllipsisModal ellipsisModal_ = EllipsisModal::HEAD;
+    ani_size index = 0;
+    EllipsisModal ellipsisModal = EllipsisModal::HEAD;
     ret = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ellipsisMode), &index);
     if (ret == ANI_OK) {
-        ellipsisModal_ = static_cast<EllipsisModal>(index);
+        ellipsisModal = static_cast<EllipsisModal>(index);
     }
 
-    std::unique_ptr<TextLineBase> textLine = textline_->CreateTruncatedLine(width, ellipsisModal_, ellipsisStr_);
+    std::unique_ptr<TextLineBase> textLine = textLineBase->CreateTruncatedLine(width, ellipsisModal, ellipsisStr);
     if (textLine == nullptr) {
         TEXT_LOGE("Failed to create truncated textLine");
         return AniTextUtils::CreateAniUndefined(env);
@@ -251,15 +252,17 @@ ani_object AniTextLine::CreateTruncatedLine(
 
 ani_object AniTextLine::GetTypographicBounds(ani_env* env, ani_object object)
 {
-    TextLineBase* textline_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textline_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    double ascent, descent, leading = 0.0;
-    double width = textline_->GetTypographicBounds(&ascent, &descent, &leading);
+    double ascent = 0.0;
+    double descent = 0.0;
+    double leading = 0.0;
+    double width = textLineBase->GetTypographicBounds(&ascent, &descent, &leading);
     ani_object typographicBoundsObj{nullptr};
     ani_status result = AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
         env, typographicBoundsObj, ascent, descent, leading, width);
@@ -272,14 +275,14 @@ ani_object AniTextLine::GetTypographicBounds(ani_env* env, ani_object object)
 
 ani_object AniTextLine::GetImageBounds(ani_env* env, ani_object object)
 {
-    TextLineBase* textline_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textline_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    Drawing::Rect rect = textline_->GetImageBounds();
+    Drawing::Rect rect = textLineBase->GetImageBounds();
     ani_object rectObj{nullptr};
     if (ANI_OK != AniDrawingConverter::ParseRectToAni(env, rect, rectObj)) {
         TEXT_LOGE("Failed to create rect");
@@ -290,20 +293,20 @@ ani_object AniTextLine::GetImageBounds(ani_env* env, ani_object object)
 
 ani_double AniTextLine::GetTrailingSpaceWidth(ani_env* env, ani_object object)
 {
-    TextLineBase* textline_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textline_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
     }
 
-    return textline_->GetTrailingSpaceWidth();
+    return textLineBase->GetTrailingSpaceWidth();
 }
 
 ani_double AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object object, ani_object point)
 {
-    TextLineBase* textline_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textline_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
@@ -312,34 +315,34 @@ ani_double AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object objec
     AniDrawingConverter::ParseDrawingPointToNative(env, point, drawingPoint);
 
     SkPoint SkPoint = {drawingPoint.GetX(), drawingPoint.GetY()};
-    return textline_->GetStringIndexForPosition(SkPoint);
+    return textLineBase->GetStringIndexForPosition(SkPoint);
 }
 
 ani_double AniTextLine::GetOffsetForStringIndex(ani_env* env, ani_object object, ani_double index)
 {
-    TextLineBase* textline_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textline_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
     }
 
-    return textline_->GetOffsetForStringIndex(index);
+    return textLineBase->GetOffsetForStringIndex(index);
 }
 
-bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vector<ani_ref>& vec)
+static bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vector<ani_ref>& vec)
 {
-    ani_status ret = ANI_OK;
+    ani_status ret;
     ani_ref fnReturnVal;
     ret = env->FunctionalObject_Call(callback, vec.size(), vec.data(), &fnReturnVal);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to call callback function");
+        TEXT_LOGE("Failed to call callback function, ani_status: %{public}d", ret);
         return false;
     }
     ani_boolean result{false};
     env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get result");
+        TEXT_LOGE("Failed to get result, ani_status: %{public}d", ret);
         return false;
     }
     if (result) {
@@ -350,15 +353,15 @@ bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vector<ani
 
 void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_object object, ani_fn_object callback)
 {
-    TextLineBase* textLine_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textLine_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
 
     bool isHardBreak = false;
-    std::map<int32_t, double> offsetMap = textLine_->GetIndexAndOffsets(isHardBreak);
+    std::map<int32_t, double> offsetMap = textLineBase->GetIndexAndOffsets(isHardBreak);
     double leftOffset = 0.0;
     for (auto it = offsetMap.begin(); it != offsetMap.end(); ++it) {
         std::vector<ani_ref> vec;
@@ -384,13 +387,13 @@ void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_objec
 ani_double AniTextLine::GetAlignmentOffset(
     ani_env* env, ani_object object, ani_double alignmentFactor, ani_double alignmentWidth)
 {
-    TextLineBase* textline_ = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
-    if (textline_ == nullptr) {
+    TextLineBase* textLineBase = AniTextUtils::GetNativeFromObj<TextLineBase>(env, object);
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
     }
 
-    return textline_->GetAlignmentOffset(alignmentFactor, alignmentWidth);
+    return textLineBase->GetAlignmentOffset(alignmentFactor, alignmentWidth);
 }
 } // namespace OHOS::Text::ANI

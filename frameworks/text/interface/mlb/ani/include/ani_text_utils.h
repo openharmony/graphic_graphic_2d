@@ -126,7 +126,7 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        ani_size index;
+        ani_size index = 0;
         result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK) {
             value = static_cast<EnumType>(index);
