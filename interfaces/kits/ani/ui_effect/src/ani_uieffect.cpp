@@ -122,7 +122,7 @@ bool CheckCreateBrightnessBlender(ani_env* env, ani_object para_obj, ani_object&
     return true;
 }
 
-void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::shared_ptr<BrightnessBlender>& blender)
+void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::unique_ptr<BrightnessBlender>& blender)
 {
     ani_double cubicRateAni;
     ani_double quadraticRateAni;
@@ -144,7 +144,7 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
     const auto negativeCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(negativeCoefficientAni);
     ani_double posCoefNativeBuffer[3U] = { 0.0 };
     ani_double negCoefNativeBuffer[3U] = { 0.0 };
-    const ani_size len = 3;
+    constexpr ani_size len = 3;
     for (ani_size idx = 0; idx < len; ++idx) {
         if (env->TupleValue_GetItem_Double(positiveCoefficientAniTuple, idx, &posCoefNativeBuffer[idx]) != ANI_OK) {
             UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double pos error");
@@ -194,36 +194,34 @@ ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object para)
         return {};
     };
     auto brightnessObj = std::make_unique<BrightnessBlender>();
+    ParseBrightnessBlender(env, para, brightnessObj);
     retVal = CreateAniObject(env, ANI_UIEFFECT_BRIGHTNESS_BLENDER, nullptr,
         reinterpret_cast<ani_long>(brightnessObj.release()));
     if (!CheckCreateBrightnessBlender(env, para, retVal)) {
-        UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
+        UIEFFECT_LOG_E("CheckCreateBrightnessBlender failed");
         return {};
-    };
+    }
     return retVal;
 }
 
 ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_object para)
 {
     ani_object retVal {};
-    ani_long nativeBrightObj;
-    if (env->Object_GetFieldByName_Long(obj, "brightnessBlenderNativeObj", &nativeBrightObj) != ANI_OK) {
-        UIEFFECT_LOG_E("get generator brightnessBlenderNativeObj failed");
-        return retVal;
-    }
-    BrightnessBlender* brightnessBlenderObj = reinterpret_cast<BrightnessBlender*>(nativeBrightObj);
-    std::shared_ptr<BrightnessBlender> blender(brightnessBlenderObj);
-    ParseBrightnessBlender(env, para, blender);
-
+    auto uniqueBlender = std::make_unique<BrightnessBlender>();
+    ParseBrightnessBlender(env, para, uniqueBlender);
     auto bgColorEffectPara = std::make_shared<BackgroundColorEffectPara>();
-    bgColorEffectPara->SetBlender(blender);
-    VisualEffect* effectObj = nullptr;
+    std::shared_ptr<BrightnessBlender> sharedBlender = std::move(uniqueBlender);
+    bgColorEffectPara->SetBlender(sharedBlender);
     ani_long nativeObj;
     if (env->Object_GetFieldByName_Long(obj, "visualEffectNativeObj", &nativeObj) != ANI_OK) {
         UIEFFECT_LOG_E("get generator visualEffectNativeObj failed");
         return retVal;
     };
-    effectObj = reinterpret_cast<VisualEffect*>(nativeObj);
+    VisualEffect* effectObj = reinterpret_cast<VisualEffect*>(nativeObj);
+    if (effectObj == nullptr) {
+        UIEFFECT_LOG_E("effectObj reinterpret_cast to VisualEffect failed");
+        return retVal;
+    }
     effectObj->AddPara(bgColorEffectPara);
     retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj));
     return retVal;
@@ -369,12 +367,14 @@ ani_object AniEffect::PixelStretch(ani_env* env, ani_object obj, ani_object arra
     // 4 mean Vector4f length
     int vectorLen = 4;
     for (int i = 0; i < int(length) && i < vectorLen; i++) {
-        ani_float floatValue;
-        if (ANI_OK != env->Object_CallMethodByName_Float(arrayObj, "$_get", "I:F", &floatValue, (ani_int)i)) {
-            UIEFFECT_LOG_E("stretchSizes Object_CallMethodByName_Float_A failed");
+        ani_double val;
+        ani_ref ref;
+        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &ref, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "unboxed", ":D", &val)) {
+            UIEFFECT_LOG_E("Object_CallMethodByName_Ref or Object_CallMethodByName_Double Failed");
             return retVal;
         }
-        stretchPercent[i] = static_cast<float>(floatValue);
+        stretchPercent[i] = static_cast<float>(val);
     }
     pixelStretchPara->SetStretchPercent(stretchPercent);
 
