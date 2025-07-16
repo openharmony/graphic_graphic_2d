@@ -208,12 +208,14 @@ ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object ar
     PixelColorMatrix colormatrix;
     int matrixLen = PixelColorMatrix::MATRIX_SIZE;
     for (int i = 0; i < int(length) && i < matrixLen; ++i) {
-        ani_float floatValue;
-        if (ANI_OK != env->Object_CallMethodByName_Float(arrayObj, "$_get", "I:F", &floatValue, (ani_int)i)) {
-            EFFECT_LOG_E("stretchSizes Object_CallMethodByName_Float_A failed");
+        ani_double val;
+        ani_ref ref;
+        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &ref, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "unboxed", ":D", &val)) {
+            EFFECT_LOG_E("Object_CallMethodByName_Ref or Object_CallMethodByName_Double failed");
             return AniEffectKitUtils::CreateAniUndefined(env);
         }
-        colormatrix.val[i] = static_cast<float>(floatValue);
+        colormatrix.val[i] = static_cast<float>(val);
     }
     
     auto applyColorMatrix = Rosen::SKImageFilterFactory::ApplyColorMatrix(colormatrix);
