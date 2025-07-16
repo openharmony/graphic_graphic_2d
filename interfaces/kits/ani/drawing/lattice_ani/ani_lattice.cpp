@@ -44,7 +44,7 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
             ani_ref dividerRef;
             int ret = 0;
             if ((ret = env->Object_CallMethodByName_Ref(dividersArray,
-                "$_get", "I:Lstd/core/Object;", &dividerRef, (ani_int)i)) != ANI_OK) {
+                "$_get", "i:C{std.core.Object}", &dividerRef, (ani_int)i)) != ANI_OK) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice  get divider ref failed. ret: %{public}d", ret);
                 return false;
             }

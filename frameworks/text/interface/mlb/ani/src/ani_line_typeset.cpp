@@ -47,9 +47,9 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
-    std::string createLineSignature = "II:" + std::string(ANI_CLASS_TEXT_LINE);
+    std::string createLineSignature = "ii:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
     std::array methods = {
-        ani_native_function{"getLineBreak", "ID:I", reinterpret_cast<void*>(GetLineBreak)},
+        ani_native_function{"getLineBreak", "id:i", reinterpret_cast<void*>(GetLineBreak)},
         ani_native_function{"createLine", createLineSignature.c_str(), reinterpret_cast<void*>(CreateLine)},
     };
 

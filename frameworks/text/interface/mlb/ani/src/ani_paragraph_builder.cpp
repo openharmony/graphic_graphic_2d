@@ -70,7 +70,7 @@ void AniParagraphBuilder::Constructor(
     AniParagraphBuilder* paragraphBuilder = new AniParagraphBuilder();
     paragraphBuilder->typographyCreate_ = std::move(typographyCreateNative);
     ani_status ret = env->Object_CallMethodByName_Void(
-        object, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(paragraphBuilder));
+        object, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(paragraphBuilder));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani TypographyCreate obj");
         delete paragraphBuilder;
@@ -97,11 +97,11 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     std::string ctorSignature =
-        std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + std::string(ANI_CLASS_FONT_COLLECTION) + ":";
-    std::string pushStyleSignature = std::string(ANI_INTERFACE_TEXT_STYLE) + ":";
-    std::string buildStyleSignature = ":" + std::string(ANI_CLASS_PARAGRAPH);
-    std::string addPlaceholderSignature = std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + ":";
-    std::string buildLineTypesetSignature = ":" + std::string(ANI_CLASS_LINE_TYPESET);
+        "C{" + std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + "}C{" + std::string(ANI_CLASS_FONT_COLLECTION) + "}:";
+    std::string pushStyleSignature = "C{" + std::string(ANI_INTERFACE_TEXT_STYLE) + "}:";
+    std::string buildStyleSignature = ":C{" + std::string(ANI_CLASS_PARAGRAPH) + "}";
+    std::string addPlaceholderSignature = "C{" + std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + "}:";
+    std::string buildLineTypesetSignature = ":C{" + std::string(ANI_CLASS_LINE_TYPESET) + "}";
     std::array methods = {
         ani_native_function{"constructorNative", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
         ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(PushStyle)},
@@ -223,7 +223,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
     ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINE_TYPESET, ":");
     AniLineTypeset* aniLineTypeSet = new AniLineTypeset(std::move(lineTypography));
     ani_status ret = env->Object_CallMethodByName_Void(
-        lineTypographyObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniLineTypeSet));
+        lineTypographyObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniLineTypeSet));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj, ret %{public}d", ret);
         delete aniLineTypeSet;
@@ -256,7 +256,7 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
             TEXT_LOGE("Null jsParagraphBuilder");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH_BUILDER, ":V");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH_BUILDER, ":");
         std::shared_ptr<TypographyCreate> typographyCreatePtr = jsParagraphBuilder->GetTypographyCreate();
         if (typographyCreatePtr == nullptr) {
             TEXT_LOGE("Failed to get typographyCreate");
@@ -265,7 +265,7 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
         AniParagraphBuilder* aniParagraphBuilder = new AniParagraphBuilder();
         aniParagraphBuilder->typographyCreate_ = typographyCreatePtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraphBuilder));
+            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniParagraphBuilder));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani typographyCreate obj, ret %{public}d", ret);
             delete aniParagraphBuilder;

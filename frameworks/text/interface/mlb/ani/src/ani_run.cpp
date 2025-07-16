@@ -32,15 +32,18 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-    const std::string PAINT_SIGNATURE = std::string(ANI_CLASS_CANVAS) + "DD:V";
-    const std::string NATIVE_GET_GLYPHS_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    const std::string NATIVE_GET_POSITIONS_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    const std::string GET_OFFSETS_SIGNATURE = ":" + std::string(ANI_ARRAY);
-    const std::string GET_FONT_SIGNATURE = ":" + std::string(ANI_CLASS_FONT);
-    const std::string GET_STRING_INDICES_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    const std::string GET_STRING_RANGE_SIGNATURE = ":" + std::string(ANI_INTERFACE_RANGE);
-    const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
-    const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":" + std::string(ANI_INTERFACE_RECT);
+    const std::string PAINT_SIGNATURE = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
+    const std::string NATIVE_GET_GLYPHS_SIGNATURE =
+        "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+    const std::string NATIVE_GET_POSITIONS_SIGNATURE =
+        "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+    const std::string GET_OFFSETS_SIGNATURE = ":C{" + std::string(ANI_ARRAY) + "}";
+    const std::string GET_FONT_SIGNATURE = ":C{" + std::string(ANI_CLASS_FONT) + "}";
+    const std::string GET_STRING_INDICES_SIGNATURE =
+        "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+    const std::string GET_STRING_RANGE_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_RANGE) + "}";
+    const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
+    const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
 } // namespace
 
 ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
@@ -58,13 +61,14 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
+    static const std::string returnArraySignature = ":C{" + std::string(ANI_ARRAY) + "}";
     std::array methods = {
-        ani_native_function{"getGlyphCount", ":I", reinterpret_cast<void*>(GetGlyphCount)},
-        ani_native_function{"getGlyphs", (":" + std::string(ANI_ARRAY)).c_str(), reinterpret_cast<void*>(GetGlyphs)},
+        ani_native_function{"getGlyphCount", ":i", reinterpret_cast<void*>(GetGlyphCount)},
+        ani_native_function{"getGlyphs", returnArraySignature.c_str(), reinterpret_cast<void*>(GetGlyphs)},
         ani_native_function{
             "nativeGetGlyphs", NATIVE_GET_GLYPHS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetGlyphsByRange)},
         ani_native_function{
-            "getPositions", (":" + std::string(ANI_ARRAY)).c_str(), reinterpret_cast<void*>(GetPositions)},
+            "getPositions", returnArraySignature.c_str(), reinterpret_cast<void*>(GetPositions)},
         ani_native_function{
             "nativeGetPositions", NATIVE_GET_POSITIONS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetPositionsByRange)},
         ani_native_function{"getOffsets", GET_OFFSETS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetOffsets)},
@@ -78,10 +82,10 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
             reinterpret_cast<void*>(GetTypographicBounds)},
         ani_native_function{
             "getImageBounds", GET_IMAGE_BOUNDS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetImageBounds)},
-        ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void*>(NativeTransferStatic)},
         ani_native_function{
-            "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
+            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -100,9 +104,9 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     }
     AniRun* aniRun = new AniRun();
     aniRun->run_ = std::shared_ptr<Rosen::Run>(run);
-    ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
+    ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
     ani_status ret = env->Object_CallMethodByName_Void(
-        runObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
+        runObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set run");
         delete aniRun;
@@ -143,7 +147,7 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -185,7 +189,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -220,7 +224,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -267,7 +271,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -303,7 +307,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -329,9 +333,9 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
     }
 
     Drawing::AniFont* aniFont = new Drawing::AniFont(fontPtr);
-    ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":V");
+    ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":");
     ani_status ret = env->Object_CallMethodByName_Void(
-        fontObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniFont));
+        fontObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine");
         delete aniFont;
@@ -388,7 +392,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& stringIndex : stringIndices) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
+            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set stringIndices item %{public}zu", index);
             continue;
@@ -466,7 +470,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
             TEXT_LOGE("Null jsRun");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
         std::shared_ptr<Rosen::Run> runPtr = jsRun->GetRun();
         if (runPtr == nullptr) {
             TEXT_LOGE("Failed to get run");
@@ -475,7 +479,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
         AniRun* aniRun = new AniRun();
         aniRun->run_ = runPtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
+            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani run obj, ret %{public}d", ret);
             delete aniRun;

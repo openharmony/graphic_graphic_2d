@@ -55,17 +55,17 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
         return ANI_NOT_FOUND;
     }
 
-    std::string getTextRangeSignature = ":" + std::string(ANI_INTERFACE_RANGE);
-    std::string getGlyphRunsSignature = ":" + std::string(ANI_ARRAY);
-    std::string paintSignature = std::string(ANI_CLASS_CANVAS) + "DD:V";
+    std::string getTextRangeSignature = ":C{" + std::string(ANI_INTERFACE_RANGE) + "}";
+    std::string getGlyphRunsSignature = ":C{" + std::string(ANI_ARRAY) + "}";
+    std::string paintSignature = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
     std::string createTruncatedLineSignature =
-        "D" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "Lstd/core/String;:" + std::string(ANI_CLASS_TEXT_LINE);
-    std::string getTypographicBoundsSignature = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
-    std::string getImageBoundsSignature = ":" + std::string(ANI_INTERFACE_RECT);
-    std::string getStringIndexForPositionSignature = std::string(ANI_INTERFACE_POINT) + ":I";
+        "dE{" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{std.core.String}:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
+    std::string getTypographicBoundsSignature = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
+    std::string getImageBoundsSignature = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
+    std::string getStringIndexForPositionSignature = "C{" + std::string(ANI_INTERFACE_POINT) + "}:i";
 
     std::array methods = {
-        ani_native_function{"getGlyphCount", ":I", reinterpret_cast<void*>(GetGlyphCount)},
+        ani_native_function{"getGlyphCount", ":i", reinterpret_cast<void*>(GetGlyphCount)},
         ani_native_function{"getTextRange", getTextRangeSignature.c_str(), reinterpret_cast<void*>(GetTextRange)},
         ani_native_function{"getGlyphRuns", getGlyphRunsSignature.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
         ani_native_function{"paint", paintSignature.c_str(), reinterpret_cast<void*>(Paint)},
@@ -74,18 +74,18 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"getTypographicBounds", getTypographicBoundsSignature.c_str(),
             reinterpret_cast<void*>(GetTypographicBounds)},
         ani_native_function{"getImageBounds", getImageBoundsSignature.c_str(), reinterpret_cast<void*>(GetImageBounds)},
-        ani_native_function{"getTrailingSpaceWidth", ":D", reinterpret_cast<void*>(GetTrailingSpaceWidth)},
+        ani_native_function{"getTrailingSpaceWidth", ":d", reinterpret_cast<void*>(GetTrailingSpaceWidth)},
         ani_native_function{"getStringIndexForPosition", getStringIndexForPositionSignature.c_str(),
             reinterpret_cast<void*>(GetStringIndexForPosition)},
-        ani_native_function{"getOffsetForStringIndex", "I:D", reinterpret_cast<void*>(GetOffsetForStringIndex)},
+        ani_native_function{"getOffsetForStringIndex", "i:d", reinterpret_cast<void*>(GetOffsetForStringIndex)},
         // Lstd/core/Function<number>: <number> is an int from 0 to N, means the number of parameters in the function
         ani_native_function{
-            "enumerateCaretOffsets", "Lstd/core/Function3;:V", reinterpret_cast<void*>(EnumerateCaretOffsets)},
-        ani_native_function{"getAlignmentOffset", "DD:D", reinterpret_cast<void*>(GetAlignmentOffset)},
-        ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+            "enumerateCaretOffsets", "C{std.core.Function3}:", reinterpret_cast<void*>(EnumerateCaretOffsets)},
+        ani_native_function{"getAlignmentOffset", "dd:d", reinterpret_cast<void*>(GetAlignmentOffset)},
+        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void*>(NativeTransferStatic)},
         ani_native_function{
-            "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
+            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -104,9 +104,9 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
     }
     AniTextLine* aniTextLine = new AniTextLine();
     aniTextLine->textLine_ = std::shared_ptr<Rosen::TextLineBase>(textLine);
-    ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":V");
+    ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":");
     ani_status ret = env->Object_CallMethodByName_Void(
-        textLineObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniTextLine));
+        textLineObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine, ani_status %{public}d", ret);
         delete aniTextLine;
@@ -184,7 +184,7 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
             runPtr = nullptr;
             continue;
         }
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set runs item %{public}zu", index);
             delete runPtr;
@@ -350,7 +350,7 @@ static bool CaretOffsetsCallBack(
             return false;
         }
         ani_boolean result = false;
-        ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
+        ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":z", &result);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to get result, ani_status %{public}d", ret);
             return false;
@@ -409,7 +409,7 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
             TEXT_LOGE("Null jsTextLine");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":V");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":");
         std::shared_ptr<TextLineBase> textLineBase = jsTextLine->GetTextLineBase();
         if (textLineBase == nullptr) {
             TEXT_LOGE("Failed to get textLineBase");
@@ -418,7 +418,7 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
         AniTextLine* aniTextLine = new AniTextLine();
         aniTextLine->textLine_ = textLineBase;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniTextLine));
+            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani textLineBase obj, ret %{public}d", ret);
             delete aniTextLine;

@@ -295,14 +295,13 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    static std::string sign = std::string(ANI_INTERFACE_DECORATION) +
-        std::string(ANI_INTERFACE_COLOR) + std::string(ANI_ENUM_FONT_WEIGHT) +
-        std::string(ANI_ENUM_FONT_STYLE) + std::string(ANI_ENUM_TEXT_BASELINE) +
-        std::string(ANI_ARRAY) + "DDDDZZ" + std::string(ANI_STRING) +
-        std::string(ANI_ENUM_ELLIPSIS_MODE) + std::string(ANI_STRING) +
-        "D" + std::string(ANI_ARRAY) +
-        std::string(ANI_ARRAY) + std::string(ANI_INTERFACE_RECT_STYLE) +
-        ":V";
+    static std::string sign = "C{" + std::string(ANI_INTERFACE_DECORATION) + "}C{" +
+        std::string(ANI_INTERFACE_COLOR) + "}E{" + std::string(ANI_ENUM_FONT_WEIGHT) + "}E{" +
+        std::string(ANI_ENUM_FONT_STYLE) + "}E{" + std::string(ANI_ENUM_TEXT_BASELINE) + "}C{" +
+        std::string(ANI_ARRAY) + "}ddddzzC{" + std::string(ANI_STRING) + "}E{" +
+        std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{" + std::string(ANI_STRING) +
+        "}dC{" + std::string(ANI_ARRAY) + "}C{" +
+        std::string(ANI_ARRAY) + "}C{" + std::string(ANI_INTERFACE_RECT_STYLE) + "}:";
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, sign.c_str(),
         AniTextStyleConverter::ParseDecorationToAni(env, textStyle),
@@ -349,8 +348,8 @@ ani_object AniTextStyleConverter::ParseTextShadowToAni(ani_env* env, const TextS
     }
 
     static std::string sign =
-        std::string(ANI_INTERFACE_COLOR) + std::string(ANI_INTERFACE_POINT) +
-        "D:V";
+        "C{" + std::string(ANI_INTERFACE_COLOR) + "}C{" + std::string(ANI_INTERFACE_POINT) +
+        "}d:";
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXTSHADOW, sign.c_str(),
         aniColorObj,
@@ -369,8 +368,8 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    static std::string sign = std::string(ANI_ENUM_TEXT_DECORATION_TYPE) + std::string(ANI_INTERFACE_COLOR) +
-        std::string(ANI_ENUM_TEXT_DECORATION_STYLE) + "d:";
+    static std::string sign = "E{" + std::string(ANI_ENUM_TEXT_DECORATION_TYPE) + "}C{" +
+        std::string(ANI_INTERFACE_COLOR) + "}E{" + std::string(ANI_ENUM_TEXT_DECORATION_STYLE) + "}d:";
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_DECORATION, sign.c_str(),
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE, static_cast<int>(textStyle.decoration)),
@@ -389,7 +388,7 @@ ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectSt
         TEXT_LOGE("Failed to parse color, ret %{public}d", status);
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
-    static std::string sign = std::string(ANI_INTERFACE_COLOR) + "dddd:";
+    static std::string sign = "C{" + std::string(ANI_INTERFACE_COLOR) + "}dddd:";
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE, sign.c_str(),
         aniColorObj,
         rectStyle.leftTopRadius,
@@ -404,7 +403,7 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
     const std::vector<std::pair<std::string, int>> featureSet = fontFeatures.GetFontFeatures();
     ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
         env, featureSet, featureSet.size(), [](ani_env* env, const std::pair<std::string, int>& feature) {
-            static std::string sign = std::string(ANI_STRING) + "i:";
+            static std::string sign = "C{" + std::string(ANI_STRING) + "}i:";
             ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_FEATURE, sign.c_str(),
                 AniTextUtils::CreateAniStringObj(env, feature.first),
                 ani_int(feature.second));

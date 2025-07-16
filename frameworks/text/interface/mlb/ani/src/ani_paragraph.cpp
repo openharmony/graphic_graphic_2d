@@ -39,14 +39,17 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-    const std::string PAINT_SIGN = std::string(ANI_CLASS_CANVAS) + "dd:";
-    const std::string PAINT_ON_PATH_SIGN = std::string(ANI_CLASS_CANVAS) + std::string(ANI_CLASS_PATH) + "dd:";
-    const std::string GET_RECTS_SIGN = std::string(ANI_INTERFACE_RANGE) + std::string(ANI_ENUM_RECT_WIDTH_STYLE)
-        + std::string(ANI_ENUM_RECT_HEIGHT_STYLE) + ":" + std::string(ANI_ARRAY);
-    const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGN = "dd:" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY);
-    const std::string GET_WORD_BOUNDARY_SIGN = "i:" + std::string(ANI_INTERFACE_RANGE);
-    const std::string GET_TEXT_LINES_SIGN = ":" + std::string(ANI_ARRAY);
-    const std::string GET_ACTUAL_TEXT_RANGE_SIGN = "iz:" + std::string(ANI_INTERFACE_RANGE);
+    const std::string PAINT_SIGN = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
+    const std::string PAINT_ON_PATH_SIGN =
+        "C{" + std::string(ANI_CLASS_CANVAS) + "}C{" + std::string(ANI_CLASS_PATH) + "}dd:";
+    const std::string GET_RECTS_SIGN = "C{" + std::string(ANI_INTERFACE_RANGE) + "}E{"
+        + std::string(ANI_ENUM_RECT_WIDTH_STYLE) + "}E{" + std::string(ANI_ENUM_RECT_HEIGHT_STYLE)
+        + "}:C{" + std::string(ANI_ARRAY) + "}";
+    const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGN =
+        "dd:C{" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY) + "}";
+    const std::string GET_WORD_BOUNDARY_SIGN = "i:C{" + std::string(ANI_INTERFACE_RANGE) + "}";
+    const std::string GET_TEXT_LINES_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
+    const std::string GET_ACTUAL_TEXT_RANGE_SIGN = "iz:C{" + std::string(ANI_INTERFACE_RANGE) + "}";
 } // namespace
 
 ani_object ThrowErrorAndReturnUndefined(ani_env* env)
@@ -65,7 +68,7 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
     ani_object paragraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":");
     aniParagraph->typography_ = std::shared_ptr<OHOS::Rosen::Typography>(typography);
     ani_status ret = env->Object_CallMethodByName_Void(
-        paragraphObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
+        paragraphObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniParagraph));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
         delete aniParagraph;
@@ -106,10 +109,10 @@ std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
         ani_native_function{"getLineMetrics", ":C{escompat.Array}", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "i:C{@ohos.graphics.text.text.LineMetrics}",
             reinterpret_cast<void*>(GetLineMetricsAt)},
-        ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void*>(NativeTransferStatic)},
         ani_native_function{
-            "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
+            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
     return methods;
 }
@@ -567,7 +570,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
         AniParagraph* aniParagraph = new AniParagraph();
         aniParagraph->typography_ = typographyPtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
+            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniParagraph));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani typography obj, ret %{public}d", ret);
             delete aniParagraph;

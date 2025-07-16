@@ -23,7 +23,7 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS, "IIDDDDDDIDLescompat/Map;:V",
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS, "iiddddddidC{escompat.Map}:",
         ani_int(lineMetrics.startIndex),
         ani_int(lineMetrics.endIndex),
         ani_double(lineMetrics.ascender),

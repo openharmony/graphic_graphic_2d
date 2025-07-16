@@ -29,7 +29,7 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
     for (const auto& [key, runMetrics] : runMetrics) {
         if (runMetrics.textStyle != nullptr) {
             static std::string sign =
-                std::string(ANI_INTERFACE_TEXT_STYLE) + std::string(ANI_INTERFACE_FONT_METRICS) + ":";
+                "C{" + std::string(ANI_INTERFACE_TEXT_STYLE) + "}C{" + std::string(ANI_INTERFACE_FONT_METRICS) + "}:";
             ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS, sign.c_str(),
                 AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle),
                 OHOS::Rosen::Drawing::CreateAniFontMetrics(env, runMetrics.fontMetrics));
