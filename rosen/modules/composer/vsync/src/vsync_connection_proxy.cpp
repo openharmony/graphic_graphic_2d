@@ -17,6 +17,8 @@
 #include "graphic_common.h"
 #include "vsync_log.h"
 
+constexpr int MAX_RETRY = 3;
+constexpr int RETRY_INTERVAL = 1000; // 1000us = 1ms
 namespace OHOS {
 namespace Rosen {
 VSyncConnectionProxy::VSyncConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -45,11 +47,19 @@ VsyncError VSyncConnectionProxy::RequestNextVSync(
         VLOGE("remote is null");
         return VSYNC_ERROR_API_FAILED;
     }
-    int res = remote->SendRequest(IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC, arg, ret, opt);
-    if (res != NO_ERROR) {
-        VLOGE("ipc send fail, error:%{public}d", res);
-        return VSYNC_ERROR_BINDER_ERROR;
-    }
+
+    int sendCount = 0;
+    int res = NO_ERROR;
+    do {
+        res = remote->SendRequest(IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC, arg, ret, opt);
+        if (res != NO_ERROR && sendCount < MAX_RETRY) {
+            sendCount++;
+            VLOGE("ipc send fail, error:%{public}d, try again, times:%{public}d", res, sendCount);
+            usleep(RETRY_INTERVAL * sendCount);
+        } else if (res != NO_ERROR) {
+            return VSYNC_ERROR_BINDER_ERROR;
+        }
+    } while (res != NO_ERROR);
     return VSYNC_ERROR_OK;
 }
 
