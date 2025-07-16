@@ -69,15 +69,15 @@ ani_status AniDrawingConverter::ParseDrawingColorToNative(
 ani_status AniDrawingConverter::ParseDrawingPointToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::Drawing::Point& point)
 {
-    ani_double x{0};
+    ani_double x = 0;
     ani_status ret = env->Object_GetPropertyByName_Double(obj, "x", &x);
     if (ret != ANI_OK) {
         TEXT_LOGE("Param x is invalid, ret %{public}d", ret);
         return ret;
     }
 
-    ani_double y{0};
-    ret = env->Object_GetPropertyByName_Double(obj, "x", &y);
+    ani_double y = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "y", &y);
     if (ret != ANI_OK) {
         TEXT_LOGE("Param y is invalid, ret %{public}d", ret);
         return ret;
@@ -113,15 +113,19 @@ ani_status AniDrawingConverter::ParseRectToAni(ani_env* env, const OHOS::Rosen::
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT, ":V");
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(rect.left_))) {
+        TEXT_LOGE("Param left is invalid");
         return ANI_INVALID_ARGS;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(rect.top_))) {
+        TEXT_LOGE("Param top is invalid");
         return ANI_INVALID_ARGS;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "right", ani_double(rect.right_))) {
+        TEXT_LOGE("Param right is invalid");
         return ANI_INVALID_ARGS;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(rect.bottom_))) {
+        TEXT_LOGE("Param bottom is invalid");
         return ANI_INVALID_ARGS;
     }
     obj = aniObj;

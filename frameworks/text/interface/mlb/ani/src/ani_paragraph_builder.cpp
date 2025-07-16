@@ -110,7 +110,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ParagraphBuilder] Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods for ParagraphBuilder, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
@@ -207,7 +207,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
     ani_status ret =
         env->Object_SetFieldByName_Long(lineTypographyObj, NATIVE_OBJ, reinterpret_cast<ani_long>(lineTypographyPtr));
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to create ani Paragraph obj");
+        TEXT_LOGE("Failed to create ani Paragraph obj, ani_status: %{public}d", ret);
         delete lineTypographyObj;
         lineTypographyObj = nullptr;
         return AniTextUtils::CreateAniUndefined(env);
