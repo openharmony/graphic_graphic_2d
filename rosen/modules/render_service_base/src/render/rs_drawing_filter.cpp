@@ -426,18 +426,33 @@ bool RSDrawingFilter::IsHpsBlurApplied(Drawing::Canvas& canvas, const std::share
 bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush)
 {
+    canSkipMaskColor_ = false;
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
     auto hpsVisualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     for (const auto& filter : shaderFilters_) {
         filter->GenerateGEVisualEffect(hpsVisualEffectContainer);
     }
+    RSColor maskColorForHPS = RSColor();
+    // if alpha equal 1.0, apply maskcolor
+    if (ROSEN_EQ(attr.brushAlpha, 1.0f)) {
+        auto maskColorShaderFilter = GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
+        if (maskColorShaderFilter != nullptr) {
+            auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
+            maskColorForHPS = maskColorFilter->GetMaskColor();
+        }
+    }
+    auto maskColor = maskColorForHPS.AsArgbInt();
     GraphicsEffectEngine::GERender::HpsGEImageEffectContext context = {
-        image, attr.src, attr.dst, Drawing::SamplingOptions(), true};
+        image, attr.src, attr.dst, Drawing::SamplingOptions(), true, brush.GetColor().GetAlphaF() * attr.brushAlpha,
+        brush.GetFilter().GetColorFilter(), maskColor, saturationForHPS_, brightnessForHPS_};
 
     bool kawaseHpsProcess = geRender->ApplyHpsGEImageEffect(canvas, *hpsVisualEffectContainer,
         context, outImage, brush);
     if (outImage == nullptr) {
         ROSEN_LOGD("RSDrawingFilter::ApplyHpsImageEffect ApplyHpsGEEffect failed");
+    }
+    if (kawaseHpsProcess) {
+        canSkipMaskColor_ = maskColorForHPS != RgbPalette::Transparent();
     }
     return kawaseHpsProcess;
 }
