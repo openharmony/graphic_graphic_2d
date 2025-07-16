@@ -27,7 +27,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         return ANI_ERROR;
     }
 
-    static const char* staticClassName = "L@ohos/effectKit/effectKit;";
+    static const char* staticClassName = "@ohos.effectKit.effectKit";
     ani_namespace effectKitNamespace;
     if (env->FindNamespace(staticClassName, &effectKitNamespace) != ANI_OK) {
         EFFECT_LOG_I("[ANI_Constructor] FindNamespace failed");

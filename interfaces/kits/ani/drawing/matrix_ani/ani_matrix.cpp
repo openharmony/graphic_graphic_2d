@@ -22,7 +22,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_MATRIX_NAME = "L@ohos/graphics/drawing/drawing/Matrix;";
+const char* ANI_CLASS_MATRIX_NAME = "@ohos.graphics.drawing.drawing.Matrix";
 constexpr int32_t NUMBER_ZREO = 0;
 constexpr int32_t MATRIX_SIZE = 9;
 
@@ -36,12 +36,12 @@ ani_status AniMatrix::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Matrix;:V",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Matrix}:",
             reinterpret_cast<void*>(ConstructorWithMatrix) },
-        ani_native_function { "getValue", "I:D", reinterpret_cast<void*>(GetValue) },
-        ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setTranslation", "DD:V", reinterpret_cast<void*>(SetTranslation) },
+        ani_native_function { "getValue", "i:d", reinterpret_cast<void*>(GetValue) },
+        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "setTranslation", "dd:", reinterpret_cast<void*>(SetTranslation) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());

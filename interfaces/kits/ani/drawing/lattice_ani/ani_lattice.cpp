@@ -22,7 +22,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_ANI_LATTICE_NAME = "L@ohos/graphics/drawing/drawing/Lattice;";
+const char* ANI_CLASS_ANI_LATTICE_NAME = "@ohos.graphics.drawing.drawing.Lattice";
 
 bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, std::vector<int>& dividers)
 {
@@ -49,7 +49,7 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
                 return false;
             }
             if ((ret = env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(dividerRef), "unboxed", ":I", &divider)) != ANI_OK) {
+                static_cast<ani_object>(dividerRef), "unboxed", ":i", &divider)) != ANI_OK) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice Get divider failed. ret: %{public}d", ret);
                 return false;
             }
@@ -79,7 +79,7 @@ bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count
             ani_int rectType;
             ani_ref rectTypeRef;
             if (ANI_OK != env->Object_CallMethodByName_Ref(
-                rectTypesArray, "$_get", "I:Lstd/core/Object;", &rectTypeRef, (ani_int)i) ||
+                rectTypesArray, "$_get", "i:C{std.core.Object}", &rectTypeRef, (ani_int)i) ||
                 ANI_OK != env->EnumItem_GetValue_Int((ani_enum_item)rectTypeRef, &rectType)) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice Incorrect parameter dividers type.");
                 return false;
@@ -116,19 +116,19 @@ bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std:
             ani_int aniColor;
             Drawing::ColorQuad colorQuad;
             if (ANI_OK != env->Object_CallMethodByName_Ref(
-                colorsArray, "$_get", "I:Lstd/core/Object;", &colorRef, (ani_int)i)) {
+                colorsArray, "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i)) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice colors is invalid");
                 return false;
             }
             if (i == 0) {
                 ani_class colorClass;
-                env->FindClass("L@ohos/graphics/common2D/common2D/Color;", &colorClass);
+                env->FindClass("@ohos.graphics.common2D.common2D.Color", &colorClass);
                 env->Object_InstanceOf(static_cast<ani_object>(colorRef), colorClass, &isColorClass);
             }
 
             if ((isColorClass && !GetColorQuadFromColorObj(env, static_cast<ani_object>(colorRef), colorQuad)) ||
                 (!isColorClass && ANI_OK != env->Object_CallMethodByName_Int(
-                    static_cast<ani_object>(colorRef), "unboxed", ":D", &aniColor))) {
+                    static_cast<ani_object>(colorRef), "unboxed", ":d", &aniColor))) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice colors is invalid");
                 return false;
             }

@@ -370,7 +370,7 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
     }
 
     static std::string sign = std::string(ANI_ENUM_TEXT_DECORATION_TYPE) + std::string(ANI_INTERFACE_COLOR) +
-        std::string(ANI_ENUM_TEXT_DECORATION_STYLE) + "D:V";
+        std::string(ANI_ENUM_TEXT_DECORATION_STYLE) + "d:";
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_DECORATION, sign.c_str(),
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE, static_cast<int>(textStyle.decoration)),
@@ -389,7 +389,7 @@ ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectSt
         TEXT_LOGE("Failed to parse color, ret %{public}d", status);
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
-    static std::string sign = std::string(ANI_INTERFACE_COLOR) + "DDDD:V";
+    static std::string sign = std::string(ANI_INTERFACE_COLOR) + "dddd:";
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE, sign.c_str(),
         aniColorObj,
         rectStyle.leftTopRadius,
@@ -404,7 +404,7 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
     const std::vector<std::pair<std::string, int>> featureSet = fontFeatures.GetFontFeatures();
     ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
         env, featureSet, featureSet.size(), [](ani_env* env, const std::pair<std::string, int>& feature) {
-            static std::string sign = std::string(ANI_STRING) + "I:V";
+            static std::string sign = std::string(ANI_STRING) + "i:";
             ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_FEATURE, sign.c_str(),
                 AniTextUtils::CreateAniStringObj(env, feature.first),
                 ani_int(feature.second));
@@ -415,7 +415,7 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
 
 ani_object AniTextStyleConverter::ParseFontVariationsToAni(ani_env* env, const FontVariations& fontVariations)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_VARIATION, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_VARIATION, ":");
     return aniObj;
 }
 } // namespace OHOS::Text::ANI

@@ -22,14 +22,14 @@ namespace Drawing {
 ani_status AniThrowError(ani_env* env, const std::string& message)
 {
     ani_class errCls;
-    const char* className = "Lescompat/Error;";
+    const char* className = "escompat.Error";
     if (ANI_OK != env->FindClass(className, &errCls)) {
         ROSEN_LOGE("Not found %{public}s", className);
         return ANI_ERROR;
     }
 
     ani_method errCtor;
-    if (ANI_OK != env->Class_FindMethod(errCls, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &errCtor)) {
+    if (ANI_OK != env->Class_FindMethod(errCls, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:", &errCtor)) {
         ROSEN_LOGE("get errCtor Failed %{public}s", className);
         return ANI_ERROR;
     }
@@ -63,13 +63,13 @@ ani_status ThrowBusinessError(ani_env* env, DrawingErrorCode errorCode, const ch
 ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
 {
     ani_class aniClass;
-    ani_status status = env->FindClass("L@ohos/base/BusinessError;", &aniClass);
+    ani_status status = env->FindClass("@ohos.base.BusinessError", &aniClass);
     if (status != ANI_OK) {
         ROSEN_LOGE("Failed to find class, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
     ani_method aniCtor;
-    status = env->Class_FindMethod(aniClass, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &aniCtor);
+    status = env->Class_FindMethod(aniClass, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:", &aniCtor);
     if (status != ANI_OK) {
         ROSEN_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
         return status;
@@ -92,7 +92,7 @@ ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message,
 bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
 {
     ani_class colorClass;
-    env->FindClass("L@ohos/graphics/common2D/common2D/Color;", &colorClass);
+    env->FindClass("@ohos.graphics.common2D.common2D.Color", &colorClass);
     ani_boolean isColorClass;
     env->Object_InstanceOf(obj, colorClass, &isColorClass);
 
@@ -129,7 +129,7 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
 {
     ani_class doubleClass;
-    env->FindClass("Lstd/core/Double;", &doubleClass);
+    env->FindClass("std.core.Double", &doubleClass);
     
     ani_boolean isNumber;
     env->Object_InstanceOf(obj, doubleClass, &isNumber);
@@ -148,7 +148,7 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
 
 ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object& obj)
 {
-    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/ColorInternal;", "IIII:V",
+    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.ColorInternal", "iiii:",
         ani_int(color.GetAlpha()),
         ani_int(color.GetRed()),
         ani_int(color.GetGreen()),
@@ -160,7 +160,7 @@ ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object&
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
 {
     ani_class rectClass;
-    env->FindClass("L@ohos/graphics/common2D/common2D/Rect;", &rectClass);
+    env->FindClass("@ohos.graphics.common2D.common2D.Rect", &rectClass);
     ani_boolean isRectClass;
     env->Object_InstanceOf(obj, rectClass, &isRectClass);
 
@@ -190,7 +190,7 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
 
 ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj)
 {
-    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/RectInternal;", "DDDD:V",
+    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.RectInternal", "dddd:",
         ani_double(rect.left_),
         ani_double(rect.top_),
         ani_double(rect.right_),
@@ -221,7 +221,7 @@ ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& po
 
 ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj)
 {
-    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/PointInternal;", "DD:V",
+    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.PointInternal", "dd:",
         ani_double(point.GetX()),
         ani_double(point.GetY())
     );

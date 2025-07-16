@@ -237,7 +237,7 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
 #endif
 
 namespace Drawing {
-const char* ANI_CLASS_CANVAS_NAME = "L@ohos/graphics/drawing/drawing/Canvas;";
+const char* ANI_CLASS_CANVAS_NAME = "@ohos.graphics.drawing.drawing.Canvas";
 ani_status AniCanvas::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -249,9 +249,9 @@ ani_status AniCanvas::AniInit(ani_env *env)
 
     std::array methods = {
         ani_native_function { "constructorNative", nullptr, reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "drawRect", "L@ohos/graphics/common2D/common2D/Rect;:V",
+        ani_native_function { "drawRect", "C{@ohos.graphics.common2D.common2D.Rect}:",
             reinterpret_cast<void*>(DrawRectWithRect) },
-        ani_native_function { "drawRect", "DDDD:V", reinterpret_cast<void*>(DrawRect) },
+        ani_native_function { "drawRect", "dddd:", reinterpret_cast<void*>(DrawRect) },
         ani_native_function { "drawImageRect", nullptr, reinterpret_cast<void*>(DrawImageRect) },
         ani_native_function { "drawPixelMapMesh", nullptr, reinterpret_cast<void*>(DrawPixelMapMesh) },
         ani_native_function { "attachPen", nullptr, reinterpret_cast<void*>(AttachPen) },
@@ -479,7 +479,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         if (ANI_OK !=  env->Object_CallMethodByName_Ref(
             verticesObj, "$_get", "I:Lstd/core/Object;", &vertexRef, (ani_int)i) ||
             ANI_OK !=  env->Object_CallMethodByName_Double(
-                static_cast<ani_object>(vertexRef), "unboxed", ":D", &vertex)) {
+                static_cast<ani_object>(vertexRef), "unboxed", ":d", &vertex)) {
             delete []vertices;
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter vertex type.");
             return;
@@ -523,7 +523,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         if (ANI_OK !=  env->Object_CallMethodByName_Ref(
             colorsObj, "$_get", "I:Lstd/core/Object;", &colorRef, (ani_int)i) ||
             ANI_OK !=  env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(colorRef), "unboxed", ":I", &color)) {
+                static_cast<ani_object>(colorRef), "unboxed", ":i", &color)) {
             delete []vertices;
             delete []colors;
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");

@@ -23,7 +23,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_BRUSH_NAME = "L@ohos/graphics/drawing/drawing/Brush;";
+const char* ANI_CLASS_BRUSH_NAME = "@ohos.graphics.drawing.drawing.Brush";
 
 ani_status AniBrush::AniInit(ani_env *env)
 {
@@ -35,15 +35,15 @@ ani_status AniBrush::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Brush;:V",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Brush}:",
             reinterpret_cast<void*>(ConstructorWithBrush) },
-        ani_native_function { "getAlpha", ":I", reinterpret_cast<void*>(GetAlpha) },
-        ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setAlpha", "I:V", reinterpret_cast<void*>(SetAlpha) },
-        ani_native_function { "setBlendMode", "L@ohos/graphics/drawing/drawing/BlendMode;:V",
+        ani_native_function { "getAlpha", ":i", reinterpret_cast<void*>(GetAlpha) },
+        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "setAlpha", "i:", reinterpret_cast<void*>(SetAlpha) },
+        ani_native_function { "setBlendMode", "C{@ohos.graphics.drawing.drawing.BlendMode}:",
             reinterpret_cast<void*>(SetBlendMode) },
-        ani_native_function { "setColorFilter", "L@ohos/graphics/drawing/drawing/ColorFilter;:V",
+        ani_native_function { "setColorFilter", "C{@ohos.graphics.drawing.drawing.ColorFilter}:",
             reinterpret_cast<void*>(SetColorFilter) },
     };
 

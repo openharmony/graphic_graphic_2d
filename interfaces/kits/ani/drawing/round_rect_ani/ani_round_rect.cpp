@@ -22,7 +22,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_ROUND_RECT_NAME = "L@ohos/graphics/drawing/drawing/RoundRect;";
+const char* ANI_CLASS_ROUND_RECT_NAME = "@ohos.graphics.drawing.drawing.RoundRect";
 
 ani_status AniRoundRect::AniInit(ani_env *env)
 {
@@ -34,9 +34,9 @@ ani_status AniRoundRect::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", "L@ohos/graphics/common2D/common2D/Rect;DD:V",
+        ani_native_function { "constructorNative", "C{@ohos.graphics.common2D.common2D.Rect}dd:",
             reinterpret_cast<void*>(ConstructorWithRect) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/RoundRect;:V",
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.RoundRect}:",
             reinterpret_cast<void*>(ConstructorWithRoundRect) },
     };
 
@@ -114,7 +114,7 @@ ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]a
     }
 
     auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
-    ani_object aniRoundRectObj = CreateAniObject(env, ANI_CLASS_ROUND_RECT_NAME, ":V");
+    ani_object aniRoundRectObj = CreateAniObject(env, ANI_CLASS_ROUND_RECT_NAME, ":");
     if (ANI_OK != env->Object_SetFieldByName_Long(aniRoundRectObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniRoundRect))) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed create aniRoundRect");

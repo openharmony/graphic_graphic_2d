@@ -18,7 +18,7 @@ namespace OHOS {
 namespace Rosen {
 ani_status AniEffect::BindVisualEffectMethod(ani_env* env)
 {
-    static const char* visualEffectClassName = "L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;";
+    static const char* visualEffectClassName = "@ohos.graphics.uiEffect.uiEffect.VisualEffectInternal";
     ani_class visualEffectClass;
     if (env->FindClass(visualEffectClassName, &visualEffectClass) != ANI_OK) {
         UIEFFECT_LOG_E("Not found %{public}s", visualEffectClassName);
@@ -26,7 +26,7 @@ ani_status AniEffect::BindVisualEffectMethod(ani_env* env)
     }
     std::array visualEffectMethods = {
         ani_native_function { "backgroundColorBlenderNative",
-            "L@ohos/graphics/uiEffect/uiEffect/BrightnessBlender;:L@ohos/graphics/uiEffect/uiEffect/VisualEffect;",
+            "C{@ohos.graphics.uiEffect.uiEffect.BrightnessBlender}:C{@ohos.graphics.uiEffect.uiEffect.VisualEffect}",
             reinterpret_cast<void*>(OHOS::Rosen::AniEffect::BackgroundColorBlender) },
     };
     ani_status ret = env->Class_BindNativeMethods(visualEffectClass,
@@ -40,7 +40,7 @@ ani_status AniEffect::BindVisualEffectMethod(ani_env* env)
 
 ani_status AniEffect::BindFilterMethod(ani_env* env)
 {
-    static const char* filterClassName = "L@ohos/graphics/uiEffect/uiEffect/FilterInternal;";
+    static const char* filterClassName = "@ohos.graphics.uiEffect.uiEffect.FilterInternal";
     ani_class filterClass;
     if (env->FindClass(filterClassName, &filterClass) != ANI_OK) {
         UIEFFECT_LOG_E("Not found %{public}s", filterClassName);
@@ -380,8 +380,8 @@ ani_object AniEffect::PixelStretch(ani_env* env, ani_object obj, ani_object arra
     for (int i = 0; i < int(length) && i < vectorLen; i++) {
         ani_double val;
         ani_ref ref;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &ref, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "unboxed", ":D", &val)) {
+        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:C{std.core.Object}", &ref, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "unboxed", ":d", &val)) {
             UIEFFECT_LOG_E("Object_CallMethodByName_Ref or Object_CallMethodByName_Double Failed");
             return retVal;
         }
@@ -431,7 +431,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         UIEFFECT_LOG_E("[ANI_Constructor] Unsupported ANI_VERSION_1");
         return ANI_ERROR;
     }
-    static const char* staticClassName = "L@ohos/graphics/uiEffect/uiEffect;";
+    static const char* staticClassName = "@ohos.graphics.uiEffect.uiEffect";
     ani_namespace uiEffectNamespace;
     if (env->FindNamespace(staticClassName, &uiEffectNamespace) != ANI_OK) {
         UIEFFECT_LOG_E("[ANI_Constructor] FindNamespace failed");

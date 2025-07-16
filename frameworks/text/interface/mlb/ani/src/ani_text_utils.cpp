@@ -51,7 +51,7 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
     }
 
     ani_method aniCtor = nullptr;
-    static std::string methodSign = "Lstd/core/String;Lescompat/ErrorOptions;:V";
+    static std::string methodSign = "C{std.core.String}C{escompat.ErrorOptions}:";
     static std::string methodKey = std::string(ANI_BUSINESS_ERROR) + methodSign;
     if (AniCacheManager::Instance().FindMethod(methodKey, aniCtor)) {
     } else if ((status = env->Class_FindMethod(aniClass, "<ctor>", methodSign.c_str(), &aniCtor)) == ANI_OK) {
@@ -103,7 +103,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
     }
 
     ani_method arrayCtor = nullptr;
-    static std::string methodSign = "I:V";
+    static std::string methodSign = "i:";
     static std::string methodKey = std::string(ANI_ARRAY) + methodSign;
     if (AniCacheManager::Instance().FindMethod(methodKey, arrayCtor)) {
     } else if ((ret = env->Class_FindMethod(arrayCls, "<ctor>", methodSign.c_str(), &arrayCtor)) == ANI_OK) {
@@ -123,7 +123,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
-    return AniTextUtils::CreateAniObject(env, ANI_MAP, ":V");
+    return AniTextUtils::CreateAniObject(env, ANI_MAP, ":");
 }
 
 ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descriptor, ani_size index)
@@ -146,17 +146,17 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descrip
 
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
-    return AniTextUtils::CreateAniObject(env, ANI_DOUBLE, "D:V", val);
+    return AniTextUtils::CreateAniObject(env, ANI_DOUBLE, "d:", val);
 }
 
 ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)
 {
-    return AniTextUtils::CreateAniObject(env, ANI_INT, "I:V", val);
+    return AniTextUtils::CreateAniObject(env, ANI_INT, "i:", val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
 {
-    return AniTextUtils::CreateAniObject(env, ANI_BOOLEAN, "Z:V", val);
+    return AniTextUtils::CreateAniObject(env, ANI_BOOLEAN, "z:", val);
 }
 
 ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::string& str)
@@ -293,7 +293,7 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        result = env->Object_CallMethodByName_Double(reinterpret_cast<ani_object>(ref), "unboxed", ":D", &value);
+        result = env->Object_CallMethodByName_Double(reinterpret_cast<ani_object>(ref), "unboxed", ":d", &value);
     }
     return result;
 }
@@ -303,7 +303,7 @@ ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, cons
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        result = env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "unboxed", ":I", &value);
+        result = env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "unboxed", ":i", &value);
     }
     return result;
 }
@@ -335,7 +335,7 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_boolean aniBool;
-        result = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(ref), "unboxed", ":Z", &aniBool);
+        result = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(ref), "unboxed", ":z", &aniBool);
         if (result == ANI_OK) {
             value = static_cast<bool>(aniBool);
         }

@@ -24,7 +24,7 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
-const char* ANI_CLASS_COLORFILTER_NAME = "L@ohos/graphics/drawing/drawing/ColorFilter;";
+const char* ANI_CLASS_COLORFILTER_NAME = "@ohos.graphics.drawing.drawing.ColorFilter";
 
 ani_status AniColorFilter::AniInit(ani_env *env)
 {
