@@ -350,9 +350,8 @@ void RSUniRenderProcessor::ScaleLayerIfNeeded(RSLayerInfo& layerInfo)
     Drawing::Matrix matrix;
     matrix.PostTranslate(screenInfo_.samplingTranslateX, screenInfo_.samplingTranslateY);
     matrix.PostScale(screenInfo_.samplingScale, screenInfo_.samplingScale);
-    Drawing::Rect dstRect = {layerInfo.dstRect.x, layerInfo.dstRect.y,
-        layerInfo.dstRect.x + layerInfo.dstRect.w, layerInfo.dstRect.y + layerInfo.dstRect.h
-    };
+    Drawing::Rect dstRect = { layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.x + layerInfo.dstRect.w,
+        layerInfo.dstRect.y + layerInfo.dstRect.h };
     matrix.MapRect(dstRect, dstRect);
     layerInfo.dstRect.x = static_cast<int>(std::floor(dstRect.left_));
     layerInfo.dstRect.y = static_cast<int>(std::floor(dstRect.top_));

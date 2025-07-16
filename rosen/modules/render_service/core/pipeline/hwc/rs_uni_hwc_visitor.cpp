@@ -1213,10 +1213,9 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
                             uniRenderVisitor_.isScreenRotationAnimating_);
     if (!node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
-        (!uniRenderVisitor_.IsHardwareComposerEnabled() ||
-        !node.IsDynamicHardwareEnable() || IsDisableHwcOnExpandScreen() ||
-        uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
-        !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer())) {
+        (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
+         IsDisableHwcOnExpandScreen() || uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
+         !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer())) {
         auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "param/invisible/no buffer, IsHardwareComposerEnabled[%d], IsDynamicHardwareEnable[%d], "
@@ -1248,7 +1247,7 @@ void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
         auto dstRect = node.GetDstRect();
         dstRect.left_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetX();
         dstRect.top_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetY();
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " dstRect:[%s] ",
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " dstRect:[%s]",
             node.GetName().c_str(), node.GetId(), dstRect.ToString().c_str());
         node.SetDstRect(dstRect);
     }
