@@ -133,7 +133,7 @@ static void GetDoubleFromTuple(ani_env *env, ani_object tuple, const char *index
     }
 }
 
-void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::shared_ptr<BrightnessBlender>& blender)
+void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::unique_ptr<BrightnessBlender>& blender)
 {
     ani_double cubicRateAni;
     ani_double quadraticRateAni;
