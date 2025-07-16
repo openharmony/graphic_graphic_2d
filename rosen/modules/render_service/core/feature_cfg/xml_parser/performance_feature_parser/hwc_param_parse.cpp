@@ -78,9 +78,6 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode
         if (name == "TvPlayerBundleName") {
             RsCommonHook::Instance().SetTvPlayerBundleName(val);
             RS_LOGI("parse TvPlayerBundleName ok");
-        } else if (name == "CollaborationBundleName") {
-            RsCommonHook::Instance().SetCollaborationBundleName(val);
-            RS_LOGI("parse CollaborationBundleName ok");
         }
     }
 
@@ -108,6 +105,9 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& 
             hwcParam_->SetSourceTuningForApp(appName, val);
         } else if (name == "RsSolidColorLayerConfig") {
             hwcParam_->SetSolidColorLayerForApp(appName, val);
+        } else if (name == "FilterUnderHwcConfig") {
+            RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(appName, val);
+            RS_LOGI("parse FilterUnderHwcConfig ok");
         } else {
             RS_LOGD("ParseFeatureMultiParam cannot find name");
             return PARSE_NO_PARAM;

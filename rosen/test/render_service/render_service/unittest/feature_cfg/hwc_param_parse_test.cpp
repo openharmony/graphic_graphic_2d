@@ -32,9 +32,6 @@ const xmlChar ATTRIBUTE_VALUE[] = "value";
 const xmlChar TV_PLAYER_BUNDLE_NAME_KEY[] = "TvPlayerBundleName";
 const xmlChar TV_PLAYER_BUNDLE_NAME_VALUE[] = "com.example.tvplayer";
 
-const xmlChar COLLABORATION_BUNDLE_NAME_KEY[] = "CollaborationBundleName";
-const xmlChar COLLABORATION_BUNDLE_NAME_VALUE[] = "com.example.devicecollaboration";
-
 const xmlChar ATTRIBUTE_OTHERS[] = "Others";
 
 xmlAttribute CreateXmlAttribute(const xmlChar* key, const xmlChar* value, xmlAttributePtr next)
@@ -122,30 +119,6 @@ HWTEST_F(HwcParamParseTest, TestParseHwcInternal002, TestSize.Level1)
 
     FeatureParamMapType featureParam;
     featureParam["HwcConfig"] = std::make_shared<HWCParam>();
-    HWCParamParse hwcParamParse;
-    int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
-    EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);
-}
-
-/**
- * @tc.name: TestParseHwcInternal003
- * @tc.desc: Verify the ParseHwcInternal function
- * @tc.type: FUNC
- * @tc.require: issuesICKNNB
- */
-HWTEST_F(HwcParamParseTest, TestParseHwcInternal003, TestSize.Level1)
-{
-    FeatureParamMapType featureParam;
-    featureParam["HwcConfig"] = std::make_shared<HWCParam>();
-
-    xmlNode node;
-    node.xmlChildrenNode = nullptr;
-    node.name = NODE_NAME_SINGLE_PARAM;
-    node.type = XML_ELEMENT_NODE;
-    xmlAttribute attrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, COLLABORATION_BUNDLE_NAME_VALUE, nullptr);
-    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, COLLABORATION_BUNDLE_NAME_KEY, &attrVal);
-    node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
-
     HWCParamParse hwcParamParse;
     int32_t ret = hwcParamParse.ParseHwcInternal(featureParam, node);
     EXPECT_EQ(ret, PARSE_EXEC_SUCCESS);

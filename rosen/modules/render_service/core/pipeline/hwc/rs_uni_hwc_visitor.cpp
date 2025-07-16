@@ -913,7 +913,7 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
         return;
     }
     if (filterZOrder != 0 && node->GetHwcRecorder().GetZOrderForHwcEnableByFilter() != 0 &&
-        node->IsCollaborationForcedHwc() && node->GetInstanceRootNodeId() == filterNode.GetInstanceRootNodeId() &&
+        node->IsFilterUnderSurfaceForcedHwc() && node->GetInstanceRootNodeId() == filterNode.GetInstanceRootNodeId() &&
         RSUniHwcComputeUtil::IsBlendNeedBackground(filterNode)) {
         if (IsBackFilterBehindSurface(node, filterNode.GetId())) {
             return;

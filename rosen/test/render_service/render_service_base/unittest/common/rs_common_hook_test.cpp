@@ -109,16 +109,18 @@ HWTEST_F(RsCommonHookTest, SetAndGetBundleNameTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAndGetBundleNameTest
- * @tc.desc: test results of SetCollaborationBundleName and GetCollaborationBundleName
+ * @tc.name: SetFilterUnderHwcConfigByAppTest
+ * @tc.desc: test results of SetFilterUnderHwcConfigByApp and GetFilterUnderHwcConfigByApp
  * @tc.type:FUNC
  * @tc.require: issuesICKNNB
  */
-HWTEST_F(RsCommonHookTest, SetAndGetCollaborationBundleNameTest, TestSize.Level1)
+HWTEST_F(RsCommonHookTest, SetAndGetFilterUnderHwcConfigByAppTest, TestSize.Level1)
 {
     const std::string collaborationBundleName = "com.example.devicecollaboration";
-    RsCommonHook::Instance().SetCollaborationBundleName(collaborationBundleName);
-    auto result = RsCommonHook::Instance().GetCollaborationBundleName();
-    EXPECT_EQ(result, collaborationBundleName);
+    auto result = RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(collaborationBundleName);
+    EXPECT_EQ(result, "");
+    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
+    auto result1 = RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(collaborationBundleName);
+    EXPECT_EQ(result1, "1");
 }
 } // namespace OHOS::Rosen

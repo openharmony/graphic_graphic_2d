@@ -3901,13 +3901,10 @@ bool RSSurfaceRenderNode::isForcedClipHole() const
     return (tvPlayerBundleName == bundleName_);
 }
 
-bool RSSurfaceRenderNode::IsCollaborationForcedHwc() const
+bool RSSurfaceRenderNode::IsFilterUnderSurfaceForcedHwc() const
 {
-    const std::string& collaborationBundleName = RsCommonHook::Instance().GetCollaborationBundleName();
-    if (collaborationBundleName.empty()) {
-        return false;
-    }
-    return (collaborationBundleName == bundleName_);
+    const std::string& filterUnderHwcConfig = RsCommonHook::Instance().GetCollaborationBundleName(bundleName_);
+    return (filterUnderHwcConfig == "1");
 }
 } // namespace Rosen
 } // namespace OHOS

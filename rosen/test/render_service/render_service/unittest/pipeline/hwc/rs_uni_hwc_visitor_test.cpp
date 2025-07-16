@@ -1560,7 +1560,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect006, TestSize.Level
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
     ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
 
-    RsCommonHook::Instance().SetCollaborationBundleName(collaborationBundleName);
+    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
     surfaceNode2->SetHardwareForcedDisabledState(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
     ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
@@ -1587,7 +1587,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     const std::string collaborationBundleName = "com.example.devicecollaboration";
-    RsCommonHook::Instance().SetCollaborationBundleName(collaborationBundleName);
+    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.bundleName = collaborationBundleName;
     surfaceConfig.id = 1;
@@ -1647,7 +1647,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     const std::string collaborationBundleName = "com.example.devicecollaboration";
-    RsCommonHook::Instance().SetCollaborationBundleName(collaborationBundleName);
+    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.bundleName = collaborationBundleName;
     surfaceConfig.id = 1;
