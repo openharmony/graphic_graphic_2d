@@ -598,7 +598,7 @@ void RSImage::DrawImageShaderRectOnCanvas(
         filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, sigma, false));
         paint.SetFilter(filter);
     }
-
+    
     paint.SetShaderEffect(imageShader);
     paint.SetStyle(Drawing::Paint::PAINT_FILL_STROKE);
     canvas.AttachPaint(paint);
