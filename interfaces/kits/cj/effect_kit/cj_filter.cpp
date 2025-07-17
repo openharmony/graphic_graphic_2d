@@ -22,6 +22,8 @@
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "filter_common.h"
+#include "sk_image_chain.h"
+#include "sk_image_filter_factory.h"
 
 namespace OHOS {
 namespace CJEffectKit {
