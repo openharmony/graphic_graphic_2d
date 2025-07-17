@@ -21,10 +21,10 @@
 #include "platform/common/rs_system_properties.h"
 #include "drawing/engine_adapter/impl_interface/bitmap_impl.h"
 #include "image/yuv_info.h"
+#include "render/rs_image.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #endif
-#include "render/rs_image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,9 +44,11 @@ static const std::map<PixelFormat, GraphicPixelFormat> PIXELMAP_SURFACEBUFFER_FO
     {PixelFormat::RGBA_1010102, GRAPHIC_PIXEL_FMT_RGBA_1010102},
     {PixelFormat::YCBCR_P010, GRAPHIC_PIXEL_FMT_YCBCR_P010},
     {PixelFormat::YCRCB_P010, GRAPHIC_PIXEL_FMT_YCRCB_P010},
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     {PixelFormat::ASTC_4x4, GRAPHIC_PIXEL_FMT_BLOB},
     {PixelFormat::ASTC_6x6, GRAPHIC_PIXEL_FMT_BLOB},
     {PixelFormat::ASTC_8x8, GRAPHIC_PIXEL_FMT_BLOB},
+#endif
 };
 
 static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(
@@ -440,6 +442,7 @@ bool RSPixelMapUtil::IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap
 
 bool RSPixelMapUtil::CheckFormatConsistency(std::shared_ptr<Media::PixelMap> pixelMap)
 {
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (pixelMap->GetFd() == nullptr ||
         !(pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC)) {
         return false;
@@ -450,7 +453,8 @@ bool RSPixelMapUtil::CheckFormatConsistency(std::shared_ptr<Media::PixelMap> pix
         return it->second == static_cast<GraphicPixelFormat>(surfaceBuffer->GetFormat());
     }
     return false;
+#endif
+    return false;
 }
-
 } // namespace Rosen
 } // namespace OHOS
