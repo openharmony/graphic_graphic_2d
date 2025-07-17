@@ -1235,6 +1235,7 @@ private:
     std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
+    std::mutex childrenMutex_;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
