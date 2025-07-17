@@ -3518,7 +3518,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, SetScreenRotationForPointLight,
  * @tc.name: DrawWatermarkIfNeed001
  * @tc.desc: Test DrawWatermarkIfNeed001
  * @tc.type: FUNC
- * @tc.require: issueIBCH1W
+ * @tc.require: ICMVVO
  */
 HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSize.Level2)
 {
