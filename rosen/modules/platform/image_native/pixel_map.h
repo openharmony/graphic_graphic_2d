@@ -197,11 +197,14 @@ public:
         transformData_ = transformData;
     }
 
-    NATIVEEXPORT void SetSupportOpaqueOpt(bool supportOpaqueOpt) {}
+    NATIVEEXPORT void SetSupportOpaqueOpt(bool supportOpaqueOpt)
+    {
+        supportOpaqueOpt_ = supportOpaqueOpt;
+    }
 
     NATIVEEXPORT bool GetSupportOpaqueOpt()
     {
-        return false;
+        return supportOpaqueOpt_;
     }
 
 private:
@@ -294,6 +297,7 @@ private:
     bool isAstc_ = false;
     TransformData transformData_ = {1, 1, 0, 0, 0, 0, 0, 0, 0, false, false};
     Size astcrealSize_;
+    bool supportOpaqueOpt_ = false;
 
     // only used by rosen backend
     std::shared_ptr<RosenImageWrapper> rosenImageWrapper_;

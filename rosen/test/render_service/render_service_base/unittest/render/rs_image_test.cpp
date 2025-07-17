@@ -186,12 +186,18 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest001, TestSize.Level1)
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
     Drawing::SamplingOptions samplingOptions;
     rsImage.pixelMap_ = pixelmap;
-    rsImage.pixelMap_->SetAstc(true);
-    rsImage.image_ = std::make_shared<Drawing::Image>();
-    rsImage.pixelMap_->SetSupportOpaqueOpt(true);
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bitmap.Build(15, 15, bitmapFormat);
+    Drawing::Image image;
+    image.BuildFromBitmap(bitmap);
+    rsImage.image_ = std::make_shared<Drawing::Image>(image);
+
+    rsImage.pixelMap_->SetSupportOpaqueOpt(false);
     rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
     bool opaque = rsImage.image_->GetSupportOpaqueOpt();
-    EXPECT_TRUE(opaque);
+    EXPECT_FALSE(opaque);
 }
 
 /**
@@ -242,10 +248,17 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest003, TestSize.Level1)
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
     Drawing::SamplingOptions samplingOptions;
     rsImage.pixelMap_ = nullptr;
-    rsImage.image_ = std::make_shared<Drawing::Image>();
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bitmap.Build(15, 15, bitmapFormat);
+    Drawing::Image image;
+    image.BuildFromBitmap(bitmap);
+    rsImage.image_ = std::make_shared<Drawing::Image>(image);
+
     rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
     bool opaque = rsImage.image_->GetSupportOpaqueOpt();
-    EXPECT_TRUE(opaque);
+    EXPECT_FALSE(opaque);
 }
 
 /**

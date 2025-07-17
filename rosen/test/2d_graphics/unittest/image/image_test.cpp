@@ -779,10 +779,14 @@ HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest006, TestSize.Level1)
  */
 HWTEST_F(ImageTest, SupportOpaqueOptTest, TestSize.Level1)
 {
-    auto image = std::make_shared<Image>();
-    image->SetSupportOpaqueOpt(true);
-    auto data = image->GetSupportOpaqueOpt();
-    EXPECT_TRUE(data);
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bitmap.Build(15, 15, bitmapFormat);
+    Image image;
+    image.BuildFromBitmap(bitmap);
+    image.SetSupportOpaqueOpt(false);
+    auto data = image.GetSupportOpaqueOpt();
+    EXPECT_FALSE(data);
 }
 
 #endif

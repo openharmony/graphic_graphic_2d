@@ -100,8 +100,8 @@ public:
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 
-    virtual void SetSupportOpaqueOpt(bool supportOpaqueOpt) { return; }
-    virtual bool GetSupportOpaqueOpt() const { return false; }
+    virtual void SetSupportOpaqueOpt(bool supportOpaqueOpt) = 0;
+    virtual bool GetSupportOpaqueOpt() const = 0;
 
     virtual void SetHeadroom(float headroom) = 0;
     virtual float GetHeadroom() const = 0;

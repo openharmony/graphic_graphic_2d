@@ -235,7 +235,7 @@ bool Image::Deserialize(std::shared_ptr<Data> data)
 
 void Image::SetSupportOpaqueOpt(bool supportOpaqueOpt)
 {
-    return imageImplPtr->SetSupportOpaqueOpt(supportOpaqueOpt);
+    imageImplPtr->SetSupportOpaqueOpt(supportOpaqueOpt);
 }
 
 bool Image::GetSupportOpaqueOpt() const
