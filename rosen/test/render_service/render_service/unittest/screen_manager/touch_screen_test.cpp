@@ -72,7 +72,19 @@ bool TouchScreenTest::IsFoldScreen()
     return false;
 }
 
-#ifdef TP_FEATURE_ENABLE
+/*
+ * @tc.name: InitTouchScreen_001
+ * @tc.desc: Test InitTouchScreen
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(TouchScreenTest, InitTouchScreen_001, TestSize.Level1)
+{
+    ASSERT_EQ(false, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
+    TOUCH_SCREEN->InitTouchScreen();
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
+}
+
 /*
  * @tc.name: SetFeatureConfig_001
  * @tc.desc: Test SetFeatureConfig
@@ -81,6 +93,9 @@ bool TouchScreenTest::IsFoldScreen()
  */
 HWTEST_F(TouchScreenTest, SetFeatureConfig_001, TestSize.Level1)
 {
+    TOUCH_SCREEN->InitTouchScreen();
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
+
     int32_t feature = 12;
     const char* config = "0";
     if (IsFoldScreen()) {
@@ -98,6 +113,9 @@ HWTEST_F(TouchScreenTest, SetFeatureConfig_001, TestSize.Level1)
  */
 HWTEST_F(TouchScreenTest, SetFeatureConfig_002, TestSize.Level1)
 {
+    TOUCH_SCREEN->InitTouchScreen();
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
+
     int32_t feature = 12;
     const char* config = "1";
     if (IsFoldScreen()) {
@@ -115,6 +133,9 @@ HWTEST_F(TouchScreenTest, SetFeatureConfig_002, TestSize.Level1)
  */
 HWTEST_F(TouchScreenTest, SetFeatureConfig_003, TestSize.Level1)
 {
+    TOUCH_SCREEN->InitTouchScreen();
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
+
     int32_t feature = 12;
     const char* config = "-1";
     ASSERT_LT(TOUCH_SCREEN->SetFeatureConfig(feature, config), 0);
@@ -128,8 +149,11 @@ HWTEST_F(TouchScreenTest, SetFeatureConfig_003, TestSize.Level1)
  */
 HWTEST_F(TouchScreenTest, SetFeatureConfig_004, TestSize.Level1)
 {
+    TOUCH_SCREEN->InitTouchScreen();
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetAftConfigHandleValid());
+
     const char* config = "version:3+main";
     ASSERT_EQ(TOUCH_SCREEN->SetAftConfig(config), 0);
 }
-#endif
+
 }
