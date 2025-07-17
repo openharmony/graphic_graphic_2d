@@ -21,6 +21,9 @@
 #include "platform/common/rs_system_properties.h"
 #include "drawing/engine_adapter/impl_interface/bitmap_impl.h"
 #include "image/yuv_info.h"
+#ifdef ROSEN_OHOS
+#include "surface_buffer.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -28,6 +31,22 @@ using namespace Media;
 namespace {
     constexpr float HALF_F = 2;
 }
+
+static const std::map<PixelFormat, GraphicPixelFormat> PIXELMAP_SURFACEBUFFER_FORMAT_MAP = {
+    {PixelFormat::RGB_565, GRAPHIC_PIXEL_FMT_RGB_565},
+    {PixelFormat::RGBA_8888, GRAPHIC_PIXEL_FMT_RGBA_8888},
+    {PixelFormat::BGRA_8888, GRAPHIC_PIXEL_FMT_BGRA_8888},
+    {PixelFormat::RGB_888, GRAPHIC_PIXEL_FMT_RGB_888},
+    {PixelFormat::RGBA_F16, GRAPHIC_PIXEL_FMT_RGBA16_FLOAT},
+    {PixelFormat::NV21, GRAPHIC_PIXEL_FMT_YCRCB_420_SP},
+    {PixelFormat::NV12, GRAPHIC_PIXEL_FMT_YCBCR_420_SP},
+    {PixelFormat::RGBA_1010102, GRAPHIC_PIXEL_FMT_RGBA_1010102},
+    {PixelFormat::YCBCR_P010, GRAPHIC_PIXEL_FMT_YCBCR_P010},
+    {PixelFormat::YCRCB_P010, GRAPHIC_PIXEL_FMT_YCRCB_P010},
+    {PixelFormat::ASTC_4x4, GRAPHIC_PIXEL_FMT_BLOB},
+    {PixelFormat::ASTC_6x6, GRAPHIC_PIXEL_FMT_BLOB},
+    {PixelFormat::ASTC_8x8, GRAPHIC_PIXEL_FMT_BLOB},
+};
 
 static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(
     ColorManager::ColorSpaceName colorSpaceName)
@@ -320,7 +339,26 @@ bool RSPixelMapUtil::IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap
     if (!(pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC)) {
         return false;
     }
+    if (!CheckFormatConsistency(pixelMap)) {
+        RS_LOGE("RSPixelMapUtil::CheckFormatConsistency fail");
+        return false;
+    }
     return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
 }
+
+bool RSPixelMapUtil::CheckFormatConsistency(std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (pixelMap->GetFd() == nullptr ||
+        !(pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC)) {
+        return false;
+    }
+    SurfaceBuffer* surfaceBuffer = static_cast<SurfaceBuffer*>(pixelMap->GetFd());
+    if (auto it = PIXELMAP_SURFACEBUFFER_FORMAT_MAP.find(pixelMap->GetPixelFormat());
+        it != PIXELMAP_SURFACEBUFFER_FORMAT_MAP.end()) {
+        return it->second == static_cast<GraphicPixelFormat>(surfaceBuffer->GetFormat());
+    }
+    return false;
+}
+
 } // namespace Rosen
 } // namespace OHOS
