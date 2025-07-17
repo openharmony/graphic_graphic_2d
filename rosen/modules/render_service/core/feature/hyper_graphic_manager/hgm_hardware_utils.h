@@ -55,7 +55,6 @@ private:
     std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;
-    std::unordered_map<ScreenId, std::weak_ptr<HdiOutput>> outputMap_;
     RSVBlankIdleCorrector vblankIdleCorrector_;
 };
 } // namespace OHOS

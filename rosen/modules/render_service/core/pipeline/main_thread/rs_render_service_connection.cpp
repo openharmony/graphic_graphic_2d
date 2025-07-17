@@ -1225,9 +1225,6 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask([=]() {
-            if (status == ScreenPowerStatus::POWER_STATUS_ON) {
-                HgmCore::Instance().SetScreenSwitchDssEnable(id, false);
-            }
             screenManager_->SetScreenPowerStatus(id, status);
         }).wait();
         screenManager_->WaitScreenPowerStatusTask();

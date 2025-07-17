@@ -44,7 +44,6 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(
     }
     ScreenId id = output->GetScreenId();
     auto& hardwareThread = RSHardwareThread::Instance();
-    outputMap_[id] = output;
     auto screen = hgmCore.GetScreen(id);
     if (!screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
@@ -56,7 +55,6 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(
     }
     ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
-    hgmCore.SetScreenSwitchDssEnable(id, true);
     bool needRetrySetRate = false;
     auto retryIter = setRateRetryMap_.find(id);
     if (retryIter != setRateRetryMap_.end()) {
