@@ -21,7 +21,7 @@ namespace Drawing {
 std::shared_ptr<OHOS::Rosen::Drawing::ColorSpace> ColorSpaceConvertor::ColorSpaceConvertToDrawingColorSpace(
     std::shared_ptr<OHOS::ColorManager::ColorSpace> colorspace)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (colorspace == nullptr) {
         return nullptr;
     }

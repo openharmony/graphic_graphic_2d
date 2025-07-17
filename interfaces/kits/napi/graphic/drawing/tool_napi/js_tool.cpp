@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include <regex>
 #include "ability.h"
 #endif
@@ -26,7 +26,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsTool::constructor_ = nullptr;
 const std::string CLASS_NAME = "Tool";
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 const int32_t GLOBAL_ERROR = 10000;
 // The expectLength of regex match of "rgb(255,0,0)". The elements:0 is the string, 1 is r, 2 is g, 3 is b.
 constexpr uint32_t RGB_SUB_MATCH_SIZE = 4;
@@ -116,7 +116,7 @@ JsTool::~JsTool() {}
 
 napi_value JsTool::makeColorFromResourceColor(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_ONE);
@@ -145,7 +145,7 @@ napi_value JsTool::makeColorFromResourceColor(napi_env env, napi_callback_info i
 #endif
 }
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 size_t JsTool::GetParamLen(napi_env env, napi_value param)
 {
     size_t buffSize = 0;
@@ -158,8 +158,13 @@ size_t JsTool::GetParamLen(napi_env env, napi_value param)
 
 std::shared_ptr<Global::Resource::ResourceManager> JsTool::GetResourceManager()
 {
+#ifdef ROSEN_OHOS
     std::shared_ptr<AbilityRuntime::ApplicationContext> context =
         AbilityRuntime::ApplicationContext::GetApplicationContext();
+#else
+    std::shared_ptr<AbilityRuntime::Platform::ApplicationContext> context =
+        AbilityRuntime::Platform::ApplicationContext::GetApplicationContext();
+#endif
     if (context == nullptr) {
         ROSEN_LOGE("JsTool::Failed to get application context");
         return nullptr;
