@@ -2301,10 +2301,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by HardwareForcedDisabled");
     }
     // need draw skipped node at cur frame
-    if (doDirectComposition_ && RSUifirstManager::Instance().NeedNextDrawForSkippedNode()) {
+    bool uiFirstNeedNextDraw = RSUifirstManager::Instance().NeedNextDrawForSkippedNode();
+    if (doDirectComposition_ && uiFirstNeedNextDraw) {
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by uifirst needNextDrawForSkippedNode");
     }
-    doDirectComposition_ &= !RSUifirstManager::Instance().NeedNextDrawForSkippedNode();
+    doDirectComposition_ &= !uiFirstNeedNextDraw;
 
     // if screen is power-off, DirectComposition should be disabled.
     if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
