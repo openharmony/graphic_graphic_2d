@@ -117,6 +117,7 @@ std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<
     auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
     auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
     directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
+    directionLightFilter->Setter<DirectionLightFactorTag>(directionLightFilterPara->GetMaskFactor());
     directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
     directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
     directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());

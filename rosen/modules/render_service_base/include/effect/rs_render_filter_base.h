@@ -173,6 +173,7 @@ DECLARE_FILTER(BezierWarp, BEZIER_WARP,
 
 DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
     ADD_PROPERTY_TAG(DirectionLight, Mask),
+    ADD_PROPERTY_TAG(DirectionLight, Factor),
     ADD_PROPERTY_TAG(DirectionLight, Direction),
     ADD_PROPERTY_TAG(DirectionLight, Color),
     ADD_PROPERTY_TAG(DirectionLight, Intensity)

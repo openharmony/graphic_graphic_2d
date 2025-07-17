@@ -23,6 +23,7 @@ DirectionLightPara::DirectionLightPara(const DirectionLightPara& other)
 {
     this->type_ = other.type_;
     this->maskPara_ = other.maskPara_ ? other.maskPara_->Clone() : nullptr;
+    this->maskFactor_ = other.maskFactor_;
     this->lightDirection_ = other.lightDirection_;
     this->lightColor_ = other.lightColor_;
     this->lightIntensity_ = other.lightIntensity_;
@@ -34,7 +35,8 @@ bool DirectionLightPara::Marshalling(Parcel& parcel) const
         parcel.WriteUint16(static_cast<uint16_t>(type_));
 
     if (maskPara_ != nullptr) {
-        isSuccess = isSuccess && parcel.WriteBool(true) && maskPara_->Marshalling(parcel);
+        isSuccess = isSuccess && parcel.WriteBool(true) && maskPara_->Marshalling(parcel) &&
+            parcel.WriteFloat(maskFactor_);
     } else {
         isSuccess = isSuccess && parcel.WriteBool(false);
     }
@@ -67,6 +69,7 @@ bool DirectionLightPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterP
     }
 
     std::shared_ptr<MaskPara> maskPara = nullptr;
+    float maskFactor = 0.0f;
     Vector3f lightDirection;
     Vector4f lightColor;
     float lightIntensity = 0.0f;
@@ -77,7 +80,7 @@ bool DirectionLightPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterP
         return false;
     }
     if (hasMask) {
-        isSuccess = MaskPara::Unmarshalling(parcel, maskPara);
+        isSuccess = MaskPara::Unmarshalling(parcel, maskPara) && parcel.ReadFloat(maskFactor);
     }
     isSuccess = isSuccess && parcel.ReadFloat(lightDirection.x_) &&
         parcel.ReadFloat(lightDirection.y_) && parcel.ReadFloat(lightDirection.z_);
@@ -92,6 +95,7 @@ bool DirectionLightPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterP
 
     auto directionLightPara = std::make_shared<DirectionLightPara>();
     directionLightPara->SetMask(maskPara);
+    directionLightPara->SetMaskFactor(maskFactor);
     directionLightPara->SetLightDirection(lightDirection);
     directionLightPara->SetLightColor(lightColor);
     directionLightPara->SetLightIntensity(lightIntensity);
