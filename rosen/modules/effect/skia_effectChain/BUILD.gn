@@ -27,11 +27,8 @@ config("effect_SKeffectChian_config") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
   ]
-
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-  ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
 }
 
 config("effect_SKeffectChian_public_config") {
@@ -83,30 +80,10 @@ if (is_arkui_x) {
       "skia:skia_canvaskit_static",
     ]
 
-<<<<<<< HEAD
-    external_deps = [
-      "graphics_effect:graphics_effect_core",
-      "hitrace:hitrace_meter",
-    ]
-
-    deps = [
-      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    ]
-
-=======
->>>>>>> parent of 6897cbfecf (解耦skia,构建GE NAPI通路)
     sources = [
       "src/sk_image_chain.cpp",
       "src/sk_image_filter_factory.cpp",
     ]
-  
-    if (rs_enable_gpu) {
-      if (graphic_2d_feature_enable_vulkan) {
-        sources += [
-          "src/effect_vulkan_context.cpp",
-        ]
-      }
-    }
 
     configs = [ ":effect_SKeffectChian_config" ]
 
@@ -151,25 +128,12 @@ if (is_arkui_x) {
       "src/sk_image_chain.cpp",
       "src/sk_image_filter_factory.cpp",
     ]
-    if (rs_enable_gpu) {
-      if (graphic_2d_feature_enable_vulkan) {
-        sources += [
-          "src/effect_vulkan_context.cpp",
-        ]
-      }
-    }
 
     configs = [ ":effect_SKeffectChian_config" ]
 
     public_configs = [ ":effect_SKeffectChian_public_config" ]
 
-<<<<<<< HEAD
-    deps = [
-      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    ]
-=======
     deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
->>>>>>> parent of 6897cbfecf (解耦skia,构建GE NAPI通路)
 
     cflags_cc = [ "-std=c++17" ]
 
