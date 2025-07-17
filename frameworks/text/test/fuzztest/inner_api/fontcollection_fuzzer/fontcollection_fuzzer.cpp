@@ -15,10 +15,21 @@
 
 #include "fontcollection_fuzzer.h"
 
+#include <fstream>
+#include <sstream>
 #include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace Rosen {
+std::vector<uint8_t> GetFileData(const std::string& path)
+{
+    std::ifstream file(path, std::ios::binary);
+    std::stringstream fileStream;
+    fileStream << file.rdbuf();
+    std::string fileData = fileStream.str();
+    return std::vector<uint8_t>(fileData.begin(), fileData.end());
+}
+
 void FontCollectionFuzzTest(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider fdp(data, size);
@@ -40,6 +51,20 @@ void FontCollectionFuzzTest(const uint8_t* data, size_t size)
     fc->LoadThemeFont(fdp.ConsumeRandomLengthString(), fontData.get(), datalen);
     fc->ClearThemeFont();
     fc->ClearCaches();
+    FontCollection::RegisterUnloadFontStartCallback(nullptr);
+    FontCollection::RegisterUnloadFontFinishCallback(nullptr);
+    FontCollection::RegisterLoadFontStartCallback(nullptr);
+    FontCollection::RegisterLoadFontFinishCallback(nullptr);
+    auto callback = [](const FontCollection* fc, const std::string& family) {};
+    FontCollection::RegisterLoadFontStartCallback(callback);
+    FontCollection::RegisterUnloadFontStartCallback(callback);
+    FontCollection::RegisterLoadFontFinishCallback(callback);
+    FontCollection::RegisterUnloadFontFinishCallback(callback);
+    const char* cjkFile = "/system/fonts/NotoSansCJK-Regular.ttc";
+    std::vector<uint8_t> file = GetFileData(cjkFile);
+    std::string familyName = fdp.ConsumeRandomLengthString();
+    fc->LoadFont(familyName, file.data(), file.size());
+    fc->UnloadFont(familyName);
 }
 } // namespace Rosen
 } // namespace OHOS
