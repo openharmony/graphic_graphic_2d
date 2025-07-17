@@ -40,21 +40,24 @@ std::unordered_map<int, int> g_weightMap = {
 };
 }
 
-#define SET_STRING_PROPERTY(env, obj, propName, value, type) \
+#define SET_STRING_PROPERTY(env, obj, propName, value, type, error_var) \
     do { \
-        ani_status ret = env->Object_SetPropertyByName_Ref( \
-            obj, propName, AniTextUtils::CreateAni##type##Obj(env, value)); \
+        ani_status ret = (env)->Object_SetPropertyByName_Ref( \
+            (obj), (propName), AniTextUtils::CreateAni##type##Obj((env), (value))); \
         if (ret != ANI_OK) { \
             TEXT_LOGE("Fail to parse " propName); \
-            return ret; \
+            (error_var) = ret; \
+            break; \
         } \
     } while (0)
 
-#define READ_OPTIONAL_FIELD(env, obj, field, type) \
+#define READ_OPTIONAL_FIELD(env, obj, field, type, error_var) \
     do { \
-        if (AniTextUtils::ReadOptional##type##Field(env, obj, #field, fontDesc->field) != ANI_OK) { \
+        ani_status _ret = AniTextUtils::ReadOptional##type##Field((env), (obj), #field, fontDesc->field); \
+        if (_ret != ANI_OK) { \
             TEXT_LOGE("Failed to convert " #field); \
-            return ANI_INVALID_ARGS; \
+            (error_var) = ANI_INVALID_ARGS; \
+            break; \
         } \
     } while (0)
 
@@ -117,16 +120,17 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
 
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
-    READ_OPTIONAL_FIELD(env, aniObj, postScriptName, String);
-    READ_OPTIONAL_FIELD(env, aniObj, fullName, String);
-    READ_OPTIONAL_FIELD(env, aniObj, fontFamily, String);
-    READ_OPTIONAL_FIELD(env, aniObj, fontSubfamily, String);
-    READ_OPTIONAL_FIELD(env, aniObj, width, Int);
-    READ_OPTIONAL_FIELD(env, aniObj, italic, Int);
-    READ_OPTIONAL_FIELD(env, aniObj, monoSpace, Bool);
-    READ_OPTIONAL_FIELD(env, aniObj, symbolic, Bool);
+    ani_status status = ANI_OK;
+    READ_OPTIONAL_FIELD(env, aniObj, postScriptName, String, status);
+    READ_OPTIONAL_FIELD(env, aniObj, fullName, String, status);
+    READ_OPTIONAL_FIELD(env, aniObj, fontFamily, String, status);
+    READ_OPTIONAL_FIELD(env, aniObj, fontSubfamily, String, status);
+    READ_OPTIONAL_FIELD(env, aniObj, width, Int, status);
+    READ_OPTIONAL_FIELD(env, aniObj, italic, Int, status);
+    READ_OPTIONAL_FIELD(env, aniObj, monoSpace, Bool, status);
+    READ_OPTIONAL_FIELD(env, aniObj, symbolic, Bool, status);
 
-    return ANI_OK;
+    return status;
 }
 
 ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDesc, ani_object& aniObj)
@@ -137,15 +141,20 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
     }
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, ":V");
 
-    SET_STRING_PROPERTY(env, aniObj, "path", fontDesc->path, String);
-    SET_STRING_PROPERTY(env, aniObj, "postScriptName", fontDesc->postScriptName, String);
-    SET_STRING_PROPERTY(env, aniObj, "fullName", fontDesc->fullName, String);
-    SET_STRING_PROPERTY(env, aniObj, "fontFamily", fontDesc->fontFamily, String);
-    SET_STRING_PROPERTY(env, aniObj, "fontSubfamily", fontDesc->fontSubfamily, String);
-    SET_STRING_PROPERTY(env, aniObj, "width", fontDesc->width, Int);
-    SET_STRING_PROPERTY(env, aniObj, "italic", fontDesc->italic, Int);
-    SET_STRING_PROPERTY(env, aniObj, "monoSpace", fontDesc->monoSpace, Boolean);
-    SET_STRING_PROPERTY(env, aniObj, "symbolic", fontDesc->symbolic, Boolean);
+    ani_status status = ANI_OK;
+    SET_STRING_PROPERTY(env, aniObj, "path", fontDesc->path, String, status);
+    SET_STRING_PROPERTY(env, aniObj, "postScriptName", fontDesc->postScriptName, String, status);
+    SET_STRING_PROPERTY(env, aniObj, "fullName", fontDesc->fullName, String, status);
+    SET_STRING_PROPERTY(env, aniObj, "fontFamily", fontDesc->fontFamily, String, status);
+    SET_STRING_PROPERTY(env, aniObj, "fontSubfamily", fontDesc->fontSubfamily, String, status);
+    SET_STRING_PROPERTY(env, aniObj, "width", fontDesc->width, Int, status);
+    SET_STRING_PROPERTY(env, aniObj, "italic", fontDesc->italic, Int, status);
+    SET_STRING_PROPERTY(env, aniObj, "monoSpace", fontDesc->monoSpace, Boolean, status);
+    SET_STRING_PROPERTY(env, aniObj, "symbolic", fontDesc->symbolic, Boolean, status);
+
+    if (status != ANI_OK) {
+        return status;
+    }
 
     auto iter = g_weightMap.find(fontDesc->weight);
     if (iter == g_weightMap.end()) {

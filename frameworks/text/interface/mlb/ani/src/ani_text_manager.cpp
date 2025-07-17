@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <ani.h>
-#include <inttypes.h>
+#include <cinttypes>
 #include <tuple>
 
 #include "ani_common.h"

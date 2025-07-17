@@ -14,7 +14,7 @@
  */
 
 #include <memory>
-#include <stdint.h>
+#include <cstdint>
 
 #include "ani.h"
 #include "ani_common.h"
@@ -161,7 +161,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     }
 
     OHOS::Text::ANI::RectRange rectRange;
-    ani_status ret =AniTextRectConverter::ParseRangeToNative(env, range, rectRange);
+    ani_status ret = AniTextRectConverter::ParseRangeToNative(env, range, rectRange);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse range, ani_status: %{public}d", ret);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
