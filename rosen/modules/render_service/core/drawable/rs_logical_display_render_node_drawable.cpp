@@ -391,7 +391,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
     if ((static_cast<int32_t>(rotation) - static_cast<int32_t>(params->GetNodeRotation())) % 2) {
         std::swap(mainWidth, mainHeight);
     }
-
+    canvas.Translate(params->GetOffsetX(), params->GetOffsetY());
     if (rotation != ScreenRotation::ROTATION_0) {
         if (rotation == ScreenRotation::ROTATION_90) {
             canvas.Rotate(-(RS_ROTATION_90), 0, 0); // 90 degree
@@ -413,7 +413,6 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
     canvas.Restore();
-    
 }
 
 void RSLogicalDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
