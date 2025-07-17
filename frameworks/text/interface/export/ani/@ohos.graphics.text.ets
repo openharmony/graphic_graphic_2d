@@ -1677,7 +1677,7 @@ namespace text {
     symbolic?: boolean;
   }
 
-  export class FontDescriptorInternal implements FontDescriptor {
+  class FontDescriptorInternal implements FontDescriptor {
     path?: string;
     postScriptName?: string;
     fullName?: string;
