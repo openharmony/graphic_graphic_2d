@@ -24,6 +24,7 @@
 #include "string_utils.h"
 #include "surface_type.h"
 
+#include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
@@ -298,7 +299,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
         const auto& bufferDamage = params.GetBufferDamage();
-        GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
+        bool isTargetedHwcDirtyRegion = params.GetIsBufferFlushed() ||
+            RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
+        GraphicIRect dirtyRect = isTargetedHwcDirtyRegion ? GraphicIRect { bufferDamage.x, bufferDamage.y,
             bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
         Rect selfDrawingDirtyRect;
         bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
