@@ -1511,5 +1511,30 @@ HWTEST_F(HgmFrameRateMgrTest, InitTimers, Function | SmallTest | Level0)
     EXPECT_EQ(mgr.rsFrameRateLinker_->GetExpectedRange(), FrameRateRange{});
     mgr.rsFrameRateTimer_.Stop();
 }
+
+/**
+ * @tc.name: TestCheckRefreshRateChange
+ * @tc.desc: Verify the result of CheckRefreshRateChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    auto& hgmCore = HgmCore::Instance();
+    mgr.CheckRefreshRateChange(false, false, 120, true);
+    mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) {};
+    mgr.CheckRefreshRateChange(false, false, 120, true);
+    mgr.CheckRefreshRateChange(false, false, 120, false);
+    EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);
+
+    hgmCore.SetLtpoEnabled(true);
+    hgmCore.SetSupportedMaxTE(360);
+    mgr.CheckRefreshRateChange(false, true, 120, true);
+    mgr.forceUpdateCallback_ = nullptr;
+    mgr.CheckRefreshRateChange(false, true, 120, true);
+    mgr.CheckRefreshRateChange(false, true, 120, false);
+    EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);
+}
 } // namespace Rosen
 } // namespace OHOS
