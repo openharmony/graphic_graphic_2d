@@ -59,7 +59,6 @@ enum class PointMode;
 struct Lattice;
 class Canvas;
 struct HpsBlurParameter;
-class HpsEffectParameter;
 enum class QuadAAFlags;
 
 class CoreCanvasImpl : public BaseImpl {
