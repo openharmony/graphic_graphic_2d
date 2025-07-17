@@ -904,7 +904,7 @@ namespace text {
     blurRadius?: number;
   }
 
-  export class TextShadowInternal implements TextShadow {
+  class TextShadowInternal implements TextShadow {
     color?: common2D.Color;
     point?: common2D.Point;
     blurRadius?: number;
@@ -1079,7 +1079,7 @@ namespace text {
     fontVariations?: Array<FontVariation>;
   }
 
-  export class TextStyleInternal implements TextStyle {
+  class TextStyleInternal implements TextStyle {
     decoration?: Decoration;
     color?: common2D.Color;
     fontWeight?: FontWeight;
@@ -1201,7 +1201,7 @@ namespace text {
     runMetrics: Map<number, RunMetrics>;
   }
 
-  export class LineMetricsInternal implements LineMetrics {
+  class LineMetricsInternal implements LineMetrics {
     startIndex: number;
     endIndex: number;
     ascent: number;
@@ -1408,7 +1408,7 @@ namespace text {
     decorationThicknessScale?: number;
   }
 
-  export class DecorationInternal implements Decoration {
+  class DecorationInternal implements Decoration {
     textDecoration?: TextDecorationType;
     color?: common2D.Color;
     decorationStyle?: TextDecorationStyle;
@@ -1439,7 +1439,7 @@ namespace text {
     value: number;
   }
   
-  export class FontFeatureInternal implements FontFeature {
+  class FontFeatureInternal implements FontFeature {
     name: string;
     value: number;
   }
@@ -1547,7 +1547,7 @@ namespace text {
     fontMetrics: drawing.FontMetrics;
   }
 
-  export class RunMetricsInternal implements RunMetrics {
+  class RunMetricsInternal implements RunMetrics {
     textStyle: TextStyle;
     fontMetrics: drawing.FontMetrics;
   }
@@ -1600,7 +1600,7 @@ namespace text {
     leftBottomRadius: number;
   }
 
-  export class RectStyleInternal implements RectStyle {
+  class RectStyleInternal implements RectStyle {
     color: common2D.Color;
     leftTopRadius: number;
     rightTopRadius: number;
@@ -1632,7 +1632,7 @@ namespace text {
     value: number;
   }
 
-  export class FontVariationInternal implements FontVariation {
+  class FontVariationInternal implements FontVariation {
     axis: string;
     value: number;
   }
@@ -1661,12 +1661,12 @@ namespace text {
     direction: TextDirection;
   }
 
-  export class TextBoxInternal implements TextBox {
+  class TextBoxInternal implements TextBox {
     rect: common2D.Rect;
     direction: TextDirection;
   }
 
-  export class RectInternal implements common2D.Rect {
+  class RectInternal implements common2D.Rect {
     left: number;
     top: number;
     right: number;
@@ -1697,7 +1697,7 @@ namespace text {
     end: number;
   }
 
-  export class RangeInternal implements Range {
+  class RangeInternal implements Range {
     start: number;
     end: number;
   }
@@ -1799,7 +1799,7 @@ namespace text {
     affinity: Affinity;
   }
 
-  export class PositionWithAffinityInternal implements PositionWithAffinity {
+  class PositionWithAffinityInternal implements PositionWithAffinity {
     position: number;
     affinity: Affinity;
   }
@@ -2302,14 +2302,14 @@ namespace text {
     width: number;
   }
 
-  export class TypographicBoundsInternal implements TypographicBounds {
+  class TypographicBoundsInternal implements TypographicBounds {
     ascent: number;
     descent: number;
     leading: number;
     width: number;
   }
 
-  export class PointInternal implements common2D.Point {
+  class PointInternal implements common2D.Point {
     x: number;
     y: number;
   }
