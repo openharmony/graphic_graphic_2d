@@ -293,10 +293,6 @@ template("graphics2d_source_set") {
     }
     cflags = []
 
-    if (is_ohos && is_clang && target_cpu == "arm64") {
-      cflags += [ "-mno-fix-cortex-a53-843419" ]
-    }
-
     if (defined(graphic_2d_ext_feature_enable_ddgr) &&
         graphic_2d_ext_feature_enable_ddgr) {
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
@@ -448,13 +444,6 @@ if (!is_arkui_x) {
 
     if (platform == "ohos") {
       version_script = "2d_graphics.versionscript"
-    }
-
-    if (is_ohos && is_clang && target_cpu == "arm64") {
-      ldflags = [
-        "-Wl,--emit-relocs",
-        "-Wl,--no-relax"
-      ]
     }
 
     part_name = "graphic_2d"

@@ -46,11 +46,6 @@ config("render_service_link_config") {
         ]
       }
     }
-
-    ldflags += [
-      "-Wl,--emit-relocs",
-      "-Wl,--no-relax"
-    ]
   }
 }
 
@@ -84,9 +79,6 @@ ohos_shared_library("librender_service") {
   defines += gpu_defines
   defines += [ "MODULE_RS" ]
   cflags = [ "-DIMAGE_COLORSPACE_FLAG" ]
-  if (is_ohos && is_clang && target_cpu == "arm64") {
-    cflags += [ "-mno-fix-cortex-a53-843419" ]
-  }
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     defines += [ "IS_OHOS" ]
     if (!use_libfuzzer) {
