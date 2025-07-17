@@ -75,6 +75,9 @@ public:
 
     void SetContextMatrix(const std::optional<Drawing::Matrix>& matrix);
 
+    // used in: subTree skiped but need to calculate drawBehindWindow region
+    void SetAbsMatrix(const std::optional<Drawing::Matrix>& matrix);
+
 private:
     void UpdateAbsMatrix2D();
     void UpdateAbsMatrix3D();

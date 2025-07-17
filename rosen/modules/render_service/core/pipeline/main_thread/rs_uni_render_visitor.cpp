@@ -2895,6 +2895,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     auto globalHwcFilterRect = node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren() ?
         hwcVisitor_->GetHwcVisibleEffectDirty(node, globalFilterRect) : globalFilterRect;
     if (node.NeedDrawBehindWindow()) {
+        if (isOccluded && !node.IsFirstLevelCrossNode()) {
+            UpdateChildBlurBehindWindowAbsMatrix(node);
+        }
         node.CalDrawBehindWindowRegion();
         globalFilterRect = node.GetFilterRect();
     }
@@ -3534,6 +3537,31 @@ void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
     RS_LOGI("%{public}s lpp surfaceid:%{public}" PRIu64 ", nodeid:%{public}" PRIu64,
         __func__, tunnelLayerId, node.GetId());
     RS_TRACE_NAME_FMT("%s lpp surfaceid:%" PRIu64 ", nodeid:%" PRIu64, __func__, tunnelLayerId, node.GetId());
+}
+
+void RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node)
+{
+    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
+    if (!surfaceNode) {
+        RS_LOGE("RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix not surfaceNode");
+        return;
+    }
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    for (auto& childId : surfaceNode->GetChildBlurBehindWindow()) {
+        auto child = nodeMap.GetRenderNode<RSRenderNode>(childId);
+        if (!child) {
+            RS_LOGE("RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix child[%{public}" PRIu64 "] nullptr",
+                childId);
+            continue;
+        }
+        Drawing::Matrix absMatrix;
+        if (!child->GetAbsMatrixReverse(node, absMatrix)) {
+            RS_LOGE("RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix child[%{public}" PRIu64
+                "] GetAbsMatrixReverse fail", childId);
+            continue;
+        }
+        child->GetRenderProperties().GetBoundsGeometry()->SetAbsMatrix(absMatrix);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

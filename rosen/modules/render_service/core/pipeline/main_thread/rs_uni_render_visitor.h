@@ -329,6 +329,8 @@ private:
     void InitializeOcclusionHandler(RSSurfaceRenderNode& node);
     void HandleTunnelLayerId(RSSurfaceRenderNode& node);
 
+    void UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
