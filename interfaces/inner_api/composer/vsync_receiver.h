@@ -17,6 +17,11 @@
 #define VSYNC_VSYNC_RECEIVER_H
 
 #include <refbase.h>
+
+#if defined(RS_ENABLE_DVSYNC_2)
+#include "dvsync_delay.h"
+#endif
+
 #include "ivsync_connection.h"
 #include "file_descriptor_listener.h"
 
@@ -30,7 +35,8 @@
 
 namespace OHOS {
 namespace Rosen {
-class VSyncCallBackListener : public OHOS::AppExecFwk::FileDescriptorListener {
+class VSyncCallBackListener : public OHOS::AppExecFwk::FileDescriptorListener,
+    public std::enable_shared_from_this<VSyncCallBackListener> {
 public:
     using VSyncCallback = std::function<void(int64_t, void*)>;
     using VSyncCallbackWithId = std::function<void(int64_t, int64_t, void*)>;
@@ -263,6 +269,14 @@ public:
      * @return Returns an error code.
      */
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch);
+
+    /**
+     * @brief Set Touch Event.
+     *
+     * @param touchType arkui touchType.
+     * @return void.
+     */
+    virtual void SetTouchEvent(int32_t touchType);
 private:
     void RegisterFileDescriptorListener(bool hasVsyncThread = false);
     VsyncError DestroyLocked();

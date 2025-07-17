@@ -299,5 +299,12 @@ VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)
     }
     return connection_->SetNativeDVSyncSwitch(dvsyncSwitch);
 }
+
+void VSyncReceiver::SetTouchEvent(int32_t touchType)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSyncDelay::Instance().SetTouchEvent(touchType);
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS
