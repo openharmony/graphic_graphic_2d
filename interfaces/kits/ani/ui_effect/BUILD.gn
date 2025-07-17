@@ -33,6 +33,7 @@ config("graphic_ani_ui_effect_config") {
 }
 
 ohos_shared_library("uiEffect_ani") {
+  shlib_type = "ani"
   branch_protector_ret = "pac_ret"
 
   sanitize = {

@@ -34,6 +34,7 @@ config("graphic_ani_effect_kit_config") {
 }
 
 ohos_shared_library("effectKit_ani") {
+  shlib_type = "ani"
   branch_protector_ret = "pac_ret"
 
   sanitize = {
