@@ -124,11 +124,11 @@ void SymbolRadialGradientFuzzTest(const uint8_t* data, size_t size)
     gradient.SetCenterPoint(centerPt);
     gradient.SetRadiusRatio(radiusRatio);
     gradient.Make(bounds);
-    gradient.GetRadius(); 
+    gradient.GetRadius();
     gradient.CreateGradientBrush(offset);
     gradient.CreateGradientPen(offset);
     float radius = fdp.ConsumeFloatingPoint<float>();
-    gradient.SetRadius(radius); 
+    gradient.SetRadius(radius);
     gradient.Make(bounds);
     gradient.GetRadiusRatio();
     gradient.GetCenterPoint();
@@ -151,15 +151,14 @@ std::shared_ptr<SymbolGradient> SymbolGradientFuzzTestGet(const uint8_t* data, s
     Drawing::Point centerPt = Drawing::Point(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
 
     std::shared_ptr<SymbolGradient> gradient = nullptr;
-    if (gradientIndes > 5000) { // if > 5000 to test nullptr
-        return nullptr;
-    }
-    switch(gradientIndes) {
-        case 1:
+    GradientType gradientType = static_cast<GradientType>(gradientIndes);
+    switch (gradientType) {
+        case GradientType::LINE_GRADIENT:
             gradient = std::make_shared<SymbolLineGradient>(fdp.ConsumeFloatingPoint<float>());
             break;
-        case 2:
+        case GradientType::RADIAL_GRADIENT:
             gradient = std::make_shared<SymbolRadialGradient>(centerPt, fdp.ConsumeFloatingPoint<float>());
+            break;
         default:
             gradient = std::make_shared<SymbolGradient>();
     }
