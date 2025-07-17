@@ -79,7 +79,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     auto rsProxyRenderNode = std::make_shared<RSProxyRenderNode>(id, target, targetId);
     rsProxyRenderNode->GetType();
     rsProxyRenderNode->GetUifirstSupportFlag();
-    rsProxyRenderNode->OpincGetNodeSupportFlag();
     rsProxyRenderNode->Prepare(visitor);
     rsProxyRenderNode->Process(visitor);
     rsProxyRenderNode->SetContextMatrix(matrix);

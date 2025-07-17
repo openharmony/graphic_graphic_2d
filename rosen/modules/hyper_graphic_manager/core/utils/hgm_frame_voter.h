@@ -39,6 +39,14 @@ public:
 
     bool IsDragScene() const { return isDragScene_; }
     void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
+    void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
+    {
+        isTouchUpLTPOFirstPeriod_ = isTouchUpLTPOFirstPeriod;
+    }
+    void SetTouchUpLTPOFirstDynamicMode(DynamicModeType dynamicMode)
+    {
+        isTouchUpLTPOFirstDynamicMode_ = (dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST);
+    }
 
     void CleanVote(pid_t pid);
     void DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
@@ -52,17 +60,26 @@ public:
 private:
     void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     bool MergeLtpo2IdleVote(
-        std::vector<std::string>::iterator &voterIter, VoteInfo& resultVoteInfo, VoteRange &mergedVoteRange);
+        std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
     bool ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
-        VoteInfo& resultVoteInfo, VoteRange& voteRange, bool &voterGamesEffective);
+        VoteInfo& resultVoteInfo, VoteRange& voteRange, bool& voterGamesEffective);
     void MarkVoteChange(const std::string& voter = "")
     {
         if (markVoteChange_) {
             markVoteChange_(voter);
         }
     }
+    bool NeedSkipVoterTouch(bool existVoterLTPO)
+    {
+        if (existVoterLTPO && isTouchUpLTPOFirstPeriod_ && isTouchUpLTPOFirstDynamicMode_) {
+            return true;
+        }
+        return false;
+    }
 
     bool isDragScene_ = false;
+    bool isTouchUpLTPOFirstPeriod_ = false;
+    bool isTouchUpLTPOFirstDynamicMode_ = false;
     std::atomic<bool> voterGamesEffective_ = false;
     std::unordered_set<pid_t> pidRecord_;
     VoteRecord voteRecord_;

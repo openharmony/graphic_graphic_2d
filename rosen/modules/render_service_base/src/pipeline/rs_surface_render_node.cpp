@@ -26,13 +26,17 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#ifdef RS_MEMORY_INFO_MANAGER
+#include "feature/memory_info_manager/rs_memory_info_manager.h"
+#endif
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -104,6 +108,51 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
         }
     }
     return false;
+}
+
+GraphicColorGamut GamutChange(GraphicColorGamut gamut)
+{
+    switch (gamut) {
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+        case GRAPHIC_COLOR_GAMUT_BT2100_PQ:
+        case GRAPHIC_COLOR_GAMUT_BT2100_HLG:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
+        default:
+            return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+}
+
+#ifndef ROSEN_CROSS_PLATFORM
+GraphicColorGamut CMPrimariesToGamut(HDI::Display::Graphic::Common::V1_0::CM_ColorPrimaries primary)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    switch (primary) {
+        case COLORPRIMARIES_ADOBERGB:
+        case COLORPRIMARIES_P3_DCI:
+        case COLORPRIMARIES_P3_D65:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        case COLORPRIMARIES_BT2020: // COLORPRIMARIES_BT2100 = COLORPRIMARIES_BT2020
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
+        default:
+            return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+}
+#endif
+
+GraphicColorGamut JudgeGamut(int bt2020Num, int p3Num)
+{
+    if (bt2020Num > 0) {
+        return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
+    } else if (p3Num > 0) {
+        return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    } else {
+        return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
 }
 }
 
@@ -409,8 +458,8 @@ void RSSurfaceRenderNode::FindScreenId()
         if (nodeTemp->GetId() == 0) {
             break;
         }
-        if (nodeTemp->GetType() == RSRenderNodeType::DISPLAY_NODE) {
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(nodeTemp);
+        if (nodeTemp->GetType() == RSRenderNodeType::SCREEN_NODE) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(nodeTemp);
             screenId_ = displayNode->GetScreenId();
             break;
         }
@@ -555,6 +604,23 @@ std::string RSSurfaceRenderNode::SubSurfaceNodesDump() const
         out += "[" + std::to_string(id) + "]";
     }
     return out;
+}
+
+void RSSurfaceRenderNode::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
+{
+#ifdef RS_ENABLE_GPU
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetIsNodeToBeCaptured(isNodeToBeCaptured);
+        isNodeToBeCaptured_ = isNodeToBeCaptured;
+        AddToPendingSyncList();
+    }
+#endif
+}
+
+bool RSSurfaceRenderNode::IsNodeToBeCaptured() const
+{
+    return isNodeToBeCaptured_;
 }
 
 void RSSurfaceRenderNode::OnResetParent()
@@ -882,7 +948,7 @@ void RSSurfaceRenderNode::SetHwcCrossNode(bool isDRMCrossNode)
     isHwcCrossNode_ = isDRMCrossNode;
 }
 
-bool RSSurfaceRenderNode::IsDRMCrossNode() const
+bool RSSurfaceRenderNode::IsHwcCrossNode() const
 {
     return isHwcCrossNode_;
 }
@@ -1119,6 +1185,27 @@ void RSSurfaceRenderNode::SyncBlackListInfoToFirstLevelNode()
     }
 }
 
+void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo(
+    const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo)
+{
+    if (!IsLeashOrMainWindow()) {
+        return;
+    }
+    for (const auto& [screenId, whiteList] : allWhiteListInfo) {
+        bool ret = false;
+        if ((whiteList.find(GetId()) != whiteList.end()) ||
+            (whiteList.find(GetLeashPersistentId()) != whiteList.end())) {
+            ret = true;
+            SetHasWhiteListNode(screenId, ret);
+        }
+        auto nodeParent = GetParent().lock();
+        if (nodeParent == nullptr) {
+            continue;
+        }
+        nodeParent->SetHasWhiteListNode(screenId, ret);
+    }
+}
+
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
 {
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
@@ -1138,7 +1225,7 @@ void RSSurfaceRenderNode::SyncColorGamutInfoToFirstLevelNode()
     if (colorSpace_ != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (firstLevelNode) {
-            firstLevelNode->SetFirstLevelNodeColorGamutByWindow(IsOnTheTree());
+            firstLevelNode->SetFirstLevelNodeColorGamutByWindow(IsOnTheTree(), colorSpace_);
         }
     }
 }
@@ -1257,50 +1344,60 @@ void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
     }
 }
 
-bool RSSurfaceRenderNode::GetIsWideColorGamut() const
-{
-    return wideColorGamutNum_ > 0;
-}
-
-void RSSurfaceRenderNode::IncreaseWideColorGamutNum()
+void RSSurfaceRenderNode::IncreaseCanvasGamutNum(GraphicColorGamut gamut)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    // If the count was zero brfore this increment, meaning the first P3 resource appears in the subtree.
-    // Notify firstLevelNode to increment the wide color window count.
-    if (!GetIsWideColorGamut()) {
+    GraphicColorGamut canvasGamut = GamutChange(gamut);
+    if (gamut == GRAPHIC_COLOR_GAMUT_SRGB) {
+        return;
+    }
+    GraphicColorGamut oldGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        ++p3Num_;
+    } else if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        ++bt2020Num_;
+    }
+    GraphicColorGamut newGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (newGamut != oldGamut) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (!firstLevelNode) {
             RS_LOGE("RSSurfaceRenderNode::IncreaseWideColorGamutNum firstLevelNode is nullptr");
             wideColorGamutNum_++;
             return;
         }
-        RS_LOGD("RSSurfaceRenderNode::IncreaseWideColorGamutNum notify firstLevelNodeId[%{public}" PRIu64
-            "] now wideColorGamutNum_[%{public}d]", firstLevelNode->GetId(), wideColorGamutNum_ + 1);
-        firstLevelNode->SetFirstLevelNodeColorGamutByResource(true);
+        RS_LOGD("RSSurfaceRenderNode::IncreaseCanvasGamutNum notify firstLevelNodeId[%{public}" PRIu64
+            "] old gamut[%{public}d] new gamut[%{public}d]", firstLevelNode->GetId(), oldGamut, newGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(false, oldGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(true, newGamut);
     }
-    wideColorGamutNum_++;
 #endif
 }
 
-void RSSurfaceRenderNode::ReduceWideColorGamutNum()
+void RSSurfaceRenderNode::ReduceCanvasGamutNum(GraphicColorGamut gamut)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (!GetIsWideColorGamut()) {
-        ROSEN_LOGE("RSSurfaceRenderNode::ReduceWideColorGamutNum error");
+    GraphicColorGamut canvasGamut = GamutChange(gamut);
+    if (gamut == GRAPHIC_COLOR_GAMUT_SRGB) {
         return;
     }
-    // If the count was zero after this decrement, meaning no P3 resources remain in the subtree.
-    // Notify firstLevelNode to decrement the wide color window count.
-    wideColorGamutNum_--;
-    if (!GetIsWideColorGamut()) {
+    GraphicColorGamut oldGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        p3Num_ = p3Num_ > 0 ? p3Num_ - 1 : 0;
+    } else if (canvasGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        bt2020Num_ = bt2020Num_ > 0 ? bt2020Num_ - 1 : 0;
+    }
+    GraphicColorGamut newGamut = JudgeGamut(bt2020Num_, p3Num_);
+    if (newGamut != oldGamut) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (!firstLevelNode) {
-            RS_LOGE("RSSurfaceRenderNode::ReduceWideColorGamutNum firstLevelNode is nullptr");
+            RS_LOGE("RSSurfaceRenderNode::IncreaseWideColorGamutNum firstLevelNode is nullptr");
+            wideColorGamutNum_++;
             return;
         }
-        RS_LOGD("RSSurfaceRenderNode::ReduceWideColorGamutNum notify firstLevelNodeId[%{public}" PRIu64
-            "] now wideColorGamutNum_[%{public}d]", firstLevelNode->GetId(), wideColorGamutNum_);
-        firstLevelNode->SetFirstLevelNodeColorGamutByResource(false);
+        RS_LOGD("RSSurfaceRenderNode::IncreaseCanvasGamutNum notify firstLevelNodeId[%{public}" PRIu64
+            "] old gamut[%{public}d] new gamut[%{public}d]", firstLevelNode->GetId(), oldGamut, newGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(false, oldGamut);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(true, newGamut);
     }
 #endif
 }
@@ -1370,10 +1467,19 @@ void RSSurfaceRenderNode::NotifyTreeStateChange()
     }
 }
 
-void RSSurfaceRenderNode::SetLayerTop(bool isTop)
+void RSSurfaceRenderNode::SetTopLayerZOrder(uint32_t zOrder)
+{
+    if (!isLayerTop_) {
+        return;
+    }
+    topLayerZOrder_ = zOrder;
+}
+
+void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
 {
 #ifdef RS_ENABLE_GPU
     isLayerTop_ = isTop;
+    isTopLayerForceRefresh_ = isTopLayerForceRefresh;
     SetContentDirty();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
@@ -1433,10 +1539,11 @@ bool RSSurfaceRenderNode::GetHardCursorLastStatus() const
 
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
-    if (colorSpace_ == colorSpace) {
+    GraphicColorGamut newGamut = GamutChange(colorSpace);
+    if (colorSpace_ == newGamut) {
         return;
     }
-    colorSpace_ = colorSpace;
+    colorSpace_ = newGamut;
     if (!isOnTheTree_) {
         return;
     }
@@ -1445,7 +1552,7 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
         RS_LOGE("RSSurfaceRenderNode::SetColorSpace firstLevelNode is nullptr");
         return;
     }
-    firstLevelNode->SetFirstLevelNodeColorGamutByWindow(colorSpace_ != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    firstLevelNode->SetFirstLevelNodeColorGamutByWindow(true, colorSpace_);
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
@@ -1453,10 +1560,19 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutNum_ > 0) {
-        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    int bt2020Num = 0;
+    int p3Num = 0;
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled()) {
+        bt2020Num = bt2020Num_;
+        p3Num = p3Num_;
     }
-    return colorSpace_;
+    GraphicColorGamut selfGamut = GamutChange(colorSpace_);
+    if (selfGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        ++p3Num;
+    } else if (selfGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        ++bt2020Num;
+    }
+    return JudgeGamut(bt2020Num, p3Num);
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
@@ -1464,29 +1580,36 @@ GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (wideColorGamutWindowCount_ > 0 ||
-        (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutResourceWindowCount_ > 0)) {
-        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-    } else {
-        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    int bt2020Num = firstLevelNodeBt2020WindowNum_;
+    int p3Num = firstLevelNodeP3WindowNum_;
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled()) {
+        bt2020Num += firstLevelNodeBt2020ResourceNum_;
+        p3Num += firstLevelNodeP3ResourceNum_;
+    }
+    return JudgeGamut(bt2020Num, p3Num);
+}
+
+void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByResource(bool isOnTree, GraphicColorGamut gamut)
+{
+    int tempNum = isOnTree ? 1 : -1;
+    if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        firstLevelNodeP3ResourceNum_ += tempNum;
+        firstLevelNodeP3ResourceNum_ = std::max(firstLevelNodeP3ResourceNum_, 0);
+    } else if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        firstLevelNodeBt2020ResourceNum_ += tempNum;
+        firstLevelNodeP3ResourceNum_ = std::max(firstLevelNodeP3ResourceNum_, 0);
     }
 }
 
-void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByResource(bool changeToP3)
+void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool isOnTree, GraphicColorGamut gamut)
 {
-    if (changeToP3) {
-        wideColorGamutResourceWindowCount_++;
-    } else {
-        wideColorGamutResourceWindowCount_--;
-    }
-}
-
-void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool changeToP3)
-{
-    if (changeToP3) {
-        wideColorGamutWindowCount_++;
-    } else {
-        wideColorGamutWindowCount_--;
+    int tempNum = isOnTree ? 1 : -1;
+    if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        firstLevelNodeP3WindowNum_ += tempNum;
+        firstLevelNodeP3WindowNum_ = std::max(firstLevelNodeP3WindowNum_, 0);
+    } else if (gamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
+        firstLevelNodeBt2020WindowNum_ += tempNum;
+        firstLevelNodeP3WindowNum_ = std::max(firstLevelNodeP3WindowNum_, 0);
     }
 }
 
@@ -1505,9 +1628,7 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
         RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata get color space info failed.");
         return;
     }
-    // currently, P3 is the only supported wide color gamut, this may be modified later.
-    SetColorSpace(colorSpaceInfo.primaries != COLORPRIMARIES_SRGB ?
-        GRAPHIC_COLOR_GAMUT_DISPLAY_P3 : GRAPHIC_COLOR_GAMUT_SRGB);
+    SetColorSpace(CMPrimariesToGamut(colorSpaceInfo.primaries));
 #endif
 }
 
@@ -1924,6 +2045,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     layer.ancoFlags = surfaceParams->GetAncoFlags();
     const Rect& cropRect = surfaceParams->GetAncoSrcCrop();
     layer.ancoCropRect = {cropRect.x, cropRect.y, cropRect.w, cropRect.h};
+    layer.useDeviceOffline = GetDeviceOfflineEnable();
     if (isHardCursorEnable) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
@@ -2916,8 +3038,11 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 }
 
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
+    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::SetSurfaceMemoryInfo(onTree, GetRSSurfaceHandler());
+#endif
     if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         std::string uniqueIdStr = "null";
 #ifndef ROSEN_CROSS_PLATFORM
@@ -2925,11 +3050,11 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
                         std::to_string(GetRSSurfaceHandler()->GetConsumer()->GetUniqueId()) : "null";
 #endif
         RS_LOGI("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %{public}s, id: %{public}" PRIu64 "], "
-            "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s, displayNodeId: %{public}" PRIu64,
-            GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), displayNodeId);
+            "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s, screenNodeId: %{public}" PRIu64,
+            GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), screenNodeId);
     }
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
-    SendSurfaceNodeTreeStatus(onTree);
+    UpdateSurfaceNodeTreeStatusForAps(onTree);
 #endif
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
         "on tree: %d, nodeType: %d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
@@ -2957,8 +3082,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     if (monitor.IsListeningEnabled() && IsSelfDrawingType()) {
         if (onTree) {
             auto rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-            std::string nodeName = GetName();
-            monitor.InsertCurRectMap(GetId(), nodeName, rect);
+            monitor.InsertCurRectMap(GetId(), rect);
         } else {
             monitor.EraseCurRectMap(GetId());
         }
@@ -2966,17 +3090,19 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
     RSBaseRenderNode::SetIsOnTheTree(onTree, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-        INVALID_NODEID, displayNodeId);
+        INVALID_NODEID, screenNodeId, logicalDisplayNodeId);
 }
 
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
-void RSSurfaceRenderNode::SendSurfaceNodeTreeStatus(bool onTree)
+void RSSurfaceRenderNode::UpdateSurfaceNodeTreeStatusForAps(bool onTree)
 {
-    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && !onTree) {
-        std::shared_ptr<ApsMonitorImpl> apsMonitor = std::make_shared<ApsMonitorImpl>();
-        apsMonitor->SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
-        prevSelfDrawHeight_ = 0.0f;
-        prevSelfDrawWidth_ = 0.0f;
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        ApsMonitorImpl::GetInstance().SetApsSurfaceNodeTreeChange(onTree, name_);
+        if (!onTree) {
+            ApsMonitorImpl::GetInstance().SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
+            prevSelfDrawHeight_ = 0.0f;
+            prevSelfDrawWidth_ = 0.0f;
+        }
     }
 }
 
@@ -3159,7 +3285,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         surfaceParams->SetVisibleRegionInVirtual(visibleRegionInVirtual_);
         surfaceParams->SetIsParentScaling(isParentScaling_);
     }
-    surfaceParams->absDrawRect_ = GetAbsDrawRect();
+    surfaceParams->SetAbsDrawRect(GetAbsDrawRect());
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
     surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
@@ -3228,8 +3354,9 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();
     surfaceParams->isAppWindow_ = IsAppWindow();
+    surfaceParams->isLeashorMainWindow_ = IsLeashOrMainWindow();
     surfaceParams->isCloneNode_ = isCloneNode_;
-    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
+    surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
     surfaceParams->specialLayerManager_ = specialLayerManager_;
     surfaceParams->blackListIds_ = blackListIds_;
     surfaceParams->animateState_ = animateState_;
@@ -3330,15 +3457,15 @@ void RSSurfaceRenderNode::SetSourceDisplayRenderNodeDrawable(
     AddToPendingSyncList();
 }
 
-void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
+void RSSurfaceRenderNode::UpdateAncestorScreenNodeInRenderParams()
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
-        RS_LOGE("RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams surfaceParams is null");
+        RS_LOGE("RSSurfaceRenderNode::UpdateAncestorScreenNodeInRenderParams surfaceParams is null");
         return;
     }
-    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
+    surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
     surfaceParams->SetNeedSync(true);
 #endif
 }

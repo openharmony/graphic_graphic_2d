@@ -21,6 +21,7 @@ config("test_utils_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$reliability_root/utils/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
 }

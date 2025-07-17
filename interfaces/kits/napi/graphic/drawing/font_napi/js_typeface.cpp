@@ -19,7 +19,7 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "tool_napi/js_tool.h"
 #endif
 
@@ -299,7 +299,7 @@ napi_value JsTypeface::MakeFromFileWithArguments(napi_env env, napi_callback_inf
 
 napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_ONE);
@@ -343,7 +343,7 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
 
 napi_value JsTypeface::MakeFromRawFileWithArguments(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 

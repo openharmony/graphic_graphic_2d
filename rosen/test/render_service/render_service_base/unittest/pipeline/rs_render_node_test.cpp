@@ -23,11 +23,12 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
@@ -418,6 +419,14 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     ASSERT_EQ(node.GetBootAnimation(), true);
     node.SetBootAnimation(false);
     ASSERT_FALSE(node.GetBootAnimation());
+    
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 2;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    auto rsRenderNode = std::static_pointer_cast<RSRenderNode>(logicalDisplayNode);
+    auto tempRenderNode = std::make_shared<RSRenderNode>(1);
+    rsRenderNode->parent_ = tempRenderNode;
+    rsRenderNode->SetBootAnimation(false);
 }
 
 /**
@@ -1622,7 +1631,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
 
     std::string outTest1 = "";
-    nodeTest->DumpNodeType(RSRenderNodeType::DISPLAY_NODE, outTest1);
+    nodeTest->DumpNodeType(RSRenderNodeType::SCREEN_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::RS_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::SURFACE_NODE, outTest1);
     nodeTest->DumpNodeType(RSRenderNodeType::CANVAS_NODE, outTest1);
@@ -1685,6 +1694,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetConsumer() != nullptr);
     surfaceNode->DumpTree(0, outTest);
+    surfaceNode->DumpTree(0, outTest, true);
     ASSERT_TRUE(outTest.find("ScalingMode") != string::npos);
     ASSERT_TRUE(outTest.find("TransformType") != string::npos);
 }
@@ -1701,23 +1711,25 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
-	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
+        "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
         "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0], colorSpace: 4, uifirstColorGamut: 4");
 }
 
 /**
- * @tc.name: RSDisplayRenderNodeDumpTest
+ * @tc.name: RSScreenRenderNodeDumpTest
  * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
  * @tc.type: FUNC
  * @tc.require: issueIAJ6BA
  */
-HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, RSScreenRenderNodeDumpTest, TestSize.Level1)
 {
     std::string outTest = "";
-    RSDisplayNodeConfig config;
-    auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
+    auto context = std::make_shared<RSContext>();
+    auto renderNode = std::make_shared<RSScreenRenderNode>(0, 0, context);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0, colorSpace: 4");
+    EXPECT_EQ(outTest, ", colorSpace: 4");
+    
+    renderNode->DumpTree(0, outTest);
 }
 
 /**
@@ -1826,6 +1838,30 @@ HWTEST_F(RSRenderNodeTest, MoveChildTest005, TestSize.Level1)
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->MoveChild(child2, 4);
     EXPECT_FALSE(nodeTest->isFullChildrenListValid_);
+}
+
+/**
+ * @tc.name: SetContainBootAnimationTest001
+ * @tc.desc: SetContainBootAnimation test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, SetContainBootAnimationTest001, TestSize.Level1)
+{
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->SetContainBootAnimation(true);
+    auto tempRenderNode = std::make_shared<RSRenderNode>(1);
+    screenNode->parent_ = tempRenderNode;
+    screenNode->SetContainBootAnimation(true);
+    
+    NodeId canvasId = 2;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(canvasId);
+    
+    canvasNode->SetContainBootAnimation(true);
+    EXPECT_FALSE(canvasNode->isFullChildrenListValid_);
 }
 
 /**
@@ -1989,9 +2025,8 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossParentChild009, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, AddCrossScreenChild, TestSize.Level1)
 {
     NodeId id = 1;
-    struct RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(id, 0, context);
     EXPECT_NE(displayRenderNode, nullptr);
     auto childTest1 = nullptr;
     displayRenderNode->AddCrossScreenChild(childTest1, 2, -1);
@@ -2329,8 +2364,13 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
 
     nodeTest->UpdateDrawableVecV2();
 
+#if defined(MODIFIER_NG)
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+#else
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::BOUNDS), true);
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::ROTATION_X), true);
+#endif
     std::shared_ptr<DrawableTest> drawableTest1 = std::make_shared<DrawableTest>();
     nodeTest->drawableVec_.at(1) = drawableTest1;
     EXPECT_TRUE(nodeTest->dirtySlots_.empty());
@@ -2340,7 +2380,11 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     auto sum = nodeTest->dirtySlots_.size();
     EXPECT_NE(nodeTest->dirtySlots_.size(), 0);
 
+#if defined(MODIFIER_NG)
+    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+#else
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::PIVOT), true);
+#endif
     std::shared_ptr<DrawableTest> drawableTest2 = std::make_shared<DrawableTest>();
     nodeTest->drawableVec_.at(4) = drawableTest2;
     RSShadow rsShadow;
@@ -2350,7 +2394,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     RRect rrect;
     nodeTest->renderProperties_.rrect_ = rrect;
     nodeTest->UpdateDrawableVecV2();
-    EXPECT_NE(nodeTest->dirtySlots_.size(), sum);
+    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum);
 }
 
 /**
@@ -3244,6 +3288,79 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
 
     EXPECT_NE(compositingFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(compositingFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+}
+
+/**
+ * @tc.name: HasHpaeBackgroundFilter
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: wzwz
+ */
+HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    ASSERT_FALSE(renderNode->HasHpaeBackgroundFilter());
+
+    auto drawableFilter = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
+    EXPECT_NE(drawableFilter, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
+    ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
+}
+/*
+ * @tc.name: UpdateVirtualScreenWhiteListInfo
+ * @tc.desc: Test function UpdateVirtualScreenWhiteListInfo
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSRenderNode> parent = nullptr;
+    node->SetParent(parent);
+    ASSERT_EQ(node->parent_.lock(), nullptr);
+    node->UpdateVirtualScreenWhiteListInfo();
+    parent = std::make_shared<RSRenderNode>(id + 1);
+    node->SetParent(parent);
+    ASSERT_NE(node->parent_.lock(), nullptr);
+    ScreenId screenId = 1;
+    node->hasVirtualScreenWhiteList_[screenId] = false;
+    node->UpdateVirtualScreenWhiteListInfo();
+}
+
+/*
+ * @tc.name: CalcCmdlistDrawRegionFromOpItem
+ * @tc.desc: Test function CalcCmdlistDrawRegionFromOpItem
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSRenderNodeTest, CalcCmdlistDrawRegionFromOpItem, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), true);
+    node->SetNeedUseCmdlistDrawRegion(true);
+    ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), true);
+}
+
+/*
+ * @tc.name: GetNeedUseCmdlistDrawRegion
+ * @tc.desc: Test function GetNeedUseCmdlistDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSRenderNodeTest, GetNeedUseCmdlistDrawRegion, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    RectF rect { 1.0f, 1.0f, 1.0f, 1.0f };
+    node->cmdlistDrawRegion_ = rect;
+    ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), false);
+    node->SetNeedUseCmdlistDrawRegion(false);
+    ASSERT_EQ(node->GetNeedUseCmdlistDrawRegion(), false);
+    node->SetNeedUseCmdlistDrawRegion(true);
+    ASSERT_EQ(node->GetNeedUseCmdlistDrawRegion(), true);
 }
 } // namespace Rosen
 } // namespace OHOS

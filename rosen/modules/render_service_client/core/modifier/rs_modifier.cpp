@@ -29,7 +29,7 @@ void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
         property->target_ = property_->target_;
         property->SetIsCustom(true);
         property->AttachModifier(shared_from_this());
-        property->MarkModifierDirty();
+        property->MarkCustomModifierDirty();
     }
 #endif
 }

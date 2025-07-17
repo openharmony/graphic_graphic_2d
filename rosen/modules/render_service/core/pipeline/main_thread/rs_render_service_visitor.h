@@ -34,7 +34,8 @@ public:
 
     void PrepareChildren(RSRenderNode &node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
-    void PrepareDisplayRenderNode(RSDisplayRenderNode &node) override;
+    void PrepareScreenRenderNode(RSScreenRenderNode &node) override;
+    void PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override;
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override {}
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override;
@@ -42,7 +43,8 @@ public:
 
     void ProcessChildren(RSRenderNode &node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
-    void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
+    void ProcessScreenRenderNode(RSScreenRenderNode &node) override;
+    void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override;
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
     void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
@@ -60,14 +62,12 @@ public:
 
 private:
     void CreateCanvas(int32_t width, int32_t height, bool isMirrored = false);
-    void GetLogicalScreenSize(
-        const RSDisplayRenderNode& node, const ScreenInfo& screenInfo, int32_t& width, int32_t& height);
-    bool CreateProcessor(RSDisplayRenderNode& node);
-    void UpdateDisplayNodeCompositeType(RSDisplayRenderNode& node, const ScreenInfo& screenInfo);
-    void StoreSurfaceNodeAttrsToDisplayNode(RSDisplayRenderNode& displayNode, const RSSurfaceRenderNode& surfaceNode);
-    void RestoreSurfaceNodeAttrsFromDisplayNode(
-        const RSDisplayRenderNode& displayNode, RSSurfaceRenderNode& surfaceNode);
-    void ResetSurfaceNodeAttrsInDisplayNode(RSDisplayRenderNode& displayNode);
+    bool CreateProcessor(RSScreenRenderNode& node);
+    void UpdateScreenNodeCompositeType(RSScreenRenderNode& node, const ScreenInfo& screenInfo);
+    void StoreSurfaceNodeAttrsToScreenNode(RSScreenRenderNode& screenNode, const RSSurfaceRenderNode& surfaceNode);
+    void RestoreSurfaceNodeAttrsFromScreenNode(
+        const RSScreenRenderNode& screenNode, RSSurfaceRenderNode& surfaceNode);
+    void ResetSurfaceNodeAttrsInScreenNode(RSScreenRenderNode& screenNode);
 
 private:
     bool isSecurityDisplay_ = false;
@@ -82,7 +82,7 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> processorRenderEngine_ = nullptr;
-    std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
+    std::shared_ptr<RSScreenRenderNode> curScreenNode_;
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::unordered_map<NodeId, std::vector<std::function<void()>>> foregroundSurfaces_ = {};
 };

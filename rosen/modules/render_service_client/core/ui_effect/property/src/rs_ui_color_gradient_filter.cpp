@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#include "render/rs_render_color_gradient_filter.h"
-#include "platform/common/rs_log.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
+
+#include "platform/common/rs_log.h"
+#include "render/rs_render_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_radial_gradient_mask.h"
 #include "ui_effect/property/include/rs_ui_ripple_mask.h"
 
@@ -23,20 +24,40 @@ namespace OHOS {
 namespace Rosen {
 
 #undef LOG_TAG
-#define LOG_TAG "RSNGColorGradientFilter"
+#define LOG_TAG "RSNGColorGradientFilterImpl"
 
-std::shared_ptr<RSNGRenderFilterBase> RSNGColorGradientFilter::GetRenderEffect()
+namespace {
+    constexpr uint32_t COLOR_PROPS_NUM = 4;
+}
+
+void RSNGColorGradientFilter::SetColors(std::vector<float> colors)
+{
+    Setter<ColorGradientColorsTag>(colors);
+}
+
+void RSNGColorGradientFilter::SetPositions(std::vector<float> positions)
+{
+    Setter<ColorGradientPositionsTag>(positions);
+}
+
+void RSNGColorGradientFilter::SetStrengths(std::vector<float> strengths)
+{
+    Setter<ColorGradientStrengthsTag>(strengths);
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RSNGColorGradientFilterImpl::GetRenderEffect()
 {
     return nullptr;
 }
 
-bool RSNGColorGradientFilter::SetValue(const std::shared_ptr<RSNGFilterBase>& other, std::shared_ptr<RSNode> node)
+bool RSNGColorGradientFilterImpl::SetValue(
+    const std::shared_ptr<RSNGFilterBase>& other, RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
 {
     if (other == nullptr || GetType() != other->GetType()) {
         return false;
     }
 
-    auto otherDown = std::static_pointer_cast<RSNGColorGradientFilter>(other);
+    auto otherDown = std::static_pointer_cast<RSNGColorGradientFilterImpl>(other);
     bool updateFlag = SetColors(otherDown->colors_) &&
         SetPositions(otherDown->positions_) &&
         SetStrengths(otherDown->strengths_);
@@ -44,41 +65,38 @@ bool RSNGColorGradientFilter::SetValue(const std::shared_ptr<RSNGFilterBase>& ot
         return false;
     }
 
-    if (!Base::SetValue(other, node)) {
-        return false;
-    }
-    return updateFlag;
+    return Base::SetValue(other, node, modifier);
 }
 
-void RSNGColorGradientFilter::Attach(const std::shared_ptr<RSNode>& node)
+void RSNGColorGradientFilterImpl::Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier)
 {
-    std::for_each(colors_.begin(), colors_.end(), [&node](const auto& propTag) {
-        (RSUIFilterUtils::Attach(propTag.value_, node));
+    std::for_each(colors_.begin(), colors_.end(), [&node, &modifier](const auto& propTag) {
+        (RSNGEffectUtils::Attach(propTag.value_, node, modifier));
     });
-    std::for_each(positions_.begin(), positions_.end(), [&node](const auto& propTag) {
-        (RSUIFilterUtils::Attach(propTag.value_, node));
+    std::for_each(positions_.begin(), positions_.end(), [&node, &modifier](const auto& propTag) {
+        (RSNGEffectUtils::Attach(propTag.value_, node, modifier));
     });
-    std::for_each(strengths_.begin(), strengths_.end(), [&node](const auto& propTag) {
-        (RSUIFilterUtils::Attach(propTag.value_, node));
+    std::for_each(strengths_.begin(), strengths_.end(), [&node, &modifier](const auto& propTag) {
+        (RSNGEffectUtils::Attach(propTag.value_, node, modifier));
     });
-    Base::Attach(node);
+    Base::Attach(node, modifier);
 }
 
-void RSNGColorGradientFilter::Detach()
+void RSNGColorGradientFilterImpl::Detach()
 {
     std::for_each(colors_.begin(), colors_.end(), [](const auto& propTag) {
-        (RSUIFilterUtils::Detach(propTag.value_));
+        (RSNGEffectUtils::Detach(propTag.value_));
     });
     std::for_each(positions_.begin(), positions_.end(), [](const auto& propTag) {
-        (RSUIFilterUtils::Detach(propTag.value_));
+        (RSNGEffectUtils::Detach(propTag.value_));
     });
     std::for_each(strengths_.begin(), strengths_.end(), [](const auto& propTag) {
-        (RSUIFilterUtils::Detach(propTag.value_));
+        (RSNGEffectUtils::Detach(propTag.value_));
     });
     Base::Detach();
 }
 
-bool RSNGColorGradientFilter::SetColors(std::vector<ColorGradientColorTag> colors)
+bool RSNGColorGradientFilterImpl::SetColors(std::vector<ColorGradientColorsTag> colors)
 {
     size_t colorSize = colors.size();
     if (colorSize != colors_.size()) {
@@ -91,7 +109,7 @@ bool RSNGColorGradientFilter::SetColors(std::vector<ColorGradientColorTag> color
     return true;
 }
 
-bool RSNGColorGradientFilter::SetPositions(std::vector<ColorGradientPositionTag> positions)
+bool RSNGColorGradientFilterImpl::SetPositions(std::vector<ColorGradientPositionsTag> positions)
 {
     size_t positionSize = positions.size();
     if (positionSize != positions_.size()) {
@@ -104,7 +122,7 @@ bool RSNGColorGradientFilter::SetPositions(std::vector<ColorGradientPositionTag>
     return true;
 }
 
-bool RSNGColorGradientFilter::SetStrengths(std::vector<ColorGradientStrengthTag> strengths)
+bool RSNGColorGradientFilterImpl::SetStrengths(std::vector<ColorGradientStrengthsTag> strengths)
 {
     size_t strengthSize = strengths.size();
     if (strengthSize != strengths_.size()) {
@@ -360,6 +378,27 @@ std::vector<std::shared_ptr<RSPropertyBase>> RSUIColorGradientFilterPara::GetLea
     }
 
     return out;
+}
+
+bool RSUIColorGradientFilterPara::CheckEnableHdrEffect()
+{
+    auto colors = std::static_pointer_cast<RSAnimatableProperty<std::vector<float>>>(
+        GetRSProperty(RSUIFilterType::COLOR_GRADIENT_COLOR));
+    if (colors == nullptr) {
+        return false;
+    }
+
+    auto c = colors->Get();
+    for (size_t i = 0; i < c.size(); i++) {
+        if ((i + 1) % COLOR_PROPS_NUM == 0) {
+            continue;
+        }
+        if (ROSEN_GNE(c[i], 1.0f)) {
+            enableHdrEffect_ = true;
+            break;
+        }
+    }
+    return enableHdrEffect_ || stagingEnableHdrEffect_;
 }
 
 std::shared_ptr<RSUIMaskPara> RSUIColorGradientFilterPara::CreateMask(RSUIFilterType type)

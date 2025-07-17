@@ -252,14 +252,14 @@ ohos_unittest("RSDirtyRegionManagerTest") {
   subsystem_name = "graphic"
 }
 
-##############################  RSDisplayRenderNodeTest  ##################################
-ohos_unittest("RSDisplayRenderNodeTest") {
+##############################  RSScreenRenderNodeTest  ##################################
+ohos_unittest("RSScreenRenderNodeTest") {
   module_out_path = module_output_path
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
 
-  sources = [ "rs_display_render_node_test.cpp" ]
+  sources = [ "rs_screen_render_node_test.cpp" ]
 
   cflags = [
     "-Wall",
@@ -438,6 +438,53 @@ ohos_unittest("RSEffectRenderNodeTest") {
   subsystem_name = "graphic"
 }
 
+#############################  RSLogicalDisplayRenderNodeTest  ##################################
+ohos_unittest("RSLogicalDisplayRenderNodeTest") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
+  sources = [ "rs_logical_display_render_node_test.cpp" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSOcclusionConfigTest  ##################################
 ohos_unittest("RSOcclusionConfigTest") {
   module_out_path = module_output_path
@@ -474,7 +521,6 @@ ohos_unittest("RSOcclusionConfigTest") {
   ]
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -991,6 +1037,7 @@ ohos_unittest("RSRenderNodeTest2") {
   ]
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -1445,11 +1492,13 @@ group("unittest") {
     ":RSCanvasRenderNodeTest",
     ":RSContextTest",
     ":RSDirtyRegionManagerTest",
-    ":RSDisplayRenderNodeTest",
+    ":RSScreenRenderNodeTest",
     ":RSDrawCmdListTest",
     ":RSDrawCmdTest",
     ":RSEffectRenderNodeTest",
+    ":RSLogicalDisplayRenderNodeTest",
     ":RSExtendRecordingCanvasTest",
+    ":RSLogicalDisplayRenderNodeTest",
     ":RSOcclusionConfigTest",
     ":RSPaintFilterCanvasTest",
     ":RSProxyRenderNodeTest",

@@ -153,6 +153,7 @@ static int RunNodeTreeProfilerTest(int argc, char **argv)
         cout << "nodetree failed : wrong param number" << endl;
         return 0;
     }
+    RSGraphicTestDirector::Instance().SetProfilerTest(true);
     RSGraphicTestDirector::Instance().Run();
     std::string path = argv[ARGS_TWO];
     bool useBufferDump = false;
@@ -170,6 +171,7 @@ static int RunPlaybackProfilerTest(int argc, char **argv)
         cout << "nodetree failed : wrong param number" << endl;
         return 0;
     }
+    RSGraphicTestDirector::Instance().SetProfilerTest(true);
     RSGraphicTestDirector::Instance().Run();
     std::string path = argv[ARGS_TWO];
     bool useBufferDump = false;
@@ -200,7 +202,10 @@ int main(int argc, char **argv)
         }
     }
 
-    RSParameterParse::Instance().SetSkipCapture(true);
+    if (argc == ARGS_ONE) {
+        RSParameterParse::Instance().SetSkipCapture(true);
+    }
+
     RSGraphicTestDirector::Instance().Run();
     testing::GTEST_FLAG(output) = "xml:./";
     testing::InitGoogleTest(&argc, argv);

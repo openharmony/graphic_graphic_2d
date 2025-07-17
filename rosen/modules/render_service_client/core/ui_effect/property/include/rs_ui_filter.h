@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ROSEN_ENGINE_CORE_RENDER_UI_FILTER_H
-#define ROSEN_ENGINE_CORE_RENDER_UI_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_H
 
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
 
@@ -61,4 +61,4 @@ protected:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_ENGINE_CORE_RENDER_UI_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_H

@@ -600,7 +600,46 @@ HWTEST_F(RSScreenTest, PowerStatusDump_002, testing::ext::TestSize.Level1)
     ASSERT_TRUE(dumpString=="powerStatus=POWER_STATUS_OFF_ADVANCED");
 }
 
-/*
+/**
+ * @tc.name: SetVirtualScreenAutoRotationTest
+ * @tc.desc: SetVirtualScreenAutoRotation Test
+ * @tc.type: FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSScreenTest, SetVirtualScreenAutoRotationTest, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    ASSERT_FALSE(rsScreen->IsVirtual());
+    ASSERT_EQ(rsScreen->SetVirtualScreenAutoRotation(true), StatusCode::INVALID_ARGUMENTS);
+
+    rsScreen = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    ASSERT_TRUE(rsScreen->IsVirtual());
+    ASSERT_EQ(rsScreen->SetVirtualScreenAutoRotation(true), StatusCode::SUCCESS);
+
+    ASSERT_TRUE(rsScreen->GetVirtualScreenAutoRotation());
+}
+
+/**
+ * @tc.name: GetVirtualScreenAutoRotationTest
+ * @tc.desc: GetVirtualScreenAutoRotation Test
+ * @tc.type: FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSScreenTest, GetVirtualScreenAutoRotationTest, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    ASSERT_TRUE(rsScreen->IsVirtual());
+    ASSERT_EQ(rsScreen->SetVirtualScreenAutoRotation(true), StatusCode::SUCCESS);
+
+    ASSERT_TRUE(rsScreen->GetVirtualScreenAutoRotation());
+}
+
+/**
  * @tc.name: SetRogResolution_002
  * @tc.desc: SetRogResolution Test, trigger branch -- hdiScreen_->SetScreenOverlayResolution(width, height) < 0
  * @tc.type: FUNC
@@ -1083,7 +1122,7 @@ HWTEST_F(RSScreenTest, PowerStatusDump_003, testing::ext::TestSize.Level1)
     rsScreen->PowerStatusDump(dumpString);
 
     status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_BUTT;
-    rsScreen->SetPowerStatus(status);
+    rsScreen->powerStatus_ = static_cast<ScreenPowerStatus>(status);
     rsScreen->PowerStatusDump(dumpString);
 
     status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;

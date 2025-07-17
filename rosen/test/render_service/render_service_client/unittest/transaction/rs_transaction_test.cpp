@@ -84,4 +84,18 @@ HWTEST_F(RSTransactionTest, Marshalling001, TestSize.Level1)
     EXPECT_TRUE(rsTransaction.Marshalling(parcel));
     EXPECT_NE(rsTransaction.Unmarshalling(parcel), nullptr);
 }
+
+/**
+ * @tc.name: SetTransactionHandler
+ * @tc.desc: test results of SetTransactionHandler
+ * @tc.type: FUNC
+ * @tc.require: issueICJ853
+ */
+HWTEST_F(RSTransactionTest, SetTransactionHandler, TestSize.Level1)
+{
+    RSTransaction rsTransaction;
+    std::shared_ptr<RSTransactionHandler> rsTransactionHandler = std::make_shared<RSTransactionHandler>();
+    rsTransaction.SetTransactionHandler(rsTransactionHandler);
+    EXPECT_NE(rsTransaction.rsTransactionHandler_, nullptr);
+}
 } // namespace OHOS::Rosen

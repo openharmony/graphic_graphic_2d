@@ -13,14 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_ENGINE_CORE_RENDER_UI_FILTER_BASE_H
-#define ROSEN_ENGINE_CORE_RENDER_UI_FILTER_BASE_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_BASE_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_BASE_H
 
-#include "modifier/rs_property.h"
-#include "render/rs_render_filter_base.h"
 #include "ui_effect/filter/include/filter_para.h"
 #include "ui_effect/property/include/rs_ui_property_tag.h"
 #include "ui_effect/property/include/rs_ui_template.h"
+
+#include "effect/rs_render_filter_base.h"
+#include "modifier/rs_property.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,18 +31,18 @@ class RSNGFilterBase : public RSNGEffectBase<RSNGFilterBase, RSNGRenderFilterBas
 public:
     virtual ~RSNGFilterBase() = default;
 
-    static std::shared_ptr<RSNGFilterBase> Create(RSUIFilterType type);
+    static std::shared_ptr<RSNGFilterBase> Create(RSNGEffectType type);
 
     static std::shared_ptr<RSNGFilterBase> Create(std::shared_ptr<FilterPara> filterPara);
 };
 
-template<RSUIFilterType Type, typename... PropertyTags>
+template<RSNGEffectType Type, typename... PropertyTags>
 using RSNGFilterTemplate = RSNGEffectTemplate<RSNGFilterBase, Type, PropertyTags...>;
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
 
 #define DECLARE_FILTER(FilterName, FilterType, ...) \
-    using RSNG##FilterName##Filter = RSNGFilterTemplate<RSUIFilterType::FilterType, __VA_ARGS__>
+    using RSNG##FilterName##Filter = RSNGFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
 
 DECLARE_FILTER(Blur, BLUR,
     ADD_PROPERTY_TAG(Blur, RadiusX),
@@ -48,7 +50,8 @@ DECLARE_FILTER(Blur, BLUR,
 );
 
 DECLARE_FILTER(DispDistort, DISPLACEMENT_DISTORT,
-    ADD_PROPERTY_TAG(DispDistort, Factor)
+    ADD_PROPERTY_TAG(DispDistort, Factor),
+    ADD_PROPERTY_TAG(DispDistort, Mask)
 );
 
 DECLARE_FILTER(SoundWave, SOUND_WAVE,
@@ -66,10 +69,14 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
     ADD_PROPERTY_TAG(EdgeLight, Color),
-    ADD_PROPERTY_TAG(EdgeLight, Alpha)
+    ADD_PROPERTY_TAG(EdgeLight, Alpha),
+    ADD_PROPERTY_TAG(EdgeLight, Mask),
+    ADD_PROPERTY_TAG(EdgeLight, Bloom),
+    ADD_PROPERTY_TAG(EdgeLight, UseRawColor)
 );
 
 DECLARE_FILTER(Dispersion, DISPERSION,
+    ADD_PROPERTY_TAG(Dispersion, Mask),
     ADD_PROPERTY_TAG(Dispersion, Opacity),
     ADD_PROPERTY_TAG(Dispersion, RedOffset),
     ADD_PROPERTY_TAG(Dispersion, GreenOffset),
@@ -91,9 +98,27 @@ DECLARE_FILTER(BezierWarp, BEZIER_WARP,
     ADD_PROPERTY_TAG(BezierWarp, ControlPoint11)
 );
 
+DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
+    ADD_PROPERTY_TAG(DirectionLight, Mask),
+    ADD_PROPERTY_TAG(DirectionLight, Direction),
+    ADD_PROPERTY_TAG(DirectionLight, Color),
+    ADD_PROPERTY_TAG(DirectionLight, Intensity)
+);
+
+DECLARE_FILTER(MaskTransition, MASK_TRANSITION,
+    ADD_PROPERTY_TAG(MaskTransition, Mask),
+    ADD_PROPERTY_TAG(MaskTransition, Factor),
+    ADD_PROPERTY_TAG(MaskTransition, Inverse)
+);
+
+DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
+    ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
+    ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)
+);
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER
 
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_ENGINE_CORE_RENDER_UI_FILTER_BASE_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_BASE_H

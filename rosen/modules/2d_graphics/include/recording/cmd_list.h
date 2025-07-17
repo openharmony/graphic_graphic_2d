@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "recording/recording_handle.h"
 #include "utils/drawing_macros.h"
 #include "utils/extend_object.h"
+#include "utils/object.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #include "sync_fence.h"
@@ -195,6 +196,26 @@ public:
      * @brief  return real setup ExtendObject size.
      */
     uint32_t SetupExtendObject(const std::vector<std::shared_ptr<ExtendObject>>& objectList);
+
+    /*
+     * @brief  return DrawingObject index. UINT32_MAX is error.
+     */
+    uint32_t AddDrawingObject(const std::shared_ptr<Object>& object);
+
+    /*
+     * @brief  get DrawingObject by index.
+     */
+    std::shared_ptr<Object> GetDrawingObject(uint32_t index);
+
+    /*
+     * @brief  return DrawingObject size, 0 is no DrawingObject.
+     */
+    uint32_t GetAllDrawingObject(std::vector<std::shared_ptr<Object>>& objectList);
+
+    /*
+     * @brief  return real setup DrawingObject size.
+     */
+    uint32_t SetupDrawingObject(const std::vector<std::shared_ptr<Object>>& objectList);
 
     /*
      * @brief  return RecordCmd index. UINT32_MAX is error.
@@ -368,6 +389,8 @@ protected:
     std::mutex imageLatticeObjectMutex_;
     std::vector<std::shared_ptr<ExtendObject>> extendObjectVec_;
     std::mutex extendObjectMutex_;
+    std::vector<std::shared_ptr<Object>> drawingObjectVec_;
+    std::mutex drawingObjectMutex_;
 #ifdef ROSEN_OHOS
     std::vector<std::shared_ptr<SurfaceBufferEntry>> surfaceBufferEntryVec_;
     std::mutex surfaceBufferEntryMutex_;

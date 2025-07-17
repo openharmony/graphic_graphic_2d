@@ -263,10 +263,12 @@ class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
 public:
     explicit SurfaceCaptureCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
-    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        Media::PixelMap* pixelmapHDR = nullptr) override
     {
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
-        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture);
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
+        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, surfaceCaptureHDR);
     };
 
 private:
@@ -277,10 +279,10 @@ class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
     explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
-    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
         SAFUZZ_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase");
-        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+        client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }
 
 private:

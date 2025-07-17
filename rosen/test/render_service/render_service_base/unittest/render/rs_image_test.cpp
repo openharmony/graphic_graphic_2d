@@ -166,6 +166,128 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanvasDrawImageTest001
+ * @tc.desc: test results of CanvasDrawImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageTest, CanvasDrawImageTest001, TestSize.Level1)
+{
+    RSImage rsImage;
+    Drawing::Canvas canvas;
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
+    canvas.recordingState_ = true;
+    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
+    Drawing::Brush brush;
+    // for test
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    Drawing::SamplingOptions samplingOptions;
+    rsImage.pixelMap_ = pixelmap;
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bitmap.Build(15, 15, bitmapFormat);
+    Drawing::Image image;
+    image.BuildFromBitmap(bitmap);
+    rsImage.image_ = std::make_shared<Drawing::Image>(image);
+
+    rsImage.pixelMap_->SetSupportOpaqueOpt(false);
+    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+    bool opaque = rsImage.image_->GetSupportOpaqueOpt();
+    EXPECT_FALSE(opaque);
+}
+
+/**
+ * @tc.name: CanvasDrawImageTest002
+ * @tc.desc: test results of CanvasDrawImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageTest, CanvasDrawImageTest002, TestSize.Level1)
+{
+    RSImage rsImage;
+    Drawing::Canvas canvas;
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
+    canvas.recordingState_ = true;
+    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
+    Drawing::Brush brush;
+    // for test
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    Drawing::SamplingOptions samplingOptions;
+    rsImage.pixelMap_ = pixelmap;
+    rsImage.pixelMap_->SetAstc(true);
+    rsImage.image_ = nullptr;
+    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+    EXPECT_NE(&rsImage, nullptr);
+}
+
+/**
+ * @tc.name: CanvasDrawImageTest003
+ * @tc.desc: test results of CanvasDrawImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageTest, CanvasDrawImageTest003, TestSize.Level1)
+{
+    RSImage rsImage;
+    Drawing::Canvas canvas;
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
+    canvas.recordingState_ = true;
+    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
+    Drawing::Brush brush;
+    // for test
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    Drawing::SamplingOptions samplingOptions;
+    rsImage.pixelMap_ = nullptr;
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bitmap.Build(15, 15, bitmapFormat);
+    Drawing::Image image;
+    image.BuildFromBitmap(bitmap);
+    rsImage.image_ = std::make_shared<Drawing::Image>(image);
+
+    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+    bool opaque = rsImage.image_->GetSupportOpaqueOpt();
+    EXPECT_FALSE(opaque);
+}
+
+/**
+ * @tc.name: CanvasDrawImageTest004
+ * @tc.desc: test results of CanvasDrawImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageTest, CanvasDrawImageTest004, TestSize.Level1)
+{
+    RSImage rsImage;
+    Drawing::Canvas canvas;
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
+    canvas.recordingState_ = true;
+    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
+    Drawing::Brush brush;
+    // for test
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    Drawing::SamplingOptions samplingOptions;
+    rsImage.pixelMap_ = nullptr;
+    rsImage.image_ = nullptr;
+    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+    EXPECT_NE(&rsImage, nullptr);
+}
+
+/**
  * @tc.name: ApplyImageFitTest001
  * @tc.desc: Verify function ApplyImageFit
  * @tc.type:FUNC
@@ -1209,5 +1331,45 @@ HWTEST_F(RSImageTest, SetImageRotateDegreeTest, TestSize.Level1)
 
     rsImage->SetImageRotateDegree(180);
     EXPECT_EQ(rsImage->rotateDegree_, 180);
+}
+
+/**
+ * @tc.name: CalcRepeatBoundsTest
+ * @tc.desc: Verify function CalcRepeatBounds
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, CalcRepeatBoundsTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    RectF srcRf(0.f, 0.f, 0.f, 0.f);
+    int minX = 0;
+    int maxX = 0;
+    int minY = 0;
+    int maxY = 0;
+    rsImage->srcRect_ = srcRf;
+
+    rsImage->srcRect_.width_ = 0;
+    rsImage->srcRect_.height_ = 100;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    rsImage->srcRect_.width_ = 0;
+    rsImage->srcRect_.height_ = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
+
+    rsImage->srcRect_.width_ = 100;
+    rsImage->srcRect_.height_ = 0;
+    rsImage->CalcRepeatBounds(minX, maxX, minY, maxY);
+    EXPECT_EQ(minX, 0);
+    EXPECT_EQ(maxX, 0);
+    EXPECT_EQ(minY, 0);
+    EXPECT_EQ(maxY, 0);
 }
 } // namespace OHOS::Rosen

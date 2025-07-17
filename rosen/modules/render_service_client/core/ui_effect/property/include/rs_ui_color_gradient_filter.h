@@ -13,44 +13,56 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_COLOR_GRADIENT_FILTER_H
-#define RENDER_COLOR_GRADIENT_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_COLOR_GRADIENT_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_COLOR_GRADIENT_FILTER_H
 
 #include <memory>
 #include <vector>
 
-#include "ui_effect/property/include/rs_ui_filter_base.h"
-
-#include "modifier/rs_property.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
 #include "ui_effect/property/include/rs_ui_mask_para.h"
+
+#include "modifier/rs_property.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT RSNGColorGradientFilter : public RSNGFilterTemplate<RSUIFilterType::COLOR_GRADIENT> {
+class RSC_EXPORT RSNGColorGradientFilter
+    : public RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT, ColorGradientColorsTag, ColorGradientPositionsTag,
+          ColorGradientStrengthsTag, ColorGradientMaskTag> {
 public:
-    RSNGColorGradientFilter() = default;
-    ~RSNGColorGradientFilter() = default;
-    using Base = RSNGFilterTemplate<RSUIFilterType::COLOR_GRADIENT>;
+    virtual ~RSNGColorGradientFilter() = default;
+
+    void SetColors(std::vector<float> colors);
+    void SetPositions(std::vector<float> positions);
+    void SetStrengths(std::vector<float> strengths);
+};
+
+class RSC_EXPORT RSNGColorGradientFilterImpl : public RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT> {
+public:
+    RSNGColorGradientFilterImpl() = default;
+    ~RSNGColorGradientFilterImpl() = default;
+    using Base = RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT>;
 
     std::shared_ptr<RSNGRenderFilterBase> GetRenderEffect() override;
 
-    bool SetValue(const std::shared_ptr<RSNGFilterBase>& other, std::shared_ptr<RSNode> node) override;
+    bool SetValue(const std::shared_ptr<RSNGFilterBase>& other, RSNode& node,
+        const std::weak_ptr<ModifierNG::RSModifier>& modifier) override;
 
-    void Attach(const std::shared_ptr<RSNode>& node) override;
+    void Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) override;
 
     void Detach() override;
 
 private:
-    bool SetColors(std::vector<ColorGradientColorTag> colors);
-    bool SetPositions(std::vector<ColorGradientPositionTag> positions);
-    bool SetStrengths(std::vector<ColorGradientStrengthTag> strengths);
+    bool SetColors(std::vector<ColorGradientColorsTag> colors);
+    bool SetPositions(std::vector<ColorGradientPositionsTag> positions);
+    bool SetStrengths(std::vector<ColorGradientStrengthsTag> strengths);
 
-    std::vector<ColorGradientColorTag> colors_;
-    std::vector<ColorGradientPositionTag> positions_;
-    std::vector<ColorGradientStrengthTag> strengths_;
+    std::vector<ColorGradientColorsTag> colors_;
+    std::vector<ColorGradientPositionsTag> positions_;
+    std::vector<ColorGradientStrengthsTag> strengths_;
 };
 
 class RSUIColorGradientFilterPara : public RSUIFilterParaBase {
@@ -75,6 +87,8 @@ public:
 
     virtual std::vector<std::shared_ptr<RSPropertyBase>> GetLeafProperties() override;
 
+    virtual bool CheckEnableHdrEffect() override;
+
 private:
     static std::shared_ptr<RSUIMaskPara> CreateMask(RSUIFilterType type);
 };
@@ -82,4 +96,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_COLOR_GRADIENT_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_COLOR_GRADIENT_FILTER_H

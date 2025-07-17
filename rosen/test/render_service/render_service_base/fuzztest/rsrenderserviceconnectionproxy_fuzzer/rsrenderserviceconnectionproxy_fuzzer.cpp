@@ -56,7 +56,6 @@ T GetData()
     return object;
 }
 
-#ifdef TP_FEATURE_ENABLE
 template<>
 std::string GetData()
 {
@@ -69,7 +68,6 @@ std::string GetData()
     g_pos += objectSize;
     return object;
 }
-#endif
 } // namespace
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -421,6 +419,29 @@ bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    bool isAutoRotation = GetData<bool>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.SetVirtualScreenAutoRotation(screenId, isAutoRotation);
+    return true;
+}
+
 bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -530,6 +551,88 @@ bool DoResizeVirtualScreen(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ResizeVirtualScreen(screenId, width, height);
     return true;
 }
+
+bool DoProfilerServiceFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    HrpServiceDir baseDirType = HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN;
+
+    std::string subDir = GetData<std::string>();
+    std::string subDir2 = GetData<std::string>();
+    std::string fileName = GetData<std::string>();
+    int32_t flags = GetData<int32_t>();
+    int32_t outFd = GetData<int32_t>();
+    HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+
+    std::vector<HrpServiceFileInfo> outFiles;
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+
+    rsRenderServiceConnectionProxy.ProfilerServiceOpenFile(dirInfo, fileName, flags, outFd);
+    rsRenderServiceConnectionProxy.ProfilerServicePopulateFiles(dirInfo, 0, outFiles);
+    rsRenderServiceConnectionProxy.ProfilerIsSecureScreen();
+    return true;
+}
+
+bool DoClearUifirstCache(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    NodeId nodeId = GetData<NodeId>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.ClearUifirstCache(nodeId);
+    return true;
+}
+
+bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    static std::vector<HdrStatus> statusVec = { HdrStatus::NO_HDR, HdrStatus::HDR_PHOTO, HdrStatus::HDR_VIDEO,
+        HdrStatus::AI_HDR_VIDEO, HdrStatus::HDR_EFFECT };
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    HdrStatus hdrStatus = statusVec[GetData<uint8_t>() % statusVec.size()];
+    int32_t resCode = GetData<int32_t>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.GetScreenHDRStatus(screenId, hdrStatus, resCode);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -550,5 +653,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoAddVirtualScreenBlackList(data, size);
     OHOS::Rosen::DoRemoveVirtualScreenBlackList(data, size);
     OHOS::Rosen::DoResizeVirtualScreen(data, size);
+    OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
+    OHOS::Rosen::DoProfilerServiceFuzzTest(data, size);
+    OHOS::Rosen::DoClearUifirstCache(data, size);
+    OHOS::Rosen::DoGetScreenHDRStatus(data, size);
     return 0;
 }

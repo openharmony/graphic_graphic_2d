@@ -264,6 +264,25 @@ uint32_t RSScreen::PhyHeight() const
     return phyHeight_;
 }
 
+void RSScreen::SetScreenOffset(int32_t offsetX, int32_t offsetY)
+{
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
+    offsetX_ = offsetX;
+    offsetY_ = offsetY;
+}
+
+int32_t RSScreen::GetOffsetX() const
+{
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
+    return offsetX_;
+}
+
+int32_t RSScreen::GetOffsetY() const
+{
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
+    return offsetY_;
+}
+
 bool RSScreen::IsSamplingOn() const
 {
     std::shared_lock<std::shared_mutex> lock(screenMutex_);
@@ -466,7 +485,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     height_ = height;
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}d,"
         " height: %{public}d, phywidth: %{public}d, phyHeight: %{public}d.",
-	    __func__, id_, width_, height_, phyWidth_, phyHeight_);
+        __func__, id_, width_, height_, phyWidth_, phyHeight_);
 }
 
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
@@ -1116,6 +1135,20 @@ bool RSScreen::SetVirtualMirrorScreenCanvasRotation(bool canvasRotation)
 bool RSScreen::GetCanvasRotation() const
 {
     return canvasRotation_;
+}
+
+int32_t RSScreen::SetVirtualScreenAutoRotation(bool isAutoRotation)
+{
+    if (IsVirtual()) {
+        autoBufferRotation_ = isAutoRotation;
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::INVALID_ARGUMENTS;
+}
+
+bool RSScreen::GetVirtualScreenAutoRotation() const
+{
+    return autoBufferRotation_;
 }
 
 bool RSScreen::SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode)

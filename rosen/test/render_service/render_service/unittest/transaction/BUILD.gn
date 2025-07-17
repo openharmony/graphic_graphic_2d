@@ -84,11 +84,13 @@ ohos_unittest("RSRenderServiceConnectionStubTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "googletest:gmock_main",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -104,6 +106,7 @@ ohos_unittest("RSRenderServiceStubTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "hisysevent:libhisysevent",

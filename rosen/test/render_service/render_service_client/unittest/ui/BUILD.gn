@@ -59,10 +59,6 @@ ohos_unittest("RSCanvasNodeTest") {
 
   sources = [ "rs_canvas_node_test.cpp" ]
 
-  if (graphic_2d_feature_enable_vulkan) {
-    defines = [ "RS_ENABLE_VK" ]
-  }
-
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
   configs = [
@@ -170,10 +166,6 @@ ohos_unittest("RSNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_node_test.cpp" ]
-
-  if (graphic_2d_feature_enable_vulkan) {
-    defines = [ "RS_ENABLE_VK" ]
-  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -387,6 +379,40 @@ ohos_unittest("RSTextureExportTest") {
 }
 
 ##############################  RSRenderServiceClientTest  ##################################
+ohos_unittest("RSUIContextTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_ui_context_test.cpp" ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/test/include",
+  ]
+
+  configs = [
+    ":ui_test",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
+  ]
+
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  subsystem_name = "graphic"
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+##############################  RSRenderServiceClientTest  ##################################
 ohos_unittest("RSUIDirectorTest") {
   module_out_path = module_output_path
 
@@ -453,5 +479,6 @@ group("unittest") {
     ":RSSurfaceNodeTest",
     ":RSTextureExportTest",
     ":RSUIDirectorTest",
+    ":RSUIContextTest",
   ]
 }

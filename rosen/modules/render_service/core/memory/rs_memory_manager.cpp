@@ -724,7 +724,7 @@ void MemoryManager::MemoryOverForReport(std::unordered_map<pid_t, MemorySnapshot
     }
 #endif
 }
- 
+
 void MemoryManager::FillMemorySnapshot()
 {
     std::vector<pid_t> pidList;

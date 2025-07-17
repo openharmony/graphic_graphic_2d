@@ -231,6 +231,17 @@ public:
         }
         conditionVariable_.notify_one();
     }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (!flag_) {
+            pixelMap_ = pixelMap;
+            pixelMapHDR_ = pixelMapHDR;
+            flag_ = true;
+        }
+        conditionVariable_.notify_one();
+    }
     bool IsReady() const
     {
         return flag_;
@@ -243,8 +254,18 @@ public:
         }
         return pixelMap_;
     }
+
+    std::vector<std::shared_ptr<Media::PixelMap>> GetHDRResult(long timeOut)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (!conditionVariable_.wait_for(lock, std::chrono::milliseconds(timeOut), [this] { return IsReady(); })) {
+            ROSEN_LOGE("wait for %{public}lu timeout", timeOut);
+        }
+        return { pixelMap_, pixelMapHDR_ };
+    }
 private:
     std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+    std::shared_ptr<Media::PixelMap> pixelMapHDR_ = nullptr;
     std::mutex mutex_;
     std::condition_variable conditionVariable_;
     bool flag_ = false;

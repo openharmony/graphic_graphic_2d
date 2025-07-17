@@ -25,6 +25,8 @@
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
+#include "hpae_base/rs_hpae_base_data.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 class RSPropertyDrawableUtilsTest : public testing::Test {
@@ -136,7 +138,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
     paintFilterCanvasTest1.surface_ = nullptr;
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
@@ -148,17 +150,17 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     EXPECT_NE(rsFilter->imageFilter_, nullptr);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
-    rsPropertyDrawableUtils->DrawFilter(nullptr, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(nullptr, rsFilter, cacheManager, 0, false);
     auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvasTest1.surface_ = surface.get();
     paintFilterCanvasTest1.SetDisableFilterCache(false);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     paintFilterCanvasTest1.SetDisableFilterCache(true);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     auto magnifierParams = std::make_shared<RSMagnifierParams>();
     auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierParams);
     magnifierFilter->type_ = RSUIFilterType::MAGNIFIER;
@@ -166,7 +168,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsFilter->type_ = RSFilter::BLUR;
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
 
     // second: BeginForegroundFilter test
     Drawing::Canvas canvasTest2;
@@ -188,6 +190,47 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
     rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
     rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, false);
+}
+
+/**
+ * @tc.name: DrawFilterTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:wz
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawFilterTest002, testing::ext::TestSize.Level1)
+{
+    // first: DrawFilter test
+    NodeId id = 1;
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    Drawing::Canvas canvasTest1;
+    RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
+    std::shared_ptr<RSDrawingFilter> rsFilter = nullptr;
+    std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
+    paintFilterCanvasTest1.surface_ = nullptr;
+    cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
+    auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
+    rsFilterTest->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
+    EXPECT_NE(rsFilterTest, nullptr);
+    rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
+    EXPECT_NE(rsFilter, nullptr);
+    rsFilter->type_ = RSFilter::BLUR;
+    rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
+    EXPECT_NE(rsFilter->imageFilter_, nullptr);
+    cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
+    auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvasTest1.surface_ = surface.get();
+    paintFilterCanvasTest1.SetDisableFilterCache(false);
+    cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
+
+    auto manager = std::make_shared<RSHpaeFilterCacheManager>();
+    EXPECT_NE(manager, nullptr);
+    RSHpaeBaseData::GetInstance().hpaeStatus_.blurNodeId = id;
+    RSHpaeBaseData::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, id, false);
 }
 
 /**
@@ -790,5 +833,108 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateMaterialColorFilterTest001, testin
     float brightness = 1.0f;
     auto filter = rsPropertyDrawableUtilsTest1->GenerateMaterialColorFilter(saturation, brightness);
     ASSERT_NE(filter, nullptr);
+}
+
+/**
+ * @tc.name: GetRectByStrategyTest001
+ * @tc.desc: GetRectByStrategyTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetRectByStrategyTest001, testing::ext::TestSize.Level1)
+{
+    Drawing::Rect bounds(2.1, 2.5, 102.1, 102.5);
+
+    auto boundIn = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_IN);
+    Drawing::RectI expectBoundIn(3, 3, 102, 102);
+    EXPECT_TRUE(boundIn == expectBoundIn);
+
+    auto boundOut = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_OUT);
+    Drawing::RectI expectBoundOut(2, 2, 103, 103);
+    EXPECT_TRUE(boundOut == expectBoundOut);
+
+    auto boundOff = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_OFF);
+    Drawing::RectI expectBoundOff(2, 3, 102, 103);
+    EXPECT_TRUE(boundOff == expectBoundOff);
+
+    auto boundCastInt = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_STATIC_CAST_INT);
+    Drawing::RectI expectBoundCastInt(2, 2, 102, 102);
+    EXPECT_TRUE(boundCastInt == expectBoundCastInt);
+
+    auto boundButt = RSPropertyDrawableUtils::GetRectByStrategy(bounds, RoundingStrategyType::ROUND_BUTT);
+    Drawing::RectI expectBoundButt(2, 2, 103, 103);
+    EXPECT_TRUE(boundButt == expectBoundButt);
+}
+
+/**
+ * @tc.name: GetAbsRectByStrategyTest001
+ * @tc.desc: GetAbsRectByStrategy
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetAbsRectByStrategyTest001, testing::ext::TestSize.Level1)
+{
+    auto surface = Drawing::Surface::MakeRasterN32Premul(2000, 1000).get();
+    Drawing::Matrix matrix;
+    Drawing::Rect relativeRect(2.1, 2.5, 102.1, 102.5);
+
+    auto boundIn =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_IN);
+    Drawing::RectI expectBoundIn(3, 3, 102, 102);
+    EXPECT_TRUE(boundIn == expectBoundIn);
+
+    auto boundOut =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_OUT);
+    Drawing::RectI expectBoundOut(2, 2, 103, 103);
+    EXPECT_TRUE(boundOut == expectBoundOut);
+
+    auto boundOff =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_OFF);
+    Drawing::RectI expectBoundOff(2, 3, 102, 103);
+    EXPECT_TRUE(boundOff == expectBoundOff);
+
+    auto boundCastInt = RSPropertyDrawableUtils::GetAbsRectByStrategy(
+        surface, matrix, relativeRect, RoundingStrategyType::ROUND_STATIC_CAST_INT);
+    Drawing::RectI expectBoundCastInt(2, 2, 102, 102);
+    EXPECT_TRUE(boundCastInt == expectBoundCastInt);
+
+    auto boundButt =
+        RSPropertyDrawableUtils::GetAbsRectByStrategy(surface, matrix, relativeRect, RoundingStrategyType::ROUND_BUTT);
+    Drawing::RectI expectBoundButt(2, 2, 103, 103);
+    EXPECT_TRUE(boundButt == expectBoundButt);
+}
+
+/**
+ * @tc.name: GetAbsRectByStrategyForImageTest001
+ * @tc.desc: GetAbsRectByStrategyForImage
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetAbsRectByStrategyForImageTest001, testing::ext::TestSize.Level1)
+{
+    auto surface = Drawing::Surface::MakeRasterN32Premul(2000, 1000).get();
+    Drawing::Matrix matrix;
+    Drawing::Rect relativeRect(2.1, 2.5, 102.1, 102.5);
+
+    auto [absImageRect, absDrawRect] =
+        RSPropertyDrawableUtils::GetAbsRectByStrategyForImage(surface, matrix, relativeRect);
+    Drawing::RectI expectAbsImageRect(3, 3, 102, 102);
+    Drawing::RectI expectAbsDrawRect(2, 2, 103, 103);
+    EXPECT_TRUE(absImageRect == expectAbsImageRect);
+    EXPECT_TRUE(absDrawRect == expectAbsDrawRect);
+}
+
+/**
+ * @tc.name: MakeShadowBlenderTest001
+ * @tc.desc: MakeShadowBlender Test
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeShadowBlenderTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    RSShadowBlenderPara shadowBlenderParams;
+    EXPECT_NE(rsPropertyDrawableUtils->MakeShadowBlender(shadowBlenderParams), nullptr);
 }
 } // namespace OHOS::Rosen

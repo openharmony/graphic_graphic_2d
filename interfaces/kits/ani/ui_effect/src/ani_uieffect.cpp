@@ -95,7 +95,7 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
     ani_double posCoefNativeBuffer[3U] = { 0.0 };
     ani_double negCoefNativeBuffer[3U] = { 0.0 };
     const ani_size offset = 0;
-    const ani_size len = 5;
+    const ani_size len = 3;
     env->Array_GetRegion_Double(positiveCoefficientAniArray, offset, len, posCoefNativeBuffer);
     env->Array_GetRegion_Double(negativeCoefficientAniArray, offset, len, negCoefNativeBuffer);
     const int xIndex = 0;
@@ -138,6 +138,37 @@ ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object para)
         UIEFFECT_LOG_E("create object failed '%{public}s'", ANI_UIEFFECT_BRIGHTNESS_BLENDER.c_str());
         return {};
     };
+    auto brightnessObj = std::make_unique<BrightnessBlender>();
+    retVal = CreateAniObject(env, ANI_UIEFFECT_BRIGHTNESS_BLENDER, nullptr,
+        reinterpret_cast<ani_long>(brightnessObj.release()));
+    if (!CheckCreateBrightnessBlender(env, para, retVal)) {
+        UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
+        return {};
+    };
+    return retVal;
+}
+
+ani_object AniEffect::CreateHdrBrightnessBlender(ani_env* env, ani_object para)
+{
+    ani_object retVal {};
+    ani_class cls;
+    if (env->FindClass(ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER.c_str(), &cls) != ANI_OK) {
+        UIEFFECT_LOG_E("not found '%{public}s'", ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER.c_str());
+        return {};
+    };
+    ani_method ctor;
+    if (env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor) != ANI_OK) {
+        UIEFFECT_LOG_E("get ctor failed '%{public}s'", ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER.c_str());
+        return {};
+    };
+    if (env->Object_New(cls, ctor, &retVal) != ANI_OK) {
+        UIEFFECT_LOG_E("create object failed '%{public}s'", ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER.c_str());
+        return {};
+    };
+    auto brightnessObj = std::make_unique<BrightnessBlender>();
+    brightnessObj->SetHdr(true);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER, nullptr,
+        reinterpret_cast<ani_long>(brightnessObj.release()));
     if (!CheckCreateBrightnessBlender(env, para, retVal)) {
         UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
         return {};
@@ -148,7 +179,13 @@ ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object para)
 ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_object para)
 {
     ani_object retVal {};
-    auto blender = std::make_shared<BrightnessBlender>();
+    ani_long nativeBrightObj;
+    if (env->Object_GetFieldByName_Long(para, "brightnessBlenderNativeObj", &nativeBrightObj) != ANI_OK) {
+        UIEFFECT_LOG_E("get generator brightnessBlenderNativeObj failed");
+        return retVal;
+    }
+    BrightnessBlender* brightnessBlenderObj = reinterpret_cast<BrightnessBlender*>(nativeBrightObj);
+    std::shared_ptr<BrightnessBlender> blender(brightnessBlenderObj);
     ParseBrightnessBlender(env, para, blender);
 
     auto bgColorEffectPara = std::make_shared<BackgroundColorEffectPara>();
@@ -184,7 +221,9 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     std::array staticMethods = {
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateEffect) },
         ani_native_function { "createBrightnessBlender", nullptr,
-            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateBrightnessBlender) }
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateBrightnessBlender) },
+        ani_native_function { "createHdrBrightnessBlender", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateHdrBrightnessBlender) }
     };
     if (env->Namespace_BindNativeFunctions(uiEffectNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
         UIEFFECT_LOG_E("[ANI_Constructor] Namespace_BindNativeFunctions failed");

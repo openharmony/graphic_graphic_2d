@@ -1107,6 +1107,17 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetOptimizeCanvasDrawRegionEnabled
+ * @tc.desc: GetOptimizeCanvasDrawRegionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesICI6YB
+ */
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeCanvasDrawRegionEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled());
+}
+
+/**
  * @tc.name: GetTimeVsyncDisabled
  * @tc.desc: GetTimeVsyncDisabled Test
  * @tc.type:FUNC
@@ -1129,6 +1140,50 @@ HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
     RSSystemProperties::SetBehindWindowFilterEnabled(!enabled);
     EXPECT_EQ(RSSystemProperties::GetBehindWindowFilterEnabled(), !enabled);
     RSSystemProperties::SetBehindWindowFilterEnabled(enabled);
+}
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest
+ * @tc.desc: set isTypicalResidentProcess_ to true
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
+    RSSystemProperties::SetTypicalResidentProcess(!enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
+    // recover isTypicalResidentProcess_
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
+}
+
+/**
+ * @tc.name: GetCompositeLayerEnabledTest
+ * @tc.desc: GetCompositeLayerEnabledTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetCompositeLayerEnabledTest, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetCompositeLayerEnabled();
+    EXPECT_EQ(enabled, true);
+}
+
+/**
+ * @tc.name: SetTypicalResidentProcessTest001
+ * @tc.desc: set isTypicalResidentProcess_ to true and GetHybridRenderEnabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
+    RSSystemProperties::SetTypicalResidentProcess(true);
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderEnabled(), false);
+    // recover isTypicalResidentProcess_
+    RSSystemProperties::SetTypicalResidentProcess(enabled);
+    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
 } // namespace Rosen
 } // namespace OHOS

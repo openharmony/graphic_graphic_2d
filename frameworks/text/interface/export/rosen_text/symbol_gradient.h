@@ -38,31 +38,18 @@ public:
     virtual ~SymbolGradient() = default;
 
     void SetColors(const std::vector<Drawing::ColorQuad>& colors);
-
     void SetPositions(const std::vector<float>& positions);
-
     void SetTileMode(Drawing::TileMode tileMode);
-
     const std::vector<Drawing::ColorQuad>& GetColors() const;
-
     const std::vector<float>& GetPositions() const;
-
     Drawing::TileMode GetTileMode() const;
-
     GradientType GetGradientType() const;
-
     Drawing::Brush CreateGradientBrush();
-
     Drawing::Pen CreateGradientPen();
-
     virtual void Make(const Drawing::Rect& bounds) {}
-
     virtual Drawing::Brush CreateGradientBrush(const Drawing::Point& offset);
-
     virtual Drawing::Pen CreateGradientPen(const Drawing::Point& offset);
-
     virtual std::shared_ptr<Drawing::ShaderEffect> CreateGradientShader(const Drawing::Point& offset);
-
     bool IsNearlyEqual(const std::shared_ptr<SymbolGradient>& gradient);
 
 protected:
@@ -78,9 +65,7 @@ public:
     ~SymbolLineGradient() override = default;
 
     void SetAngle(float rangle);
-
-    float GetAngle();
-
+    float GetAngle() const;
     void Make(const Drawing::Rect& bounds) override;
     Drawing::Brush CreateGradientBrush(const Drawing::Point& offset) override;
     Drawing::Pen CreateGradientPen(const Drawing::Point& offset) override;
@@ -101,17 +86,12 @@ public:
     ~SymbolRadialGradient() override = default;
 
     void SetCenterPoint(const Drawing::Point& centerPtRatio);
-
     void SetRadiusRatio(float radiusRatio);
-
     void SetRadius(float radius);
-
-    Drawing::Point GetCenterPoint();
-
-    float GetRadius();
-
-    float GetRadiusRatio();
-
+    Drawing::Point GetCenterPoint() const;
+    float GetRadius() const;
+    float GetRadiusRatio() const;
+    bool IsRadiusRatio() const;
     void Make(const Drawing::Rect& bounds) override;
     Drawing::Brush CreateGradientBrush(const Drawing::Point& offset) override;
     Drawing::Pen CreateGradientPen(const Drawing::Point& offset) override;

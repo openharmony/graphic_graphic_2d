@@ -204,11 +204,37 @@ HWTEST_F(RSVulkanContextTest, CreateSkiaGetProc001, TestSize.Level1)
 
 /**
  * @tc.name: CreateDrawingContext001
+ * @tc.desc: test results of CreateDrawingContext while vulkanInterfaceType_ is BASIC_RENDER
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level2)
+{
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::drawingContextMap_.clear();
+    ASSERT_NE(RsVulkanContext::GetSingleton().CreateDrawingContext(), nullptr);
+}
+
+/**
+ * @tc.name: CreateDrawingContext002
+ * @tc.desc: test results of CreateDrawingContext while drawingContextMap_ contain nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext002, TestSize.Level2)
+{
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::drawingContextMap_[gettid()] = std::make_pair(nullptr, false);
+    ASSERT_NE(RsVulkanContext::GetSingleton().CreateDrawingContext(), nullptr);
+}
+
+/**
+ * @tc.name: CreateDrawingContext003
  * @tc.desc: test results of CreateDrawingContext
  * @tc.type:FUNC
  * @tc.require: issueI9VVLE
  */
-HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level1)
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext003, TestSize.Level2)
 {
     RsVulkanInterface rsVulkanInterface;
     auto ret = rsVulkanInterface.CreateDrawingContext();
@@ -224,8 +250,8 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level1)
 HWTEST_F(RSVulkanContextTest, GetRecyclableSingleton001, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
+    (void)RsVulkanContext::ReleaseRecyclableSingleton();
     ASSERT_NE(&RsVulkanContext::GetRecyclableSingleton(), nullptr);
-
     // reset recyclable singleton
     RsVulkanContext::ReleaseRecyclableSingleton();
     RsVulkanContext::SetRecyclable(false);
@@ -241,6 +267,7 @@ HWTEST_F(RSVulkanContextTest, GetRecyclableSingletonPtr001, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
     RsVulkanContext::ReleaseRecyclableSingleton();
+    (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
     // reset recyclable singleton
@@ -258,9 +285,8 @@ HWTEST_F(RSVulkanContextTest, GetRecyclableSingletonPtr002, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
     RsVulkanContext::ReleaseRecyclableSingleton();
-    // GetRecyclableSingletonPtr init singleton
-    RsVulkanContext::GetRecyclableSingletonPtr();
     // GetRecyclableSingletonPtr return the same singleton
+    (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
     // reset recyclable singleton
@@ -556,6 +582,7 @@ HWTEST_F(RSVulkanContextTest, RSVulkanContextDestruction, TestSize.Level2)
 {
     // create recyclable vulkan context
     RsVulkanContext::SetRecyclable(true);
+    (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
     RsVulkanContext::ReleaseRecyclableSingleton();
@@ -638,12 +665,12 @@ HWTEST_F(RSVulkanContextTest, GetDrawingContext004, TestSize.Level2)
 }
 
 /**
- * @tc.name: CreateDrawingContext002
+ * @tc.name: CreateDrawingContext004
  * @tc.desc: test results of CreateDrawingContext while protectedDrawingContextMap_ is empty
  * @tc.type:FUNC
  * @tc.require: issueICDVVY
  */
-HWTEST_F(RSVulkanContextTest, CreateDrawingContext002, TestSize.Level2)
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext004, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     RsVulkanContext::GetSingleton().SetIsProtected(true);
@@ -656,12 +683,12 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext002, TestSize.Level2)
 }
 
 /**
- * @tc.name: CreateDrawingContext003
+ * @tc.name: CreateDrawingContext005
  * @tc.desc: test results of CreateDrawingContext while protectedDrawingContext is nullptr
  * @tc.type:FUNC
  * @tc.require: issueICDVVY
  */
-HWTEST_F(RSVulkanContextTest, CreateDrawingContext003, TestSize.Level2)
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext005, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     RsVulkanContext::GetSingleton().SetIsProtected(true);
@@ -674,12 +701,12 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext003, TestSize.Level2)
 }
 
 /**
- * @tc.name: CreateDrawingContext004
+ * @tc.name: CreateDrawingContext006
  * @tc.desc: test results of CreateDrawingContext while protectedDrawingContext isn't nullptr
  * @tc.type:FUNC
  * @tc.require: issueICDVVY
  */
-HWTEST_F(RSVulkanContextTest, CreateDrawingContext004, TestSize.Level2)
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext006, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     RsVulkanContext::GetSingleton().SetIsProtected(true);
@@ -690,6 +717,22 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext004, TestSize.Level2)
 
     // restore
     RsVulkanContext::ReleaseDrawingContextMap();
+}
+
+/**
+ * @tc.name: CreateDrawingContext007
+ * @tc.desc: test results of CreateDrawingContext while protectedDrawingContext isn't nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSVulkanContextTest, CreateDrawingContext007, TestSize.Level2)
+{
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().SetIsProtected(true);
+    auto& singletonPtr = RsVulkanContext::GetRecyclableSingletonPtr("");
+    singletonPtr.reset();
+    RsVulkanContext::GetRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

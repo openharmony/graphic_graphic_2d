@@ -60,6 +60,7 @@ public:
     inline explicit SamplingOptions(FilterMode fm) noexcept;
     inline SamplingOptions(FilterMode fm, MipmapMode mm) noexcept;
     inline explicit SamplingOptions(const CubicResampler& c) noexcept;
+    inline SamplingOptions(const SamplingOptions& other) noexcept = default;
 
     inline ~SamplingOptions() {}
 
@@ -75,31 +76,12 @@ public:
     inline void Dump(std::string& out) const;
 
 private:
-#ifdef USE_M133_SKIA
-    int maxAniso = 0;
-#endif
     bool useCubic = false;
     CubicResampler cubic = {0, 0};
     FilterMode filter = FilterMode::NEAREST;
     MipmapMode mipmap = MipmapMode::NONE;
 };
 
-#ifdef USE_M133_SKIA
-inline SamplingOptions::SamplingOptions() noexcept
-    : maxAniso(0), useCubic(false), filter(FilterMode::NEAREST), mipmap(MipmapMode::NONE)
-{}
-
-inline SamplingOptions::SamplingOptions(FilterMode fm) noexcept
-    : maxAniso(0), useCubic(false), filter(fm), mipmap(MipmapMode::NONE)
-{}
-
-inline SamplingOptions::SamplingOptions(FilterMode fm, MipmapMode mm) noexcept
-    : maxAniso(0), useCubic(false), filter(fm), mipmap(mm)
-{}
-
-inline SamplingOptions::SamplingOptions(const CubicResampler& c) noexcept
-    : maxAniso(0), useCubic(true), cubic(c) {}
-#else
 inline SamplingOptions::SamplingOptions() noexcept
     : useCubic(false), filter(FilterMode::NEAREST), mipmap(MipmapMode::NONE)
 {}
@@ -111,7 +93,6 @@ inline SamplingOptions::SamplingOptions(FilterMode fm, MipmapMode mm) noexcept :
 {}
 
 inline SamplingOptions::SamplingOptions(const CubicResampler& c) noexcept : useCubic(true), cubic(c) {}
-#endif
 
 inline bool SamplingOptions::GetUseCubic() const
 {
@@ -140,13 +121,8 @@ inline float SamplingOptions::GetCubicCoffC() const
 
 inline bool operator==(const SamplingOptions& a, const SamplingOptions& b)
 {
-#ifdef USE_M133_SKIA
-    return a.maxAniso == b.maxAniso && a.useCubic == b.useCubic && a.cubic.cubicCoffB == b.cubic.cubicCoffB &&
-        a.cubic.cubicCoffC == b.cubic.cubicCoffC && a.filter == b.filter && a.mipmap == b.mipmap;
-#else
     return a.useCubic == b.useCubic && a.cubic.cubicCoffB == b.cubic.cubicCoffB &&
         a.cubic.cubicCoffC == b.cubic.cubicCoffC && a.filter == b.filter && a.mipmap == b.mipmap;
-#endif
 }
 
 inline bool operator!=(const SamplingOptions& a, const SamplingOptions& b)

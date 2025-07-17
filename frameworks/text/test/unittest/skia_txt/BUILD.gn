@@ -17,7 +17,7 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("rosen_text_skia_txt_test") {
-  module_out_path = text_test_out_path
+  module_out_path = text_ut_out_path
   configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
   sources = [
     "asset_font_manager_test.cpp",
@@ -68,7 +68,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "c_utils:utils",
       "samgr:samgr_proxy",
     ]
-    if (use_new_skia) {
+    if (graphic_2d_feature_upgrade_skia) {
       external_deps += [ "skia:skia_paragraph_ohos_new" ]
     } else {
       external_deps += [ "skia:skia_paragraph_ohos" ]

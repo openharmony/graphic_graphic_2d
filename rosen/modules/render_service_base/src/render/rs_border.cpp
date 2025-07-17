@@ -444,7 +444,7 @@ void RSBorder::DrawBorders(Drawing::Canvas& canvas, Drawing::Pen& pen, RSBorderG
             DrawBorderImpl(canvas, pen, borderGeo, RSBorder::BOTTOM, RSBorder::LEFT);
             break;
 
-        case 0b0101: // RB same, LT same
+        case 0b0101: // TR same, BL same
             DrawBorderImpl(canvas, pen, borderGeo, RSBorder::TOP, RSBorder::RIGHT);
             DrawBorderImpl(canvas, pen, borderGeo, RSBorder::BOTTOM, RSBorder::LEFT);
             break;
@@ -636,6 +636,7 @@ void RSBorder::DrawTopBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const R
     topBorder.LineTo(std::max(offsetX + width - RIGHTW2, offsetX + width - trRad.GetX() / 2.f), y + trRad.GetY());
     canvas.AttachPen(pen);
     canvas.DrawPath(topBorder);
+    canvas.DetachPen();
 }
 
 void RSBorder::DrawRightBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const RSBorderGeo& borderGeo) const

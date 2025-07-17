@@ -555,6 +555,20 @@ HWTEST_F(SkiaImageTest, MakeFromRaster, TestSize.Level1)
     ASSERT_TRUE(image == nullptr);
 }
 
+/**
+ * @tc.name: SupportOpaqueOpt
+ * @tc.desc: Test SupportOpaqueOpt
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaImageTest, SupportOpaqueOpt, TestSize.Level1)
+{
+    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
+    skiaImage->SetSupportOpaqueOpt(true);
+    auto data = skiaImage->GetSupportOpaqueOpt();
+    EXPECT_TRUE(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

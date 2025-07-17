@@ -78,7 +78,7 @@ enum HgmErrCode {
     FINAL_RANGE_NOT_VALID,
 };
 
-enum HgmXmlNode {
+enum class HgmXmlNode {
     HGM_XML_UNDEFINED = 0,
     HGM_XML_PARAM,
     HGM_XML_PARAMS,
@@ -88,18 +88,19 @@ enum class SceneType {
     SCREEN_RECORD,
 };
 
-enum PointerModeType : int32_t {
+enum class PointerModeType : int32_t {
     POINTER_DISENABLED = 0,
     POINTER_ENABLED = 1,
 };
 
-enum DynamicModeType : int32_t {
+enum class DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
     TOUCH_EXT_ENABLED = 2, // touch extend program
+    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2:touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
 };
 
-enum MultiAppStrategyType {
+enum class MultiAppStrategyType {
     USE_MAX,
     FOLLOW_FOCUS,
     USE_STRATEGY_NUM,
@@ -147,7 +148,7 @@ public:
     struct DynamicConfig {
         int32_t min;
         int32_t max;
-        int32_t preferred_fps;
+        int32_t preferredFps;
     };
     // <"1", DynamicConfig>
     using DynamicSetting = std::unordered_map<std::string, DynamicConfig>;
@@ -242,7 +243,7 @@ public:
     int32_t XmlModeId2SettingModeId(int32_t xmlModeId)
     {
         auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
-            [=] (auto nameModeId) { return nameModeId.second == xmlModeId; });
+            [&](auto nameModeId) { return nameModeId.second == xmlModeId; });
         if (iter != refreshRateForSettings_.end()) {
             return static_cast<int32_t>(iter - refreshRateForSettings_.begin());
         }
@@ -252,7 +253,7 @@ public:
     int32_t GetRefreshRateModeName(int32_t refreshRateModeId)
     {
         auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
-            [=] (auto nameModeId) { return nameModeId.second == refreshRateModeId; });
+            [&](auto nameModeId) { return nameModeId.second == refreshRateModeId; });
         if (iter != refreshRateForSettings_.end()) {
             return iter->first;
         }
@@ -312,8 +313,8 @@ public:
     std::string GetGameNodeName(const std::string& pkgName) const override;
 
 protected:
-    std::string SettingModeId2XmlModeId(int32_t settingModeId) const;
-    int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const;
+    std::optional<std::string> SettingModeId2XmlModeId(int32_t settingModeId) const;
+    std::optional<int32_t> XmlModeId2SettingModeId(const std::string& xmlModeId) const;
     int32_t GetRefreshRateModeName(int32_t refreshRateModeId) const;
     std::string GetAppStrategyConfigName(const std::string& pkgName, int32_t appType) const;
 

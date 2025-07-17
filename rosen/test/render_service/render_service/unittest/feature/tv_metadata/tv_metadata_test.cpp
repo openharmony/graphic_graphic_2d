@@ -147,4 +147,71 @@ HWTEST_F(TvMetadataTest, CopyTvMetadataToSurface_001, TestSize.Level1)
     ASSERT_EQ(0, outMetadata.vidFrameCnt);
     ASSERT_EQ(0, outMetadata.dpPixFmt);
 }
+
+/*
+ * @tc.name: CopyFromLayersToSurface_001
+ * @tc.desc: Test CopyFromLayersToSurface
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, CopyFromLayersToSurface_001, TestSize.Level1)
+{
+    auto rsSurface = CreateRsSurfaceOhos();
+    auto outBuffer = rsSurface->GetCurrentBuffer();
+    ASSERT_NE(rsSurface, nullptr);
+    ASSERT_EQ(true, outBuffer != nullptr);
+
+    // test empty layers
+    std::vector<LayerInfoPtr> layers;
+    RSTvMetadataManager::CopyFromLayersToSurface(layers, rsSurface);
+    TvPQMetadata tvMetadata = { 0 };
+    MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
+    ASSERT_EQ(0, tvMetadata.sceneTag);
+    ASSERT_EQ(0, tvMetadata.uiFrameCnt);
+    ASSERT_EQ(0, tvMetadata.vidFrameCnt);
+    ASSERT_EQ(0, tvMetadata.dpPixFmt);
+
+    // test normal layers
+    auto rsSurface1 = CreateRsSurfaceOhos();
+    ASSERT_NE(rsSurface1, nullptr);
+    auto buffer = rsSurface1->GetCurrentBuffer();
+    ASSERT_NE(buffer, nullptr);
+    TvPQMetadata layerTvMetadata = { 0 };
+    layerTvMetadata.sceneTag = 1;
+    layerTvMetadata.uiFrameCnt = 60;
+    layerTvMetadata.vidFrameCnt = 24;
+    layerTvMetadata.dpPixFmt = 2;
+    MetadataHelper::SetVideoTVMetadata(buffer, layerTvMetadata);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    layer->SetBuffer(buffer, acquireFence);
+    layers.emplace_back(layer);
+
+    RSTvMetadataManager::CopyFromLayersToSurface(layers, rsSurface);
+    MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
+    ASSERT_EQ(1, tvMetadata.sceneTag);
+    ASSERT_EQ(60, tvMetadata.uiFrameCnt);
+    ASSERT_EQ(24, tvMetadata.vidFrameCnt);
+    ASSERT_EQ(2, tvMetadata.dpPixFmt);
+}
+
+/*
+ * @tc.name: ResetDpPixelFormat_001
+ * @tc.desc: Test ResetDpPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, ResetDpPixelFormat_001, TestSize.Level1)
+{
+    TvPQMetadata metadata = { 0 };
+    metadata.sceneTag = 1;
+    metadata.uiFrameCnt = 60;
+    metadata.dpPixFmt = 2;
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(metadata);
+    RSTvMetadataManager::Instance().ResetDpPixelFormat();
+    auto outMetadata = RSTvMetadataManager::Instance().GetMetadata();
+    ASSERT_EQ(1, outMetadata.sceneTag);
+    ASSERT_EQ(60, outMetadata.uiFrameCnt);
+    ASSERT_EQ(0, outMetadata.dpPixFmt);
+}
 }

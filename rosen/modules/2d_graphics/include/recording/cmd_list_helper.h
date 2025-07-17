@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -269,6 +269,9 @@ public:
 #endif
     static uint32_t AddExtendObjectToCmdList(CmdList& cmdList, std::shared_ptr<ExtendObject>);
     static std::shared_ptr<ExtendObject> GetExtendObjectFromCmdList(const CmdList& cmdList, uint32_t index);
+
+    static uint32_t AddDrawingObjectToCmdList(CmdList& cmdList, std::shared_ptr<Object>);
+    static std::shared_ptr<Object> GetDrawingObjectFromCmdList(const CmdList& cmdList, uint32_t index);
 };
 } // namespace Drawing
 } // namespace Rosen

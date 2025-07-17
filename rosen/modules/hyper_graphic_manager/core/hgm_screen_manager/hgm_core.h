@@ -255,7 +255,7 @@ public:
     }
 
     // set refresh rates
-    int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
+    int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate, bool shouldSendCallback = true);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
@@ -318,21 +318,6 @@ public:
     bool GetMultiSelfOwnedScreenEnable() const
     {
         return multiSelfOwnedScreenEnable_.load();
-    }
-
-    // only called/used by RSHardwareThread
-    bool IsSwitchDssEnable(ScreenId screenId) const
-    {
-        if (auto iter = screenSwitchDssEnableMap_.find(screenId); iter != screenSwitchDssEnableMap_.end()) {
-            return iter->second;
-        }
-        return false;
-    }
-
-    // only called/used by RSHardwareThread
-    void SetScreenSwitchDssEnable(ScreenId screenId, bool switchDssEnable)
-    {
-        screenSwitchDssEnableMap_[screenId] = switchDssEnable;
     }
 
     // called by RSMainThread
@@ -401,7 +386,6 @@ private:
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
-    std::unordered_map<ScreenId, bool> screenSwitchDssEnableMap_; // only called/used by RSHardwareThread
     HgmHfbcConfig hfbcConfig_;
 
     friend class HWCParam;

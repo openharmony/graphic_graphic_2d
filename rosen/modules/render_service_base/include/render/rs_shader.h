@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_SHADER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_SHADER_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_SHADER_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_SHADER_H
 
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
@@ -62,4 +62,4 @@ protected:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_SHADER_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_SHADER_H

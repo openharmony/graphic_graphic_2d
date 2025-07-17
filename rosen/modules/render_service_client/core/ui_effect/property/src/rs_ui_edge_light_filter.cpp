@@ -111,9 +111,19 @@ void RSUIEdgeLightFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBa
 
     auto color = edgeLightProperty->GetPropertyWithFilterType<RSAnimatableProperty<Vector4f>>(
         RSUIFilterType::EDGE_LIGHT_COLOR);
-    if (color != nullptr) {
-        SetColor(color->Get());
+    if (color == nullptr) {
+        ROSEN_LOGW("RSUIEdgeLightFilterPara::SetProperty color is null NG!");
+        return;
     }
+    SetColor(color->Get());
+
+    auto useRawColor = edgeLightProperty->GetPropertyWithFilterType<RSProperty<bool>>(
+        RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR);
+    if (useRawColor == nullptr) {
+        ROSEN_LOGW("RSUIEdgeLightFilterPara::useRawColor color is null NG!");
+        return;
+    }
+    SetUseRawColor(useRawColor->Get());
 
     auto mask = edgeLightProperty->GetRSProperty(maskType_);
     if (mask == nullptr) {
@@ -138,11 +148,8 @@ void RSUIEdgeLightFilterPara::SetEdgeLight(const std::shared_ptr<EdgeLightPara>&
 
     SetAlpha(edgeLight->GetAlpha());
     SetBloom(edgeLight->GetBloom());
-
-    auto colorPara = edgeLight->GetColor();
-    if (colorPara.has_value()) {
-        SetColor(colorPara.value());
-    }
+    SetColor(edgeLight->GetColor());
+    SetUseRawColor(edgeLight->GetUseRawColor());
 
     auto maskPara = edgeLight->GetMask();
     if (maskPara == nullptr) {
@@ -174,6 +181,11 @@ void RSUIEdgeLightFilterPara::SetBloom(bool bloom)
 void RSUIEdgeLightFilterPara::SetColor(const Vector4f& color)
 {
     Setter<RSAnimatableProperty<Vector4f>>(RSUIFilterType::EDGE_LIGHT_COLOR, color);
+}
+
+void RSUIEdgeLightFilterPara::SetUseRawColor(bool useRawColor)
+{
+    Setter<RSProperty<bool>>(RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR, useRawColor);
 }
 
 void RSUIEdgeLightFilterPara::SetMask(const std::shared_ptr<RSUIMaskPara>& mask)
@@ -230,6 +242,22 @@ bool RSUIEdgeLightFilterPara::CreateRSRenderFilterColor(
     return true;
 }
 
+bool RSUIEdgeLightFilterPara::CreateRSRenderFilterUseRawColor(
+    const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty)
+{
+    // para:EDGE_LIGHT_USE_RAW_COLOR
+    auto useRawColor = std::static_pointer_cast<RSProperty<bool>>(
+        GetRSProperty(RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR));
+    if (useRawColor == nullptr) {
+        ROSEN_LOGE("RSUIEdgeLightFilterPara::CreateRSRenderFilterUseRawColor not found EDGE_LIGHT_USE_RAW_COLOR");
+        return false;
+    }
+
+    auto renderUseRawColor = std::make_shared<RSRenderProperty<bool>>(useRawColor->Get(), useRawColor->GetId());
+    frProperty->Setter(RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR, renderUseRawColor);
+    return true;
+}
+
 bool RSUIEdgeLightFilterPara::CreateRSRenderFilterMask(
     const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty)
 {
@@ -258,6 +286,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIEdgeLightFilterPara::CreateRSRenderF
     if (!CreateRSRenderFilterAlpha(frProperty) ||
         !CreateRSRenderFilterBloom(frProperty) ||
         !CreateRSRenderFilterColor(frProperty) ||
+        !CreateRSRenderFilterUseRawColor(frProperty) ||
         !CreateRSRenderFilterMask(frProperty)) {
         ROSEN_LOGE("RSUIEdgeLightFilterPara::CreateRSRenderFilter create render filter failed, "
             "id: %{public}d, maskType: %{public}d", static_cast<int>(id_), static_cast<int>(maskType_));

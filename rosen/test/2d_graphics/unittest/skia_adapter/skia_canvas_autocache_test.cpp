@@ -202,7 +202,13 @@ HWTEST_F(SkiaCanvasAutoCacheTest, RecordDrawArea001, TestSize.Level1)
 
     SkiaImage skiaImage;
     const SamplingOptions sampling;
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
     SkRect dstBounds = SkRect::MakeEmpty();
     skiaCanvasAutoCache.onDrawImageRect2(skiaImage.GetImage().get(), bounds, dstBounds, *samplingOptions, &skPaint,
         static_cast<SkCanvas::SrcRectConstraint>(SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT));
@@ -357,7 +363,13 @@ HWTEST_F(SkiaCanvasAutoCacheTest, onDrawImage2001, TestSize.Level1)
     SkImage image(info, 1); // 1 means uniqueID
 #endif
     const SamplingOptions sampling;
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
     ASSERT_TRUE(samplingOptions != nullptr);
 #ifdef USE_M133_SKIA
     skiaCanvasAutoCache.onDrawImage2(image.get(), 100.f, 200.f, *samplingOptions,
@@ -429,7 +441,13 @@ HWTEST_F(SkiaCanvasAutoCacheTest, onDrawAtlas2001, TestSize.Level1)
     SkColor* skColor = reinterpret_cast<SkColor*>(&color);
     SkColor skColorArray[2] = {*skColor, *skColor}; // 2 means array size
     const SamplingOptions sampling;
+#ifdef USE_M133_SKIA
+    SamplingOptionsUtils tempSamplingOptions;
+    ConvertSamplingOptions(tempSamplingOptions, sampling);
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&tempSamplingOptions);
+#else
     const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+#endif
     ASSERT_TRUE(samplingOptions != nullptr);
     const SkRect cull = SkRect::MakeLTRB(100, 100, 400, 300); // rect.Left, rect.Top, rect.Right, rect.Bottom
 

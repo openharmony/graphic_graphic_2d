@@ -26,6 +26,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 #include "string_utils.h"
@@ -63,6 +64,7 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
 {
+    ClearDrawingCacheDataMap();
     ClearCachedSurface();
     ResetClearSurfaceFunc();
 }
@@ -86,6 +88,10 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    if (canvas.GetUICapture() && captureParam.captureFinished_) {
+        return;
+    }
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
@@ -94,16 +100,20 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    UpdateFilterDisplayHeadroom(canvas);
+
     DrawBackground(canvas, bounds);
 
     CollectInfoForUnobscuredUEC(canvas);
 
     DrawContent(canvas, bounds);
 
-    auto& captureParam = RSUniRenderThread::GetCaptureParam();
     bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
         captureParam.endNodeId_ == GetId() &&
         captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture) {
+        captureParam.captureFinished_ = true;
+    }
     if (!captureParam.isSoloNodeUiCapture_ && !stopDrawForRangeCapture) {
         DrawChildren(canvas, bounds);
     }
@@ -280,6 +290,27 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     isOpDropped_ = isOpDropped;
     drawBlurForCache_ = false;
     curDrawingCacheRoot_ = root;
+}
+
+bool RSRenderNodeDrawable::DealWithWhiteListNodes(Drawing::Canvas& canvas)
+{
+    auto captureParam = RSUniRenderThread::GetCaptureParam();
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    if (!captureParam.isMirror_ || whiteList.empty() || captureParam.rootIdInWhiteList_ != INVALID_NODEID) {
+        return false;
+    }
+    
+    const auto& params = GetRenderParams();
+    if (!params) {
+        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture params is nullptr");
+        return true;
+    }
+    auto info = params->GetVirtualScreenWhiteListInfo();
+    if (info.find(captureParam.virtualScreenId_) != info.end()) {
+        DrawChildren(canvas, params->GetFrameRect());
+    }
+    return true;
 }
 
 CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
@@ -540,9 +571,9 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(
     RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
-        auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
-        if (displayParams && displayParams->GetNeedOffscreen()) {
-            canvas.ConcatMatrix(displayParams->GetMatrix());
+        auto screenParams = static_cast<RSScreenRenderParams*>(params.get());
+        if (screenParams && screenParams->GetNeedOffscreen()) {
+            canvas.ConcatMatrix(screenParams->GetMatrix());
         }
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         for (const auto& [id, cacheInfo] : drawingCacheInfos_) {
@@ -860,7 +891,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
-    bool isHdrOn = false; // todo: temporary set false, fix in future
+    bool isHdrOn = false;
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrOn || isScRGBEnable;
@@ -949,6 +980,28 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
     auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
     RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, ctx, updateTimes);
+}
+
+void RSRenderNodeDrawable::UpdateFilterDisplayHeadroom(Drawing::Canvas& canvas)
+{
+    if (canvas.GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
+        return;
+    }
+
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    NodeId screenId = paintFilterCanvas->GetScreenId();
+    auto headroom = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenId);
+
+    const auto& params = GetRenderParams();
+    if (!params) {
+        return;
+    }
+    if (params->GetForegroundFilterCache()) {
+        params->GetForegroundFilterCache()->SetDisplayHeadroom(headroom);
+    }
+    if (params->GetBackgroundFilter()) {
+        params->GetBackgroundFilter()->SetDisplayHeadroom(headroom);
+    }
 }
 
 int RSRenderNodeDrawable::GetTotalProcessedNodeCount()

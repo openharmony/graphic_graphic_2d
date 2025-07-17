@@ -98,9 +98,9 @@ void RSCanvasNode::SetHDRPresent(bool hdrPresent)
     }
 }
 
-void RSCanvasNode::SetIsWideColorGamut(bool isWideColorGamut)
+void RSCanvasNode::SetColorGamut(uint32_t colorGamut)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetIsWideColorGamut>(GetId(), isWideColorGamut);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetColorGamut>(GetId(), colorGamut);
     AddCommand(command, true);
 }
 
@@ -175,10 +175,10 @@ void RSCanvasNode::FinishRecording()
     }
 
 #if defined(MODIFIER_NG)
-    uint16_t modifierType = static_cast<uint16_t>(
+    auto modifierType = static_cast<uint16_t>(
         drawContentLast_ ? ModifierNG::RSModifierType::FOREGROUND_STYLE : ModifierNG::RSModifierType::CONTENT_STYLE);
 #else
-    uint16_t modifierType =
+    auto modifierType =
         static_cast<uint16_t>(drawContentLast_ ? RSModifierType::FOREGROUND_STYLE : RSModifierType::CONTENT_STYLE);
 #endif
     std::unique_ptr<RSCommand> command =
@@ -208,9 +208,9 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         recording->GenerateCache();
     }
 #if defined(MODIFIER_NG)
-    uint16_t modifierType = static_cast<uint16_t>(ModifierTypeConvertor::ToModifierNGType(type));
+    auto modifierType = static_cast<uint16_t>(ModifierTypeConvertor::ToModifierNGType(type));
 #else
-    uint16_t modifierType = static_cast<uint16_t>(type);
+    auto modifierType = static_cast<uint16_t>(type);
 #endif
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, modifierType);
@@ -259,13 +259,13 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
   boundsChangedCallback_ = callback;
 }
 
-#ifdef RS_ENABLE_VK
 bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
     if (!IsHybridRenderCanvas()) {
         return false;
     }
     bool ret = false;
+#ifdef RS_ENABLE_VK
     RSModifiersDrawThread::Instance().PostSyncTask([this, &bitmap, &ret]() {
         auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (pixelMap == nullptr) {
@@ -280,6 +280,7 @@ bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::D
         }
         ret = true;
     });
+#endif
     return ret;
 }
 
@@ -294,6 +295,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         return false;
     }
     bool ret = false;
+#ifdef RS_ENABLE_VK
     RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
         auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (srcPixelMap == nullptr) {
@@ -310,6 +312,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         }
         ret = true;
     });
+#endif
     return ret;
 }
 
@@ -318,9 +321,11 @@ bool RSCanvasNode::ResetSurface(int width, int height)
     if (!IsHybridRenderCanvas()) {
         return false;
     }
+#ifdef RS_ENABLE_VK
     return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
-}
 #endif
+    return false;
+}
 
 void RSCanvasNode::CheckThread()
 {
@@ -332,17 +337,11 @@ void RSCanvasNode::CheckThread()
 // [Attention] Only used in PC window resize scene now
 void RSCanvasNode::SetLinkedRootNodeId(NodeId rootNodeId)
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSCanvasNode::SetLinkedRootNodeId transactionProxy is nullptr");
-        return;
-    }
-
     ROSEN_LOGI("RSCanvasNode::SetLinkedRootNodeId nodeId: %{public}" PRIu64 ", rootNode: %{public}" PRIu64 "",
          GetId(), rootNodeId);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeSetLinkedRootNodeId>(GetId(), rootNodeId);
-    transactionProxy->AddCommand(command, true);
+    AddCommand(command, true);
     linkedRootNodeId_ = rootNodeId;
 }
 

@@ -16,6 +16,7 @@
 #ifndef RS_UIFIRST_MANAGER_H
 #define RS_UIFIRST_MANAGER_H
 
+#include <chrono>
 #include <condition_variable>
 #include <map>
 #include <set>
@@ -53,6 +54,8 @@ public:
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
+    void AddPendingNodeBehindWindow(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
+        MultiThreadCacheType currentFrameCacheType);
 
     bool NeedNextDrawForSkippedNode();
 
@@ -123,9 +126,10 @@ public:
     void MergeOldDirty(NodeId id);
     void MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node);
 
-    void SetRotationChanged(bool rotationChanged)
+    void PreStatusProcess(bool rotationChanged)
     {
         rotationChanged_ = rotationChanged;
+        curUifirstWindowNums_ = 0;
     }
 
     bool IsRecentTaskScene() const
@@ -142,6 +146,8 @@ public:
     {
         return isSplitScreenScene_.load();
     }
+
+    void AddCapturedNodes(NodeId id);
 
     void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
     {
@@ -193,7 +199,13 @@ public:
     void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
     // get cache state of uifirst root node
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
+    void AddMarkedClearCacheNode(NodeId id);
+    void ProcessMarkedNodeSubThreadCache();
 private:
+    struct NodeDataBehindWindow {
+        uint64_t curTime = 0;
+        bool isFirst = true;
+    };
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
     RSUifirstManager(const RSUifirstManager&);
@@ -222,8 +234,17 @@ private:
     void ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
     bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool NeedPurgeByBehindWindow(NodeId id, bool hasTexture,
+    const std::shared_ptr<RSSurfaceRenderNode>& node);
+    // filter out the nodes by behind window
+    void HandlePurgeBehindWindow(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>::iterator& it,
+        std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     // filter out the nodes which need to draw in subthread
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
+    // use in behindwindow condition to calculate the node purge time interval
+    uint64_t GetTimeDiffBehindWindow(uint64_t currentTime, NodeId id);
+    uint64_t GetMainThreadVsyncTime();
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
         std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
@@ -241,6 +262,8 @@ private:
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
     NodeId LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node);
     void NotifyUIStartingWindow(NodeId id, bool wait);
+    bool HasStartingWindow(RSSurfaceRenderNode& node);
+
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
     bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
@@ -262,6 +285,11 @@ private:
     // starting
     void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);
 
+    bool IsFocusedNode(const RSSurfaceRenderNode& node) const;
+    void IncreaseUifirstWindowCount(const RSSurfaceRenderNode& node);
+    void DecreaseUifirstWindowCount(const RSSurfaceRenderNode& node);
+    bool IsExceededWindowsThreshold(const RSSurfaceRenderNode& node) const;
+
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
     bool isUiFirstSupportFlag_ = false;
@@ -277,6 +305,11 @@ private:
     std::atomic<bool> isSplitScreenScene_ = false;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
+    static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;
+    // Minimum frame drop time in behind window condition
+    static constexpr int BEHIND_WINDOW_RELEASE_TIME = 33;
+    // the max Delivery time in behind window condition
+    static constexpr int PURGE_BEHIND_WINDOW_TIME = BEHIND_WINDOW_RELEASE_TIME - BEHIND_WINDOW_TIME_THRESHOLD;
     int32_t scbPid_ = 0;
     std::atomic<int> noUifirstNodeFrameCount_ = 0;
     NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
@@ -310,6 +343,8 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
+    // record the release time of each pendingnode to control the release frequency
+    std::unordered_map<NodeId, NodeDataBehindWindow> pendingNodeBehindWindow_;
     std::list<NodeId> sortedSubThreadNodeIds_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> pendingResetWindowCachedNodes_;
 
@@ -342,8 +377,15 @@ private:
         { "hongyunvd" },
         { "ecoengine" },
     };
-
+    std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
+
+    // maximum uifirst window count
+    int uifirstWindowsNumThreshold_ = 0;
+    // current uifirst window count
+    int curUifirstWindowNums_ = 0;
+    // uifirst mem opt.
+    std::set<NodeId> markedClearCacheNodes_;
 };
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:

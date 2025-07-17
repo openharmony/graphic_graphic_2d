@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
 
+#include <atomic>
 #include <cmath>
 #include <functional>
 #include <limits.h>
@@ -29,6 +30,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_anco_type.h"
+#include "draw/color.h"
 
 namespace OHOS {
 class Surface;
@@ -55,8 +57,11 @@ constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
 
-// types in the same layer should be 0/1/2/4/8
-// types for UINode
+/**
+ * Bitmask enumeration for hierarchical type identification
+ * Descendant types must include all ancestor bits following the rules:
+ * childFlags = ParentFlags | AdditionalBits
+ */
 enum class RSUINodeType : uint32_t {
     UNKNOW              = 0x0000u,
     RS_NODE             = 0x0001u,
@@ -85,18 +90,23 @@ enum class FollowType : uint8_t {
 #define CM_INLINE
 #endif
 
-// types for RenderNode
+/**
+ * Bitmask enumeration for hierarchical type identification
+ * Descendant types must include all ancestor bits following the rules:
+ * childFlags = ParentFlags | AdditionalBits
+ */
 enum class RSRenderNodeType : uint32_t {
-    UNKNOW              = 0x0000u,
-    RS_NODE             = 0x0001u,
-    DISPLAY_NODE        = 0x0011u,
-    SURFACE_NODE        = 0x0021u,
-    PROXY_NODE          = 0x0041u,
-    CANVAS_NODE         = 0x0081u,
-    EFFECT_NODE         = 0x0101u,
-    ROUND_CORNER_NODE   = 0x0201u,
-    ROOT_NODE           = 0x1081u,
-    CANVAS_DRAWING_NODE = 0x2081u,
+    UNKNOW                 = 0x0000u,
+    RS_NODE                = 0x0001u,
+    SCREEN_NODE            = 0x0011u,
+    SURFACE_NODE           = 0x0021u,
+    PROXY_NODE             = 0x0041u,
+    CANVAS_NODE            = 0x0081u,
+    EFFECT_NODE            = 0x0101u,
+    ROUND_CORNER_NODE      = 0x0201u,
+    LOGICAL_DISPLAY_NODE   = 0x0401u,
+    ROOT_NODE              = 0x1081u,
+    CANVAS_DRAWING_NODE    = 0x2081u,
 };
 
 // types for Processor
@@ -107,6 +117,14 @@ enum class RSProcessorType : uint32_t {
     VIRTUAL_SCREEN_PROCESSOR        = 0x0021u,
     UNIRENDER_PROCESSOR             = 0x0041u,
     UNIRENDER_VIRTUAL_PROCESSOR     = 0x0081u,
+};
+
+enum class CompositeType : uint32_t {
+    UNI_RENDER_COMPOSITE = 0,
+    UNI_RENDER_MIRROR_COMPOSITE,
+    UNI_RENDER_EXPAND_COMPOSITE,
+    HARDWARE_COMPOSITE,
+    SOFTWARE_COMPOSITE
 };
 
 enum RSRenderParamsDirtyType {
@@ -242,6 +260,17 @@ enum class RSRenderNodeDrawableType : uint32_t {
     CANVAS_DRAWING_NODE_DRAWABLE,
 };
 
+// zOrder of topLayer
+enum class TopLayerZOrder : uint32_t {
+    ROUNDED_CORNER_TOP = 9901,
+    ROUNDED_CORNER_BOTTOM = 9900,
+    POINTER_WINDOW = 9800,
+    CHARGE_ACTION_TEXT = 9300,
+    CHARGE_3D_MOTION = 9200,
+    STYLUS = 9100,
+    MINIMUM_VALUE = 9000,
+};
+
 struct FocusAppInfo {
     int32_t pid = -1;
     int32_t uid = -1;
@@ -262,14 +291,17 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
-    bool isClientPixelMap = false; // Create pixelMap in client
     Drawing::Rect mainScreenRect = {};
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
+    bool isHdrCapture = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
+    Drawing::Rect specifiedAreaRect = {};
+    uint32_t backGroundColor = Drawing::Color::COLOR_TRANSPARENT;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect &&
+            specifiedAreaRect == config.specifiedAreaRect &&
             uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId &&
             uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize;
     }
@@ -309,10 +341,12 @@ struct RSSurfaceCapturePermissions {
         }                                        \
     } while (0)
 
-#define IS_SCB_WINDOW_TYPE(windowType)                                                                        \
-    (windowType == SurfaceWindowType::SYSTEM_SCB_WINDOW || windowType == SurfaceWindowType::SCB_DESKTOP ||    \
-    windowType == SurfaceWindowType::SCB_WALLPAPER || windowType == SurfaceWindowType::SCB_SCREEN_LOCK ||     \
-    windowType == SurfaceWindowType::SCB_NEGATIVE_SCREEN || windowType == SurfaceWindowType::SCB_DROPDOWN_PANEL)
+#define IS_SCB_WINDOW_TYPE(windowType)                                                                                 \
+    (windowType == SurfaceWindowType::SYSTEM_SCB_WINDOW || windowType == SurfaceWindowType::SCB_DESKTOP ||             \
+        windowType == SurfaceWindowType::SCB_WALLPAPER || windowType == SurfaceWindowType::SCB_SCREEN_LOCK ||          \
+        windowType == SurfaceWindowType::SCB_NEGATIVE_SCREEN || windowType == SurfaceWindowType::SCB_DROPDOWN_PANEL || \
+        windowType == SurfaceWindowType::SCB_VOLUME_PANEL ||                                                           \
+        windowType == SurfaceWindowType::SCB_BANNER_NOTIFICATION || windowType == SurfaceWindowType::SCB_GESTURE_BACK)
 
 enum class DeviceType : uint8_t {
     PHONE,
@@ -415,6 +449,9 @@ enum class SurfaceWindowType : uint8_t {
     SCB_SCREEN_LOCK = 4,
     SCB_NEGATIVE_SCREEN = 5,
     SCB_DROPDOWN_PANEL = 6,
+    SCB_VOLUME_PANEL = 7,
+    SCB_BANNER_NOTIFICATION = 8,
+    SCB_GESTURE_BACK = 9,
 };
 
 enum class SurfaceHwcNodeType : uint8_t {
@@ -581,6 +618,18 @@ inline constexpr int32_t ExtractTid(uint64_t token)
     return static_cast<int32_t>(token >> 32);
 }
 
+inline constexpr uint64_t MakeNodeId(pid_t pid, uint32_t uid)
+{
+    // combine pid and uid to nodeId
+    return (static_cast<uint64_t>(pid) << 32) | uid;
+}
+
+inline uint64_t GenerateUniqueNodeIdForRS()
+{
+    static std::atomic<uint32_t> uid { 0 };
+    return MakeNodeId(getpid(), uid.fetch_add(1, std::memory_order_relaxed));
+}
+
 template<class Container, class Predicate>
 inline typename Container::size_type EraseIf(Container& container, Predicate pred)
 {
@@ -620,6 +669,13 @@ enum DrawNodeType : uint32_t {
     GeometryPropertyType
 };
 
+enum class ComponentEnableSwitch : uint8_t {
+    TEXTBLOB = 0,
+    SVG,
+    HMSYMBOL,
+    CANVAS,
+    MAX_VALUE,
+};
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H

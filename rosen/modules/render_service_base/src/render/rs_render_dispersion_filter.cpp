@@ -14,7 +14,6 @@
  */
 
 #include "render/rs_render_dispersion_filter.h"
-
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 
@@ -49,12 +48,11 @@ void RSRenderDispersionFilterPara::CalculateHash()
         hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
     }
     hash_ = hashFunc(&opacity_, sizeof(opacity_), hash_);
-    hash_ = hashFunc(&redOffsetX_, sizeof(redOffsetX_), hash_);
-    hash_ = hashFunc(&redOffsetY_, sizeof(redOffsetY_), hash_);
-    hash_ = hashFunc(&greenOffsetX_, sizeof(greenOffsetX_), hash_);
-    hash_ = hashFunc(&greenOffsetY_, sizeof(greenOffsetY_), hash_);
-    hash_ = hashFunc(&blueOffsetX_, sizeof(blueOffsetX_), hash_);
-    hash_ = hashFunc(&blueOffsetY_, sizeof(blueOffsetY_), hash_);
+    hash_ = hashFunc(&redOffset_, sizeof(redOffset_), hash_);
+    hash_ = hashFunc(&greenOffset_, sizeof(greenOffset_), hash_);
+    hash_ = hashFunc(&blueOffset_, sizeof(blueOffset_), hash_);
+    hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+    hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
 }
 
 std::shared_ptr<RSRenderFilterParaBase> RSRenderDispersionFilterPara::DeepCopy() const
@@ -62,12 +60,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderDispersionFilterPara::DeepCopy()
     auto copyFilter = std::make_shared<RSRenderDispersionFilterPara>(id_);
     copyFilter->type_ = type_;
     copyFilter->opacity_ = opacity_;
-    copyFilter->redOffsetX_ = redOffsetX_;
-    copyFilter->redOffsetY_ = redOffsetY_;
-    copyFilter->greenOffsetX_ = greenOffsetX_;
-    copyFilter->greenOffsetY_ = greenOffsetY_;
-    copyFilter->blueOffsetX_ = blueOffsetX_;
-    copyFilter->blueOffsetY_ = blueOffsetY_;
+    copyFilter->redOffset_ = redOffset_;
+    copyFilter->greenOffset_ = greenOffset_;
+    copyFilter->blueOffset_ = blueOffset_;
     copyFilter->mask_ = mask_;
     copyFilter->CalculateHash();
     return copyFilter;
@@ -140,7 +135,8 @@ bool RSRenderDispersionFilterPara::ReadFromParcel(Parcel& parcel)
 {
     ROSEN_LOGD("RSRenderDispersionFilterPara::ReadFromParcel %{public}d %{public}d %{public}d",
         static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
-    if (!RSMarshallingHelper::Unmarshalling(parcel, id_) || !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
+        !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, modifierType_)) {
         ROSEN_LOGE("RSRenderDispersionFilterPara::ReadFromParcel Error");
         return false;
@@ -229,15 +225,9 @@ bool RSRenderDispersionFilterPara::ParseFilterValues()
         return false;
     }
     opacity_ = dispersionOpacity->Get();
-    auto redOffset = dispersionRedOffset->Get();
-    redOffsetX_ = redOffset[0];
-    redOffsetY_ = redOffset[1];
-    auto greenOffset = dispersionGreenOffset->Get();
-    greenOffsetX_ = greenOffset[0];
-    greenOffsetY_ = greenOffset[1];
-    auto blueOffset = dispersionBlueOffset->Get();
-    blueOffsetX_ = blueOffset[0];
-    blueOffsetY_ = blueOffset[1];
+    redOffset_ = dispersionRedOffset->Get();
+    greenOffset_ = dispersionGreenOffset->Get();
+    blueOffset_ = dispersionBlueOffset->Get();
     mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
     return true;
 }
@@ -253,16 +243,16 @@ void RSRenderDispersionFilterPara::GenerateGEVisualEffect(
     }
 
     auto dispersionShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
-        Drawing::GE_FILTER_DISPERSION, Drawing::DrawingPaintType::BRUSH);
+        Drawing::GE_FILTER_DISPERSION, Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
     dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_MASK,
         mask_ != nullptr ? mask_->GenerateGEShaderMask() : nullptr);
     dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_OPACITY, opacity_);
-    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_RED_OFFSET_X, redOffsetX_);
-    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_RED_OFFSET_Y, redOffsetY_);
-    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_GREEN_OFFSET_X, greenOffsetX_);
-    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_GREEN_OFFSET_Y, greenOffsetY_);
-    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_BLUE_OFFSET_X, blueOffsetX_);
-    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_BLUE_OFFSET_Y, blueOffsetY_);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_RED_OFFSET,
+        std::make_pair(redOffset_[0], redOffset_[1]));
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_GREEN_OFFSET,
+        std::make_pair(greenOffset_[0], greenOffset_[1]));
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_BLUE_OFFSET,
+        std::make_pair(blueOffset_[0], blueOffset_[1]));
     visualEffectContainer->AddToChainedFilter(dispersionShaderFilter);
 }
 

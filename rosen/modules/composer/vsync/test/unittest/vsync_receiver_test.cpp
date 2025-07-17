@@ -414,7 +414,23 @@ HWTEST_F(VsyncReceiverTest, SetUiDvsyncSwitchTest, Function | MediumTest| Level3
 HWTEST_F(VsyncReceiverTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
 {
     vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_OK);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: SetTouchEventTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetTouchEvent
+ */
+HWTEST_F(VsyncReceiverTest, SetTouchEventTest, Function | MediumTest| Level3)
+{
+    vsyncDistributor->AddConnection(conn);
+    int32_t temp = 0;
+    vsyncReceiver->SetTouchEvent(1);
+    ASSERT_EQ(temp, 0);
     vsyncDistributor->RemoveConnection(conn);
 }
 

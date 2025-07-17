@@ -453,7 +453,7 @@ bool DoRSPropertyBase(const uint8_t* data, size_t size)
 
     // test
     RSProperty<float> propertyBase;
-    propertyBase.MarkModifierDirty();
+    propertyBase.MarkCustomModifierDirty();
     propertyBase.MarkNodeDirty();
     return true;
 }

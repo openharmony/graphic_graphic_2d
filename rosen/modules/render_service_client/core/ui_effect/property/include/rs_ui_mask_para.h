@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_ENGINE_CORE_RENDER_MASK_PROPERTY_H
-#define ROSEN_ENGINE_CORE_RENDER_MASK_PROPERTY_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECTMASK_PROPERTY_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECTMASK_PROPERTY_H
 
 #include "ui_effect/mask/include/mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter_para_base.h"
@@ -38,4 +38,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_ENGINE_CORE_RENDER_MASK_PROPERTY_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECTMASK_PROPERTY_H

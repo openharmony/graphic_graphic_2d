@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_display_node_command.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,32 +45,13 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     uint64_t screenId = static_cast<uint64_t>(0);
     DisplayNodeCommandHelper::SetScreenId(context, id, screenId);
-    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 
     NodeId id2 = static_cast<NodeId>(1);
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id2, config);
     DisplayNodeCommandHelper::SetScreenId(context, id2, screenId);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id2), nullptr);
-}
-
-/**
- * @tc.name: TestRSDisplayNodeCommand002
- * @tc.desc: SetDisplayOffset test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand002, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    int32_t offsetX = static_cast<int32_t>(1);
-    int32_t offsetY = static_cast<int32_t>(1);
-    DisplayNodeCommandHelper::SetDisplayOffset(context, id, offsetX, offsetY);
-
-    RSDisplayNodeConfig config { 0, false, 0 };
-    DisplayNodeCommandHelper::Create(context, id, config);
-    DisplayNodeCommandHelper::SetDisplayOffset(context, id, offsetX, offsetY);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id2), nullptr);
 }
 
 /**
@@ -88,7 +69,7 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand003, TestSize.Level1)
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetSecurityDisplay(context, id, isSecurityDisplay);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
@@ -102,7 +83,7 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand004, TestSize.Level1)
     NodeId id = static_cast<NodeId>(1);
     RSDisplayNodeConfig config { 0, true, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
-    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
@@ -116,17 +97,17 @@ HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(1);
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 
     NodeId id2 = static_cast<NodeId>(2);
     config.isMirrored = true;
     DisplayNodeCommandHelper::Create(context, id2, config);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id2), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id2), nullptr);
 
     NodeId id3 = static_cast<NodeId>(3);
     config.mirrorNodeId = id2;
     DisplayNodeCommandHelper::Create(context, id3, config);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id3), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id3), nullptr);
 }
 
 /**
@@ -180,7 +161,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetBootAnimation001, TestSize.Level1)
     DisplayNodeCommandHelper::SetBootAnimation(context, id, true);
 
     DisplayNodeCommandHelper::SetBootAnimation(context, 5, true);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
@@ -197,7 +178,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetRogSize001, TestSize.Level1)
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetScreenId(context, id, 1);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
@@ -215,7 +196,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetForceCloseHdrTest, TestSize.Level1)
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetForceCloseHdr(context, id, true);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
@@ -232,7 +213,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScreenRotation001, TestSize.Level1)
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetScreenRotation(context, id, ScreenRotation::ROTATION_0);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
@@ -246,7 +227,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetDisplayMode001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(1);
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
-    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
@@ -275,27 +256,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid, TestSize.Level1)
     oldScbPids.push_back(1);
     oldScbPids.push_back(2);
     DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
-    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
-}
-
-/**
- * @tc.name: SetRogSize
- * @tc.desc: SetRogSize test.
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSDisplayNodeCommandTest, SetRogSize, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    int32_t offsetX = static_cast<int32_t>(1);
-    int32_t offsetY = static_cast<int32_t>(1);
-    DisplayNodeCommandHelper::SetRogSize(context, id, offsetX, offsetY);
-
-    RSDisplayNodeConfig config { 0, false, 0 };
-    DisplayNodeCommandHelper::Create(context, id, config);
-    DisplayNodeCommandHelper::SetRogSize(context, id, offsetX, offsetY);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
@@ -317,28 +278,24 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid001, TestSize.Level1)
     oldScbPids.push_back(2);
     DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
     DisplayNodeCommandHelper::SetScbNodePid(context, 5, oldScbPids, currentScbPid);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id), nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
 
 /**
- * @tc.name: SetVirtualScreenMuteStatus
+ * @tc.name: SetVirtualScreenMuteStatus001
  * @tc.desc: SetVirtualScreenMuteStatus test.
  * @tc.type: FUNC
- * @tc.require: issueIBTNC3
+ * @tc.require: issueIA61E9
  */
-HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus, TestSize.Level1)
+HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-
-    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, true);
-    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
-        ASSERT_TRUE(node->GetVirtualScreenMuteStatus());
-    }
-
-    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, false);
-    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
-        ASSERT_FALSE(node->GetVirtualScreenMuteStatus());
-    }
+    RSDisplayNodeConfig config { 0, true, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+    
+    bool virtualScreenMuteStatus = false;
+    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, 5, virtualScreenMuteStatus);
 }
 } // namespace OHOS::Rosen

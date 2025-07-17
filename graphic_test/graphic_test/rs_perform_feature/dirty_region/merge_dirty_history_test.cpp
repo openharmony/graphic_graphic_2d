@@ -35,12 +35,15 @@ constexpr uint32_t COLOR_DKGRAY = 0xFF444444;
 constexpr uint32_t COLOR_GREEN = 0xFF00FF00;
 
 class DirtyRegionTest02 : public RSGraphicTest {
+private:
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
+
 public:
     // called before each tests
     void BeforeEach() override
     {
-        auto size = GetScreenSize();
-        SetSurfaceBounds({0, 0, size.x_, size.y_});
+        SetScreenSize(screenWidth, screenHeight);
         SetSurfaceColor(RSColor(0xFFFFFFFF));
     }
 

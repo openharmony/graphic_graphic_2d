@@ -47,6 +47,7 @@ public:
     int UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) override;
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override;
     void StopEffect() override;
+    void NoEffect(Drawing::Canvas* canvas, double x, double y) override;
 
 private:
     bool CheckInputParams(const std::unordered_map<TextEffectAttribute, std::string>& config);
@@ -73,7 +74,7 @@ private:
     std::vector<uint16_t> lastAllBlobGlyphIds_;
     std::vector<uint16_t> currentBlobGlyphIds_;
     size_t currentGlyphIndex_{0};
-    size_t changeNumber_{0};
+    int changeNumber_{0};
 
     struct FlipAttributeFunction {
         FlipAttributeFunction() = default;

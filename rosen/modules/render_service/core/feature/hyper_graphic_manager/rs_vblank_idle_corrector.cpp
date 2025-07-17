@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t IDLE_FRAME_COUNT_THRESHOLD = 2;
+constexpr uint32_t IDLE_FRAME_COUNT_THRESHOLD = 2;
 };
 
 void RSVBlankIdleCorrector::SetScreenVBlankIdle(ScreenId id)

@@ -113,11 +113,13 @@ public:
     static inline EGLContext eglContext_ = EGL_NO_CONTEXT;
     static inline EGLConfig config_;
     static void OnFrameAvailable(void *context);
+    static inline uint32_t availableCnt_ = 0;
 };
 
 void NativeImageTest::OnFrameAvailable(void *context)
 {
     (void) context;
+    availableCnt_++;
     cout << "OnFrameAvailable is called" << endl;
 }
 
@@ -1504,5 +1506,65 @@ HWTEST_F(NativeImageTest, OH_NativeImage_SetDropBufferMode001, Function | Medium
     ASSERT_EQ(OH_NativeImage_SetDropBufferMode(consumerSurface, true), GSERROR_OK);
     ASSERT_EQ(OH_NativeImage_SetDropBufferMode(consumerSurface, false), GSERROR_OK);
     OH_NativeImage_Destroy(&consumerSurface);
+}
+
+/*
+* Function: OH_NativeImage_SetDropBufferMode002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_SetDropBufferMode002
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OH_NativeImage_SetDropBufferMode002, Function | MediumTest | Level1)
+{
+    OH_NativeImage* consumerSurfaceTest = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(consumerSurfaceTest, nullptr);
+
+    ASSERT_EQ(OH_NativeImage_SetDropBufferMode(consumerSurfaceTest, true), GSERROR_OK);
+
+    OHNativeWindow* nativeWindowTest = OH_NativeImage_AcquireNativeWindow(consumerSurfaceTest);
+    ASSERT_NE(nativeWindowTest, nullptr);
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
+    int32_t ret = NativeWindowHandleOpt(nativeWindowTest, code, width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    OH_OnFrameAvailableListener listener;
+    listener.context = this;
+    listener.onFrameAvailable = NativeImageTest::OnFrameAvailable;
+    ret = OH_NativeImage_SetOnFrameAvailableListener(consumerSurfaceTest, listener);
+    ASSERT_EQ(ret, GSERROR_OK);
+    availableCnt_ = 0;
+    NativeWindowBuffer* NativeWindowBuffer1 = nullptr;
+    NativeWindowBuffer* NativeWindowBuffer2 = nullptr;
+    NativeWindowBuffer* NativeWindowBuffer3 = nullptr;
+    int fenceFd = -1;
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindowTest, &NativeWindowBuffer1, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindowTest, &NativeWindowBuffer2, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindowTest, &NativeWindowBuffer3, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindowTest, NativeWindowBuffer1, fenceFd, *region);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindowTest, NativeWindowBuffer2, fenceFd, *region);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindowTest, NativeWindowBuffer3, fenceFd, *region);
+    ASSERT_EQ(ret, GSERROR_OK);
+    delete region;
+    ASSERT_EQ(availableCnt_, 1);
+    ret = OH_NativeImage_UpdateSurfaceImage(consumerSurfaceTest);
+    ASSERT_EQ(ret, SURFACE_ERROR_OK);
 }
 }

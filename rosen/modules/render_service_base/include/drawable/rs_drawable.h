@@ -49,6 +49,7 @@ enum class RSDrawableSlot : int8_t {
     BLENDER,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
+    BACKGROUND_NG_SHADER,
     BACKGROUND_IMAGE,
     BACKGROUND_FILTER,
     USE_EFFECT,
@@ -76,6 +77,7 @@ enum class RSDrawableSlot : int8_t {
     DYNAMIC_DIM,
     COMPOSITING_FILTER,
     FOREGROUND_COLOR,
+    FOREGROUND_SHADER,
     FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
@@ -92,7 +94,7 @@ enum class RSDrawableSlot : int8_t {
 
     // Annotations: Please remember to update this when new slots are added.
     // properties before Background, not clipped
-    TRANSITION_PROPERTIES_BEGIN = SHADOW,
+    TRANSITION_PROPERTIES_BEGIN = MASK,
     TRANSITION_PROPERTIES_END   = OUTLINE,
     // background properties, clipped by bounds by default
     BG_PROPERTIES_BEGIN         = BLENDER,
@@ -102,7 +104,7 @@ enum class RSDrawableSlot : int8_t {
     CONTENT_END                 = FOREGROUND_STYLE,
     // foreground properties, clipped by bounds by default
     FG_PROPERTIES_BEGIN         = BINARIZATION,
-    FG_PROPERTIES_END           = FOREGROUND_COLOR,
+    FG_PROPERTIES_END           = FG_RESTORE_BOUNDS - 1,
     // post-foreground properties, can be clipped by ClipToBounds
     EXTRA_PROPERTIES_BEGIN      = POINT_LIGHT,
     EXTRA_PROPERTIES_END        = PIXEL_STRETCH,
@@ -158,6 +160,8 @@ public:
     static bool FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec);
     // Step 3, insert necessary Clip/Save/Restore into drawableVec
     static void UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus);
+    static void ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVec);
+    static bool CanFusePixelStretch(Vec &drawableVec);
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_H

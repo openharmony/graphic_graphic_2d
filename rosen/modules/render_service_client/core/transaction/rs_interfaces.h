@@ -415,6 +415,14 @@ public:
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
     /**
+     * @brief Set if resize buffer and keep content horizontal while source is rotated.
+     * @param id Virtual screen id.
+     * @param isAutoRotation True means enable, false means disable.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation);
+
+    /**
      * @brief Set scale mode for virtual mirror screen.
      * @param id Virtual screen id.
      * @param scaleMode Scale mode, see ScreenScaleMode.
@@ -667,6 +675,14 @@ public:
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
 
     /**
+     * @brief Get the HDR status of the current screen.
+     * @param id Id of the screen.
+     * @param hdrStatus The HDR status of the current screen.
+     * @return 0 success, others failed.
+     */
+    int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
+
+    /**
      * @brief Set the HDR format of the current screen.
      * @param id Id of the screen.
      * @param modeIdx This parameter will set to the currentHDRFormatIdx.
@@ -729,6 +745,21 @@ public:
      * @return 0 means success, others failed.
      */
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
+    /**
+     * @brief Set screen offset.
+     * @param id Screen id.
+     * @param offSetX The offset value of the screen drawing area on the X-axis.
+     * @param offSetY The offset value of the screen drawing area on the Y-axis.
+     */
+    void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY);
+
+    /**
+     * @brief Set frame gravity of screen node
+     * @param id Screen id.
+     * @param gravity The gravity value of the screen node.
+     */
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     /**
      * @brief Create a VsyncReceiver instance.
@@ -1097,7 +1128,7 @@ public:
      */
     void SetFreeMultiWindowStatus(bool enable);
 
-    bool RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback);
+    bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
     /**
      * @brief Register a callback to listen for the state of the buffer held by the DrawSurfaceBuffer OpItem,
@@ -1117,6 +1148,8 @@ public:
      * @return bool Returns true if successfully send to RS, otherwise false.
      */
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
+    void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     /**
@@ -1166,7 +1199,10 @@ public:
      * @param callback callback function.
      * @return return value == 0 success, return value == others, failed.
      */
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
@@ -1191,6 +1227,12 @@ public:
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+
+    /**
+     * @brief clear uifirst node cache
+     * @param id surface node id
+     */
+    void ClearUifirstCache(NodeId id);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

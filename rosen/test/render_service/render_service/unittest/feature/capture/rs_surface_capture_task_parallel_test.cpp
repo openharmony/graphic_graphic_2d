@@ -30,7 +30,8 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -53,6 +54,9 @@ public:
         testSuccess = (pixelmap != nullptr);
         isCallbackCalled_ = true;
     }
+
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 
     bool IsTestSuccess()
     {
@@ -80,7 +84,7 @@ public:
     RSSurfaceCaptureCallbackStubMock() = default;
     virtual ~RSSurfaceCaptureCallbackStubMock() = default;
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        Media::PixelMap* pixelmap) override {};
+        Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR = nullptr) override {};
 };
 
 class RSSurfaceCaptureTaskParallelTest : public testing::Test {
@@ -176,8 +180,7 @@ void RSSurfaceCaptureTaskParallelTest::TearDown() {}
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CalPixelMapRotation, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     task.screenCorrection_ = ScreenRotation::ROTATION_90;
     task.screenRotation_ = ScreenRotation::ROTATION_270;
     ASSERT_EQ(task.CalPixelMapRotation(), RS_ROTATION_180);
@@ -192,8 +195,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CalPixelMapRotation, TestSize.Level2)
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, SetupGpuContext, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     if (RSUniRenderJudgement::IsUniRender()) {
         auto& uniRenderThread = RSUniRenderThread::Instance();
         ASSERT_EQ(uniRenderThread.uniRenderEngine_, nullptr);
@@ -213,8 +215,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, SetupGpuContext, TestSize.Level2)
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
     ASSERT_NE(node, nullptr);
     const float imgWidth = 1.0f;
@@ -234,8 +235,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode001, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr));
 }
 
@@ -248,10 +248,54 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode001, TestS
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     RSDisplayNodeConfig config;
-    std::shared_ptr<RSDisplayRenderNode> node = std::make_shared<RSDisplayRenderNode>(0, config);
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNode004
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode004, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
+    
+    NodeId id = 0;
+    ScreenId screenId = 0;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetAncestorScreenNode(screenNode);
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
+}
+
+/*
+ * @tc.name: CreatePixelMapByDisplayNode003
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode003 with pixelmap is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAHND9
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
+
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_EQ(screenNode, nullptr);
+    node->SetAncestorScreenNode(screenNode);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
 }
 
@@ -264,8 +308,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestS
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface001, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     std::unique_ptr<Media::PixelMap> pixelmap = nullptr;
     ASSERT_EQ(nullptr, task.CreateSurface(pixelmap));
 }
@@ -279,10 +322,9 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateSurface001, TestSize.Level2)
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources001, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
     captureConfig.scaleX = 0.f;
     captureConfig.scaleY = 0.f;
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     ASSERT_EQ(false, task.CreateResources());
 }
 
@@ -295,10 +337,9 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources001, TestSize.Level2)
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources002, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
     captureConfig.scaleX = 1.0f;
     captureConfig.scaleY = 1.0f;
-    RSSurfaceCaptureTaskParallel task(0, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(0, captureConfig);
     ASSERT_EQ(false, task.CreateResources());
 }
 
@@ -311,11 +352,10 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources002, TestSize.Level2)
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources003, TestSize.Level2)
 {
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
     captureConfig.scaleX = 1.0f;
     captureConfig.scaleY = 1.0f;
     captureConfig.useCurWindow = false;
-    RSSurfaceCaptureTaskParallel task(1, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(1, captureConfig);
     ASSERT_EQ(false, task.CreateResources());
 }
 
@@ -329,9 +369,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(id, captureConfig, rsCapturePixelMap);
-    ASSERT_EQ(nullptr, task.rsCapturePixelMap_->GetPixelMap());
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+    ASSERT_EQ(nullptr, task.pixelMap_);
     RSSurfaceCaptureParam captureParam;
     ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
@@ -346,8 +385,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run002, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(id, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
     auto node = std::make_shared<RSRenderNode>(id);
     task.surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
@@ -365,8 +403,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run003, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(id, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
     auto node = std::make_shared<RSRenderNode>(id);
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
@@ -385,8 +422,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(id, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = nullptr;
     RSSurfaceCaptureParam captureParam;
@@ -406,10 +442,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
     // define callBack
-    Drawing::Rect rect = {0, 0, 1260, 2720};
-    auto pixelMap = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
-    rsCapturePixelMap->SetCapturePixelMap(std::move(pixelMap));
-    RSSurfaceCaptureTaskParallel task1(nodeId, captureConfig, rsCapturePixelMap);
+
+    RSSurfaceCaptureTaskParallel task1(nodeId, captureConfig);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
 
     ASSERT_EQ(callback != nullptr, true);
@@ -445,8 +479,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckModifiers, TestSize.Level2)
     ASSERT_TRUE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
     mainThread->GetContext().AddPendingSyncNode(node);
     RSSurfaceCaptureConfig captureConfig;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
+    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
     captureConfig.useCurWindow = true;
     task.CheckModifiers(nodeId, captureConfig.useCurWindow);
 }
@@ -503,104 +536,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateClientPixelMap, TestSize.Level2
         EXPECT_EQ(pixelMap == nullptr, true);
     }
 }
-/*
- * @tc.name: CreateResourcesTestClient
- * @tc.desc: Test CreateResourcesTestClient
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResourcesTestClient, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->nodeTreeDumpTasks_.clear();
-    NodeId nodeId = 1000232;
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
-    node->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
-    ASSERT_NE(node, nullptr);
-    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
-    nodeMap.RegisterRenderNode(node);
-
-    // Test don't use ClientpixelMap
-    {
-        RSSurfaceCaptureConfig captureConfig;
-        captureConfig.useCurWindow = true;
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-        RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
-        bool ret = task.CreateResources();
-        EXPECT_EQ(ret, true);
-    }
-
-    // Test use ClientPixelMap
-    {
-        RSSurfaceCaptureConfig captureConfig;
-        captureConfig.isClientPixelMap = true;
-        Drawing::Rect rect = {0, 0, 1260, 2720};
-        auto pixelMap = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-        rsCapturePixelMap->SetCapturePixelMap(std::move(pixelMap));
-        RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);     
-        bool ret = task.CreateResources();
-        EXPECT_EQ(ret, true);
-    }
-    // Test Abnormal condition
-    {
-        RSSurfaceCaptureConfig captureConfig;
-        captureConfig.useCurWindow = false;
-        Drawing::Rect rect = {0, 0, 1260, 2720};
-
-        auto pixelMap = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-        RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
-        node->GetMutableRenderProperties().SetBounds({0, 0, 126000000, 272000000});
-        bool ret = task.CreateResources();
-        EXPECT_EQ(ret, false);
-        node->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
-    }
-    // code coverage
-    {
-        sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
-        ASSERT_EQ(callback != nullptr, true);
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-        RSSurfaceCaptureParam captureParam;
-        captureParam.id = nodeId;
-        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, rsCapturePixelMap);
-        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, nullptr);
-    }
-    // Test no shouldPaint
-    {
-        RSSurfaceCaptureConfig captureConfig;
-        captureConfig.useCurWindow = true;
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-        RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
-        // used this function, RSCapturePixelMap musb have pixelMap
-        bool ret = task.CreateResourcesForClientPixelMap(node);
-        EXPECT_EQ(ret, false);
-        node->shouldPaint_ = false;
-        ret = task.CreateResourcesForClientPixelMap(node);
-        EXPECT_EQ(ret, false);
-        node->shouldPaint_ = true;
-    }
-    // Test leashWindow
-    {
-        RSSurfaceCaptureConfig captureConfig;
-        Drawing::Rect rect = {0, 0, 1260, 2720};
-
-        auto pixelMap = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
-        node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-        node->wideColorGamutWindowCount_ = 1;
-
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-        RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
-        task.SetSurfaceCaptureColorSpace(node, pixelMap);
-        task.SetSurfaceCaptureColorSpace(nullptr, pixelMap);
-        task.SetSurfaceCaptureColorSpace(node, nullptr);
-        node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-        node->wideColorGamutWindowCount_ = 0;
-    }
-}
-
 
 /*
  * @tc.name: TestSurfaceCaputreIt
@@ -637,173 +572,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestSurfaceCaputreIt, TestSize.Level2
     EXPECT_EQ(ret, true);
     EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-}
-
-/*
- * @tc.name: TestSurfaceDMA
- * @tc.desc: Test TestSurfaceDMA
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestSurfaceDMA, TestSize.Level2)
-{
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    DmaMem dmaMem;
-
-    {
-        Drawing::Rect rect = {0, 0, 1260, 2720};
-        RSSurfaceCaptureConfig captureConfig;
-        captureConfig.useDma = true;
-        captureConfig.isClientPixelMap = true;
-        auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,
-            UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-        Drawing::ImageInfo info = Drawing::ImageInfo{pixelMap->GetWidth(), pixelMap->GetHeight(),
-            Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
-        auto dmaBuffer = dmaMem.GetSurfaceBuffer(info, pixelMap, captureConfig);
-        EXPECT_EQ(dmaBuffer != nullptr, true);
-    }
-
-    // Test no use clientPixelMap
-    {
-        Drawing::Rect rect = {0, 0, 1260, 2720};
-        RSSurfaceCaptureConfig captureConfig;
-        captureConfig.useDma = true;
-        auto pixelMap = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
-        Drawing::ImageInfo info = Drawing::ImageInfo{pixelMap->GetWidth(), pixelMap->GetHeight(),
-            Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
-        auto dmaBuffer = dmaMem.GetSurfaceBuffer(info, pixelMap, captureConfig);
-        EXPECT_EQ(dmaBuffer != nullptr, true);
-    }
-#endif
-}
-
-/*
- * @tc.name: TestCopyDataToPixelMap
- * @tc.desc: Test TestCopyDataToPixelMap
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestCopyDataToPixelMap, TestSize.Level2)
-{
-    // Test PixelMap is nullptr
-    std::shared_ptr<Drawing::Image> img;
-    std::unique_ptr<Media::PixelMap> pixelMap;
-    RSSurfaceCaptureConfig captureConfig;
-    Drawing::Rect rect = {0, 0, 1260, 2720};
-    bool ret = CopyDataToPixelMap(img, pixelMap, captureConfig, UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-    EXPECT_EQ(ret, false);
-    // vaild pixelMap, invaild img
-    auto pixelMap1 = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
-    EXPECT_EQ(pixelMap1 != nullptr, true);
-    ret = CopyDataToPixelMap(img, pixelMap1, captureConfig, UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-    EXPECT_EQ(ret, false);
-    // vaild pixelMap, Invaild img for clientPixelMap
-    auto pixelMap2 = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,
-        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-    captureConfig.isClientPixelMap = true;
-    ASSERT_EQ(pixelMap2 != nullptr, true);
-
-    ret = CopyDataToPixelMap(img, pixelMap2, captureConfig, UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-    EXPECT_EQ(ret, false);
-}
-
-/*
- * @tc.name: TestGetCaptureSurfaceNode
- * @tc.desc: Test TestGetCaptureSurfaceNode
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestGetCaptureSurfaceNode, TestSize.Level2)
-{
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-
-    NodeId nodeId = 103;
-    NodeId parentNodeId = 1003;
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.useCurWindow = false;
-
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
-    renderNode->renderProperties_.SetBoundsWidth(1024.0f);
-    renderNode->renderProperties_.SetBoundsHeight(1024.0f);
-    nodeMap.RegisterRenderNode(renderNode);
-
-    auto parent1 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
-    parent1->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    parent1->hasSubNodeShouldPaint_ = true;
-    renderNode->parent_ = parent1;
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
-
-    // Test normal
-    {
-        auto backNode = task.GetCaptureSurfaceNode(renderNode);
-        EXPECT_EQ(backNode->GetId(), parentNodeId);
-    }
-
-    // Test parent no LeashWindow
-    {
-        parent1->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-        parent1->hasSubNodeShouldPaint_ = true;
-        auto backNode = task.GetCaptureSurfaceNode(renderNode);
-        EXPECT_EQ(backNode->GetId(), nodeId);
-    }
-
-    // shouldPaint is false;
-    {
-        parent1->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-        parent1->shouldPaint_ = false;
-        auto backNode = task.GetCaptureSurfaceNode(renderNode);
-        EXPECT_EQ(backNode->GetId(), nodeId);
-        parent1->shouldPaint_ = true;
-    }
-}
-
-/*
- * @tc.name: TestGetCaptureDisplayNode
- * @tc.desc: Test TestGetCaptureDisplayNode
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestGetCaptureDisplayNode, TestSize.Level2)
-{
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-
-    NodeId nodeId = 103;
-    RSSurfaceCaptureConfig captureConfig;
-    RSDisplayNodeConfig disPlayConfig;
-    captureConfig.useCurWindow = false;
-
-    auto renderNode = std::make_shared<RSDisplayRenderNode>(nodeId, disPlayConfig);
-    renderNode->renderProperties_.SetBoundsWidth(1024.0f);
-    renderNode->renderProperties_.SetBoundsHeight(1024.0f);
-    nodeMap.RegisterRenderNode(renderNode);
-
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig, rsCapturePixelMap);
-    EXPECT_EQ(task.CreateResourcesForClientPixelMap(renderNode), false);
-}
-
-/*
- * @tc.name: TestCaptureRassignMemory
- * @tc.desc: Test TestCaptureRassignMemory
- * @tc.type: FUNC
- * @tc.require:
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestCaptureRassignMemory, TestSize.Level2)
-{
-    Drawing::Rect rect = {0, 0, 1260, 2720};
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.useDma = true;
-
-    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,
-            UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
-    ASSERT_EQ(pixelMap != nullptr, true);
-    EXPECT_EQ(pixelMap->allocatorType_ == Media::AllocatorType::DMA_ALLOC, true);
-
-    auto img = std::make_shared<Drawing::Image>();
-    CopyDataToPixelMap(img, pixelMap, captureConfig,
-        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL, nullptr);
-    EXPECT_EQ(pixelMap->allocatorType_ != Media::AllocatorType::DMA_ALLOC, true);
 }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,11 @@
 #include "impl_factory.h"
 
 #include "impl_interface/color_filter_impl.h"
+
+#ifdef ROSEN_OHOS
+#include "utils/log.h"
+#include "utils/object_helper.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -173,6 +178,98 @@ bool ColorFilter::AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const
 {
     return impl_->AsAColorMatrix(matrix);
 }
+
+#ifdef ROSEN_OHOS
+bool ColorFilter::Marshalling(Parcel& parcel)
+{
+    // Write type first
+    if (!parcel.WriteInt32(static_cast<int32_t>(type_))) {
+        LOGE("ColorFilter::Marshalling, failed to write type");
+        return false;
+    }
+
+    // Use Serialize to convert to Data then serialize
+    auto data = Serialize();
+
+    // Write flag indicating whether data is valid
+    bool hasValidData = (data != nullptr && data->GetSize() > 0);
+    if (!parcel.WriteBool(hasValidData)) {
+        LOGE("ColorFilter::Marshalling, failed to write hasData flag");
+        return false;
+    }
+
+    // If data is null or empty, just write the flag and return success
+    if (!hasValidData) {
+        LOGD("ColorFilter::Marshalling, Serialize returned null or empty data, continuing with empty marker");
+        return true;
+    }
+
+    // Use registered callback for Data marshalling
+    auto callback = ObjectHelper::Instance().GetDataMarshallingCallback();
+    if (!callback) {
+        LOGE("ColorFilter::Marshalling, DataMarshallingCallback is not registered");
+        return false;
+    }
+    if (!callback(parcel, data)) {
+        LOGE("ColorFilter::Marshalling, DataMarshallingCallback failed");
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<ColorFilter> ColorFilter::Unmarshalling(Parcel& parcel, bool& isValid)
+{
+    // Read type first
+    int32_t typeValue;
+    if (!parcel.ReadInt32(typeValue)) {
+        LOGE("ColorFilter::Unmarshalling, failed to read type");
+        return nullptr;
+    }
+
+    // Validate type range
+    if (typeValue < static_cast<int32_t>(FilterType::NO_TYPE) ||
+        typeValue > static_cast<int32_t>(FilterType::LIGHTING)) {
+        LOGE("ColorFilter::Unmarshalling, invalid type value: %{public}d", typeValue);
+        return nullptr;
+    }
+
+    // Read hasData flag
+    bool hasData;
+    if (!parcel.ReadBool(hasData)) {
+        LOGE("ColorFilter::Unmarshalling, failed to read hasData flag");
+        return nullptr;
+    }
+
+    // If no data, create an empty ColorFilter and return
+    if (!hasData) {
+        LOGD("ColorFilter::Unmarshalling, empty data marker detected, creating ColorFilter with type only");
+        auto colorFilter = std::make_shared<ColorFilter>(static_cast<FilterType>(typeValue));
+        return colorFilter;
+    }
+
+    // Use registered callback for Data unmarshalling
+    auto callback = ObjectHelper::Instance().GetDataUnmarshallingCallback();
+    if (!callback) {
+        LOGE("ColorFilter::Unmarshalling, DataUnmarshallingCallback is not registered");
+        return nullptr;
+    }
+    auto data = callback(parcel);
+    if (!data) {
+        LOGE("ColorFilter::Unmarshalling, DataUnmarshallingCallback failed");
+        return nullptr;
+    }
+
+    // Create ColorFilter with correct type
+    auto colorFilter = std::make_shared<ColorFilter>(static_cast<FilterType>(typeValue));
+    if (!colorFilter->Deserialize(data)) {
+        LOGE("ColorFilter::Unmarshalling, Deserialize failed");
+        // For compatibility: mark as invalid but return object instead of nullptr
+        isValid = false;
+        return colorFilter;
+    }
+    return colorFilter;
+}
+#endif
 
 } // namespace Drawing
 } // namespace Rosen

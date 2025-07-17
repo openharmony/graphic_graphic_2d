@@ -20,7 +20,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("HmSymbolTxtFuzzTest") {
-  module_out_path = text_test_out_path
+  module_out_path = text_fuzz_out_path
   fuzz_config_file = "."
   configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
 
@@ -50,7 +50,7 @@ ohos_fuzztest("HmSymbolTxtFuzzTest") {
     "bounds_checking_function:libsec_shared",
     "skia:skia_canvaskit",
   ]
-  if (use_new_skia) {
+  if (graphic_2d_feature_upgrade_skia) {
     external_deps += [
       "skia:skia_paragraph_ohos_new",
     ]

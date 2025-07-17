@@ -51,6 +51,7 @@ bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontArgumentsConc
 }
 }
 
+std::mutex JsFontCollection::constructorMutex_;
 thread_local napi_ref JsFontCollection::constructor_ = nullptr;
 
 napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
@@ -80,6 +81,31 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 
 napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get reference, ret %{public}d", status);
+        return nullptr;
+    }
+
+    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to set named property");
+        return nullptr;
+    }
+    return exportObj;
+}
+
+bool JsFontCollection::CreateConstructor(napi_env env)
+{
+    std::lock_guard<std::mutex> lock(constructorMutex_);
+    if (constructor_) {
+        return true;
+    }
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
@@ -93,22 +119,16 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to define class");
-        return nullptr;
+        TEXT_LOGE("Failed to define class, ret %{public}d", status);
+        return false;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to create reference");
-        return nullptr;
+        TEXT_LOGE("Failed to create reference, ret %{public}d", status);
+        return false;
     }
-
-    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to set named property");
-        return nullptr;
-    }
-    return exportObj;
+    return true;
 }
 
 void JsFontCollection::Destructor(napi_env env, void* nativeObject, void* finalize)
@@ -132,6 +152,10 @@ std::shared_ptr<FontCollection> JsFontCollection::GetFontCollection()
 
 napi_value JsFontCollection::GetGlobalInstance(napi_env env, napi_callback_info info)
 {
+    if (!CreateConstructor(env)) {
+        TEXT_LOGE("Failed to create constructor");
+        return nullptr;
+    }
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok || !constructor) {

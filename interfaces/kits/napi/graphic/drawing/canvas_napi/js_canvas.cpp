@@ -23,7 +23,7 @@
 #include "src/utils/SkUTF.h"
 #endif
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "pixel_map_napi.h"
 #endif
 #include "native_value.h"
@@ -50,12 +50,12 @@
 #include "roundRect_napi/js_roundrect.h"
 #include "js_drawing_utils.h"
 #include "utils/performanceCaculate.h"
-#ifdef OHOS_PLATFORM
+#if defined(OHOS_PLATFORM) || defined(ROSEN_ARKUI_X)
 #include "pipeline/rs_recording_canvas.h"
 #endif
 
 namespace OHOS::Rosen {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 using namespace Media;
 namespace {
 void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, int row,
@@ -178,6 +178,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("drawLine", JsCanvas::DrawLine),
     DECLARE_NAPI_FUNCTION("drawTextBlob", JsCanvas::DrawText),
     DECLARE_NAPI_FUNCTION("drawSingleCharacter", JsCanvas::DrawSingleCharacter),
+    DECLARE_NAPI_FUNCTION("drawSingleCharacterWithFeatures", JsCanvas::DrawSingleCharacterWithFeatures),
     DECLARE_NAPI_FUNCTION("getTotalMatrix", JsCanvas::GetTotalMatrix),
     DECLARE_NAPI_FUNCTION("getLocalClipBounds", JsCanvas::GetLocalClipBounds),
     DECLARE_NAPI_FUNCTION("drawPixelMapMesh", JsCanvas::DrawPixelMapMesh),
@@ -225,7 +226,7 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     PixelMapNapi* pixelMapNapi = nullptr;
@@ -385,7 +386,7 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
     }
 
     JS_CALL_DRAWING_FUNC(m_canvas->Clear(color));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -442,7 +443,7 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
 
     m_canvas->DrawShadow(*jsPath->GetPath(), offset, lightPos, lightRadius, ambientColor, spotColor,
         static_cast<ShadowFlags>(shadowFlag));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -479,7 +480,7 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_TWO, sweepAngle);
 
     JS_CALL_DRAWING_FUNC(m_canvas->DrawArc(drawingRect, startAngle, sweepAngle));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -524,7 +525,7 @@ napi_value JsCanvas::OnDrawArcWithCenter(napi_env env, napi_callback_info info)
     } else {
         JS_CALL_DRAWING_FUNC(m_canvas->DrawArc(drawingRect, startAngle, sweepAngle));
     }
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -574,7 +575,7 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawRect(drawingRect);
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -666,7 +667,7 @@ napi_value JsCanvas::OnDrawCircle(napi_env env, napi_callback_info info)
     Drawing::Point centerPt = Drawing::Point(x, y);
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawCircle(centerPt, radius);
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -683,7 +684,7 @@ napi_value JsCanvas::DrawImage(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImage canvas is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -805,7 +806,7 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -836,7 +837,7 @@ napi_value JsCanvas::OnDrawOval(napi_env env, napi_callback_info info)
     Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
     JS_CALL_DRAWING_FUNC(m_canvas->DrawOval(drawingRect));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -868,7 +869,7 @@ napi_value JsCanvas::OnDrawPoint(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawPoint(Point(px, py));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -931,7 +932,7 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
             return nullptr;
         }
         JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
         if (mPixelMap_ != nullptr) {
             mPixelMap_->MarkDirty();
         }
@@ -952,7 +953,7 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
         return nullptr;
     }
     JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(static_cast<PointMode>(pointMode), size, points));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -988,7 +989,7 @@ napi_value JsCanvas::OnDrawPath(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawPath(*jsPath->GetPath());
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -1024,7 +1025,7 @@ napi_value JsCanvas::OnDrawLine(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawLine(Point(startPx, startPy), Point(endPx, endPy));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -1058,7 +1059,7 @@ napi_value JsCanvas::OnDrawText(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawTextBlob(jsTextBlob->GetTextBlob().get(), x, y);
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -1116,6 +1117,82 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
             "Parameter verification failed. Input parameter0 should be single character.");
     }
     m_canvas->DrawSingleCharacter(unicode, *font, x, y);
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
+    if (mPixelMap_ != nullptr) {
+        mPixelMap_->MarkDirty();
+    }
+#endif
+    return nullptr;
+}
+
+napi_value JsCanvas::DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnDrawSingleCharacterWithFeatures(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FIVE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FIVE);
+
+    size_t len = 0;
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+    if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Input parameter0 should be single character.");
+    }
+    std::vector<char> strBuffer(len + 1);
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], strBuffer.data(), len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid parameter0 type.");
+    }
+    strBuffer[len] = 0;
+
+    const char* currentPtr = strBuffer.data();
+    const char* endPtr = strBuffer.data() + len;
+    int32_t unicode = SkUTF::NextUTF8(&currentPtr, endPtr);
+    size_t byteLen = currentPtr - strBuffer.data();
+    if (byteLen != len) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. Input parameter0 should be single character.");
+    }
+
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
+
+    double x = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, x);
+
+    double y = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, y);
+
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawSingleCharacterWithFeatures font is nullptr");
+        return nullptr;
+    }
+
+    std::shared_ptr<Font> themeFont = MatchThemeFont(font, unicode);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
+
+    napi_value array = argv[ARGC_FOUR];
+    uint32_t size = 0;
+    if (napi_get_array_length(env, array, &size) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array");
+    }
+
+    std::shared_ptr<DrawingFontFeatures> featuresPtr = std::make_shared<DrawingFontFeatures>();
+    MakeFontFeaturesFromJsArray(env, featuresPtr, size, array);
+    m_canvas->DrawSingleCharacterWithFeatures(strBuffer.data(), *font, x, y, featuresPtr);
 #ifdef ROSEN_OHOS
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
@@ -1132,7 +1209,7 @@ napi_value JsCanvas::DrawPixelMapMesh(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh canvas is null");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -1268,7 +1345,7 @@ napi_value JsCanvas::OnDrawRegion(napi_env env, napi_callback_info info)
         return nullptr;
     }
     JS_CALL_DRAWING_FUNC(m_canvas->DrawRegion(*jsRegion->GetRegion()));
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -1300,7 +1377,7 @@ napi_value JsCanvas::OnDrawBackground(napi_env env, napi_callback_info info)
     }
 
     m_canvas->DrawBackground(*jsBrush->GetBrush());
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -1328,7 +1405,7 @@ napi_value JsCanvas::OnDrawRoundRect(napi_env env, napi_callback_info info)
     GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
 
     m_canvas->DrawRoundRect(jsRoundRect->GetRoundRect());
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -1359,7 +1436,7 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
     GET_UNWRAP_PARAM(ARGC_ONE, jsInner);
 
     m_canvas->DrawNestedRoundRect(jsOuter->GetRoundRect(), jsInner->GetRoundRect());
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
     }
@@ -2048,7 +2125,7 @@ napi_value JsCanvas::DrawImageNine(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::OnDrawImageNine(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageNine canvas is null");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -2106,7 +2183,7 @@ napi_value JsCanvas::DrawImageLattice(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::OnDrawImageLattice(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageLattice canvas is null");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -2165,7 +2242,7 @@ napi_value JsCanvas::DrawImageRect(napi_env env, napi_callback_info info)
 
 napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRect canvas is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -2241,7 +2318,7 @@ napi_value JsCanvas::DrawImageRectWithSrc(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnDrawImageRectWithSrc(env, info) : nullptr;
 }
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size_t argc, Canvas& canvas,
                                             const std::shared_ptr<Media::PixelMap> pixel,
                                             const Rect& srcRect, const Rect& dstRect)
@@ -2313,7 +2390,7 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
 
 napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info info)
 {
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (m_canvas == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc canvas is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");

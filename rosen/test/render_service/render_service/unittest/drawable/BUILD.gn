@@ -23,7 +23,7 @@ group("unittest") {
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
-    ":RSDisplayRenderNodeDrawableTest",
+    ":RSScreenRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
@@ -69,16 +69,37 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
   ]
 }
 
-## Build RSDisplayRenderNodeDrawableTest
-ohos_unittest("RSDisplayRenderNodeDrawableTest") {
+## Build RSScreenRenderNodeDrawableTest
+ohos_unittest("RSScreenRenderNodeDrawableTest") {
   module_out_path = module_output_path
-  sources = [ "rs_display_render_node_drawable_test.cpp" ]
+  sources = [ "rs_screen_render_node_drawable_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSLogicalDisplayRenderNodeDrawableTest
+ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  if (current_os == "ohos" && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines = [ "RS_PROFILER_ENABLED" ]
+  }
+  include_dirs = ["$graphic_2d_root/rosen/modules/render_service_profiler"]
+  sources = [ "rs_logical_display_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "graphic_surface:surface_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -96,6 +117,9 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 }
 
 ## Build RSRcdSurfaceRenderNodeDrawableTest
@@ -109,6 +133,7 @@ ohos_unittest("RSRcdSurfaceRenderNodeDrawableTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -172,6 +197,7 @@ ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -188,6 +214,7 @@ ohos_unittest("RSDirtyRectsDFXTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -204,9 +231,24 @@ ohos_unittest("RSSkpCaptureDFXTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSRefreshRateDfxTest
+ohos_unittest("RSRefreshRateDfxTest") {
+  module_out_path = module_output_path
+  sources = ["dfx/rs_refresh_rate_dfx_test.cpp"]
+  deps = [ ":rs_test_common"]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native"]
   }
 }
 
@@ -256,6 +298,7 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

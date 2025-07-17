@@ -185,7 +185,7 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
     EXPECT_NE(filterDrawable, nullptr);
 
     filterDrawable->needSync_ = true;
-    filterDrawable->stagingFilter_ = nullptr;
+    filterDrawable->stagingFilter_ = std::make_shared<RSFilter>();
     filterDrawable->stagingIntersectWithDRM_=true;
     filterDrawable->stagingIsDarkColorMode_=true;
     filterDrawable->OnSync();
@@ -230,24 +230,24 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAIBarCacheValidTest009
- * @tc.desc: class RSFilterDrawable IsAIBarCacheValid test
+ * @tc.name: CheckAndUpdateAIBarCacheStatusTest009
+ * @tc.desc: class RSFilterDrawable CheckAndUpdateAIBarCacheStatus test
  * @tc.type:FUNC
  * @tc.require: issueIA61E9
  */
-HWTEST_F(RSPropertyDrawableTest, IsAIBarCacheValidTest009, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableTest, CheckAndUpdateAIBarCacheStatusTest009, TestSize.Level1)
 {
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
+    EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 
     filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     filterDrawable->stagingCacheManager_->stagingForceClearCacheForLastFrame_ = false;
-    EXPECT_TRUE(filterDrawable->IsAIBarCacheValid());
+    EXPECT_TRUE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 
     filterDrawable->stagingCacheManager_ = nullptr;
-    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
+    EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 }
 
 /**
@@ -400,4 +400,32 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest014, TestSize.Level1)
     drawFunc(filterCanvas.get(), &rect);
     EXPECT_NE(filterCanvas->cacheBehindWindowData_, nullptr);
 }
+
+/**
+ * @tc.name: RSFilterDrawableTest015
+ * @tc.desc: Test RSFilterDrawable CreateDrawFunc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest015, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    Drawing::Canvas canvas;
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
+    auto shaderFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
+    drawable->filter_ = std::make_shared<RSDrawingFilter>(shaderFilter);
+    drawable->filter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+
+    // Test rect == nullptr
+    drawable->CreateDrawFunc()(&canvas, nullptr);
+    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(drawable->filter_);
+    auto shaderLinearGradientBlurFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
+    EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 1.0f);
+
+    // Test rect != nullptr
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    drawable->CreateDrawFunc()(&canvas, &rect);
+    EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 10.0f);
+}
+
 } // namespace OHOS::Rosen

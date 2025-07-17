@@ -19,17 +19,23 @@
 #include <shared_mutex>
 #include "metadata_helper.h"
 #include "platform/ohos/rs_surface_ohos.h"
+#include "hdi_layer.h"
+
 namespace OHOS::Rosen {
 class RSTvMetadataManager {
 public:
     static RSTvMetadataManager& Instance();
+    static void CopyFromLayersToSurface(const std::vector<LayerInfoPtr>& layers,
+        std::shared_ptr<RSSurfaceOhos>& surface);
 
     void RecordAndCombineMetadata(const TvPQMetadata& metadata);
     void CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>& surface);
     void Reset();
+    void ResetDpPixelFormat();
     TvPQMetadata GetMetadata() const;
 
 private:
+    static void CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMetadata& srcMetadata);
     RSTvMetadataManager() = default;
     ~RSTvMetadataManager() = default;
     RSTvMetadataManager(const RSTvMetadataManager&) = delete;

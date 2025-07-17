@@ -89,6 +89,7 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -122,6 +123,7 @@ ohos_unittest("RSRenderServiceUnitTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -183,6 +185,7 @@ ohos_unittest("RSUniRenderProcessorTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -221,6 +224,7 @@ ohos_unittest("RSUniRenderThreadTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -292,6 +296,7 @@ ohos_unittest("RSComposerAdapterTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -324,6 +329,7 @@ ohos_unittest("RSRenderServiceListenerTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -392,6 +398,7 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -450,6 +457,7 @@ ohos_unittest("RSBaseRenderUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "c_utils:utils",
@@ -457,6 +465,8 @@ ohos_unittest("RSBaseRenderUtilTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -466,7 +476,6 @@ ohos_unittest("RSBaseRenderUtilTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -489,6 +498,7 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -521,6 +531,7 @@ ohos_unittest("RSUniRenderUtilTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -553,9 +564,11 @@ ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
   }
 }
 
@@ -572,6 +585,7 @@ ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -596,6 +610,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -630,6 +645,7 @@ ohos_unittest("RSPointerWindowManagerTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -655,6 +671,7 @@ ohos_unittest("RSHardwareThreadTest") {
   sources = [
     "hardware_thread/rs_hardware_thread_test.cpp",
     "mock/mock_hdi_device.cpp",
+    "mock/mock_rs_screen_manager.cpp",
   ]
   deps = [
     ":rs_test_common",
@@ -666,6 +683,7 @@ ohos_unittest("RSHardwareThreadTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -692,6 +710,7 @@ ohos_unittest("RSMainThreadTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
   ]
   external_deps = [
     "c_utils:utils",
@@ -699,6 +718,7 @@ ohos_unittest("RSMainThreadTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   defines = []
   defines += gpu_defines
@@ -735,6 +755,7 @@ ohos_unittest("RSRenderTaskTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -810,6 +831,7 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -845,7 +867,10 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -855,7 +880,6 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -880,6 +904,7 @@ ohos_unittest("RSRoundCornerDisplayTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -911,6 +936,7 @@ ohos_unittest("RSRealtimeRefreshRateManagerTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -946,6 +972,7 @@ ohos_unittest("RSRenderEngineTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1011,6 +1038,7 @@ ohos_unittest("RSDrawFrameTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1111,6 +1139,7 @@ ohos_unittest("RSUniHwcVisitorTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
@@ -1131,7 +1160,7 @@ ohos_unittest("RSUniHwcVisitorTest") {
   }
 }
 
-## Build rs_test_common.a {{{
+## Build rs_test_common.a
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
@@ -1178,6 +1207,7 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

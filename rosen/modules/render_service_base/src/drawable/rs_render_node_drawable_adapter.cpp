@@ -24,8 +24,9 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
 #include "params/rs_canvas_drawing_render_params.h"
-#include "params/rs_display_render_params.h"
 #include "params/rs_effect_render_params.h"
+#include "params/rs_logical_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "params/rs_rcd_render_params.h"
 #include "pipeline/rs_context.h"
@@ -98,11 +99,14 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
-                ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node id in Cache is %{public}" PRIu64, id);
-                return ptr;
-            } else {
-                RenderNodeDrawableCache_.erase(cacheIt);
+                ROSEN_LOGE("%{public}s, node id in Cache is %{public}" PRIu64
+                    ", nodeType: %{public}u, drawableType: %{public}u", __func__, id, node->GetType(),
+                    ptr->GetNodeType());
+                if (node->GetType() == ptr->GetNodeType()) {
+                    return ptr;
+                }
             }
+            RenderNodeDrawableCache_.erase(cacheIt);
         }
     }
     // If we don't have a cached drawable, try to generate a new one and cache it.
@@ -132,9 +136,9 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->renderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
             break;
-        case RSRenderNodeType::DISPLAY_NODE:
-            sharedPtr->renderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSDisplayRenderParams>(sharedPtr->nodeId_);
+        case RSRenderNodeType::SCREEN_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSScreenRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSScreenRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::EFFECT_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
@@ -147,6 +151,10 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
+            break;
+        case RSRenderNodeType::LOGICAL_DISPLAY_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(sharedPtr->nodeId_);
             break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);

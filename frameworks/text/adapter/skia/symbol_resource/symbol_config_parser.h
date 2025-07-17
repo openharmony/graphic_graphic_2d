@@ -19,17 +19,25 @@
 #include <cstddef>
 #include <cstdint>
 #include <json/json.h>
+#include <mutex>
 #include <unordered_map>
 
 #include "symbol_engine/drawing.h"
 #include "text/hm_symbol.h"
 
+namespace OHOS {
+namespace Rosen {
+namespace Symbol {
+
 class SymbolConfigParser {
 public:
-    static bool ParseSymbolLayersGrouping(const Json::Value& root,
-        std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig);
-    static void ParseSymbolAnimations(const Json::Value& root,
+    static bool ParseSymbolConfig(const Json::Value& root,
+        std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig,
         std::unordered_map<RSAnimationType, RSAnimationInfo>& animationInfos);
+    static bool ParseSymbolLayersGrouping(
+        const Json::Value& root, std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig);
+    static bool ParseSymbolAnimations(
+        const Json::Value& root, std::unordered_map<RSAnimationType, RSAnimationInfo>& animationInfos);
 
 private:
     static bool ParseOneSymbolNativeCase(const char* key, const Json::Value& root, uint16_t& nativeGlyphId);
@@ -61,6 +69,7 @@ private:
         std::map<uint32_t, RSAnimationPara>& animationParas);
     static void ParseSymbolAnimationPara(const Json::Value& root, RSAnimationPara& animationPara);
     static void ParseSymbolCommonSubType(const char* key, const Json::Value& root, RSAnimationPara& animationPara);
+    static void MatchCommonSubType(const std::string& subTypeStr, RSCommonSubType& commonSubType);
     static void ParseSymbolGroupParas(const char* key, const Json::Value& root, RSAnimationPara& animationPara);
     static void ParseSymbolPiecewisePara(const Json::Value& root, RSPiecewiseParameter& piecewiseParameter);
     static void PiecewiseParaCurveCase(const char* key, const Json::Value& root,
@@ -74,5 +83,7 @@ private:
     static void ParseSymbolProperties(const char* key, const Json::Value& root,
         RSPiecewiseParameter& piecewiseParameter);
 };
-
+} // namespace Symbol
+} // namespace Rosen
+} // namespace OHOS
 #endif // SYMBOL_CONFIG_PARSER_H

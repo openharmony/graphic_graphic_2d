@@ -77,6 +77,29 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
     ASSERT_EQ(extractor.GetForegroundBlurRadiusY(), 0.f);
     RSColor valTest2 { SIZE_RSCOLOR, SIZE_RSCOLOR, SIZE_RSCOLOR };
     ASSERT_EQ(extractor.GetLightColor(), valTest2);
+
+    EXPECT_EQ(extractor.GetPositionZ(), 0.f);
+    EXPECT_EQ(extractor.GetRotation(), 0.f);
+    EXPECT_EQ(extractor.GetRotationX(), 0.f);
+    EXPECT_EQ(extractor.GetRotationY(), 0.f);
+
+    EXPECT_EQ(extractor.GetAlphaOffscreen(), true);
+    EXPECT_EQ(extractor.GetForegroundColor(), RgbPalette::Transparent());
+    EXPECT_EQ(extractor.GetBgImageWidth(), 0.f);
+    EXPECT_EQ(extractor.GetBgImageHeight(), 0.f);
+    EXPECT_EQ(extractor.GetBgImagePositionX(), 0.f);
+    EXPECT_EQ(extractor.GetBgImagePositionY(), 0.f);
+    EXPECT_EQ(extractor.GetBorderColor(), Vector4<Color>(RgbPalette::Transparent()));
+    EXPECT_EQ(extractor.GetBorderWidth(), Vector4f(0.f));
+    EXPECT_EQ(extractor.GetBorderStyle(), Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)));
+
+    EXPECT_EQ(extractor.GetFrameGravity(), Gravity::DEFAULT);
+    EXPECT_EQ(extractor.GetClipBounds(), nullptr);
+    EXPECT_EQ(extractor.GetClipToBounds(), false);
+    EXPECT_EQ(extractor.GetClipToFrame(), false);
+
+    EXPECT_EQ(extractor.GetTranslate(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(extractor.GetTranslateZ(), 0.f);
 }
 
 /**
@@ -453,5 +476,79 @@ HWTEST_F(RSModifierExtractorTest, DumpTest, TestSize.Level1)
     std::string dumpInfo = extractor->Dump();
     std::string expected = "Bounds[0.0 0.0 0.0 0.0] Frame[0.0 0.0 0.0 0.0]";
     EXPECT_EQ(dumpInfo, expected);
+}
+
+/**
+ * @tc.name: GetQuaternionTest
+ * @tc.desc: test results of GetQuaternion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetQuaternionTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    Quaternion quaternion = extractor->GetQuaternion();
+    EXPECT_TRUE(quaternion.IsIdentity());
+}
+
+/**
+ * @tc.name: GetBackgroundShaderTest
+ * @tc.desc: test results of GetBackgroundShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetBackgroundShaderTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetBackgroundShader(), nullptr);
+}
+
+/**
+ * @tc.name: GetBgImageTest
+ * @tc.desc: test results of GetBgImage
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetBgImageTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetBgImage(), nullptr);
+}
+
+/**
+ * @tc.name: GetShadowPathTest
+ * @tc.desc: test results of GetShadowPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowPathTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetShadowPath(), nullptr);
+}
+
+/**
+ * @tc.name: GetMaskTest
+ * @tc.desc: test results of GetMask
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetMaskTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetMask(), nullptr);
+}
+
+/**
+ * @tc.name: GetOutlineDashGapTest
+ * @tc.desc: test results of GetOutlineDashGap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetOutlineDashGapTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f vector = extractor.GetOutlineDashGap();
+    EXPECT_EQ(vector, Vector4f(0.f));
 }
 } // namespace OHOS::Rosen

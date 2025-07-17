@@ -33,7 +33,7 @@
 #include "rs_profiler_packet.h"
 #include "rs_profiler_settings.h"
 #include "rs_profiler_telemetry.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
@@ -43,14 +43,10 @@
 namespace OHOS::Rosen {
 
 const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
-    { "rstree_contains", DumpTree },
-    { "rstree_fix", PatchNode },
     { "rstree_kill_node", KillNode },
     { "rstree_setparent", AttachChild },
-    { "rstree_getroot", GetRoot },
     { "rstree_node_mod", DumpNodeModifiers },
     { "rstree_node_prop", DumpNodeProperties },
-    { "rstree_pid", DumpSurfaces },
     { "rstree_kill_pid", KillPid },
     { "rstree_prepare_replay", PlaybackPrepare },
     { "rstree_save_frame", TestSaveFrame },
@@ -75,15 +71,18 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rsrecord_pause_resume", PlaybackResume },
     { "rsrecord_pause_clear", PlaybackPauseClear },
     { "rsrecord_sendbinary", RecordSendBinary },
+    { "rsrecord_metrics", RecordMetrics },
     { "rssurface_pid", DumpNodeSurface },
     { "rscon_print", DumpConnections },
     { "save_rdc", SaveRdc },
     { "save_skp", SaveSkp },
     { "save_offscreen", SaveOffscreenSkp },
     { "save_component", SaveComponentSkp },
+    { "save_imgcache", SaveSkpImgCache },
+    { "save_oncapture", SaveSkpOnCapture },
+    { "save_extended", SaveSkpExtended },
     { "info", GetDeviceInfo },
     { "freq", GetDeviceFrequency },
-    { "fixenv", FixDeviceEnv },
     { "set", SetSystemParameter },
     { "get", GetSystemParameter },
     { "params", DumpSystemParameters },
@@ -135,10 +134,59 @@ void RSProfiler::SaveSkp(const ArgList& args)
     RSCaptureRecorder::GetInstance().SetDrawingCanvasNodeId(nodeId);
     if (nodeId == 0) {
         RSSystemProperties::SetInstantRecording(true);
-        Respond("Recording full frame .skp");
+        SendMessage("Recording full frame .skp");
     } else {
-        Respond("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
+        SendMessage("Recording .skp for DrawingCanvasNode: id= %" PRId64 "", nodeId);
     }
+    AwakeRenderServiceThread();
+}
+
+static void SetSkpAndClear()
+{
+    RSCaptureRecorder::GetInstance().SetCaptureTypeClear(true);
+    RSSystemProperties::SetInstantRecording(true);
+}
+
+void RSProfiler::SaveSkpImgCache(const ArgList& args)
+{
+    const auto option = args.Uint32();
+    if (option == 0) {
+        RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::DEFAULT);
+        SetSkpAndClear();
+        SendMessage("Recording full frame .skp, default capturing of caсhed content");
+    } else if (option == 1) {
+        RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::IMG_CACHED);
+        SetSkpAndClear();
+        SendMessage("Recording full frame .skp, drawing of cached img");
+    } else {
+        SendMessage("Invalid argument for: skp_imgcache");
+    }
+    AwakeRenderServiceThread();
+}
+
+void RSProfiler::SaveSkpOnCapture(const ArgList& args)
+{
+    const auto option = args.Node();
+    if (option != 0) {
+        SendMessage("There's no argument for the command: skp_oncapture");
+        return;
+    }
+    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::ON_CAPTURE);
+    SetSkpAndClear();
+    SendMessage("Recording full frame .skp, OnCapture call for mirrored node");
+    AwakeRenderServiceThread();
+}
+
+void RSProfiler::SaveSkpExtended(const ArgList& args)
+{
+    const auto option = args.Node();
+    if (option != 0) {
+        SendMessage("There's no argument for the command: skp_extended");
+        return;
+    }
+    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::EXTENDED);
+    SetSkpAndClear();
+    SendMessage("Recording full frame .skp, offscreen rendering for extended screen");
     AwakeRenderServiceThread();
 }
 
@@ -301,13 +349,6 @@ void RSProfiler::GetDeviceFrequency(const ArgList& args)
     Respond(RSTelemetry::GetCpuAffinityString());
 }
 
-void RSProfiler::FixDeviceEnv(const ArgList& args)
-{
-    constexpr int32_t cpu = 8;
-    Utils::SetCpuAffinity(cpu);
-    Respond("OK");
-}
-
 void RSProfiler::PrintNodeCache(const ArgList& args)
 {
     NodeId nodeId = args.Uint64();
@@ -372,5 +413,18 @@ void RSProfiler::PlaybackResume(const ArgList& args)
     ResetAnimationStamp();
     Respond("OK");
 }
+
+std::string RSProfiler::RsMetricGetList()
+{
+    auto& customMetrics = GetCustomMetrics();
+    return customMetrics.GetList();
+}
+
+void RSProfiler::RecordMetrics(const ArgList& args)
+{
+    std::string response = RsMetricGetList();
+    Respond("METRICS: " + response);
+}
+
 
 } // namespace OHOS::Rosen

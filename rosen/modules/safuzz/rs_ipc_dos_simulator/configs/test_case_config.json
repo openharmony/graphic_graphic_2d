@@ -963,15 +963,6 @@
     "commandListRepeat": 1
   },
   {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_109",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeSetDisplayOffset*100",
-    "commandListRepeat": 1
-  },
-  {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_110",
     "interfaceName": "COMMIT_TRANSACTION",
     "inputParams": "WriteRSTransactionData",
@@ -1005,15 +996,6 @@
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
     "commandList": "RSDisplayNodeSetBootAnimation*100",
-    "commandListRepeat": 1
-  },
-  {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_114",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeSetRogSize*100",
     "commandListRepeat": 1
   },
   {
@@ -1370,6 +1352,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "SET_VIRTUAL_SCREEN_AUTO_ROTATION_TEST_001",
+    "interfaceName": "SET_VIRTUAL_SCREEN_AUTO_ROTATION",
+    "inputParams": "WriteUint64;WriteBool",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "SET_PHYSICAL_SCREEN_RESOLUTION_TEST_001",
     "interfaceName": "SET_PHYSICAL_SCREEN_RESOLUTION",
     "inputParams": "WriteUint64;WriteUint32;WriteUint32",
@@ -1575,7 +1564,7 @@
   {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE",
-    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
+    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC"
   },
@@ -2318,6 +2307,34 @@
     "testCaseDesc": "AVCODEC_VIDEO_STOP_TEST_001",
     "interfaceName": "AVCODEC_VIDEO_STOP",
     "inputParams": "WriteUint64;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_SERVICE_OPEN_FILE_TEST_001",
+    "interfaceName": "PROFILER_SERVICE_OPEN_FILE",
+    "inputParams": "WriteUint32;WriteString;WriteString;WriteString;WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_SERVICE_POPULATE_FILES_TEST_001",
+    "interfaceName": "PROFILER_SERVICE_POPULATE_FILES",
+    "inputParams": "WriteUint32;WriteString;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "PROFILER_IS_SECURE_SCREEN_TEST_001",
+    "interfaceName": "PROFILER_IS_SECURE_SCREEN",
+    "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "GET_SCREEN_HDR_STATUS_TEST_001",
+    "interfaceName": "GET_SCREEN_HDR_STATUS",
+    "inputParams": "WriteUint64",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   }

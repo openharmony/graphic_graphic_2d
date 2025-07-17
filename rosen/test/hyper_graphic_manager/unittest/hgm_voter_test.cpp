@@ -26,8 +26,9 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    std::vector<std::string> voters = {"voter1", "voter2"};
+std::vector<std::string> voters = { "voter1", "voter2" };
 }
+
 class DeliverVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase()
@@ -44,7 +45,7 @@ public:
  * @tc.number: DeliverVoteTest_001
  * @tc.desc  : When there are no voters, DeliverVote should return false
  */
-HWTEST_F(DeliverVoteTest, DeliverVoteTest_001, Function | SmallTest | Level1) {
+HWTEST_F(DeliverVoteTest, DeliverVoteTest_001, Function | SmallTest | Level0) {
     auto voter = std::make_shared<HgmVoter>(voters);
     VoteInfo voteInfo;
     voteInfo.voterName = "nonexistentVoter";
@@ -62,7 +63,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_001, Function | SmallTest | Level1) {
  * @tc.desc  : When pid is 0 and eventStatus is false,
 DeliverVote should clear vec and return true
  */
-HWTEST_F(DeliverVoteTest, DeliverVoteTest_002, Function | SmallTest | Level1) {
+HWTEST_F(DeliverVoteTest, DeliverVoteTest_002, Function | SmallTest | Level0) {
     auto voter = std::make_shared<HgmVoter>(voters);
     VoteInfo voteInfo;
     voteInfo.voterName = "voter1";
@@ -83,7 +84,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_002, Function | SmallTest | Level1) {
  * @tc.desc  : When eventStatus is false and pid matches,
 DeliverVote should delete the matching record and return true
  */
-HWTEST_F(DeliverVoteTest, DeliverVoteTest_003, Function | SmallTest | Level1) {
+HWTEST_F(DeliverVoteTest, DeliverVoteTest_003, Function | SmallTest | Level0) {
     auto voter = std::make_shared<HgmVoter>(voters);
     VoteInfo voteInfo;
     voteInfo.voterName = "voter1";
@@ -104,7 +105,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_003, Function | SmallTest | Level1) {
  * @tc.desc  : When eventStatus is true and pid matches,
 DeliverVote should modify the matched record and return true.
  */
-HWTEST_F(DeliverVoteTest, DeliverVoteTest_004, Function | SmallTest | Level1) {
+HWTEST_F(DeliverVoteTest, DeliverVoteTest_004, Function | SmallTest | Level0) {
     auto voter = std::make_shared<HgmVoter>(voters);
     VoteInfo voteInfo;
     voteInfo.voterName = "voter1";
@@ -147,7 +148,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_004, Function | SmallTest | Level1) {
  * @tc.desc  : When eventStatus is true and pid does not match,
 DeliverVote should add a new record and return true
  */
-HWTEST_F(DeliverVoteTest, DeliverVoteTest_005, Function | SmallTest | Level1) {
+HWTEST_F(DeliverVoteTest, DeliverVoteTest_005, Function | SmallTest | Level0) {
     auto voter = std::make_shared<HgmVoter>(voters);
     VoteInfo voteInfo;
     voteInfo.voterName = "voter1";

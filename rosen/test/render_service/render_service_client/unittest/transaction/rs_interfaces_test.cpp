@@ -52,6 +52,8 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI001, TestSize.Level1)
         explicit TestSurfaceCapture() {}
         ~TestSurfaceCapture() {}
         void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     };
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto callback = std::make_shared<TestSurfaceCapture>();
@@ -120,11 +122,11 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI003, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback001, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    bool res = instance.RegisterTransactionDataCallback(pid, timeStamp, nullptr);
+    bool res = instance.RegisterTransactionDataCallback(token, timeStamp, nullptr);
     EXPECT_TRUE(res == false);
 }
 
@@ -136,12 +138,12 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     std::function<void()> callback = []() {};
-    bool res = instance.RegisterTransactionDataCallback(pid, timeStamp, callback);
+    bool res = instance.RegisterTransactionDataCallback(token, timeStamp, callback);
     EXPECT_TRUE(res == true);
 }
 
@@ -158,6 +160,8 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig001, TestSize.Level1
         explicit TestSurfaceCapture() {}
         ~TestSurfaceCapture() {}
         void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     };
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto callback = std::make_shared<TestSurfaceCapture>();
@@ -785,5 +789,21 @@ HWTEST_F(RSInterfacesTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
     bool enabled = false;
     auto res = instance.GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest
+ * @tc.desc: test results of GetPidGpuMemoryInMBTest001
+ * @tc.type: FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    pid_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    int32_t res = instance.GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_NE(res, 0);
 }
 } // namespace OHOS::Rosen

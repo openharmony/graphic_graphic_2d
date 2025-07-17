@@ -1,0 +1,121 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ // The macro definition of the property tags is as follows
+ // DECLARE_ANIMATABLE_PROPERTY_TAG(EffectName, PropName, Type)
+ // DECLARE_NONANIMATABLE_PROPERTY_TAG(EffectName, PropName, Type)
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Blur, RadiusX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Blur, RadiusY, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(DispDistort, Factor, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DispDistort, Mask, MASK_PTR);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorA, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorB, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorC, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ColorProgress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, CenterBrightness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, Intensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, AlphaA, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, AlphaB, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ProgressA, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ProgressB, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Alpha, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Color, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Mask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Bloom, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, UseRawColor, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Colors, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Positions, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Strengths, std::vector<float>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradient, Mask, MASK_PTR);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Dispersion, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, Opacity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, RedOffset, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, GreenOffset, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(Dispersion, BlueOffset, Vector2f);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DirectionLight, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Direction, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DirectionLight, Intensity, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint0, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint1, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint2, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint3, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint4, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint5, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint6, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint7, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint8, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint9, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint10, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BezierWarp, ControlPoint11, Vector2f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Width, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RippleMask, Offset, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Src, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Dst, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, FillColor, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(PixelMapMask, Image, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Contour, VectorVector2F);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Start, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Length, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Start, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Length, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color, Vector4f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Radius, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(AuroraNoise, Noise, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Noise, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusX, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusY, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Colors, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Positions, std::vector<float>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, WaveCenter, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, WaveWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, PropagationRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, BlurRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, TurbulenceStrength, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Width, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center1, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center2, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Turbulence, float);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(MaskTransition, Factor, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Inverse, bool);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Radius, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Mask, MASK_PTR);

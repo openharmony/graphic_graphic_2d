@@ -17,7 +17,7 @@
         "SystemCapability.Graphic.Graphic2D.EGL",
         "SystemCapability.Graphic.Graphic2D.GLES2",
         "SystemCapability.Graphic.Graphic2D.GLES3",
-        "SystemCapability.Graphic.Graphic2D.GL4",
+        "SystemCapability.Graphic.Graphic2D.GL4 = false",
         "SystemCapability.Graphic.Graphic2D.HyperGraphicManager",
         "SystemCapability.Graphic.Graphic2D.NativeBuffer",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
@@ -60,7 +60,10 @@
         "graphic_2d_feature_overlay_display_enable",
         "graphic_2d_feature_enable_opengl_to_vulkan",
         "graphic_2d_feature_screenless_enable",
-        "graphic_2d_feature_tv_metadata_enable"
+        "graphic_2d_feature_tv_metadata_enable",
+        "graphic_2d_feature_upgrade_skia",
+        "graphic_2d_feature_enable_rdo",
+        "graphic_2d_feature_enable_memory_info_manager"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -122,7 +125,8 @@
           "rust_cxx",
           "media_foundation",
           "selinux_adapter",
-          "runtime_core"
+          "runtime_core",
+          "graphic_2d_ext"
         ],
         "third_party": [
           "skia"
@@ -160,7 +164,9 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-            "//foundation/graphic/graphic_2d/etc:ohos.para.dac"
+            "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
+            "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
+            "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]
       },
         "inner_kits": [
@@ -437,6 +443,14 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
+            "header": {
+            "header_files": [],
+            "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect/include"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
             "header": {
               "header_files": [
@@ -445,6 +459,24 @@
                 "color_mgr_ffi.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_impl",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_ffi",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
             }
           },
           {
@@ -469,6 +501,24 @@
             "header": {
               "header_files": [],
               "header_base": "//foundation/graphic/graphic_2d/frameworks/text/interface/export"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+            "header": {
+              "header_files": [
+                "ivsync_connection.h",
+                "vsync_connection_proxy.h",
+                "vsync_connection_stub.h",
+                "vsync_controller.h",
+                "vsync_distributor.h",
+                "vsync_generator.h",
+                "vsync_log.h",
+                "vsync_sampler.h",
+                "vsync_system_ability_listener.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include"
             }
           }
         ],

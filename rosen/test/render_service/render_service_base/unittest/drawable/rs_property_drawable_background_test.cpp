@@ -13,18 +13,20 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
-
-#include "drawable/rs_property_drawable_background.h"
-#include "pipeline/rs_context.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_effect_render_node.h"
-#include "render/rs_drawing_filter.h"
-#include "surface_buffer_impl.h"
 #include "buffer_handle.h"
 #include "buffer_handle_utils.h"
+#include "gtest/gtest.h"
 #include "parameters.h"
+#include "surface_buffer_impl.h"
+
+#include "drawable/rs_property_drawable_background.h"
+#include "effect/rs_render_shader_base.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "render/rs_drawing_filter.h"
+#include "ge_visual_effect_container.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -37,6 +39,13 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void DisplayTestInfo();
+};
+
+class ConcreteRSRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit ConcreteRSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node)) {}
+    void Draw(Drawing::Canvas& canvas);
 };
 
 void RSRSBinarizationDrawableTest::SetUpTestCase() {}
@@ -120,7 +129,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSMaskDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    std::shared_ptr<RSMask> mask =  std::make_shared<RSMask>();
+    std::shared_ptr<RSMask> mask = std::make_shared<RSMask>();
     mask->type_ = MaskType::SVG;
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_EQ(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
@@ -141,7 +150,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     opts.size.width = 50;
     opts.size.height = 50;
     auto pixelMap = Media::PixelMap::Create(opts);
-    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelMap.release());
+    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelMap.release());
     mask->SetPixelMap(shpPixelMap);
     node.GetMutableRenderProperties().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
@@ -168,10 +177,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundColorDrawable, TestSize.Level
     ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
     auto borderColor = Color(255, 255, 255, 255);
     auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
-    node.GetMutableRenderProperties().SetBorderColor(
-        { borderColor, borderColor, borderColor, borderColor });
-    node.GetMutableRenderProperties().SetBorderStyle(
-        { borderStyle, borderStyle, borderStyle, borderStyle });
+    node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
+    node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
     ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
 }
 
@@ -192,11 +199,104 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundShaderDrawable, TestSize.Leve
     ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
     auto borderColor = Color(255, 255, 255, 255);
     auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
-    node.GetMutableRenderProperties().SetBorderColor(
-        { borderColor, borderColor, borderColor, borderColor });
-    node.GetMutableRenderProperties().SetBorderStyle(
-        { borderStyle, borderStyle, borderStyle, borderStyle });
+    node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
+    node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
     ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
+}
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable001
+ * @tc.desc: Test OnGenerate
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node);
+    EXPECT_EQ(drawable, nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+    EXPECT_NE(DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node), nullptr);
+
+    auto borderColor = Color(255, 255, 255, 255);
+    auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
+    node.GetMutableRenderProperties().SetBorderColor({ borderColor, borderColor, borderColor, borderColor });
+    node.GetMutableRenderProperties().SetBorderStyle({ borderStyle, borderStyle, borderStyle, borderStyle });
+
+    EXPECT_NE(DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable002
+ * @tc.desc: Test OnUpdate
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node);
+    EXPECT_EQ(drawable, nullptr);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+    auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
+        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
+    EXPECT_NE(drawableTwo, nullptr);
+    EXPECT_TRUE(drawableTwo->OnUpdate(node));
+    EXPECT_EQ(drawableTwo->stagingShader_, shader);
+    EXPECT_EQ(drawableTwo->needSync_, true);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(nullptr);
+    EXPECT_FALSE(drawableTwo->OnUpdate(node));
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable003
+ * @tc.desc: Test Onsync
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable003, TestSize.Level1)
+{
+    DrawableV2::RSBackgroundNGShaderDrawable drawable;
+    drawable.needSync_ = false;
+    drawable.OnSync();
+    EXPECT_FALSE(drawable.needSync_);
+
+    drawable.needSync_ = true;
+    drawable.OnSync();
+    EXPECT_TRUE(drawable.needSync_);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    drawable.stagingShader_ = shader;
+    drawable.OnSync();
+    EXPECT_FALSE(drawable.needSync_);
+    EXPECT_NE(drawable.visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable004
+ * @tc.desc: Test Onsync
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable004, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSBackgroundNGShaderDrawable>();
+    auto drawFunc = drawable->CreateDrawFunc();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawFunc(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
+
+    drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    drawFunc(canvas.get(), nullptr);
+    ASSERT_TRUE(true);
+
+    drawFunc(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
 }
 
 /**
@@ -255,7 +355,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable003, TestSize.Le
     opts.size.width = 50;
     opts.size.height = 50;
     auto pixelmap = Media::PixelMap::Create(opts);
-    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelmap.release());
+    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelmap.release());
     shpPixelMap->SetAstc(true);
     image->SetPixelMap(shpPixelMap);
     drawable->bgImage_ = image;
@@ -323,7 +423,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable006, TestSize.Le
     opts.size.width = 50;
     opts.size.height = 50;
     auto pixelmap = Media::PixelMap::Create(opts);
-    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelmap.release());
+    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelmap.release());
     DrawableV2::RSBackgroundImageDrawable drawable;
     drawable.bgImage_ = image;
     drawable.SetCompressedDataForASTC();
@@ -386,8 +486,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
     node.drawCmdModifiers_.emplace(RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, list);
     float radius = 0.f;
-    ASSERT_TRUE(DrawableV2::RSBackgroundFilterDrawable::GetModifierProperty(node,
-        RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius));
+    ASSERT_TRUE(DrawableV2::RSBackgroundFilterDrawable::GetModifierProperty(
+        node, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, radius));
     ASSERT_EQ(DrawableV2::RSBackgroundFilterDrawable::GetBehindWindowFilter(node), nullptr);
     auto property2 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property2->GetRef() = drawCmdList;
@@ -433,7 +533,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawable, TestSize.Leve
     auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     int width = 1270;
     int height = 2560;
-    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    Drawing::ImageInfo imageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
     Drawing::Surface* surfacePtr = surface.get();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(surfacePtr);
@@ -456,8 +556,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable001, TestSize.Level1)
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
     node.GetMutableRenderProperties().SetUseEffect(true);
-    auto drawableTwo = std::static_pointer_cast<DrawableV2::RSUseEffectDrawable>(
-        DrawableV2::RSUseEffectDrawable::OnGenerate(node));
+    auto drawableTwo =
+        std::static_pointer_cast<DrawableV2::RSUseEffectDrawable>(DrawableV2::RSUseEffectDrawable::OnGenerate(node));
     ASSERT_NE(drawableTwo, nullptr);
     ASSERT_TRUE(drawableTwo->OnUpdate(node));
     node.GetMutableRenderProperties().SetUseEffect(false);
@@ -577,7 +677,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable006, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
     node.GetMutableRenderProperties().SetUseEffect(true);
-    node.GetMutableRenderProperties().SetUseEffectType(2);
+    node.GetMutableRenderProperties().SetUseEffectType(1);
     auto drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
@@ -601,7 +701,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable007, TestSize.Level1)
     filterCanvas->SetEffectIntersectWithDRM(true);
     ASSERT_TRUE(filterCanvas->GetEffectIntersectWithDRM());
     auto rect = std::make_shared<Drawing::Rect>();
-    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>();
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffect(true);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffectType(0);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawableTwo = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(rsRenderNode);
+    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
 }
@@ -619,7 +725,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable008, TestSize.Level1)
     filterCanvas->SetEffectIntersectWithDRM(false);
     ASSERT_FALSE(filterCanvas->GetEffectIntersectWithDRM());
     auto rect = std::make_shared<Drawing::Rect>();
-    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>();
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffect(true);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffectType(0);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawableTwo = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(rsRenderNode);
+    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
 }

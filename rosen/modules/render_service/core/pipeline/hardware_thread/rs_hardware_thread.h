@@ -91,7 +91,7 @@ private:
         int64_t currTime);
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
     void EndCheck(RSTimer timer);
-    bool IsDropDirtyFrame(OutputPtr output);
+    bool IsDropDirtyFrame(const std::vector<LayerInfoPtr>& layerInfos, uint32_t screenId);
     void ContextRegisterPostTask();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
@@ -121,6 +121,7 @@ private:
     int64_t delayTime_ = 0;
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
+    int64_t lastActualTime_ = 0;
     std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
     std::string GetSurfaceNameInLayersForTrace(const std::vector<LayerInfoPtr>& layers);
     std::mutex preAllocMutex_;

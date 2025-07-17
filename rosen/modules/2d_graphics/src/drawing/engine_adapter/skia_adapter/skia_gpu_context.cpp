@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -580,6 +580,17 @@ void SkiaGPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(
 #ifndef TODO_M133_SKIA
     grContext_->suppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
 #endif
+}
+
+void SkiaGPUContext::GetHpsEffectSupport(std::vector<const char*>& instanceExtensions)
+{
+    return;
+}
+
+void SkiaGPUContext::SetEarlyZFlag(bool flag)
+{
+    // Skia Not Implement SetEarlyZflag
+    return;
 }
 
 std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>>

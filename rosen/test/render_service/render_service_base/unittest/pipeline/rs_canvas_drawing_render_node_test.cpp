@@ -18,6 +18,9 @@
 #include "common/rs_obj_geometry.h"
 #include "draw/canvas.h"
 #include "modifier/rs_modifier_type.h"
+#if defined(MODIFIER_NG)
+#include "modifier_ng/rs_render_modifier_ng.h"
+#endif
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
@@ -106,9 +109,17 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     drawCmdList->SetHeight(1090);
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    RSRenderNode::ModifierNGContainer vecModifier = { modifier };
+    rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
+        vecModifier;
+#else
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
     rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+#endif
     std::function<void(std::shared_ptr<Drawing::Surface>)> callbackFunc = [](std::shared_ptr<Drawing::Surface>) {
         printf("ProcessRenderContentsTest callbackFunc\n");
     };
@@ -199,9 +210,17 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>(1024, 1090);
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
+#if defined(MODIFIER_NG)
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    RSRenderNode::ModifierNGContainer vecModifier = { modifier };
+    rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
+        vecModifier;
+#else
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
     rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+#endif
     EXPECT_TRUE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 

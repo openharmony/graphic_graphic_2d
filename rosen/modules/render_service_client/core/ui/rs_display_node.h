@@ -112,14 +112,6 @@ public:
     void SetScreenId(uint64_t screenId);
 
     /**
-     * @brief Sets the display offset for the screen.
-     *
-     * @param offsetX Indicates the X-axis offset to be applied to the screen.
-     * @param offsetY Indicates the Y-axis offset to be applied to the screen.
-     */
-    void SetDisplayOffset(int32_t offsetX, int32_t offsetY);
-
-    /**
      * @brief Sets whether it is a security screen.
      *
      * The secure screen processes secure layers, while the non-secure screen processes insecure layers
@@ -201,16 +193,13 @@ protected:
     RSDisplayNode(const RSDisplayNode&&) = delete;
     RSDisplayNode& operator=(const RSDisplayNode&) = delete;
     RSDisplayNode& operator=(const RSDisplayNode&&) = delete;
-    void OnBoundsSizeChanged() const override;
 
 private:
     bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
     void RegisterNodeMap() override;
     uint64_t screenId_;
-    int32_t offsetX_;
-    int32_t offsetY_;
     bool isSecurityDisplay_ = false;
-    bool isMirroredDisplay_ = false;
+    bool isMirrorDisplay_ = false;
     bool isBootAnimation_ = false;
 };
 } // namespace Rosen

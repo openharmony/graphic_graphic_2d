@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -638,6 +638,20 @@ HWTEST_F(GpuContextTest, SuppressGpuCacheBelowCertainRatioTest001, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetHpsEffectSupportTest001
+ * @tc.desc: Test for get HPS effect support status.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+*/
+HWTEST_F(GpuContextTest, GetHpsEffectSupportTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::vector<const char*> extensionProperties;
+    gpuContext->GetHpsEffectSupport(extensionProperties);
+}
+
+/**
  * @tc.name: RegisterVulkanErrorCallbackTest001
  * @tc.desc: Test for register vulkan error callback.
  * @tc.type: FUNC
@@ -648,6 +662,19 @@ HWTEST_F(GpuContextTest, RegisterVulkanErrorCallbackTest001, TestSize.Level1)
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->RegisterVulkanErrorCallback(nullptr);
+}
+
+/**
+ * @tc.name: SetEarlyZFlagTest001
+ * @tc.desc: Test for set earlyz flag function.
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(GpuContextTest, SetEarlyZFlagTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetEarlyZFlag(true);
 }
 
 } // namespace Drawing

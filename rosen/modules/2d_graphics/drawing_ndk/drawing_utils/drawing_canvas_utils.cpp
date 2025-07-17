@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,6 +79,31 @@ void DrawingCanvasUtils::DrawPixelMapRect(Drawing::Canvas* canvas, std::shared_p
     canvas->DrawImageRect(*image, src ? *src : Drawing::Rect(0, 0, pixelMap->GetWidth(), pixelMap->GetHeight()),
         *dst, sampling ? *sampling : Drawing::SamplingOptions());
 #endif
+}
+
+OH_Drawing_ErrorCode DrawingCanvasUtils::DrawPixelMapRectConstraint(Drawing::Canvas* canvas,
+    std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* src, const Drawing::Rect* dst,
+    const Drawing::SamplingOptions* sampling, const Drawing::SrcRectConstraint constraint)
+{
+#ifdef OHOS_PLATFORM
+    if (!canvas || !pixelMap || !dst) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(canvas);
+        canvas_->DrawPixelMapRect(pixelMap,
+            src ? *src : Drawing::Rect(0, 0, pixelMap->GetWidth(), pixelMap->GetHeight()),
+            *dst, sampling ? *sampling : Drawing::SamplingOptions(), constraint);
+        return OH_DRAWING_SUCCESS;
+    }
+    std::shared_ptr<Drawing::Image> image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    if (!image) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawImageRect(*image, src ? *src : Drawing::Rect(0, 0, pixelMap->GetWidth(), pixelMap->GetHeight()),
+        *dst, sampling ? *sampling : Drawing::SamplingOptions(), constraint);
+#endif
+    return OH_DRAWING_SUCCESS;
 }
 
 void DrawingCanvasUtils::DrawRecordCmd(Drawing::Canvas* canvas,

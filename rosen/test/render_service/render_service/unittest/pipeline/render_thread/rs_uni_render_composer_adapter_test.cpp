@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
@@ -81,7 +81,7 @@ void RSUniRenderComposerAdapterTest::SetUp()
     info.rotation = rotation;
     composerAdapter_ = std::make_unique<RSUniRenderComposerAdapter>();
     ASSERT_NE(composerAdapter_, nullptr);
-    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient);
+    composerAdapter_->Init(info, offsetX, offsetY);
 }
 
 /**
@@ -1141,6 +1141,36 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop003, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CreateLayer002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.CreateLayer002
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    LayerInfoPtr layer1 = composerAdapter_->CreateLayer(*rsScreenNode);
+    ASSERT_EQ(layer1, nullptr);
+    
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode);
+    ASSERT_NE(drawable, nullptr);
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+    rsScreenNode->renderDrawable_ = screenDrawable;
+    screenDrawable->surfaceCreated_ = true;
+    OHOS::sptr<SurfaceBuffer> cbuffer = new SurfaceBufferImpl();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0);
+    surfaceHandler->SetAvailableBufferCount(0);
+    screenDrawable->surfaceCreated_ = true;
+    LayerInfoPtr layer2 = composerAdapter_->CreateLayer(*rsScreenNode);
+    ASSERT_EQ(layer2->GetNodeId(), id);
+}
+
+/**
  * @tc.name: SrcRectRotateTransform006
  * @tc.desc: Test RSUniRenderComposerAdapterTest.SrcRectRotateTransform while
  *           surface's consumer is nullptr
@@ -1267,16 +1297,15 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     SetUp();
 
     using namespace HDI::Display::Graphic::Common::V1_0;
-
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode::SharedPtr nodePtr = std::make_shared<RSDisplayRenderNode>(1, config);
-    auto displayDrawable =std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNode::SharedPtr nodePtr = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable =std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr));
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
-    displayDrawable->CreateSurface(listener);
+    screenDrawable->CreateSurface(listener);
 
-    auto rsSurface = displayDrawable->GetRSSurface();
+    auto rsSurface = screenDrawable->GetRSSurface();
     rsSurface->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
@@ -1294,7 +1323,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
 
     surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
 
-    RSUniRenderComposerAdapter::SetBufferColorSpace(*displayDrawable);
+    RSUniRenderComposerAdapter::SetBufferColorSpace(*screenDrawable);
 
     CM_ColorSpaceType colorSpaceType;
     ret = MetadataHelper::GetColorSpaceType(buffer, colorSpaceType);
@@ -1325,12 +1354,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace002, TestSize.Level2
     SetUp();
 
     NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    auto drawable = DrawableV2::RSScreenRenderNodeDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
-    auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
-    composerAdapter_->SetBufferColorSpace(*displayDrawable);
+    auto screenDrawable = static_cast<DrawableV2::RSScreenRenderNodeDrawable*>(drawable);
+    composerAdapter_->SetBufferColorSpace(*screenDrawable);
 }
 
 /**
@@ -1344,18 +1373,18 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2
     SetUp();
 
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    ASSERT_NE(displayDrawable, nullptr);
-    composerAdapter_->SetBufferColorSpace(*displayDrawable);
+    ASSERT_NE(screenDrawable, nullptr);
+    composerAdapter_->SetBufferColorSpace(*screenDrawable);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
-    composerAdapter_->SetBufferColorSpace(*displayDrawable);
+    composerAdapter_->SetBufferColorSpace(*screenDrawable);
 }
 } // namespace

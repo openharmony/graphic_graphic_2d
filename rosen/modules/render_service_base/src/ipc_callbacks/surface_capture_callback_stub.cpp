@@ -45,6 +45,24 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
             OnSurfaceCapture(id, captureConfig, pixelmap);
             break;
         }
+        case static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR): {
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSSurfaceCaptureCallbackStub::ON_SURFACE_CAPTURE read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RSSurfaceCaptureConfig captureConfig;
+            if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSSurfaceCaptureCallbackStub: ReadSurfaceCaptureConfig failed");
+                break;
+            }
+            auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
+            auto pixelmapHDR = data.ReadParcelable<OHOS::Media::PixelMap>();
+            OnSurfaceCapture(id, captureConfig, pixelmap, pixelmapHDR);
+            break;
+        }
         default: {
             ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
@@ -57,12 +75,17 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
 bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
     // read mainScreenRect only to reduce ipc data size
-    if (!data.ReadFloat(captureConfig.mainScreenRect.left_) ||
+    if (!data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.bottom_) ||
         !data.ReadUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
-        !data.ReadBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize)) {
+        !data.ReadBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
+        !data.ReadFloat(captureConfig.specifiedAreaRect.left_) ||
+        !data.ReadFloat(captureConfig.specifiedAreaRect.top_) ||
+        !data.ReadFloat(captureConfig.specifiedAreaRect.right_) ||
+        !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_)) {
         RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig read parcel failed!");
         return false;
     }

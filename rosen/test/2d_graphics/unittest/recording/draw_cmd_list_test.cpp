@@ -370,6 +370,38 @@ HWTEST_F(DrawCmdListTest, Dump003, TestSize.Level1)
     EXPECT_TRUE(out.empty());
     delete drawCmdList;
 }
+
+/**
+ * @tc.name: GetCmdlistDrawRegion001
+ * @tc.desc: Test the GetCmdlistDrawRegion function.
+ * @tc.type: FUNC
+ * @tc.require: ICI6YB
+ */
+HWTEST_F(DrawCmdListTest, GetCmdlistDrawRegion001, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    drawCmdList->drawOpItems_.emplace_back(nullptr);
+    EXPECT_TRUE(drawCmdList->GetCmdlistDrawRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: GetCmdlistDrawRegion002
+ * @tc.desc: Test the GetCmdlistDrawRegion function.
+ * @tc.type: FUNC
+ * @tc.require: ICI6YB
+ */
+HWTEST_F(DrawCmdListTest, GetCmdlistDrawRegion002, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    Path path;
+    Paint paint;
+    DrawPathOpItem opItem{path, paint};
+    ASSERT_TRUE(!(opItem.GetOpItemCmdlistDrawRegion().IsEmpty()));
+
+    auto opItemPtr = std::make_shared<DrawPathOpItem>(opItem);
+    drawCmdList->drawOpItems_.emplace_back(opItemPtr);
+    EXPECT_TRUE(drawCmdList->GetCmdlistDrawRegion().IsEmpty());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

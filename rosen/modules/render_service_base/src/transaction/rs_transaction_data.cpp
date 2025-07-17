@@ -16,6 +16,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "command/rs_node_command.h"
 #include "common/rs_optional_trace.h"
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
@@ -31,6 +32,9 @@ namespace {
 static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
 static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000; // one second advance most
+#ifndef ROSEN_TRACE_DISABLE
+constexpr int TRACE_LEVEL_THREE = 3;
+#endif
 }
 
 std::function<void(uint64_t, int, int)> RSTransactionData::alarmLogFunc = [](uint64_t nodeId, int count, int num) {
@@ -125,7 +129,21 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                     marshallingIndex_);
                 success = false;
             }
+#ifndef ROSEN_TRACE_DISABLE
+            RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(
+                TRACE_LEVEL_THREE, "RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
+#endif
+            bool isUiCapSyncCmd = ((command->GetType() == RSCommandType::RS_NODE) &&
+                (command->GetSubType() == RSNodeCommandType::SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG));
+            if (isUiCapSyncCmd) {
+                RS_LOGW("OffScreenIsSync RSTransactionData::Marshalling, nodeId:[%{public}" PRIu64 "] start",
+                    command->GetNodeId());
+            }
             success = success && command->Marshalling(parcel);
+            if (isUiCapSyncCmd) {
+                RS_LOGW("OffScreenIsSync RSTransactionData::Marshalling, nodeId:[%{public}" PRIu64 "] "
+                    "%{public}s", command->GetNodeId(), success ? "success" : "failed");
+            }
             if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
                 RS_LOGE("RSTransactionData::Marshalling failed to write end position marshallingIndex:%{public}zu",
                     marshallingIndex_);
@@ -161,6 +179,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteBool(needSync_);
     success = success && parcel.WriteBool(needCloseSync_);
     success = success && parcel.WriteInt32(syncTransactionCount_);
+    success = success && parcel.WriteUint64(token_);
     success = success && parcel.WriteUint64(timestamp_);
     success = success && parcel.WriteInt32(pid_);
     success = success && parcel.WriteUint64(index_);
@@ -195,7 +214,11 @@ void RSTransactionData::Process(RSContext& context)
             command->Process(context);
         }
     }
-    RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(pid_, timestamp_);
+    if (token_ != 0) {
+        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(token_, timestamp_);
+    } else {
+        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(pid_, timestamp_);
+    }
 }
 
 void RSTransactionData::Clear()
@@ -314,6 +337,12 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             RS_OPTIONAL_TRACE_NAME_FMT("UnmarshallingCommand [nodeId:%zu], cmd is [%s]", command->GetNodeId(),
                 command->PrintType().c_str());
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
+            bool isUiCapSyncCmd = ((commandType == RSCommandType::RS_NODE) &&
+                (commandSubType == RSNodeCommandType::SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG));
+            if (isUiCapSyncCmd) {
+                RS_LOGW("OffScreenIsSync RSTransactionData::UnmarshallingCmd finished, cmdSize: [%{public}d], "
+                    "nodeId:[%{public}" PRIu64 "]", commandSize, command->GetNodeId());
+            }
             payloadLock.unlock();
         } else {
             continue;
@@ -321,7 +350,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
     }
     int32_t pid;
     bool flag = parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) &&
-        parcel.ReadInt32(syncTransactionCount_) &&
+        parcel.ReadInt32(syncTransactionCount_) && parcel.ReadUint64(token_) &&
         parcel.ReadUint64(timestamp_) && ({RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, timestamp_); true;}) &&
         parcel.ReadInt32(pid) && ({RS_PROFILER_PATCH_PID(parcel, pid); pid_ = pid; true;}) &&
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_);

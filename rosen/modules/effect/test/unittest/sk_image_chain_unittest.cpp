@@ -229,7 +229,7 @@ HWTEST_F(SKImageChainUnittest, DrawTest003, TestSize.Level1)
     std::shared_ptr<SkPixmap> dstPixmap = std::make_shared<SkPixmap>(imageInfo, srcPixelMap->GetPixels(),
         srcPixelMap->GetRowStride());
 #ifdef USE_M133_SKIA
-    sk_sp<SkSurface> cpuSurface = SkSurfaces::WritePixels(imageInfo, const_cast<void*>(dstPixmap->addr()),
+    sk_sp<SkSurface> cpuSurface = SkSurfaces::WrapPixels(imageInfo, const_cast<void*>(dstPixmap->addr()),
         srcPixelMap->GetRowStride());
 #else
     sk_sp<SkSurface> cpuSurface = SkSurface::MakeRasterDirect(imageInfo, const_cast<void*>(dstPixmap->addr()),

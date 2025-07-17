@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "transaction/rs_render_service_client.h"
 
@@ -35,24 +36,27 @@ void SelfDrawingNodeMonitorTest::SetUpTestCase()
 {
     monitor_ = &SelfDrawingNodeMonitor::GetInstance();
 }
-void SelfDrawingNodeMonitorTest::TearDownTestCase() {}
+void SelfDrawingNodeMonitorTest::TearDownTestCase()
+{
+    monitor_->ClearRectMap();
+    monitor_->rectChangeCallbackListenner_.clear();
+    monitor_->rectChangeCallbackConstraint_.clear();
+}
 void SelfDrawingNodeMonitorTest::SetUp() {}
-void SelfDrawingNodeMonitorTest::TearDown() {}
+void SelfDrawingNodeMonitorTest::TearDown()
+{
+    monitor_->ClearRectMap();
+    monitor_->rectChangeCallbackListenner_.clear();
+    monitor_->rectChangeCallbackConstraint_.clear();
+}
 SelfDrawingNodeMonitor* SelfDrawingNodeMonitorTest::monitor_ = nullptr;
 
-/*
- * @tc.name: IsListeningEnabledTest
- * @tc.desc: Test IsListeningEnabled
- * @tc.type: FUNC
- */
-HWTEST_F(SelfDrawingNodeMonitorTest, IsListeningEnabledTest, TestSize.Level1)
-{
-    sptr<RSISelfDrawingNodeRectChangeCallback> callback;
-    monitor_->RegisterRectChangeCallback(0, callback);
-    ASSERT_TRUE(monitor_-> IsListeningEnabled());
-    monitor_->UnRegisterRectChangeCallback(0);
-    ASSERT_FALSE(monitor_-> IsListeningEnabled());
-}
+class RSSelfDrawingNodeRectChangeCallbackStubMock : public RSSelfDrawingNodeRectChangeCallbackStub {
+public:
+    RSSelfDrawingNodeRectChangeCallbackStubMock() = default;
+    ~RSSelfDrawingNodeRectChangeCallbackStubMock() = default;
+    void OnSelfDrawingNodeRectChange(std::shared_ptr<RSSelfDrawingNodeRectData> data) override {};
+};
 
 /*
  * @tc.name: InsertCurRectMapTest
@@ -62,13 +66,12 @@ HWTEST_F(SelfDrawingNodeMonitorTest, IsListeningEnabledTest, TestSize.Level1)
 HWTEST_F(SelfDrawingNodeMonitorTest, InsertCurRectMapTest, TestSize.Level1)
 {
     NodeId id = 0;
-    std::string nodeName = "testNode";
     RectI rect = RectI(0, 0, 1, 1);
-    monitor_->InsertCurRectMap(id, nodeName, rect);
+    monitor_->InsertCurRectMap(id, rect);
     ASSERT_EQ(monitor_->curRect_.size(), 1);
     monitor_->EraseCurRectMap(id);
     ASSERT_EQ(monitor_->curRect_.size(), 0);
-    monitor_->InsertCurRectMap(id, nodeName, rect);
+    monitor_->InsertCurRectMap(id, rect);
     ASSERT_EQ(monitor_->curRect_.size(), 1);
     monitor_->ClearRectMap();
     ASSERT_EQ(monitor_->curRect_.size(), 0);
@@ -82,13 +85,268 @@ HWTEST_F(SelfDrawingNodeMonitorTest, InsertCurRectMapTest, TestSize.Level1)
 HWTEST_F(SelfDrawingNodeMonitorTest, SelfDrawingNodeRectCallbackTest, TestSize.Level1)
 {
     sptr<RSISelfDrawingNodeRectChangeCallback> callback;
-    monitor_->RegisterRectChangeCallback(0, callback);
+    RectConstraint constraint;
+    monitor_->RegisterRectChangeCallback(0, constraint, callback);
     ASSERT_TRUE(monitor_-> IsListeningEnabled());
     NodeId id = 0;
-    std::string nodeName = "testNode";
     RectI rect = RectI(0, 0, 1, 1);
-    monitor_->InsertCurRectMap(id, nodeName, rect);
+    monitor_->InsertCurRectMap(id, rect);
     ASSERT_NE(monitor_->curRect_, monitor_->lastRect_);
     monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: UnRegisterRectChangeCallbackTest001
+ * @tc.desc: Test UnRegisterRectChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, UnRegisterRectChangeCallbackTest001, TestSize.Level1)
+{
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback;
+    RectConstraint constraint;
+    monitor_->RegisterRectChangeCallback(0, constraint, callback);
+    ASSERT_TRUE(monitor_-> IsListeningEnabled());
+    monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: UnRegisterRectChangeCallbackTest002
+ * @tc.desc: Test UnRegisterRectChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, UnRegisterRectChangeCallbackTest002, TestSize.Level1)
+{
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback;
+    RectConstraint constraint;
+    monitor_->RegisterRectChangeCallback(0, constraint, callback);
+    ASSERT_TRUE(monitor_-> IsListeningEnabled());
+    auto pid = monitor_->rectChangeCallbackListenner_.begin()->first;
+    monitor_->UnRegisterRectChangeCallback(pid);
+    ASSERT_FALSE(monitor_->IsListeningEnabled());
+    pid_t callingPid = 0;
+    monitor_->rectChangeCallbackListenner_.insert(std::make_pair(callingPid, callback));
+    callingPid = 1;
+    monitor_->rectChangeCallbackListenner_.insert(std::make_pair(callingPid, callback));
+    monitor_->UnRegisterRectChangeCallback(0);
+    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    monitor_->UnRegisterRectChangeCallback(1);
+    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: TriggerRectChangeCallbackTest001
+ * @tc.desc: Test TriggerRectChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest001, TestSize.Level1)
+{
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback = new RSSelfDrawingNodeRectChangeCallbackStubMock();
+    ASSERT_NE(callback, nullptr);
+    pid_t callingPid = 0;
+    RectConstraint constraint;
+    constraint.pids = { 0 };
+    monitor_->rectChangeCallbackListenner_[callingPid] = callback;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    NodeId id = 0;
+    RectI rect = RectI(0, 0, 0, 0);
+    monitor_->InsertCurRectMap(id, rect);
+    ASSERT_NE(monitor_->curRect_, monitor_->lastRect_);
+    monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: TriggerRectChangeCallbackTest002
+ * @tc.desc: Test TriggerRectChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest002, TestSize.Level1)
+{
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback = nullptr;
+    pid_t callingPid = 0;
+    RectConstraint constraint;
+    constraint.pids = { 0 };
+    monitor_->rectChangeCallbackListenner_[callingPid] = callback;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    NodeId id = 0;
+    RectI rect = RectI(0, 0, 0, 0);
+    monitor_->InsertCurRectMap(id, rect);
+    ASSERT_NE(monitor_->curRect_, monitor_->lastRect_);
+    monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: TriggerRectChangeCallbackTest003
+ * @tc.desc: Test TriggerRectChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest003, TestSize.Level1)
+{
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback = new RSSelfDrawingNodeRectChangeCallbackStubMock();
+    ASSERT_NE(callback, nullptr);
+    pid_t callingPid = 0;
+    RectConstraint constraint;
+    monitor_->rectChangeCallbackListenner_[callingPid] = callback;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    NodeId id = 0;
+    RectI rect = RectI(0, 0, 1, 1);
+    monitor_->InsertCurRectMap(id, rect);
+    ASSERT_NE(monitor_->curRect_, monitor_->lastRect_);
+    monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: TriggerRectChangeCallbackTest004
+ * @tc.desc: Test TriggerRectChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest004, TestSize.Level1)
+{
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback = nullptr;
+    pid_t callingPid = 0;
+    RectConstraint constraint;
+    monitor_->rectChangeCallbackListenner_[callingPid] = callback;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    NodeId id = 0;
+    RectI rect = RectI(0, 0, 1, 1);
+    monitor_->InsertCurRectMap(id, rect);
+    ASSERT_NE(monitor_->curRect_, monitor_->lastRect_);
+    monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: TriggerRectChangeCallbackTest005
+ * @tc.desc: Test TriggerRectChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, TriggerRectChangeCallbackTest005, TestSize.Level1)
+{
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback;
+    pid_t callingPid = 0;
+    RectConstraint constraint;
+    monitor_->rectChangeCallbackListenner_[callingPid] = callback;
+    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    NodeId id = 0;
+    RectI rect = RectI(0, 0, 1, 1);
+    monitor_->InsertCurRectMap(id, rect);
+    ASSERT_NE(monitor_->curRect_, monitor_->lastRect_);
+    monitor_->TriggerRectChangeCallback();
+}
+
+/*
+ * @tc.name: ShouldTriggerTest001
+ * @tc.desc: Test ShouldTrigger when add rect element
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest001, TestSize.Level1)
+{
+    pid_t callingPid = 0;
+    RectConstraint constraint;
+    constraint.pids = { 0 };
+    SelfDrawingNodeRectCallbackData callbackData;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    NodeId id = 0;
+    RectI rect = RectI(0, 0, 1, 1);
+    monitor_->InsertCurRectMap(id, rect);
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
+
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    EXPECT_TRUE(monitor_->ShouldTrigger(constraint, callbackData));
+}
+
+/*
+ * @tc.name: ShouldTriggerTest002
+ * @tc.desc: Test ShouldTrigger when change rect element
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest002, TestSize.Level1)
+{
+    pid_t callingPid = 0;
+    RectConstraint constraint;
+    constraint.pids = { 0 };
+    SelfDrawingNodeRectCallbackData callbackData;
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    NodeId id = 0;
+    RectI rect = RectI(0, 0, 1, 1);
+    monitor_->InsertCurRectMap(id, rect);
+    rect = RectI(0, 0, 1, 1);
+    monitor_->lastRect_[id] = rect;
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
+
+    rect = RectI(0, 0, 2, 2);
+    monitor_->lastRect_[id] = rect;
+    EXPECT_TRUE(monitor_->ShouldTrigger(constraint, callbackData));
+}
+
+/*
+ * @tc.name: ShouldTriggerTest003
+ * @tc.desc: Test ShouldTrigger when remove rect element
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest003, TestSize.Level1)
+{
+    pid_t callingPid = 0;
+    NodeId id = 0;
+    RectConstraint constraint;
+    constraint.pids = {};
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    SelfDrawingNodeRectCallbackData callbackData;
+    RectI rect = RectI(0, 0, 0, 0);
+    monitor_->lastRect_[id] = rect;
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
+
+    constraint.pids = { 0 };
+    monitor_->rectChangeCallbackConstraint_[callingPid] = constraint;
+    EXPECT_TRUE(monitor_->ShouldTrigger(constraint, callbackData));
+
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
+    rect = RectI(0, 0, 2, 2);
+    monitor_->lastRect_[id] = rect;
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
+
+    rect = RectI(0, 0, 0, 0);
+    monitor_->InsertCurRectMap(id, rect);
+    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
+}
+
+/*
+ * @tc.name: CheckStatifyTest
+ * @tc.desc: Test CheckStatify
+ * @tc.type: FUNC
+ */
+HWTEST_F(SelfDrawingNodeMonitorTest, CheckStatifyTest, TestSize.Level1)
+{
+    RectConstraint constraint;
+    constraint.range.lowLimit.width = 1;
+    constraint.range.lowLimit.height = 1;
+    constraint.range.highLimit.width = 1;
+    constraint.range.highLimit.height = 1;
+    RectI rect = RectI(0, 0, 0, 0);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
+    rect = RectI(1, 0, 0, 0);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
+    rect = RectI(1, 1, 0, 0);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
+    rect = RectI(1, 1, 1, 0);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
+    rect = RectI(1, 1, 1, 1);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), true);
+    rect = RectI(2, 0, 0, 0);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
+    rect = RectI(1, 2, 0, 0);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
+    rect = RectI(1, 1, 2, 0);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
+    rect = RectI(1, 1, 1, 2);
+    EXPECT_EQ(monitor_->CheckStatify(rect, constraint), false);
 }
 } // namespace OHOS::Rosen

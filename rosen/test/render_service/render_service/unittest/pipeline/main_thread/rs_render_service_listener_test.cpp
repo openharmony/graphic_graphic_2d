@@ -96,6 +96,38 @@ HWTEST_F(RSRenderServiceListenerTest, OnCleanCache001, TestSize.Level1)
 }
 
 /**
+* @tc.name: ForceRefresh001
+* @tc.desc: Test ForceRefresh
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSRenderServiceListenerTest, ForceRefresh001, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(node);
+    rsListener = std::make_shared<RSRenderServiceListener>(node);
+
+    ASSERT_FALSE(node->IsLayerTop());
+    ASSERT_FALSE(node->IsTopLayerForceRefresh());
+    rsListener->ForceRefresh(node);
+
+    node->SetLayerTop(true);
+    ASSERT_TRUE(node->IsLayerTop());
+    ASSERT_TRUE(node->IsTopLayerForceRefresh());
+    rsListener->ForceRefresh(node);
+
+    node->SetLayerTop(true, false);
+    ASSERT_TRUE(node->IsLayerTop());
+    ASSERT_FALSE(node->IsTopLayerForceRefresh());
+    rsListener->ForceRefresh(node);
+
+    node->SetLayerTop(false, true);
+    ASSERT_FALSE(node->IsLayerTop());
+    ASSERT_TRUE(node->IsTopLayerForceRefresh());
+    rsListener->ForceRefresh(node);
+}
+
+/**
  * @tc.name: OnBufferAvailable001
  * @tc.desc: Test OnBufferAvailable of invalid and valid listener.
  * @tc.type: FUNC

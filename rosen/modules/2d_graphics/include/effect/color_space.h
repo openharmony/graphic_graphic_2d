@@ -31,6 +31,7 @@ enum class CMSTransferFuncType {
     DOT2,
     LINEAR,
     REC2020,
+    HLG,
 };
 
 enum class CMSMatrixType {

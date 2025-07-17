@@ -22,6 +22,7 @@
 #include "common/rs_common_def.h"
 #include "event_handler.h"
 #include "refbase.h"
+#include "transaction/rs_irender_client.h"
 #include "transaction/rs_transaction_data.h"
 
 #ifdef ACCESSIBILITY_ENABLE
@@ -115,6 +116,8 @@ public:
     void PostSyncTask(const std::function<void()>&& task);
     void RemoveTask(const std::string& name);
     bool GetIsStarted() const;
+    static bool GetIsFirstFrame();
+    static void SetIsFirstFrame(bool isFirstFrame);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
@@ -123,16 +126,13 @@ public:
         return std::move(taskFuture);
     }
 
-    static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData);
-
-    // [Attention] Do not call constructor of this class directly. The constructor and destructor are
-    // only used for InstancePtr() function with unique_ptr.
-    RSModifiersDrawThread();
-    ~RSModifiersDrawThread();
+    static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData,
+        std::shared_ptr<RSIRenderClient> renderServiceClient, bool& isNeedCommit);
 
     static std::recursive_mutex transactionDataMutex_;
 private:
-    static std::unique_ptr<RSModifiersDrawThread>& InstancePtr();
+    RSModifiersDrawThread();
+    ~RSModifiersDrawThread();
     static void Destroy();
     RSModifiersDrawThread(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
@@ -152,6 +152,7 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::mutex mutex_;
     static std::atomic<bool> isStarted_;
+    static bool isFirstFrame_;
 
 #ifdef ACCESSIBILITY_ENABLE
     bool highContrast_ = false;

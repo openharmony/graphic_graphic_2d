@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +17,12 @@
 
 #include "drawing_canvas_utils.h"
 #include "drawing_helper.h"
+#include "native_pixel_map_manager.h"
 
 #include "effect/shader_effect.h"
+#include "effect/shader_effect_lazy.h"
+#include "render/rs_pixel_map_util.h"
+#include "render/rs_pixel_map_shader_obj.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -231,6 +235,34 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
         CastToSamplingOptions(*cSampling), *CastToMatrix(cMatrix)));
 }
 
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreatePixelMapShader(OH_Drawing_PixelMap* pixelMap,
+    OH_Drawing_TileMode tileX, OH_Drawing_TileMode tileY, const OH_Drawing_SamplingOptions* samplingOptions,
+    const OH_Drawing_Matrix* matrix)
+{
+#ifdef OHOS_PLATFORM
+    if (pixelMap == nullptr || samplingOptions == nullptr) {
+        return nullptr;
+    }
+    if (tileX < CLAMP || tileX > DECAL || tileY < CLAMP || tileY > DECAL) {
+        return nullptr;
+    }
+
+    std::shared_ptr<Media::PixelMap> pixelMapPtr = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
+    if (!pixelMapPtr) {
+        return nullptr;
+    }
+
+    Matrix defaultMatrix;
+    const Matrix& matrixRef = matrix ? *CastToMatrix(matrix) : defaultMatrix;
+
+    return CastShaderEffect(RSPixelMapShaderObj::CreatePixelMapShader(
+        pixelMapPtr, static_cast<TileMode>(tileX), static_cast<TileMode>(tileY),
+        CastToSamplingOptions(*samplingOptions), matrixRef));
+#else
+    return nullptr;
+#endif
+}
+
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(const OH_Drawing_Point2D* startPt,
     float startRadius, const OH_Drawing_Point2D* endPt, float endRadius, const uint32_t* colors, const float* pos,
     uint32_t size, OH_Drawing_TileMode cTileMode, const OH_Drawing_Matrix* cMatrix)
@@ -273,8 +305,8 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateCompose(OH_Drawing_ShaderE
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
-    return CastShaderEffect(ShaderEffect::CreateBlendShader(*dstHandle->value,
-        *srcHandle->value, static_cast<BlendMode>(mode)));
+    return CastShaderEffect(ShaderEffectLazy::CreateBlendShader(dstHandle->value,
+        srcHandle->value, static_cast<BlendMode>(mode)));
 }
 
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)

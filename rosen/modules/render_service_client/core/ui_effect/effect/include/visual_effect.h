@@ -16,13 +16,16 @@
 #define UIEFFECT_EFFECT_VISUAL_EFFECT_H
 
 #include "visual_effect_para.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class VisualEffect final {
+class RSC_EXPORT VisualEffect final {
 public:
     VisualEffect() = default;
     ~VisualEffect() = default;
+
+    VisualEffect(const VisualEffect& visualEffect);
 
     void AddPara(const std::shared_ptr<VisualEffectPara>& para)
     {
@@ -33,6 +36,11 @@ public:
     {
         return visualEffectParas_;
     }
+
+    bool Marshalling(Parcel& parcel) const;
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<VisualEffect>& val);
+
 private:
     std::vector<std::shared_ptr<VisualEffectPara>> visualEffectParas_;
 };

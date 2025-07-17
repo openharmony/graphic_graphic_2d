@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,19 +46,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -72,15 +59,24 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-
-} // namespace Mock
-
 void DoGetDisplayIdentificationData()
-{}
+{
+    ScreenId screenId = GetData<Rosen::ScreenId>();
+    uint8_t outPort = GetData<uint8_t>();
+    uint8_t data = GetData<uint8_t>();
+    std::vector<uint8_t> edidData = { data };
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetDisplayIdentificationData(screenId, outPort, edidData);
+}
 
 void DoSetOverlayDisplayMode()
-{}
+{
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    int32_t mode = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetOverlayDisplayMode(mode);
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS
 

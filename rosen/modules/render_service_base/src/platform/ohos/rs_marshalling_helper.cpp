@@ -26,6 +26,7 @@
 #include "image_type.h"
 #include "pixel_map.h"
 #include "recording/record_cmd.h"
+#include "utils/object_helper.h"
 #include "rs_profiler.h"
 #include "rs_trace.h"
 
@@ -42,6 +43,9 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
 #include "modifier/rs_render_modifier.h"
@@ -51,16 +55,12 @@
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
-#include "render/rs_light_up_effect_filter.h"
 #include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
-#include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_render_filter.h"
-#include "render/rs_render_filter_base.h"
-#include "render/rs_render_mask_base.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
 
@@ -77,10 +77,22 @@ namespace Rosen {
 namespace {
 bool g_useSharedMem = true;
 std::thread::id g_tid = std::thread::id();
+
 std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 thread_local pid_t g_callingPid = 0;
 constexpr size_t NUM_ITEMS_IN_VERSION = 4;
+
+// Static registration of Data marshalling/unmarshalling callbacks
+DATA_CALLBACKS_REGISTER(
+    [](Parcel& parcel, std::shared_ptr<Drawing::Data> data) -> bool {
+        return RSMarshallingHelper::Marshalling(parcel, data);
+    },
+    [](Parcel& parcel) -> std::shared_ptr<Drawing::Data> {
+        std::shared_ptr<Drawing::Data> data;
+        return RSMarshallingHelper::Unmarshalling(parcel, data) ? data : nullptr;
+    }
+);
 }
 
 static std::vector<uint8_t> supportedParcelVerFlags = { RSPARCELVER_ADD_ANIMTOKEN };
@@ -258,6 +270,81 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
         objectVec.emplace_back(object);
     }
     return val->SetupExtendObject(objectVec);
+}
+
+static bool MarshallingDrawingObjectFromDrawCmdList(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
+{
+    std::vector<std::shared_ptr<Drawing::Object>> objectVec;
+    uint32_t objectSize = val->GetAllDrawingObject(objectVec);
+    if (!parcel.WriteUint32(objectSize)) {
+        ROSEN_LOGE("MarshallingDrawingObjectFromDrawCmdList WriteUint32 failed");
+        return false;
+    }
+    if (objectSize == 0) {
+        return true;
+    }
+    if (objectSize > USHRT_MAX) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::MarshallingDrawingObjectFromDrawCmdList failed with max limit");
+        return false;
+    }
+    for (const auto& object : objectVec) {
+        // Write type and subType from object for consistency
+        if (!parcel.WriteInt32(object->GetType()) ||
+            !parcel.WriteInt32(object->GetSubType())) {
+            ROSEN_LOGE("unirender: Failed to write type=%{public}d subType=%{public}d to parcel",
+                       object->GetType(), object->GetSubType());
+            return false;
+        }
+        // Object internal marshalling handles only specific data
+        if (!object->Marshalling(parcel)) {
+            ROSEN_LOGE("unirender: Failed to marshal object type=%{public}d subType=%{public}d",
+                       object->GetType(), object->GetSubType());
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool UnmarshallingDrawingObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+{
+    uint32_t objectSize = parcel.ReadUint32();
+    if (objectSize == 0) {
+        return true;
+    }
+    if (objectSize > USHRT_MAX) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingDrawingObjectToDrawCmdList failed with max limit");
+        return false;
+    }
+    std::vector<std::shared_ptr<Drawing::Object>> objectVec;
+    for (uint32_t i = 0; i < objectSize; i++) {
+        // Read type and subType for ObjectHelper dispatch
+        int32_t type = parcel.ReadInt32();
+        int32_t subType = parcel.ReadInt32();
+        int32_t drawingObjDepth = 0;
+
+        // Use ObjectHelper to get unmarshalling function and create the appropriate object
+        auto func = Drawing::ObjectHelper::Instance().GetFunc(type, subType);
+        if (!func) {
+            ROSEN_LOGE("unirender: Failed to get unmarshalling function for "
+                "type=%{public}d subType=%{public}d", type, subType);
+            return false;
+        }
+        bool isValid = true;
+        auto obj = func(parcel, isValid, drawingObjDepth);
+        if (!obj) {
+            ROSEN_LOGE("unirender: Failed to create DrawingObject type=%{public}d subType=%{public}d", type, subType);
+            return false;
+        }
+
+        // Handle invalid objects by replacing with InvalidObj placeholder
+        if (!isValid) {
+            ROSEN_LOGD("unirender: DrawingObject type=%{public}d subType=%{public}d is invalid, "
+                       "replacing with InvalidObj", type, subType);
+            obj = std::make_shared<Drawing::InvalidObj>();
+        }
+        objectVec.emplace_back(obj);
+    }
+    return val->SetupDrawingObject(objectVec);
 }
 } // namespace
 
@@ -1686,7 +1773,38 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNG
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val)
 {
-    return false;
+    bool success = RSNGRenderMaskBase::Unmarshalling(parcel, val);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSNGRenderMaskBase failed");
+    }
+    return success;
+}
+
+// RSNGRenderShaderBase
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderShaderBase>& val)
+{
+    if (val == nullptr) {
+        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderShaderBase is nullptr");
+        if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderShaderBase write end failed");
+            return false;
+        }
+        return true;
+    }
+    bool success = val->Marshalling(parcel);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderShaderBase failed");
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShaderBase>& val)
+{
+    bool success = RSNGRenderShaderBase::Unmarshalling(parcel, val);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSNGRenderShaderBase failed");
+    }
+    return success;
 }
 
 // RSImageBase
@@ -2042,6 +2160,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         return ret;
     }
 
+    ret &= MarshallingDrawingObjectFromDrawCmdList(parcel, val);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList DrawingObject");
+        return ret;
+    }
+
 #ifdef ROSEN_OHOS
     std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
     uint32_t surfaceBufferSize = val->GetAllSurfaceBufferEntry(surfaceBufferEntryVec);
@@ -2310,6 +2434,12 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
     ret &= UnmarshallingExtendObjectToDrawCmdList(parcel, val);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
+        return ret;
+    }
+
+    ret &= UnmarshallingDrawingObjectToDrawCmdList(parcel, val);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList DrawingObject");
         return ret;
     }
 
@@ -2809,7 +2939,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Modifier
     bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)     \
     {                                                                                              \
         PropertyId id = 0;                                                                         \
-        if (!parcel.ReadUint64(id)) {                                                              \
+        if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id)) {                            \
             ROSEN_LOGE("RSMarshallingHelper::Unmarshalling TEMPLATE<T> Read id failed");           \
             return false;                                                                          \
         }                                                                                          \
@@ -2817,7 +2947,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Modifier
         if (!Unmarshalling(parcel, value)) {                                                       \
             return false;                                                                          \
         }                                                                                          \
-        RS_PROFILER_PATCH_NODE_ID(parcel, id);                                                     \
         val.reset(new TEMPLATE<T>(value, id));                                                     \
         return val != nullptr;                                                                     \
     }
@@ -2844,6 +2973,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderFilterBase>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderMaskBase>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderShaderBase>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                      \
@@ -2860,6 +2990,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector2f>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Media::PixelMap>)             \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 
@@ -3063,6 +3195,26 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
     return RSRenderPropertyBase::Unmarshalling(parcel, val);
 }
 
+bool RSMarshallingHelper::UnmarshallingPidPlusId(Parcel& parcel, uint64_t& val)
+{
+    uint64_t retCode = 0;
+    retCode = RSMarshallingHelper::Unmarshalling(parcel, val);
+    if (retCode) {
+        val = RS_PROFILER_PATCH_NODE_ID(parcel, val);
+    }
+    return retCode;
+}
+
+bool RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(Parcel& parcel, uint64_t& val)
+{
+    uint64_t retCode = 0;
+    retCode = RSMarshallingHelper::Unmarshalling(parcel, val);
+    if (retCode && val) {
+        val = RS_PROFILER_PATCH_NODE_ID(parcel, val);
+    }
+    return retCode;
+}
+
 bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)
 {
     parcel.WriteInt64(-1);
@@ -3071,7 +3223,7 @@ bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)
     for (auto supportedFlag : supportedParcelVerFlags) {
         flags[supportedFlag / bitsPerUint64] |= static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64);
     }
-    for (int i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
+    for (size_t i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
         parcel.WriteUint64(flags[i]);
     }
     return true;
@@ -3083,7 +3235,7 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
     size_t offset = parcel.GetReadPosition();
     headerCode = parcel.ReadInt64();
     if (headerCode == -1) {
-        for (int i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
+        for (size_t i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
             parcel.ReadUint64();
         }
     } else {

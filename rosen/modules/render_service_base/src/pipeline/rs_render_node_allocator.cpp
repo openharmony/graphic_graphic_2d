@@ -101,6 +101,7 @@ RSRenderNodeAllocator::DrawablePtr RSRenderNodeAllocator::CreateRSRenderNodeDraw
     drawableAllocatorSpinlock_.lock();
     if (drawableAllocator_.empty()) {
         drawableAllocatorSpinlock_.unlock();
+        RS_OPTIONAL_TRACE_NAME("CreateRSRenderNodeDrawable drawableAllocator is empty.");
         return generator(node, nullptr);
     }
     auto front = drawableAllocator_.front();

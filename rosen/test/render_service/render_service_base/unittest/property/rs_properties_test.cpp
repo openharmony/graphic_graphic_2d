@@ -883,6 +883,40 @@ HWTEST_F(RSPropertiesTest, UpdateGeometryByParent001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateGeometryByParent002
+ * @tc.desc: test results of UpdateGeometryByParent
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, UpdateGeometryByParent002, TestSize.Level1)
+{
+    RSProperties properties;
+    Drawing::Matrix* parentMatrix = new Drawing::Matrix();
+    Drawing::Point point;
+    std::optional<Drawing::Point> offset = point;
+    RectI rect;
+    properties.lastRect_ = rect;
+    {
+        auto renderFilter = std::make_shared<RSRenderFilter>();
+        auto contentLightRenderFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::CONTENT_LIGHT);
+        renderFilter->Insert(RSUIFilterType::CONTENT_LIGHT, contentLightRenderFilter);
+        properties.foregroundRenderFilter_ = renderFilter;
+        properties.UpdateGeometryByParent(parentMatrix, offset);
+        EXPECT_TRUE(properties.filterNeedUpdate_);
+    }
+    {
+        auto renderFilter = std::make_shared<RSRenderFilter>();
+        auto contentLightRenderFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::LIGHT_POSITION);
+        renderFilter->Insert(RSUIFilterType::LIGHT_POSITION, contentLightRenderFilter);
+        properties.foregroundRenderFilter_ = renderFilter;
+        properties.UpdateGeometryByParent(parentMatrix, offset);
+        EXPECT_TRUE(properties.filterNeedUpdate_);
+    }
+    delete parentMatrix;
+    parentMatrix = nullptr;
+}
+
+/**
  * @tc.name: SandBox001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -1517,6 +1551,23 @@ HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessFract001, TestSize.Level1)
 
     auto valueGet = properties.GetFgBrightnessFract();
     EXPECT_EQ(valueGet, 0.5f);
+}
+
+/**
+ * @tc.name: SetNGetFgBrightnessHdr001
+ * @tc.desc: test results of SetNGetFgBrightnessHdr001
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessHdr001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFgBrightnessHdr(false);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    properties.SetFgBrightnessHdr(true);
+    auto valueGet = properties.GetFgBrightnessHdr();
+    EXPECT_EQ(valueGet, true);
 }
 
 /**

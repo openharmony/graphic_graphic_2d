@@ -96,7 +96,14 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/effect/runtime_blender_builder.cpp",
       "$drawing_core_src_dir/effect/runtime_effect.cpp",
       "$drawing_core_src_dir/effect/runtime_shader_builder.cpp",
+      "$drawing_core_src_dir/effect/blend_shader_obj.cpp",
+      "$drawing_core_src_dir/effect/blur_image_filter_obj.cpp",
+      "$drawing_core_src_dir/effect/color_filter_image_filter_obj.cpp",
+      "$drawing_core_src_dir/effect/image_filter_lazy.cpp",
+      "$drawing_core_src_dir/effect/offset_image_filter_obj.cpp",
       "$drawing_core_src_dir/effect/shader_effect.cpp",
+      "$drawing_core_src_dir/effect/shader_effect_lazy.cpp",
+      "$drawing_core_src_dir/effect/shader_image_filter_obj.cpp",
       "$drawing_core_src_dir/engine_adapter/impl_factory.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/rs_skia_memory_tracer.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_bitmap.cpp",
@@ -161,10 +168,10 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/recording/record_cmd.cpp",
       "$drawing_core_src_dir/recording/recording_canvas.cpp",
       "$drawing_core_src_dir/text/font.cpp",
+      "$drawing_core_src_dir/text/font_harfbuzz.cpp",
       "$drawing_core_src_dir/text/font_mgr.cpp",
       "$drawing_core_src_dir/text/font_style_set.cpp",
       "$drawing_core_src_dir/text/hm_symbol.cpp",
-      "$drawing_core_src_dir/text/hm_symbol_config_ohos.cpp",
       "$drawing_core_src_dir/text/text.cpp",
       "$drawing_core_src_dir/text/text_blob.cpp",
       "$drawing_core_src_dir/text/text_blob_builder.cpp",
@@ -189,6 +196,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/utils/string_util.cpp",
       "$drawing_core_src_dir/utils/vertices.cpp",
       "$drawing_core_src_dir/utils/canvas_utils.cpp",
+      "$drawing_core_src_dir/utils/object_helper.cpp",
     ]
 
     if (platform == "ohos" || platform == "ohos_ng") {
@@ -228,7 +236,7 @@ template("graphics2d_source_set") {
     ]
 
     external_deps += [ "skia:skia_canvaskit" ]
-    if (defined(use_new_skia) && use_new_skia) {
+    if (graphic_2d_feature_upgrade_skia) {
       defines += [ "USE_M133_SKIA" ]
     }
 
@@ -268,6 +276,7 @@ template("graphics2d_source_set") {
 
     if (is_arkui_x) {
       configs = [ "//third_party/jsoncpp:jsoncpp_public_config" ]
+      defines += [ "ROSEN_ARKUI_X" ]
     } else {
       external_deps += [ "jsoncpp:jsoncpp" ]
     }
@@ -283,6 +292,7 @@ template("graphics2d_source_set") {
       ]
     }
     cflags = []
+
     if (defined(graphic_2d_ext_feature_enable_ddgr) &&
         graphic_2d_ext_feature_enable_ddgr) {
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set

@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_EDGE_LIGHT_FILTER_H
-#define RENDER_EDGE_LIGHT_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_EDGE_LIGHT_FILTER_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_EDGE_LIGHT_FILTER_H
 #include <memory>
 #include <vector>
 
@@ -49,6 +49,8 @@ public:
 
     void SetColor(const Vector4f& color);
 
+    void SetUseRawColor(bool useRawColor);
+
     void SetMask(const std::shared_ptr<RSUIMaskPara>& mask);
 
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter() override;
@@ -74,10 +76,11 @@ private:
     bool CreateRSRenderFilterAlpha(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
     bool CreateRSRenderFilterBloom(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
     bool CreateRSRenderFilterColor(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
+    bool CreateRSRenderFilterUseRawColor(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
     bool CreateRSRenderFilterMask(const std::shared_ptr<RSRenderEdgeLightFilterPara>& frProperty);
 };
 
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_EDGE_LIGHT_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_EDGE_LIGHT_FILTER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -959,6 +959,19 @@ void RSJankStats::RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool i
     jankFrames.isFrameRateRecorded_ = true;
 }
 
+bool RSJankStats::GetEarlyZEnableFlag()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    isFlushEarlyZ_ = false;
+    return ddgrEarlyZEnableFlag_;
+}
+
+bool RSJankStats::GetFlushEarlyZ()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return isFlushEarlyZ_;
+}
+
 void RSJankStats::SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, JankFrames& jankFrames)
 {
     jankFrames.isUpdateJankFrame_ = true;
@@ -988,6 +1001,11 @@ void RSJankStats::SetAnimationTraceBegin(std::pair<int64_t, std::string> animati
         implicitAnimationTotal_++;
     }
     RS_ASYNC_TRACE_BEGIN(traceName, traceId);
+    if (RSSystemProperties::GetEarlyZEnable() && info.sceneId == SWITCH_SCENE_NAME) {
+        ddgrEarlyZEnableFlag_ = true;
+        isFlushEarlyZ_ = true;
+        lastReportEarlyZTraceId_ = traceId;
+    }
 }
 
 void RSJankStats::SetAnimationTraceEnd(JankFrames& jankFrames)
@@ -1006,6 +1024,11 @@ void RSJankStats::SetAnimationTraceEnd(JankFrames& jankFrames)
     jankFrames.traceTerminateTimeSteady_ = rtEndTimeSteady_;
     const bool isDisplayAnimator = animationAsyncTraces_.at(traceId).isDisplayAnimator_;
     RS_ASYNC_TRACE_END(animationAsyncTraces_.at(traceId).traceName_, traceId);
+    if (ddgrEarlyZEnableFlag_ && lastReportEarlyZTraceId_ == traceId) {
+        ddgrEarlyZEnableFlag_ = false;
+        isFlushEarlyZ_ = true;
+        lastReportEarlyZTraceId_ = traceId;
+    }
     animationAsyncTraces_.erase(traceId);
     if (isDisplayAnimator) {
         explicitAnimationTotal_--;

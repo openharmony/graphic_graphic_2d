@@ -37,7 +37,7 @@ constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 constexpr int64_t MAX_IDLE_TIME_THRESHOLD = 900000000; // 900000000ns == 900ms
 constexpr double SAMPLE_VARIANCE_THRESHOLD = 250000000000.0; // 500 usec squared
-constexpr int64_t INSPECTION_PERIOD = 5000000000;
+constexpr int64_t INSPECTION_PERIOD = 5000000000; //5s
 
 static int64_t SystemTime()
 {
@@ -180,23 +180,26 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
         return true;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    if (isAdaptive_.load()) {
+        auto interval = timeStamp - preAdaptiveSampleTime_;
+        preAdaptiveSampleTime_ = timeStamp;
+        if (CreateVSyncGenerator()->CheckSampleIsAdaptive(interval)) {
+            RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample");
+            lastAdaptiveTime_.store(SystemTime());
+            numSamples_ = 0;
+            return true;
+        }
+    }
+    
     if (!hardwareVSyncStatus_) {
         return true;
     }
     if (numSamples_ > 0) {
         auto preSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
-        auto intervalStamp = timeStamp - preSample;
-
-        if (intervalStamp <= 0) {
+        
+        if (auto intervalStamp = timeStamp - preSample; intervalStamp <= 0) {
             RS_TRACE_NAME_FMT("VSyncSampler::AddSample, invalid sample, preSample is larger");
             numSamples_ = 0;
-            return true;
-        }
-        
-        if (isAdaptive_.load() && CreateVSyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
-            RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample, intervalStamp:%ld", intervalStamp);
-            numSamples_ = 0;
-            lastAdaptiveTime_.store(SystemTime());
             return true;
         }
     }

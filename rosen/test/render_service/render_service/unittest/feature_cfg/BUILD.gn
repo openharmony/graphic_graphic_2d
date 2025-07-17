@@ -47,6 +47,7 @@ ohos_unittest("feature_cfg_test") {
     "opinc_param_test.cpp",
     "prevalidate_param_parse_test.cpp",
     "prevalidate_param_test.cpp",
+    "rotateoffscreen_param_parse_test.cpp",
     "rotateoffscreen_param_test.cpp",
     "socperf_param_test.cpp",
     "speciallayer_param_test.cpp",

@@ -19,16 +19,19 @@
 #include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_common_def.h"
 #include "common/rs_vector4.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class PixelMapMaskPara : public MaskPara {
+class RSC_EXPORT PixelMapMaskPara : public MaskPara {
 public:
     PixelMapMaskPara()
     {
         type_ = MaskPara::Type::PIXEL_MAP_MASK;
     }
     ~PixelMapMaskPara() override = default;
+
+    PixelMapMaskPara(const PixelMapMaskPara& other);
 
     void SetPixelMap(std::shared_ptr<Media::PixelMap>& pixelMap)
     {
@@ -75,6 +78,14 @@ public:
         return ROSEN_LE(src_.x_, src_.z_) && ROSEN_LE(src_.y_, src_.w_) &&
             ROSEN_LE(dst_.x_, dst_.z_) && ROSEN_LE(dst_.y_, dst_.w_);
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
+
+    std::shared_ptr<MaskPara> Clone() const override;
 
 private:
     std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;

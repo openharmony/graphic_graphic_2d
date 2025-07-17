@@ -134,8 +134,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, std::unique_ptr<Media::PixelMap> clientCapturePixelMap,
-    const RSSurfaceCaptureBlurParam& blurParam, const Drawing::Rect& specifiedAreaRect)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    const Drawing::Rect& specifiedAreaRect)
 {
     return false;
 }
@@ -405,6 +405,11 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bo
     return {};
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     return {};
@@ -446,6 +451,11 @@ int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& 
 }
 
 int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     return {};
 }
@@ -536,6 +546,14 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
 uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
 {
     return {};
+}
+
+void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
+{
+}
+
+void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
 }
 
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
@@ -774,6 +792,10 @@ bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t 
     return false;
 }
 
+void RSRenderServiceClient::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
+{
+}
+
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
 }
@@ -782,7 +804,8 @@ void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool i
 {
 }
 
-bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+bool RSRenderServiceClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+    std::function<void()> callback)
 {
     return false;
 }
@@ -800,7 +823,12 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
-    const SelfDrawingNodeRectChangeCallback& callback)
+    const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
 {
     return {};
 }
@@ -835,6 +863,10 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 {
     return {};
+}
+
+void RSRenderServiceClient::ClearUifirstCache(NodeId id)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

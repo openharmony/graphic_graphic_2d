@@ -34,7 +34,7 @@ void RSUnmarshalThreadTest::TearDownTestCase() {}
 void RSUnmarshalThreadTest::SetUp() {}
 void RSUnmarshalThreadTest::TearDown() {}
 
-/*
+/**
  * @tc.name: PostTask001
  * @tc.desc: Test PostTask
  * @tc.type: FUNC
@@ -45,34 +45,85 @@ HWTEST_F(RSUnmarshalThreadTest, PostTask001, TestSize.Level1)
     std::function<void()> func = []() -> void {};
     RSUnmarshalThread::Instance().PostTask(func);
     RSUnmarshalThread::Instance().Start();
-    ASSERT_NE(RSUnmarshalThread::Instance().runner_, nullptr);
-    ASSERT_NE(RSUnmarshalThread::Instance().handler_, nullptr);
+    ASSERT_NE(RSUnmarshalThread::Instance().queue_, nullptr);
     RSUnmarshalThread::Instance().PostTask(func);
 }
 
-/*
- * @tc.name: PostTask001
+/**
+ * @tc.name: PostTask002
+ * @tc.desc: Test PostTask
+ * @tc.type: FUNC
+ * @tc.require: issueICLG1E
+ */
+HWTEST_F(RSUnmarshalThreadTest, PostTask002, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    std::function<void()> func = []() -> void {};
+    std::string name = "test";
+
+    instance.queue_ = nullptr;
+    instance.PostTask(func, name);
+
+    instance.Start();
+    EXPECT_NE(instance.queue_, nullptr);
+    instance.PostTask(func, name);
+}
+
+/**
+ * @tc.name: RemoveTask001
+ * @tc.desc: Test RemoveTask
+ * @tc.type: FUNC
+ * @tc.require: issueICLG1E
+ */
+HWTEST_F(RSUnmarshalThreadTest, RemoveTask001, TestSize.Level1)
+{
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    std::function<void()> func = []() -> void {};
+    std::string name = "test";
+
+    instance.queue_ = nullptr;
+    instance.RemoveTask(name);
+
+    instance.Start();
+    EXPECT_NE(instance.queue_, nullptr);
+    instance.PostTask(func, name);
+    instance.RemoveTask(name);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), 0);
+}
+
+/**
+ * @tc.name: RecvParcel001
  * @tc.desc: Test RecvParcel
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
 HWTEST_F(RSUnmarshalThreadTest, RecvParcel001, TestSize.Level1)
 {
-    RSUnmarshalThread::Instance().Start();
-    ASSERT_NE(RSUnmarshalThread::Instance().runner_, nullptr);
-    ASSERT_NE(RSUnmarshalThread::Instance().handler_, nullptr);
+    RSUnmarshalThread& instance = RSUnmarshalThread::Instance();
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
     
     std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
     std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
 
-    RSUnmarshalThread::Instance().RecvParcel(data);
+    instance.RecvParcel(data);
 
     bool success = data->WriteParcelable(transactionData.get());
     ASSERT_EQ(success, true);
-    RSUnmarshalThread::Instance().RecvParcel(data);
+    instance.RecvParcel(data);
+
+    instance.queue_ = nullptr;
+    instance.RecvParcel(data);
+
+    data = nullptr;
+    instance.RecvParcel(data);
+
+    instance.Start();
+    ASSERT_NE(instance.queue_, nullptr);
+    instance.RecvParcel(data);
 }
 
-/*
+/**
  * @tc.name: RecvParcel002
  * @tc.desc: Test RecvParcel
  * @tc.type: FUNC
@@ -81,8 +132,7 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel001, TestSize.Level1)
 HWTEST_F(RSUnmarshalThreadTest, RecvParcel002, TestSize.Level1)
 {
     RSUnmarshalThread::Instance().Start();
-    ASSERT_NE(RSUnmarshalThread::Instance().runner_, nullptr);
-    ASSERT_NE(RSUnmarshalThread::Instance().handler_, nullptr);
+    ASSERT_NE(RSUnmarshalThread::Instance().queue_, nullptr);
 
     std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
     std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
@@ -96,7 +146,7 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel002, TestSize.Level1)
     RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
 }
 
-/*
+/**
  * @tc.name: TransactionDataStatistics001
  * @tc.desc: Test ReportTransactionDataStatistics and ClearTransactionDataStatistics
  * @tc.type: FUNC

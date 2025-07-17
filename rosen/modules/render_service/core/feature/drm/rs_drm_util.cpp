@@ -43,11 +43,12 @@ void RSDrmUtil::AddDrmCloneCrossNode(const std::shared_ptr<RSSurfaceRenderNode>&
     auto leashWindowNode = sourceSurface == nullptr ? nullptr :
         RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(sourceSurface->GetFirstLevelNode());
     if (leashWindowNode && leashWindowNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED) &&
-        surfaceNode->GetDisplayNodeId() != INVALID_NODEID) {
+        surfaceNode->GetScreenNodeId() != INVALID_NODEID) {
         if (const auto it = drmNodes_.find(leashWindowNode->GetId()); it != drmNodes_.end()) {
             for (const auto& node : it->second) {
                 if (node->IsOnTheTree()) {
-                    hardwareEnabledDrawables.emplace_back(surfaceNode->GetDisplayNodeId(), node->GetRenderDrawable());
+                    hardwareEnabledDrawables.emplace_back(surfaceNode->GetScreenNodeId(),
+                        node->GetLogicalDisplayNodeId(), node->GetRenderDrawable());
                 }
             }
         }
@@ -58,7 +59,7 @@ void RSDrmUtil::DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::
 {
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
-    for (const auto& [displayNodeId, drawable] : hardwareDrawables) {
+    for (const auto& [screenNodeId, _, drawable] : hardwareDrawables) {
         if (UNLIKELY(!drawable) || !drawable->GetRenderParams()) {
             continue;
         }
@@ -96,10 +97,10 @@ void RSDrmUtil::DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::
 void RSDrmUtil::PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
     const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
 {
-    auto displayLock = surfaceNode->GetAncestorDisplayNode().lock();
-    std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+    auto displayLock = surfaceNode->GetAncestorScreenNode().lock();
+    std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
     if (displayLock != nullptr) {
-        ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+        ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
     }
     if (ancestor == nullptr) {
         return;

@@ -30,8 +30,8 @@ public:
     static sptr<HgmConfigCallbackManager> GetInstance() noexcept;
 
     // non-copyable
-    HgmConfigCallbackManager(const HgmConfigCallbackManager &) = delete;
-    HgmConfigCallbackManager &operator=(const HgmConfigCallbackManager &) = delete;
+    HgmConfigCallbackManager(const HgmConfigCallbackManager&) = delete;
+    HgmConfigCallbackManager& operator=(const HgmConfigCallbackManager&) = delete;
 
     void RegisterHgmConfigChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void RegisterHgmRefreshRateModeChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);

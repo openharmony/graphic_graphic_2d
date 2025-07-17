@@ -26,11 +26,14 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#endif
 #include "render/rs_light_up_effect_filter.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -101,6 +104,9 @@ void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
         return;
     }
     ApplyModifiers();
+#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+    visitor->RegisterHpaeCallback(*this);
+#endif
     visitor->QuickPrepareCanvasRenderNode(*this);
 }
 
@@ -127,25 +133,8 @@ void RSCanvasRenderNode::OnTreeStateChanged()
     }
     RSRenderNode::OnTreeStateChanged();
 
-    // When the P3 canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
-    if (GetIsWideColorGamut()) {
-        ModifyWideWindowColorGamutNum(IsOnTheTree());
-    }
-}
-
-bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
-{
-    const auto& property = GetRenderProperties();
-    if (GetSharedTransitionParam() ||
-        property.IsSpherizeValid() ||
-        property.IsAttractionValid() ||
-        property.NeedFilter() ||
-        property.GetUseEffect() ||
-        property.GetColorBlend().has_value() ||
-        (IsSelfDrawingNode() && GetOpincCache().OpincGetRootFlag())) {
-        return false;
-    }
-    return true && GetOpincCache().OpincGetSupportFlag();
+    // When the canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
+    ModifyWindowWideColorGamutNum(IsOnTheTree(), graphicColorGamut_);
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -321,22 +310,22 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
 
 // When the HDR node status changed, update the node list in the ancestor display node.
 // Support to add animation on canvas nodes when display node is forced to close HDR.
-void RSCanvasRenderNode::UpdateDisplayHDRNodeList(bool flag, NodeId displayNodeId) const
+void RSCanvasRenderNode::UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid context");
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateScreenHDRNodeList Invalid context");
         return;
     }
-    auto displayNode = context->GetNodeMap().GetRenderNode<RSDisplayRenderNode>(displayNodeId);
-    if (!displayNode) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid displayNode");
+    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(screenNodeId);
+    if (!screenNode) {
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateScreenHDRNodeList Invalid screenNode");
         return;
     }
     if (flag) {
-        displayNode->InsertHDRNode(GetId());
+        screenNode->InsertHDRNode(GetId());
     } else {
-        displayNode->RemoveHDRNode(GetId());
+        screenNode->RemoveHDRNode(GetId());
     }
 }
 
@@ -347,7 +336,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
     if (IsOnTheTree()) {
         SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
-        UpdateDisplayHDRNodeList(hasHdrPresent, GetDisplayNodeId());
+        UpdateScreenHDRNodeList(hasHdrPresent, GetScreenNodeId());
     }
     hasHdrPresent_ = hasHdrPresent;
 }
@@ -357,34 +346,40 @@ bool RSCanvasRenderNode::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
-void RSCanvasRenderNode::SetIsWideColorGamut(bool isWideColorGamut)
+void RSCanvasRenderNode::SetColorGamut(uint32_t gamut)
 {
-    if (isWideColorGamut_ == isWideColorGamut) {
+    if (colorGamut_ == gamut) {
         return;
     }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GraphicColorGamut nowGamut = graphicColorGamut_;
+    graphicColorGamut_ = RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(
+        static_cast<OHOS::ColorManager::ColorSpaceName>(gamut));
     if (IsOnTheTree()) {
-        ModifyWideWindowColorGamutNum(isWideColorGamut_);
+        ModifyWindowWideColorGamutNum(false, nowGamut);
+        ModifyWindowWideColorGamutNum(true, graphicColorGamut_);
     }
-    isWideColorGamut_ = isWideColorGamut;
+#endif
+    colorGamut_ = gamut;
 }
 
-bool RSCanvasRenderNode::GetIsWideColorGamut() const
+uint32_t RSCanvasRenderNode::GetColorGamut()
 {
-    return isWideColorGamut_;
+    return colorGamut_;
 }
 
-void RSCanvasRenderNode::ModifyWideWindowColorGamutNum(bool flag)
+void RSCanvasRenderNode::ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut gamut)
 {
     auto parentInstance = GetInstanceRootNode();
     if (!parentInstance) {
-        RS_LOGE("RSCanvasRenderNode::ModifyWideWindowColorGamutNum get instanceRootNode failed.");
+        RS_LOGE("RSCanvasRenderNode::ModifyWindowWideColorGamutNum get instanceRootNode failed.");
         return;
     }
     if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-        if (flag) {
-            parentSurface->IncreaseWideColorGamutNum();
+        if (isOnTree) {
+            parentSurface->IncreaseCanvasGamutNum(gamut);
         } else {
-            parentSurface->ReduceWideColorGamutNum();
+            parentSurface->ReduceCanvasGamutNum(gamut);
         }
     }
 }

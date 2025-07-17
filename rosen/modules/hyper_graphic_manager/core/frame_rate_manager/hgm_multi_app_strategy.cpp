@@ -29,8 +29,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    static PolicyConfigData::ScreenSetting defaultScreenSetting;
-    static PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
+PolicyConfigData::ScreenSetting defaultScreenSetting;
+PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
 }
 
 HgmMultiAppStrategy::HgmMultiAppStrategy()
@@ -47,13 +47,13 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     }
     pkgs_ = pkgs;
     // update pid of pkg
-    for (auto &it : foregroundPidAppMap_) {
+    for (auto& it : foregroundPidAppMap_) {
         backgroundPid_.Put(it.first);
     }
     foregroundPidAppMap_.clear();
     pidAppTypeMap_.clear();
     CheckPackageInConfigList(pkgs_);
-    for (auto &param : pkgs_) {
+    for (auto& param : pkgs_) {
         RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
         HGM_LOGI("pkg update:%{public}s", param.c_str());
         auto [pkgName, pid, appType] = AnalyzePkgParam(param);
@@ -179,7 +179,7 @@ bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 
 std::string HgmMultiAppStrategy::GetGameNodeName(const std::string& pkgName)
 {
-    auto &appNodeMap = screenSettingCache_.gameAppNodeList;
+    auto& appNodeMap = screenSettingCache_.gameAppNodeList;
     if (appNodeMap.find(pkgName) != appNodeMap.end()) {
         return appNodeMap.at(pkgName);
     }
@@ -188,13 +188,13 @@ std::string HgmMultiAppStrategy::GetGameNodeName(const std::string& pkgName)
 
 std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkgName)
 {
-    auto &appConfigMap = screenSettingCache_.appList;
+    auto& appConfigMap = screenSettingCache_.appList;
     if (appConfigMap.find(pkgName) != appConfigMap.end()) {
         return appConfigMap.at(pkgName);
     }
     if (pidAppTypeMap_.find(pkgName) != pidAppTypeMap_.end()) {
-        auto &appType = pidAppTypeMap_.at(pkgName).second;
-        auto &appTypes = screenSettingCache_.appTypes;
+        auto& appType = pidAppTypeMap_.at(pkgName).second;
+        auto& appTypes = screenSettingCache_.appTypes;
         if (appTypes.find(appType) != appTypes.end()) {
             return appTypes.at(appType);
         }
@@ -217,7 +217,7 @@ void HgmMultiAppStrategy::CleanApp(pid_t pid)
 
 void HgmMultiAppStrategy::UpdateXmlConfigCache()
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
 
     auto configData = hgmCore.GetPolicyConfigData();
@@ -235,7 +235,7 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
         HGM_LOGD("curScreenStrategyId not existed: %{public}s", curScreenStrategyId.c_str());
         return;
     }
-    auto &screenConfig = configData->screenConfigs_[curScreenStrategyId];
+    auto& screenConfig = configData->screenConfigs_[curScreenStrategyId];
 
     auto curRefreshRateMode = std::to_string(frameRateMgr->GetCurRefreshRateMode());
     if (screenConfig.find(curRefreshRateMode) == screenConfig.end()) {
@@ -268,7 +268,7 @@ HgmErrCode HgmMultiAppStrategy::GetAppStrategyConfig(
 
 void HgmMultiAppStrategy::UseStrategyNum()
 {
-    auto &strategyName = screenSettingCache_.multiAppStrategyName;
+    auto& strategyName = screenSettingCache_.multiAppStrategyName;
     RS_TRACE_NAME_FMT("[UseStrategyNum] strategyName:%s", strategyName.c_str());
     if (strategyConfigMapCache_.find(strategyName) != strategyConfigMapCache_.end()) {
         voteRes_.first = EXEC_SUCCESS;
@@ -294,7 +294,7 @@ void HgmMultiAppStrategy::UseMax()
 {
     RS_TRACE_FUNC();
     PolicyConfigData::StrategyConfig pkgStrategyConfig;
-    for (const auto &param : pkgs_) {
+    for (const auto& param : pkgs_) {
         auto [pkgName, pid, appType] = AnalyzePkgParam(param);
         if (GetAppStrategyConfig(pkgName, pkgStrategyConfig) != EXEC_SUCCESS) {
             continue;
@@ -309,7 +309,7 @@ void HgmMultiAppStrategy::UseMax()
             voteRes_.second = pkgStrategyConfig;
             continue;
         }
-        auto &strategyRes = voteRes_.second;
+        auto& strategyRes = voteRes_.second;
         strategyRes.min = strategyRes.min > pkgStrategyConfig.min ? strategyRes.min : pkgStrategyConfig.min;
         strategyRes.max = strategyRes.max > pkgStrategyConfig.max ? strategyRes.max : pkgStrategyConfig.max;
     }
@@ -384,7 +384,7 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
         return;
     }
 
-    auto voteTouchFunc = [this, frameRateMgr] (const PolicyConfigData::StrategyConfig& strategy) {
+    auto voteTouchFunc = [this, frameRateMgr](const PolicyConfigData::StrategyConfig& strategy) {
         auto touchInfo = std::move(uniqueTouchInfo_);
         if (touchInfo->touchState == TouchState::DOWN_STATE) {
             RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, downFps:%d",
@@ -418,7 +418,7 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
 void HgmMultiAppStrategy::OnStrategyChange()
 {
     HGM_LOGD("multi app strategy change: [%{public}d, %{public}d]", voteRes_.second.min, voteRes_.second.max);
-    for (const auto &callback : strategyChangeCallbacks_) {
+    for (const auto& callback : strategyChangeCallbacks_) {
         if (callback != nullptr) {
             callback(voteRes_.second);
         }
@@ -446,7 +446,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     if (pkgs.size() > 1) {
         return;
     }
-    for (auto &param: pkgs) {
+    for (auto& param: pkgs) {
         std::string pkgNameForCheck = param.substr(0, param.find(':'));
         // 1 means crop source tuning
         auto videoIter = videoConfigFromHgm.find(pkgNameForCheck);

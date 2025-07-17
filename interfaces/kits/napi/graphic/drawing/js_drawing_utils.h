@@ -17,7 +17,7 @@
 #define OHOS_JS_DRAWING_UTILS_H
 
 #include <map>
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "hilog/log.h"
 #endif
 
@@ -26,7 +26,7 @@
 #include "draw/shadow.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 #include "pixel_map.h"
 #include "pixel_map_napi.h"
 #endif
@@ -39,7 +39,9 @@
 #include "utils/rect.h"
 
 namespace OHOS::Rosen {
-
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
+using namespace Media;
+#endif
 // used for test
 class JsDrawingTestUtils {
 public:
@@ -496,6 +498,9 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
 
 bool ConvertFromJsTextEncoding(napi_env env, TextEncoding& textEncoding, napi_value nativeType);
 
+void MakeFontFeaturesFromJsArray(napi_env env, std::shared_ptr<DrawingFontFeatures> features,
+    uint32_t size, napi_value& array);
+
 inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
 {
     napi_value objValue = nullptr;
@@ -529,7 +534,7 @@ std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode
 std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
 class Bitmap;
 class ColorSpace;
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 extern std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace);
 extern Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat);
 extern Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);
@@ -539,7 +544,7 @@ extern std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media
 } // namespace Drawing
 } // namespace OHOS::Rosen
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001400

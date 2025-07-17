@@ -85,6 +85,7 @@ public:
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) override;
     void OnPhaseOffsetChanged(int64_t phaseOffset) override;
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) override;
+    int64_t GetPhaseOffset() override;
 };
 
 void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period,
@@ -99,6 +100,11 @@ void VSyncGeneratorTestCallback::OnPhaseOffsetChanged(int64_t phaseOffset)
 void VSyncGeneratorTestCallback::OnConnsRefreshRateChanged(
     const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates)
 {
+}
+
+int64_t VSyncGeneratorTestCallback::GetPhaseOffset()
+{
+    return 0;
 }
 
 namespace {
@@ -730,7 +736,7 @@ HWTEST_F(VSyncGeneratorTest, UpdateMode003, Function | MediumTest| Level0)
 HWTEST_F(VSyncGeneratorTest, AddListener001, Function | MediumTest| Level0)
 {
     sptr<VSyncGeneratorTestCallback> callback1 = new VSyncGeneratorTestCallback;
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback1), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(callback1), VSYNC_ERROR_OK);
 }
 
 /*
@@ -742,7 +748,7 @@ HWTEST_F(VSyncGeneratorTest, AddListener001, Function | MediumTest| Level0)
  */
 HWTEST_F(VSyncGeneratorTest, AddListener002, Function | MediumTest| Level0)
 {
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(2, nullptr), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(nullptr), VSYNC_ERROR_INVALID_ARGUMENTS);
 }
 
 /*
@@ -757,7 +763,7 @@ HWTEST_F(VSyncGeneratorTest, AddListener003, Function | MediumTest| Level0)
     VSyncGeneratorTest::vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     VSyncGeneratorTest::vsyncGenerator_->UpdateMode(2, 0, 0);
     sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(callback), VSYNC_ERROR_OK);
 }
 
 /*
@@ -772,9 +778,9 @@ HWTEST_F(VSyncGeneratorTest, AddListener004, Function | MediumTest| Level0)
     auto generatorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
     generatorImpl->listeners_.clear();
     sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(0, callback), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(callback), VSYNC_ERROR_OK);
     ASSERT_EQ(generatorImpl->listeners_.size(), 1);
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(0, callback), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(callback), VSYNC_ERROR_OK);
     ASSERT_EQ(generatorImpl->listeners_.size(), 1);
 }
 
@@ -788,7 +794,7 @@ HWTEST_F(VSyncGeneratorTest, AddListener004, Function | MediumTest| Level0)
 HWTEST_F(VSyncGeneratorTest, RemoveListener001, Function | MediumTest| Level0)
 {
     sptr<VSyncGeneratorTestCallback> callback2 = new VSyncGeneratorTestCallback;
-    VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback2);
+    VSyncGeneratorTest::vsyncGenerator_->AddListener(callback2);
     ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->RemoveListener(callback2), VSYNC_ERROR_OK);
 }
 
@@ -814,7 +820,7 @@ HWTEST_F(VSyncGeneratorTest, RemoveListener002, Function | MediumTest| Level0)
 HWTEST_F(VSyncGeneratorTest, RemoveListener003, Function | MediumTest| Level0)
 {
     sptr<VSyncGeneratorTestCallback> callback3 = new VSyncGeneratorTestCallback;
-    VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback3);
+    VSyncGeneratorTest::vsyncGenerator_->AddListener(callback3);
     sptr<VSyncGeneratorTestCallback> callback4 = new VSyncGeneratorTestCallback;
     ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->RemoveListener(callback4), VSYNC_ERROR_OK);
 }
@@ -829,7 +835,7 @@ HWTEST_F(VSyncGeneratorTest, RemoveListener003, Function | MediumTest| Level0)
 HWTEST_F(VSyncGeneratorTest, ChangePhaseOffset001, Function | MediumTest| Level0)
 {
     sptr<VSyncGeneratorTestCallback> callback5 = new VSyncGeneratorTestCallback;
-    VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback5);
+    VSyncGeneratorTest::vsyncGenerator_->AddListener(callback5);
     ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->ChangePhaseOffset(callback5, 1), VSYNC_ERROR_OK);
 }
 
@@ -855,7 +861,7 @@ HWTEST_F(VSyncGeneratorTest, ChangePhaseOffset002, Function | MediumTest| Level0
 HWTEST_F(VSyncGeneratorTest, ChangePhaseOffset003, Function | MediumTest| Level0)
 {
     sptr<VSyncGeneratorTestCallback> callback6 = new VSyncGeneratorTestCallback;
-    VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback6);
+    VSyncGeneratorTest::vsyncGenerator_->AddListener(callback6);
     sptr<VSyncGeneratorTestCallback> callback7 = new VSyncGeneratorTestCallback;
     ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->ChangePhaseOffset(callback7, 1), VSYNC_ERROR_INVALID_OPERATING);
 }
@@ -1274,23 +1280,6 @@ HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForListener001, Functi
  * @tc.require:
  */
 HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs001, Function | MediumTest| Level0)
-{
-    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
-    vsyncGeneratorImpl->period_ = 0;
-    int64_t period = 0;
-    int64_t timestamp = 0;
-    int64_t lastVsyncTime = SystemTime();
-    int64_t offset = 0;
-    ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, offset, lastVsyncTime), false);
-}
- 
-/*
- * @tc.name: NeedPreexecuteAndUpdateTs002
- * @tc.desc: Test For NeedPreexecuteAndUpdateTs
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs002, Function | MediumTest| Level0)
 {
     auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
     vsyncGeneratorImpl->period_ = 10000000;

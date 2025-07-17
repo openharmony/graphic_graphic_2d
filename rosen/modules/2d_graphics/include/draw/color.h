@@ -44,6 +44,7 @@ enum ColorType {
     COLORTYPE_RGBA_1010102,
     COLORTYPE_GRAY_8,
     COLORTYPE_RGB_888X,
+    COLORTYPE_RGBA_1010108,
 };
 
 enum AlphaType {

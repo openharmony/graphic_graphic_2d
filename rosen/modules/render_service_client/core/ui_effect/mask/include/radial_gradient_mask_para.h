@@ -18,16 +18,19 @@
 
 #include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_vector2.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class RadialGradientMaskPara : public MaskPara {
+class RSC_EXPORT RadialGradientMaskPara : public MaskPara {
 public:
     RadialGradientMaskPara()
     {
         type_ = MaskPara::Type::RADIAL_GRADIENT_MASK;
     }
     ~RadialGradientMaskPara() override = default;
+
+    RadialGradientMaskPara(const RadialGradientMaskPara& other);
 
     void SetCenter(Vector2f& center)
     {
@@ -78,6 +81,14 @@ public:
     {
         return positions_;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
+
+    std::shared_ptr<MaskPara> Clone() const override;
 
 private:
     Vector2f center_ = { 0.0f, 0.0f };

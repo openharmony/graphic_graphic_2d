@@ -73,11 +73,6 @@ void RSTransition::StartRenderTransition()
         ROSEN_LOGE("Failed to start transition animation, target is null!");
         return;
     }
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("Failed to start transition animation, transaction proxy is null!");
-        return;
-    }
 
     std::vector<std::shared_ptr<RSRenderTransitionEffect>> transitionEffects;
     if (isTransitionIn_) {

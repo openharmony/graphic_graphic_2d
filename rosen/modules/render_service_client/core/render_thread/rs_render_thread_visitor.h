@@ -42,7 +42,8 @@ public:
 
     void PrepareChildren(RSRenderNode& node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
-    void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void PrepareScreenRenderNode(RSScreenRenderNode& node) override {}
+    void PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
     void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override;
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
@@ -50,7 +51,8 @@ public:
 
     void ProcessChildren(RSRenderNode& node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
-    void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override {}
+    void ProcessScreenRenderNode(RSScreenRenderNode& node) override {}
+    void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;

@@ -24,6 +24,7 @@
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #endif
+#include "render/rs_image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -174,25 +175,107 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     return image;
 }
 
-
-void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
-                                             Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas)
+std::pair<float, float> calculateRotatedDimensions(float width, float height, float rotationDegrees)
 {
+    float radians = rotationDegrees * M_PI / 180.0f; // Convert degrees to radians
+
+    float cosTheta = std::cos(radians);
+    float sinTheta = std::sin(radians);
+
+    float newWidth = std::abs(width * cosTheta) + std::abs(height * sinTheta);
+    float newHeight = std::abs(width * sinTheta) + std::abs(height * cosTheta);
+
+    return {newWidth, newHeight};
+}
+
+void ApplyRotationTransform(TransformData& transformData,
+    Drawing::Rect& dst, Drawing::Matrix& matrix, const Size& realSize)
+{
+    float w = dst.GetWidth();
+    float h = dst.GetHeight();
+    scalar x = dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F;
+    scalar y = dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F;
+    matrix.PreRotate(transformData.rotateD, x, y);
+    dst.SetLeft(x - realSize.width / HALF_F);
+    dst.SetTop(y - realSize.height / HALF_F);
+    dst.SetRight(x + realSize.width / HALF_F);
+    dst.SetBottom(y + realSize.height / HALF_F);
+    auto [newWidth, newHeight] =
+        calculateRotatedDimensions(dst.GetWidth(), dst.GetHeight(), transformData.rotateD);
+    float ratiox = w / (float)newWidth;
+    float ratioy = h / (float)newHeight;
+    matrix.PostScale(ratiox, ratioy, x, y);
+}
+
+void ApplyFitTransform(std::shared_ptr<Media::PixelMap> pixelMap,
+    Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas)
+{
+    const float kEpsilon = 1e-5f;
     TransformData transformData;
     pixelMap->GetTransformData(transformData);
     Size realSize;
     pixelMap->GetAstcRealSize(realSize);
-    dst.SetLeft(dst.GetLeft() - std::abs((realSize.width - src.GetWidth()) / HALF_F));
-    dst.SetTop(dst.GetTop() - std::abs((realSize.height - src.GetHeight()) / HALF_F));
-    dst.SetRight(dst.GetRight() + std::abs((realSize.width - src.GetWidth()) / HALF_F));
-    dst.SetBottom(dst.GetBottom() + std::abs((realSize.height - src.GetHeight()) / HALF_F));
-    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
-        src.SetRight(src.GetRight() / abs(transformData.scaleX));
-        src.SetBottom(src.GetBottom() / abs(transformData.scaleY));
+    Size pixelmapSize = {pixelMap->GetWidth(), pixelMap->GetHeight()};
+    src.SetRight(src.left_ + realSize.width);
+    src.SetBottom(src.top_ + realSize.height);
+    transformData.rotateD = fmod(fmod(transformData.rotateD, 360.0f) + 360.0f, 360.0f); // Normalize to [0, 360)
+    Drawing::Matrix matrix;
+    if (std::fabs(transformData.rotateD) > kEpsilon) {
+        ApplyRotationTransform(transformData, dst, matrix, realSize);
+    }
+    if (transformData.translateX != 0 || transformData.translateY != 0) {
+        float ratiox = realSize.width /(float)pixelmapSize.width;
+        float ratioy = realSize.height /(float)pixelmapSize.height;
+        if (transformData.translateX > 0) {
+            dst.SetLeft(dst.GetLeft() + (dst.GetWidth() - (dst.GetWidth() * ratiox)));
+        } else {
+            src.SetLeft(src.GetLeft() - transformData.translateX);
+        }
+        if (transformData.translateY > 0) {
+            dst.SetTop(dst.GetTop() + (dst.GetHeight() - (dst.GetHeight() * ratioy)));
+        } else {
+            src.SetTop(src.GetTop() - transformData.translateY);
+        }
+    }
+    if (transformData.flipX) {
+        matrix.PostScale(-1, 1, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+            dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    }
+    if (transformData.flipY) {
+        matrix.PostScale(1, -1, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+            dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    }
+
+    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 && transformData.cropWidth > 0 &&
+        transformData.cropHeight > 0 && transformData.cropLeft + transformData.cropWidth <= realSize.width &&
+        transformData.cropTop + transformData.cropHeight <= realSize.height) {
+        src.SetLeft(src.GetLeft() + transformData.cropLeft);
+        src.SetTop(src.GetTop() + transformData.cropTop);
+        src.SetRight(src.GetLeft() + pixelmapSize.width);
+        src.SetBottom(src.GetTop() + pixelmapSize.height);
+    }
+    canvas.ConcatMatrix(matrix);
+}
+
+void ApplyNoneFitTransformstd(std::shared_ptr<Media::PixelMap> pixelMap,
+    Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas)
+{
+    const float kEpsilon = 1e-5f;
+    TransformData transformData;
+    pixelMap->GetTransformData(transformData);
+    Size realSize;
+    pixelMap->GetAstcRealSize(realSize);
+    Size pixelmapSize = {pixelMap->GetWidth(), pixelMap->GetHeight()};
+    src.SetRight(src.left_ + realSize.width);
+    src.SetBottom(src.top_ + realSize.height);
+    transformData.rotateD = fmod(fmod(transformData.rotateD, 360.0f) + 360.0f, 360.0f); // Normalize to [0, 360)
+    if (std::fabs(transformData.rotateD) > kEpsilon) {
+        dst.SetLeft(dst.GetLeft() - (realSize.width - pixelmapSize.width) / HALF_F);
+        dst.SetTop(dst.GetTop() - (realSize.height - pixelmapSize.height) / HALF_F);
+        dst.SetRight(dst.GetRight() + (realSize.width - pixelmapSize.width) / HALF_F);
+        dst.SetBottom(dst.GetBottom() + (realSize.height - pixelmapSize.height) / HALF_F);
     }
     Drawing::Matrix matrix;
-    matrix.PostScale(transformData.scaleX, transformData.scaleY, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
-                     dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
     matrix.PostRotate(transformData.rotateD, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
                       dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
     if (transformData.flipX) {
@@ -207,23 +290,32 @@ void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pi
     if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 && transformData.cropWidth > 0 &&
         transformData.cropHeight > 0 && transformData.cropLeft + transformData.cropWidth <= realSize.width &&
         transformData.cropTop + transformData.cropHeight <= realSize.height) {
-        float rightMinus = src.GetRight() - transformData.cropLeft - transformData.cropWidth;
-        float bottomMinus = src.GetBottom() - transformData.cropTop - transformData.cropHeight;
         src.SetLeft(src.GetLeft() + transformData.cropLeft);
         src.SetTop(src.GetTop() + transformData.cropTop);
-        src.SetRight(src.GetRight() - rightMinus);
-        src.SetBottom(src.GetBottom() - bottomMinus);
-        dst.SetLeft(dst.GetLeft() + (realSize.width - transformData.cropWidth) / HALF_F);
-        dst.SetTop(dst.GetTop() + (realSize.height - transformData.cropHeight) / HALF_F);
-        dst.SetRight(dst.GetRight() - (realSize.width - transformData.cropWidth) / HALF_F);
-        dst.SetBottom(dst.GetBottom() - (realSize.height - transformData.cropHeight) / HALF_F);
+        src.SetRight(src.GetLeft() + pixelmapSize.width);
+        src.SetBottom(src.GetTop() + pixelmapSize.height);
     }
-    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
-        dst.SetLeft(dst.GetLeft() + transformData.translateX / HALF_F / abs(transformData.scaleX));
-        dst.SetTop(dst.GetTop() + transformData.translateY / HALF_F / abs(transformData.scaleY));
-        dst.SetRight(dst.GetRight() + transformData.translateX / HALF_F / abs(transformData.scaleX));
-        dst.SetBottom(dst.GetBottom() + transformData.translateY / HALF_F / abs(transformData.scaleY));
+    if (transformData.translateX != 0 && transformData.translateY != 0) {
+        if (transformData.translateX > 0) {
+            dst.SetLeft(dst.GetLeft() + transformData.translateX);
+        } else {
+            src.SetLeft(src.GetLeft() - transformData.translateX);
+        }
+        if (transformData.translateY > 0) {
+            dst.SetTop(dst.GetTop() + transformData.translateY);
+        } else {
+            src.SetTop(src.GetTop() - transformData.translateY);
+        }
     }
+}
+
+void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+    Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas, ImageFit imageFit)
+{
+    if (imageFit != ImageFit::NONE) {
+        return ApplyFitTransform(pixelMap, src, dst, canvas);
+    }
+    return ApplyNoneFitTransformstd(pixelMap, src, dst, canvas);
 }
 
 void RSPixelMapUtil::DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixelMap,

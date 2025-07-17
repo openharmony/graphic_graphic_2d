@@ -25,7 +25,7 @@ export interface BrightnessBlenderParam {
 }
 namespace uiEffect {
   loadLibrary('uiEffect_ani')
-  export type Blender = BrightnessBlender;
+  export type Blender = BrightnessBlender | HdrBrightnessBlender;
   export interface BrightnessBlender {
     cubicRate: number;
     quadraticRate: number;
@@ -36,7 +36,12 @@ namespace uiEffect {
     negativeCoefficient: [number, number, number];
     fraction: number;
   }
+  export interface HdrBrightnessBlender extends BrightnessBlender {}
   export class BrightnessBlenderInternal implements BrightnessBlender {
+    private brightnessBlenderNativeObj: long = 0;
+    constructor(context: long) {
+      this.brightnessBlenderNativeObj = context;
+    }
     cubicRate: number;
     quadraticRate: number;
     linearRate: number;
@@ -45,6 +50,11 @@ namespace uiEffect {
     positiveCoefficient: [number, number, number];
     negativeCoefficient: [number, number, number];
     fraction: number;
+  }
+  export class HdrBrightnessBlenderInternal extends BrightnessBlenderInternal implements HdrBrightnessBlender {
+    constructor(context: long) {
+      super(context);
+    }
   }
   export interface VisualEffect {
     backgroundColorBlender(blender: BrightnessBlender): VisualEffect;
@@ -61,6 +71,7 @@ namespace uiEffect {
   }  
   export native function createEffect(): VisualEffect;
   export native function createBrightnessBlender(param: BrightnessBlenderParam): BrightnessBlender;
+  export native function createHdrBrightnessBlender(param: BrightnessBlenderParam): HdrBrightnessBlender;
 }
 
 export default uiEffect;

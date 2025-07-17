@@ -20,12 +20,12 @@
 #include <memory>
 #include <queue>
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 
 #include "drawable/rs_render_node_drawable.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 namespace OHOS {
 namespace Rosen {
@@ -72,7 +72,7 @@ private:
 
 class RSSuperRenderTask : public RSRenderTaskBase {
 public:
-    explicit RSSuperRenderTask(RSDisplayRenderNode &node)
+    explicit RSSuperRenderTask(RSScreenRenderNode &node)
         : RSRenderTaskBase(node.shared_from_this()) {}
     explicit RSSuperRenderTask(std::shared_ptr<RSBaseRenderNode> node, uint64_t frameCount = 0)
         : RSRenderTaskBase(node), frameCount_(frameCount) {}
@@ -100,7 +100,7 @@ private:
 
 class RSCompositionTask : public RSRenderTaskBase {
 public:
-    explicit RSCompositionTask(std::shared_ptr<RSDisplayRenderNode> node) : RSRenderTaskBase(node) {}
+    explicit RSCompositionTask(std::shared_ptr<RSScreenRenderNode> node) : RSRenderTaskBase(node) {}
     ~RSCompositionTask() override {};
 };
 

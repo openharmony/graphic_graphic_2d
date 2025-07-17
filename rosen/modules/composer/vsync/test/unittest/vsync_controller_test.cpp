@@ -196,6 +196,24 @@ HWTEST_F(VSyncControllerTest, ResetOffset, Function | MediumTest | Level2)
     ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_,
         VSyncControllerTest::vsyncController_->normalPhaseOffset_);
 }
+
+/*
+* Function: ResetOffset
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call ResetOffset
+ */
+HWTEST_F(VSyncControllerTest, ResetOffset002, Function | MediumTest | Level2)
+{
+    VSyncControllerTest::vsyncController_->phaseOffset_ = 10;
+    VSyncControllerTest::vsyncController_->normalPhaseOffset_ = 20;
+    VSyncControllerTest::vsyncController_->ResetOffset();
+    VSyncControllerTest::vsyncController_->generator_ = nullptr;
+    VSyncControllerTest::vsyncController_->ResetOffset();
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_,
+        VSyncControllerTest::vsyncController_->normalPhaseOffset_);
+}
  
 /*
 * Function: NeedPreexecuteAndUpdateTs
@@ -216,5 +234,20 @@ HWTEST_F(VSyncControllerTest, NeedPreexecuteAndUpdateTs, Function | MediumTest |
     vsyncGeneratorImpl->period_ = 10000000;
     VSyncControllerTest::vsyncController_->lastVsyncTime_ = SystemTime();
     ASSERT_EQ(VSyncControllerTest::vsyncController_->NeedPreexecuteAndUpdateTs(timestamp, period), true);
+}
+
+/**
+ * @tc.name: GetPhaseOffset
+ * @tc.desc: Test GetPhaseOffset function
+ * @tc.type: FUNC
+ * @tc.require: issueICHRJD
+ */
+HWTEST_F(VSyncControllerTest, GetPhaseOffset, Function | MediumTest | Level2)
+{
+    // 2700000 = 2.7ms , standard phase offset time
+    VSyncControllerTest::vsyncController_->phaseOffset_ = 2700000;
+    auto offset = VSyncControllerTest::vsyncController_->GetPhaseOffset();
+    // 2700000 = 2.7ms , standard phase offset time
+    ASSERT_EQ(offset, 2700000);
 }
 }

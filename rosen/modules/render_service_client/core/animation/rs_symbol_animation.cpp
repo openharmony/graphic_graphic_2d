@@ -25,6 +25,8 @@
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
+#include "skia_txt/default_symbol_config.h"
 #include "utils/point.h"
 
 namespace OHOS {
@@ -124,6 +126,7 @@ RSSymbolAnimation::~RSSymbolAnimation() {}
 bool RSSymbolAnimation::SetSymbolAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
+    RS_TRACE_FUNC();
     if (rsNode_ == nullptr || symbolAnimationConfig == nullptr) {
         ROSEN_LOGD("HmSymbol RSSymbolAnimation::getNode or get symbolAnimationConfig:failed");
         return false;
@@ -296,8 +299,6 @@ bool RSSymbolAnimation::SetReplaceDisappear(
         effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_DISAPPEAR;
     } else if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR) {
         effectStrategy = Drawing::DrawingEffectStrategy::QUICK_REPLACE_DISAPPEAR;
-    } else {
-        return false;
     }
 
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, effectStrategy);
@@ -446,6 +447,7 @@ void RSSymbolAnimation::InitSupportAnimationTable(
                                        Drawing::DrawingEffectStrategy::DISABLE};
     }
 
+    range_ = std::nullopt;
     Vector4f bounds = rsNode_->GetStagingProperties().GetBounds();
     symbolBounds_ = Vector4f(0.0f, 0.0f, bounds.z_, bounds.w_);
     isMaskSymbol_ = false;
@@ -478,16 +480,14 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
     animationLevelNum = animationLevelNum + 1;
 
     // get animation group paramaters
-    if (std::count(upAndDownSupportAnimations_.begin(), upAndDownSupportAnimations_.end(),
-        effectStrategy) != 0) {
-        parameters = Drawing::HmSymbolConfigOhos::GetGroupParameters(
-            Drawing::DrawingAnimationType(effectStrategy),
-            static_cast<uint16_t>(animationLevelNum),
+    auto it = std::find(upAndDownSupportAnimations_.begin(), upAndDownSupportAnimations_.end(), effectStrategy);
+    if (it != upAndDownSupportAnimations_.end()) {
+        parameters = OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetGroupParameters(
+            Drawing::DrawingAnimationType(effectStrategy), static_cast<uint16_t>(animationLevelNum),
             symbolAnimationConfig->animationMode, symbolAnimationConfig->commonSubType);
     } else {
-        parameters = Drawing::HmSymbolConfigOhos::GetGroupParameters(
-            Drawing::DrawingAnimationType(effectStrategy),
-            static_cast<uint16_t>(animationLevelNum),
+        parameters = OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetGroupParameters(
+            Drawing::DrawingAnimationType(effectStrategy), static_cast<uint16_t>(animationLevelNum),
             symbolAnimationConfig->animationMode);
     }
     if (parameters.empty()) {
@@ -639,6 +639,8 @@ bool RSSymbolAnimation::SetTextFlipAnimation(
         return false;
     }
 
+    FrameRateRange range = {60, 60, 60}; // The fixed frame rate is 60 of text flip animation
+    range_ = range;
     if (!symbolAnimationConfig->currentAnimationHasPlayed) {
         SetFlipDisappear(symbolAnimationConfig, rsNode_);
     }
@@ -956,16 +958,14 @@ bool RSSymbolAnimation::SetClipAnimation(const std::shared_ptr<RSNode>& rsNode,
     GroupDrawing(canvasNodeLine, symbolNode, offsets, false);
     // set animation to clip layer
     if (createNewNode) {
-        std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
-        std::shared_ptr<RSAnimatableProperty<Vector2f>> translateRatioProperty = nullptr;
-        TranslateAnimationBase(canvasNode, translateRatioProperty, parameters[0], groupAnimation);
-        // 1: the second section of parameters
-        TranslateAnimationBase(canvasNode, translateRatioProperty, parameters[1], groupAnimation);
-
-        std::vector<std::shared_ptr<RSAnimation>> groupAnimation1 = {};
-        std::shared_ptr<RSAnimatableProperty<Vector2f>> clipProperty = nullptr;
-        // 2: the third section of parameters
-        TranslateAnimationBase(canvasNodeLine, clipProperty, parameters[2], groupAnimation1);
+        std::vector<Drawing::DrawingPiecewiseParameter> firstParameters;
+        uint32_t n = parameters.size() - 1; // the max index of parameters
+        for (uint32_t i = 0; i < n; i++) {
+            firstParameters.push_back(parameters[i]);
+        }
+        SpliceAnimation(canvasNode, firstParameters);
+        std::vector<Drawing::DrawingPiecewiseParameter> secondParameters = { parameters[n] };
+        SpliceAnimation(canvasNodeLine, secondParameters);
     }
     return true;
 }
@@ -1325,6 +1325,9 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
     SymbolAnimation::CreateAnimationTimingCurve(scaleParameter.curveType, scaleParameter.curveArgs, scaleCurve);
 
     RSAnimationTimingProtocol scaleprotocol;
+    if (range_.has_value()) {
+        scaleprotocol.SetFrameRateRange(range_.value());
+    }
     scaleprotocol.SetStartDelay(scaleParameter.delay);
     if (scaleParameter.duration > 0) {
         scaleprotocol.SetDuration(scaleParameter.duration);
@@ -1369,6 +1372,9 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
 
     // set animation protocol and curve
     RSAnimationTimingProtocol alphaProtocol;
+    if (range_.has_value()) {
+        alphaProtocol.SetFrameRateRange(range_.value());
+    }
     alphaProtocol.SetStartDelay(alphaParameter.delay);
     if (alphaParameter.duration > 0) {
         alphaProtocol.SetDuration(alphaParameter.duration);
@@ -1418,6 +1424,9 @@ void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rs
     SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
 
     RSAnimationTimingProtocol protocol;
+    if (range_.has_value()) {
+        protocol.SetFrameRateRange(range_.value());
+    }
     protocol.SetStartDelay(parameter.delay);
     if (parameter.duration > 0) {
         protocol.SetDuration(parameter.duration);
@@ -1463,6 +1472,9 @@ void RSSymbolAnimation::BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
 
     RSAnimationTimingProtocol protocol;
+    if (range_.has_value()) {
+        protocol.SetFrameRateRange(range_.value());
+    }
     protocol.SetStartDelay(parameter.delay);
     if (parameter.duration > 0) {
         protocol.SetDuration(parameter.duration);

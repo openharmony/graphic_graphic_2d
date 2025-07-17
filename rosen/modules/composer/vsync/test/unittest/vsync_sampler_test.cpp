@@ -108,6 +108,27 @@ HWTEST_F(VSyncSamplerTest, AddSample002, Function | MediumTest| Level3)
 }
 
 /*
+* Function: AddSample003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddSample
+ */
+HWTEST_F(VSyncSamplerTest, AddSample003, Function | MediumTest| Level3)
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = SystemTime();
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->preAdaptiveSampleTime_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = false;
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(2000000), true);
+    Reset();
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = false;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = 0;
+}
+
+/*
 * Function: StartSample001
 * Type: Function
 * Rank: Important(2)
@@ -464,23 +485,6 @@ HWTEST_F(VSyncSamplerTest, SetAdaptive, Function | MediumTest| Level3)
     ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), false);
     vsyncSampler->SetAdaptive(true);
     ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), true);
-}
- 
-/*
-* Function: AddSample003
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call AddSample
- */
-HWTEST_F(VSyncSamplerTest, AddSample003, Function | MediumTest| Level3)
-{
-    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = true;
-    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = SystemTime();
-    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
-    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
-    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(0), true);
-    Reset();
 }
 } // namespace
 } // namespace Rosen

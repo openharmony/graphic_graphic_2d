@@ -17,18 +17,24 @@
 #define RENDER_SERVICE_PROFILER_H
 
 #include <memory>
+#include <unordered_map>
 
 #include "rs_profiler_test_tree.h"
+
 #include "common/rs_macros.h"
+#include "transaction/rs_hrp_service.h"
+
 #ifdef RS_PROFILER_ENABLED
 
 #include <map>
 #include <string>
 
-#include "common/rs_vector4.h"
+#include "recording/draw_cmd_list.h"
+#include "rs_profiler_capturedata.h"
+
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_render_node.h"
-#include "params/rs_display_render_params.h"
+#include "params/rs_screen_render_params.h"
 #include "recording/draw_cmd_list.h"
 
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
@@ -73,6 +79,24 @@
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
 #define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) \
     RSProfiler::IfNeedToSkipDuringReplay(parcel, skipBytes)
+#define RS_PROFILER_RSLOGEOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::ERROR, format, argptr)
+#define RS_PROFILER_RSLOGWOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::WARNING, format, argptr)
+#define RS_PROFILER_RSLOGDOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::WARNING, format, argptr)
+#define RS_PROFILER_RENDERNODE_INC(isOnTree) RSProfiler::MetricRenderNodeInc(isOnTree)
+#define RS_PROFILER_RENDERNODE_DEC(isOnTree) RSProfiler::MetricRenderNodeDec(isOnTree)
+#define RS_PROFILER_RENDERNODE_CHANGE(isOnTree) RSProfiler::MetricRenderNodeChange(isOnTree)
+#define RS_PROFILER_ADD_LIGHT_BLUR_METRICS(area) RSProfiler::AddLightBlursMetrics(area)
+#define RS_PROFILER_ADD_HPS_BLUR_METRICS(area) RSProfiler::AddHPSBlursMetrics(area)
+#define RS_PROFILER_ADD_KAWASE_BLUR_METRICS(area) RSProfiler::AddKawaseBlursMetrics(area)
+#define RS_PROFILER_ADD_MESA_BLUR_METRICS(area) RSProfiler::AddMESABlursMetrics(area)
+#define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage) \
+    RSProfiler::LogShaderCall(shaderType, srcImage, dstRect, outImage)
+#define RS_PROFILER_IS_RECORDING_MODE() RSProfiler::IsRecordingMode()
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber) \
+    RSProfiler::TransactionUnmarshallingStart(parcel, parcelNumber)
+#define RS_PROFILER_ANIMATION_NODE(type, pixels) RSProfiler::AddAnimationNodeMetrics(type, pixels)
+#define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns) RSProfiler::AddAnimationStart(id, timestamp_ns)
+#define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns) RSProfiler::AddAnimationFinish(id, timestamp_ns)
 #define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize) \
     RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize)
 #else
@@ -117,6 +141,23 @@
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
 #define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) false
 #define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize)
+#define RS_PROFILER_RSLOGEOUTPUT(format, argptr)
+#define RS_PROFILER_RSLOGWOUTPUT(format, argptr)
+#define RS_PROFILER_RSLOGDOUTPUT(format, argptr)
+#define RS_PROFILER_RENDERNODE_INC(isOnTree)
+#define RS_PROFILER_RENDERNODE_DEC(isOnTree)
+#define RS_PROFILER_RENDERNODE_CHANGE(isOnTree)
+#define RS_PROFILER_ADD_LIGHT_BLUR_METRICS(area)
+#define RS_PROFILER_ADD_HPS_BLUR_METRICS(area)
+#define RS_PROFILER_ADD_KAWASE_BLUR_METRICS(area)
+#define RS_PROFILER_ADD_MESA_BLUR_METRICS(area)
+#define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage)
+#define RS_PROFILER_IS_RECORDING_MODE() false
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber)
+#define RS_PROFILER_ANIMATION_NODE(type, pixels)
+#define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns)
+#define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns)
+
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -143,7 +184,7 @@ class RSRenderNode;
 class RSRenderModifier;
 class RSProperties;
 class RSContext;
-class RSDisplayRenderNode;
+class RSScreenRenderNode;
 class RSRenderNodeMap;
 class RSAnimationManager;
 class RSRenderAnimation;
@@ -159,6 +200,188 @@ enum class TextureRecordType : int {
     JPEG = 1,
     LZ4 = 2,
     NO_COMPRESSION = 3,
+};
+
+enum class RSProfilerLogType : int {
+    ERROR = 0,
+    WARNING = 1,
+    INFO = 2,
+    PIXELMAP = 3,
+    PARCEL_UNMARSHALLING_START = 4,
+    PARCEL_UNMARSHALLING_END = 5,
+    DEBUG = 6,
+    PIXELMAP_YUV = 7
+};
+
+class RSProfilerLogMsg {
+public:
+    RSProfilerLogType type_;
+    uint64_t time_;
+    std::string msg_;
+
+    RSProfilerLogMsg() : type_(RSProfilerLogType::ERROR), time_(0), msg_("") {}
+    RSProfilerLogMsg(RSProfilerLogType type, uint64_t time, std::string msg) : type_(type), time_(time), msg_(msg) {}
+};
+
+enum RSPROFILER_METRIC_ENUM {
+    RSPROFILER_METRIC_ONTREE_NODE_COUNT = 0,
+    RSPROFILER_METRIC_OFFTREE_NODE_COUNT = 1,
+    RSPROFILER_METRIC_BLUR_OPERATIONS = 2,
+    RSPROFILER_METRIC_BLUR_SHADER_CALLS = 3,
+    RSPROFILER_METRIC_BLUR_AREA_OPERATIONS = 4,
+    RSPROFILER_METRIC_BLUR_AREA_SHADER_CALLS = 5,
+    RSPROFILER_METRIC_MESA_BLUR_SHADER_CALLS = 6,
+    RSPROFILER_METRIC_MESA_BLUR_OPERATIONS = 7,
+    RSPROFILER_METRIC_KAWASE_BLUR_SHADER_CALLS = 8,
+    RSPROFILER_METRIC_KAWASE_BLUR_OPERATIONS = 9,
+    RSPROFILER_METRIC_AIBAR_BLUR_SHADER_CALLS = 10,
+    RSPROFILER_METRIC_GREY_BLUR_SHADER_CALLS = 11,
+    RSPROFILER_METRIC_LINEAR_GRADIENT_BLUR_SHADER_CALLS = 12,
+    RSPROFILER_METRIC_MAGNIFIER_SHADER_CALLS = 13,
+    RSPROFILER_METRIC_WATER_RIPPLE_BLUR_SHADER_CALLS = 14,
+    RSPROFILER_METRIC_LIGHT_BLUR_OPERATIONS = 15,
+    RSPROFILER_METRIC_HPS_BLUR_OPERATIONS = 16,
+    RSPROFILER_METRIC_ANIMATION_NODE = 17,
+    RSPROFILER_METRIC_ANIMATION_NODE_SIZE = 18,
+    RSPROFILER_METRIC_ANIMATION_DURATION = 19,
+    RSPROFILER_METRIC_ANIMATION_NODE_TYPE_CANVAS_NODE = 20,
+    RSPROFILER_METRIC_ANIMATION_NODE_TYPE_ROOT_NODE = 21,
+    RSPROFILER_METRIC_ANIMATION_NODE_TYPE_EFFECT_NODE = 22,
+    RSPROFILER_METRIC_ANIMATION_NODE_TYPE_SURFACE_NODE = 23,
+    RSPROFILER_METRIC_ANIMATION_NODE_TYPE_CANVAS_DRAWING_NODE = 24,
+    RSPROFILER_METRIC_ANIMATION_NODE_TYPE_PROXY_NODE = 25,
+    RSPROFILER_METRIC_COUNT
+};
+
+class RSProfilerCustomMetricsParam {
+public:
+    uint32_t kind;
+    int32_t value;
+    float fvalue;
+    std::string type;
+    std::string name;
+    bool manualReset;
+
+    RSProfilerCustomMetricsParam(uint32_t kind, std::string type, std::string name, bool manualReset = false)
+        : kind(kind), type(std::move(type)), name(std::move(name)), manualReset(manualReset)
+    {}
+};
+
+class RSProfilerCustomMetrics {
+private:
+    std::vector<RSProfilerCustomMetricsParam> param;
+
+public:
+    RSProfilerCustomMetrics()
+    {
+        param.reserve(RSPROFILER_METRIC_COUNT);
+        param.emplace_back(RSPROFILER_METRIC_ONTREE_NODE_COUNT, "val", "On-tree Node Count", true);
+        param.emplace_back(RSPROFILER_METRIC_OFFTREE_NODE_COUNT, "val", "Off-tree Node Count", true);
+        param.emplace_back(RSPROFILER_METRIC_BLUR_OPERATIONS, "val", "Blur Operations");
+        param.emplace_back(RSPROFILER_METRIC_BLUR_SHADER_CALLS, "val", "Blur Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_BLUR_AREA_OPERATIONS, "fval", "Blur Area Operations");
+        param.emplace_back(RSPROFILER_METRIC_BLUR_AREA_SHADER_CALLS, "fval", "Blur Area Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_MESA_BLUR_SHADER_CALLS, "val", "MESA Blur Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_MESA_BLUR_OPERATIONS, "val", "MESA Blur Operations");
+        param.emplace_back(RSPROFILER_METRIC_KAWASE_BLUR_SHADER_CALLS, "val", "Kawase Blur Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_KAWASE_BLUR_OPERATIONS, "val", "Kawase Blur Operations");
+        param.emplace_back(RSPROFILER_METRIC_AIBAR_BLUR_SHADER_CALLS, "val", "AI Bar Blur Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_GREY_BLUR_SHADER_CALLS, "val", "Grey Blur Shader Calls");
+        param.emplace_back(
+            RSPROFILER_METRIC_LINEAR_GRADIENT_BLUR_SHADER_CALLS, "val", "Linear Gradient Blur Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_MAGNIFIER_SHADER_CALLS, "val", "Magnifier Blur Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_WATER_RIPPLE_BLUR_SHADER_CALLS, "val", "Water Ripple Blur Shader Calls");
+        param.emplace_back(RSPROFILER_METRIC_LIGHT_BLUR_OPERATIONS, "val", "Light Blur Operations");
+        param.emplace_back(RSPROFILER_METRIC_HPS_BLUR_OPERATIONS, "val", "HPS Blur Operations");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_NODE, "val", "Animation node count");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_NODE_SIZE, "fval", "Animation node size");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_DURATION, "fval", "Animation duration");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_NODE_TYPE_CANVAS_NODE, "val", "Animation canvas node");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_NODE_TYPE_ROOT_NODE, "val", "Animation root node");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_NODE_TYPE_EFFECT_NODE, "val", "Animation effect node");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_NODE_TYPE_SURFACE_NODE, "val", "Animation surface node");
+        param.emplace_back(
+            RSPROFILER_METRIC_ANIMATION_NODE_TYPE_CANVAS_DRAWING_NODE, "val", "Animation canvas drawing node");
+        param.emplace_back(RSPROFILER_METRIC_ANIMATION_NODE_TYPE_PROXY_NODE, "val", "Animation proxy node");
+    }
+
+    size_t GetCount()
+    {
+        return param.size();
+    }
+
+    void Reset()
+    {
+        for (RSProfilerCustomMetricsParam& record : param) {
+            if (!record.manualReset) {
+                record.value = 0;
+                record.fvalue = 0;
+            }
+        }
+    }
+
+    void AddInt(uint32_t kind, int32_t addon)
+    {
+        if (kind >= param.size()) {
+            return;
+        }
+        param[kind].value += addon;
+    }
+
+    void SubInt(uint32_t kind, int32_t sub)
+    {
+        if (kind >= param.size()) {
+            return;
+        }
+        param[kind].value -= sub;
+    }
+
+    void SetZero(uint32_t kind)
+    {
+        if (kind >= param.size()) {
+            return;
+        }
+        param[kind].value = 0;
+    }
+
+    void AddFloat(uint32_t kind, float addon)
+    {
+        if (kind >= param.size()) {
+            return;
+        }
+        param[kind].fvalue += addon;
+    }
+
+    void MultiplyFloat(uint32_t kind, float k)
+    {
+        if (kind >= param.size()) {
+            return;
+        }
+        param[kind].fvalue *= k;
+    }
+
+    std::string Get(uint32_t kind)
+    {
+        if (kind >= param.size()) {
+            return "";
+        }
+        if (param[kind].type == "val") {
+            return std::to_string(param[kind].value);
+        } else if (param[kind].type == "fval") {
+            return std::to_string(param[kind].fvalue);
+        }
+        return "";
+    }
+
+    std::string GetList()
+    {
+        std::string retValue;
+        for (RSProfilerCustomMetricsParam& record : param) {
+            retValue += std::to_string(record.kind + 1) + "," + record.type + "," + record.name + ";";
+        }
+        retValue.pop_back(); // remove last ';'
+        return retValue;
+    }
 };
 
 class RSProfiler final {
@@ -206,6 +429,7 @@ public:
 
     RSB_EXPORT static bool ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr child, int index);
     RSB_EXPORT static void PatchCommand(const Parcel& parcel, RSCommand* command);
+    RSB_EXPORT static void TransactionUnmarshallingStart(const Parcel& parcel, uint32_t parcelNumber);
     RSB_EXPORT static void PushOffset(std::vector<uint32_t>& commandOffsets, uint32_t offset);
     RSB_EXPORT static void PushOffsets(
         const Parcel& parcel, uint32_t parcelNumber, std::vector<uint32_t>& commandOffsets);
@@ -229,11 +453,30 @@ public:
     RSB_EXPORT static std::unordered_map<AnimationId, std::vector<int64_t>> &AnimeGetStartTimes();
     RSB_EXPORT static std::vector<std::pair<uint64_t, int64_t>> AnimeGetStartTimesFlattened(double recordStartTime);
     RSB_EXPORT static int64_t AnimeSetStartTime(AnimationId id, int64_t nanoTime);
-    RSB_EXPORT static std::string SendMessageBase();
-    RSB_EXPORT static void SendMessageBase(const std::string& msg);
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
     RSB_EXPORT static std::vector<RSRenderNode::WeakPtr>& GetChildOfDisplayNodesPostponed();
+
+    RSB_EXPORT static void SendMessageBase(const std::string& msg);
+    RSB_EXPORT static std::string ReceiveMessageBase();
+    RSB_EXPORT static RSProfilerLogMsg ReceiveRSLogBase();
+    RSB_EXPORT static void SendRSLogBase(RSProfilerLogType type, const std::string& msg);
+    RSB_EXPORT static void AddLightBlursMetrics(uint32_t areaBlurs);
+    RSB_EXPORT static void AddHPSBlursMetrics(uint32_t areaBlurs);
+    RSB_EXPORT static void AddKawaseBlursMetrics(uint32_t areaBlurs);
+    RSB_EXPORT static void AddMESABlursMetrics(uint32_t areaBlurs);
+    RSB_EXPORT static void LogShaderCall(const std::string& shaderType, const std::shared_ptr<Drawing::Image>& srcImage,
+        const Drawing::Rect& dstRect, const std::shared_ptr<Drawing::Image>& outImage);
+
+    RSB_EXPORT static void AddAnimationNodeMetrics(RSRenderNodeType type, int32_t size);
+    RSB_EXPORT static void AddAnimationStart(AnimationId id, int64_t timestamp_ns);
+    RSB_EXPORT static void AddAnimationFinish(AnimationId id, int64_t timestamp_ns);
+
+    RSB_EXPORT static RetCodeHrpService HrpServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd);
+    RSB_EXPORT static RetCodeHrpService HrpServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles);
+
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
     RSB_EXPORT static bool IsPlaybackParcel(const Parcel& parcel);
@@ -248,10 +491,12 @@ public:
     RSB_EXPORT static bool IsWriteMode();
     RSB_EXPORT static bool IsWriteEmulationMode();
     RSB_EXPORT static bool IsSavingMode();
-    
+
+    RSB_EXPORT static bool IsRecordingMode();
+
     RSB_EXPORT static TextureRecordType GetTextureRecordType();
     RSB_EXPORT static void SetTextureRecordType(TextureRecordType type);
-    
+
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
@@ -259,8 +504,23 @@ public:
     RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
     RSB_EXPORT static void SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize);
 
+    RSB_EXPORT static void RsMetricClear();
+    RSB_EXPORT static void RsMetricSet(std::string name, std::string value);
+    RSB_EXPORT static std::string RsMetricGetList();
+
+    RSB_EXPORT static void RSLogOutput(RSProfilerLogType type, const char* format, va_list argptr);
+
+    RSB_EXPORT static void MetricRenderNodeInc(bool isOnTree);
+    RSB_EXPORT static void MetricRenderNodeDec(bool isOnTree);
+    RSB_EXPORT static void MetricRenderNodeChange(bool isOnTree);
+    RSB_EXPORT static void MetricRenderNodeInit(RSContext* context);
+    RSB_EXPORT static void ResetCustomMetrics();
+    RSB_EXPORT static RSProfilerCustomMetrics& GetCustomMetrics();
+
 private:
     static const char* GetProcessNameByPid(int pid);
+
+    RSB_EXPORT static void MarkReplayNodesDirty(RSContext& context);
 
     RSB_EXPORT static void EnableSharedMemory();
     RSB_EXPORT static void DisableSharedMemory();
@@ -269,6 +529,8 @@ private:
     RSB_EXPORT static double BaseGetPlaybackSpeed();
     RSB_EXPORT static Media::PixelMap* UnmarshalPixelMapNstd(Parcel& parcel,
         std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc);
+
+    RSB_EXPORT static void LogYUVDataInfo(uint64_t id, const Media::YUVDataInfo& yuvInfo);
 
     // Beta record
     RSB_EXPORT static void EnableBetaRecord();
@@ -291,6 +553,7 @@ private:
 
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static bool IsEnabled();
+    RSB_EXPORT static bool IsHrpServiceEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();
     RSB_EXPORT static uint32_t GetCommandExecuteCount();
@@ -304,7 +567,6 @@ private:
     RSB_EXPORT static void BetaRecordOnFrameBegin();
     RSB_EXPORT static void BetaRecordOnFrameEnd();
 
-private:
     RSB_EXPORT static void SetTransactionTimeCorrection(double replayStartTime, double recordStartTime);
     RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime, bool immediate);
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
@@ -313,7 +575,7 @@ private:
 
     RSB_EXPORT static bool IsSecureScreen();
 
-    RSB_EXPORT static std::shared_ptr<RSDisplayRenderNode> GetDisplayNode(const RSContext& context);
+    RSB_EXPORT static std::shared_ptr<RSScreenRenderNode> GetScreenNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 
     // RSRenderNodeMap
@@ -340,14 +602,14 @@ private:
     RSB_EXPORT static std::string UnmarshalNodeModifiers(
         RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
 
-    RSB_EXPORT static void MarshalSubTree(RSContext& context, std::stringstream& data,
-        const RSRenderNode& node, uint32_t fileVersion, bool clearImageCache = true);
-    RSB_EXPORT static void MarshalSubTreeLo(RSContext& context, std::stringstream& data,
-        const RSRenderNode& node, uint32_t fileVersion);
+    RSB_EXPORT static void MarshalSubTree(RSContext& context, std::stringstream& data, const RSRenderNode& node,
+        uint32_t fileVersion, bool clearImageCache = true);
+    RSB_EXPORT static void MarshalSubTreeLo(
+        RSContext& context, std::stringstream& data, const RSRenderNode& node, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalSubTree(RSContext& context, std::stringstream& data,
         RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache = true);
-    RSB_EXPORT static std::string UnmarshalSubTreeLo(RSContext& context, std::stringstream& data,
-        RSRenderNode& attachNode, uint32_t fileVersion);
+    RSB_EXPORT static std::string UnmarshalSubTreeLo(
+        RSContext& context, std::stringstream& data, RSRenderNode& attachNode, uint32_t fileVersion);
 
     RSB_EXPORT static NodeId AdjustNodeId(NodeId nodeId, bool clearMockFlag);
 
@@ -359,8 +621,8 @@ private:
     // JSON
     static void RenderServiceTreeDump(JsonWriter& out, pid_t pid);
     RSB_EXPORT static void DumpOffscreen(RSContext& context, JsonWriter& rootOffscreen, bool useMockPid, pid_t pid);
-    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out,
-        bool clearMockFlag = false, bool absRoot = false, bool isSorted = true);
+    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag = false,
+        bool absRoot = false, bool isSorted = true);
     RSB_EXPORT static void DumpNodeAbsoluteProperties(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out);
     RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& out);
@@ -392,9 +654,9 @@ private:
     RSB_EXPORT static NodeId PatchPlainNodeId(const Parcel& parcel, NodeId id);
     RSB_EXPORT static pid_t PatchPlainPid(const Parcel& parcel, pid_t pid);
 
-    RSB_EXPORT static uint32_t PerfTreeFlatten(
-        std::shared_ptr<RSRenderNode> node, std::vector<std::pair<NodeId, uint32_t>>& nodeSet,
-        std::unordered_map<NodeId, uint32_t>& mapNode2Count, uint32_t depth);
+    RSB_EXPORT static uint32_t PerfTreeFlatten(std::shared_ptr<RSRenderNode> node,
+        std::vector<std::pair<NodeId, uint32_t>>& nodeSet, std::unordered_map<NodeId, uint32_t>& mapNode2Count,
+        uint32_t depth);
     RSB_EXPORT static uint32_t CalcNodeCmdListCount(RSRenderNode& node);
     RSB_EXPORT static void CalcPerfNodePrepare(NodeId nodeId, uint32_t timeCount, bool excludeDown);
     RSB_EXPORT static void CalcPerfNodePrepareLo(const std::shared_ptr<RSRenderNode>& node, bool forceExcludeNode);
@@ -452,7 +714,6 @@ private:
     static void DumpNodeProperties(const ArgList& args);
     static void DumpTree(const ArgList& args);
     static void DumpTreeToJson(const ArgList& args);
-    static void DumpSurfaces(const ArgList& args);
     static void DumpNodeSurface(const ArgList& args);
     static void ClearFilter(const ArgList& args);
     static void PrintNodeCache(const ArgList& args);
@@ -462,7 +723,6 @@ private:
     static void BlinkNode(const ArgList& args);
     static void AttachChild(const ArgList& args);
     static void KillPid(const ArgList& args);
-    static void GetRoot(const ArgList& args);
     static void GetDeviceInfo(const ArgList& args);
     static void GetDeviceFrequency(const ArgList& args);
     static void FixDeviceEnv(const ArgList& args);
@@ -472,21 +732,29 @@ private:
     static void SocketShutdown(const ArgList& args);
     static void DumpDrawingCanvasNodes(const ArgList& args);
 
+    static uint64_t GetDisplayArea();
+
     static void Version(const ArgList& args);
     static void FileVersion(const ArgList& args);
 
     static void SaveSkp(const ArgList& args);
     static void SaveOffscreenSkp(const ArgList& args);
     static void SaveComponentSkp(const ArgList& args);
+    static void SaveSkpImgCache(const ArgList& args);
+    static void SaveSkpOnCapture(const ArgList& args);
+    static void SaveSkpExtended(const ArgList& args);
     static void SaveRdc(const ArgList& args);
     static void DrawingCanvasRedrawEnable(const ArgList& args);
     static void RenderNodeKeepDrawCmd(const ArgList& args);
     static void PlaybackSetSpeed(const ArgList& args);
     static void PlaybackSetImmediate(const ArgList& args);
 
-    static void RecordStart(const ArgList& args);
-    static void RecordStop(const ArgList& args);
+    static void WriteRSMetricsToRecordFile(double timeSinceRecordStart, double syncTime, uint64_t frameLen);
+
+    RSB_EXPORT static void RecordStart(const ArgList& args);
+    RSB_EXPORT static void RecordStop(const ArgList& args);
     static void RecordCompression(const ArgList& args);
+    static void RecordMetrics(const ArgList& args);
     static void RecordUpdate();
     static void RecordSave();
     RSB_EXPORT static void RequestRecordAbort();
@@ -512,13 +780,19 @@ private:
     static void BuildTestTree(const ArgList& args);
     static void ClearTestTree(const ArgList& args);
 
-    static void OnFlagChangedCallback(const char *key, const char *value, void *context);
+    static void OnFlagChangedCallback(const char* key, const char* value, void* context);
     static void OnWorkModeChanged();
     static void ProcessSignalFlag();
+
+    RSB_EXPORT static bool LogEventStart(uint64_t curTime, RSCaptureData& captureData, double& timeSinceRecordStart);
+    static void LogEventFinish(RSCaptureData& captureData, double timeSinceRecordStart);
+    RSB_EXPORT static void LogEventVSync(uint64_t syncTime);
+    RSB_EXPORT static void LogEventMsg(uint64_t curTime, RSProfilerLogType type, const std::string& msg);
 
     static void TestSaveSubTree(const ArgList& args);
     static void TestLoadSubTree(const ArgList& args);
     static void TestClearSubTree(const ArgList& args);
+
 private:
     using CommandRegistry = std::map<std::string, void (*)(const ArgList&)>;
     static const CommandRegistry COMMANDS;
@@ -528,11 +802,12 @@ private:
     static RSContext* context_;
     // flag for enabling profiler
     RSB_EXPORT static bool enabled_;
+    RSB_EXPORT static bool hrpServiceEnabled_;
     RSB_EXPORT static std::atomic_uint32_t mode_;
     // flag for enabling profiler beta recording feature
     RSB_EXPORT static bool betaRecordingEnabled_;
     // flag to start network thread
-    RSB_EXPORT static int8_t signalFlagChanged_;
+    RSB_EXPORT static std::atomic<int8_t> signalFlagChanged_;
 
     inline static const char SYS_KEY_ENABLED[] = "persist.graphic.profiler.enabled";
     inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
@@ -542,7 +817,10 @@ private:
     RSB_EXPORT static std::atomic_bool recordAbortRequested_;
 
     RSB_EXPORT static std::vector<std::shared_ptr<RSRenderNode>> testTree_;
+    RSB_EXPORT static std::unordered_map<AnimationId, int64_t> animationsTimes_;
+
     friend class TestTreeBuilder;
+    friend class RSRenderServiceConnection;
 };
 
 } // namespace OHOS::Rosen

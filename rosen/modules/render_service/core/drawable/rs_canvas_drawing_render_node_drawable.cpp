@@ -161,7 +161,7 @@ void CanvasDrawingDumpToPngImpl(std::shared_ptr<Drawing::Bitmap> bitmap, std::st
 void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 {
     if (image_ == nullptr) {
-        RS_LOGE("No image to drawing");
+        RS_LOGD("No image to drawing");
         return;
     }
 
@@ -181,7 +181,7 @@ void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
     DrawContent(*canvas_, rect);
-    if (!renderParams_) {
+    if (!renderParams_ || !RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         return;
     }
     SetNeedDraw(false);
@@ -217,6 +217,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     OnDraw(canvas);
 }
 

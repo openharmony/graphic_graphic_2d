@@ -52,6 +52,14 @@ void VSyncController::ResetOffset()
 {
     std::lock_guard<std::mutex> locker(offsetMutex_);
     phaseOffset_ = normalPhaseOffset_;
+    if (generator_ == nullptr) {
+        return;
+    }
+    const sptr<VSyncGenerator> generator = generator_.promote();
+    if (generator == nullptr) {
+        return;
+    }
+    generator->ChangePhaseOffset(this, phaseOffset_);
 }
 
 bool VSyncController::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period)
@@ -81,18 +89,13 @@ VsyncError VSyncController::SetEnable(bool enable, bool& isGeneratorEnable)
     if (generator == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
-    int64_t phaseOffset;
-    {
-        std::lock_guard<std::mutex> locker(offsetMutex_);
-        phaseOffset = phaseOffset_;
-    }
     VsyncError ret = VSYNC_ERROR_OK;
     if (enable) {
         // If the sampler does not complete the sampling work, the generator does not work
         // We need to tell the distributor to use the software vsync
         isGeneratorEnable = generator->IsEnable();
         if (isGeneratorEnable) {
-            ret = generator->AddListener(phaseOffset, this, isRS_, isDirectly_);
+            ret = generator->AddListener(this, isRS_, isDirectly_);
             if (ret != VSYNC_ERROR_OK) {
                 isGeneratorEnable = false;
             }
@@ -158,6 +161,12 @@ void VSyncController::OnPhaseOffsetChanged(int64_t phaseOffset)
     std::lock_guard<std::mutex> locker(offsetMutex_);
     phaseOffset_ = phaseOffset;
     normalPhaseOffset_ = phaseOffset;
+}
+
+int64_t VSyncController::GetPhaseOffset()
+{
+    std::lock_guard<std::mutex> locker(offsetMutex_);
+    return phaseOffset_;
 }
 
 /* std::pair<id, refresh rate> */

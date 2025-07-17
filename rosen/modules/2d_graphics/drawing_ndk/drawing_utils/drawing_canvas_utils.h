@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,10 @@ public:
     static void DrawPixelMapRect(OHOS::Rosen::Drawing::Canvas* canvas, std::shared_ptr<OHOS::Media::PixelMap> pixelMap,
         const OHOS::Rosen::Drawing::Rect* src, const OHOS::Rosen::Drawing::Rect* dst,
         const OHOS::Rosen::Drawing::SamplingOptions* sampling);
+    static OH_Drawing_ErrorCode DrawPixelMapRectConstraint(OHOS::Rosen::Drawing::Canvas* canvas,
+        std::shared_ptr<OHOS::Media::PixelMap> pixelMap, const OHOS::Rosen::Drawing::Rect* src,
+        const OHOS::Rosen::Drawing::Rect* dst, const OHOS::Rosen::Drawing::SamplingOptions* sampling,
+        const OHOS::Rosen::Drawing::SrcRectConstraint constraint);
     static void DrawRecordCmd(OHOS::Rosen::Drawing::Canvas* canvas,
         const std::shared_ptr<OHOS::Rosen::Drawing::RecordCmd> recordCmd, bool canNesting = false);
     static bool ExtractDrawingBitmap(std::shared_ptr<OHOS::Media::PixelMap> pixelMap,

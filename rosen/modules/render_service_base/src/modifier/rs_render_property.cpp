@@ -19,6 +19,9 @@
 
 #include "rs_profiler.h"
 
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
@@ -26,19 +29,23 @@
 namespace OHOS {
 namespace Rosen {
 
-void RSRenderPropertyBase::Attach(std::weak_ptr<RSRenderNode> node)
+void RSRenderPropertyBase::Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
-    node_ = node;
+    node_ = node.weak_from_this();
+    modifier_ = modifier;
+    node.RegisterProperty(shared_from_this());
     OnChange();
-    OnAttach();
+    OnAttach(node, modifier);
 }
 
-void RSRenderPropertyBase::Detach(std::weak_ptr<RSRenderNode> node)
+void RSRenderPropertyBase::Detach()
 {
-    OnDetach();
     if (auto node = node_.lock()) {
-        node->RemoveProperty(shared_from_this());
+        node->UnregisterProperty(id_);
     }
+    OnDetach();
+    modifier_.reset();
+    node_.reset();
 }
 
 void RSRenderPropertyBase::OnChange() const
@@ -264,7 +271,7 @@ bool RSRenderProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRend
         ROSEN_LOGE("%s Creating property failed", __PRETTY_FUNCTION__);
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, ret->id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->stagingValue_)) {
         ROSEN_LOGE("%s Unmarshalling failed", __PRETTY_FUNCTION__);
         delete ret;
@@ -282,7 +289,7 @@ bool RSRenderAnimatableProperty<T>::OnUnmarshalling(Parcel& parcel, std::shared_
         ROSEN_LOGE("%s Creating property failed", __PRETTY_FUNCTION__);
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, ret->id_) ||
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->stagingValue_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->unit_)) {
         ROSEN_LOGE("%s Unmarshalling failed", __PRETTY_FUNCTION__);
@@ -556,7 +563,29 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& 
 {
     if (auto property = Get()) {
         property->Dump(out);
+        return;
     }
+    out += "[null]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Dump(std::string& out) const
+{
+    if (auto property = Get()) {
+        property->Dump(out);
+        return;
+    }
+    out += "[null]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Dump(std::string& out) const
+{
+    if (auto property = Get()) {
+        property->Dump(out);
+        return;
+    }
+    out += "[null]";
 }
 
 template<>
@@ -728,33 +757,136 @@ bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
 }
 
 template<>
-void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach()
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
-    auto node = node_.lock();
-    if (!node) {
-        return;
-    }
     if (stagingValue_) {
-        stagingValue_->Attach(node);
+        stagingValue_->Attach(node, modifier);
     }
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnDetach()
 {
-    auto node = node_.lock();
-    if (!node) {
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+}
+
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
+    const std::shared_ptr<RSNGRenderFilterBase>& value, PropertyUpdateType type)
+{
+    if (value == stagingValue_) {
         return;
     }
-    if (stagingValue_) {
-        stagingValue_->Detach(node);
+    // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
+    // member variable.
+    auto node = node_.lock();
+    if (node && stagingValue_) {
+        stagingValue_->Detach();
     }
+    stagingValue_ = value;
+    if (node && value) {
+        value->Attach(*node, modifier_.lock());
+    }
+    OnChange();
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType()
 {
     stagingValue_->SetModifierType(modifierType_);
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
+{
+    if (stagingValue_) {
+        stagingValue_->Attach(node, modifier);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnDetach()
+{
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+}
+
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
+    const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type)
+{
+    if (value == stagingValue_) {
+        return;
+    }
+    // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
+    // member variable.
+    auto node = node_.lock();
+    if (node && stagingValue_) {
+        stagingValue_->Detach();
+    }
+    stagingValue_ = value;
+    if (node && value) {
+        value->Attach(*node, modifier_.lock());
+    }
+    OnChange();
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType()
+{
+    if (stagingValue_) {
+        stagingValue_->SetModifierType(modifierType_);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
+{
+    if (stagingValue_) {
+        stagingValue_->Attach(node, modifier);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnDetach()
+{
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+}
+
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
+    const std::shared_ptr<RSNGRenderMaskBase>& value, PropertyUpdateType type)
+{
+    if (value == stagingValue_) {
+        return;
+    }
+    // PLANNING: node_ is only used in this function, find alternative way detach/attach values, and remove the node_
+    // member variable.
+    auto node = node_.lock();
+    if (node && stagingValue_) {
+        stagingValue_->Detach();
+    }
+    stagingValue_ = value;
+    if (node && value) {
+        value->Attach(*node, modifier_.lock());
+    }
+    OnChange();
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnSetModifierType()
+{
+    if (stagingValue_) {
+        stagingValue_->SetModifierType(modifierType_);
+    }
 }
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>

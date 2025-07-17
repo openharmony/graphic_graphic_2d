@@ -66,12 +66,13 @@ void RsFrameBlurPredict::TakeEffectBlurScene(const EventInfo& eventInfo)
     if (!eventInfo.eventStatus) {
         predictBegin_.store(false);
     }
-    LOGD("takeEffectBlurScene eventName : %s description : %s eventStatus %s",
-        eventInfo.eventName.c_str(), eventInfo.description.c_str(), eventInfo.eventStatus? "true" : "false");
 }
 
 void RsFrameBlurPredict::PredictDrawLargeAreaBlur(RSRenderNode& node)
 {
+    if (!isValidBlurFrame_.load()) {
+        return;
+    }
     std::pair<bool, bool> nodeDrawLargeAreaBlur = {false, false};
     node.NodeDrawLargeAreaBlur(nodeDrawLargeAreaBlur);
     predictDrawLargeAreaBlur_.first = predictDrawLargeAreaBlur_.first || nodeDrawLargeAreaBlur.first;

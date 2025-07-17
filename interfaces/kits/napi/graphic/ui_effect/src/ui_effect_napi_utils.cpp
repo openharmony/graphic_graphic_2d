@@ -149,7 +149,7 @@ bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba)
         napi_value tempValue = nullptr;
         napi_get_named_property(env, jsValue, COLOR_STRING[idx], &tempValue);
         double value = 0.0;
-        if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok) {
+        if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok || value < 0.0) {
             return false;
         }
         rgba[idx] = static_cast<float>(value);

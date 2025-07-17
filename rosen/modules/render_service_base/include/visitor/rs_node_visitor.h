@@ -22,7 +22,8 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSCanvasRenderNode;
-class RSDisplayRenderNode;
+class RSScreenRenderNode;
+class RSLogicalDisplayRenderNode;
 class RSProxyRenderNode;
 class RSRootRenderNode;
 class RSSurfaceRenderNode;
@@ -37,28 +38,31 @@ public:
     RSNodeVisitor& operator=(RSNodeVisitor&&) = delete;
     virtual ~RSNodeVisitor() = default;
 
-    virtual void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) {};
-    virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) {};
-    virtual void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) {};
-    virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) {};
-    virtual void QuickPrepareChildren(RSRenderNode& node) {};
+    virtual void QuickPrepareChildren(RSRenderNode& node) {}
+    virtual void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) {}
+    virtual void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) {}
+    virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) {}
+    virtual void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) {}
+    virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) {}
 
     virtual void PrepareChildren(RSRenderNode& node) = 0;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;
-    virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) = 0;
+    virtual void PrepareScreenRenderNode(RSScreenRenderNode& node) = 0;
+    virtual void PrepareEffectRenderNode(RSEffectRenderNode& node) = 0;
+    virtual void PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) = 0;
     virtual void PrepareProxyRenderNode(RSProxyRenderNode& node) = 0;
     virtual void PrepareRootRenderNode(RSRootRenderNode& node) = 0;
     virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
-    virtual void PrepareEffectRenderNode(RSEffectRenderNode& node) = 0;
 
     virtual void ProcessChildren(RSRenderNode& node) = 0;
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) = 0;
-    virtual void ProcessDisplayRenderNode(RSDisplayRenderNode& node) = 0;
+    virtual void ProcessScreenRenderNode(RSScreenRenderNode& node) = 0;
     virtual void ProcessProxyRenderNode(RSProxyRenderNode& node) = 0;
+    virtual void ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) = 0;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) = 0;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessEffectRenderNode(RSEffectRenderNode& node) = 0;
-
+    virtual void RegisterHpaeCallback(RSRenderNode& node) {};
     virtual void AddSurfaceChangedCallBack(uint64_t id,
         const std::function<void(float, float, float, float)>& callback) {};
     virtual void RemoveSurfaceChangedCallBack(uint64_t id) {};

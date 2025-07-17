@@ -48,17 +48,28 @@ public:
     {
         return maskType_;
     }
+
     bool ParseFilterValues() override;
+
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+
+    virtual void SetDisplayHeadroom(float headroom) override
+    {
+        maxHeadroom_ = headroom;
+    }
 private:
     float alpha_{ 0.f };
     bool bloom_{ true };
-    std::optional<Vector4f> color_{ std::nullopt };
+    Vector4f color_;
+    bool useRawColor_{ false };
     std::shared_ptr<RSShaderMask> mask_{ nullptr };
     static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
     void CalculateHash();
 
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
+
+    // HDR settings
+    float maxHeadroom_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

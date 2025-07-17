@@ -49,9 +49,9 @@ HWTEST_F(RSTransactionDataCallbackProxyTest, OnAfterProcess001, TestSize.Level1)
     ASSERT_TRUE(remoteMocker != nullptr);
     auto TransactionDataCallbackProxy = std::make_shared<RSTransactionDataCallbackProxy>(remoteMocker);
     ASSERT_TRUE(TransactionDataCallbackProxy != nullptr);
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
-    TransactionDataCallbackProxy->OnAfterProcess(pid, timeStamp);
+    TransactionDataCallbackProxy->OnAfterProcess(token, timeStamp);
     ASSERT_EQ(remoteMocker->receivedCode_,
         static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS));
 }
@@ -69,9 +69,9 @@ HWTEST_F(RSTransactionDataCallbackProxyTest, OnAfterProcess002, TestSize.Level1)
     remoteMocker->sendRequestResult_ = 1;
     auto TransactionDataCallbackProxy = std::make_shared<RSTransactionDataCallbackProxy>(remoteMocker);
     ASSERT_TRUE(TransactionDataCallbackProxy != nullptr);
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
-    TransactionDataCallbackProxy->OnAfterProcess(pid, timeStamp);
+    TransactionDataCallbackProxy->OnAfterProcess(token, timeStamp);
     ASSERT_EQ(remoteMocker->receivedCode_,
         static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS));
 }

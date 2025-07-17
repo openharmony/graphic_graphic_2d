@@ -26,7 +26,7 @@
 #include "feature/round_corner_display/rs_rcd_render_visitor.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "surface_buffer_impl.h"
 #include "rs_test_util.h"
 

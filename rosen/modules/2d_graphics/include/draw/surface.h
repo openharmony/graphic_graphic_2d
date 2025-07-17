@@ -206,6 +206,18 @@ public:
     void ClearDrawingArea();
 #endif
 
+    /**
+     * @brief         Set headroom for backendTexture of Surface.
+     * @param headroom  headroom value
+     */
+    void SetHeadroom(float headroom);
+
+    /**
+     * @brief         Get headroom for backendTexture of Surface.
+     * @return        headroom value
+     */
+    float GetHeadroom() const;
+
 private:
     std::shared_ptr<SurfaceImpl> impl_;
     std::shared_ptr<Canvas> cachedCanvas_;

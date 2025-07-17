@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_BASE_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_BASE_H
+#ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H
+#define RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H
 
 #include <cstdint>
 #include <mutex>
@@ -143,4 +143,4 @@ protected:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_BASE_H
+#endif // RENDER_SERVICE_BASE_RENDER_RENDER_RS_IMAGE_BASE_H

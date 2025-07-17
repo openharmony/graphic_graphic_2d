@@ -20,36 +20,37 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t DEFAULT_PRIORITY = 0;
-    constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
-    constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
-    // CAUTION: with priority
-    const std::string VOTER_NAME[] = {
-        "VOTER_THERMAL",
-        "VOTER_VIRTUALDISPLAY_FOR_CAR",
-        "VOTER_VIRTUALDISPLAY",
-        "VOTER_MUTIPHYSICALSCREEN",
-        "VOTER_MULTISELFOWNEDSCREEN",
-        "VOTER_POWER_MODE",
-        "VOTER_DISPLAY_ENGINE",
-        "VOTER_GAMES",
-        "VOTER_ANCO",
+constexpr uint32_t DEFAULT_PRIORITY = 0;
+constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
+constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
+// CAUTION: with priority
+const std::string VOTER_NAME[] = {
+    "VOTER_THERMAL",
+    "VOTER_VIRTUALDISPLAY_FOR_CAR",
+    "VOTER_VIRTUALDISPLAY",
+    "VOTER_MUTIPHYSICALSCREEN",
+    "VOTER_MULTISELFOWNEDSCREEN",
+    "VOTER_POWER_MODE",
+    "VOTER_DISPLAY_ENGINE",
+    "VOTER_GAMES",
+    "VOTER_ANCO",
 
-        "VOTER_PAGE_URL",
-        "VOTER_PACKAGES",
-        "VOTER_LTPO",
-        "VOTER_TOUCH",
-        "VOTER_POINTER",
-        "VOTER_SCENE",
-        "VOTER_VIDEO",
-        "VOTER_IDLE"
-    };
+    "VOTER_PAGE_URL",
+    "VOTER_PACKAGES",
+    "VOTER_LTPO",
+    "VOTER_TOUCH",
+    "VOTER_POINTER",
+    "VOTER_SCENE",
+    "VOTER_VIDEO",
+    "VOTER_IDLE"
+};
 }
+
 HgmFrameVoter::HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy)
     : voters_(std::begin(VOTER_NAME), std::end(VOTER_NAME)), multiAppStrategy_(multiAppStrategy)
 {
     HGM_LOGI("Construction of HgmFrameVoter");
-    for (auto &voter : voters_) {
+    for (auto& voter : voters_) {
         voteRecord_[voter] = {{}, true};
     }
 }
@@ -141,9 +142,10 @@ void HgmFrameVoter::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip)
 }
 
 bool HgmFrameVoter::MergeLtpo2IdleVote(
-    std::vector<std::string>::iterator &voterIter, VoteInfo& resultVoteInfo, VoteRange &mergedVoteRange)
+    std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange)
 {
     bool mergeSuccess = false;
+    bool existVoterLTPO = false;
     // [VOTER_LTPO, VOTER_IDLE)
     for (; voterIter != voters_.end() - 1; voterIter++) {
         if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
@@ -164,8 +166,11 @@ bool HgmFrameVoter::MergeLtpo2IdleVote(
             ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-        if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
+        if ((isDragScene_ || NeedSkipVoterTouch(existVoterLTPO)) && curVoteInfo.voterName == "VOTER_TOUCH") {
             continue;
+        }
+        if (curVoteInfo.voterName == "VOTER_LTPO") {
+            existVoterLTPO = true;
         }
         ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {
@@ -198,13 +203,13 @@ bool HgmFrameVoter::ProcessVoteIter(std::vector<std::string>::iterator& voterIte
         }
     }
 
-    auto &voter = *voterIter;
+    auto& voter = *voterIter;
     if (voteRecord_.find(voter) == voteRecord_.end()) {
         return false;
     }
     voteRecord_[voter].second = true;
     auto& voteInfos = voteRecord_[voter].first;
-    auto firstValidVoteInfoIter = std::find_if(voteInfos.begin(), voteInfos.end(), [this] (auto& voteInfo) {
+    auto firstValidVoteInfoIter = std::find_if(voteInfos.begin(), voteInfos.end(), [this](auto& voteInfo) {
         if (!multiAppStrategy_.CheckPidValid(voteInfo.pid)) {
             ProcessVoteLog(voteInfo, true);
             return false;
@@ -244,7 +249,7 @@ std::pair<VoteInfo, VoteRange> HgmFrameVoter::ProcessVote(const std::string& cur
 
     VoteInfo resultVoteInfo;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
-    auto &[min, max] = voteRange;
+    auto& [min, max] = voteRange;
 
     bool voterGamesEffective = false;
     auto voterIter = voters_.begin();

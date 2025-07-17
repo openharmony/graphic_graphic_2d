@@ -19,6 +19,7 @@
 #include <map>
 #include "common/rs_macros.h"
 #include "common/rs_common_def.h"
+#include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "pipeline/rs_render_node.h"
 
@@ -35,27 +36,27 @@ public:
 
     bool IsListeningEnabled() const
     {
-        return isListeningEnabled_;
+        return !rectChangeCallbackListenner_.empty();
     }
 
-    void InsertCurRectMap(NodeId nodeId, std::string nodeName, RectI rect);
+    void InsertCurRectMap(NodeId nodeId, RectI rect);
     void EraseCurRectMap(NodeId nodeId);
     void ClearRectMap();
 
-    pid_t GetCallingPid() const;
-
-    void RegisterRectChangeCallback(pid_t pid, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
+    void RegisterRectChangeCallback(
+        pid_t pid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
     void UnRegisterRectChangeCallback(pid_t pid);
     void TriggerRectChangeCallback();
 
 private:
     SelfDrawingNodeMonitor() = default;
     ~SelfDrawingNodeMonitor() noexcept {};
-    std::pair<pid_t, sptr<RSISelfDrawingNodeRectChangeCallback>> rectChangeCallbackListenner_;
+    bool CheckStatify(RectI& rect, RectConstraint& constraint) const;
+    bool ShouldTrigger(RectConstraint& constraint, SelfDrawingNodeRectCallbackData& callbackData);
+    std::map<pid_t, sptr<RSISelfDrawingNodeRectChangeCallback>> rectChangeCallbackListenner_;
+    std::map<pid_t, RectConstraint> rectChangeCallbackConstraint_;
     SelfDrawingNodeRectCallbackData curRect_;
     SelfDrawingNodeRectCallbackData lastRect_;
-    bool isListeningEnabled_ = false;
-    pid_t callingPid_;
 };
 } // namespace Rosen
 } // namespace OHOS

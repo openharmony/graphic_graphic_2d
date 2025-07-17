@@ -64,6 +64,9 @@ HWTEST_F(RSBlendModifierNGTypeTest, RSBlendModifierTest, TestSize.Level1)
 
     modifier->SetFgBrightnessFract(0.75f);
     EXPECT_FLOAT_EQ(modifier->GetFgBrightnessFract(), 0.75f);
+
+    modifier->SetFgBrightnessHdr(true);
+    EXPECT_EQ(modifier->GetFgBrightnessHdr(), true);
 }
 
 } // namespace OHOS::Rosen

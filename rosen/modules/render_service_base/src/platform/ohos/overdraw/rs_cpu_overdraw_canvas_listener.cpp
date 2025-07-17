@@ -196,7 +196,9 @@ void RSCPUOverdrawCanvasListener::AppendRegion(Drawing::Path& path)
     Drawing::Region target;
     Drawing::Region drRegion;
     path.Transform(canvas_.GetTotalMatrix());
-    drRegion.SetRect(Drawing::RectI(-1e9, -1e9, 1e9, 1e9));
+    auto width = canvas_.GetWidth();
+    auto height = canvas_.GetHeight();
+    drRegion.SetRect(Drawing::RectI(0, 0, width, height));
     target.SetPath(path, drRegion);
 
     for (size_t i = regions_.size(); i > 0; i--) {

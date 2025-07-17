@@ -242,7 +242,7 @@ HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_DumpAnimationI
     animation.property_ = prop;
     std::string out2;
     animation.DumpAnimationInfo(out2);
-    EXPECT_NE(out2, "Type:RSRenderPropertyAnimation, ModifierType: INVALID");
+    EXPECT_EQ(out2, "Type:RSRenderPropertyAnimation, ModifierType: INVALID");
 }
 } // namespace Rosen
 } // namespace OHOS

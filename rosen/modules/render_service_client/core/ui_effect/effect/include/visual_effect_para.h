@@ -15,18 +15,41 @@
 #ifndef UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
 #define UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
 
+#include <memory>
+#include <functional>
+
+#include <parcel.h>
+
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
-class VisualEffectPara {
+class RSC_EXPORT VisualEffectPara {
 public:
     enum ParaType {
         NONE,
         BACKGROUND_COLOR_EFFECT,
         BORDER_LIGHT_EFFECT,
+        // The value in the OpenHarmony project should be less than this value.
+        HDS_EFFECT_BEGIN = 2048,
     };
 
-    VisualEffectPara()  = default;
+    static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
+    using UnmarshallingFunc = std::function<bool (Parcel&, std::shared_ptr<VisualEffectPara>&)>;
+
+    VisualEffectPara() = default;
     virtual ~VisualEffectPara() = default;
+
+    virtual bool Marshalling(Parcel& parcel) const;
+
+    static bool RegisterUnmarshallingCallback(uint16_t type, UnmarshallingFunc func);
+
+    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<VisualEffectPara>& val);
+
+    virtual std::shared_ptr<VisualEffectPara> Clone() const;
+
+    static bool IsWhitelistPara(uint16_t type);
+
     ParaType GetParaType()
     {
         return type_;

@@ -39,13 +39,15 @@ public:
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
 #endif
+    void DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override;
 private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
 #endif
     void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
         BufferDrawParam& params);
-    void DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer);
+    void DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
+        const ScreenInfo& screenInfo);
 };
 } // namespace Rosen
 } // namespace OHOS

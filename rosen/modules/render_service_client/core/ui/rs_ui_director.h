@@ -46,10 +46,8 @@ class RSTransactionData;
 class RSUIContext;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-#ifdef RS_ENABLE_VK
 using CommitTransactionCallback =
     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
-#endif
 
 /**
  * @class RSUIDirector
@@ -293,6 +291,35 @@ public:
      */
     void SetRSRootNode(std::shared_ptr<RSRootNode> rootNode);
 
+    /**
+     * @brief Identify typical resident processes of the system, such as FSR, SCB, inputMethod.
+     *
+     * @param isTypicalResidentProcess means whether the relevant services are disabled.
+     */
+    static void SetTypicalResidentProcess(bool isTypicalResidentProcess = false);
+
+    /**
+     * @brief Checks whether hybrid render is enabled.
+     *
+     * @return true if hybrid render is enabled, false otherwise.
+     */
+    static bool IsHybridRenderEnabled();
+
+    /**
+     * @brief Checks whether hybrid render is enabled on componentEnableSwitch item.
+     *
+     * @param bitSeq ComponentEnableSwitch value .
+     * @return true if hybrid render is enabled, false otherwise.
+     */
+    static bool GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
+
+    /**
+     * @brief Gets the textBlob length count that is supported when hybrid render is enabled.
+     *
+     * @return the textBlob length count that is supported.
+     */
+    static uint32_t GetHybridRenderTextBlobLenCount();
+
 private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
@@ -306,11 +333,10 @@ private:
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(
         const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
+    static void SetTypicalResidentProcessOnce(bool isResidentProcess);
 
-#ifdef RS_ENABLE_VK
     void InitHybridRender();
     void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
-#endif
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;

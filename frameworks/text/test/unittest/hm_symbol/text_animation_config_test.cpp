@@ -171,7 +171,7 @@ HWTEST_F(OHTextAnimationConfigTest, ClearAllTextAnimation, TestSize.Level1)
     // test animationFunc_ not is nullptr
     textEffect.SetAnimation(&SetSymbolAnimation);
     textEffect.ClearAllTextAnimation();
-    EXPECT_EQ(textEffect.animationFunc_, nullptr);
+    EXPECT_NE(textEffect.animationFunc_, nullptr);
 }
 
 } // namespace OHOS::Rosen

@@ -392,6 +392,37 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters005, Function | MediumTest| Level1)
     EXPECT_EQ(result, GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 }
+
+/**
+ * Function: SetLayerBuffer001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetLayerBuffer()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetLayerBuffer, Function | MediumTest| Level1)
+{
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    LayerInfoPtr prevLayerInfo = HdiLayerInfo::CreateHdiLayerInfo();
+    LayerInfoPtr layerInfo = HdiLayerInfo::CreateHdiLayerInfo();
+    sptr<SurfaceBuffer> newBuffer = new SurfaceBufferImpl();
+    sptr<SyncFence> newFence = new SyncFence(2);
+    prevLayerInfo->SetBuffer(newBuffer, newFence);
+    layerInfo->SetBuffer(newBuffer, newFence);
+    hdiLayer->prevLayerInfo_ = prevLayerInfo;
+    hdiLayer->layerInfo_ = layerInfo;
+    hdiLayer->SetHdiDeviceMock(hdiDeviceMock_);
+    hdiLayer->doLayerInfoCompare_ = true;
+
+    hdiLayer->bufferCleared_ = true;
+    hdiLayer->SetLayerBuffer();
+    EXPECT_FALSE(hdiLayer->bufferCleared_);
+
+    hdiLayer->bufferCleared_ = false;
+    auto res = hdiLayer->SetLayerBuffer();
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

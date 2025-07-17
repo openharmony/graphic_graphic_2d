@@ -39,6 +39,8 @@ struct ScreenInfo {
     uint32_t height = 0;
     uint32_t phyWidth = 0; // physical screen resolution
     uint32_t phyHeight = 0;
+    int32_t offsetX = 0;
+    int32_t offsetY = 0;
     bool isSamplingOn = false;
     int samplingDistance = 1;
     float samplingTranslateX = 0.f;

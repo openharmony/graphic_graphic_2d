@@ -154,7 +154,6 @@ public:
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
-        std::unique_ptr<Media::PixelMap> pixelMap = nullptr,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
@@ -175,9 +174,6 @@ public:
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
 
     bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
-
-    bool WriteClientSurfacePixelMap(const std::unique_ptr<Media::PixelMap>& pixelMap,
-        bool isUsedClientPixelMap, MessageParcel& data);
         
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
@@ -218,6 +214,8 @@ public:
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
+    int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) override;
+
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
 
     ErrCode SetGlobalDarkColorMode(bool isDark) override;
@@ -236,6 +234,8 @@ public:
     ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) override;
 
     ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) override;
+
+    ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
     ErrCode GetScreenSupportedColorSpaces(
         ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) override;
@@ -260,6 +260,10 @@ public:
         ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate, int32_t& retVal) override;
 
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
+
+    void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY) override;
+
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
@@ -375,14 +379,17 @@ public:
 
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void RegisterTransactionDataCallback(int32_t pid,
+    void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     ErrCode NotifyScreenSwitched() override;
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
@@ -393,6 +400,14 @@ public:
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
+
+    RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+        const std::string& fileName, int32_t flags, int& outFd) override;
+    RetCodeHrpService ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+        uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
+    bool ProfilerIsSecureScreen() override;
+
+    void ClearUifirstCache(NodeId id) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -406,6 +421,8 @@ private:
     int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
+    
+    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 

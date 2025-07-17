@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
-#define ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTRS_FILTER_H
+#define ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTRS_FILTER_H
 
 #include <memory>
 #include <stdint.h>
@@ -58,6 +58,7 @@ public:
         bool disableSystemAdaptation = true);
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
+    virtual void SetDisplayHeadroom(float headroom) {};
 
     enum FilterType {
         NONE = 0,
@@ -130,7 +131,12 @@ public:
         needSnapshotOutset_ = needSnapshotOutset;
     }
 
+    bool GetHpaeCallback() const {
+        return hasHpae_;
+    }
+
 protected:
+    bool hasHpae_ = false;
     FilterType type_;
     uint32_t hash_ = 0;
     bool needSnapshotOutset_ = true;
@@ -139,4 +145,4 @@ protected:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_ENGINE_CORE_RENDER_RS_FILTER_H
+#endif // ROSEN_RENDER_SERVICE_BASE_RENDER_UI_EFFECTRS_FILTER_H

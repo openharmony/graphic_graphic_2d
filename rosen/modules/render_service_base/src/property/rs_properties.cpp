@@ -30,7 +30,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -156,6 +156,8 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::FG_BRIGHTNESS_NEGCOEFF,               [](RSProperties* prop) {
                                                                 prop->SetFgBrightnessNegCoeff({}); }},
     { RSModifierType::FG_BRIGHTNESS_FRACTION,               [](RSProperties* prop) { prop->SetFgBrightnessFract({}); }},
+    { RSModifierType::FG_BRIGHTNESS_HDR,                    [](RSProperties* prop) {
+                                                                prop->SetFgBrightnessHdr(false); }},
     { RSModifierType::BG_BRIGHTNESS_RATES,                  [](RSProperties* prop) { prop->SetBgBrightnessRates({}); }},
     { RSModifierType::BG_BRIGHTNESS_SATURATION,             [](RSProperties* prop) {
                                                                 prop->SetBgBrightnessSaturation(0.0); }},
@@ -302,6 +304,8 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
                                                                 prop->SetForegroundNGFilter({}); }},
     { RSModifierType::BACKGROUND_NG_FILTER,                 [](RSProperties* prop) {
                                                                 prop->SetBackgroundNGFilter({}); }},
+    { RSModifierType::SHADOW_BLENDER_PARAMS,                [](RSProperties* prop) {
+                                                                prop->SetShadowBlenderParams({}); }},
 };
 
 } // namespace
@@ -575,7 +579,12 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     lastRect_ = rect;
     bgShaderNeedUpdate_ = true;
     if (foregroundRenderFilter_) {
-        GenerateContentLightFilter();
+        for (auto type : foregroundRenderFilter_->GetUIFilterTypes()) {
+            if (type == RSUIFilterType::CONTENT_LIGHT) {
+                filterNeedUpdate_ = true;
+                break;
+            }
+        }
     }
     return dirtyFlag;
 }
@@ -1768,6 +1777,23 @@ float RSProperties::GetFgBrightnessFract() const
     return fgBrightnessParams_ ? fgBrightnessParams_->fraction_ : 1.0f;
 }
 
+void RSProperties::SetFgBrightnessHdr(const bool enableHdr)
+{
+    if (!fgBrightnessParams_.has_value()) {
+        fgBrightnessParams_ = std::make_optional<RSDynamicBrightnessPara>();
+    }
+    fgBrightnessParams_->enableHdr_ = enableHdr;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+bool RSProperties::GetFgBrightnessHdr() const
+{
+    return fgBrightnessParams_ ? fgBrightnessParams_->enableHdr_ : false;
+}
+
 void RSProperties::SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params)
 {
     fgBrightnessParams_ = params;
@@ -1906,7 +1932,8 @@ std::string RSProperties::GetFgBrightnessDescription() const
         ", rate: " + std::to_string(fgBrightnessParams_->rates_.z_) +
         ", lightUpDegree: " + std::to_string(fgBrightnessParams_->rates_.w_) +
         ", saturation: " + std::to_string(fgBrightnessParams_->saturation_) +
-        ", fgBrightnessFract: " + std::to_string(fgBrightnessParams_->fraction_);
+        ", fgBrightnessFract: " + std::to_string(fgBrightnessParams_->fraction_) +
+        ", fgBrightnessHdr: " + std::to_string(fgBrightnessParams_->enableHdr_);
     return description;
 }
 
@@ -1921,7 +1948,42 @@ std::string RSProperties::GetBgBrightnessDescription() const
         ", rate: " + std::to_string(bgBrightnessParams_->rates_.z_) +
         ", lightUpDegree: " + std::to_string(bgBrightnessParams_->rates_.w_) +
         ", saturation: " + std::to_string(bgBrightnessParams_->saturation_) +
-        ", fgBrightnessFract: " + std::to_string(bgBrightnessParams_->fraction_);
+        ", fgBrightnessFract: " + std::to_string(bgBrightnessParams_->fraction_) +
+        ", fgBrightnessHdr: " + std::to_string(fgBrightnessParams_->enableHdr_);
+    return description;
+}
+
+void RSProperties::SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params)
+{
+    shadowBlenderParams_ = params;
+    if (shadowBlenderParams_.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<RSShadowBlenderPara> RSProperties::GetShadowBlenderParams() const
+{
+    return shadowBlenderParams_;
+}
+
+bool RSProperties::IsShadowBlenderValid() const
+{
+    return shadowBlenderParams_.has_value() && shadowBlenderParams_->IsValid();
+}
+
+std::string RSProperties::GetShadowBlenderDescription() const
+{
+    if (!shadowBlenderParams_.has_value()) {
+        return "shadowBlenderParams_ is nullopt";
+    }
+    std::string description =
+        "ShadowBlender, cubic: " + std::to_string(shadowBlenderParams_->cubic_) +
+        ", quadratic: " + std::to_string(shadowBlenderParams_->quadratic_) +
+        ", linear: " + std::to_string(shadowBlenderParams_->linear_) +
+        ", constant: " + std::to_string(shadowBlenderParams_->constant_);
     return description;
 }
 
@@ -2069,6 +2131,9 @@ void RSProperties::SetShadowColor(Color color)
         shadow_ = std::make_optional<RSShadow>();
     }
     shadow_->SetColor(color);
+    if (GetShadowMask() == SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR) {
+        filterNeedUpdate_ = true;
+    }
     SetDirty();
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
@@ -2792,7 +2857,7 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         return;
     }
     hdrBrightnessFactor_ = factor;
-    auto node = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(backref_.lock());
+    auto node = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(backref_.lock());
     if (node == nullptr) {
         return;
     }
@@ -3887,6 +3952,22 @@ void RSProperties::GenerateBezierWarpFilter()
     }
 }
 
+void RSProperties::ComposeNGRenderFilter(
+    std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter)
+{
+    std::shared_ptr<RSDrawingFilter> originDrawingFilter = nullptr;
+    if (!originFilter) {
+        originDrawingFilter = std::make_shared<RSDrawingFilter>();
+    } else {
+        originDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(originFilter);
+    }
+    originDrawingFilter->SetNGRenderFilter(filter);
+    if (filter) {
+        originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    }
+    originFilter = originDrawingFilter;
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -3907,6 +3988,10 @@ void RSProperties::GenerateBackgroundFilter()
 
     if (IsWaterRippleValid()) {
         GenerateWaterRippleFilter();
+    }
+
+    if (bgNGRenderFilter_) {
+        ComposeNGRenderFilter(backgroundFilter_, bgNGRenderFilter_);
     }
 
     if (alwaysSnapshot_ && backgroundFilter_ == nullptr) {
@@ -5179,8 +5264,9 @@ void RSProperties::UpdateForegroundFilter()
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
     } else if (IsHDRUIBrightnessValid()) {
         CreateHDRUIBrightnessFilter();
-    } else if (foregroundRenderFilter_) {
+    } else if (foregroundRenderFilter_ || fgNGRenderFilter_) {
         GenerateForegroundRenderFilter();
+        ComposeNGRenderFilter(foregroundFilter_, fgNGRenderFilter_);
     }
 }
 
@@ -5197,8 +5283,10 @@ void RSProperties::UpdateBackgroundShader()
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
         if (bgShader->GetShaderType() == RSShader::ShaderType::BORDER_LIGHT) {
             Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+            float cornerRadius = GetCornerRadius().x_;
             auto RSBLShader = std::static_pointer_cast<RSBorderLightShader>(bgShader);
             RSBLShader->SetRotationAngle(rotationAngle);
+            RSBLShader->SetCornerRadius(cornerRadius);
         }
     }
 }
@@ -5344,5 +5432,32 @@ void RSProperties::ResetBorder(bool isOutline)
     SetDirty();
     contentDirty_ = true;
 }
+
+void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    bgNGRenderShader_ = renderShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetBackgroundNGShader() const
+{
+    return bgNGRenderShader_;
+}
+
+void RSProperties::SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    fgRenderShader_ = renderShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
+{
+    return fgRenderShader_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -15,7 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -126,25 +127,6 @@ HWTEST_F(RSRenderNodeMapTest, RegisterRenderNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterDisplayRenderNode
- * @tc.desc: test results of RegisterDisplayRenderNode
- * @tc.type:FUNC
- * @tc.require: issueI9H4AD
- */
-HWTEST_F(RSRenderNodeMapTest, RegisterDisplayRenderNode, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode* rsDisplayRenderNode = new RSDisplayRenderNode(id, config);
-    std::shared_ptr<RSDisplayRenderNode> node(rsDisplayRenderNode);
-    RSRenderNodeMap rsRenderNodeMap;
-    auto result = rsRenderNodeMap.RegisterDisplayRenderNode(node);
-    EXPECT_TRUE(result);
-    result = rsRenderNodeMap.RegisterDisplayRenderNode(node);
-    EXPECT_FALSE(result);
-}
-
-/**
  * @tc.name: UnregisterRenderNodeTest
  * @tc.desc: test results of UnregisterRenderNode
  * @tc.type:FUNC
@@ -191,6 +173,7 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 {
     NodeId id = 0;
+    ScreenId screenId = 1;
     pid_t pid = ExtractPid(id);
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
@@ -198,9 +181,8 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 
     rsRenderNodeMap.renderNodeMap_[pid][id] = node;
     rsRenderNodeMap.FilterNodeByPid(1);
-    RSDisplayNodeConfig config;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsRenderNodeMap.displayNodeMap_.emplace(id, rsDisplayRenderNode);
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsRenderNodeMap.screenNodeMap_.emplace(id, screenRenderNode);
     rsRenderNodeMap.FilterNodeByPid(1);
     rsRenderNodeMap.renderNodeMap_.clear();
     rsRenderNodeMap.FilterNodeByPid(1);
@@ -216,9 +198,8 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPidImmediate, Level1)
 {
     auto renderNodeMap = RSRenderNodeMap();
     auto displayId = 1;
-    RSDisplayNodeConfig config;
-    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
-    renderNodeMap.RegisterDisplayRenderNode(displayRenderNode);
+    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(displayId, 0, context);
+    renderNodeMap.RegisterRenderNode(displayRenderNode);
 
     constexpr uint32_t bits = 32u;
     constexpr uint64_t nodeId = 1;

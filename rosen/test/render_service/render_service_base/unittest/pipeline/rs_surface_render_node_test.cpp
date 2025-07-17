@@ -816,14 +816,14 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetHwcCrossNodeTest, TestSize.Level1)
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     node->SetHwcCrossNode(true);
-    ASSERT_EQ(node->IsDRMCrossNode(), true);
+    ASSERT_EQ(node->IsHwcCrossNode(), true);
     node->SetHwcCrossNode(false);
-    ASSERT_FALSE(node->IsDRMCrossNode());
+    ASSERT_FALSE(node->IsHwcCrossNode());
 }
 
 /**
  * @tc.name: AncestorDisplayNodeTest
- * @tc.desc: SetAncestorDisplayNode and GetAncestorDisplayNode
+ * @tc.desc: SetAncestorScreenNode and GetAncestorScreenNode
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -831,8 +831,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, AncestorDisplayNodeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto displayNode = std::make_shared<RSBaseRenderNode>(0, context);
-    node->SetAncestorDisplayNode(displayNode);
-    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
+    node->SetAncestorScreenNode(displayNode);
+    ASSERT_EQ(node->GetAncestorScreenNode().lock(), displayNode);
 }
 
 /**
@@ -1542,6 +1542,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextAlphaTest, TestSize.Level1)
     testNode->SetContextAlpha(0.5f, true);
     testNode->SetContextAlpha(0.5f, false);
     EXPECT_EQ(testNode->contextAlpha_, 0.5f);
+}
+
+/**
+ * @tc.name: HDRBrightnessFactorTest
+ * @tc.desc: test results of SetHDRBrightnessFactor, GetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, HDRBrightnessFactorTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->SetHDRBrightnessFactor(1.0f);
+    EXPECT_EQ(testNode->GetHDRBrightnessFactor(), 1.0f);
+    testNode->SetHDRBrightnessFactor(0.5f);
+    EXPECT_EQ(testNode->GetHDRBrightnessFactor(), 0.5f);
+    testNode->SetHDRBrightnessFactor(0.0f);
+    EXPECT_EQ(testNode->GetHDRBrightnessFactor(), 0.0f);
 }
 
 /**
@@ -2351,43 +2368,13 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     EXPECT_TRUE(childNode->GetHDRPresent());
     childNode->ReduceHDRNum(HDRComponentType::UICOMPONENT);
     EXPECT_FALSE(childNode->GetHDRPresent());
-}
 
-/**
- * @tc.name: GetIsWideColorGamut001
- * @tc.desc: GetIsWideColorGamut test
- * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
- */
-HWTEST_F(RSSurfaceRenderNodeTest, GetIsWideColorGamut001, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(surfaceNode, nullptr);
-
-    surfaceNode->wideColorGamutNum_ = 0;
-    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
-    surfaceNode->wideColorGamutNum_++;
-    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
-}
-
-/**
- * @tc.name: IncreaseWideColorGamutNum001
- * @tc.desc: IncreaseWideColorGamutNum and ReduceWideColorGamutNum test
- * @tc.type: FUNC
- * @tc.require: issueIB6Y6O
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IncreaseWideColorGamutNum001, TestSize.Level1)
-{
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->wideColorGamutNum_ = 0;
-    EXPECT_TRUE(surfaceNode->GetContext().lock() == nullptr);
-
-    surfaceNode->firstLevelNodeId_ = id + 1;
-    surfaceNode->IncreaseWideColorGamutNum();
-    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
-    surfaceNode->ReduceWideColorGamutNum();
-    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
+    childNode->IncreaseHDRNum(HDRComponentType::EFFECT);
+    EXPECT_TRUE(childNode->IsHdrEffectColorGamut());
+    childNode->ReduceHDRNum(HDRComponentType::EFFECT);
+    EXPECT_FALSE(childNode->IsHdrEffectColorGamut());
+    childNode->ReduceHDRNum(HDRComponentType::EFFECT); // different branch if call again
+    EXPECT_FALSE(childNode->IsHdrEffectColorGamut());
 }
 
 /**
@@ -2726,6 +2713,37 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
 }
 
 /**
+ * @tc.name: UpdateVirtualScreenWhiteListInfo
+ * @tc.desc: test UpdateVirtualScreenWhiteListInfo.
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    std::shared_ptr<RSSurfaceRenderNode> parent = nullptr;
+    node->SetParent(parent);
+    node->SetLeashPersistentId(id + 1);
+    ASSERT_EQ(node->parent_.lock(), nullptr);
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> allWhiteListInfo;
+    ScreenId screenId = 1;
+    allWhiteListInfo[screenId] = {node->GetId()};
+    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+    parent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    node->SetParent(parent);
+    ASSERT_NE(node->parent_.lock(), nullptr);
+    allWhiteListInfo[screenId] = {node->GetLeashPersistentId()};
+    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->RSRenderNode::UpdateVirtualScreenWhiteListInfo();
+
+    parent->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    parent->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+}
+
+/**
  * @tc.name: GetSourceDisplayRenderNodeId
  * @tc.desc: test Set/GetSourceDisplayRenderNodeId.
  * @tc.type: FUNC
@@ -2738,6 +2756,24 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     NodeId sourceDisplayRenderNodeId = 1;
     testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
+}
+
+/**
+ * @tc.name: SetTopLayerZOrderTest
+ * @tc.desc: Test SetTopLayerZOrder
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetTopLayerZOrderTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->isLayerTop_ = false;
+    node->SetTopLayerZOrder(1);
+    EXPECT_NE(node->GetTopLayerZOrder(), 1);
+
+    node->isLayerTop_ = true;
+    node->SetTopLayerZOrder(1);
+    EXPECT_EQ(node->GetTopLayerZOrder(), 1);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -63,12 +63,9 @@ private:
 
     std::shared_ptr<RSShaderMask> mask_;
     float opacity_;
-    float redOffsetX_;
-    float redOffsetY_;
-    float greenOffsetX_;
-    float greenOffsetY_;
-    float blueOffsetX_;
-    float blueOffsetY_;
+    Vector2f redOffset_;
+    Vector2f greenOffset_;
+    Vector2f blueOffset_;
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
 };
 } // namespace Rosen

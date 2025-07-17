@@ -510,7 +510,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
-        testNode->SetIsWideColorGamut(true);
+        testNode->SetColorGamut(3); // 3 is DISPLAY_P3
         testNode->SetBorderStyle(0, 0, 0, 0);
         testNode->SetBorderWidth(5, 5, 5, 5);
         testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
@@ -531,7 +531,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
-        testNode->SetIsWideColorGamut(false);
+        testNode->SetColorGamut(4); // 4 is SRGB
         testNode->SetBorderStyle(0, 0, 0, 0);
         testNode->SetBorderWidth(5, 5, 5, 5);
         testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
@@ -552,7 +552,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
-        testNode->SetIsWideColorGamut(true);
+        testNode->SetColorGamut(3); // 3 is DISPLAY_P3
         testNode->SetBorderStyle(0, 0, 0, 0);
         testNode->SetBorderWidth(5, 5, 5, 5);
         testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
@@ -573,7 +573,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
-        testNode->SetIsWideColorGamut(false);
+        testNode->SetColorGamut(4); // 4 is SRGB
         testNode->SetBorderStyle(0, 0, 0, 0);
         testNode->SetBorderWidth(5, 5, 5, 5);
         testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));

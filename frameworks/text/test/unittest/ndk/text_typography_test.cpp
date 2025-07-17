@@ -585,8 +585,8 @@ HWTEST_F(NdkTypographyTest, TypographyBreakStrategyTest003, TestSize.Level0)
     OH_Drawing_TypographyHandlerAddText(fHandler, DEFAULT_LONG_TEXT);
     CreateTypography();
     OH_Drawing_TypographyLayout(fTypography, 200);
-    EXPECT_EQ(OH_Drawing_TypographyGetHeight(fTypography), 1593);
-    EXPECT_EQ(::round(OH_Drawing_TypographyGetLongestLineWithIndent(fTypography)), 213);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(fTypography), 1180);
+    EXPECT_EQ(::round(OH_Drawing_TypographyGetLongestLineWithIndent(fTypography)), 200);
 }
 
 /*
@@ -4533,6 +4533,48 @@ HWTEST_F(NdkTypographyTest, TypographyGetLineTextRangeTest002, TestSize.Level0)
 }
 
 /*
+ * @tc.name: ParagraphTestGlyphPositionAtCoordinate001
+ * @tc.desc: test for GlyphPositionAtCoordinate with dash
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, ParagraphTestGlyphPositionAtCoordinateWithCluster001, TestSize.Level0)
+{
+    std::string text3 = "————————";
+
+    double maxWidth3 = 1000.0;
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
+
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 30);
+    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+
+    OH_Drawing_TypographyHandlerAddText(handler, text3.c_str());
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, maxWidth3);
+
+    float xCoords[] = { 0, 20, 30, 45, 60, 75, 100 };
+    int expectedPositions[] = { 0, 1, 1, 2, 2, 3, 3 };
+    int expectedAffinities[] = { 1, 0, 1, 0, 1, 0, 1 };
+    OH_Drawing_PositionAndAffinity* results[7];
+    for (int i = 0; i < 7; i++) {
+        results[i] = OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, xCoords[i], 0);
+        EXPECT_EQ(OH_Drawing_GetPositionFromPositionAndAffinity(results[i]), expectedPositions[i]);
+        EXPECT_EQ(OH_Drawing_GetAffinityFromPositionAndAffinity(results[i]), expectedAffinities[i]);
+    }
+
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    for (int i = 0; i < 7; i++) {
+        free(results[i]);
+    }
+}
+
+/*
  * @tc.name: TypographyBadgeTypeTest001
  * @tc.desc: Test for text's super script
  * @tc.type: FUNC
@@ -4765,5 +4807,72 @@ HWTEST_F(NdkTypographyTest, TypographyVerticalTest002, TestSize.Level0)
     EXPECT_FALSE(CompareRunBoundsBetweenTwoParagraphs(typographyThree, bottomAlignTypography));
     EXPECT_FALSE(
         ComparePlaceholderRectsBetweenTwoParagraphs(typographyWithPlaceholder, followTypographyWithPlaceholder));
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceExceedMaxLinesTest
+ * @tc.desc: Test for balance strategy exceed maxLines interface when layout line count equal to max line count
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyBalanceStrategy001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 1);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 16
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 16);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "测试: Balance exceed maxLines test";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    EXPECT_FALSE(OH_Drawing_TypographyDidExceedMaxLines(typography));
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceMaxLinesTest
+ * @tc.desc: Test for balance strategy set maxLines limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyBalanceStrategy002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    // Test for maxLines limit
+    size_t maxLines{3};
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, maxLines);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 16
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 16);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "测试: Balance exceed maxLines test";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 50
+    OH_Drawing_TypographyLayout(typography, 50);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), maxLines);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
 }
 } // namespace OHOS

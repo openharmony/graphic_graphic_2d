@@ -50,7 +50,7 @@ void HgmCommandTest::SetUp()
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     hgmCore.InitXmlConfig();
@@ -111,7 +111,7 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level0)
 {
     auto dynamicSettingMap = visitor_->GetAceSceneDynamicSettingMap();
     EXPECT_NE(dynamicSettingMap.find("aaa"), dynamicSettingMap.end());
@@ -130,7 +130,7 @@ HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, GetRefreshRateModeName, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, GetRefreshRateModeName, Function | SmallTest | Level0)
 {
     std::vector<std::pair<int32_t, int32_t>> testCase = {
         // <refreshRateModeId, fps>
@@ -150,18 +150,18 @@ HWTEST_F(HgmCommandTest, GetRefreshRateModeName, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, XmlModeId2SettingModeId, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, XmlModeId2SettingModeId, Function | SmallTest | Level0)
 {
-    const std::vector<std::pair<std::string, int32_t>> partId = {
+    const std::vector<std::pair<std::string, std::optional<int32_t>>> TestCase = {
         // <xmlModeId, settingModeId>
         { "-1", 0 },
-        { "0", 0 },
+        { "0", std::optional<int32_t>() },
         { "1", 1 },
         { "2", 2 },
-        { "3", 0 },
-        { "0", 0 },
+        { "3", std::optional<int32_t>() },
+        { "0", std::optional<int32_t>() },
     };
-    for (const auto& [xmlModeId, settingModeId] : partId) {
+    for (const auto& [xmlModeId, settingModeId] : TestCase) {
         EXPECT_EQ(visitor_->XmlModeId2SettingModeId(xmlModeId), settingModeId);
     }
 }
@@ -172,7 +172,7 @@ HWTEST_F(HgmCommandTest, XmlModeId2SettingModeId, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, SetSettingModeId, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, SetSettingModeId, Function | SmallTest | Level0)
 {
     visitor_->SetSettingModeId(0);
     EXPECT_EQ(visitor_->settingModeId_, 0);
@@ -182,11 +182,13 @@ HWTEST_F(HgmCommandTest, SetSettingModeId, Function | SmallTest | Level1)
     EXPECT_EQ(visitor_->settingModeId_, 1);
 
     visitor_->SetXmlModeId("0");
-    EXPECT_EQ(visitor_->xmlModeId_, "0");
+    EXPECT_EQ(visitor_->xmlModeId_, "1");
     visitor_->SetXmlModeId("0");
-    EXPECT_EQ(visitor_->xmlModeId_, "0");
+    EXPECT_EQ(visitor_->xmlModeId_, "1");
     visitor_->SetXmlModeId("1");
     EXPECT_EQ(visitor_->xmlModeId_, "1");
+    visitor_->SetXmlModeId("-1");
+    EXPECT_EQ(visitor_->xmlModeId_, "-1");
 }
 
 /**
@@ -195,7 +197,7 @@ HWTEST_F(HgmCommandTest, SetSettingModeId, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level0)
 {
     visitor_->screenConfigType_ = "unknown";
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());
@@ -214,7 +216,7 @@ HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmCommandTest, GetAppStrategyConfig, Function | SmallTest | Level1)
+HWTEST_F(HgmCommandTest, GetAppStrategyConfig, Function | SmallTest | Level0)
 {
     int32_t appType = 111;
     int32_t appType1 = 222;
@@ -226,6 +228,39 @@ HWTEST_F(HgmCommandTest, GetAppStrategyConfig, Function | SmallTest | Level1)
     EXPECT_EQ(visitor_->GetAppStrategyConfig("bbb", appType, settingStrategy), EXEC_SUCCESS);
     EXPECT_EQ(visitor_->GetAppStrategyConfig("bbb", appType1, settingStrategy), EXEC_SUCCESS);
     EXPECT_EQ(visitor_->GetAppStrategyConfig("bbb", appType2, settingStrategy), HGM_ERROR);
+}
+
+/**
+ * @tc.name: SetRefreshRateMode
+ * @tc.desc: Verify the result of SetRefreshRateMode function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, SetRefreshRateMode, Function | SmallTest | Level0)
+{
+    const std::vector<std::tuple<int32_t, int32_t, std::string>> testCase = {
+        // -1:dynamic 1:standard 2:high
+        // <input, settingModeId, xmlModeId>
+        { -1, 0, "-1" },
+        { 0, 0, "-1" },
+        { 1, 1, "1" },
+        { 2, 2, "2" },
+        { -1, 0, "-1" },
+        { 2, 2, "2" },
+        { 0, 0, "-1" },
+        { 3, 0, "-1" },
+    };
+
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    auto configVisitorImpl = static_cast<PolicyConfigVisitorImpl*>(hgmCore.mPolicyConfigVisitor_.get());
+    ASSERT_NE(configVisitorImpl, nullptr);
+
+    for (const auto& [input, settingModeId, xmlModeId] : testCase) {
+        hgmCore.SetRefreshRateMode(input);
+        EXPECT_EQ(configVisitorImpl->settingModeId_, settingModeId);
+        EXPECT_EQ(configVisitorImpl->xmlModeId_, xmlModeId);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

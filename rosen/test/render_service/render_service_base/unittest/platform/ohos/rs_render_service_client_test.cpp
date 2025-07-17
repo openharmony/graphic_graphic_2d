@@ -92,6 +92,8 @@ public:
     void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
     {
     }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 };
 
 /**
@@ -261,10 +263,10 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback04, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::function<void()> callback = []() {};
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = []() {};
-    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
+    rsClient->transactionDataCallbacks_[std::make_pair(token, timeStamp)] = []() {};
+    bool ret = rsClient->RegisterTransactionDataCallback(token, timeStamp, callback);
     EXPECT_FALSE(ret);
 }
 
@@ -276,15 +278,16 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback04, TestSize.Level1)
  */
 HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase01, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     bool callbackInvoked = false;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+    rsClient->transactionDataCallbacks_[std::make_pair(token, timeStamp)] = [&callbackInvoked]() {
         callbackInvoked = true;
     };
-    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    rsClient->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     EXPECT_TRUE(callbackInvoked);
-    EXPECT_EQ(rsClient->transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)), rsClient->transactionDataCallbacks_.end());
+    EXPECT_EQ(rsClient->transactionDataCallbacks_.find(std::make_pair(token, timeStamp)),
+        rsClient->transactionDataCallbacks_.end());
 }
 
 /**
@@ -295,15 +298,15 @@ HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase01, TestSize.Level1
  */
 HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase02, TestSize.Level1)
 {
-    int32_t pid = 123;
+    uint64_t token = 123;
     uint64_t timeStamp = 456;
     bool callbackInvoked = false;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+    rsClient->transactionDataCallbacks_[std::make_pair(token, timeStamp)] = [&callbackInvoked]() {
         callbackInvoked = true;
     };
     rsClient->transactionDataCallbacks_.clear();
 
-    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    rsClient->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     EXPECT_FALSE(callbackInvoked);
     EXPECT_TRUE(rsClient->transactionDataCallbacks_.empty());
 }
@@ -1078,6 +1081,33 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenCanvasRotation001, TestSize.Level1)
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
 }
 
+/**
+ * @tc.name: SetVirtualScreenAutoRotationTest
+ * @tc.desc: SetVirtualScreenAutoRotation Test
+ * @tc.type:FUNC
+ * @tc.require: issueICGA54
+ */
+HWTEST_F(RSClientTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 1344;
+    uint32_t defaultHeight = 2772;
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
+        "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::SUCCESS);
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, false), StatusCode::SUCCESS);
+
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::SUCCESS);
+}
+
 /*
  * @tc.name: SetVirtualMirrorScreenScaleMode Test
  * @tc.desc: SetVirtualMirrorScreenScaleMode Test
@@ -1231,6 +1261,80 @@ HWTEST_F(RSClientTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
     auto enabled = false;
     auto res = rsClient->GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: GetPidGpuMemoryInMBTest
+ * @tc.desc: GetPidGpuMemoryInMBTest
+ * @tc.type:FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    int32_t pid = 1001;
+    float gpuMemInMB = 0.0f;
+    auto res = rsClient->GetPidGpuMemoryInMB(pid, gpuMemInMB);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+* @tc.name: ProfilerIsSecureScreenTest
+* @tc.desc: ProfilerIsSecureScreenTest
+* @tc.type: FUNC
+* @tc.require: issuesIC98WU
+*/
+HWTEST_F(RSClientTest, ProfilerIsSecureScreenTest, TestSize.Level1)
+{
+    auto res = rsClient->ProfilerIsSecureScreen();
+    usleep(SET_OPERATION_SLEEP_US);
+    ASSERT_NE(rsClient, nullptr);
+    ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ProfilerServiceOpenFileTest
+ * @tc.desc: ProfilerServiceOpenFileTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC98WU
+ */
+HWTEST_F(RSClientTest, ProfilerServiceOpenFileTest, TestSize.Level1)
+{
+    int32_t fd = 0;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_COMMON, "subdir", "subdir2"};
+
+    auto res = rsClient->ProfilerServiceOpenFile(dirInfo, "filename", 0, fd);
+    ASSERT_NE(rsClient, nullptr);
+    ASSERT_EQ(res, RET_HRP_SERVICE_ERR_UNSUPPORTED);
+}
+
+/**
+ * @tc.name: ProfilerServicePopulateFilesTest
+ * @tc.desc: ProfilerServicePopulateFilesTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC98WU
+ */
+HWTEST_F(RSClientTest, ProfilerServicePopulateFilesTest, TestSize.Level1)
+{
+    std::vector<HrpServiceFileInfo> outFiles;
+    HrpServiceDirInfo dirInfo{HrpServiceDir::HRP_SERVICE_DIR_COMMON, "subdir", "subdir2"};
+
+    auto res = rsClient->ProfilerServicePopulateFiles(dirInfo, 0, outFiles);
+    ASSERT_NE(rsClient, nullptr);
+    ASSERT_EQ(res, RET_HRP_SERVICE_ERR_UNSUPPORTED);
+}
+
+/**
+ * @tc.name: ClearUifirstCache Test
+ * @tc.desc: ClearUifirstCache
+ * @tc.type:FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSClientTest, ClearUifirstCacheTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    NodeId nodeId = 1;
+    rsClient->ClearUifirstCache(nodeId);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -106,10 +106,10 @@ void RSCanvasNodeCommandHelper::SetLinkedRootNodeId(RSContext& context, NodeId n
     }
 }
 
-void RSCanvasNodeCommandHelper::SetIsWideColorGamut(RSContext& context, NodeId nodeId, bool isWideColorGamut)
+void RSCanvasNodeCommandHelper::SetColorGamut(RSContext& context, NodeId nodeId, uint32_t colorGamut)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {
-        node->SetIsWideColorGamut(isWideColorGamut);
+        node->SetColorGamut(colorGamut);
     }
 }
 

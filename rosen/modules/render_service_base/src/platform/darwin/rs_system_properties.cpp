@@ -618,6 +618,11 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;
@@ -703,9 +708,9 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
     return false;
 }
 
-int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
-    return 0;
+    return false;
 }
 
 bool RSSystemProperties::ViewDrawNodeType()
@@ -745,6 +750,25 @@ bool RSSystemProperties::GetSubThreadControlFrameRate()
 int RSSystemProperties::GetSubThreadDropFrameInterval()
 {
     return 0;
+}
+
+bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTypicalResidentProcess()
+{
+    return false;
+}
+
+void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+}
+
+bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

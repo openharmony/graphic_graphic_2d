@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
+#ifndef RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
+#define RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 
 #include "feature/capture/rs_ui_capture.h"
 #include "recording/draw_cmd_list.h"
@@ -35,6 +35,8 @@
 namespace OHOS {
 namespace Rosen {
 class RSNGRenderFilterBase;
+class RSNGRenderShaderBase;
+class RSNGRenderMaskBase;
 class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
@@ -109,8 +111,11 @@ enum class RSPropertyType : uint8_t {
     DYNAMIC_BRIGHTNESS_PARA,
     RS_RENDER_FILTER,
     VECTOR_FLOAT,
+    VECTOR_VECTOR2F,
     RS_NG_RENDER_FILTER_BASE,
     RS_NG_RENDER_MASK_BASE,
+    RS_NG_RENDER_SHADER_BASE,
+    SHADOW_BLENDER_PARAMS,
 };
 
 enum class RSPropertyUnit : uint8_t {
@@ -136,15 +141,9 @@ public:
         return id_;
     }
 
-    // deprecated
-    void Attach(std::weak_ptr<RSRenderNode> node);
-
-    void Attach(std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
-    {
-        modifier_ = modifier;
-    }
-
-    void Detach(std::weak_ptr<RSRenderNode> node);
+    // Planning: move to protected
+    void Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier = {});
+    void Detach();
 
     // deprecated
     RSModifierType GetModifierType() const
@@ -174,7 +173,7 @@ protected:
 
     void OnChange() const;
 
-    virtual void OnAttach() {}
+    virtual void OnAttach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier) {}
     virtual void OnDetach() {}
     virtual void OnSetModifierType() {}
 
@@ -219,7 +218,8 @@ protected:
     }
 
     PropertyId id_;
-    // deprecated
+    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set, refactor this to
+    // remove the node_ member
     std::weak_ptr<RSRenderNode> node_;
     // deprecated
     RSModifierType modifierType_ { RSModifierType::INVALID };
@@ -342,7 +342,7 @@ protected:
     inline static const RSPropertyType type_ = RSPropertyType::INVALID;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
 
-    void OnAttach() override {}
+    void OnAttach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier) override {}
     void OnDetach() override {}
     void OnSetModifierType() override {}
 
@@ -581,6 +581,10 @@ template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Dump(std::string& out) const;
 
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -614,11 +618,36 @@ template<>
 RSB_EXPORT size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
 
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach();
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnDetach();
 template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
+    const std::shared_ptr<RSNGRenderFilterBase>& value, PropertyUpdateType type);
+template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType();
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnDetach();
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
+    const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type);
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType();
+
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnDetach();
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
+    const std::shared_ptr<RSNGRenderMaskBase>& value, PropertyUpdateType type);
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnSetModifierType();
 
 #if defined(_WIN32)
 #define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderProperty<T>
@@ -641,4 +670,4 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetMo
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
+#endif // RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H

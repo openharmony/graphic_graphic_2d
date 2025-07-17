@@ -332,6 +332,7 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
         ProcessOnRepeatFinish();
     }
     if (isFinished) {
+        RS_PROFILER_ANIMATION_DURATION_STOP(id_, time);
         ProcessFillModeOnFinish(fraction);
         ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
         return true;
@@ -341,6 +342,8 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
 
 void RSRenderAnimation::SetStartTime(int64_t time)
 {
+    RS_PROFILER_ANIMATION_DURATION_START(id_, time);
+
     time = RS_PROFILER_ANIME_SET_START_TIME(id_, time);
     animationFraction_.SetLastFrameTime(time);
     needUpdateStartTime_ = false;

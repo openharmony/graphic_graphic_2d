@@ -56,8 +56,11 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_DRAWING_MATRIX = 0x0117,
     UPDATE_MODIFIER_COMPLEX_SHADER_PARAM = 0X0118,
     UPDATE_MODIFIER_UI_FILTER_PTR = 0X0119,
-    UPDATE_MODIFIER_NG_FILTER_BASE_PTR = 0X0120,
-    UPDATE_MODIFIER_DRAW_CMD_LIST_NG = 0x0121,
+    UPDATE_MODIFIER_DRAW_CMD_LIST_NG = 0x0120,
+    UPDATE_MODIFIER_NG_FILTER_BASE_PTR = 0X0121,
+    UPDATE_MODIFIER_NG_SHADER_BASE_PTR = 0X0122,
+    UPDATE_MODIFIER_NG_MASK_BASE_PTR = 0X0123,
+
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -65,6 +68,7 @@ enum RSNodeCommandType : uint16_t {
     SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG = 0x0203,
     SET_UIFIRST_SWITCH = 0x0204,
     SET_ENABLE_HDR_EFFECT = 0x0205,
+    SET_NEED_USE_CMDLIST_DRAW_REGION = 0x0206,
 
     REGISTER_GEOMETRY_TRANSITION = 0x0300,
     UNREGISTER_GEOMETRY_TRANSITION = 0x0301,
@@ -147,9 +151,8 @@ public:
         }
     }
 
-    static void UpdateModifierNGDrawCmdList(RSContext& context, NodeId nodeId, ModifierId modifierId,
-        ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType,
-        Drawing::DrawCmdListPtr value);
+    static void UpdateModifierNGDrawCmdList(
+        RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId propertyId);
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
@@ -165,6 +168,7 @@ public:
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
     static void SetEnableHDREffect(RSContext &context, NodeId nodeId, bool hdrPresent);
+    static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);
@@ -230,6 +234,14 @@ ADD_COMMAND(RSUpdatePropertyNGFilterBase,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_FILTER_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderFilterBase>>,
         NodeId, std::shared_ptr<RSNGRenderFilterBase>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyNGShaderBase,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_SHADER_BASE_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderShaderBase>>,
+        NodeId, std::shared_ptr<RSNGRenderShaderBase>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyNGMaskBase,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_MASK_BASE_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderMaskBase>>,
+        NodeId, std::shared_ptr<RSNGRenderMaskBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyImage,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSImage>>,
@@ -353,6 +365,10 @@ ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
     ARG(PERMISSION_APP, RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
         RSNodeCommandHelper::SetTakeSurfaceForUIFlag, NodeId))
 
+ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
+    ARG(PERMISSION_APP, RS_NODE, SET_NEED_USE_CMDLIST_DRAW_REGION,
+        RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion, NodeId, bool))
+
 ADD_COMMAND(RSSetEnableHDREffect,
     ARG(PERMISSION_APP, RS_NODE, SET_ENABLE_HDR_EFFECT,
         RSNodeCommandHelper::SetEnableHDREffect, NodeId, bool))
@@ -391,7 +407,7 @@ ADD_COMMAND(RSModifierNGAttachProperty,
         ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, std::shared_ptr<RSRenderPropertyBase>))
 ADD_COMMAND(RSUpdatePropertyDrawCmdListNG,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST_NG, RSNodeCommandHelper::UpdateModifierNGDrawCmdList,
-        NodeId, ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, Drawing::DrawCmdListPtr))
+        NodeId, Drawing::DrawCmdListPtr, PropertyId))
 ADD_COMMAND(RSModifierNGDetachProperty,
     ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_DETACH_PROPERTY, RSNodeCommandHelper::ModifierNGDetachProperty, NodeId,
         ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType))

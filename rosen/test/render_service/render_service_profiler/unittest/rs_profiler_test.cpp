@@ -37,7 +37,10 @@ public:
         Network::outgoing_ = {};
         Network::incoming_ = {};
     };
-    void TearDown() override {};
+    void TearDown() override
+    {
+        RSProfiler::SetMode(Mode::NONE);
+    };
 };
 
 sptr<RSRenderService> GetAndInitRenderService()
@@ -335,4 +338,95 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
     EXPECT_TRUE(RSProfiler::IfNeedToSkipDuringReplay(*messageParcel, position));
     EXPECT_EQ(messageParcel->GetWritePosition(), position);
 }
+
+/*
+ * @tc.name: LogEventStart
+ * @tc.desc: Test LogEventStart
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    sptr<RSRenderService> renderService = GetAndInitRenderService();
+    RSProfiler::Init(renderService);
+
+    ArgList argList;
+    RSProfiler::RecordStart(argList);
+
+    uint64_t curTime = 123;
+    double timeSinceRecordStart = 456.2f;
+    RSCaptureData captureData;
+    if (RSProfiler::IsRecording()) {
+        std::cout << "RSProfiler is recording right now" << std::endl;
+    } else {
+        std::cout << "RSProfiler is NOT recording right now" << std::endl;
+    }
+
+    RSProfiler::LogEventStart(curTime, captureData, timeSinceRecordStart);
+
+    uint64_t readTime = captureData.GetTime();
+    std::string readProperty = captureData.GetProperty(RSCaptureData::KEY_EVENT_TYPE);
+
+    RSProfiler::RecordStop(argList);
+    RSProfiler::SetMode(Mode::NONE);
+
+    EXPECT_DOUBLE_EQ(static_cast<double>(readTime), timeSinceRecordStart);
+    EXPECT_EQ(readProperty, RSCaptureData::VAL_EVENT_TYPE_VSYNC);
+}
+
+/*
+ * @tc.name: LogEventVSync
+ * @tc.desc: Test LogEventVSync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    sptr<RSRenderService> renderService = GetAndInitRenderService();
+    RSProfiler::Init(renderService);
+
+    ArgList argList;
+    RSProfiler::RecordStart(argList);
+
+    if (RSProfiler::IsRecording()) {
+        std::cout << "RSProfiler is recording right now" << std::endl;
+    } else {
+        std::cout << "RSProfiler is NOT recording right now" << std::endl;
+    }
+
+    uint64_t syncTime = Utils::Now() + Utils::ToNanoseconds(1.0f);
+    RSProfiler::LogEventVSync(syncTime);
+    RSProfiler::RecordStop(argList);
+
+    while (RSProfiler::GetMode() != Mode::NONE);
+
+    RSFile testFile;
+
+    testFile.Open("RECORD_IN_MEMORY");
+
+    EXPECT_TRUE(testFile.IsOpen());
+
+    std::vector<uint8_t> data;
+    double readTime;
+    EXPECT_EQ(testFile.ReadLogEvent(1e10f, 0, data, readTime), true);
+
+    testFile.Close();
+
+    std::vector<char> cdata;
+    cdata.assign(data.begin() + 1, data.end());
+
+    RSCaptureData captureData;
+    captureData.Deserialize(cdata);
+
+    float readCDTime = captureData.GetTime();
+    std::string readCDProperty = captureData.GetProperty(RSCaptureData::KEY_EVENT_TYPE);
+
+    EXPECT_EQ(readCDProperty, RSCaptureData::VAL_EVENT_TYPE_VSYNC);
+    EXPECT_NEAR(readCDTime, 1.f, 1e-2);
+
+    RSProfiler::SetMode(Mode::NONE);
+}
+
 } // namespace OHOS::Rosen

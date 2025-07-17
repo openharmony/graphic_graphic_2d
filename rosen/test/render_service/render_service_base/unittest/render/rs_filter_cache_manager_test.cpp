@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 #include <parameters.h>
 
+#include "common/rs_occlusion_region.h"
+#include "common/rs_rect.h"
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
@@ -23,9 +25,13 @@
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_shader_filter.h"
+#include "utils/rect.h"
+#include "utils/region.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_canvas.h"
 #include "skia_surface.h"
+#include "hpae_base/rs_hpae_base_data.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -71,6 +77,7 @@ public:
     std::shared_ptr<RSDrawingFilter> canSkipFrameFilter1_ = nullptr;
     std::shared_ptr<RSDrawingFilter> canSkipFrameFilter2_ = nullptr;
     std::shared_ptr<RSDrawingFilter> aibarFilter_ = nullptr;
+    Occlusion::Region drawnRegion_;
 };
 
 void RSFilterCacheManagerTest::SetUpTestCase() {}
@@ -79,6 +86,13 @@ void RSFilterCacheManagerTest::TearDownTestCase() {}
 
 void RSFilterCacheManagerTest::SetUp()
 {
+    Occlusion::Region region1(Occlusion::Rect(0, 0, 500, 1000));
+    drawnRegion_.OrSelf(region1);
+    Occlusion::Region region2(Occlusion::Rect(1000, 0, 1500, 1000));
+    drawnRegion_.OrSelf(region2);
+    Occlusion::Region region3(Occlusion::Rect(500, 250, 999, 750));
+    drawnRegion_.OrSelf(region3);
+
     cannotSkipFrameFilter_ = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     cannotSkipFrameFilter_->SetSkipFrame(false);
     cannotSkipFrameFilter_->hash_ = NUM_10;
@@ -113,12 +127,44 @@ void RSFilterCacheManagerTest::TearDown()
 HWTEST_F(RSFilterCacheManagerTest, GetCacheStateTest, TestSize.Level1)
 {
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bmp.Build(300, 300, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bmp);
+    Drawing::RectI cachedRectSize {0, 0, 300, 300};
+    std::string ss1, ss2;
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "No valid cache found.");
     rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_EQ(
         rsFilterCacheManager->GetCacheState(), "Snapshot found in cache. Generating filtered image using cached data.");
+    rsFilterCacheManager->cachedSnapshot_->cachedImage_ = image;
+    rsFilterCacheManager->cachedSnapshot_->cachedRect_ = cachedRectSize;
+    ss1 += "Snapshot found in cache. Generating filtered image using cached data."
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss1);
     rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "Filtered image found in cache. Reusing cached result.");
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_ = image;
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedRect_ = cachedRectSize;
+    ss2 += "Filtered image found in cache. Reusing cached result."
+        " cachedRect: (0, 0, 300, 300), CacheImageWidth: 300, CacheImageHeight: 300";
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), ss2);
+}
+
+/**
+ * @tc.name: CacheInfoTest
+ * @tc.desc: test results of CacheInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, CacheInfoTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_ = nullptr;
+    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "No valid cacheImage found.");
 }
 
 /**
@@ -278,41 +324,8 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterTest, TestSize.Level1)
     // for test
     std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
     std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
-    rsFilterCacheManager->DrawFilter(filterCanvas, filter, true, shouldClearFilteredCache, srcRect, dstRect);
+    rsFilterCacheManager->DrawFilter(filterCanvas, filter, 0, true, shouldClearFilteredCache, srcRect, dstRect);
     EXPECT_TRUE(filterCanvas.GetDeviceClipBounds().IsEmpty());
-}
-
-/**
- * @tc.name: DrawFilterTest002
- * @tc.desc: test results of DrawFilter
- * @tc.type: FUNC
- * @tc.require: issueIBE049
- */
-HWTEST_F(RSFilterCacheManagerTest, DrawFilterTest002, TestSize.Level1)
-{
-    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
-    float blurRadius = 10.0f;
-    auto kawaseBlurShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(blurRadius);
-    auto drawingFilter = std::make_shared<RSDrawingFilter>(kawaseBlurShaderFilter);
-    drawingFilter->SetFilterType(RSFilter::MATERIAL);
-    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
-    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
-    int width = 100;
-    int height = 100;
-    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
-    RSPaintFilterCanvas filterCanvas(surface.get());
-    EXPECT_FALSE(filterCanvas.GetDeviceClipBounds().IsEmpty());
-    bool shouldClearFilteredCache = false;
-    rsFilterCacheManager->DrawFilter(filterCanvas, drawingFilter, true, shouldClearFilteredCache, srcRect, dstRect);
-    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
-    EXPECT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
-    rsFilterCacheManager->renderClearFilteredCacheAfterDrawing_ = false;
-    rsFilterCacheManager->CompactFilterCache();
-    rsFilterCacheManager->renderClearFilteredCacheAfterDrawing_ = true;
-    rsFilterCacheManager->CompactFilterCache();
-    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_, nullptr);
-    EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
 }
 
 /**
@@ -911,24 +924,25 @@ HWTEST_F(RSFilterCacheManagerTest, RecordFilterInfosTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAIBarCacheValid
- * @tc.desc: test results of IsAIBarCacheValid
+ * @tc.name: CheckAndUpdateAIBarCacheStatus
+ * @tc.desc: test results of CheckAndUpdateAIBarCacheStatus
  * @tc.type: FUNC
  * @tc.require: issueIA5FLZ
  */
-HWTEST_F(RSFilterCacheManagerTest, IsAIBarCacheValidTest, TestSize.Level1)
+HWTEST_F(RSFilterCacheManagerTest, CheckAndUpdateAIBarCacheStatusTest, TestSize.Level1)
 {
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     EXPECT_NE(rsFilterCacheManager, nullptr);
 
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->cacheUpdateInterval_ = 1;
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = true;
-    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
-    EXPECT_TRUE(rsFilterCacheManager->IsAIBarCacheValid());
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(true));
 }
 
 /**
@@ -1196,6 +1210,300 @@ HWTEST_F(RSFilterCacheManagerTest, ClearFilterCacheForPendingPurgeWithoutDirty, 
     rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
 
     EXPECT_EQ(rsFilterCacheManager->stagingClearType_, FilterCacheType::BOTH);
+}
+
+/**
+ * @tc.name: DrawCachedFilteredSnapShotTest002
+ * @tc.desc: test results of DrawCachedFilteredSnapShot
+ * @tc.type: FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSFilterCacheManagerTest, DrawCachedFilteredSnapShotTest002, TestSize.Level1)
+{
+    auto manager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+    std::shared_ptr<Drawing::ImageFilter> imageFilter = std::make_shared<Drawing::ImageFilter>();
+    manager->isHpaeCachedFilteredSnapshot_ = true;
+    Drawing::RectI detRect;
+    manager->DrawCachedFilteredSnapshot(canvas, detRect, filter);
+    EXPECT_TRUE(manager->cachedFilteredSnapshot_ != nullptr);
+    EXPECT_TRUE(manager->cachedFilteredSnapshot_->cachedImage_ != nullptr);
+
+    canvas.visibleRect_.right_ = 10;
+    canvas.visibleRect_.bottom_ = 10;
+    manager->DrawCachedFilteredSnapshot(canvas, detRect, filter);
+    EXPECT_TRUE(manager->cachedFilteredSnapshot_->cachedImage_ != nullptr);
+
+    manager->isHpaeCachedFilteredSnapshot_ = false;
+    manager->DrawCachedFilteredSnapshot(canvas, detRect, filter);
+    EXPECT_TRUE(manager->cachedFilteredSnapshot_->cachedImage_ != nullptr);
+}
+
+/**
+ * @tc.name: ForceUpdateCacheByHpaeTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSFilterCacheManagerTest, ForceUpdateCacheByHpaeTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    rsFilterCacheManager->belowDirty_ = false;
+    rsFilterCacheManager->forceUseCache_ = true;
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
+
+    rsFilterCacheManager->forceUseCache_ = false;
+    rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
+    rsFilterCacheManager->CompactFilterCache();
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
+
+    rsFilterCacheManager->forceUseCache_ = true;
+    rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
+    rsFilterCacheManager->CompactFilterCache();
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
+
+    rsFilterCacheManager->forceUseCache_ = false;
+    rsFilterCacheManager->filterType_ = RSFilter::NONE;
+    rsFilterCacheManager->CompactFilterCache();
+    ASSERT_FALSE(rsFilterCacheManager->ForceUpadateCacheByHpae());
+}
+
+/**
+ * @tc.name: CompactFilterCacheTest002
+ * @tc.desc: test results of CompactFilterCache
+ * @tc.type: FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSFilterCacheManagerTest, CompactFilterCacheTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    rsFilterCacheManager->belowDirty_ = true;
+    rsFilterCacheManager->CompactFilterCache();
+
+    RSHpaeBaseData::GetInstance().SetBlurContentChanged(true);
+    rsFilterCacheManager->belowDirty_ = false;
+    rsFilterCacheManager->forceUseCache_ = false;
+    rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
+    rsFilterCacheManager->CompactFilterCache();
+}
+
+/**
+ * @tc.name: ResetFilterCacheTest
+ * @tc.desc: test results of ResetFilterCache
+ * @tc.type: FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSFilterCacheManagerTest, ResetFilterCacheTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    auto region = rsFilterCacheManager->GetSnapshotRegion();
+    rsFilterCacheManager->ResetFilterCache(nullptr, nullptr, region, true);
+
+    auto cachedSnapshot =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(cachedSnapshot, nullptr);
+    rsFilterCacheManager->ResetFilterCache(cachedSnapshot, nullptr, region, true);
+
+    cachedSnapshot->cachedImage_ = std::make_shared<Drawing::Image>();
+    ASSERT_NE(cachedSnapshot->cachedImage_, nullptr);
+    rsFilterCacheManager->ResetFilterCache(cachedSnapshot, nullptr, region, true);
+
+    auto cachedFilteredSnapshot = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(cachedFilteredSnapshot, nullptr);
+    rsFilterCacheManager->ResetFilterCache(cachedSnapshot, cachedFilteredSnapshot, region, true);
+
+    cachedFilteredSnapshot->cachedImage_ = std::shared_ptr<Drawing::Image>();
+    ASSERT_NE(cachedFilteredSnapshot->cachedImage_, nullptr);
+    rsFilterCacheManager->ResetFilterCache(cachedSnapshot, cachedFilteredSnapshot, region, true);
+}
+
+/**
+ * @tc.name: DrawFilterUsingHpaeTest
+ * @tc.desc: test results of DrawFilterUsingHpae
+ * @tc.type: FUNC
+ * @tc.require: wz
+ */
+HWTEST_F(RSFilterCacheManagerTest, DrawFilterUsingHpaeTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+    auto hpaeCacheManager = std::make_shared<RSHpaeFilterCacheManager>();
+    ASSERT_FALSE(rsFilterCacheManager->DrawFilterUsingHpae(filterCanvas, filter, hpaeCacheManager, 1));
+
+    hpaeCacheManager.reset(new RSHpaeFilterCacheManager());
+    ASSERT_FALSE(rsFilterCacheManager->DrawFilterUsingHpae(filterCanvas, filter, hpaeCacheManager,
+                                                           RSHpaeBaseData::GetInstance().GetBlurNodeId() + 1));
+    hpaeCacheManager.reset(new RSHpaeFilterCacheManager());
+    ASSERT_FALSE(rsFilterCacheManager->DrawFilterUsingHpae(filterCanvas, filter, hpaeCacheManager,
+                                                           RSHpaeBaseData::GetInstance().GetBlurNodeId()));
+
+    ASSERT_FALSE(rsFilterCacheManager->DrawFilterUsingHpae(filterCanvas, filter, nullptr,
+                  RSHpaeBaseData::GetInstance().GetBlurNodeId()));
+}
+
+/**
+ * @tc.name: GeneratedCachedEffectDataTest002
+ * @tc.desc: test results of GeneratedCachedEffectData
+ * @tc.type: FUNC
+ * @tc.require: issueIBE049
+ */
+HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataTest003, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    auto surfacePtr = std::make_shared<Drawing::Surface>();
+    surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
+
+    RSPaintFilterCanvas newCanvas(&canvas);
+
+    newCanvas.surface_ = surfacePtr.get();
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+
+    rsFilterCacheManager->cachedSnapshot_ =std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    auto ret = rsFilterCacheManager->IsCacheValid();
+    EXPECT_EQ(ret, true);
+
+    rsFilterCacheManager->snapshotNeedUpdate_ = true;
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, srcRect, dstRect);
+    EXPECT_EQ(filterCanvas.GetDeviceClipBounds().IsEmpty(), true);
+    newCanvas.surface_ =nullptr;
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, srcRect, dstRect);
+
+    RSHpaeBaseData::GetInstance().SetBlurContentChanged(true);
+    rsFilterCacheManager->forceUseCache_ =false;
+    rsFilterCacheManager->filterType_ = RSFilter::LINEAR_GRADIENT_BLUR;
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, srcRect, dstRect);
+
+    rsFilterCacheManager->snapshotNeedUpdate_ = false;
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, srcRect, dstRect);
+    EXPECT_EQ(rsFilterCacheManager->snapshotNeedUpdate_, true);
+}
+
+/**
+ * @tc.name: ClearEffectCacheWithDrawnRegionCovered001
+ * @tc.desc: test results of ClearEffectCacheWithDrawnRegion covered filter bound
+ * @tc.type: FUNC
+ * @tc.require: issueICI7AW
+ */
+HWTEST_F(RSFilterCacheManagerTest, ClearEffectCacheWithDrawnRegionCovered001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    filterCanvas.SetDrawnRegion(drawnRegion_);
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->takeNewSnapshot_ = true;
+
+    rsFilterCacheManager->ClearEffectCacheWithDrawnRegion(filterCanvas,
+        Drawing::RectI(0, 0, NUM_10, NUM_10));
+    EXPECT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+}
+
+/**
+ * @tc.name: ClearEffectCacheWithDrawnRegionCovered002
+ * @tc.desc: test results of ClearEffectCacheWithDrawnRegion covered filter bound
+ * @tc.type: FUNC
+ * @tc.require: issueICI7AW
+ */
+HWTEST_F(RSFilterCacheManagerTest, ClearEffectCacheWithDrawnRegionCovered002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    filterCanvas.SetDrawnRegion(drawnRegion_);
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->takeNewSnapshot_ = true;
+
+    rsFilterCacheManager->ClearEffectCacheWithDrawnRegion(filterCanvas,
+        Drawing::RectI(1000, 0, 1500, 1000));
+    EXPECT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+}
+
+/**
+ * @tc.name: ClearEffectCacheWithDrawnRegionNotCovered
+ * @tc.desc: test results of ClearEffectCacheWithDrawnRegion not covered filter bound
+ * @tc.type: FUNC
+ * @tc.require: issueICI7AW
+ */
+HWTEST_F(RSFilterCacheManagerTest, ClearEffectCacheWithDrawnRegionNotCovered, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    filterCanvas.SetDrawnRegion(drawnRegion_);
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->takeNewSnapshot_ = true;
+
+    rsFilterCacheManager->ClearEffectCacheWithDrawnRegion(filterCanvas,
+        Drawing::RectI(0, 0, 1500, 1000));
+    EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_, nullptr);
+}
+
+/**
+ * @tc.name: ClearEffectCacheWithDrawnRegionNotTakeNewSnapshot
+ * @tc.desc: test results of ClearEffectCacheWithDrawnRegion not take new snapshot
+ * @tc.type: FUNC
+ * @tc.require: issueICI7AW
+ */
+HWTEST_F(RSFilterCacheManagerTest, ClearEffectCacheWithDrawnRegionNotTakeNewSnapshot, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    filterCanvas.SetDrawnRegion(drawnRegion_);
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->takeNewSnapshot_ = false;
+
+    rsFilterCacheManager->ClearEffectCacheWithDrawnRegion(filterCanvas,
+        Drawing::RectI(0, 0, NUM_10, NUM_10));
+    EXPECT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+}
+
+/**
+ * @tc.name: ClearEffectCacheWithDrawnRegionEmptyDrawnRegion
+ * @tc.desc: test results of ClearEffectCacheWithDrawnRegion drawn region is empty
+ * @tc.type: FUNC
+ * @tc.require: issueICI7AW
+ */
+HWTEST_F(RSFilterCacheManagerTest, ClearEffectCacheWithDrawnRegionEmptyDrawnRegion, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    filterCanvas.SetDrawnRegion(Occlusion::Region());
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->takeNewSnapshot_ = false;
+
+    rsFilterCacheManager->ClearEffectCacheWithDrawnRegion(filterCanvas,
+        Drawing::RectI(0, 0, NUM_10, NUM_10));
+    EXPECT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

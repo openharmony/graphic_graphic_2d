@@ -59,8 +59,6 @@ public:
 
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
-    bool OpincGetNodeSupportFlag() override;
-
     RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::CANVAS_NODE;
@@ -71,15 +69,15 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void SetIsWideColorGamut(bool isWideColorGamut);
-    bool GetIsWideColorGamut() const;
-    void ModifyWideWindowColorGamutNum(bool flag);
+    void SetColorGamut(uint32_t colorGamut);
+    uint32_t GetColorGamut();
+    void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
 
     // [Attention] Only used in PC window resize scene now
     void SetLinkedRootNodeId(NodeId rootNodeId);
     RSB_EXPORT NodeId GetLinkedRootNodeId() const;
 
-    void UpdateDisplayHDRNodeList(bool flag, NodeId displayNodeId) const;
+    void UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,
@@ -101,7 +99,8 @@ private:
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;
-    bool isWideColorGamut_ = false;
+    uint32_t colorGamut_ = 0;
+    GraphicColorGamut graphicColorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
 
     // [Attention] Only used in PC window resize scene now
     NodeId linkedRootNodeId_ = INVALID_NODEID;

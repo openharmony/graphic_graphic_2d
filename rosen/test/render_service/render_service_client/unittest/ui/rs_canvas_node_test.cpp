@@ -3592,18 +3592,18 @@ HWTEST_F(RSCanvasNodeTest, SetHDRPresent001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetIsWideColorGamutTest
- * @tc.desc: test results of SetIsWideColorGamut
+ * @tc.name: SetColorGamutTest
+ * @tc.desc: test results of SetColorGamut
  * @tc.type: FUNC
- * @tc.require: issueIC1PS1
+ * @tc.require: issueICGKPE
  */
-HWTEST_F(RSCanvasNodeTest, SetIsWideColorGamutTest, TestSize.Level1)
+HWTEST_F(RSCanvasNodeTest, SetColorGamutTest, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetIsWideColorGamut(true);
+    canvasNode->SetColorGamut(3); // 3 is DISPLAY_P3
     EXPECT_TRUE(RSTransactionProxy::instance_);
 
-    canvasNode->SetIsWideColorGamut(false);
+    canvasNode->SetColorGamut(4); // 4 is SRGB
     EXPECT_TRUE(RSTransactionProxy::instance_);
 }
 
@@ -3701,7 +3701,6 @@ HWTEST_F(RSCanvasNodeTest, UnMarshalling002, TestSize.Level1)
     EXPECT_EQ(canvasNodeUm->GetId(), canvasNode->GetId());
 }
 
-#ifdef RS_ENABLE_VK
 /**
  * @tc.name: GetBitmap001
  * @tc.desc: Test GetBitmap
@@ -3800,9 +3799,12 @@ HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetHybridRenderCanvas(true);
     auto ret = canvasNode->ResetSurface(0, 0);
+#ifdef RS_ENABLE_VK
     EXPECT_EQ(ret, true);
-}
+#else
+    EXPECT_EQ(ret, false);
 #endif
+}
 
 /**
  * @tc.name: SetRSUIContextTest001

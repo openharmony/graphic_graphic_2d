@@ -37,6 +37,7 @@ private:
         const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
     void CleanLayerBufferCache();
+    bool ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node);
 };
 } // namespace Rosen
 } // namespace OHOS

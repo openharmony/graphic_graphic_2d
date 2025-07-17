@@ -30,6 +30,7 @@
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -72,6 +73,10 @@
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
 #include "ressched_event_listener.h"
+#endif
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 
 #undef LOG_TAG
@@ -152,7 +157,6 @@ void RSHardwareThread::Start()
     if (hdiBackend_ != nullptr) {
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
     }
-    hgmHardwareUtils_.RegisterChangeDssRefreshRateCb();
 }
 
 int RSHardwareThread::GetHardwareTid() const
@@ -258,7 +262,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 #endif
         int64_t startTime = GetCurTimeCount();
         std::string surfaceName = GetSurfaceNameInLayers(layers);
-        RS_LOGI_LIMIT("CommitAndReleaseLayers task execute, %{public}s", surfaceName.c_str());
+        RS_LOGD("CommitAndReleaseLayers task execute, %{public}s", surfaceName.c_str());
         if (output == nullptr || hdiBackend_ == nullptr) {
             RS_LOGI("CommitAndReleaseLayers task return, %{public}s", surfaceName.c_str());
             return;
@@ -277,10 +281,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu,%s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
             GetSurfaceNameInLayersForTrace(layers).c_str());
-        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers rate:%{public}u, " \
-            "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
-            currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
-
+        RS_LOGD("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
+            size:%{public}zu, %{public}s", currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
+            GetSurfaceNameInLayersForTrace(layers).c_str());
         bool isScreenPoweringOff = false;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager) {
@@ -288,7 +291,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
-        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(output);
+        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers, output->GetScreenId());
         if (!shouldDropFrame) {
             hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, param.rate);
             hgmHardwareUtils_.PerformSetActiveMode(
@@ -310,7 +313,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         output->ReleaseLayers(releaseFence_);
         RSBaseRenderUtil::DecAcquiredBufferCount();
-        RSUniRenderThread::Instance().NotifyDisplayNodeBufferReleased();
+        RSUniRenderThread::Instance().NotifyScreenNodeBufferReleased();
         if (hasGameScene) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -324,6 +327,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
         }
+        RSMainThread::Instance()->SetTaskEndWithTime(SystemTime() - lastActualTime_);
+        lastActualTime_ = param.actualTimestamp;
         int64_t endTime = GetCurTimeCount();
         uint64_t frameTime = endTime - startTime;
         uint32_t missedFrames = frameTime / REFRESH_PERIOD;
@@ -473,11 +478,15 @@ std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfo
 std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<LayerInfoPtr>& layers)
 {
     uint32_t count = layers.size();
+    uint32_t max = 0;
     for (const auto& layer : layers) {
         if (layer == nullptr || layer->GetSurface() == nullptr) {
             continue;
         }
         count += layer->GetSurface()->GetName().length();
+        if (max < layer->GetZorder()) {
+            max = layer->GetZorder();
+        }
     }
     bool exceedLimit = count > MAX_TOTAL_SURFACE_NAME_LENGTH;
     std::string surfaceName = "Names:";
@@ -487,7 +496,14 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
         }
         surfaceName += (exceedLimit ? layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH) :
                                       layer->GetSurface()->GetName()) + ",";
+        surfaceName.append("zorder: ");
+        surfaceName.append(std::to_string(layer->GetZorder()));
+        surfaceName.append(",");
+        if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR && layer->GetZorder() < max) {
+            RS_LOGE("RSHardcursor is not on the top, hardcursor zorder:%{public}d", layer->GetZorder());
+        }
     }
+
     return surfaceName;
 }
 
@@ -608,10 +624,7 @@ void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, ui
         }
     }
     auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("screenManager is NULL");
-        return;
-    }
+    auto screenInfo = screenManager->QueryScreenInfo(screenId);
     auto output = screenManager->GetOutput(ToScreenPhysicalId(screenId));
     if (output == nullptr) {
         RS_LOGE("output is NULL");
@@ -648,7 +661,6 @@ void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, ui
     auto usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB | BUFFER_USAGE_PROTECTED |
         BUFFER_USAGE_DRM_REDRAW;
     rsSurface->SetSurfaceBufferUsage(usage);
-    auto screenInfo = screenManager->QueryScreenInfo(screenId);
     auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo.phyWidth, screenInfo.phyHeight);
     output->SetProtectedFrameBufferState(ret);
 #endif
@@ -717,13 +729,13 @@ void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
     hgmHardwareUtils_.SetScreenVBlankIdle(screenId);
 }
 
-bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
+bool RSHardwareThread::IsDropDirtyFrame(const std::vector<LayerInfoPtr>& layerInfos, uint32_t screenId)
 {
+#ifdef ROSEN_EMULATOR
+    RS_LOGD("emulator device do not need drop dirty frame");
+    return false;
+#endif
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
-        return false;
-    }
-    if (output == nullptr) {
-        RS_LOGW("%{public}s: output is null", __func__);
         return false;
     }
     auto screenManager = CreateOrGetScreenManager();
@@ -732,15 +744,12 @@ bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
         return false;
     }
 
-    auto screenId = output->GetScreenId();
     auto rect = screenManager->QueryScreenInfo(screenId).activeRect;
     if (rect.IsEmpty()) {
         RS_LOGW("%{public}s: activeRect is empty", __func__);
         return false;
     }
     GraphicIRect activeRect = {rect.left_, rect.top_, rect.width_, rect.height_};
-    std::vector<LayerInfoPtr> layerInfos;
-    output->GetLayerInfos(layerInfos);
     if (layerInfos.empty()) {
         RS_LOGI("%{public}s: layerInfos is empty", __func__);
         return false;
@@ -964,6 +973,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
 #endif
     RedrawScreenRCD(*canvas, layers);
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    auto rsSurface = renderFrame->GetSurface();
+    RSTvMetadataManager::Instance().CopyFromLayersToSurface(layers, rsSurface);
+#endif
     renderFrame->Flush();
     RS_LOGD("RsDebug Redraw flush frame buffer end");
 }
@@ -1073,12 +1086,19 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
         }
 
         auto bufferPixelFormat = buffer->GetFormat();
+        if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010108) {
+            pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+            if (RSHdrUtil::GetRGBA1010108Enabled()) {
+                pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010108;
+                RS_LOGD("ComputeTargetPixelFormat pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108");
+            }
+            break;
+        }
         if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
             RS_LOGD("ComputeTargetPixelFormat pixelformat is set to 1010102 for 10bit buffer");
-            break;
         }
     }
 

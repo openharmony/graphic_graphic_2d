@@ -24,6 +24,7 @@
 #include "rs_frame_report.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+#include "rs_profiler.h"
 //blur predict
 #include "rs_frame_blur_predict.h"
 #include "system/rs_system_parameters.h"
@@ -256,10 +257,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
                     return;
                 }
                 auto &monitor = SelfDrawingNodeMonitor::GetInstance();
-                if (connection->remotePid_ == monitor.GetCallingPid()) {
-                    monitor.ClearRectMap();
-                    monitor.UnRegisterRectChangeCallback(connection->remotePid_);
-                }
+                monitor.UnRegisterRectChangeCallback(connection->remotePid_);
             }).wait();
     }
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
@@ -398,29 +396,27 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& display
         success = false;
         return ERR_INVALID_VALUE;
     }
-    std::shared_ptr<RSDisplayRenderNode> node =
-        DisplayNodeCommandHelper::CreateWithConfigInRS(mainThread_->GetContext(), nodeId,
-            displayNodeConfig);
+    auto node = DisplayNodeCommandHelper::CreateWithConfigInRS(mainThread_->GetContext(), nodeId, displayNodeConfig);
     if (node == nullptr) {
         RS_LOGE("RSRenderService::CreateDisplayNode fail");
         success = false;
         return ERR_INVALID_VALUE;
     }
-    std::function<void()> registerNode = [node, weakThis = wptr<RSRenderServiceConnection>(this),
-        mirrorNodeId = displayNodeConfig.mirrorNodeId]() -> void {
-        sptr<RSRenderServiceConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
+    std::function<void()> registerNode = [this, nodeId, node, &displayNodeConfig]() {
+        if (mainThread_ == nullptr) {
             return;
         }
-        auto& context = connection->mainThread_->GetContext();
-        context.GetMutableNodeMap().RegisterRenderNode(node);
-        context.GetGlobalRootRenderNode()->AddChild(node);
-        auto mirrorSourceNode = context.GetNodeMap()
-            .GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
-        if (!mirrorSourceNode) {
-            return;
-        }
-        node->SetMirrorSource(mirrorSourceNode);
+        auto& context = mainThread_->GetContext();
+        auto& nodeMap = context.GetMutableNodeMap();
+        nodeMap.RegisterRenderNode(node);
+        nodeMap.TraverseScreenNodes([&node, id = node->GetScreenId()](auto& screenNode) {
+            if (!screenNode || screenNode->GetScreenId() != id) {
+                return;
+            }
+            screenNode->AddChild(node);
+        });
+
+        DisplayNodeCommandHelper::SetDisplayMode(context, nodeId, displayNodeConfig);
     };
     mainThread_->PostSyncTask(registerNode);
     success = true;
@@ -1086,36 +1082,24 @@ ErrCode RSRenderServiceConnection::GetRefreshInfoToSP(NodeId id, std::string& en
     }
     std::string dumpString;
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    auto dumpTask = [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr) {
+            RS_LOGE("GetRefreshInfoToSP connection is nullptr");
+            return;
+        }
+        if (connection->screenManager_ == nullptr) {
+            RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
+            return;
+        }
+        RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
+    };
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
-                sptr<RSRenderServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
-                    return;
-                }
-                if (connection->screenManager_ == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
-                    return;
-                }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
-            }).wait();
+        RSHardwareThread::Instance().ScheduleTask(dumpTask).wait();
 #endif
     } else {
-        mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
-                sptr<RSRenderServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
-                    return;
-                }
-                if (connection->screenManager_ == nullptr) {
-                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
-                    return;
-                }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
-            }).wait();
+        mainThread_->ScheduleTask(dumpTask).wait();
     }
     enable = dumpString;
     return ERR_OK;
@@ -1241,9 +1225,6 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask([=]() {
-            if (status == ScreenPowerStatus::POWER_STATUS_ON) {
-                HgmCore::Instance().SetScreenSwitchDssEnable(id, false);
-            }
             screenManager_->SetScreenPowerStatus(id, status);
         }).wait();
         screenManager_->WaitScreenPowerStatusTask();
@@ -1262,13 +1243,13 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 namespace {
 void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    const Drawing::Rect& specifiedAreaRect, std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap)
+    const Drawing::Rect& specifiedAreaRect)
 {
 #ifdef RS_ENABLE_GPU
     RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
         captureConfig.isSync ? "true" : "false");
-    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect, rsCapturePixelMap]() {
-        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect, rsCapturePixelMap);
+    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
+        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
     };
     auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
@@ -1322,25 +1303,19 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect, std::unique_ptr<Media::PixelMap> clientPixelMap,
-    RSSurfaceCapturePermissions permissions)
+    const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
 
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    if (captureConfig.isClientPixelMap && rsCapturePixelMap != nullptr) {
-        rsCapturePixelMap->SetCapturePixelMap(std::move(clientPixelMap));
-    }
     std::function<void()> captureTask = [id, callback, captureConfig, blurParam, specifiedAreaRect,
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
-        rsCapturePixelMap,
         selfCapture = permissions.selfCapture]() -> void {
         RS_TRACE_NAME_FMT("RSRenderServiceConnection::TakeSurfaceCapture captureTask nodeId:[%" PRIu64 "]", id);
-        RS_LOGI("TakeSurfaceCapture captureTask begin nodeId:[%{public}" PRIu64 "]", id);
+        RS_LOGD("TakeSurfaceCapture captureTask begin nodeId:[%{public}" PRIu64 "]", id);
         if (captureConfig.captureType == SurfaceCaptureType::UICAPTURE) {
             // When the isSync flag in captureConfig is true, UI capture processes commands before capture.
             // When the isSync flag in captureConfig is false, UI capture will check null node independently.
@@ -1354,7 +1329,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
-                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect, rsCapturePixelMap);
+                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect);
             } else {
                 TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
             }
@@ -1368,7 +1343,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         }
         auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
         auto surfaceCaptureHasPermission = blurParam.isNeedBlur ? isSystemCalling : (selfCapture || isSystemCalling);
-        if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE && !displayCaptureHasPermission) ||
+        if ((node->GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE && !displayCaptureHasPermission) ||
             (node->GetType() == RSRenderNodeType::SURFACE_NODE && !surfaceCaptureHasPermission)) {
             RS_LOGE("TakeSurfaceCapture failed, node type: %{public}u, "
                 "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
@@ -1392,7 +1367,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             captureParam.isSystemCalling = isSystemCalling;
             captureParam.blurParam = blurParam;
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, rsCapturePixelMap);
+            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 #endif
         }
     };
@@ -1447,9 +1422,8 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
         captureParam.config = captureConfig;
         captureParam.isSystemCalling = isSystemCalling;
         captureParam.isSelfCapture = true;
-        auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
         RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, rsCapturePixelMap);
+        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
     };
     mainThread_->PostTask(selfCaptureTask);
 }
@@ -1462,7 +1436,10 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
-    std::function<void()> setWindowFreezeTask = [id, isFreeze, callback, captureConfig, blurParam]() -> void {
+    bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::SET_WINDOW_FREEZE_IMMEDIATELY");
+    std::function<void()> setWindowFreezeTask =
+        [id, isFreeze, callback, captureConfig, blurParam, isSystemCalling]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("SetWindowFreezeImmediately failed, node is nullptr");
@@ -1473,18 +1450,14 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
         }
         node->SetStaticCached(isFreeze);
         if (isFreeze) {
-            bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
-                "::SET_WINDOW_FREEZE_IMMEDIATELY");
             RSSurfaceCaptureParam captureParam;
             captureParam.id = id;
             captureParam.config = captureConfig;
             captureParam.isSystemCalling = isSystemCalling;
             captureParam.isFreeze = isFreeze;
             captureParam.blurParam = blurParam;
-            auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam, rsCapturePixelMap);
+            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
         } else {
             RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(id);
         }
@@ -1496,8 +1469,7 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
 void RSRenderServiceConnection::TakeUICaptureInRange(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {}, rsCapturePixelMap);
+    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
 }
 
 ErrCode RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
@@ -1951,6 +1923,14 @@ bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id
     return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+int32_t RSRenderServiceConnection::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    return screenManager_->SetVirtualScreenAutoRotation(id, isAutoRotation);
+}
+
 ErrCode RSRenderServiceConnection::SetGlobalDarkColorMode(bool isDark)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -2137,6 +2117,48 @@ ErrCode RSRenderServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeI
         resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
+}
+
+ErrCode RSRenderServiceConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
+{
+    if (mainThread_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    HdrStatus hdrStatusRet = HdrStatus::NO_HDR;
+    StatusCode resCodeRet = StatusCode::SCREEN_NOT_FOUND;
+    auto isTimeout = std::make_shared<bool>(0);
+    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
+    auto task = [id, mainThread = mainThread_, &resCodeRet, &hdrStatusRet, isTimeoutWeak]() {
+        if (isTimeoutWeak.expired()) {
+            RS_LOGE("GetScreenHDRStatus time out, ScreenId: [%{public}" PRIu64 "]", id);
+            return;
+        }
+        std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+        auto& nodeMap = mainThread->GetContext().GetNodeMap();
+        nodeMap.TraverseScreenNodes([id, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == id) {
+                screenNode = node;
+            }
+        });
+        if (screenNode == nullptr) {
+            resCodeRet = StatusCode::SCREEN_NOT_FOUND;
+            return;
+        }
+        hdrStatusRet = screenNode->GetLastDisplayHDRStatus();
+        resCodeRet = StatusCode::SUCCESS;
+    };
+    auto span = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100)); // timeout 100 ms
+    if (mainThread_->ScheduleTask(task).wait_for(span) == std::future_status::timeout) {
+        isTimeout.reset();
+    }
+    if (isTimeoutWeak.expired() && resCodeRet != StatusCode::SUCCESS) {
+        return ERR_TIMED_OUT;
+    }
+    if (resCodeRet == StatusCode::SUCCESS) {
+        hdrStatus = hdrStatusRet;
+    }
+    resCode = resCodeRet;
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::GetScreenSupportedColorSpaces(
@@ -2417,6 +2439,31 @@ ErrCode RSRenderServiceConnection::SetScreenActiveRect(ScreenId id, const Rect& 
     });
     repCode = StatusCode::SUCCESS;
     return ERR_OK;
+}
+
+void RSRenderServiceConnection::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY)
+{
+    if (!screenManager_) {
+        return;
+    }
+    screenManager_->SetScreenOffset(id, offsetX, offsetY);
+}
+
+void RSRenderServiceConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, gravity]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        context.GetNodeMap().TraverseScreenNodes([id, gravity](auto& node) {
+            if (node && node->GetScreenId() == id) {
+                node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
+            }
+        });
+    };
+    mainThread_->PostTask(task);
 }
 
 ErrCode RSRenderServiceConnection::RegisterOcclusionChangeCallback(
@@ -3111,6 +3158,31 @@ ErrCode RSRenderServiceConnection::UnregisterSurfaceBufferCallback(pid_t pid, ui
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnection::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
+{
+    if (mainThread_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeId, isTop, zOrder]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+        if (surfaceNode == nullptr) {
+            return;
+        }
+        surfaceNode->SetLayerTop(isTop, false);
+        surfaceNode->SetTopLayerZOrder(zOrder);
+        // It can be displayed immediately after layer-top changed.
+        connection->mainThread_->SetDirtyFlag();
+        connection->mainThread_->RequestNextVSync();
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     if (mainThread_ == nullptr) {
@@ -3162,10 +3234,10 @@ ErrCode RSRenderServiceConnection::SetForceRefresh(const std::string &nodeIdStr,
     return ERR_OK;
 }
 
-void RSRenderServiceConnection::RegisterTransactionDataCallback(int32_t pid,
+void RSRenderServiceConnection::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(pid, timeStamp, callback);
+    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 void RSRenderServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
@@ -3218,8 +3290,8 @@ ErrCode RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
         }
         auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
         if (auto node = nodeMap.GetRenderNode<RSCanvasRenderNode>(nodeId)) {
-            auto displayNodeId = node->GetDisplayNodeId();
-            if (auto displayNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(displayNodeId)) {
+            auto displayNodeId = node->GetLogicalDisplayNodeId();
+            if (auto displayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId)) {
                 RS_LOGD("SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d",
                     nodeId, value);
                 displayNode->SetWindowContainer(value ? node : nullptr);
@@ -3237,7 +3309,7 @@ ErrCode RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
-    sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+    const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -3249,9 +3321,21 @@ int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    auto task = [pid = remotePid_, callback]() {
-        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, callback);
+    auto task = [pid = remotePid_, constraint, callback]() {
+        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, constraint, callback);
     };
+    mainThread_->PostTask(task);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::UnRegisterSelfDrawingNodeRectChangeCallback()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!mainThread_) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto task = [pid = remotePid_]() { SelfDrawingNodeMonitor::GetInstance().UnRegisterRectChangeCallback(pid); };
     mainThread_->PostTask(task);
     return StatusCode::SUCCESS;
 }
@@ -3346,9 +3430,58 @@ int32_t RSRenderServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemI
         RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB fail to find pid!");
         return ERR_INVALID_VALUE;
     }
-    gpuMemInMB = memorySnapshotInfo.gpuMemory / MEM_BYTE_TO_MB;
+    gpuMemInMB = static_cast<float>(memorySnapshotInfo.gpuMemory) / MEM_BYTE_TO_MB;
     RS_LOGD("RSRenderServiceConnection::GetPidGpuMemoryInMB called succ");
     return ERR_OK;
+}
+
+RetCodeHrpService RSRenderServiceConnection::ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
+    const std::string& fileName, int32_t flags, int& outFd)
+{
+#ifdef RS_PROFILER_ENABLED
+    if (fileName.length() == 0 || !HrpServiceValidDirOrFileName(fileName)) {
+        return RET_HRP_SERVICE_ERR_INVALID_PARAM;
+    }
+
+    return RSProfiler::HrpServiceOpenFile(dirInfo, fileName, flags, outFd);
+#else
+    outFd = -1;
+    return RET_HRP_SERVICE_ERR_UNSUPPORTED;
+#endif
+}
+
+RetCodeHrpService RSRenderServiceConnection::ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
+    uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
+{
+#ifdef RS_PROFILER_ENABLED
+    return RSProfiler::HrpServicePopulateFiles(dirInfo, firstFileIndex, outFiles);
+#else
+    outFiles.clear();
+    return RET_HRP_SERVICE_ERR_UNSUPPORTED;
+#endif
+}
+
+bool RSRenderServiceConnection::ProfilerIsSecureScreen()
+{
+#ifdef RS_PROFILER_ENABLED
+    if (!RSSystemProperties::GetProfilerEnabled()) {
+        return false;
+    }
+    return RSProfiler::IsSecureScreen();
+#else
+    return false;
+#endif
+}
+
+void RSRenderServiceConnection::ClearUifirstCache(NodeId id)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [id]() -> void {
+        RSUifirstManager::Instance().AddMarkedClearCacheNode(id);
+    };
+    mainThread_->PostTask(task);
 }
 } // namespace Rosen
 } // namespace OHOS

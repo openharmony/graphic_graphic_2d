@@ -145,6 +145,7 @@ protected:
     bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
     void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
+    bool DealWithWhiteListNodes(Drawing::Canvas& canvas);
 
     static int GetProcessedNodeCount();
     static void ProcessedNodeCountInc();
@@ -198,6 +199,9 @@ private:
 
     // Used to skip nodes or entire subtree that were culled by the control-level occlusion.
     bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
+
+    // update hdr brightness for all effect filter applied
+    void UpdateFilterDisplayHeadroom(Drawing::Canvas& canvas);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

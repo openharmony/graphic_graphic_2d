@@ -52,6 +52,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSCompositeLayerUtils;
 /**
  * @struct RSSurfaceNodeConfig
  * @brief Configuration structure for creating or managing a surface node.
@@ -302,6 +303,23 @@ public:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
+
+    /**
+     * @brief Determines whether the surfaceNode is a selfDrawing node.
+     * 
+     * @return True if the surfaceNode is a selfDrawing node, otherwise false.
+     */
+    bool IsSelfDrawingNode() const;
+
+    /**
+     * @brief Sets the surfaceNode and its subtree to generate a topLayer.
+     * 
+     * @param zOrder: zOrder of topLayer
+     * 
+     * @return True if the setting is successful, otherwise false.
+     */
+    bool SetCompositeLayer(TopLayerZOrder zOrder);
+    std::shared_ptr<RSCompositeLayerUtils> GetCompositeLayerUtils() const;
     
     /**
      * @brief Sets the API compatible version for the surface node.
@@ -312,7 +330,7 @@ public:
     void SetSourceVirtualDisplayId(ScreenId screenId);
     void AttachToWindowContainer(ScreenId screenId);
     void DetachFromWindowContainer(ScreenId screenId);
-    void SetRegionToBeMagnified(const Vector4f& regionToBeMagnified);
+    void SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
@@ -360,6 +378,8 @@ private:
     bool isGlobalPositionEnabled_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
+    RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
+    std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

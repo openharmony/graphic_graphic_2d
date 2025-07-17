@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,8 @@ const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 #endif
+
+bool RSSystemProperties::isEnableEarlyZ_ = system::GetBoolParameter("persist.sys.graphic.ddgrEarlyZ.enabled", true);
 
 int ConvertToInt(const char *originValue, int defaultValue)
 {
@@ -226,10 +228,13 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
+    constexpr int DEFAULT_OPTIMIZE_STATUS = 1;
+    constexpr int DISABLED_STATUS = 0;
+
     static CachedHandle g_Handle = CachedParameterCreate("rosen.animationdelay.optimize.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
+    return ConvertToInt(enable, DEFAULT_OPTIMIZE_STATUS) != DISABLED_STATUS;
 }
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
@@ -407,7 +412,7 @@ bool RSSystemProperties::GetDumpRsTreeDetailEnabled()
 bool RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()
 {
     static bool hardwareComposerMirrorEnabled =
-        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "1") != "0";
+        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "0") != "0";
     return hardwareComposerMirrorEnabled;
 }
 
@@ -866,6 +871,14 @@ bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetUIFirstBehindWindowEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindwindow.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetUIFirstDirtyEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dirty.enabled", "1");
@@ -885,6 +898,14 @@ bool RSSystemProperties::GetUIFirstDirtyDebugEnabled()
 bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindWindowFilter.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetHeterogComputingHDREnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.heterog.computing.hdr.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -1384,6 +1405,22 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.optimizeCanvasDrawRegion.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetHpaeBlurUsingAAE()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.hpae.blur.aee.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetWindowKeyFrameEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.windowkeyframe.enabled", "1");
@@ -1415,7 +1452,8 @@ bool RSSystemProperties::GetTextureExportDFXEnabled()
 
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
-    return GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled();
+    // isTypicalResidentProcess_ : currently typical resident process is not allowed to enable hybrid render.
+    return !isTypicalResidentProcess_ && (GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled());
 }
 
 int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
@@ -1500,22 +1538,33 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
     return hmsymbolEnabled;
 }
 
-int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+bool RSSystemProperties::GetTypicalResidentProcess()
+{
+    return isTypicalResidentProcess_;
+}
+
+void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
+{
+    isTypicalResidentProcess_ = isTypicalResidentProcess;
+}
+
+bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     static int isAccessToVulkanConfigFile = access(VULKAN_CONFIG_FILE_PATH, F_OK);
     if (isAccessToVulkanConfigFile == -1) {
         ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
-        return 0;
+        return false;
     }
+    char* endPtr = nullptr;
     static uint32_t hybridRenderFeatureSwitch =
-        std::stoul((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
+        std::strtoul(system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00").c_str(), &endPtr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
-    if (bitSeq >= ComponentEnableSwitch::SWITCH_MAX) {
-        return 0;
+    if (bitSeq < ComponentEnableSwitch::TEXTBLOB || bitSeq >= ComponentEnableSwitch::MAX_VALUE) {
+        return false;
     }
     if (!GetHybridRenderEnabled()) {
-        return 0;
+        return false;
     }
 
     hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)] =
@@ -1567,6 +1616,29 @@ int RSSystemProperties::GetSubThreadDropFrameInterval()
     static bool dropFrameInterval =
         system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
     return dropFrameInterval;
+}
+
+bool RSSystemProperties::GetCompositeLayerEnabled()
+{
+    static bool compositeLayerEnable =
+        system::GetBoolParameter("rosen.graphic.composite.layer", true);
+    return compositeLayerEnable;
+}
+
+bool RSSystemProperties::GetEarlyZEnable()
+{
+    return isEnableEarlyZ_;
+}
+
+bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 1) != 0;
+    return isAIBarOptEnabled;
+}
+
+bool RSSystemProperties::GetRSMemoryInfoManagerParam()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

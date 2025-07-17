@@ -232,4 +232,39 @@ HWTEST_F(RSRenderSoundWaveFilterTest, ParseFilterValuesTest001, TestSize.Level1)
     auto filterCopy = filter->DeepCopy();
     EXPECT_NE(filterCopy, nullptr);
 }
+
+/**
+ * @tc.name: GenerateGEVisualEffect001
+ * @tc.desc: Test hdr support of GenerateGEVisualEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderSoundWaveFilterTest, GenerateGEVisualEffect001, TestSize.Level1)
+{
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    auto rsSoundWaveLightFilter = std::make_shared<RSRenderSoundWaveFilterPara>(0);
+
+    rsSoundWaveLightFilter->colorA_ = { 0.5f, 0.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->colorB_ = { 0.5f, 0.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->colorC_ = { 0.5f, 0.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsSoundWaveLightFilter->colorA_ = { 1.5f, 0.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->colorB_ = { 1.5f, 0.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->colorC_ = { 1.5f, 0.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsSoundWaveLightFilter->colorA_ = { 0.5f, 1.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->colorB_ = { 0.5f, 1.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->colorC_ = { 0.5f, 1.5f, 0.5f, 1.0f };
+    rsSoundWaveLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    rsSoundWaveLightFilter->colorA_ = { 0.5f, 0.5f, 1.5f, 1.0f };
+    rsSoundWaveLightFilter->colorB_ = { 0.5f, 0.5f, 1.5f, 1.0f };
+    rsSoundWaveLightFilter->colorC_ = { 0.5f, 0.5f, 1.5f, 1.0f };
+    rsSoundWaveLightFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
 } // namespace OHOS::Rosen

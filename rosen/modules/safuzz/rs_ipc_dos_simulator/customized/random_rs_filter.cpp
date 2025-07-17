@@ -128,7 +128,7 @@ std::shared_ptr<RSFilter> RandomRSFilter::GetRandomAIBarFilter()
     } else {
         auto blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(aiBarRadius, aiBarRadius, tileMode, nullptr);
 #ifdef USE_M133_SKIA
-        uint32_t hash = SkChechsum::Hash32(&aiBarRadius, sizeof(aiBarRadius), 0);
+        uint32_t hash = SkChecksum::Hash32(&aiBarRadius, sizeof(aiBarRadius), 0);
 #else
         uint32_t hash = SkOpts::hash(&aiBarRadius, sizeof(aiBarRadius), 0);
 #endif

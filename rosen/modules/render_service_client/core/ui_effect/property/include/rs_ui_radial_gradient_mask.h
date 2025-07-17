@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_RADIAL_GRADIENT_MASK_H
-#define RENDER_RADIAL_GRADIENT_MASK_H
+#ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_RADIAL_GRADIENT_MASK_H
+#define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_RADIAL_GRADIENT_MASK_H
 
 #include "ui_effect/mask/include/mask_para.h"
 #include "ui_effect/property/include/rs_ui_mask_para.h"
@@ -57,4 +57,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_RADIAL_GRADIENT_MASK_H
+#endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_RADIAL_GRADIENT_MASK_H

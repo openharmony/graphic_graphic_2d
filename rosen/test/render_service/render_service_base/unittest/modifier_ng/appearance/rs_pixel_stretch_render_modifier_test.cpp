@@ -56,8 +56,8 @@ HWTEST_F(RSPixelStretchRenderModifierNGTypeTest, RSPixelStretchRenderModifierTes
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::PIXEL_STRETCH);
     RSProperties props;
     modifier.ResetProperties(props);
-    EXPECT_TRUE(props.pixelStretch_.has_value());
-    EXPECT_TRUE(props.pixelStretchPercent_.has_value());
+    EXPECT_FALSE(props.pixelStretch_.has_value());
+    EXPECT_FALSE(props.pixelStretchPercent_.has_value());
     EXPECT_EQ(props.GetPixelStretchTileMode(), 0);
 }
 } // namespace OHOS::Rosen

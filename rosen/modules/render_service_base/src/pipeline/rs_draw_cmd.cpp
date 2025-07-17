@@ -404,13 +404,8 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
     }
 
     image_ = std::make_shared<Drawing::Image>();
-#ifndef ROSEN_EMULATOR
-    auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
-#else
-    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
-#endif
     if (!image_->BuildFromTexture(*(canvas.GetGPUContext()), externalTextureInfo,
-        surfaceOrigin, bitmapFormat,
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat,
         std::make_shared<Drawing::ColorSpace>(Drawing::ColorSpace::ColorSpaceType::SRGB))) {
         RS_LOGE("BuildFromTexture failed");
         return false;
@@ -1072,10 +1067,6 @@ UNMARSHALLING_REGISTER(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM,
 DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
     : DrawOpItem(DRAW_FUNC_OPITEM)
 {
-    if (handle == nullptr) {
-        LOGE("DrawFuncOpItem handle is nullptr!");
-        return;
-    }
     objectHandle_ = CmdListHelper::GetDrawFuncObjFromCmdList(cmdList, handle->funcObjectId);
 }
 
@@ -1527,14 +1518,9 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw: gpu context is nullptr");
         return;
     }
-#ifndef ROSEN_EMULATOR
-    auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
-#else
-    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
-#endif
     auto newImage = std::make_shared<Drawing::Image>();
     if (!newImage->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
-        surfaceOrigin, bitmapFormat, nullptr)) {
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,8 @@
 
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_picture.h"
+#include "effect/shader_effect_lazy.h"
+#include "effect/image_filter_lazy.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -621,11 +623,24 @@ std::shared_ptr<ColorSpace> CmdListHelper::GetColorSpaceFromCmdList(const CmdLis
     return colorSpace;
 }
 
-FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect)
+FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList,
+    std::shared_ptr<ShaderEffect> shaderEffect)
 {
     if (shaderEffect == nullptr) {
         return { 0 };
     }
+
+    if (shaderEffect->IsLazy()) {
+        // Lazy type: use DrawingObject path
+        auto lazyShader = std::static_pointer_cast<ShaderEffectLazy>(shaderEffect);
+        auto shaderEffectObj = lazyShader->GetShaderEffectObj();
+        if (!shaderEffectObj) {
+            return { 0 };
+        }
+        uint32_t offset = AddDrawingObjectToCmdList(cmdList, shaderEffectObj);
+        return { offset, 1, static_cast<uint32_t>(ShaderEffect::ShaderEffectType::LAZY_SHADER) };
+    }
+
     ShaderEffect::ShaderEffectType type = shaderEffect->GetType();
     if (type == ShaderEffect::ShaderEffectType::EXTEND_SHADER) {
         std::shared_ptr<ExtendObject> object = shaderEffect->GetExtendObject();
@@ -635,6 +650,8 @@ FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList, std:
         uint32_t offset = AddExtendObjectToCmdList(cmdList, object);
         return { offset, 1, static_cast<uint32_t>(type) };
     }
+
+    // Normal ShaderEffect: use Skia serialization path
     auto data = shaderEffect->Serialize();
     if (data == nullptr || data->GetSize() == 0) {
         LOGD("shaderEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -650,7 +667,23 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
     if (shaderEffectHandle.size == 0) {
         return nullptr;
     }
+
     ShaderEffect::ShaderEffectType type = static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type);
+    if (type == ShaderEffect::ShaderEffectType::LAZY_SHADER) {
+        // Lazy type: rebuild from DrawingObject and immediately instantiate
+        auto drawingObj = GetDrawingObjectFromCmdList(cmdList, shaderEffectHandle.offset);
+        if (!drawingObj || drawingObj->GetType() != static_cast<int32_t>(Object::ObjectType::SHADER_EFFECT)) {
+            return nullptr;
+        }
+        auto shaderEffectObj = std::static_pointer_cast<ShaderEffectObj>(drawingObj);
+        auto lazyShader = ShaderEffectLazy::CreateFromShaderEffectObj(shaderEffectObj);
+        if (!lazyShader) {
+            return nullptr;
+        }
+        // Immediately instantiate, return actual ShaderEffect instead of Lazy object
+        return lazyShader->Materialize();
+    }
+
     if (type == ShaderEffect::ShaderEffectType::EXTEND_SHADER) {
         std::shared_ptr<ExtendObject> object = GetExtendObjectFromCmdList(cmdList, shaderEffectHandle.offset);
         if (!object) {
@@ -665,6 +698,7 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
         return shaderEffect;
     }
 
+    // Normal type: rebuild from Skia data
     const void* ptr = cmdList.GetImageData(shaderEffectHandle.offset, shaderEffectHandle.size);
     if (ptr == nullptr) {
         return nullptr;
@@ -839,6 +873,18 @@ FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList, const
     if (imageFilter == nullptr) {
         return { 0 };
     }
+
+    if (imageFilter->IsLazy()) {
+        // Lazy type: use DrawingObject path
+        auto lazyFilter = static_cast<const ImageFilterLazy*>(imageFilter);
+        auto imageFilterObj = lazyFilter->GetImageFilterObj();
+        if (!imageFilterObj) {
+            return { 0 };
+        }
+        uint32_t offset = AddDrawingObjectToCmdList(cmdList, imageFilterObj);
+        return { offset, 1, static_cast<uint32_t>(ImageFilter::FilterType::LAZY_IMAGE_FILTER) };
+    }
+
     ImageFilter::FilterType type = imageFilter->GetType();
     auto data = imageFilter->Serialize();
     if (data == nullptr || data->GetSize() == 0) {
@@ -861,6 +907,23 @@ std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdL
         return nullptr;
     }
 
+    ImageFilter::FilterType type = static_cast<ImageFilter::FilterType>(imageFilterHandle.type);
+    if (type == ImageFilter::FilterType::LAZY_IMAGE_FILTER) {
+        // Lazy type: rebuild from DrawingObject and immediately instantiate
+        auto drawingObj = GetDrawingObjectFromCmdList(cmdList, imageFilterHandle.offset);
+        if (!drawingObj || drawingObj->GetType() != static_cast<int32_t>(Object::ObjectType::IMAGE_FILTER)) {
+            return nullptr;
+        }
+        
+        auto imageFilterObj = std::static_pointer_cast<ImageFilterObj>(drawingObj);
+        auto lazyFilter = ImageFilterLazy::CreateFromImageFilterObj(imageFilterObj);
+        if (!lazyFilter) {
+            return nullptr;
+        }
+        // Immediately instantiate, return actual ImageFilter instead of Lazy object
+        return lazyFilter->Materialize();
+    }
+
     const void* ptr = cmdList.GetImageData(imageFilterHandle.offset, imageFilterHandle.size);
     if (ptr == nullptr) {
         return nullptr;
@@ -868,8 +931,7 @@ std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdL
 
     auto imageFilterData = std::make_shared<Data>();
     imageFilterData->BuildWithoutCopy(ptr, imageFilterHandle.size);
-    auto imageFilter = std::make_shared<ImageFilter>
-        (static_cast<ImageFilter::FilterType>(imageFilterHandle.type));
+    auto imageFilter = std::make_shared<ImageFilter>(type);
     if (imageFilter->Deserialize(imageFilterData) == false) {
         LOGD("imageFilter deserialize failed!");
         return nullptr;
@@ -945,6 +1007,16 @@ uint32_t CmdListHelper::AddExtendObjectToCmdList(CmdList& cmdList, std::shared_p
 std::shared_ptr<ExtendObject> CmdListHelper::GetExtendObjectFromCmdList(const CmdList& cmdList, uint32_t index)
 {
     return (const_cast<CmdList&>(cmdList)).GetExtendObject(index);
+}
+
+uint32_t CmdListHelper::AddDrawingObjectToCmdList(CmdList& cmdList, std::shared_ptr<Object> object)
+{
+    return cmdList.AddDrawingObject(object);
+}
+
+std::shared_ptr<Object> CmdListHelper::GetDrawingObjectFromCmdList(const CmdList& cmdList, uint32_t index)
+{
+    return (const_cast<CmdList&>(cmdList)).GetDrawingObject(index);
 }
 } // namespace Drawing
 } // namespace Rosen

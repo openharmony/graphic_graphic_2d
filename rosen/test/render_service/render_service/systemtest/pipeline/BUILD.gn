@@ -39,10 +39,12 @@ ohos_systemtest("RSBaseRenderEngineTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -65,6 +67,7 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "hisysevent:libhisysevent",
@@ -92,6 +95,7 @@ ohos_systemtest("RSRenderServiceTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "hisysevent:libhisysevent",
@@ -172,7 +176,6 @@ ohos_static_library("rs_test_common") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "window_manager:libwm",
-    "window_manager:libwms",
   ]
 
   external_deps = [ "hisysevent:libhisysevent" ]

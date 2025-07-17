@@ -228,6 +228,17 @@ HWTEST_F(RSFrameRatePolicyTest, GetTouchOrPointerAction, TestSize.Level1)
 
     usleep(sendMoveDuration);
     EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_PULL_MOVE));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_BEGIN));
+ 
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_END));
+    
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
+ 
+    EXPECT_FALSE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
+ 
+    usleep(sendMoveDuration);
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
 }
 } // namespace Rosen
 } // namespace OHOS

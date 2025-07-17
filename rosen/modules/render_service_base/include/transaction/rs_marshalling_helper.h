@@ -26,7 +26,6 @@
 #include "common/rs_macros.h"
 
 #include "image/image.h"
-#include "text/hm_symbol.h"
 
 #define RSPARCELVER_ALWAYS 0x100
 #define RSPARCELVER_ADD_ANIMTOKEN 0
@@ -56,6 +55,7 @@ class RSFilter;
 class RSRenderFilter;
 class RSNGRenderFilterBase;
 class RSNGRenderMaskBase;
+class RSNGRenderShaderBase;
 class RSImage;
 class RSImageBase;
 class RSMask;
@@ -191,6 +191,9 @@ public:
     std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
     static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 
+    static RSB_EXPORT bool UnmarshallingPidPlusId(Parcel& parcel, uint64_t& val);
+    static RSB_EXPORT bool UnmarshallingPidPlusIdNoChangeIfZero(Parcel& parcel, uint64_t& val);
+
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                                                   \
     static RSB_EXPORT bool CompatibleMarshalling(Parcel& parcel, const TYPE& val, uint16_t paramVersion); \
@@ -245,6 +248,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderShaderBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)

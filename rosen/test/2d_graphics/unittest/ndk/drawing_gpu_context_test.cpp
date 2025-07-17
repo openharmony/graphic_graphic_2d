@@ -145,6 +145,21 @@ HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_Manager, TestS
 }
 
 /*
+ * @tc.name: NativeDrawingGpuContextTest_Manager2
+ * @tc.desc: test for Manager.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_Manager2, TestSize.Level1)
+{
+    GPUContext* context = new GPUContext();
+    DrawingGpuContextManager::GetInstance().Insert(context, nullptr);
+    bool ret = DrawingGpuContextManager::GetInstance().Remove(context);
+    EXPECT_EQ(ret, true);
+    delete context;
+}
+
+/*
  * @tc.name: NativeDrawingGpuContextTest_GpuContextDestroy
  * @tc.desc: test for GpuContextDestroy.
  * @tc.type: FUNC

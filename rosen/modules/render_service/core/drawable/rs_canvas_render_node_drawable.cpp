@@ -55,7 +55,12 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
-    if (!ShouldPaint()) {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool shouldPaint = ShouldPaint();
+    if (canvas.GetUICapture() && captureParam.endNodeId_ != INVALID_NODEID) {
+        shouldPaint = true;
+    }
+    if (!shouldPaint) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;
     }
@@ -127,7 +132,12 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
-    if (!ShouldPaint()) {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool shouldPaint = ShouldPaint();
+    if (canvas.GetUICapture() && captureParam.endNodeId_ != INVALID_NODEID) {
+        shouldPaint = true;
+    }
+    if (!shouldPaint) {
         return;
     }
     const auto& params = GetRenderParams();
@@ -147,7 +157,9 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
     }
-    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
         captureParam.endNodeId_ == GetId() &&
         captureParam.endNodeId_ != INVALID_NODEID);

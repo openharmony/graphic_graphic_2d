@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,19 +46,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -72,15 +59,21 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-
-} // namespace Mock
-
 void DoRegisterSurfaceOcclusionChangeCallback()
-{}
+{
+    SurfaceOcclusionChangeCallback callback;
+    NodeId id = GetData<NodeId>();
+    std::vector<float> partitionPoints;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
+}
 
 void DoUnRegisterSurfaceOcclusionChangeCallback()
-{}
+{
+    NodeId id = GetData<NodeId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.UnRegisterSurfaceOcclusionChangeCallback(id);
+}
 } // namespace Rosen
 } // namespace OHOS
 

@@ -19,8 +19,6 @@
 #include <condition_variable>
 #include <thread>
 
-#include "event_handler.h"
-
 namespace OHOS::Rosen {
 class ChronoSteadyClock {
 public:
@@ -55,8 +53,6 @@ public:
 private:
     void Loop();
 
-    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-
     std::string name_;
     std::atomic<Interval> interval_;
     const StartCallback startCallback_ = nullptr;
@@ -64,7 +60,7 @@ private:
     std::unique_ptr<ChronoSteadyClock> clock_ = nullptr;
 
     std::atomic<std::chrono::steady_clock::time_point> resetTimePoint_;
-    std::atomic<bool> running_{false};
+    std::atomic<bool> running_{ false };
 };
 } // namespace OHOS::Rosen
 

@@ -24,9 +24,11 @@
 #include "drawing_image.h"
 #include "drawing_image_filter.h"
 #include "drawing_matrix.h"
+#include "drawing_pixel_map.h"
 #include "drawing_point.h"
 #include "drawing_sampling_options.h"
 #include "drawing_shader_effect.h"
+#include "image/pixelmap_native.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +39,9 @@ constexpr size_t BLEND_MODE_ENUN_SIZE = 30;
 constexpr size_t MIP_MAP_MODE_ENUM_SIZE = 3;
 constexpr size_t TILE_MODE_ENUM_SIZE = 4;
 constexpr uint32_t MAX_ARRAY_SIZE = 5000;
+constexpr uint32_t ENUM_RANGE_TWO = 2;
+constexpr uint32_t WIDTH_FACTOR = 4;
+constexpr uint32_t MAX_PIXELMAP_SIZE = 10;
 } // namespace
 
 namespace Drawing {
@@ -374,6 +379,58 @@ void NativeShaderEffectTest007(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffectDestroy(effect);
 }
 
+void NativeShaderEffectTest008(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    size_t width = GetObject<size_t>() % MAX_PIXELMAP_SIZE;
+    size_t height = GetObject<size_t>() % MAX_PIXELMAP_SIZE;
+    OH_PixelmapInitializationOptions_Create(&options);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, WIDTH_FACTOR);
+    OH_PixelmapInitializationOptions_SetAlphaType(options, ENUM_RANGE_TWO);
+    size_t dataLength = width * height * WIDTH_FACTOR;
+    uint8_t* colorData = new uint8_t[dataLength];
+    for (size_t i = 0; i < width * height; i++) {
+        colorData[i] = GetObject<uint8_t>();
+    }
+    OH_PixelmapNative_CreatePixelmap(colorData, dataLength, options, &pixelMap);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    uint32_t filterMode = GetObject<uint32_t>();
+    uint32_t mipmapMode = GetObject<uint32_t>();
+    OH_Drawing_SamplingOptions* samplingOptions = OH_Drawing_SamplingOptionsCreate(
+        static_cast<OH_Drawing_FilterMode>(filterMode % FILTER_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_MipmapMode>(mipmapMode % MIP_MAP_MODE_ENUM_SIZE));
+    OH_Drawing_ShaderEffect* shaderEffectOne = OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap,
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
+    OH_Drawing_ShaderEffect* shaderEffectTwo = OH_Drawing_ShaderEffectCreatePixelMapShader(nullptr,
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
+    OH_Drawing_ShaderEffect* shaderEffectThree = OH_Drawing_ShaderEffectCreatePixelMapShader(drPixelMap,
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE), samplingOptions, nullptr);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectOne);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectTwo);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectThree);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -387,5 +444,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeShaderEffectTest003(data, size);
     OHOS::Rosen::Drawing::NativeShaderEffectTest004(data, size);
     OHOS::Rosen::Drawing::NativeShaderEffectTest005(data, size);
+    OHOS::Rosen::Drawing::NativeShaderEffectTest008(data, size);
     return 0;
 }

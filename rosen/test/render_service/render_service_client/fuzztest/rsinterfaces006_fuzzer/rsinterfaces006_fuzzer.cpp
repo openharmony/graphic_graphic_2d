@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,9 @@ const uint8_t TARGET_SIZE = 10;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr uint8_t SCREEN_COLOR_GAMUT_SIZE = 12;
+constexpr uint8_t SCREEN_HDR_MATES_DATA_KEYS_SIZE = 12;
+constexpr uint8_t SCREEN_GAMUT_MAP_SIZE = 4;
 
 template<class T>
 T GetData()
@@ -50,19 +53,6 @@ T GetData()
     if (ret != EOK) {
         return {};
     }
-    g_pos += objectSize;
-    return object;
-}
-
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
     g_pos += objectSize;
     return object;
 }
@@ -85,34 +75,92 @@ namespace Mock {
 } // namespace Mock
 
 void DoGetScreenActiveMode()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenActiveMode(id);
+#endif
+}
 
 void DoGetScreenSupportedModes()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenSupportedModes(id);
+#endif
+}
 
 void DoGetScreenCapability()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenCapability(id);
+#endif
+}
 
 void DoGetScreenPowerStatus()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenPowerStatus(id);
+#endif
+}
 
 void DoGetScreenBacklight()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenBacklight(id);
+#endif
+}
 
 void DoGetScreenData()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenData(id);
+#endif
+}
 
 void DoGetScreenSupportedColorGamuts()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenColorGamut type = static_cast<ScreenColorGamut>(GetData<uint8_t>() % SCREEN_COLOR_GAMUT_SIZE);
+    std::vector<ScreenColorGamut> mode = { type };
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenSupportedColorGamuts(id, mode);
+}
 
 void DoGetScreenSupportedMetaDataKeys()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenHDRMetadataKey type = static_cast<ScreenHDRMetadataKey>(GetData<uint8_t>() % SCREEN_HDR_MATES_DATA_KEYS_SIZE);
+    std::vector<ScreenHDRMetadataKey> keys = { type };
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenSupportedMetaDataKeys(id, keys);
+}
 
 void DoGetScreenColorGamut()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenColorGamut mode = static_cast<ScreenColorGamut>(GetData<uint8_t>() % SCREEN_COLOR_GAMUT_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenColorGamut(id, mode);
+}
 
 void DoGetScreenGamutMap()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenColorGamut mode = static_cast<ScreenColorGamut>(GetData<uint8_t>() % SCREEN_GAMUT_MAP_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenGamutMap(id, mode);
+}
 } // namespace Rosen
 } // namespace OHOS
 

@@ -120,12 +120,16 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
     auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
-    if (LIKELY(!rscanvas.IsOnMultipleScreen() && rscanvas.GetHdrOn() && RSSystemProperties::GetHdrImageEnabled())) {
-        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_, rscanvas.GetHDRBrightness());
+    auto shotType = rscanvas.GetScreenshotType();
+    bool isSDRCapture = shotType == RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT ||
+        shotType == RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
+    if (LIKELY(!rscanvas.IsOnMultipleScreen() && !isSDRCapture && rscanvas.GetHdrOn() &&
+        RSSystemProperties::GetHdrImageEnabled())) {
+        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
+            rscanvas.GetScreenId(), dynamicRangeMode_, rscanvas.GetHDRProperties());
     } else {
-        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD, rscanvas.GetHDRBrightness());
+        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
+            rscanvas.GetScreenId(), DynamicRangeMode::STANDARD, rscanvas.GetHDRProperties());
     }
     canvas.AttachPaint(paint_);
     // Avoid cross-thread destruction
@@ -149,6 +153,9 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
+    if (pixelMap_ && image_) {
+        image_->SetSupportOpaqueOpt(pixelMap_->GetSupportOpaqueOpt());
+    }
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);
@@ -174,7 +181,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                                  isFitMatrixValid_ ;
         Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
         }
         rectForDrawShader_ = dst_;
         if (isFitMatrixValid_) {
@@ -334,10 +341,9 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
     }
     constexpr float horizontalAlignmentFactor = 2.f;
     constexpr float verticalAlignmentFactor = 2.f;
-    tempRectF.SetAll(std::floor((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor),
-                     std::floor((imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor),
-                     std::ceil(imageParameter.dstW),
-                     std::ceil(imageParameter.dstH));
+    tempRectF.SetAll((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor,
+                     (imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor,
+                     imageParameter.dstW, imageParameter.dstH);
     return tempRectF;
 }
 
@@ -525,7 +531,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
 
             if (isAstc) {
-                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
             }
             rectForDrawShader_ = dst_;
             if (isOrientationValid_) {
@@ -544,6 +550,9 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
+    if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
+        return;
+    }
     float left = frameRect_.left_;
     float right = frameRect_.GetRight();
     float top = frameRect_.top_;
@@ -705,11 +714,10 @@ void RSImage::SetDynamicRangeMode(uint32_t dynamicRangeMode)
 #ifdef ROSEN_OHOS
 static bool UnmarshallingIdAndSize(Parcel& parcel, uint64_t& uniqueId, int& width, int& height)
 {
-    if (!RSMarshallingHelper::Unmarshalling(parcel, uniqueId)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, uniqueId)) {
         RS_LOGE("RSImage::Unmarshalling uniqueId fail");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, uniqueId);
     if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
         RS_LOGE("RSImage::Unmarshalling width fail");
         return false;
@@ -836,11 +844,10 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
         RS_LOGE("RSImage::Unmarshalling UnmarshallingIdAndSize fail");
         return false;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeId)) {
+    if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, nodeId)) {
         RS_LOGE("RSImage::Unmarshalling nodeId fail");
         return false;
     }
-    RS_PROFILER_PATCH_NODE_ID(parcel, nodeId);
     return true;
 }
 

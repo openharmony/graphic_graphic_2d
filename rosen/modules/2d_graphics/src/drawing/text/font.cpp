@@ -15,14 +15,26 @@
 
 #include "text/font.h"
 
+#include "modules/skunicode/include/SkUnicode.h"
+
 #include "impl_factory.h"
 #include "impl_interface/font_impl.h"
 #include "text/font_mgr.h"
 #include "utils/log.h"
+#include "font_harfbuzz.h"
+
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+constexpr const char* LANGUAGE_HAN = "zh-Hans";
+constexpr size_t COUNT_REQUESTED = 32;
+#ifdef USE_M133_SKIA
+using SkFeaturesArray = skia_private::STArray<COUNT_REQUESTED, hb_feature_t>;
+#else
+using SkFeaturesArray = SkSTArray<COUNT_REQUESTED, hb_feature_t>;
+#endif
+
 Font::Font() : fontImpl_(ImplFactory::CreateFontImpl()) {}
 
 Font::Font(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX)
@@ -170,6 +182,79 @@ uint16_t Font::UnicharToGlyph(int32_t uni) const
     return fontImpl_->UnicharToGlyph(uni);
 }
 
+void ValidateAndCopyFontFeaturesToHbFeatures(const Drawing::DrawingFontFeatures& fontFeatures,
+    SkFeaturesArray& hbFeatures)
+{
+    for (const auto& featureMap : fontFeatures) {
+        for (const auto& [key, value] : featureMap) {
+            if (key.size() != 4) { // 4 OpenType font feature name is fixed to be 4 chars.
+                LOGW("Invalid feature name. font feature name has to be 4 chars");
+                continue;
+            }
+            SkFourByteTag tag = SkSetFourByteTag(key[0], key[1], key[2], key[3]);
+            hbFeatures.push_back({(hb_tag_t)tag, (uint32_t)value, HB_FEATURE_GLOBAL_START, HB_FEATURE_GLOBAL_END});
+        }
+    }
+}
+
+uint16_t Font::UnicharToGlyphWithFeatures(const char* uni,
+    std::shared_ptr<Drawing::DrawingFontFeatures> fontFeatures) const
+{
+    if (fontFeatures == nullptr) {
+        LOGE("font features is null, return glyphId as 0");
+        return 0;
+    }
+
+    const size_t utf8Bytes = strlen(uni);
+    const char* utf8Start = uni;
+    const char* utf8End = utf8Start + utf8Bytes;
+
+    FontHarfbuzz::HBBuffer buffer(hb_buffer_create());
+    hb_buffer_t *buffer1 = buffer.get();
+    SkAutoTCallVProc<hb_buffer_t, hb_buffer_clear_contents> autoClearBuffer(buffer1);
+    hb_buffer_set_content_type(buffer1, HB_BUFFER_CONTENT_TYPE_UNICODE);
+    hb_buffer_set_cluster_level(buffer1, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
+    hb_buffer_add_utf8(buffer1, uni, 0, utf8Bytes, 0);
+
+    const char* utf8Current = utf8Start;
+    while (utf8Current < utf8End) {
+        uint32_t cluster = utf8Current - uni;
+        SkUnichar val = SkUTF::NextUTF8(&utf8Current, utf8End);
+        hb_codepoint_t u = val < 0 ? 0XFFDD : static_cast<hb_codepoint_t>(val);
+        hb_buffer_add(buffer1, u, cluster);
+    }
+
+    const hb_language_t language = hb_language_from_string(LANGUAGE_HAN, -1);
+    hb_buffer_set_language(buffer1, language);
+    hb_buffer_guess_segment_properties(buffer1);
+
+    FontHarfbuzz::HBFont hbFont;
+    {
+        std::shared_ptr<Typeface> typeface = GetTypeface();
+        if (!typeface) {
+            LOGW("typeface is null, return glyphId as 0");
+            return 0;
+        }
+        FontHarfbuzz::HBFont typefaceFont(FontHarfbuzz::CreateTypefaceHbFont(*typeface));
+        hbFont = FontHarfbuzz::CreateSubHbFont(*this, typefaceFont);
+    }
+
+    SkFeaturesArray hbFeatures;
+    ValidateAndCopyFontFeaturesToHbFeatures(*fontFeatures, hbFeatures);
+    hb_shape(hbFont.get(), buffer1, hbFeatures.data(), hbFeatures.size());
+    if (hb_buffer_get_length(buffer1) == 0) {
+        LOGW("buffer is empty, return glyphId as 0");
+        return 0;
+    }
+
+    hb_glyph_info_t* info = hb_buffer_get_glyph_infos(buffer1, nullptr);
+    if (info == nullptr) {
+        LOGW("glyph info generate failed, return glyphId as 0");
+        return 0;
+    }
+    return info[0].codepoint;
+}
+
 int Font::TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
     uint16_t glyphs[], int maxGlyphCount) const
 {
@@ -221,6 +306,23 @@ scalar Font::MeasureSingleCharacter(int32_t unicode) const
         std::shared_ptr<Font> fallbackFont = GetFallbackFont(unicode);
         if (fallbackFont) {
             uint16_t fallbackGlyph = fallbackFont->UnicharToGlyph(unicode);
+            textWidth = fallbackFont->MeasureText(&fallbackGlyph, sizeof(uint16_t), TextEncoding::GLYPH_ID);
+        }
+    }
+    return textWidth;
+}
+
+scalar Font::MeasureSingleCharacterWithFeatures(const char* unicode, int32_t unicodeId,
+    std::shared_ptr<Drawing::DrawingFontFeatures> fontFeatures) const
+{
+    scalar textWidth = 0.0f;
+    uint16_t glyph = UnicharToGlyphWithFeatures(unicode, fontFeatures);
+    if (glyph != 0) {
+        textWidth = MeasureText(&glyph, sizeof(uint16_t), TextEncoding::GLYPH_ID);
+    } else {
+        std::shared_ptr<Font> fallbackFont = GetFallbackFont(unicodeId);
+        if (fallbackFont) {
+            uint16_t fallbackGlyph = fallbackFont->UnicharToGlyphWithFeatures(unicode, fontFeatures);
             textWidth = fallbackFont->MeasureText(&fallbackGlyph, sizeof(uint16_t), TextEncoding::GLYPH_ID);
         }
     }

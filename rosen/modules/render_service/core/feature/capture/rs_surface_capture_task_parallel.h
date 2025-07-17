@@ -22,7 +22,6 @@
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pixel_map.h"
 #include "system/rs_system_parameters.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,8 +34,6 @@ public:
     std::shared_ptr<Drawing::Surface> GetSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer,
         std::shared_ptr<Drawing::GPUContext> gpuContext);
     void ReleaseDmaMemory();
-    sptr<SurfaceBuffer> GetSurfaceBuffer(Drawing::ImageInfo& dstInfo, const std::unique_ptr<Media::PixelMap>& pixelMap,
-        const RSSurfaceCaptureConfig& captureConfig);
 private:
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
 };
@@ -44,67 +41,74 @@ private:
 
 class RSSurfaceCaptureTaskParallel {
 public:
-    explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap): nodeId_(nodeId), captureConfig_(captureConfig),
-        rsCapturePixelMap_(rsCapturePixelMap) {}
+    explicit RSSurfaceCaptureTaskParallel(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig)
+        : nodeId_(nodeId), captureConfig_(captureConfig) {}
     ~RSSurfaceCaptureTaskParallel() = default;
 
     // Confirm whether the node is occlusive which should apply modifiers
     static void CheckModifiers(NodeId id, bool useCurWindow);
     // Do capture pipeline task
-    static void Capture(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam,
-        std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap);
+    static void Capture(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
 
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0);
+    static std::function<void()> CreateSurfaceSyncCopyTaskWithDoublePixelMap(
+        std::shared_ptr<Drawing::Surface> surface, std::unique_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Drawing::Surface> surfaceHDR, std::unique_ptr<Media::PixelMap> pixelMapHDR, NodeId id,
+        const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback, int32_t rotation);
+    static bool PixelMapCopy(std::unique_ptr<Media::PixelMap>& pixelmap,
+        std::shared_ptr<Drawing::ColorSpace> colorSpace, const Drawing::BackendTexture& backendTexture,
+        Drawing::ColorType colorType, bool useDma, int32_t rotation);
 #endif
 
     bool CreateResources();
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
-    std::shared_ptr<RSSurfaceRenderNode> GetCaptureSurfaceNode(const std::shared_ptr<RSRenderNode>& node);
+    bool RunHDR(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
+    bool DrawHDRSurfaceContent(std::shared_ptr<Drawing::Surface> surface, bool isOnHDR);
+    bool UseScreenShotWithHDR() const
+    {
+        return useScreenShotWithHDR_;
+    }
+
+    void SetUseScreenShotWithHDR(bool enableHdrCapture)
+    {
+        useScreenShotWithHDR_ = enableHdrCapture && displayNodeDrawable_ && pixelMapHDR_;
+    }
 
     static void ClearCacheImageByFreeze(NodeId id);
 
 private:
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 
-    std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node);
+    std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
+        bool isHDRCapture = false);
 
-    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSLogicalDisplayRenderNode> node,
+        bool isHDRCapture = false);
     
     bool CreateResourcesForClientPixelMap(const std::shared_ptr<RSRenderNode>& node);
 
     void AddBlur(RSPaintFilterCanvas& canvas, const std::shared_ptr<Drawing::Surface>& surface, float blurRadius);
 
     void SetupGpuContext();
-    void SetSurfaceCaptureColorSpace(const std::shared_ptr<RSSurfaceRenderNode>& node,
-        const std::unique_ptr<Media::PixelMap>& pixelMap);
+
     int32_t CalPixelMapRotation();
 
+    std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
+    std::unique_ptr<Media::PixelMap> pixelMapHDR_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable_ = nullptr;
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode_ = nullptr;
     NodeId nodeId_;
+    ScreenId screenId_ = INVALID_SCREEN_ID;
+    bool useScreenShotWithHDR_ = false;
     RSSurfaceCaptureConfig captureConfig_;
-    std::shared_ptr<RSCapturePixelMap> rsCapturePixelMap_;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     int32_t finalRotationAngle_ = RS_ROTATION_0;
-    std::shared_ptr<Drawing::ColorSpace> colorSpace_ = nullptr;
-    bool inline IsCaptureSurfaceShouldPaint(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
-    {
-        if (!surfaceNode->ShouldPaint()) {
-            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode should not paint!");
-            return false;
-        }
-        if (surfaceNode->GetSortedChildren()->size() == 0) {
-            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
-        }
-        return true;
-    }
     // only used for RSUniRenderThread
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
 };

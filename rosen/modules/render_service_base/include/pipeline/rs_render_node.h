@@ -92,7 +92,6 @@ public:
     {
         return Type;
     }
-
     explicit RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     explicit RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
@@ -206,11 +205,12 @@ public:
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID);
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
+        NodeId logicalDisplayNodeId = INVALID_NODEID);
     void SetIsOntheTreeOnlyFlag(bool flag)
     {
         SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
-            uifirstRootNodeId_, displayNodeId_);
+            uifirstRootNodeId_, screenNodeId_, logicalDisplayNodeId_);
     }
     inline bool IsOnTheTree() const
     {
@@ -257,7 +257,7 @@ public:
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
     std::list<WeakPtr> GetChildrenList() const;
 
-    void DumpTree(int32_t depth, std::string& ou) const;
+    void DumpTree(int32_t depth, std::string& ou, bool dumpSingleNode = false) const;
     void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
@@ -444,8 +444,9 @@ public:
     void CleanDirtyRegionUpdated();
     
     std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
-    void AddProperty(std::shared_ptr<RSRenderPropertyBase> property);
-    void RemoveProperty(std::shared_ptr<RSRenderPropertyBase> property);
+    void RegisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property);
+    void UnregisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property);
+    void UnregisterProperty(PropertyId id);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
@@ -641,7 +642,7 @@ public:
 #endif
     bool IsFilterCacheValid() const;
     bool IsAIBarFilter() const;
-    bool IsAIBarFilterCacheValid() const;
+    bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const;
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 
@@ -670,13 +671,6 @@ public:
     bool IsCrossNode() const;
 
     std::string QuickGetNodeDebugInfo();
-
-    // mark support node
-    void OpincUpdateNodeSupportFlag(bool supportFlag, bool isOpincRootNode);
-    virtual bool OpincGetNodeSupportFlag()
-    {
-        return false;
-    }
 
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
@@ -731,6 +725,8 @@ public:
     {
         isTextureExportNode_ = isTextureExportNode;
     }
+
+    bool HasHpaeBackgroundFilter() const;
 
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
@@ -896,13 +892,18 @@ public:
         return isAccessibilityConfigChanged_;
     }
 
-    NodeId GetDisplayNodeId() const
-    {
-        return displayNodeId_;
-    }
-
     // recursive update subSurfaceCnt
     void UpdateSubSurfaceCnt(int updateCnt);
+
+    NodeId GetScreenNodeId() const
+    {
+        return screenNodeId_;
+    }
+
+    NodeId GetLogicalDisplayNodeId() const
+    {
+        return logicalDisplayNodeId_;
+    }
 
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
@@ -938,7 +939,19 @@ public:
         return opincCache_;
     }
 
+    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    {
+        hasVirtualScreenWhiteList_[screenId] |= hasWhiteListNode;
+    }
+
+    void UpdateVirtualScreenWhiteListInfo();
+
     bool IsForegroundFilterEnable();
+    void ResetPixelStretchSlot();
+    bool CanFuzePixelStretch();
+
+    void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
+    bool GetNeedUseCmdlistDrawRegion();
 
 protected:
     void ResetDirtyStatus();
@@ -1140,7 +1153,8 @@ private:
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
-    NodeId displayNodeId_ = INVALID_NODEID;
+    NodeId screenNodeId_ = INVALID_NODEID;
+    NodeId logicalDisplayNodeId_ = INVALID_NODEID;
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
     // bounds and frame modifiers must be unique
     std::shared_ptr<RSRenderModifier> boundsModifier_;
@@ -1175,6 +1189,10 @@ private:
     RectI absDrawRect_;
     RectF absDrawRectF_;
     RectI oldAbsDrawRect_;
+    // map parentMatrix by cmdlist draw region
+    RectI absCmdlistDrawRect_;
+    RectF absCmdlistDrawRectF_;
+    RectI oldAbsCmdlistDrawRect_;
     // round in by absDrawRectF_ or selfDrawingNodeAbsDirtyRectF_, and apply the clip of parent component
     RectI innerAbsDrawRect_;
     RectI oldDirty_;
@@ -1234,6 +1252,8 @@ private:
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
 
+    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+
     RSProperties renderProperties_;
     DrawCmdContainer drawCmdModifiers_;
 
@@ -1246,6 +1266,9 @@ private:
     int GetBlurEffectDrawbleCount();
 
     bool enableHdrEffect_ = false;
+
+    bool needUseCmdlistDrawRegion_ = false;
+    RectF cmdlistDrawRegion_;
 
     void SetParent(WeakPtr parent);
     void ResetParent();
@@ -1291,6 +1314,8 @@ private:
     void ChildrenListDump(std::string& out) const;
 
     void ResetAndApplyModifiers();
+
+    void CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier);
 
     friend class DrawFuncOpItem;
     friend class RSContext;

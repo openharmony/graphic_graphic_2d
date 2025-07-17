@@ -308,7 +308,7 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
     return objValue;
 }
 
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace)
 {
     switch (colorSpace) {
@@ -474,6 +474,38 @@ std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font)
         return nullptr;
     }
     return fontMgr;
+}
+
+void MakeFontFeaturesFromJsArray(napi_env env, std::shared_ptr<DrawingFontFeatures> features,
+    uint32_t size, napi_value& array)
+{
+    features->clear();
+
+    for (uint32_t i = 0; i < size; ++i) {
+        napi_value tempNumber = nullptr;
+        napi_status status = napi_get_element(env, array, i, &tempNumber);
+        if (status != napi_ok || tempNumber == nullptr) {
+            continue;
+        }
+        std::string name;
+        napi_value tempValue = nullptr;
+        status = napi_get_named_property(env, tempNumber, "name", &tempValue);
+        if (status != napi_ok || tempValue == nullptr) {
+            continue;
+        }
+        if (!ConvertFromJsValue(env, tempValue, name)) {
+            continue;
+        }
+        double value = 0.0;
+        status = napi_get_named_property(env, tempNumber, "value", &tempValue);
+        if (status != napi_ok || tempValue == nullptr) {
+            continue;
+        }
+        if (!ConvertFromJsValue(env, tempValue, value)) {
+            continue;
+        }
+        features->push_back({{name, value}});
+    }
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

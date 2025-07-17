@@ -36,6 +36,8 @@ namespace Rosen {
         hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
         auto maskHash = mask_->Hash();
         hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+        hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+        hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
     }
 
     std::shared_ptr<RSRenderFilterParaBase> RSRenderDispDistortFilterPara::DeepCopy() const
@@ -92,7 +94,7 @@ namespace Rosen {
     {
         ROSEN_LOGD("RSRenderDispDistortFilterPara::ReadFromParcel %{public}d %{public}d %{public}d",
             static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
-        if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
+        if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, id_) ||
             !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
             !RSMarshallingHelper::Unmarshalling(parcel, modifierType_)) {
             return false;
@@ -192,8 +194,8 @@ namespace Rosen {
         if (!mask_) {
             return;
         }
-        auto distortFilter =
-            std::make_shared<Drawing::GEVisualEffect>("DISPLACEMENT_DISTORT", Drawing::DrawingPaintType::BRUSH);
+        auto distortFilter = std::make_shared<Drawing::GEVisualEffect>(
+            "DispDistort", Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
         distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_FACTOR, std::make_pair(factor_[0], factor_[1]));
         distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_MASK, mask_->GenerateGEShaderMask());
         visualEffectContainer->AddToChainedFilter(distortFilter);

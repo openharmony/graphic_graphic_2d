@@ -248,5 +248,9 @@ HWTEST_F(RSUIFilterTest, GetHdrEffectEnable001, TestSize.Level1)
     auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
     rsUIFilter->paras_[RSUIFilterType::BLUR] = rsUIFilterParaBase;
     EXPECT_FALSE(rsUIFilter->GetHdrEffectEnable());
+
+    rsUIFilterParaBase->enableHdrEffect_ = true;
+    rsUIFilterParaBase->stagingEnableHdrEffect_ = true;
+    EXPECT_TRUE(rsUIFilter->GetHdrEffectEnable());
 }
 } // namespace OHOS::Rosen

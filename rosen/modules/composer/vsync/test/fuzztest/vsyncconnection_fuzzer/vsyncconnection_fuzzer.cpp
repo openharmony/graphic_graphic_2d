@@ -20,6 +20,7 @@
 #include "vsync_distributor.h"
 #include "vsync_generator.h"
 #include "vsync_controller.h"
+#include "vsync_connection_stub.h"
 
 namespace OHOS {
     namespace {
@@ -64,6 +65,8 @@ namespace OHOS {
         int64_t offset = GetData<int64_t>();
         int32_t rate = GetData<int32_t>();
         int64_t now = GetData<int64_t>();
+        bool delayEnable = GetData<bool>();
+        bool nativeDelayEnable = GetData<bool>();
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -86,11 +89,12 @@ namespace OHOS {
         bool vsyncSwitch = GetData<bool>();
         vsyncConnection->SetUiDvsyncSwitch(vsyncSwitch);
         int32_t bufferCount = GetData<int32_t>();
-        vsyncConnection->SetUiDvsyncConfig(bufferCount);
+        vsyncConnection->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
         MessageParcel arguments;
         MessageParcel reply;
         MessageOption option;
-        uint32_t code = GetData<uint32_t>();
+        uint32_t code = GetData<uint32_t>() %
+            (static_cast<uint32_t>(Rosen::IVSyncConnection::IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH) + 1);
         vsyncConnection->OnRemoteRequest(code, arguments, reply, option);
         arguments.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
         for (uint32_t i = 0; i < FUNC_NUM; ++i) {

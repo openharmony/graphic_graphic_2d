@@ -21,35 +21,35 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <fuzzer/FuzzedDataProvider.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 #include <unistd.h>
 #include <unordered_map>
 
-#include "accesstoken_kit.h"
-#ifdef SUPPORT_ACCESS_TOKEN
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
-#endif
-#include "ipc_object_proxy.h"
-#include "ipc_object_stub.h"
-#include "iremote_object.h"
 #include "message_parcel.h"
 #include "securec.h"
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
-#endif
-#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
-#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
-#include "platform/ohos/rs_render_service_connect_hub.cpp"
-#include "screen_manager/rs_screen_manager.h"
-#include "transaction/rs_render_service_client.h"
+#include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
+auto g_pid = getpid();
+auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+auto mainThread_ = RSMainThread::Instance();
+sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+
+DVSyncFeatureParam dvsyncParam;
+auto generator = CreateVSyncGenerator();
+auto appVSyncController = new VSyncController(generator, 0);
+sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
+sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+
 namespace {
 const uint8_t DO_SET_POINTER_COLOR_INVERSION_CONFIG = 1;
 const uint8_t DO_SET_POINTER_COLOR_INVERSION_ENABLED = 2;
@@ -120,16 +120,78 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 } // namespace Mock
 
 void DoSetPointerColorInversionConfig()
-{}
+{
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    MessageParcel dataParcel;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    float darkBuffer = GetData<float>();
+    float brightBuffer = GetData<float>();
+    int64_t interval = GetData<int64_t>();
+    int32_t rangeSize = GetData<int64_t>();
+    dataParcel.WriteFloat(darkBuffer);
+    dataParcel.WriteFloat(brightBuffer);
+    dataParcel.WriteInt64(interval);
+    dataParcel.WriteInt32(rangeSize);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG);
+    connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+#endif
+}
 
 void DoSetPointerColorInversionEnabled()
-{}
+{
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    MessageParcel dataParcel;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    bool enable = GetData<bool>();
+    dataParcel.WriteBool(enable);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED);
+    connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+#endif
+}
 
 void DoRegisterPointerLuminanceChangeCallback()
-{}
+{
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIPointerLuminanceChangeCallback> rsIPointerLuminanceChangeCallback_ =
+        iface_cast<RSIPointerLuminanceChangeCallback>(remoteObject);
+    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    dataParcel.WriteRemoteObject(rsIPointerLuminanceChangeCallback_->AsObject());
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+#endif
+}
 
 void DoUnRegisterPointerLuminanceChangeCallback()
-{}
+{
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
+
+    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS
 

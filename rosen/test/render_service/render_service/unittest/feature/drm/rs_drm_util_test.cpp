@@ -70,11 +70,12 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest002, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
     NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(displayNode, nullptr);
-    node->SetAncestorDisplayNode(displayNode);
-    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+    node->SetAncestorScreenNode(screenNode);
+    ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
     RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
 }
 
@@ -83,7 +84,7 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest002, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvCondition: N/A
- * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,displaynode and output
+ * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,screennode and output
  *                  2. operation: PreAllocateProtectedBuffer
  *                  3. result: surfaceHandler is not nullptr, node has ancestor
  */
@@ -95,15 +96,14 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest003, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     screenManager->MockHdiScreenConnected(rsScreen);
 
-    RSDisplayNodeConfig config;
     auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(0, config, rsContext->weak_from_this());
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->screenId_ = screenId;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, screenId, rsContext->weak_from_this());
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->screenId_ = screenId;
 
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    node->SetAncestorDisplayNode(displayNode);
-    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
+    node->SetAncestorScreenNode(screenNode);
+    ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
     RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
 }
 
@@ -112,7 +112,7 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest003, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvCondition: N/A
- * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,displaynode and output
+ * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer, screenNode and output
  *                  2. operation: PreAllocateProtectedBuffer
  *                  3. result: output, surfaceHandler is not nullptr, node has ancestor
  */
@@ -126,15 +126,13 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest004, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     screenManager->MockHdiScreenConnected(rsScreen);
 
-    RSDisplayNodeConfig config;
-    config.screenId = screenId;
     auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(1, config, rsContext->weak_from_this());
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->screenId_ = screenId;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, screenId, rsContext->weak_from_this());
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->screenId_ = screenId;
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    node->SetAncestorDisplayNode(displayNode);
-    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
+    node->SetAncestorScreenNode(screenNode);
+    ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
     RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
 }
 
@@ -143,7 +141,7 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest004, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvCondition: N/A
- * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,displaynode and output
+ * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer, screenNode and output
  *                  2. operation: PreAllocateProtectedBuffer
  *                  3. result: output, node has ancestor, surfaceHandler getbuffer is nullptr,
  */
@@ -157,15 +155,13 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest005, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     screenManager->MockHdiScreenConnected(rsScreen);
 
-    RSDisplayNodeConfig config;
-    config.screenId = screenId;
     auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(1, config, rsContext->weak_from_this());
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->screenId_ = screenId;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, screenId, rsContext->weak_from_this());
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->screenId_ = screenId;
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    node->SetAncestorDisplayNode(displayNode);
-    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
+    node->SetAncestorScreenNode(screenNode);
+    ASSERT_EQ(node->GetAncestorScreenNode().lock(), screenNode);
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(2);
     surfaceHandler->buffer_.buffer = nullptr;
     RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());

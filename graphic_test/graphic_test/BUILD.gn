@@ -65,29 +65,42 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_transform_test.cpp",
   "rs_display_effect/property_display/geom_translation_test.cpp",
 ]
-rs_effect_feature_sources = [ "rs_effect_feature/effect_background_blur_test.cpp" ]
+rs_effect_feature_sources = [
+  "rs_effect_feature/effect_background_blur_test.cpp",
+  "rs_effect_feature/effect_linear_gradient_blur_test.cpp",
+  "rs_effect_feature/effect_magnifier_test.cpp",
+  "rs_effect_feature/effect_pixel_stretch_test.cpp",
+  "rs_effect_feature/effect_appearance_spherize_test.cpp",
+  "rs_effect_feature/effect_content_effectnode_test.cpp",
+  "rs_effect_feature/effect_background_blender_test.cpp",
+  "rs_effect_feature/effect_background_effect_test.cpp",
+  "rs_effect_feature/effect_fg_dynamiclightup_test.cpp",
+  "rs_effect_feature/ui_filter_test/ui_filter_test.cpp",
+  "rs_effect_feature/ui_filter_test/ui_filter_test_data_manager.cpp",
+  "rs_effect_feature/ui_filter_test/ui_filter_test_factory.cpp",
+]
 rs_framework_sources = []
 rs_func_feature_sources = [
   "rs_func_feature/component_capture/demo.cpp",
-  "rs_func_feature/screen_capture/display_node_capture_test.cpp",
   "rs_func_feature/color_space_and_hdr/color_space_test.cpp",
+  "rs_func_feature/multi_screen/logical_display_node_test.cpp",
+  "rs_func_feature/multi_screen/multi_screen_test.cpp",
+  "rs_func_feature/screen_capture/display_node_capture_test.cpp",
   "rs_func_feature/special_layer/security_layer_test.cpp",
   "rs_func_feature/special_layer/skip_layer_test.cpp",
   "rs_func_feature/special_layer/snapshot_skip_layer_test.cpp",
+  "rs_func_feature/accessibility/curtain_screen_test.cpp",
 ]
 rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_history_test.cpp",
-]
-rs_perform_ohr_sources = [
-  "rs_perform_ohr/playback_recover_test.cpp",
+  "rs_perform_feature/dirty_region/update_self_draw_rect_test.cpp",
 ]
 
 group("test") {
   testonly = true
   deps = [
     ":RSGraphicTest",
-    ":RSPerformanceTest",
   ]
 }
 
@@ -110,42 +123,15 @@ ohos_unittest("RSGraphicTest") {
 
   defines = []
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "init:libbegetutil",
-  ]
-
-  defines += gpu_defines
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-    "-Dprivate=public",
-    "-Dprotected=public",
-  ]
-
-  subsystem_name = "graphic"
-  part_name = "graphic_2d"
-}
-
-## Build RSPerformanceTest
-ohos_unittest("RSPerformanceTest") {
-  module_out_path = module_output_path
-  sources = []
-  sources += rs_perform_ohr_sources
-
-  deps = [
-    "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
-  ]
-
-  defines = []
-  external_deps = [
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-    "init:libbegetutil",
+    "selinux_adapter:librestorecon",
   ]
 
   defines += gpu_defines

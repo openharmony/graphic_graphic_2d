@@ -24,7 +24,7 @@ public:
     RotateOffScreenParam() = default;
     ~RotateOffScreenParam() = default;
 
-    static bool GetRotateOffScreenDisplayNodeEnable();
+    static bool GetRotateOffScreenScreenNodeEnable();
     static bool GetRotateOffScreenSurfaceNodeEnable();
     static bool GetRotateOffScreenDowngradeEnable();
 

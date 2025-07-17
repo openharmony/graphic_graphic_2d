@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <parameters.h>
 
 #include "command/rs_animation_command.h"
 #include "command/rs_command.h"
@@ -51,6 +52,69 @@ void RSTransactionHandlerTest::SetUpTestCase() {}
 void RSTransactionHandlerTest::TearDownTestCase() {}
 void RSTransactionHandlerTest::SetUp() {}
 void RSTransactionHandlerTest::TearDown() {}
+
+/**
+ * @tc.name: FlushImplicitTransactionHybridRender001
+ * @tc.desc: test func FlushImplicitTransaction when callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    auto hybridrenderEnable = system::GetParameter("const.graphics.hybridrenderenable", "0");
+    system::SetParameter("const.graphics.hybridrenderenable", "0");
+    transaction->FlushImplicitTransaction(timestamp);
+    system::SetParameter("const.graphics.hybridrenderenable", hybridrenderEnable);
+}
+
+/**
+ * @tc.name: FlushImplicitTransactionHybridRender002
+ * @tc.desc: test func FlushImplicitTransaction when callback is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender002, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    auto renderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(renderThreadClient, nullptr);
+    transaction->SetRenderThreadClient(renderThreadClient);
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    CommitTransactionCallback callback =
+        [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {};
+    RSTransactionHandler::SetCommitTransactionCallback(callback);
+    transaction->FlushImplicitTransaction(timestamp);
+}
+
+/**
+ * @tc.name: FlushImplicitTransactionHybridRender003
+ * @tc.desc: test func FlushImplicitTransaction when renderServiceClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICII2M
+ */
+HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender003, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_NE(transaction, nullptr);
+    uint64_t timestamp = 1;
+    NodeId nodeId = 1;
+    transaction->renderServiceClient_ = nullptr;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    transaction->FlushImplicitTransaction(timestamp);
+}
 
 /**
  * @tc.name: SetRenderThreadClient001

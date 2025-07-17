@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -184,7 +184,7 @@ protected:
 
 class PerformanceCanvasQuickRejectPath : public TestBase {
 public:
-    explicit PerformanceCanvasQuickRejectPath(int type) : TestBase(type)
+    PerformanceCanvasQuickRejectPath()
     {
         fileName_ = "PerformanceCanvasQuickRejectPath";
     };
@@ -196,7 +196,7 @@ protected:
 
 class PerformanceCanvasQuickRejectRect : public TestBase {
 public:
-    explicit PerformanceCanvasQuickRejectRect(int type) : TestBase(type)
+    PerformanceCanvasQuickRejectRect()
     {
         fileName_ = "PerformanceCanvasQuickRejectRect";
     };
@@ -208,7 +208,7 @@ protected:
 
 class PerformanceCanvasDrawArcWithCenter : public TestBase {
 public:
-    explicit PerformanceCanvasDrawArcWithCenter(int type) : TestBase(type)
+    PerformanceCanvasDrawArcWithCenter()
     {
         fileName_ = "PerformanceCanvasDrawArcWithCenter";
     };
@@ -220,7 +220,7 @@ protected:
 
 class PerformanceCanvasDrawNestedRoundRect : public TestBase {
 public:
-    explicit PerformanceCanvasDrawNestedRoundRect(int type) : TestBase(type)
+    PerformanceCanvasDrawNestedRoundRect()
     {
         fileName_ = "PerformanceCanvasDrawNestedRoundRect";
     };
@@ -232,7 +232,7 @@ protected:
 
 class PerformanceCanvasDrawImageNine : public TestBase {
 public:
-    explicit PerformanceCanvasDrawImageNine(int type) : TestBase(type)
+    PerformanceCanvasDrawImageNine()
     {
         fileName_ = "PerformanceCanvasDrawImageNine";
     };

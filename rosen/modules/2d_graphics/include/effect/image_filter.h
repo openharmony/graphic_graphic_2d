@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,7 +44,8 @@ public:
         GRADIENT_BLUR,
         BLEND,
         SHADER,
-        IMAGE
+        IMAGE,
+        LAZY_IMAGE_FILTER
     };
     /**
      * @brief Create a filter that blurs its input by the separate X and Y sinma value.
@@ -147,12 +148,17 @@ public:
 
     virtual ~ImageFilter() = default;
     FilterType GetType() const;
+    virtual bool IsLazy() const { return false; }
     virtual DrawingType GetDrawingType() const
     {
         return DrawingType::COMMON;
     }
-    std::shared_ptr<Data> Serialize() const;
-    bool Deserialize(std::shared_ptr<Data> data);
+    virtual std::shared_ptr<Data> Serialize() const;
+    virtual bool Deserialize(std::shared_ptr<Data> data);
+#ifdef ROSEN_OHOS
+    virtual bool Marshalling(Parcel& parcel);
+    static std::shared_ptr<ImageFilter> Unmarshalling(Parcel& parcel, bool& isValid);
+#endif
     template<typename T>
     T* GetImpl() const
     {

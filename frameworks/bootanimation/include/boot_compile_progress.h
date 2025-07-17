@@ -43,8 +43,7 @@ private:
     bool RegisterVsyncCallback();
     Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
     bool IsBmsBundleReady();
-    void DrawMaginBrush(Rosen::Drawing::RecordingCanvas* canvas);
-    bool IsEndFlag();
+    void DrawMarginBrush(Rosen::Drawing::RecordingCanvas* canvas);
     void RecordDeviceType();
     void SetFrame();
 
@@ -59,11 +58,12 @@ private:
     int32_t fontSize_ = 0;
     Rosen::ScreenId screenId_;
     std::string displayInfo_ = "";
+    float currentRadius_ = 0.0f;
+    std::string screenStatus_ = "";
 
     volatile bool isUpdateOptEnd_ = false;
     bool isWearable_ = false;
     bool isOther_ = false;
-    bool isSupportBmsCompile_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;

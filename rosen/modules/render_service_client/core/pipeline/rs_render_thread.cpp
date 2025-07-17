@@ -85,6 +85,7 @@ static void SystemCallSetThreadName(const std::string& name)
 
 namespace OHOS {
 namespace Rosen {
+std::atomic_bool RSRenderThread::running_ = false;
 namespace {
     static constexpr uint64_t REFRESH_PERIOD = 16666667;
 }
@@ -199,7 +200,7 @@ RSRenderThread::~RSRenderThread()
 void RSRenderThread::Start()
 {
     ROSEN_LOGD("RSRenderThread start.");
-    running_.store(true);
+    RSRenderThread::running_.store(true);
     std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>([this] { this->RSRenderThread::RenderLoop(); });
@@ -221,7 +222,7 @@ bool RSRenderThread::GetIsRunning()
 
 void RSRenderThread::Stop()
 {
-    running_.store(false);
+    RSRenderThread::running_.store(false);
 
     if (handler_) {
         handler_->RemoveAllEvents();
@@ -554,6 +555,7 @@ void RSRenderThread::Render()
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    // Need ClearResource of RSRenderNodeDrawableAdapter if RSCustomModifierDrawable release delayed.
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

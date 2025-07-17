@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "ge_visual_effect_impl.h"
+#include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_render_filter_base.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -35,6 +37,27 @@ void RSRenderFilterBaseTest::SetUp() {}
 void RSRenderFilterBaseTest::TearDown() {}
 
 /**
+ * @tc.name: SetGeometry
+ * @tc.desc: Test the SetGeometry method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, SetGeometry, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSNGRenderBlurFilter>();
+    Drawing::Canvas canvas;
+    float testValue = 20.f;
+    RSUIFilterHelper::SetGeometry(nullptr, canvas, testValue, testValue);
+    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    EXPECT_EQ(filter->geFilter_, nullptr);
+
+    filter->GenerateGEVisualEffect();
+    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    EXPECT_NE(filter->geFilter_, nullptr);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoWidth_, testValue);
+    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoHeight_, testValue);
+}
+
+/**
  * @tc.name: CreateAndGetType001
  * @tc.desc: Test the factory method can create filter with correct type
  * @tc.type: FUNC
@@ -43,11 +66,11 @@ HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType001, TestSize.Level1)
 {
     // normal filter types
     auto filterTypes = {
-        RSUIFilterType::BLUR,
-        RSUIFilterType::EDGE_LIGHT,
-        RSUIFilterType::SOUND_WAVE,
-        RSUIFilterType::DISPERSION,
-        RSUIFilterType::EDGE_LIGHT
+        RSNGEffectType::BLUR,
+        RSNGEffectType::EDGE_LIGHT,
+        RSNGEffectType::SOUND_WAVE,
+        RSNGEffectType::DISPERSION,
+        RSNGEffectType::EDGE_LIGHT
     };
     for (const auto& type : filterTypes) {
         auto filter = RSNGRenderFilterBase::Create(type);
@@ -56,29 +79,38 @@ HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType001, TestSize.Level1)
     }
 
     // invalid filter type
-    auto invalidFilter = RSNGRenderFilterBase::Create(RSUIFilterType::INVALID);
+    auto invalidFilter = RSNGRenderFilterBase::Create(RSNGEffectType::INVALID);
     EXPECT_EQ(invalidFilter, nullptr);
-    auto noneFilter = RSNGRenderFilterBase::Create(RSUIFilterType::NONE);
+    auto noneFilter = RSNGRenderFilterBase::Create(RSNGEffectType::NONE);
     EXPECT_EQ(noneFilter, nullptr);
 }
 
 /**
- * @tc.name: SetAndGetNextEffect001
- * @tc.desc: Test the behavior of SetNextEffect and GetNextEffect methods
+ * @tc.name: UpdateCacheData
+ * @tc.desc: Test the UpdateCacheData method
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, SetAndGetNextEffect001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, UpdateCacheData, TestSize.Level1)
 {
-    // Test set next filter
-    auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
-    auto filter2 = RSNGRenderFilterBase::Create(RSUIFilterType::EDGE_LIGHT);
-    filter1->SetNextEffect(filter2);
-    EXPECT_EQ(filter1->GetNextEffect(), filter2);
-    EXPECT_EQ(filter2->GetNextEffect(), nullptr);
-
-    // Test set nullptr
-    filter1->SetNextEffect(nullptr);
-    EXPECT_EQ(filter1->GetNextEffect(), nullptr);
+    auto src = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
+    auto dest = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
+    auto other = std::make_shared<Drawing::GEVisualEffect>("MESA_BLUR");
+    RSUIFilterHelper::UpdateCacheData(src, dest);
+    EXPECT_EQ(dest->GetImpl()->GetCache(), nullptr);
+    src->GetImpl()->SetCache(std::make_shared<std::any>(std::make_any<float>(1.0)));
+    std::shared_ptr<Drawing::GEVisualEffect> null = nullptr;
+    RSUIFilterHelper::UpdateCacheData(null, null);
+    EXPECT_EQ(null, nullptr);
+    RSUIFilterHelper::UpdateCacheData(null, dest);
+    RSUIFilterHelper::UpdateCacheData(src, null);
+    EXPECT_EQ(null, nullptr);
+    ASSERT_NE(src->GetImpl()->GetFilterType(), other->GetImpl()->GetFilterType());
+    RSUIFilterHelper::UpdateCacheData(src, other);
+    EXPECT_EQ(other->GetImpl()->GetCache(), nullptr);
+    RSUIFilterHelper::UpdateCacheData(src, dest);
+    auto cachePtr = dest->GetImpl()->GetCache();
+    auto cache = std::any_cast<float>(*cachePtr);
+    EXPECT_EQ(cache, 1.0);
 }
 
 /**
@@ -91,29 +123,29 @@ HWTEST_F(RSRenderFilterBaseTest, SetAndGetNextEffect001, TestSize.Level1)
 HWTEST_F(RSRenderFilterBaseTest, GetEffectCount001, TestSize.Level1)
 {
     // Test single filter
-    auto filter1 = RSNGRenderFilterBase::Create(RSUIFilterType::BLUR);
+    auto filter1 = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
     EXPECT_EQ(filter1->GetEffectCount(), 1u);
 
     // Test append filter: BLUR -> EDGE_LIGHT
-    auto filter2 = RSNGRenderFilterBase::Create(RSUIFilterType::EDGE_LIGHT);
-    filter1->SetNextEffect(filter2);
-    EXPECT_EQ(filter1->GetNextEffect(), filter2);
+    auto filter2 = RSNGRenderFilterBase::Create(RSNGEffectType::EDGE_LIGHT);
+    filter1->nextEffect_ = filter2;
+    EXPECT_EQ(filter1->nextEffect_, filter2);
     EXPECT_EQ(filter1->GetEffectCount(), 2u);
 
     // Test append nullptr
-    filter2->SetNextEffect(nullptr);
+    filter2->nextEffect_ = nullptr;
     EXPECT_EQ(filter1->GetEffectCount(), 2u);
 
     // Test append filter: BLUR -> EDGE_LIGHT -> SOUND_WAVE
-    auto filter3 = RSNGRenderFilterBase::Create(RSUIFilterType::SOUND_WAVE);
-    filter2->SetNextEffect(filter3);
+    auto filter3 = RSNGRenderFilterBase::Create(RSNGEffectType::SOUND_WAVE);
+    filter2->nextEffect_ = filter3;
     EXPECT_EQ(filter1->GetEffectCount(), 3u);
 
     // Test set next filter at middle
-    auto filter4 = RSNGRenderFilterBase::Create(RSUIFilterType::DISPERSION);
-    filter2->SetNextEffect(filter4);
-    EXPECT_EQ(filter2->GetNextEffect(), filter4);
-    EXPECT_EQ(filter3->GetNextEffect(), nullptr);
+    auto filter4 = RSNGRenderFilterBase::Create(RSNGEffectType::DISPERSION);
+    filter2->nextEffect_ = filter4;
+    EXPECT_EQ(filter2->nextEffect_, filter4);
+    EXPECT_EQ(filter3->nextEffect_, nullptr);
     EXPECT_EQ(filter1->GetEffectCount(), 3u);
 }
 
@@ -130,7 +162,7 @@ HWTEST_F(RSRenderFilterBaseTest, Dump001, TestSize.Level1)
     EXPECT_NE(out.find("Blur"), std::string::npos);
 
     std::shared_ptr<RSNGRenderFilterBase> nextFilter = std::make_shared<RSNGRenderEdgeLightFilter>();
-    filter->SetNextEffect(nextFilter);
+    filter->nextEffect_ = nextFilter;
     filter->Dump(out);
     EXPECT_NE(out.find("EdgeLight"), std::string::npos);
 }
@@ -174,8 +206,8 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
     // Test Marshalling and Unmarshalling of a single filter and chained filters
     Parcel parcel;
     auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
-    auto filter2 = RSNGRenderFilterBase::Create(RSUIFilterType::EDGE_LIGHT);
-    filter1->SetNextEffect(filter2);
+    auto filter2 = RSNGRenderFilterBase::Create(RSNGEffectType::EDGE_LIGHT);
+    filter1->nextEffect_ = filter2;
     std::shared_ptr<RSNGRenderFilterBase> outFilter;
     auto testFunc = [&parcel](const auto& inFilter, auto& outFilter) {
         EXPECT_NE(inFilter, nullptr);
@@ -186,11 +218,11 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
         EXPECT_NE(outFilter, nullptr);
         EXPECT_EQ(outFilter->GetType(), inFilter->GetType());
         EXPECT_EQ(outFilter->GetEffectCount(), inFilter->GetEffectCount());
-        if (inFilter->GetNextEffect() != nullptr) {
-            ASSERT_NE(outFilter->GetNextEffect(), nullptr);
-            EXPECT_EQ(outFilter->GetNextEffect()->GetType(), inFilter->GetNextEffect()->GetType());
+        if (inFilter->nextEffect_ != nullptr) {
+            ASSERT_NE(outFilter->nextEffect_, nullptr);
+            EXPECT_EQ(outFilter->nextEffect_->GetType(), inFilter->nextEffect_->GetType());
         } else {
-            EXPECT_EQ(outFilter->GetNextEffect(), nullptr);
+            EXPECT_EQ(outFilter->nextEffect_, nullptr);
         }
     };
     testFunc(filter1, outFilter);
@@ -204,7 +236,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
     EXPECT_FALSE(ret);
     // Test Unmarshalling none type
     Parcel noneParcel;
-    RSMarshallingHelper::Marshalling(noneParcel, static_cast<RSUIFilterTypeUnderlying>(RSUIFilterType::NONE));
+    RSMarshallingHelper::Marshalling(noneParcel, static_cast<RSUIFilterTypeUnderlying>(RSNGEffectType::NONE));
     std::shared_ptr<RSNGRenderFilterBase> noneFilter;
     ret = RSNGRenderFilterBase::Unmarshalling(noneParcel, noneFilter);
     EXPECT_TRUE(ret);
@@ -232,7 +264,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     std::shared_ptr<RSNGRenderFilterBase> current = filter;
     for (size_t i = 1; i <= RSNGRenderFilterBase::EFFECT_COUNT_LIMIT; ++i) {
         auto next = std::make_shared<RSNGRenderBlurFilter>();
-        current->SetNextEffect(next);
+        current->nextEffect_ = next;
         current = next;
     }
     Parcel parcel;
@@ -249,7 +281,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     current = filter;
     for (size_t i = 1; i < RSNGRenderFilterBase::EFFECT_COUNT_LIMIT; ++i) {
         auto nextFilter = std::make_shared<RSNGRenderBlurFilter>();
-        current->SetNextEffect(nextFilter);
+        current->nextEffect_ = nextFilter;
         current = nextFilter;
     }
     ret = (filter->Marshalling(parcel2));
@@ -272,9 +304,9 @@ HWTEST_F(RSRenderFilterBaseTest, AttachDetach001, TestSize.Level1)
     auto prop = filter->Getter<BlurRadiusXRenderTag>();
     auto radiusX = prop->Get();
     auto node = std::make_shared<RSRenderNode>(1);
-    filter->Attach(node);
+    filter->Attach(*node, {});
     EXPECT_EQ(prop->node_.lock(), node);
-    filter->Detach(node);
+    filter->Detach();
     EXPECT_EQ(prop->node_.lock(), nullptr);
     EXPECT_FLOAT_EQ(prop->Get(), radiusX);
 }
@@ -289,12 +321,12 @@ HWTEST_F(RSRenderFilterBaseTest, AttachDetach002, TestSize.Level1)
 {
     auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
     auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
-    filter1->SetNextEffect(filter2);
+    filter1->nextEffect_ = filter2;
     auto node = std::make_shared<RSRenderNode>(1);
-    filter1->Attach(node);
+    filter1->Attach(*node, {});
     EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->node_.lock(), node);
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->node_.lock(), node);
-    filter1->Detach(node);
+    filter1->Detach();
     EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->node_.lock(), nullptr);
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->node_.lock(), nullptr);
 }
@@ -324,7 +356,7 @@ HWTEST_F(RSRenderFilterBaseTest, SetModifierTypeChain, TestSize.Level1)
 {
     auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
     auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
-    filter1->SetNextEffect(filter2);
+    filter1->nextEffect_ = filter2;
     auto targetType = RSModifierType::BACKGROUND_NG_FILTER;
     filter1->SetModifierType(targetType);
     EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->GetModifierType(), targetType);
@@ -332,16 +364,16 @@ HWTEST_F(RSRenderFilterBaseTest, SetModifierTypeChain, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpProperty001
- * @tc.desc: Test the DumpProperty method outputs correct filter properties
+ * @tc.name: DumpProperties001
+ * @tc.desc: Test the DumpProperties method outputs correct filter properties
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, DumpProperty001, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, DumpProperties001, TestSize.Level1)
 {
     using BlurFilter = RSNGRenderBlurFilter;
     auto filter1 = std::make_shared<BlurFilter>();
     std::string out;
-    filter1->DumpProperty(out);
+    filter1->DumpProperties(out);
     EXPECT_FALSE(out.empty());
 }
 

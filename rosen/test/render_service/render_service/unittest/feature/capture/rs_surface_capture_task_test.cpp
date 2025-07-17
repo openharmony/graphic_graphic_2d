@@ -19,11 +19,11 @@
 #include <unistd.h>
 
 #include "surface_buffer_impl.h"
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -70,6 +70,9 @@ public:
         testSuccess = (pixelmap != nullptr);
         isCallbackCalled_ = true;
     }
+
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
 
     bool IsTestSuccess()
     {
@@ -761,19 +764,19 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessEffectRenderNode, Function | SmallTest
 }
 
 /*
- * @tc.name: ProcessDisplayRenderNode
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode
+ * @tc.name: ProcessScreenRenderNode
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessScreenRenderNode
  * @tc.type: FUNC
  * @tc.require: issueI7G9F0
  */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
     NodeId id = DEFAULT_NODEID;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(id, config);
-    visitor_->ProcessDisplayRenderNode(node);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNode node(id, 0, rsContext->weak_from_this());
+    visitor_->ProcessScreenRenderNode(node);
 }
 
 /*
@@ -806,60 +809,59 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode, Function | SmallTest
 }
 
 /*
- * @tc.name: ProcessDisplayRenderNode002
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode002
+ * @tc.name: ProcessScreenRenderNode002
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessScreenRenderNode002
  * @tc.type: FUNC
  * @tc.require: issueI7G9F0
  */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode002, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode002, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    config.isMirrored = true;
-    RSDisplayRenderNode node(id, config);
-    visitor_->ProcessDisplayRenderNode(node);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNode node(id, 0, rsContext->weak_from_this());
+    visitor_->ProcessScreenRenderNode(node);
 }
 
 /*
- * @tc.name: ProcessDisplayRenderNode003
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode003
+ * @tc.name: ProcessScreenRenderNode003
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessScreenRenderNode003
  * @tc.type: FUNC
  * @tc.require: issueI7G9F0
  */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode003, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode003, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(id, config);
-    visitor_->ProcessDisplayRenderNode(node);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNode node(id, 0, rsContext->weak_from_this());
+    visitor_->ProcessScreenRenderNode(node);
 }
 
 /*
- * @tc.name: ProcessDisplayRenderNode004
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode004
+ * @tc.name: ProcessScreenRenderNode004
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessScreenRenderNode004
  * @tc.type: FUNC
  * @tc.require: issueI7G9F0
  */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode004, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    auto displayDrawable =
-        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(node));
-    ASSERT_NE(nullptr, displayDrawable);
-    auto surfaceHandler = displayDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    auto screenDrawable =
+        static_cast<RSScreenRenderNodeDrawable*>(RSScreenRenderNodeDrawable::OnGenerate(node));
+    ASSERT_NE(nullptr, screenDrawable);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
-    visitor_->ProcessDisplayRenderNode(*node);
+    visitor_->ProcessScreenRenderNode(*node);
 }
 
 /*
@@ -877,22 +879,22 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessChildren001, Function | SmallTest | Le
 }
 
 /*
- * @tc.name: ProcessDisplayRenderNode005
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode while curtain screen is on
+ * @tc.name: ProcessScreenRenderNode005
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessScreenRenderNode while curtain screen is on
  * @tc.type: FUNC
  * @tc.require: issueI7G9F0
  */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode005, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode005, Function | SmallTest | Level2)
 {
     NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
 
     RSMainThread::Instance()->SetCurtainScreenUsingStatus(true);
 
     ASSERT_NE(visitor_, nullptr);
     visitor_->isUniRender_ =true;
-    visitor_->ProcessDisplayRenderNode(*displayNode);
+    visitor_->ProcessScreenRenderNode(*displayNode);
     // restore curtain screen status
     RSMainThread::Instance()->SetCurtainScreenUsingStatus(false);
 }
@@ -933,12 +935,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
 #if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
-    // Test Invaild Scale
-    captureConfig.scaleX = 0;
-    blurRadius = 1000;
-    ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
-    // code
-    EXPECT_EQ(ret, true);
 }
 
 /*

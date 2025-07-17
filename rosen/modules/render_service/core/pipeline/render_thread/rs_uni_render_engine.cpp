@@ -26,7 +26,7 @@
 #include "metadata_helper.h"
 #endif
 
-#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 
 namespace OHOS {
@@ -99,7 +99,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             continue;
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
-        DrawLayerPreProcess(canvas, layer);
+        DrawLayerPreProcess(canvas, layer, screenInfo);
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
@@ -137,7 +137,8 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
 }
 
-void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer)
+void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
+    const ScreenInfo& screenInfo)
 {
     const auto& dstRect = layer->GetLayerSize();
     const auto& drmCornerRadiusInfo = layer->GetCornerRadiusInfoForDRM();
@@ -170,6 +171,8 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const L
         auto skMatrix = Drawing::Matrix();
         skMatrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
             layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+        skMatrix.PostTranslate(screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
+        skMatrix.PostScale(screenInfo.samplingScale, screenInfo.samplingScale);
         Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.ConcatMatrix(skMatrix);
         Drawing::Rect drawRect = Drawing::Rect(0.f, 0.f,
@@ -199,6 +202,15 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
         RegisterDeleteBufferListener(layer->GetSurface(), !RSSystemProperties::GetVKImageUseEnabled());
+        DrawImage(canvas, params);
+    } else {
+        DrawBuffer(canvas, params);
+    }
+}
+
+void RSUniRenderEngine::DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+{
+    if (!params.useCPU) {
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

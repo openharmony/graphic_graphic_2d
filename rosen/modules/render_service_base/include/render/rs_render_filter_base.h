@@ -15,194 +15,155 @@
 
 #ifndef RENDER_SERVICE_BASE_RENDER_FILTER_BASE_H
 #define RENDER_SERVICE_BASE_RENDER_FILTER_BASE_H
+
 #include "draw/canvas.h"
+#include "effect/rs_render_property_tag.h"
 #include "effect/runtime_shader_builder.h"
 #include "render/rs_filter.h"
-#include "render/rs_render_property_tag.h"
-#include "render/rs_render_effect_template.h"
+
 namespace OHOS {
 namespace Rosen {
 
 namespace Drawing {
 class GEVisualEffectContainer;
 class GEVisualEffect;
+struct CanvasInfo;
 } // namespace Drawing
 
-class RSNGRenderMaskBase;
+enum class RSUIFilterType : int16_t {
+    INVALID = -1,
+    NONE = 0,
+    // filter type
+    BLUR,
+    DISPLACEMENT_DISTORT,
+    COLOR_GRADIENT,
+    SOUND_WAVE,
 
-class RSB_EXPORT RSNGRenderFilterHelper {
-public:
-    template<typename Tag>
-    static void UpdateVisualEffectParam(std::shared_ptr<Drawing::GEVisualEffect> geFilter, const Tag& propTag)
-    {
-        if (!geFilter) {
-            return;
-        }
-        UpdateVisualEffectParamImpl(geFilter, Tag::NAME, propTag.value_->Get());
-    }
+    EDGE_LIGHT,
+    BEZIER_WARP,
+    DISPERSION,
 
-    static std::string GetFilterTypeString(RSUIFilterType type)
-    {
-        switch (type) {
-            case RSUIFilterType::INVALID: return "Invalid";
-            case RSUIFilterType::NONE: return "None";
-            case RSUIFilterType::BLUR: return "Blur";
-            case RSUIFilterType::DISPLACEMENT_DISTORT: return "DisplacementDistort";
-            case RSUIFilterType::SOUND_WAVE: return "SoundWave";
-            case RSUIFilterType::EDGE_LIGHT: return "EdgeLight";
-            case RSUIFilterType::DISPERSION: return "Dispersion";
-            case RSUIFilterType::BEZIER_WARP: return "BezierWarp";
-            case RSUIFilterType::COLOR_GRADIENT: return "ColorGradient";
-            default:
-                return "UNKNOWN";
-        }
-    }
+    AIBAR,
+    GREY,
+    MATERIAL,
+    MAGNIFIER,
+    MESA,
+    MASK_COLOR,
+    KAWASE,
+    LIGHT_BLUR,
+    PIXEL_STRETCH,
+    WATER_RIPPLE,
 
-    static std::shared_ptr<Drawing::GEVisualEffect> CreateGEFilter(RSUIFilterType type);
+    LINEAR_GRADIENT_BLUR,
+    FLY_OUT,
+    DISTORTION,
+    ALWAYS_SNAPSHOT,
+    MASK_TRANSITION,
+    // mask type
+    RIPPLE_MASK,
+    DOUBLE_RIPPLE_MASK,
+    RADIAL_GRADIENT_MASK,
+    PIXEL_MAP_MASK,
+    WAVE_GRADIENT_MASK,
 
-private:
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, float value);
+    // value type
+    BLUR_RADIUS_X,  // float
+    BLUR_RADIUS_Y,  // float
 
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, const Vector4f& value);
+    // value type
+    RIPPLE_MASK_CENTER, // Vector2f
+    RIPPLE_MASK_RADIUS, // float
+    RIPPLE_MASK_WIDTH, // float
+    RIPPLE_MASK_WIDTH_CENTER_OFFSET, // float
+    DISPLACEMENT_DISTORT_FACTOR, // Vector2f
 
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, const Vector2f& value);
+    // value type
+    DOUBLE_RIPPLE_MASK_CENTER1, // Vector2f
+    DOUBLE_RIPPLE_MASK_CENTER2, // Vector2f
+    DOUBLE_RIPPLE_MASK_RADIUS, // float
+    DOUBLE_RIPPLE_MASK_WIDTH, // float
+    DOUBLE_RIPPLE_MASK_TURBULENCE, // float
 
-    static void UpdateVisualEffectParamImpl(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
+    // value type
+    COLOR_GRADIENT_COLOR, // vector<float>
+    COLOR_GRADIENT_POSITION, // vector<float>
+    COLOR_GRADIENT_STRENGTH, // vector<float>
+
+    //value type
+    SOUND_WAVE_COLOR_A, //RSCOLOR
+    SOUND_WAVE_COLOR_B, //RSCOLOR
+    SOUND_WAVE_COLOR_C, //RSCOLOR
+    SOUND_WAVE_COLOR_PROGRESS, //float
+    SOUND_INTENSITY, //float
+    SHOCK_WAVE_ALPHA_A, //float
+    SHOCK_WAVE_ALPHA_B, //float
+    SHOCK_WAVE_PROGRESS_A, //float
+    SHOCK_WAVE_PROGRESS_B, //float
+    SHOCK_WAVE_TOTAL_ALPHA, //float
+
+    // edge light value type
+    EDGE_LIGHT_ALPHA, // float
+    EDGE_LIGHT_COLOR, // Vector4f
+
+    // bezier warp value type
+    BEZIER_CONTROL_POINT0, // Vector2f
+    BEZIER_CONTROL_POINT1, // Vector2f
+    BEZIER_CONTROL_POINT2, // Vector2f
+    BEZIER_CONTROL_POINT3, // Vector2f
+    BEZIER_CONTROL_POINT4, // Vector2f
+    BEZIER_CONTROL_POINT5, // Vector2f
+    BEZIER_CONTROL_POINT6, // Vector2f
+    BEZIER_CONTROL_POINT7, // Vector2f
+    BEZIER_CONTROL_POINT8, // Vector2f
+    BEZIER_CONTROL_POINT9, // Vector2f
+    BEZIER_CONTROL_POINT10, // Vector2f
+    BEZIER_CONTROL_POINT11, // Vector2f
+
+    // pixel map mask value type
+    PIXEL_MAP_MASK_PIXEL_MAP, // Media::PixelMap
+    PIXEL_MAP_MASK_SRC, // Vector4f
+    PIXEL_MAP_MASK_DST, // Vector4f
+    PIXEL_MAP_MASK_FILL_COLOR, // Vector4f
+
+    // dispersion value type
+    DISPERSION_OPACITY, // float
+    DISPERSION_RED_OFFSET, // Vector2f
+    DISPERSION_GREEN_OFFSET, // Vector2f
+    DISPERSION_BLUE_OFFSET, // Vector2f
+
+    // edge light bloom value type
+    EDGE_LIGHT_BLOOM, // bool
+
+    // radial gradient mask value type
+    RADIAL_GRADIENT_MASK_CENTER, // Vector2f
+    RADIAL_GRADIENT_MASK_RADIUSX, // float
+    RADIAL_GRADIENT_MASK_RADIUSY, // float
+    RADIAL_GRADIENT_MASK_COLORS, // vector<float>
+    RADIAL_GRADIENT_MASK_POSITIONS, // vector<float>
+
+    // wave gradient mask value type
+    WAVE_GRADIENT_MASK_WAVE_CENTER, // Vector2f
+    WAVE_GRADIENT_MASK_WAVE_WIDTH, // float
+    WAVE_GRADIENT_MASK_TURBULENCE_STRENGTH, // float
+    WAVE_GRADIENT_MASK_BLUR_RADIUS, // float
+    WAVE_GRADIENT_MASK_PROPAGATION_RADIUS, // float
+
+    //content light filter value type
+    CONTENT_LIGHT,
+    LIGHT_POSITION,
+    LIGHT_COLOR,
+    LIGHT_INTENSITY,
+
+    // edge light if use raw color value type
+    EDGE_LIGHT_USE_RAW_COLOR, // bool
+
+    // mask transition value type
+    MASK_TRANSITION_MASK, // std::shared_ptr<MaskPara>
+    MASK_TRANSITION_FACTOR, // float
+    MASK_TRANSITION_INVERSE, // bool
 };
 
-/**
- * @class RSNGRenderFilterBase
- *
- * @brief The base class for filter, defines interfaces for ng filters.
- *
- * This class provides a common interface for all ng filters.
- */
-class RSB_EXPORT RSNGRenderFilterBase : public RSNGRenderEffectBase<RSNGRenderFilterBase> {
-public:
-    static std::shared_ptr<RSNGRenderFilterBase> Create(RSUIFilterType type);
-
-    [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderFilterBase>& val);
-
-    void Dump(std::string& out) const;
-
-    virtual void GenerateGEVisualEffect() {}
-
-    virtual void OnSync()
-    {
-        GenerateGEVisualEffect();
-    }
-
-protected:
-    std::vector<std::shared_ptr<Drawing::GEVisualEffect>> geFilters_;
-
-private:
-    friend class RSNGFilterBase;
-    friend class RSUIFilterHelper;
-};
-
-template<RSUIFilterType Type, typename... PropertyTags>
-class RSNGRenderFilterTemplate : public RSNGRenderEffectTemplate<RSNGRenderFilterBase, Type, PropertyTags...> {
-public:
-    using EffectTemplateBase = RSNGRenderEffectTemplate<RSNGRenderFilterBase, Type, PropertyTags...>;
-
-    RSNGRenderFilterTemplate() : EffectTemplateBase() {}
-    ~RSNGRenderFilterTemplate() override = default;
-    RSNGRenderFilterTemplate(const std::tuple<PropertyTags...>& properties) noexcept
-        : EffectTemplateBase(properties) {}
-
-    void GenerateGEVisualEffect() override
-    {
-        auto geFilter = RSNGRenderFilterHelper::CreateGEFilter(Type);
-        OnGenerateGEVisualEffect(geFilter);
-        std::apply([&geFilter](const auto&... propTag) {
-                (RSNGRenderFilterHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
-                    geFilter, propTag), ...);
-            }, EffectTemplateBase::properties_);
-        RSNGRenderFilterBase::geFilters_.push_back(geFilter);
-
-        if (EffectTemplateBase::nextEffect_) {
-            EffectTemplateBase::nextEffect_->GenerateGEVisualEffect();
-        }
-    }
-
-protected:
-    virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
-};
-
-class RSB_EXPORT RSUIFilterHelper {
-public:
-    template<RSUIFilterType Type, typename... PropertyTags>
-    static std::shared_ptr<RSNGRenderFilterTemplate<Type, PropertyTags...>> CreateRenderFilterByTuple(
-        const std::tuple<PropertyTags...>& properties)
-    {
-        return std::make_shared<RSNGRenderFilterTemplate<Type, PropertyTags...>>(properties);
-    }
-
-    static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
-        std::shared_ptr<Drawing::GEVisualEffectContainer> container);
-};
-
-#define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
-
-#define DECLARE_FILTER(FilterName, FilterType, ...) \
-    using RSNGRender##FilterName##Filter = RSNGRenderFilterTemplate<RSUIFilterType::FilterType, __VA_ARGS__>
-
-DECLARE_FILTER(Blur, BLUR,
-    ADD_PROPERTY_TAG(Blur, RadiusX),
-    ADD_PROPERTY_TAG(Blur, RadiusY)
-);
-
-DECLARE_FILTER(DispDistort, DISPLACEMENT_DISTORT,
-    ADD_PROPERTY_TAG(DispDistort, Factor),
-    ADD_PROPERTY_TAG(DispDistort, Mask)
-);
-
-DECLARE_FILTER(SoundWave, SOUND_WAVE,
-    ADD_PROPERTY_TAG(SoundWave, ColorA),
-    ADD_PROPERTY_TAG(SoundWave, ColorB),
-    ADD_PROPERTY_TAG(SoundWave, ColorC),
-    ADD_PROPERTY_TAG(SoundWave, ColorProgress),
-    ADD_PROPERTY_TAG(SoundWave, CenterBrightness),
-    ADD_PROPERTY_TAG(SoundWave, Intensity),
-    ADD_PROPERTY_TAG(SoundWave, AlphaA),
-    ADD_PROPERTY_TAG(SoundWave, AlphaB),
-    ADD_PROPERTY_TAG(SoundWave, ProgressA),
-    ADD_PROPERTY_TAG(SoundWave, ProgressB)
-);
-
-DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
-    ADD_PROPERTY_TAG(EdgeLight, Color),
-    ADD_PROPERTY_TAG(EdgeLight, Alpha)
-);
-
-DECLARE_FILTER(Dispersion, DISPERSION,
-    ADD_PROPERTY_TAG(Dispersion, Opacity),
-    ADD_PROPERTY_TAG(Dispersion, RedOffset),
-    ADD_PROPERTY_TAG(Dispersion, GreenOffset),
-    ADD_PROPERTY_TAG(Dispersion, BlueOffset)
-);
-
-DECLARE_FILTER(BezierWarp, BEZIER_WARP,
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint0),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint1),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint2),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint3),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint4),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint5),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint6),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint7),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint8),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint9),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint10),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint11)
-);
-
-#undef ADD_PROPERTY_TAG
-#undef DECLARE_FILTER
+using RSUIFilterTypeUnderlying = std::underlying_type<RSUIFilterType>::type;
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,
     public std::enable_shared_from_this<RSRenderFilterParaBase> {
@@ -254,6 +215,8 @@ public:
 
     virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) {};
     virtual void PostProcess(Drawing::Canvas& canvas) {};
+    
+    virtual void SetDisplayHeadroom(float headroom) {};
 
     uint32_t Hash() const
     {
@@ -263,9 +226,17 @@ public:
     size_t GetSize() const override {return sizeof(*this);}
     bool Marshalling(Parcel& parcel) override {return false;}
 
+    virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+    Drawing::CanvasInfo GetFilterCanvasInfo() const;
+
 protected:
     RSUIFilterType type_;
     std::map<RSUIFilterType, std::shared_ptr<RSRenderPropertyBase>> properties_;
+    float geoWidth_ = 0.f;
+    float geoHeight_ = 0.f;
+    float tranX_ = 0.f;
+    float tranY_ = 0.f;
+    Drawing::Matrix mat_;
     uint32_t hash_ = 0;
 };
 } // namespace Rosen

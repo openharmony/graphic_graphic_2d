@@ -15,8 +15,11 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -668,6 +671,80 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DealWithWhiteListNodes001
+ * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    RSUniRenderThread::SetCaptureParam(params);
+
+    drawable->renderParams_ = nullptr;
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_EQ(drawable->GetRenderParams(), nullptr);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+
+    ScreenId screenid = 1;
+    params.virtualScreenId_ = screenid;
+    std::unordered_map<ScreenId, bool> info;
+    info[screenid] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+
+    info.clear();
+    info[screenid + 1] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+}
+
+/**
+ * @tc.name: DealWithWhiteListNodes002
+ * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes002, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    params.rootIdInWhiteList_ = nodeId;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+
+    params.isMirror_ = true;
+    RSUniRenderThread::Instance().SetWhiteList({});
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+
+    params.isMirror_ = false;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+}
+
+/**
  * @tc.name: ProcessedNodeCount
  * @tc.desc: Test ProcessedNodeCount
  * @tc.type: FUNC
@@ -696,5 +773,33 @@ HWTEST_F(RSRenderNodeDrawableTest, ProcessedNodeCountTest, TestSize.Level1)
     ASSERT_EQ(drawable->GetTotalProcessedNodeCount(), 0);
     ASSERT_EQ(drawable->GetSnapshotProcessedNodeCount(), 0);
     ASSERT_EQ(drawable->GetProcessedNodeCount(), 0);
+}
+
+/**
+ * @tc.name: UpdateFilterDisplayHeadroomTest
+ * @tc.desc: Test UpdateFilterDisplayHeadroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateFilterDisplayHeadroomTest, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSEffectLuminanceManager::GetInstance().SetDisplayHeadroom(id, 1.5f);
+
+    Drawing::Canvas canvas;
+    drawable->UpdateFilterDisplayHeadroom(canvas);
+
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.SetScreenId(id);
+    drawable->UpdateFilterDisplayHeadroom(paintFilterCanvas);
+    EXPECT_NE(drawable->GetRenderParams(), nullptr);
+
+    const auto& params = drawable->GetRenderParams();
+    auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    params->foregroundFilterCache_ = filter;
+    params->backgroundFilter_ = filter;
+
+    drawable->UpdateFilterDisplayHeadroom(paintFilterCanvas);
+    EXPECT_EQ(filter->shaderFilters_.size(), 1);
 }
 }

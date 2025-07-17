@@ -90,7 +90,6 @@ VsyncError VSyncReceiver::Init()
         });
         hasVsyncThread = true;
     }
-
     VsyncError ret = connection_->GetReceiveFd(fd_);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
@@ -168,6 +167,9 @@ VsyncError VSyncReceiver::RequestNextVSync(
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
     }
+    if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
+        looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
+    }
     return connection_->RequestNextVSync(fromWhom, lastVSyncTS, requestVsyncTime);
 }
 
@@ -183,6 +185,9 @@ VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callba
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    }
+    if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
+        looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
     }
     return connection_->RequestNextVSync();
 }
@@ -275,14 +280,15 @@ VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return connection_->SetUiDvsyncSwitch(dvsyncSwitch);
 }
 
-VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount)
+VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    VLOGI("%{public}s bufferCount:%{public}d", __func__, bufferCount);
-    return connection_->SetUiDvsyncConfig(bufferCount);
+    VLOGI("SetUiDvsyncConfig bufferCount:%d delayEnable:%d nativeDelayEnable:%d",
+        bufferCount, delayEnable, nativeDelayEnable);
+    return connection_->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
 }
 
 VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)
@@ -292,6 +298,13 @@ VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)
         return VSYNC_ERROR_API_FAILED;
     }
     return connection_->SetNativeDVSyncSwitch(dvsyncSwitch);
+}
+
+void VSyncReceiver::SetTouchEvent(int32_t touchType)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSyncDelay::Instance().SetTouchEvent(touchType);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

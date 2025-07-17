@@ -785,6 +785,32 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
         return true;
     }
 }
+
+void SkiaImage::SetSupportOpaqueOpt(bool supportOpaqueOpt)
+{
+#ifdef SUPPORT_OPAQUE_OPTIMIZATION
+    skiaImage_->setSupportOpaqueOpt(supportOpaqueOpt);
+#endif
+}
+
+bool SkiaImage::GetSupportOpaqueOpt() const
+{
+#ifdef SUPPORT_OPAQUE_OPTIMIZATION
+    return skiaImage_->getSupportOpaqueOpt();
+#endif
+    return false;
+}
+
+void SkiaImage::SetHeadroom(float headroom)
+{
+    LOGD("SkiaImage does not support SetHeadroom!");
+}
+
+float SkiaImage::GetHeadroom() const
+{
+    LOGD("SkiaImage does not support GetHeadroom!");
+    return 1.0f;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

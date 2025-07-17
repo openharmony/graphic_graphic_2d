@@ -693,6 +693,17 @@ void SkiaSurface::ClearDrawingArea()
 }
 #endif
 
+void SkiaSurface::SetHeadroom(float headroom)
+{
+    LOGD("SkiaSurface does not support SetHeadroom!");
+}
+
+float SkiaSurface::GetHeadroom() const
+{
+    LOGD("SkiaSurface does not support GetHeadroom!");
+    return 1.0f;
+}
+
 int SkiaSurface::Width() const
 {
     if (skSurface_ == nullptr) {

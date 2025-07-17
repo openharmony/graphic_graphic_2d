@@ -22,6 +22,7 @@
 
 #include "common/rs_common_def.h"
 #include "animation/rs_frame_rate_range.h"
+#include "ui/rs_ui_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,7 +34,8 @@ public:
 
     FrameRateLinkerId GetId() const;
     bool IsUniRenderEnabled() const;
-    void UpdateFrameRateRange(const FrameRateRange& range, int32_t animatorExpectedFrameRate = -1);
+    void UpdateFrameRateRange(const FrameRateRange& range, int32_t animatorExpectedFrameRate = -1,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     void UpdateFrameRateRangeImme(const FrameRateRange& range, int32_t animatorExpectedFrameRate = -1);
     void SetEnable(bool enabled);
     bool IsEnable();
@@ -45,6 +47,7 @@ private:
     FrameRateRange currentRange_;
     int32_t currAnimatorExpectedFrameRate_ = -1;
     std::atomic<bool> isEnabled_ = true;
+    std::weak_ptr<RSUIContext> rsUIContext_;
 };
 } // namespace Rosen
 } // namespace OHOS

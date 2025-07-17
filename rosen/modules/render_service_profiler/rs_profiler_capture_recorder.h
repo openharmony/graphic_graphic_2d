@@ -33,6 +33,8 @@ namespace OHOS::Rosen {
 
 class ExtendRecordingCanvas;
 
+enum class SkpCaptureType { DEFAULT = 0, ON_CAPTURE = 1, EXTENDED = 2, IMG_CACHED = 3 };
+
 class RSCaptureRecorder final {
 public:
     static RSCaptureRecorder& GetInstance()
@@ -41,10 +43,12 @@ public:
         return instance;
     }
 
+    bool PrintMessage(std::string message, bool forcedSend = false);
+
     void SetProfilerEnabled(bool val);
 
-    Drawing::Canvas* TryInstantCapture(float width, float height);
-    void EndInstantCapture();
+    Drawing::Canvas* TryInstantCapture(float width, float height, SkpCaptureType type = SkpCaptureType::DEFAULT);
+    void EndInstantCapture(SkpCaptureType type = SkpCaptureType::DEFAULT);
     // Used for .skp capturing of DrawingCanvasNode's local canvas
     Drawing::Canvas* TryDrawingCanvasCapture(float width, float height, uint64_t nodeId);
     void EndDrawingCanvasCapture();
@@ -58,6 +62,9 @@ public:
     void InvalidateDrawingCanvasNodeId();
     void SetDrawingCanvasNodeId(uint64_t nodeId);
     void SetComponentScreenshotFlag(bool flag);
+
+    void SetCaptureType(SkpCaptureType type);
+    void SetCaptureTypeClear(bool flag);
 
     // to check if .rdc is recorded and send the filename to client
     static bool PullAndSendRdc();
@@ -98,6 +105,7 @@ private:
     bool isMskpActive_ = false;
     uint64_t drawingCanvasNodeId_ = 0;
     bool isComponentScreenshot_ = false;
+    bool captureTypeToClear_ = false;
     bool profilerEnabled_ = false;
 };
 

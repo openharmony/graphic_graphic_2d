@@ -22,7 +22,6 @@
 #include <mutex>
 #include <string>
 #include "sync_fence.h"
-#include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
 #include "platform/ohos/backend/rs_vulkan_header_ext.h"
@@ -32,7 +31,21 @@
 #include "vulkan/vulkan.h"
 #include "rs_vulkan_mem_statistic.h"
 
+#include "draw/surface.h"
 #include "image/gpu_context.h"
+#include "rs_trace.h"
+
+typedef enum VkSemaphoreExtTypeHUAWEI {
+    VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
+    VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,
+}VkSemaphoreExtTypeHUAWEI;
+
+typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {
+    OHOS::Rosen::VkStructureTypeHUAWEI sType;
+    const void*                        pNext;
+    VkSemaphoreExtTypeHUAWEI           semaphoreExtType;
+    uint32_t                           eventId;
+}VkSemaphoreExtTypeCreateInfoHUAWEI;
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/vk/VulkanExtensions.h"
@@ -139,10 +152,10 @@ public:
 
     RsVulkanInterface() {};
     ~RsVulkanInterface();
-    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false);
+    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
-    bool CreateDevice(bool isProtected = false);
+    bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
 #ifdef USE_M133_SKIA
     bool CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected = false);
 #else
@@ -259,6 +272,7 @@ public:
     }
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(std::string cacheDir = "");
+    std::shared_ptr<Drawing::GPUContext> DoCreateDrawingContext(std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
     VulkanInterfaceType GetInterfaceType() const
@@ -440,6 +454,7 @@ public:
     static bool GetIsInited();
 
     static bool IsRecyclableSingletonValid();
+
 private:
     static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
     static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");

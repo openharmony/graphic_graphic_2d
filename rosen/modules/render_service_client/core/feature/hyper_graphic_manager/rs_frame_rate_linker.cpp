@@ -53,12 +53,17 @@ RSFrameRateLinker::RSFrameRateLinker() : id_(GenerateId())
 RSFrameRateLinker::~RSFrameRateLinker()
 {
     // tell RT/RS to destroy related frameRateLinker
-    auto transactionProxy = RSTransactionProxy::GetInstance(); // planing
-    if (transactionProxy == nullptr) {
-        return;
-    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerDestroy>(id_);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
+    auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext) {
+        auto transaction = rsUIContext->GetRSTransaction();
+        transaction->AddCommand(command, IsUniRenderEnabled());
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsUniRenderEnabled());
+        }
+    }
 
     auto renderServiceClient =
             std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
@@ -80,16 +85,23 @@ bool RSFrameRateLinker::IsUniRenderEnabled() const
     return g_isUniRenderEnabled;
 }
 
-void RSFrameRateLinker::UpdateFrameRateRange(const FrameRateRange& range, int32_t animatorExpectedFrameRate)
+void RSFrameRateLinker::UpdateFrameRateRange(
+    const FrameRateRange& range, int32_t animatorExpectedFrameRate, std::shared_ptr<RSUIContext> rsUIContext)
 {
+    rsUIContext_ = rsUIContext;
     if (currentRange_ != range || currAnimatorExpectedFrameRate_ != animatorExpectedFrameRate) {
         currentRange_ = range;
         currAnimatorExpectedFrameRate_ = animatorExpectedFrameRate;
         std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerUpdateRange>(GetId(),
             range, animatorExpectedFrameRate);
-        auto transactionProxy = RSTransactionProxy::GetInstance(); // planing
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsUniRenderEnabled());
+        if (rsUIContext != nullptr) {
+            auto transaction = rsUIContext->GetRSTransaction();
+            transaction->AddCommand(command, IsUniRenderEnabled());
+        } else {
+            auto transactionProxy = RSTransactionProxy::GetInstance();
+            if (transactionProxy != nullptr) {
+                transactionProxy->AddCommand(command, IsUniRenderEnabled());
+            }
         }
     }
 }

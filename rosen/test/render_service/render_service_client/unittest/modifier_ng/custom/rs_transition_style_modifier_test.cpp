@@ -50,5 +50,6 @@ HWTEST_F(RSTransitionStyleModifierNGTypeTest, RSTransitionStyleModifierTest, Tes
     ModifierNG::RSDrawingContext context;
     modifier->Draw(context);
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::TRANSITION_STYLE);
+    EXPECT_EQ(modifier->GetInnerPropertyType(), ModifierNG::RSPropertyType::TRANSITION_STYLE);
 }
 } // namespace OHOS::Rosen
