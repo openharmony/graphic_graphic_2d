@@ -161,7 +161,7 @@ public:
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
     VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
     int64_t GetUiCommandDelayTime();
-    int64_t GetRsDelayTime();
+    int64_t GetRsDelayTime(int32_t pid);
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
     int64_t GetVsyncCount();
