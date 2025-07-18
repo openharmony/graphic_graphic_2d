@@ -153,7 +153,7 @@ public:
         bool adaptiveDVSyncEnable = false);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
         uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false,
-        bool needConsume = true, uint64_t parentNodeId = 0, bool deleteCacheDisable = false);
+        uint64_t parentNodeId = 0, bool deleteCacheDisable = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);

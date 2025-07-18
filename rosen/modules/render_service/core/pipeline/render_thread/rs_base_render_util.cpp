@@ -970,9 +970,8 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
     surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
 }
 
-CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-    uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume,
-    uint64_t parentNodeId, bool deleteCacheDisable)
+CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
+    bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, uint64_t parentNodeId, bool deleteCacheDisable)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -980,10 +979,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     const auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         RS_LOGE("Consume and update buffer fail for consumer is nullptr");
-        return false;
-    }
-    if (adaptiveDVSyncEnable && !needConsume) {
-        RS_LOGI("adaptiveDVSyncEnable and not needConsume");
         return false;
     }
 

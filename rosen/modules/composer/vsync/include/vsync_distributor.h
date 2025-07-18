@@ -173,7 +173,8 @@ public:
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
-    bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
+    bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount);
+    void SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
@@ -266,7 +267,8 @@ private:
     void DVSyncRecordVSync(int64_t now, int64_t period, uint32_t refreshRate, bool isDvsyncController);
     bool DVSyncCheckSkipAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timeStamp);
     bool DVSyncNeedSkipUi(const sptr<VSyncConnection> &connection);
-    void DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom, int64_t lastVSyncTS);
+    void DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom,
+        int64_t lastVSyncTS, int64_t requestVsyncTime = 0);
     bool DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
         int64_t &period, int64_t &vsyncCount);
     bool VSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,

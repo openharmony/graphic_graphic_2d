@@ -1161,8 +1161,7 @@ HWTEST_F(VSyncDistributorTest, HandleTouchEvent001, Function | MediumTest| Level
 HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTest| Level3)
 {
     std::string nodeName = "test";
-    bool needConsume = true;
-    vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0, needConsume);
+    vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0);
     ASSERT_EQ(needConsume, true);
 }
 

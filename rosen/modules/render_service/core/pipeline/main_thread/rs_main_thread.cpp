@@ -1604,14 +1604,13 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
             }
             surfaceHandler->ResetCurrentFrameBufferConsumed();
-            bool needConsume = true;
             bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
-                surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
+                surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount());
             auto parentNode = surfaceNode->GetParent().lock();
             bool needSkip = IsSurfaceConsumerNeedSkip(surfaceHandler->GetConsumer());
             LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
             if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume,
+                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive,
                     parentNode ? parentNode->GetId() : 0)) {
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!isUniRender_) {
@@ -5277,6 +5276,11 @@ void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t 
     int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent)
 {
     rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, isUrgent);
+}
+
+void RSMainThread::SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+{
+    rsVSyncDistributor_->SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
 }
 
 void RSMainThread::SetTaskEndWithTime(int64_t time)

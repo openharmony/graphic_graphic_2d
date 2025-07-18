@@ -90,13 +90,16 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
     uint64_t id = 0;
     int64_t lastConsumeTime = 0;
     uint32_t queueSize = 0;
+    int64_t lastFlushedTimeStamp = 0;
     if (consumer != nullptr) {
         consumer->GetLastConsumeTime(lastConsumeTime);
+        consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedTimeStamp);
         id = consumer->GetUniqueId();
         queueSize = consumer->GetQueueSize();
     }
     int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
     std::string name = node->GetName();
+    RSMainThread::Instance()->SetBufferQueueInfo(name, bufferCount, lastFlushedTimeStamp);
     if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
         RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, true);
         RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");

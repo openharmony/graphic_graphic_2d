@@ -2679,6 +2679,9 @@ ErrCode RSRenderServiceConnection::NotifyLightFactorStatus(int32_t lightFactorSt
 
 void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
+    if (!mainThread_) {
+        return;
+    }
     mainThread_->NotifyPackageEvent(packageList);
     HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, listSize, packageList]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
