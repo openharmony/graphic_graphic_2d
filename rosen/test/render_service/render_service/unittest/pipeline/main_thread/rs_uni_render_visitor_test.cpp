@@ -1624,6 +1624,26 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCrossNodeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DealWithSpecialLayer
+ * @tc.desc: Test DealWithSpecialLayer
+ * @tc.type: FUNC
+ * @tc.require: issueICM2MQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, DealWithSpecialLayer, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    rsUniRenderVisitor->DealWithSpecialLayer(*node);
+    node->isCloneCrossNode_ = true;
+    ASSERT_EQ(node->IsCrossNode(), true);
+    rsUniRenderVisitor->DealWithSpecialLayer(*node);
+    node->sourceCrossNode_ = RSTestUtil::CreateSurfaceNode();
+    rsUniRenderVisitor->DealWithSpecialLayer(*node);
+}
+/**
  * @tc.name: CheckSkipCrossNodeTest
  * @tc.desc: Test CheckSkipCrossNode
  * @tc.type: FUNC

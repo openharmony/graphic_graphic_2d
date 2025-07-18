@@ -540,6 +540,22 @@ void RSUniRenderVisitor::MarkHardwareForcedDisabled()
     hwcVisitor_->isHardwareForcedDisabled_ = true;
 }
 
+void RSUniRenderVisitor::DealWithSpecialLayer(RSSurfaceRenderNode& node)
+{
+    if (node.IsCloneCrossNode()) {
+        auto sourceNode = node.GetSourceCrossNode().lock();
+        auto sourceSurface = sourceNode ? sourceNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+        if (sourceSurface == nullptr) {
+            return;
+        }
+        UpdateSpecialLayersRecord(*sourceSurface);
+    } else {
+        UpdateSpecialLayersRecord(node);
+    }
+    UpdateBlackListRecord(node);
+    node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
+}
+
 void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
 {
     if (!hasMirrorDisplay_ || !screenManager_) {
@@ -1079,9 +1095,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
 
     // avoid cross node subtree visited twice or more
-    UpdateSpecialLayersRecord(node);
-    UpdateBlackListRecord(node);
-    node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
+    DealWithSpecialLayer(node);
     if (CheckSkipAndPrepareForCrossNode(node)) {
         RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
