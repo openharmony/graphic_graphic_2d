@@ -1337,7 +1337,7 @@ HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Leve
 }
 
 /*
- * @tc.name: GenerateDrawingBitmapFormatTest
+ * @tc.name: GenerateDrawingBitmapFormatTest001
  * @tc.desc: Test GenerateDrawingBitmapFormat
  * @tc.type: FUNC
  * @tc.require: IC9VB0
