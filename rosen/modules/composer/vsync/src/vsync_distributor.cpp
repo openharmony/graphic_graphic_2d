@@ -1858,11 +1858,10 @@ void VSyncDistributor::NotifyPackageEvent(const std::vector<std::string>& packag
 #endif
 }
 
-bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount,
-    bool &needConsume)
+bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName, timeStamp, bufferCount, needConsume);
+    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName, timeStamp, bufferCount);
 #else
     return false;
 #endif

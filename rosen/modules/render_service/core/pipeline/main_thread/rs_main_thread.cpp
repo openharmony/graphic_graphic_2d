@@ -1610,8 +1610,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool needSkip = IsSurfaceConsumerNeedSkip(surfaceHandler->GetConsumer());
             LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
             if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive,
-                    parentNode ? parentNode->GetId() : 0)) {
+                IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive,
+                parentNode ? parentNode->GetId() : 0)) {
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
