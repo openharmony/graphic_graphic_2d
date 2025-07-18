@@ -24,7 +24,7 @@
 namespace OHOS::Text::ANI {
 class AniParagraph final {
 public:
-    static ani_object SetTypography(ani_env* env, std::unique_ptr<OHOS::Rosen::Typography>& typography);
+    static ani_object SetTypography(ani_env* env, OHOS::Rosen::Typography* typography);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
 
 private:

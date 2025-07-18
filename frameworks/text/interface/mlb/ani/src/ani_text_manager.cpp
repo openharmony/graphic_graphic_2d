@@ -54,32 +54,32 @@ static ani_status InitAllStruct(ani_vm* vm, uint32_t* result, std::index_sequenc
 }
 
 template <typename T>
-void SafeDelete(ani_long& ptr)
+void SafeDelete(ani_long& ptrAddr)
 {
-    if (ptr != 0) {
-        T* pointer = reinterpret_cast<T*>(ptr);
+    if (ptrAddr != 0) {
+        T* pointer = reinterpret_cast<T*>(ptrAddr);
         delete pointer;
         pointer = nullptr;
-        ptr = 0;
+        ptrAddr = 0;
     }
 }
 
 static void Clean(ani_env* env, ani_object object)
 {
-    ani_long ptr = 0;
-    ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptr);
+    ani_long ptrAddr = 0;
+    ani_status ret = env->Object_GetFieldByName_Long(object, "ptrAddr", &ptrAddr);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to clean ptr");
+        TEXT_LOGE("Failed to clean ptrAddr");
         return;
     }
-    if (ptr == 0) {
-        TEXT_LOGE("Auto clean failed, undefined ptr");
+    if (ptrAddr == 0) {
+        TEXT_LOGE("Auto clean failed, undefined ptrAddr");
         return;
     }
     ani_ref stringRef = nullptr;
     ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Auto clean failed, ptr %{public}" PRId64, ptr);
+        TEXT_LOGE("Auto clean failed, ptrAddr %{public}" PRId64, ptrAddr);
         return;
     }
 
@@ -95,7 +95,7 @@ static void Clean(ani_env* env, ani_object object)
         {"TextLine", SafeDelete<Rosen::TextLineBase>}, {"Run", SafeDelete<Rosen::Run>}};
 
     if (deleteMap.count(className)) {
-        deleteMap.at(className)(ptr);
+        deleteMap.at(className)(ptrAddr);
     }
 }
 

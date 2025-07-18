@@ -16,7 +16,6 @@
 #include <string>
 #include <utility>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_line_typeset.h"
 #include "ani_text_line.h"
@@ -52,7 +51,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for LineTypeset, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
@@ -88,21 +87,20 @@ ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_doubl
 
     std::unique_ptr<TextLineBase> textLineBase =
         lineTypography->CreateLine(static_cast<size_t>(startIndex), static_cast<size_t>(count));
-    if (!textLineBase) {
+    if (textLineBase == nullptr) {
         TEXT_LOGE("Failed to create line. %{public}f %{public}f %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Create line failed.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object textlineObj = AniTextLine::CreateTextLine(env, textLineBase);
-    ani_boolean isUndefined = false;
-    ani_status result = env->Reference_IsUndefined(textlineObj, &isUndefined);
-    if (result != ANI_OK || isUndefined) {
+    TextLineBase* textLineBasePtr = textLineBase.release();
+    ani_object textLineObj = AniTextLine::CreateTextLine(env, textLineBasePtr);
+    if (AniTextUtils::IsUndefined(env, textLineObj)) {
         TEXT_LOGE("Failed to create ani line, line is undefined");
+        delete textLineBasePtr;
+        textLineBasePtr = nullptr;
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create TextLine object.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    std::unique_ptr<Typography> typography = lineTypography->GetTempTypography();
-    AniTextLine::SetParagraph(env, textlineObj, typography);
-    return textlineObj;
+    return textLineObj;
 }
 } // namespace OHOS::Text::ANI

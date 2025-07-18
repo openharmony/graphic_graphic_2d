@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "SkPoint.h"
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_run.h"
@@ -33,8 +32,6 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-
-constexpr const char* NATIVE_PARAGRAPH_OBJ = "nativeParagraphObj";
 
 ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
 {
@@ -84,35 +81,24 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for TextLine, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
 
-ani_object AniTextLine::CreateTextLine(ani_env* env, std::unique_ptr<Rosen::TextLineBase>& textLine)
+ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLine)
 {
+    if (textLine == nullptr) {
+        TEXT_LOGE("Failed to create text line, emtpy ptr");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
     ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_TEXT_LINE, ":V");
-    TextLineBase* textLineBase = textLine.release();
-    ani_status ret = env->Object_SetFieldByName_Long(textLineObj, NATIVE_OBJ, reinterpret_cast<ani_long>(textLineBase));
+    ani_status ret = env->Object_SetFieldByName_Long(textLineObj, NATIVE_OBJ, reinterpret_cast<ani_long>(textLine));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine, ani_status: %{public}d", ret);
-        delete textLineBase;
-        textLineBase = nullptr;
         return AniTextUtils::CreateAniUndefined(env);
     }
     return textLineObj;
-}
-
-void AniTextLine::SetParagraph(ani_env* env, ani_object textLine, std::unique_ptr<Rosen::Typography>& paragraph)
-{
-    Typography* typographyPtr = paragraph.release();
-    ani_status ret =
-        env->Object_SetFieldByName_Long(textLine, NATIVE_PARAGRAPH_OBJ, reinterpret_cast<ani_long>(typographyPtr));
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to set type set paragraph");
-        delete typographyPtr;
-        typographyPtr = nullptr;
-    }
 }
 
 ani_double AniTextLine::GetGlyphCount(ani_env* env, ani_object object)
@@ -162,13 +148,6 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
         return arrayObj;
     }
 
-    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object, NATIVE_PARAGRAPH_OBJ);
-    if (textline == nullptr) {
-        TEXT_LOGE("Text line is null");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return arrayObj;
-    }
-
     arrayObj = AniTextUtils::CreateAniArray(env, runs.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
@@ -182,9 +161,14 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
         if (run == nullptr) {
             continue;
         }
-        ani_object aniObj = AniRun::CreateRun(env, run);
-        std::unique_ptr<Rosen::Typography> paragraphPtr(typography);
-        AniRun::SetParagraph(env, aniObj, paragraphPtr);
+        Run* runPtr = run.release();
+        ani_object aniObj = AniRun::CreateRun(env, runPtr);
+        if (AniTextUtils::IsUndefined(env, aniObj)) {
+            TEXT_LOGE("Failed to create run");
+            delete runPtr;
+            runPtr = nullptr;
+            continue;
+        }
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set runs item %{public}zu", index);
@@ -241,12 +225,13 @@ ani_object AniTextLine::CreateTruncatedLine(
         TEXT_LOGE("Failed to create truncated textLine");
         return AniTextUtils::CreateAniUndefined(env);
     }
-
-    ani_object textLineObj = CreateTextLine(env, textLine);
-
-    Typography* paragraph = AniTextUtils::GetNativeFromObj<Typography>(env, object, NATIVE_PARAGRAPH_OBJ);
-    std::unique_ptr<Rosen::Typography> paragraphPtr(paragraph);
-    SetParagraph(env, textLineObj, paragraphPtr);
+    TextLineBase* textLineBasePtr = textLine.release();
+    ani_object textLineObj = CreateTextLine(env, textLineBasePtr);
+    if (AniTextUtils::IsUndefined(env, textLineObj)) {
+        TEXT_LOGE("Failed to create text line");
+        delete textLineBasePtr;
+        textLineBasePtr = nullptr;
+    }
     return textLineObj;
 }
 
@@ -345,10 +330,7 @@ static bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vec
         TEXT_LOGE("Failed to get result, ani_status: %{public}d", ret);
         return false;
     }
-    if (result) {
-        return true;
-    }
-    return false;
+    return result;
 }
 
 void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_object object, ani_fn_object callback)

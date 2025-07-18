@@ -16,7 +16,6 @@
 #include <memory>
 #include <cstdint>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_run.h"
@@ -29,8 +28,6 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-
-constexpr const char* NATIVE_PARAGRAPH_OBJ = "nativeParagraphObj";
 
 ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
 {
@@ -79,34 +76,26 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Run, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
 
-ani_object AniRun::CreateRun(ani_env* env, std::unique_ptr<Rosen::Run>& run)
+ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
 {
+    if (run == nullptr) {
+        TEXT_LOGE("Failed to create run, emtpy ptr");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
     ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
-    Run* runPtr = run.release();
-    ani_status ret = env->Object_SetFieldByName_Long(runObj, NATIVE_OBJ, reinterpret_cast<ani_long>(runPtr));
+    ani_status ret = env->Object_SetFieldByName_Long(runObj, NATIVE_OBJ, reinterpret_cast<ani_long>(run));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set run");
-        delete runPtr;
-        runPtr = nullptr;
+        delete run;
+        run = nullptr;
+        return AniTextUtils::CreateAniUndefined(env);
     }
     return runObj;
-}
-
-void AniRun::SetParagraph(ani_env* env, ani_object textLine, std::unique_ptr<Rosen::Typography>& paragraph)
-{
-    Typography* typographyPtr = paragraph.release();
-    ani_status ret =
-        env->Object_SetFieldByName_Long(textLine, NATIVE_PARAGRAPH_OBJ, reinterpret_cast<ani_long>(typographyPtr));
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to set type set paragraph");
-        delete typographyPtr;
-        typographyPtr = nullptr;
-    }
 }
 
 ani_double AniRun::GetGlyphCount(ani_env* env, ani_object object)
@@ -130,8 +119,7 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
     }
     std::vector<uint16_t> glyphs = run->GetGlyphs();
 
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, glyphs.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, glyphs.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
@@ -169,8 +157,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     }
 
     std::vector<uint16_t> glyphs = run->GetGlyphs(rectRange.start, rectRange.end);
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, glyphs.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, glyphs.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
@@ -200,8 +187,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
     }
     std::vector<Drawing::Point> points = run->GetPositions();
 
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, points.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, points.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
@@ -212,9 +198,13 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
     for (const auto& point : points) {
         ani_object aniObj{nullptr};
         ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
-        if (ANI_OK != status
-            || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Failed to set points item %{public}zu", index);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
         }
         index++;
@@ -240,8 +230,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
 
     std::vector<Drawing::Point> points = run->GetPositions(rectRange.start, rectRange.end);
 
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, points.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, points.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
@@ -252,9 +241,13 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
     for (const auto& point : points) {
         ani_object aniObj{nullptr};
         ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
-        if (ANI_OK != status
-            || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Failed to set points item %{public}zu", index);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
         }
         index++;
@@ -273,8 +266,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
 
     std::vector<Drawing::Point> points = run->GetOffsets();
 
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, points.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, points.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
@@ -285,9 +277,13 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
     for (const auto& point : points) {
         ani_object aniObj{nullptr};
         ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
-        if (ANI_OK != status
-            || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Failed to set points item %{public}zu", index);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
         }
         index++;
@@ -349,8 +345,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     }
 
     std::vector<uint64_t> stringIndices = run->GetStringIndices(rectRange.start, rectRange.end);
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, stringIndices.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, stringIndices.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
