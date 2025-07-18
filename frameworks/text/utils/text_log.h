@@ -27,11 +27,11 @@ namespace OHOS {
 namespace Rosen {
 #ifdef ENABLE_OHOS_ENHANCE
 
-#undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001408
+#undef TEXT_LOG_DOMAIN
+#define TEXT_LOG_DOMAIN 0xD001408
 
-#undef LOG_TAG
-#define LOG_TAG "Text"
+#undef TEXT_LOG_TAG
+#define TEXT_LOG_TAG "Text"
 
 #define TEXT_LOG_LIMIT_HOURS 3600
 #define TEXT_LOG_LIMIT_MINUTE 60
@@ -59,7 +59,7 @@ namespace Rosen {
             supressed = 0;                                                                               \
             printCount = 1;                                                                              \
             if (supressedCnt != 0) {                                                                     \
-                ((void)HILOG_IMPL((type), (level), LOG_DOMAIN, LOG_TAG,                                  \
+                ((void)HILOG_IMPL((type), (level), TEXT_LOG_DOMAIN, TEXT_LOG_TAG,                                  \
                     "%{public}s log suppressed cnt %{public}u", __func__, supressedCnt));                \
             }                                                                                            \
             (canPrint) = true;                                                                           \

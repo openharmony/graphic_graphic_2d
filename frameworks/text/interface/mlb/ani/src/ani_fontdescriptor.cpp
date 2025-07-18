@@ -15,7 +15,6 @@
 
 #include <unordered_set>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_fontdescriptor.h"
 #include "ani_text_utils.h"
@@ -96,7 +95,7 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for AniFontDescriptor, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
@@ -151,10 +150,6 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
     SET_STRING_PROPERTY(env, aniObj, "italic", fontDesc->italic, Int, status);
     SET_STRING_PROPERTY(env, aniObj, "monoSpace", fontDesc->monoSpace, Boolean, status);
     SET_STRING_PROPERTY(env, aniObj, "symbolic", fontDesc->symbolic, Boolean, status);
-
-    if (status != ANI_OK) {
-        return status;
-    }
 
     auto iter = g_weightMap.find(fontDesc->weight);
     if (iter == g_weightMap.end()) {

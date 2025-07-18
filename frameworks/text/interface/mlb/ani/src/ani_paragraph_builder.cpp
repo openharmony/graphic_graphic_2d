@@ -104,7 +104,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
@@ -162,6 +162,13 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    return AniParagraph::SetTypography(env, typography);
+    OHOS::Rosen::Typography* typographPtr = typography.release();
+    ani_object typographObj = AniParagraph::SetTypography(env, typographPtr);
+    if (AniTextUtils::IsUndefined(env, typographObj)) {
+        TEXT_LOGE("Failed to create typograph obj");
+        delete typographPtr;
+        typographPtr = nullptr;
+    }
+    return typographObj;
 }
 } // namespace OHOS::Text::ANI

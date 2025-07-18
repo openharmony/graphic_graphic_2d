@@ -30,16 +30,17 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-ani_object AniParagraph::SetTypography(ani_env* env, std::unique_ptr<OHOS::Rosen::Typography>& typography)
+ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* typography)
 {
+    if (typography == nullptr) {
+        TEXT_LOGE("Failed to set paragraph, emtpy ptr");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
     ani_object pargraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
-    Typography* typographyPtr = typography.release();
     ani_status ret =
-        env->Object_SetFieldByName_Long(pargraphObj, "nativeObj", reinterpret_cast<ani_long>(typographyPtr));
+        env->Object_SetFieldByName_Long(pargraphObj, "nativeObj", reinterpret_cast<ani_long>(typography));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
-        delete typographyPtr;
-        typographyPtr = nullptr;
         return AniTextUtils::CreateAniUndefined(env);
     }
     return pargraphObj;
@@ -77,7 +78,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
@@ -154,12 +155,6 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return arrayObj;
     }
-    std::shared_ptr<Typography> paragraphCopy = typography->CloneSelf();
-    if (!paragraphCopy) {
-        TEXT_LOGE("Failed to clone paragraph");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return arrayObj;
-    }
     std::vector<std::unique_ptr<TextLineBase>> textlines = typography->GetTextLines();
     arrayObj = AniTextUtils::CreateAniArray(env, textlines.size());
     ani_boolean isUndefined;
@@ -173,9 +168,14 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
         if (textline == nullptr) {
             continue;
         }
-        ani_object aniObj = AniTextLine::CreateTextLine(env, textline);
-        std::unique_ptr<Rosen::Typography> paragraphPtr(paragraphCopy.get());
-        AniTextLine::SetParagraph(env, aniObj, paragraphPtr);
+        TextLineBase* textLineBasePtr = textline.release();
+        ani_object aniObj = AniTextLine::CreateTextLine(env, textLineBasePtr);
+        if (AniTextUtils::IsUndefined(env, aniObj)) {
+            TEXT_LOGE("Failed to create text line");
+            delete textLineBasePtr;
+            textLineBasePtr = nullptr;
+            continue;
+        }
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set textline item %{public}zu", index);

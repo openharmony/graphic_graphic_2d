@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
 #include "ani_typographic_bounds_converter.h"

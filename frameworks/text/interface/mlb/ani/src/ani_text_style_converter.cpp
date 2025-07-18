@@ -337,9 +337,9 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
         env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
     }
     env->Object_SetPropertyByName_Ref(aniObj, "decorationStyle",
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE, static_cast<int>(textStyle.decorationStSyle)));
+        AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE, static_cast<int>(textStyle.decorationStyle)));
     env->Object_SetPropertyByName_Ref(
-        aniObj, "decorationThicknessScale", AniTextUtils::CreateAniDoubleObj(env, textStyle.decorationThicknesscale));
+        aniObj, "decorationThicknessScale", AniTextUtils::CreateAniDoubleObj(env, textStyle.decorationThicknessScale));
     return aniObj;
 }
 

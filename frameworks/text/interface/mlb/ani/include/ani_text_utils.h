@@ -32,6 +32,7 @@ public:
     static T* GetNativeFromObj(ani_env* env, ani_object obj);
 
     static ani_object CreateAniUndefined(ani_env* env);
+    static bool IsUndefined(ani_env* env, ani_ref ref);
     template <typename... Args>
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params);
     static ani_object CreateAniArray(ani_env* env, size_t size);

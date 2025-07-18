@@ -92,16 +92,16 @@ ani_status AniDrawingConverter::ParseColorToAni(ani_env* env, const OHOS::Rosen:
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_COLOR, ":V");
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "alpha", ani_double(color.GetAlpha()))) {
-        return ANI_INVALID_GRGS;
+        return ANI_INVALID_ARGS;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "red", ani_double(color.GetRed()))) {
-        return ANI_INVALID_GRGS;
+        return ANI_INVALID_ARGS;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "green", ani_double(color.GetGreen()))) {
-        return ANI_INVALID_GRGS;
+        return ANI_INVALID_ARGS;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "blue", ani_double(color.GetBlue()))) {
-        return ANI_INVALID_GRGS;
+        return ANI_INVALID_ARGS;
     }
     obj = aniObj;
     return ANI_OK;

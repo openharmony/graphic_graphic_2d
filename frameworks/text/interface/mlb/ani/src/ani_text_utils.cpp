@@ -75,6 +75,20 @@ ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
     return reinterpret_cast<ani_object>(aniRef);
 }
 
+bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
+{
+    ani_boolean isUndefined = 0;
+    ani_status status = env->Reference_IsUndefined(env, &isUndefined);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Fail to check if undefined, status: %{public}d", static_cast<int32_t>(status));
+        return false;
+    }
+    if (isUndefined != 0) {
+        return true;
+    }
+    return false;
+}
+
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
     ani_class arrayCls;
