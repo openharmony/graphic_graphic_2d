@@ -41,14 +41,14 @@ RSRenderInterpolatingSpringAnimation::RSRenderInterpolatingSpringAnimation(Anima
 
 void RSRenderInterpolatingSpringAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderInterpolatingSpringAnimation";
+    out.append("Type:RSRenderInterpolatingSpringAnimation");
     DumpProperty(out);
     RSPropertyType type = RSPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
     }
-    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_);
-    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_);
+    out.append(", StartValue: ").append(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_));
+    out.append(", EndValue: ").append(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_));
 }
 
 void RSRenderInterpolatingSpringAnimation::SetSpringParameters(

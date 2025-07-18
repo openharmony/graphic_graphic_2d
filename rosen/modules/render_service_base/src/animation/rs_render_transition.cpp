@@ -29,7 +29,7 @@ RSRenderTransition::RSRenderTransition(
 
 void RSRenderTransition::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderTransition";
+    out.append("Type:RSRenderTransition");
 }
 
 void RSRenderTransition::OnAnimate(float fraction)
