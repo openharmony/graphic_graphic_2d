@@ -1697,7 +1697,7 @@ int64_t VSyncDistributor::GetUiCommandDelayTime()
 int64_t VSyncDistributor::GetRsDelayTime(int32_t pid)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-     return DVSync::Instance().GetRsDelayTime(pid);
+    return DVSync::Instance().GetRsDelayTime(pid);
 #else
     return 0;
 #endif
