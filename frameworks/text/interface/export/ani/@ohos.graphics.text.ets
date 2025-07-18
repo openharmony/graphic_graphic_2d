@@ -1673,6 +1673,13 @@ namespace text {
     bottom: number;
   }
 
+  class ColorInternal implements common2D.Color {
+    alpha: number;
+    red: number;
+    green: number;
+    blue: number;
+  }
+
   /**
    * Provides the definition of the range.
    * @typedef Range
