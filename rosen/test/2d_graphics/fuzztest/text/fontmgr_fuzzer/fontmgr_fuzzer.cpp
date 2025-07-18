@@ -368,10 +368,6 @@ bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     std::vector<std::string> fontPathVec;
     fontMgr->ParseInstallFontConfig("strPath", fontPathVec);
-    if (path != nullptr) {
-        delete [] path;
-        path = nullptr;
-    }
     return true;
 }
 } // namespace Drawing
