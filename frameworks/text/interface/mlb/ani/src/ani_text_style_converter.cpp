@@ -17,6 +17,7 @@
 #include "ani_drawing_converter.h"
 #include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
+#include "draw/color.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -250,6 +251,10 @@ void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj,
     if (!isObj) {
         TEXT_LOGE("Object mismatch, ret %{public}d", ret);
         return;
+    }
+    Drawing::Color color;
+    if (AniDrawingConverter::ParseDrawingColorToNative(env, obj, "color", color) == ANI_OK) {
+        rectStyle.color = color.CastToColorQuad();
     }
     env->Object_GetPropertyByName_Double(obj, "leftTopRadius", &rectStyle.leftTopRadius);
     env->Object_GetPropertyByName_Double(obj, "rightTopRadius", &rectStyle.rightTopRadius);

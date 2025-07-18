@@ -32,7 +32,7 @@ inline int32_t ConvertClampFromJsValue(ani_double jsValue, int32_t low, int32_t 
 
 class AniDrawingConverter final {
 public:
-    static void ParseDrawingColorToNative(
+    static ani_status ParseDrawingColorToNative(
         ani_env* env, ani_object obj, const std::string& str, OHOS::Rosen::Drawing::Color& colorSrc);
     static ani_status ParseDrawingPointToNative(ani_env* env, ani_object obj, OHOS::Rosen::Drawing::Point& point);
     static ani_object ParseFontMetricsToAni(ani_env* env, const OHOS::Rosen::Drawing::FontMetrics& fontMetrics);

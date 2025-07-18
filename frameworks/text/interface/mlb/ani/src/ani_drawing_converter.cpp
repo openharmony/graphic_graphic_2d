@@ -36,33 +36,34 @@ bool GetColorValue(ani_env* env, ani_object colorObj, const char* name, int32_t&
 }
 } // namespace
 
-void AniDrawingConverter::ParseDrawingColorToNative(
+ani_status AniDrawingConverter::ParseDrawingColorToNative(
     ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
 {
     ani_ref colorRef = nullptr;
     ani_status result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &colorRef);
     if (result != ANI_OK || colorRef == nullptr) {
         TEXT_LOGD("Failed to find param color, ret %{public}d", result);
-        return;
+        return result;
     }
 
     int32_t alpha = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "alpha", alpha)) {
-        return;
+        return ANI_INVALID_TYPE;
     }
     int32_t red = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "red", red)) {
-        return;
+        return ANI_INVALID_TYPE;
     }
     int32_t green = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "green", green)) {
-        return;
+        return ANI_INVALID_TYPE;
     }
     int32_t blue = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "blue", blue)) {
-        return;
+        return ANI_INVALID_TYPE;
     }
     colorSrc = Drawing::Color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));
+    return ANI_OK;
 }
 
 ani_status AniDrawingConverter::ParseDrawingPointToNative(
