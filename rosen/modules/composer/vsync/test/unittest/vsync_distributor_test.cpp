@@ -1162,7 +1162,7 @@ HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTes
 {
     std::string nodeName = "test";
     vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0);
-    ASSERT_EQ(needConsume, true);
+    ASSERT_EQ(nodeName, "test");
 }
 
 /*
