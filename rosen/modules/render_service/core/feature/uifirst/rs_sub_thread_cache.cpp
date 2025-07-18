@@ -889,22 +889,30 @@ bool RsSubThreadCache::DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable*
 }
 
 bool RsSubThreadCache::DrawUIFirstCacheWithStarting(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    RSPaintFilterCanvas& rscanvas, NodeId id)
+    RSPaintFilterCanvas& rscanvas, NodeId startingWindowId)
 {
     if (!surfaceDrawable) {
         RS_LOGE("DrawUIFirstCacheWithStarting surfaceDrawable is nullptr");
         return false;
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting %d, nodeID:%" PRIu64 "", HasCachedTexture(), id);
+    bool hasCachedTexture = HasCachedTexture();
+    RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting hasCache:%d, nodeId:%" PRIu64, hasCachedTexture, startingWindowId);
+    auto startingNodeDrawable = RSRenderNodeDrawableAdapter::GetDrawableById(startingWindowId);
+    if (UNLIKELY(!hasCachedTexture && !startingNodeDrawable)) {
+        RS_LOGI("DrawUIFirstCacheWithStarting with no cache and no starting window. id:%{public}" PRIu64,
+            surfaceDrawable->GetId());
+        // no cache and starting window, we should wait subthread
+        return DrawUIFirstCache(surfaceDrawable, rscanvas, false);
+    }
     bool ret = true;
-    auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
-    if (drawable) {
-        const auto& startingParams = drawable->GetRenderParams();
-        if (!HasCachedTexture() && startingParams && !ROSEN_EQ(startingParams->GetAlpha(), 1.0f)) {
+    if (startingNodeDrawable) {
+        const auto& startingParams = startingNodeDrawable->GetRenderParams();
+        if (!hasCachedTexture && startingParams && !ROSEN_EQ(startingParams->GetAlpha(), 1.0f)) {
+            // no cache and starting window alpha is not 1.0, we should wait subthread
             ret = DrawUIFirstCache(surfaceDrawable, rscanvas, false);
             RS_TRACE_NAME_FMT("wait and drawStarting, GetAlpha:%f, GetGlobalAlpha:%f",
                 startingParams->GetAlpha(), startingParams->GetGlobalAlpha());
-            drawable->Draw(rscanvas);
+            startingNodeDrawable->Draw(rscanvas);
             return ret;
         }
     }
@@ -913,14 +921,14 @@ bool RsSubThreadCache::DrawUIFirstCacheWithStarting(DrawableV2::RSSurfaceRenderN
         RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
         return false;
     }
-    // draw surface content&&childrensss
-    if (HasCachedTexture()) {
+    // draw surface content
+    if (hasCachedTexture) {
         ret = DrawCacheSurface(surfaceDrawable, rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX, true);
     }
     // draw starting window
-    if (drawable) {
+    if (startingNodeDrawable) {
         RS_TRACE_NAME_FMT("drawStarting");
-        drawable->Draw(rscanvas);
+        startingNodeDrawable->Draw(rscanvas);
     }
     return ret;
 }
