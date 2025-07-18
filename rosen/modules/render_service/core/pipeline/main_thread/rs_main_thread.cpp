@@ -1311,7 +1311,7 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
             RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex);
             if (curIndex == lastIndex + 1) {
                 if ((*iter)->GetTimestamp() + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime())
-                    >= timestamp_) {
+                    + rsVSyncDistributor_->GetRsDelayTime(pid) >= timestamp_) {
                     RequestNextVsyncForCachedCommand(transactionFlags, pid, curIndex);
                     break;
                 }
