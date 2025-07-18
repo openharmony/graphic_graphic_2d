@@ -39,16 +39,17 @@ void FontCollectionFuzzTest(const uint8_t* data, size_t size)
         return;
     }
     Drawing::Typeface::RegisterCallBackFunc([](std::shared_ptr<Drawing::Typeface>) { return true; });
+    std::string familyName = "familyname";
     size_t datalen = fdp.ConsumeIntegral<uint16_t>();
     std::unique_ptr fontData = std::make_unique<uint8_t[]>(datalen);
     fdp.ConsumeData(fontData.get(), datalen);
     fc->DisableFallback();
     fc->DisableSystemFont();
     fc->GetFontMgr();
-    fc->LoadFont(fdp.ConsumeRandomLengthString(), fontData.get(), datalen);
-    fc->UnloadFont(fdp.ConsumeRandomLengthString());
-    fc->LoadSymbolFont(fdp.ConsumeRandomLengthString(), fontData.get(), datalen);
-    fc->LoadThemeFont(fdp.ConsumeRandomLengthString(), fontData.get(), datalen);
+    fc->LoadFont(familyName, fontData.get(), datalen);
+    fc->UnloadFont(familyName);
+    fc->LoadSymbolFont(familyName, fontData.get(), datalen);
+    fc->LoadThemeFont(familyName, fontData.get(), datalen);
     fc->ClearThemeFont();
     fc->ClearCaches();
     FontCollection::RegisterUnloadFontStartCallback(nullptr);
@@ -62,7 +63,6 @@ void FontCollectionFuzzTest(const uint8_t* data, size_t size)
     FontCollection::RegisterUnloadFontFinishCallback(callback);
     const char* cjkFile = "/system/fonts/NotoSansCJK-Regular.ttc";
     std::vector<uint8_t> file = GetFileData(cjkFile);
-    std::string familyName = fdp.ConsumeRandomLengthString();
     fc->LoadFont(familyName, file.data(), file.size());
     fc->UnloadFont(familyName);
 }

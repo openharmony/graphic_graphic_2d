@@ -366,21 +366,8 @@ bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
-    std::string pathPrefix = "/data/service/el1/public/for-all-app/fonts/";
-    uint32_t pathPrefixLength = static_cast<uint32_t>(pathPrefix.length());
-    uint32_t countT = GetObject<uint32_t>() % MAX_SIZE + 1;
-    char* path = new char[countT + pathPrefixLength];
-    if (path == nullptr) {
-        return false;
-    }
-    strlcpy(path, pathPrefix.c_str(), pathPrefixLength);
-    for (size_t i = pathPrefixLength; i < countT + pathPrefixLength; i++) {
-        path[i] =  GetObject<char>();
-    }
-    path[countT - 1] = '\0';
-    std::string strPath(path);
     std::vector<std::string> fontPathVec;
-    fontMgr->ParseInstallFontConfig(strPath, fontPathVec);
+    fontMgr->ParseInstallFontConfig("strPath", fontPathVec);
     if (path != nullptr) {
         delete [] path;
         path = nullptr;
