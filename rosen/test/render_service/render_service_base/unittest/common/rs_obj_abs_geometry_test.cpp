@@ -1136,4 +1136,23 @@ HWTEST_F(RSObjAbsGeometryTest, MapRegion001, TestSize.Level1)
         EXPECT_TRUE(rect == expectRect1 || rect == expectRect2);
     }
 }
+
+/**
+ * @tc.name: SetAbsMatrix
+ * @tc.desc: Verify function SetAbsMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueICMWYR
+ */
+HWTEST_F(RSObjAbsGeometryTest, SetAbsMatrix, TestSize.Level1)
+{
+    auto geo = std::make_shared<RSObjAbsGeometry>();
+    geo->absMatrix_ = Drawing::Matrix();
+    EXPECT_TRUE(geo->absMatrix_->IsIdentity());
+    Drawing::Matrix mat;
+    mat.SetScale(0.5f, 0.5f);
+    ASSERT_FALSE(mat.IsIdentity());
+
+    geo->SetAbsMatrix(mat);
+    EXPECT_FALSE(geo->absMatrix_->IsIdentity());
+}
 } // namespace OHOS::Rosen

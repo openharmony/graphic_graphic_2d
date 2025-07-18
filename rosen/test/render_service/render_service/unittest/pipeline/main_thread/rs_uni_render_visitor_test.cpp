@@ -5238,4 +5238,118 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDstRectByGlobalPosition001, TestSize.Leve
     RectI expectedDstRect = {0, 1000, 2440, 1080};
     EXPECT_TRUE(node.GetDstRect() == expectedDstRect);
 }
+
+/*
+ * @tc.name: PostPrepare001
+ * @tc.desc: Test PostPrepare NeedDrawBehindWindow branch
+ * @tc.type: FUNC
+ * @tc.require: issueICMWYR
+ */
+HWTEST_F(RSUniRenderVisitorTest, PostPrepare001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(surfaceNode->dirtyManager_, nullptr);
+    auto& geoPtr = surfaceNode->renderProperties_.boundsGeo_;
+    geoPtr = std::make_shared<RSObjAbsGeometry>();
+    RectI rect(10, 10, 20, 20);
+    geoPtr->absRect_ = rect;
+    rsUniRenderVisitor->PostPrepare(*surfaceNode);
+    EXPECT_TRUE(surfaceNode->GetFilterRect() == rect);
+
+    Drawing::Matrix surfaceMatrix;
+    surfaceMatrix.SetScale(0.5f, 0.5f);
+    EXPECT_FALSE(surfaceMatrix.IsIdentity());
+    surfaceNode->renderProperties_.boundsGeo_->absMatrix_ = surfaceMatrix;
+    NodeId childId1 = 1000;
+    auto context = RSMainThread::Instance()->GetContext().shared_from_this();
+    auto child1 = std::make_shared<RSRenderNode>(childId1, context);
+    context->nodeMap.RegisterRenderNode(child1);
+    child1->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    RectF childRect(20.f, 20.f, 30.f, 30.f);
+    child1->selfDrawRect_ = childRect;
+    child1->renderProperties_.boundsGeo_->absMatrix_ = Drawing::Matrix();
+    context->nodeMap.GetRenderNode<RSRenderNode>(childId1)->parent_ = surfaceNode;
+    surfaceNode->childrenBlurBehindWindow_.emplace(childId1);
+    ASSERT_TRUE(surfaceNode->NeedDrawBehindWindow());
+
+    rsUniRenderVisitor->curSurfaceNode_ = nullptr;
+    surfaceNode->isFirstLevelCrossNode_ = false;
+    rsUniRenderVisitor->PostPrepare(*surfaceNode);
+    EXPECT_TRUE(child1->renderProperties_.boundsGeo_->absMatrix_->IsIdentity());
+    EXPECT_FALSE(surfaceNode->GetFilterRect() == rect);
+
+    rsUniRenderVisitor->curSurfaceNode_ = nullptr;
+    surfaceNode->isFirstLevelCrossNode_ = true;
+    rsUniRenderVisitor->PostPrepare(*surfaceNode);
+    EXPECT_TRUE(child1->renderProperties_.boundsGeo_->absMatrix_->IsIdentity());
+    EXPECT_FALSE(surfaceNode->GetFilterRect() == rect);
+
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    surfaceNode->isFirstLevelCrossNode_ = true;
+    rsUniRenderVisitor->PostPrepare(*surfaceNode);
+    EXPECT_TRUE(child1->renderProperties_.boundsGeo_->absMatrix_->IsIdentity());
+    EXPECT_FALSE(surfaceNode->GetFilterRect() == rect);
+
+    surfaceNode->isFirstLevelCrossNode_ = false;
+    rsUniRenderVisitor->PostPrepare(*surfaceNode);
+    auto child = context->nodeMap.GetRenderNode<RSRenderNode>(childId1);
+    EXPECT_FALSE(child->renderProperties_.boundsGeo_->absMatrix_->IsIdentity());
+    EXPECT_FALSE(surfaceNode->GetFilterRect() == rect);
+    context->nodeMap.UnregisterRenderNode(childId1);
+}
+
+/*
+ * @tc.name: UpdateChildBlurBehindWindowAbsMatrix
+ * @tc.desc: Test UpdateChildBlurBehindWindowAbsMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueICMWYR
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateChildBlurBehindWindowAbsMatrix, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->UpdateChildBlurBehindWindowAbsMatrix(*node);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto context = RSMainThread::Instance()->GetContext().shared_from_this();
+
+    NodeId childId1 = 1001;
+    NodeId childId2 = 1002;
+    NodeId childId3 = 1003;
+    auto child1 = std::make_shared<RSRenderNode>(childId1, context);
+    auto child2 = std::make_shared<RSRenderNode>(childId2, context);
+    auto child3 = std::make_shared<RSRenderNode>(childId3);
+    surfaceNode->childrenBlurBehindWindow_.emplace(childId1);
+    surfaceNode->childrenBlurBehindWindow_.emplace(childId2);
+    surfaceNode->childrenBlurBehindWindow_.emplace(childId3);
+    ASSERT_FALSE(surfaceNode->GetChildBlurBehindWindow().empty());
+
+    context->nodeMap.RegisterRenderNode(child1);
+    ASSERT_TRUE(context->nodeMap.GetRenderNode<RSRenderNode>(childId1) != nullptr);
+    context->nodeMap.RegisterRenderNode(child2);
+    ASSERT_TRUE(context->nodeMap.GetRenderNode<RSRenderNode>(childId2) != nullptr);
+
+    child1->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    child1->parent_ = surfaceNode;
+
+    Drawing::Matrix surfaceMatrix;
+    surfaceMatrix.SetScale(0.5f, 0.5f);
+    EXPECT_FALSE(surfaceMatrix.IsIdentity());
+    surfaceNode->renderProperties_.boundsGeo_->absMatrix_ = surfaceMatrix;
+    Drawing::Matrix childMatrix;
+    child1->renderProperties_.boundsGeo_->absMatrix_ = childMatrix;
+    EXPECT_TRUE(child1->renderProperties_.boundsGeo_->absMatrix_->IsIdentity());
+    child2->renderProperties_.boundsGeo_ = nullptr;
+
+    rsUniRenderVisitor->UpdateChildBlurBehindWindowAbsMatrix(*surfaceNode);
+    EXPECT_FALSE(child1->renderProperties_.boundsGeo_->absMatrix_->IsIdentity());
+    context->nodeMap.UnregisterRenderNode(childId1);
+    context->nodeMap.UnregisterRenderNode(childId2);
+}
 } // OHOS::Rosen

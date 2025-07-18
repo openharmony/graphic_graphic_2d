@@ -3742,6 +3742,11 @@ void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
     childrenBlurBehindWindow_.erase(id);
 }
 
+const std::unordered_set<NodeId>& RSSurfaceRenderNode::GetChildBlurBehindWindow()
+{
+    return childrenBlurBehindWindow_;
+}
+
 void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
 {
     auto context = GetContext().lock();

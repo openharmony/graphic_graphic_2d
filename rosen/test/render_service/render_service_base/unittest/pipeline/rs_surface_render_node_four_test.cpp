@@ -448,5 +448,20 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, SetAndGetAppWindowZOrderTest, TestSize.Lev
     surfaceNode->SetAppWindowZOrder(1);
     ASSERT_EQ(surfaceNode->GetAppWindowZOrder(), 1);
 }
+
+/**
+ * @tc.name: GetChildBlurBehindWindow
+ * @tc.desc: Test GetChildBlurBehindWindow
+ * @tc.type: FUNC
+ * @tc.require: issueICMWYR
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, GetChildBlurBehindWindow, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    NodeId id = 1001;
+    surfaceNode->childrenBlurBehindWindow_.emplace(id);
+    EXPECT_TRUE(!surfaceNode->GetChildBlurBehindWindow().empty());
+}
 } // namespace Rosen
 } // namespace OHOS
