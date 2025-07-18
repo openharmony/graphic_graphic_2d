@@ -1336,4 +1336,36 @@ HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Leve
     ASSERT_EQ(true, result2);
 }
 
+/*
+ * @tc.name: GenerateDrawingBitmapFormatTest
+ * @tc.desc: Test GenerateDrawingBitmapFormat
+ * @tc.type: FUNC
+ * @tc.require: IC9VB0
+ */
+HWTEST_F(RSBaseRenderUtilTest, GenerateDrawingBitmapFormatTest, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer;
+    BufferHandle *bufferHandle = new BufferHandle();
+    bufferHandle->format = 12;
+    buffer->SetBufferHandle(bufferHandle);
+    Drawing::BitmapFormat bitmapFormat;
+    bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
+    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+
+    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE;
+    bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
+    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
+    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+
+    alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
+    bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
+    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+
+    bufferHandle->format = 36;
+    bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
+    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
+    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+}
 } // namespace OHOS::Rosen

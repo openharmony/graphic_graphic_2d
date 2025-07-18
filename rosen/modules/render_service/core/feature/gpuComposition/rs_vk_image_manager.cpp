@@ -249,9 +249,14 @@ void RSVkImageManager::DumpVkImageInfo(std::string &dumpString)
 }
 
 std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
-    RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-    const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
+    RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
+    const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
+    const sptr<SurfaceBuffer>& buffer = params.buffer;
+    const sptr<SyncFence>& acquireFence = params.acquireFence;
+    const pid_t threadIndex = params.threadIndex;
+    const Drawing::AlphaType alphaType = params.alphaType;
+
     auto image = std::make_shared<Drawing::Image>();
     if (buffer == nullptr) {
         RS_LOGE("RSVkImageManager::CreateImageFromBuffer: buffer is nullptr");
@@ -268,7 +273,7 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
             buffer->GetSeqNum());
         UnMapImageFromSurfaceBuffer(buffer->GetSeqNum());
     }
-    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
+    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
     auto screenColorSpace = GetCanvasColorSpace(canvas);
     if (screenColorSpace && drawingColorSpace &&
         drawingColorSpace->IsSRGB() != screenColorSpace->IsSRGB()) {

@@ -646,6 +646,12 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     if (consumer == nullptr) {
         return params;
     }
+
+    GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
+    if (consumer->GetAlphaType(alphaType) == GSERROR_OK) {
+        params.alphaType = static_cast<Drawing::AlphaType>(alphaType);
+    }
+    
     auto transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     if (consumer->GetSurfaceBufferTransformType(buffer, &transform) != GSERROR_OK) {
         RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam GetSurfaceBufferTransformType failed");
@@ -699,6 +705,12 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     if (consumer == nullptr) {
         return params;
     }
+
+    GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
+    if (consumer->GetAlphaType(alphaType) == GSERROR_OK) {
+        params.alphaType = static_cast<Drawing::AlphaType>(alphaType);
+    }
+
     auto transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     if (consumer->GetSurfaceBufferTransformType(buffer, &transform) != GSERROR_OK) {
         RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam GetSurfaceBufferTransformType failed");
@@ -810,6 +822,11 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSScreenRenderNode&
         RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam buffer is null.");
         return params;
     }
+    const sptr<IConsumerSurface> consumer = surfaceHandler->GetConsumer();
+    GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
+    if (consumer && consumer->GetAlphaType(alphaType) == GSERROR_OK) {
+        params.alphaType = static_cast<Drawing::AlphaType>(alphaType);
+    }
     params.buffer = buffer;
     params.acquireFence = surfaceHandler->GetAcquireFence();
     SetSrcRect(params, buffer);
@@ -831,6 +848,11 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
     if (!buffer) {
         RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam buffer is null.");
         return bufferDrawParam;
+    }
+    const sptr<IConsumerSurface> consumer = surfaceHandler.GetConsumer();
+    GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
+    if (consumer && consumer->GetAlphaType(alphaType) == GSERROR_OK) {
+        bufferDrawParam.alphaType = static_cast<Drawing::AlphaType>(alphaType);
     }
     bufferDrawParam.buffer = buffer;
     bufferDrawParam.acquireFence = surfaceHandler.GetAcquireFence();

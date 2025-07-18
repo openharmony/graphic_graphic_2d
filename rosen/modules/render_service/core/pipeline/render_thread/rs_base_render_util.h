@@ -103,6 +103,7 @@ struct BufferDrawParam {
     bool isHeterog = false;
     bool colorFollow = false;
     bool preRotation = false;
+    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
 };
 
 using WriteToPngParam = struct {
@@ -147,7 +148,8 @@ public:
 
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
-    static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
+    static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL);
 
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0,
         bool adaptiveDVSyncEnable = false);

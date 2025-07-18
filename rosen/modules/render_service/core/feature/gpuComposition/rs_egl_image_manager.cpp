@@ -339,9 +339,14 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNu
 }
 
 std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
-    RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-    const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
+    RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
+    const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
+    const sptr<SurfaceBuffer>& buffer = params.buffer;
+    const sptr<SyncFence>& acquireFence = params.acquireFence;
+    const pid_t threadIndex = params.threadIndex;
+    const Drawing::AlphaType alphaType = params.alphaType;
+
 #if defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GL)
     if (canvas.GetGPUContext() == nullptr) {
         RS_LOGE("RSEglImageManager::CreateEglImageFromBuffer GrContext is null!");
@@ -357,7 +362,7 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
         return nullptr;
     }
     auto pixelFmt = buffer->GetFormat();
-    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
+    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
 
     auto image = std::make_shared<Drawing::Image>();
     Drawing::TextureInfo externalTextureInfo;
