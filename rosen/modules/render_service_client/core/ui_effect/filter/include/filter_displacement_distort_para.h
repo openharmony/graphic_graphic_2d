@@ -21,8 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-// limits for ripple mask center parameters
-constexpr std::pair<float, float> DISPLACEMENT_DISTORT_FACTOR_LIMITS { 0.0f, 10.0f };
 
 class RSC_EXPORT DisplacementDistortPara : public FilterPara {
 public:
@@ -46,7 +44,7 @@ public:
 
     void SetFactor(Vector2f& factor)
     {
-        factor_ = UIEffect::GetLimitedPara(factor, DISPLACEMENT_DISTORT_FACTOR_LIMITS);
+        factor_ = factor;
     }
 
     const Vector2f& GetFactor() const
