@@ -64,6 +64,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "graphic_surface:surface_static",
   ]
 }
 
