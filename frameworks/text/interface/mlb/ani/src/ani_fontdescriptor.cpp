@@ -185,7 +185,7 @@ ani_object AniFontDescriptor::GetSystemFontFullNamesByType(ani_env* env, ani_enu
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -246,7 +246,7 @@ ani_object AniFontDescriptor::MatchFontDescriptors(ani_env* env, ani_object desc
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;

@@ -123,7 +123,7 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -161,7 +161,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -191,7 +191,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -234,7 +234,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -270,7 +270,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -349,7 +349,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;

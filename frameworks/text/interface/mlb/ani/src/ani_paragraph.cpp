@@ -160,7 +160,7 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return arrayObj;
     }
     ani_size index = 0;
@@ -200,7 +200,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return arrayObj;
     }
     ani_size index = 0;
