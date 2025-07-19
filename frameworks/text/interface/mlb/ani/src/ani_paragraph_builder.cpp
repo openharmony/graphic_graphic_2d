@@ -162,13 +162,13 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    OHOS::Rosen::Typography* typographPtr = typography.release();
-    ani_object typographObj = AniParagraph::SetTypography(env, typographPtr);
-    if (AniTextUtils::IsUndefined(env, typographObj)) {
-        TEXT_LOGE("Failed to create typograph obj");
-        delete typographPtr;
-        typographPtr = nullptr;
+    OHOS::Rosen::Typography* typographyPtr = typography.release();
+    ani_object typographyObj = AniParagraph::SetTypography(env, typographyPtr);
+    if (AniTextUtils::IsUndefined(env, typographyObj)) {
+        TEXT_LOGE("Failed to create typography obj");
+        delete typographyPtr;
+        typographyPtr = nullptr;
     }
-    return typographObj;
+    return typographyObj;
 }
 } // namespace OHOS::Text::ANI
