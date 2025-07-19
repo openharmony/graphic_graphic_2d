@@ -75,7 +75,7 @@ void AniParagraphBuilder::Constructor(
 
 ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env{nullptr};
+    ani_env* env = nullptr;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);

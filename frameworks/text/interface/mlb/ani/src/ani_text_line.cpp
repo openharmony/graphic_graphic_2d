@@ -35,7 +35,7 @@ using namespace OHOS::Rosen;
 
 ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env{nullptr};
+    ani_env* env = nullptr;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);
@@ -122,7 +122,7 @@ ani_object AniTextLine::GetTextRange(ani_env* env, ani_object object)
     }
 
     Boundary boundary = textline->GetTextRange();
-    ani_object boundaryObj{nullptr};
+    ani_object boundaryObj = nullptr;
     ani_status ret = AniTextRectConverter::ParseBoundaryToAni(env, boundary, boundaryObj);
     if (ret != ANI_OK) {
         return AniTextUtils::CreateAniUndefined(env);
@@ -248,7 +248,7 @@ ani_object AniTextLine::GetTypographicBounds(ani_env* env, ani_object object)
     double descent = 0.0;
     double leading = 0.0;
     double width = textLineBase->GetTypographicBounds(&ascent, &descent, &leading);
-    ani_object typographicBoundsObj{nullptr};
+    ani_object typographicBoundsObj = nullptr;
     ani_status result = AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
         env, typographicBoundsObj, ascent, descent, leading, width);
     if (result != ANI_OK) {
@@ -268,7 +268,7 @@ ani_object AniTextLine::GetImageBounds(ani_env* env, ani_object object)
     }
 
     Drawing::Rect rect = textLineBase->GetImageBounds();
-    ani_object rectObj{nullptr};
+    ani_object rectObj = nullptr;
     if (ANI_OK != AniDrawingConverter::ParseRectToAni(env, rect, rectObj)) {
         TEXT_LOGE("Failed to create rect");
         return AniTextUtils::CreateAniUndefined(env);
@@ -324,7 +324,7 @@ static bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vec
         TEXT_LOGE("Failed to call callback function, ani_status: %{public}d", ret);
         return false;
     }
-    ani_boolean result{false};
+    ani_boolean result = false;
     env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get result, ani_status: %{public}d", ret);

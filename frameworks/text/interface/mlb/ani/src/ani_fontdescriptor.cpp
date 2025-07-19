@@ -62,7 +62,7 @@ std::unordered_map<int, int> g_weightMap = {
 
 ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env{nullptr};
+    ani_env* env = nullptr;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);
@@ -222,7 +222,7 @@ ani_object AniFontDescriptor::GetFontDescriptorByFullName(ani_env* env, ani_stri
 
     FontDescSharedPtr resultDesc = nullptr;
     FontDescriptorMgrInstance.GetFontDescSharedPtrByFullName(fullNameStr, systemFontType, resultDesc);
-    ani_object descAniObj{nullptr};
+    ani_object descAniObj = nullptr;
     ret = ParseFontDescriptorToAni(env, resultDesc, descAniObj);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse FontDescSharedPtr,ret:%{public}d", ret);
@@ -251,7 +251,7 @@ ani_object AniFontDescriptor::MatchFontDescriptors(ani_env* env, ani_object desc
     }
     ani_size index = 0;
     for (const auto& item : matchResult) {
-        ani_object aniObj{nullptr};
+        ani_object aniObj = nullptr;
         ani_status status = ParseFontDescriptorToAni(env, item, aniObj);
         if (status != ANI_OK
             || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {

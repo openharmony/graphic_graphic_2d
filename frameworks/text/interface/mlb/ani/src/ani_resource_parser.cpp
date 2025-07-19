@@ -52,9 +52,9 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
 {
     AniResource result;
     ani_double aniId = 0;
-    ani_ref aniBundleName{nullptr};
-    ani_ref aniModuleName{nullptr};
-    ani_ref aniParams{nullptr};
+    ani_ref aniBundleName = nullptr;
+    ani_ref aniModuleName = nullptr;
+    ani_ref aniParams = nullptr;
     ani_double aniType = 0;
     env->Object_GetPropertyByName_Double(obj, "id", &aniId);
     env->Object_GetPropertyByName_Ref(obj, "bundleName", &aniBundleName);

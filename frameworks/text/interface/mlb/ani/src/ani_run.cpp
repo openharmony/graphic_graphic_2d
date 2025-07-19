@@ -31,7 +31,7 @@ using namespace OHOS::Rosen;
 
 ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env{nullptr};
+    ani_env* env = nullptr;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);
@@ -196,7 +196,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
     }
     ani_size index = 0;
     for (const auto& point : points) {
-        ani_object aniObj{nullptr};
+        ani_object aniObj = nullptr;
         ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
@@ -239,7 +239,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
     }
     ani_size index = 0;
     for (const auto& point : points) {
-        ani_object aniObj{nullptr};
+        ani_object aniObj = nullptr;
         ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
@@ -275,7 +275,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
     }
     ani_size index = 0;
     for (const auto& point : points) {
-        ani_object aniObj{nullptr};
+        ani_object aniObj = nullptr;
         ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
@@ -377,7 +377,7 @@ ani_object AniRun::GetStringRange(ani_env* env, ani_object object)
     uint64_t length = 0;
     run->GetStringRange(&location, &length);
     Boundary boundary{location, length};
-    ani_object boundaryObj{nullptr};
+    ani_object boundaryObj = nullptr;
     ani_status ret = AniTextRectConverter::ParseBoundaryToAni(env, boundary, boundaryObj);
     if (ret != ANI_OK) {
         return AniTextUtils::CreateAniUndefined(env);
@@ -397,7 +397,7 @@ ani_object AniRun::GetTypographicBounds(ani_env* env, ani_object object)
     float descent = 0.0;
     float leading = 0.0;
     double width = run->GetTypographicBounds(&ascent, &descent, &leading);
-    ani_object typographicBoundsObj{nullptr};
+    ani_object typographicBoundsObj = nullptr;
     ani_status result = AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
         env, typographicBoundsObj, ascent, descent, leading, width);
     if (result != ANI_OK) {
@@ -417,7 +417,7 @@ ani_object AniRun::GetImageBounds(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     Drawing::Rect rect = run->GetImageBounds();
-    ani_object rectObj{nullptr};
+    ani_object rectObj = nullptr;
     if (ANI_OK != AniDrawingConverter::ParseRectToAni(env, rect, rectObj)) {
         TEXT_LOGE("Failed to create rect");
         return AniTextUtils::CreateAniUndefined(env);
