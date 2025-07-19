@@ -13,21 +13,52 @@
  * limitations under the License.
  */
 
-#include "common/rs_common_def.h"
-#include "gtest/gtest.h"
 #include "feature/hdr/rs_hdr_util.h"
+
+#include <parameter.h>
+#include <parameters.h>
+
+#include "common/rs_common_def.h"
+#include "ibuffer_consumer_listener.h"
+#include "gtest/gtest.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_test_util.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
+#include "screen_manager/rs_screen.h"
+#include "system/rs_system_parameters.h"
+#include "utils/system_properties.h"
+#include "v2_0/buffer_handle_meta_key_type.h"
 #include "v2_2/cm_color_space.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "colorspace_converter_display.h"
+#include "render/rs_colorspace_convert.h"
 #endif
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
+BufferRequestConfig requestConfig = {
+    .width = 0x100,
+    .height = 0x100,
+    .strideAlignment = 0x8,
+    .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+    .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+    .timeout = 0,
+};
+}
+
+class BufferConsumerListener : public ::OHOS::IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override
+    {
+    }
+};
+
 class RSHdrUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -172,7 +203,14 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
  */
 HWTEST_F(RSHdrUtilTest, GetRGBA1010108EnabledTest, TestSize.Level1)
 {
-    EXPECT_FALSE(RSHdrUtil::GetRGBA1010108Enabled());
+    bool isDDGR = Drawing::SystemProperties::GetSystemGraphicGpuType() == GpuApiType::DDGR;
+    bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
+    bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.rgba_1010108.enabled", true);
+    bool result = isDDGR && rgba1010108 && debugSwitch;
+    EXPECT_EQ(RSHdrUtil::GetRGBA1010108Enabled(), result);
+    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "false");
+    EXPECT_EQ(RSHdrUtil::GetRGBA1010108Enabled(), false);
+    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", debugSwitch ? "true" : "false");
 }
 
 /**
@@ -212,11 +250,11 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
     bool res = nodeMap.RegisterRenderNode(screenRenderNode);
     ASSERT_EQ(res, true);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is nullptr
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // screenNode is nullptr
     node->screenNodeId_ = screenRenderNodeId;
     auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(node->GetScreenNodeId());
     ASSERT_NE(screenNode, nullptr);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is not nullptr
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // screenNode is not nullptr
     screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // update surfaceNode HDRBrightnessFactor
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // not update surfaceNode HDRBrightnessFactor
@@ -264,7 +302,26 @@ HWTEST_F(RSHdrUtilTest, UpdatePixelFormatAfterHwcCalcTest, TestSize.Level1)
     auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
     ASSERT_NE(bufferHandle, nullptr);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    RSMainThread::Instance()->AddSelfDrawingNodes(selfDrawingNode);
+    std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode2 = nullptr;
+    RSMainThread::Instance()->AddSelfDrawingNodes(selfDrawingNode2);
+    std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(selfDrawingNode3, nullptr);
+    selfDrawingNode3->SetAncestorScreenNode(screenNode);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(*screenNode);
+    auto screenNode2 = std::make_shared<RSScreenRenderNode>(3, 4, context);
+    ASSERT_NE(screenNode2, nullptr);
+    selfDrawingNode->SetAncestorScreenNode(screenNode2);
+    RSHdrUtil::UpdatePixelFormatAfterHwcCalc(*screenNode);
+    auto renderNode = std::make_shared<RSBaseRenderNode>(0, context);
+    selfDrawingNode->SetAncestorScreenNode(renderNode);
+    RSHdrUtil::UpdatePixelFormatAfterHwcCalc(*screenNode);
+    selfDrawingNode->SetHardwareForcedDisabledState(false);
+    selfDrawingNode->SetAncestorScreenNode(screenNode);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    RSHdrUtil::UpdatePixelFormatAfterHwcCalc(*screenNode);
+    EXPECT_EQ(screenNode->GetExistHWCNode(), true);
 }
 
 /**
@@ -322,4 +379,25 @@ HWTEST_F(RSHdrUtilTest, SetHDRParamTest, TestSize.Level1)
     screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f); // GetForceCloseHdr true
     RSHdrUtil::SetHDRParam(*screenNode, *childNode, true);
 }
+
+/**
+ * @tc.name: UpdateHDRCastPropertiesTest
+ * @tc.desc: Test UpdateHDRCastProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, UpdateHDRCastPropertiesTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto param = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
+    ASSERT_NE(param, nullptr);
+    screenNode->SetFixVirtualBuffer10Bit(false);
+    RSHdrUtil::UpdateHDRCastProperties(*screenNode, true, true);
+    screenNode->SetFixVirtualBuffer10Bit(true);
+    RSHdrUtil::UpdateHDRCastProperties(*screenNode, true, true);
+    EXPECT_EQ(param->GetHDRPresent(), true);
+}
+
 } // namespace OHOS::Rosen
