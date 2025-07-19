@@ -41,8 +41,6 @@ ani_object AniParagraph::SetTypography(ani_env* env, std::unique_ptr<OHOS::Rosen
         env->Object_SetFieldByName_Long(pargraphObj, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyPtr));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
-        delete typographyPtr;
-        typographyPtr = nullptr;
         return AniTextUtils::CreateAniUndefined(env);
     }
     return pargraphObj;
