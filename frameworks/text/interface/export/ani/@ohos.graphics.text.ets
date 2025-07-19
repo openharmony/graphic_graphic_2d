@@ -206,7 +206,6 @@ namespace text {
   export class Paragraph {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
-    public nativeParagraphObj : long = 0;
     private cleaner: Cleaner | null = null;
 
     constructor() {
@@ -1858,12 +1857,10 @@ namespace text {
   export class TextLine {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
-    public nativeParagraphObj : long = 0;
     private cleaner: Cleaner | null = null;
 
     constructor() {
       this.registerCleaner("TextLine", this.nativeObj);
-      this.registerCleaner("Typography", this.nativeParagraphObj);
     };
     registerCleaner(className: string, ptr: long): void {
       this.cleaner = new Cleaner(className , ptr);
@@ -1996,12 +1993,10 @@ namespace text {
   export class Run {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
-    public nativeParagraphObj : long = 0;
     private cleaner: Cleaner | null = null;
 
     constructor() {
       this.registerCleaner("Run", this.nativeObj);
-      this.registerCleaner("Typography", this.nativeParagraphObj);
     };
     registerCleaner(className: string, ptr: long): void {
       this.cleaner = new Cleaner(className , ptr);
