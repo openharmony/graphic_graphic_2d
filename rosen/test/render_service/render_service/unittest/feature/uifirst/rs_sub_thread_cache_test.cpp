@@ -46,6 +46,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    RSRenderNodeDrawableAdapter::SharedPtr CreateStartingNodeDrawable(NodeId startingWindowId);
 };
 
 void RSSubThreadCacheTest::SetUpTestCase()
@@ -76,6 +77,13 @@ void RSSubThreadCacheTest::SetUp()
     }
 }
 void RSSubThreadCacheTest::TearDown() {}
+
+RSRenderNodeDrawableAdapter::SharedPtr RSSubThreadCacheTest::CreateStartingNodeDrawable(NodeId startingWindowId)
+{
+    auto startingWindow = std::make_shared<RSCanvasRenderNode>(startingWindowId);
+    auto startingNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(startingWindow);
+    return startingNodeDrawable;
+}
 
 /**
  * @tc.name: CreateUIFirstSurfaceRenderNodeDrawableTest
@@ -466,28 +474,96 @@ HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheTest, TestSize.Level1)
     ASSERT_TRUE(subCache.HasCachedTexture());
 }
 
-/**
- * @tc.name: DrawUIFirstCacheWithStarting
- * @tc.desc: Test If DrawUIFirstCacheWithStarting Can Run
- * @tc.type: FUNC
- * @tc.require: #IB1MHP
- */
-HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheWithStartingTest, TestSize.Level1)
+ /**
+ * @tc.name: DrawUIFirstCacheWithStartingTest001
+ * @tc.desc: no cache and no starting window, should wait subthread
+  * @tc.type: FUNC
+  * @tc.require: #ICN6UK
+  */
+HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheWithStartingTest001, TestSize.Level1)
 {
+    ASSERT_NE(canvas_, nullptr);
     ASSERT_NE(surfaceDrawable_, nullptr);
-    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas_.get());
-    NodeId id = 0;
-    auto result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCacheWithStarting(surfaceDrawable_.get(),
-        *rscanvas, id);
-    ASSERT_TRUE(result);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    NodeId startingWindowId = 100;
+    // surface drawable is null
+    ASSERT_FALSE(subThreadCache.DrawUIFirstCacheWithStarting(nullptr, *canvas_, startingWindowId));
 
-    id = 65535; // for test
-    surfaceDrawable_->GetRsSubThreadCache().isCacheCompletedValid_ = true;
-    result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCacheWithStarting(surfaceDrawable_.get(),
-        *rscanvas, id);
-    ASSERT_FALSE(result);
-    ASSERT_FALSE(RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.empty());
+    // ensure no starting drawable
+    RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(startingWindowId);
+    subThreadCache.isCacheCompletedValid_ = false;
+    // no cache, no starting window
+    ASSERT_FALSE(subThreadCache.DrawUIFirstCacheWithStarting(surfaceDrawable_.get(), *canvas_, startingWindowId));
+}
+
+/**
+ * @tc.name: DrawUIFirstCacheWithStartingTest002
+ * @tc.desc: has cache and no starting window, only draw cache
+ * @tc.type: FUNC
+ * @tc.require: #ICN6UK
+ */
+HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheWithStartingTest002, TestSize.Level1)
+{
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    NodeId startingWindowId = 100;
+    // ensure no starting drawable
+    RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(startingWindowId);
+    subThreadCache.isCacheCompletedValid_ = true;
+    ASSERT_FALSE(subThreadCache.DrawUIFirstCacheWithStarting(surfaceDrawable_.get(), *canvas_, startingWindowId));
+}
+
+/**
+ * @tc.name: DrawUIFirstCacheWithStartingTest003
+ * @tc.desc: no cache, and starting window has alpha, should wait subthread
+ * @tc.type: FUNC
+ * @tc.require: #ICN6UK
+ */
+HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheWithStartingTest003, TestSize.Level1)
+{
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    NodeId startingWindowId = 100;
+    auto startingNodeDrawable = CreateStartingNodeDrawable(startingWindowId);
+    ASSERT_NE(startingNodeDrawable, nullptr);
+    auto& startingParams = startingNodeDrawable->GetRenderParams();
+    startingParams->SetAlpha(0.5f);
+    subThreadCache.isCacheCompletedValid_ = false;
+    // no cache, and starting window has alpha, should wait subthread
+    ASSERT_FALSE(subThreadCache.DrawUIFirstCacheWithStarting(surfaceDrawable_.get(), *canvas_, startingWindowId));
+
+    startingNodeDrawable->renderParams_ = nullptr;
+    // no cache, and starting window render params is null
+    ASSERT_TRUE(subThreadCache.DrawUIFirstCacheWithStarting(surfaceDrawable_.get(), *canvas_, startingWindowId));
+    // restore render params
+    startingNodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(startingWindowId);
+}
+
+/**
+ * @tc.name: DrawUIFirstCacheWithStartingTest004
+ * @tc.desc: has starting window, test has cache or not
+ * @tc.type: FUNC
+ * @tc.require: #ICN6UK
+ */
+HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheWithStartingTest004, TestSize.Level1)
+{
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subThreadCache = surfaceDrawable_->GetRsSubThreadCache();
+    NodeId startingWindowId = 100;
+    auto startingNodeDrawable = CreateStartingNodeDrawable(startingWindowId);
+    ASSERT_NE(startingNodeDrawable, nullptr);
+    auto& startingParams = startingNodeDrawable->GetRenderParams();
+    startingParams->SetAlpha(1.0f);
+    subThreadCache.isCacheCompletedValid_ = false;
+    // no cache, only draw starting window
+    ASSERT_TRUE(subThreadCache.DrawUIFirstCacheWithStarting(surfaceDrawable_.get(), *canvas_, startingWindowId));
+
+    subThreadCache.isCacheCompletedValid_ = true;
+    // draw cache and starting window
+    ASSERT_FALSE(subThreadCache.DrawUIFirstCacheWithStarting(surfaceDrawable_.get(), *canvas_, startingWindowId));
 }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
