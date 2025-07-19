@@ -286,7 +286,7 @@ ani_object AniParagraph::GetRectsForRange(
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -319,7 +319,7 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
@@ -451,7 +451,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return arrayObj;
     }
     ani_size index = 0;
