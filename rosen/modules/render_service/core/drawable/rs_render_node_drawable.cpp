@@ -31,6 +31,10 @@
 #include "system/rs_system_parameters.h"
 #include "string_utils.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#include "rs_parallel_misc.h"
+#endif
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -102,6 +106,11 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     UpdateFilterDisplayHeadroom(canvas);
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+    if (RSParallelManager::Singleton().OnDrawNodeDrawable(canvas, bounds, this)) {
+        return;
+    }
+#endif
     DrawBackground(canvas, bounds);
 
     CollectInfoForUnobscuredUEC(canvas);
@@ -562,8 +571,7 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && RSOpincDrawCache::IsAutoCacheEnable();
     autoCacheRenderNodeInfos_.clear();
-    opincRootTotalCount_ = 0;
-    isOpincDropNodeExt_ = true;
+    ClearOpincState();
 #endif
 }
 
@@ -891,6 +899,11 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
+#ifdef SUBTREE_PARALLEL_ENABLE
+    // Adapt to the subtree feature to ensure the correct thread ID(TID) is used.
+    RSParallelMisc::AdaptSubTreeThreadId(threadId, threadId);
+#endif
+
     bool isHdrOn = false;
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
@@ -1080,4 +1093,11 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
 #endif
     return ret;
 }
+void RSRenderNodeDrawable::ClearOpincState()
+{
+    // Init opincRootTotalCount when the new thread init
+    opincRootTotalCount_ = 0;
+    isOpincDropNodeExt_ = true;
+}
+
 } // namespace OHOS::Rosen::DrawableV2

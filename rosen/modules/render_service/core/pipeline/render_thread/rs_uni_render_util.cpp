@@ -735,10 +735,11 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
 }
 
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
-    const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams)
+    const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+    RSSurfaceRenderParams& renderParams, uint32_t threadIndex)
 {
     BufferDrawParam params;
-    params.threadIndex = static_cast<uint32_t>(gettid());
+    params.threadIndex = threadIndex;
     params.useBilinearInterpolation = renderParams.NeedBilinearInterpolation();
     params.useCPU = false;
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

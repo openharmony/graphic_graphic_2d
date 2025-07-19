@@ -1697,6 +1697,11 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
     surfaceNode->DumpTree(0, outTest, true);
     ASSERT_TRUE(outTest.find("ScalingMode") != string::npos);
     ASSERT_TRUE(outTest.find("TransformType") != string::npos);
+
+    outTest = "";
+    surfaceNode->isRepaintBoundary_ = true;
+    surfaceNode->DumpTree(0, outTest);
+    ASSERT_TRUE(outTest.find("RB: true") != string::npos);
 }
 
 /**
@@ -3361,6 +3366,46 @@ HWTEST_F(RSRenderNodeTest, GetNeedUseCmdlistDrawRegion, TestSize.Level1)
     ASSERT_EQ(node->GetNeedUseCmdlistDrawRegion(), false);
     node->SetNeedUseCmdlistDrawRegion(true);
     ASSERT_EQ(node->GetNeedUseCmdlistDrawRegion(), true);
+}
+
+/*
+ * @tc.name: UpdateSubTreeParallelNodes
+ * @tc.desc: Test function UpdateSubTreeParallelNodes
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSRenderNodeTest, UpdateSubTreeParallelNodesTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
+
+    renderNode->isRepaintBoundary_ = false;
+    renderNode->UpdateSubTreeParallelNodes();
+
+    renderNode->isRepaintBoundary_ = true;
+    renderNode->UpdateSubTreeParallelNodes();
+
+    for (int i = 2; i < 8; i++) {
+        auto node = std::make_shared<RSRenderNode>(i);
+        renderNode->children_.emplace_back(node);
+    }
+
+    renderNode->isAllChildRepaintBoundary_ = false;
+    ASSERT_FALSE(renderNode->GetChildrenCount() <= 5);
+    renderNode->UpdateSubTreeParallelNodes();
+
+    renderNode->isAllChildRepaintBoundary_ = true;
+    renderNode->UpdateSubTreeParallelNodes();
+
+    renderNode->childHasVisibleEffect_ = true;
+    renderNode->UpdateSubTreeParallelNodes();
+
+    renderNode->childHasVisibleEffect_ = false;
+    renderNode->UpdateSubTreeParallelNodes();
+
+    renderNode->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
+    renderNode->UpdateSubTreeParallelNodes();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -250,8 +250,23 @@ public:
 
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
+    int GetParallelThreadId();
+    void SetParallelThreadId(int idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
+
+    void RecordState(const RSPaintFilterCanvas& other);
+    std::weak_ptr<Drawing::Surface> GetWeakSurface();
+    // just used in subtree, used for check whether a new surface need to be created in the subtree thread.
+    void SetWeakSurface(std::shared_ptr<Drawing::Surface> surface);
+    inline void SetQuickDraw(bool isQuickDraw)
+    {
+        isQuickDraw_ = isQuickDraw;
+    }
+    inline bool IsQuickDraw()
+    {
+        return isQuickDraw_;
+    }
 
     void SetDisableFilterCache(bool disable);
     bool GetDisableFilterCache() const;
@@ -394,6 +409,9 @@ protected:
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
     {
+        if (isQuickDraw_) {
+            return false;
+        }
         float alpha = alphaStack_.top();
         // foreground color and foreground color strategy identification
         if (brush.GetColor().CastToColorQuad() == 0x00000001) {
@@ -464,6 +482,9 @@ private:
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
 
     Occlusion::Region drawnRegion_;
+    int threadId_;
+    std::weak_ptr<Drawing::Surface> weakSurface_;
+    bool isQuickDraw_= false;
 };
 
 #ifdef RS_ENABLE_VK

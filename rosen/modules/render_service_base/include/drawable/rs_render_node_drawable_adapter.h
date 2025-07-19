@@ -45,6 +45,11 @@ class RSContext;
 class RSDirtyRegionManager;
 class RSDrawWindowCache;
 class RSRenderNodeGC;
+#ifdef SUBTREE_PARALLEL_ENABLE
+class RSParallelRBPolicy;
+struct RSSubtreeDrawElement;
+#endif
+
 namespace Drawing {
 class Canvas;
 }
@@ -53,14 +58,23 @@ class RSUseEffectRenderModifier;
 }
 
 struct DrawCmdIndex {
+    int8_t transitionIndex_            = -1;
     int8_t envForeGroundColorIndex_    = -1;
     int8_t shadowIndex_                = -1;
     int8_t renderGroupBeginIndex_      = -1;
     int8_t foregroundFilterBeginIndex_ = -1;
+    int8_t bgSaveBoundsIndex_          = -1;
+    int8_t clipToBoundsIndex_          = -1;
     int8_t backgroundColorIndex_       = -1;
     int8_t backgroundImageIndex_       = -1;
     int8_t backgroundFilterIndex_      = -1;
     int8_t useEffectIndex_             = -1;
+    int8_t backgroudStyleIndex_        = -1;
+    int8_t envForegroundColorStrategyIndex_ = -1;
+    int8_t bgRestoreBoundsIndex_       = -1;
+    int8_t frameOffsetIndex_           = -1;
+    int8_t clipToFrameIndex_           = -1;
+    int8_t customClipToFrameIndex_     = -1;
     int8_t backgroundEndIndex_         = -1;
     int8_t childrenIndex_              = -1;
     int8_t contentIndex_               = -1;
@@ -133,6 +147,9 @@ public:
     virtual void Draw(Drawing::Canvas& canvas) = 0;
     virtual void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const;
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+    void DrawQuickImpl(Drawing::Canvas &canvas, const Drawing::Rect &rect) const;
+#endif
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
     static std::vector<RSRenderNodeDrawableAdapter::SharedPtr> GetDrawableVectorById(
@@ -371,6 +388,10 @@ private:
     friend class OHOS::Rosen::RSDrawWindowCache;
     friend class ModifierNG::RSUseEffectRenderModifier;
     friend class OHOS::Rosen::RSRenderNodeGC;
+#ifdef SUBTREE_PARALLEL_ENABLE
+    friend class OHOS::Rosen::RSParallelRBPolicy;
+    friend struct OHOS::Rosen::RSSubtreeDrawElement;
+#endif
 };
 
 // RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.

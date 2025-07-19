@@ -17,6 +17,7 @@
 #include "rs_trace.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS::Rosen {
 #ifdef ROSEN_OHOS
@@ -31,6 +32,9 @@ SKResourceManager& SKResourceManager::Instance()
 void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 {
 #ifdef ROSEN_OHOS
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
     auto tid = gettid();
     if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
         return;
@@ -49,6 +53,9 @@ void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
 {
 #ifdef ROSEN_OHOS
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
     auto tid = gettid();
     if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
         return;

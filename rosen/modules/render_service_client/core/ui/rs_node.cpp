@@ -16,6 +16,7 @@
 #include "ui/rs_node.h"
 
 #include <algorithm>
+#include <vector>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -136,6 +137,7 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
 };
+
 std::once_flag flag_;
 
 #ifndef MODIFIER_NG

@@ -950,6 +950,15 @@ public:
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
 
+    void ResetRepaintBoundaryInfo();
+    void UpdateRepaintBoundaryInfo(RSRenderNode& node);
+    uint32_t GetRepaintBoundaryWeight();
+
+    void ClearSubtreeParallelNodes();
+    void UpdateSubTreeParallelNodes();
+    void MergeSubtreeParallelNodes(RSRenderNode& childNode);
+    std::unordered_set<NodeId>& GetSubtreeParallelNodes();
+
     void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
     bool GetNeedUseCmdlistDrawRegion();
 
@@ -1054,6 +1063,7 @@ protected:
 
 private:
     // mark cross node in physical extended screen model
+    bool isRepaintBoundary_ = false;
     bool isCrossNode_ = false;
     bool isCloneCrossNode_ = false;
     bool isFirstLevelCrossNode_ = false;
@@ -1231,6 +1241,9 @@ private:
     RSDrawable::Vec drawableVec_;
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
+    std::unordered_set<NodeId> subtreeParallelNodes_;
+    bool isAllChildRepaintBoundary_ = false;
+    uint32_t repaintBoundaryWeight_ = 0;
 
     std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
@@ -1262,7 +1275,6 @@ private:
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
-    bool isRepaintBoundary_ = false;
     void UpdateBlurEffectCounter(int deltaCount);
     int GetBlurEffectDrawbleCount();
 

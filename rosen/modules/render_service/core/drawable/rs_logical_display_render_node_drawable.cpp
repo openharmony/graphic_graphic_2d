@@ -36,6 +36,10 @@
 #include "rs_profiler_capture_recorder.h"
 #endif
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#endif
+
 namespace OHOS::Rosen::DrawableV2 {
 
 namespace {
@@ -207,7 +211,14 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // canvas draw
+#ifdef SUBTREE_PARALLEL_ENABLE
+    if (!RSParallelManager::Singleton().OnDrawLogicDisplayNodeDrawable(this, curCanvas_)) {
+        RSRenderNodeDrawable::OnDraw(*curCanvas_);
+    }
+#else
     RSRenderNodeDrawable::OnDraw(*curCanvas_);
+#endif
+   
     DrawAdditionalContent(*curCanvas_);
 
     if (needOffscreen && canvasBackup_) {

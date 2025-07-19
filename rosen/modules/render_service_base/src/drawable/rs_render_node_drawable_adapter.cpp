@@ -260,6 +260,51 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
     drawCmdList_[index](&canvas, &rect);
 }
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+void RSRenderNodeDrawableAdapter::DrawQuickImpl(
+    Drawing::Canvas &canvas, const Drawing::Rect &rect) const
+{
+    if (drawCmdList_.empty()) {
+        return;
+    }
+
+    if (drawCmdIndex_.transitionIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.transitionIndex_](&canvas, &rect);
+    }
+    if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
+    }
+
+    // BG_START
+    if (drawCmdIndex_.bgSaveBoundsIndex_ == - 1 ||
+        (drawCmdIndex_.bgSaveBoundsIndex_ != -1 && drawCmdIndex_.bgRestoreBoundsIndex_ == -1)) {
+        if (drawCmdIndex_.clipToBoundsIndex_ != -1) {
+            drawCmdList_[drawCmdIndex_.clipToBoundsIndex_](&canvas, &rect);
+        }
+        if (drawCmdIndex_.backgroudStyleIndex_ != -1) {
+            drawCmdList_[drawCmdIndex_.backgroudStyleIndex_](&canvas, &rect);
+        }
+    }
+
+    if (drawCmdIndex_.envForegroundColorStrategyIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.envForegroundColorStrategyIndex_](&canvas, &rect);
+    }
+    if (drawCmdIndex_.frameOffsetIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.frameOffsetIndex_](&canvas, &rect);
+    }
+    if (drawCmdIndex_.clipToFrameIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.clipToFrameIndex_](&canvas, &rect);
+    }
+    if (drawCmdIndex_.customClipToFrameIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.customClipToFrameIndex_](&canvas, &rect);
+    }
+
+    if (drawCmdIndex_.contentIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.contentIndex_](&canvas, &rect);
+    }
+}
+#endif
+
 void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.backgroundEndIndex_);

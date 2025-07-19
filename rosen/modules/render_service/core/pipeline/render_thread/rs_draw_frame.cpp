@@ -34,6 +34,9 @@
 #include "rs_uni_render_thread.h"
 
 #include "rs_profiler.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -273,6 +276,9 @@ void RSDrawFrame::Sync()
     HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
+#ifdef SUBTREE_PARALLEL_ENABLE
+    RSParallelManager::Singleton().Sync();
+#endif
 }
 
 void RSDrawFrame::UnblockMainThread()

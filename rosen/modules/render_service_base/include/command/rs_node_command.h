@@ -102,7 +102,7 @@ enum RSNodeCommandType : uint16_t {
     MODIFIER_NG_DETACH_PROPERTY = 0x0b03,
     REMOVE_ALL_MODIFIERS_NG = 0x0b04,
 
-    MARK_REPAINT_BOUNDARY = 0x1000,
+    MARK_REPAINT_BOUNDARY = 0x0c00,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {

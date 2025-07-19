@@ -802,4 +802,21 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateFilterDisplayHeadroomTest, TestSize.Lev
     drawable->UpdateFilterDisplayHeadroom(paintFilterCanvas);
     EXPECT_EQ(filter->shaderFilters_.size(), 1);
 }
+
+/**
+ * @tc.name: OnDrawTest
+ * @tc.desc: Test OnDraw
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    auto pCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    ASSERT_TRUE(pCanvas != nullptr);
+
+    drawable->OnDraw(*pCanvas);
+    pCanvas->SetQuickDraw(true);
+    drawable->OnDraw(*pCanvas);
+}
 }

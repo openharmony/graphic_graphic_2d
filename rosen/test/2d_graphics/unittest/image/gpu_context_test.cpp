@@ -677,6 +677,31 @@ HWTEST_F(GpuContextTest, SetEarlyZFlagTest001, TestSize.Level1)
     gpuContext->SetEarlyZFlag(true);
 }
 
+/**
+ * @tc.name: GenerateSubmitInfoTest
+ * @tc.desc: Test for GenerateSubmitInfo
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(GpuContextTest, GenerateSubmitInfoTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->GenerateSubmitInfo(0);
+}
+
+/**
+ * @tc.name: FlushCommandsTest
+ * @tc.desc: Test for FlushCommands
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(GpuContextTest, FlushCommandsTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->FlushCommands();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

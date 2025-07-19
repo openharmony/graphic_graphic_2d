@@ -5352,4 +5352,47 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateChildBlurBehindWindowAbsMatrix, TestSize.
     context->nodeMap.UnregisterRenderNode(childId1);
     context->nodeMap.UnregisterRenderNode(childId2);
 }
+
+/*
+ * @tc.name: QuickPrepareSufaceRenderNode005
+ * @tc.desc: Test function QuickPrepareSufaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueICB4RP
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSufaceRenderNode005, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceNode->name_ = CAPTURE_WINDOW_NAME;
+
+    NodeId id = 0;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->AddChild(surfaceNode, 0);
+
+    RSDisplayNodeConfig config;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    logicalDisplayNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = logicalDisplayNode;
+    surfaceNode->subThreadAssignable_ = true;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    surfaceNode->subThreadAssignable_ = false;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    RSMainThread::Instance()->focusNodeId_ = 0;
+    RSMainThread::Instance()->focusLeashWindowId_ = 0;
+    surfaceNode->id_ = 0;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    surfaceNode->id_ = 1;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    RSMainThread::Instance()->focusLeashWindowId_ = 1;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+}
 } // OHOS::Rosen

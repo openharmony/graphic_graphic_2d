@@ -353,6 +353,7 @@ public:
     const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool NeedFilter() const;
     bool NeedHwcFilter() const;
+    bool NeedSkipSubtreeParallel() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
     const std::shared_ptr<RSFilter>& GetForegroundFilter() const;
