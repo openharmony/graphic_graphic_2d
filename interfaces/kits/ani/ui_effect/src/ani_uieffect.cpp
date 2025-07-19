@@ -23,7 +23,7 @@ ani_status AniEffect::BindVisualEffectMethod(ani_env* env)
     if (env->FindClass(visualEffectClassName, &visualEffectClass) != ANI_OK) {
         UIEFFECT_LOG_E("Not found %{public}s", visualEffectClassName);
         return ANI_NOT_FOUND;
-    };
+    }
     std::array visualEffectMethods = {
         ani_native_function { "backgroundColorBlenderNative",
             "L@ohos/graphics/uiEffect/uiEffect/BrightnessBlender;:L@ohos/graphics/uiEffect/uiEffect/VisualEffect;",
@@ -34,7 +34,7 @@ ani_status AniEffect::BindVisualEffectMethod(ani_env* env)
     if (ret != ANI_OK) {
         UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
         return ANI_ERROR;
-    };
+    }
     return ret;
 }
 
@@ -45,7 +45,7 @@ ani_status AniEffect::BindFilterMethod(ani_env* env)
     if (env->FindClass(filterClassName, &filterClass) != ANI_OK) {
         UIEFFECT_LOG_E("Not found %{public}s", filterClassName);
         return ANI_NOT_FOUND;
-    };
+    }
     std::array filterMethods = {
         ani_native_function { "pixelStretchNative", nullptr,
             reinterpret_cast<void*>(OHOS::Rosen::AniEffect::PixelStretch) },
@@ -62,7 +62,7 @@ ani_status AniEffect::BindFilterMethod(ani_env* env)
     if (ret != ANI_OK) {
         UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
         return ANI_ERROR;
-    };
+    }
     return ret;
 }
 
@@ -72,17 +72,17 @@ ani_object AniEffect::CreateAniObject(ani_env* env, std::string name, const char
     if (env->FindClass(name.c_str(), &cls) != ANI_OK) {
         UIEFFECT_LOG_E("not found '%{public}s'", name.c_str());
         return {};
-    };
+    }
     ani_method ctor;
     if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) != ANI_OK) {
         UIEFFECT_LOG_E("get ctor failed '%{public}s'", name.c_str());
         return {};
-    };
+    }
     ani_object obj = {};
     if (env->Object_New(cls, ctor, &obj, addr) != ANI_OK) {
         UIEFFECT_LOG_E("create object failed '%{public}s'", name.c_str());
         return obj;
-    };
+    }
     UIEFFECT_LOG_E("create object success '%{public}s'", name.c_str());
     return obj;
 }
@@ -107,7 +107,7 @@ bool CheckCreateBrightnessBlender(ani_env* env, ani_object para_obj, ani_object&
         (env->Object_GetPropertyByName_Ref(para_obj, "negativeCoefficient", &negativeCoefficientAni) != ANI_OK)) {
         UIEFFECT_LOG_E("Input para is not BrightnessBlenderParam, some property cannot be found");
         return false;
-    };
+    }
     if ((env->Object_SetPropertyByName_Double(blender_obj, "cubicRate", cubicRateAni) != ANI_OK) ||
         (env->Object_SetPropertyByName_Double(blender_obj, "quadraticRate", quadraticRateAni) != ANI_OK) ||
         (env->Object_SetPropertyByName_Double(blender_obj, "linearRate", linearRateAni) != ANI_OK) ||
@@ -118,11 +118,22 @@ bool CheckCreateBrightnessBlender(ani_env* env, ani_object para_obj, ani_object&
         (env->Object_SetPropertyByName_Ref(blender_obj, "negativeCoefficient", negativeCoefficientAni) != ANI_OK)) {
         UIEFFECT_LOG_E("Cannot set all property for BrightnessBlender, some property cannot be found");
         return false;
-    };
+    }
     return true;
 }
 
-void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::shared_ptr<BrightnessBlender>& blender)
+static void GetDoubleFromTuple(ani_env *env, ani_object tuple, const char *index, double *result)
+{
+    ani_ref ref {};
+    if (env->Object_GetFieldByName_Ref(tuple, index, &ref) != ANI_OK) {
+        UIEFFECT_LOG_E("GetDoubleFromTuple Object_SetPropertyByName_Ref pos error");
+    }
+    if (env->Object_GetFieldByName_Double(static_cast<ani_object>(ref), "value", result) != ANI_OK) {
+        UIEFFECT_LOG_E("GetDoubleFromTuple Object_GetFieldByName_Double pos error");
+    }
+}
+
+void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::unique_ptr<BrightnessBlender>& blender)
 {
     ani_double cubicRateAni;
     ani_double quadraticRateAni;
@@ -140,19 +151,19 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
     env->Object_GetPropertyByName_Double(para_obj, "fraction", &fractionAni);
     env->Object_GetPropertyByName_Ref(para_obj, "positiveCoefficient", &positiveCoefficientAni);
     env->Object_GetPropertyByName_Ref(para_obj, "negativeCoefficient", &negativeCoefficientAni);
-    const auto positiveCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(positiveCoefficientAni);
-    const auto negativeCoefficientAniTuple = reinterpret_cast<ani_tuple_value>(negativeCoefficientAni);
+
+    const auto positiveCoefficientAniTuple = static_cast<ani_object>(positiveCoefficientAni);
     ani_double posCoefNativeBuffer[3U] = { 0.0 };
+    GetDoubleFromTuple(env, positiveCoefficientAniTuple, "$0", &posCoefNativeBuffer[0U]);
+    GetDoubleFromTuple(env, positiveCoefficientAniTuple, "$1", &posCoefNativeBuffer[1U]);
+    GetDoubleFromTuple(env, positiveCoefficientAniTuple, "$2", &posCoefNativeBuffer[2U]);
+
+    const auto negativeCoefficientAniTuple = static_cast<ani_object>(negativeCoefficientAni);
     ani_double negCoefNativeBuffer[3U] = { 0.0 };
-    const ani_size len3 = 3;
-    for (ani_size idx = 0; idx < len3; ++idx) {
-        if (env->TupleValue_GetItem_Double(positiveCoefficientAniTuple, idx, &posCoefNativeBuffer[idx]) != ANI_OK) {
-            UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double pos error");
-        }
-        if (env->TupleValue_GetItem_Double(negativeCoefficientAniTuple, idx, &negCoefNativeBuffer[idx]) != ANI_OK) {
-            UIEFFECT_LOG_E("ParseBrightnessBlender TupleValue_GetItem_Double neg error");
-        }
-    }
+    GetDoubleFromTuple(env, negativeCoefficientAniTuple, "$0", &negCoefNativeBuffer[0U]);
+    GetDoubleFromTuple(env, negativeCoefficientAniTuple, "$1", &negCoefNativeBuffer[1U]);
+    GetDoubleFromTuple(env, negativeCoefficientAniTuple, "$2", &negCoefNativeBuffer[2U]);
+
     const int xIndex = 0;
     const int yIndex = 1;
     const int zIndex = 2;
@@ -183,38 +194,45 @@ ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object para)
     if (env->FindClass(ANI_UIEFFECT_BRIGHTNESS_BLENDER.c_str(), &cls) != ANI_OK) {
         UIEFFECT_LOG_E("not found '%{public}s'", ANI_UIEFFECT_BRIGHTNESS_BLENDER.c_str());
         return {};
-    };
+    }
     ani_method ctor;
     if (env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor) != ANI_OK) {
         UIEFFECT_LOG_E("get ctor failed '%{public}s'", ANI_UIEFFECT_BRIGHTNESS_BLENDER.c_str());
         return {};
-    };
+    }
     if (env->Object_New(cls, ctor, &retVal) != ANI_OK) {
         UIEFFECT_LOG_E("create object failed '%{public}s'", ANI_UIEFFECT_BRIGHTNESS_BLENDER.c_str());
         return {};
-    };
+    }
+    auto brightnessObj = std::make_unique<BrightnessBlender>();
+    ParseBrightnessBlender(env, para, brightnessObj);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_BRIGHTNESS_BLENDER, nullptr,
+        reinterpret_cast<ani_long>(brightnessObj.release()));
     if (!CheckCreateBrightnessBlender(env, para, retVal)) {
-        UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
+        UIEFFECT_LOG_E("CheckCreateBrightnessBlender failed");
         return {};
-    };
+    }
     return retVal;
 }
 
 ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_object para)
 {
     ani_object retVal {};
-    auto blender = std::make_shared<BrightnessBlender>();
-    ParseBrightnessBlender(env, para, blender);
-
+    auto uniqueBlender = std::make_unique<BrightnessBlender>();
+    ParseBrightnessBlender(env, para, uniqueBlender);
     auto bgColorEffectPara = std::make_shared<BackgroundColorEffectPara>();
-    bgColorEffectPara->SetBlender(blender);
-    VisualEffect* effectObj = nullptr;
+    std::shared_ptr<BrightnessBlender> sharedBlender = std::move(uniqueBlender);
+    bgColorEffectPara->SetBlender(sharedBlender);
     ani_long nativeObj;
     if (env->Object_GetFieldByName_Long(obj, "visualEffectNativeObj", &nativeObj) != ANI_OK) {
         UIEFFECT_LOG_E("get generator visualEffectNativeObj failed");
         return retVal;
-    };
-    effectObj = reinterpret_cast<VisualEffect*>(nativeObj);
+    }
+    VisualEffect* effectObj = reinterpret_cast<VisualEffect*>(nativeObj);
+    if (effectObj == nullptr) {
+        UIEFFECT_LOG_E("effectObj reinterpret_cast to VisualEffect failed");
+        return retVal;
+    }
     effectObj->AddPara(bgColorEffectPara);
     retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj));
     return retVal;
@@ -360,12 +378,14 @@ ani_object AniEffect::PixelStretch(ani_env* env, ani_object obj, ani_object arra
     // 4 mean Vector4f length
     int vectorLen = 4;
     for (int i = 0; i < int(length) && i < vectorLen; i++) {
-        ani_float floatValue;
-        if (ANI_OK != env->Object_CallMethodByName_Float(arrayObj, "$_get", "I:F", &floatValue, (ani_int)i)) {
-            UIEFFECT_LOG_E("stretchSizes Object_CallMethodByName_Float_A failed");
+        ani_double val;
+        ani_ref ref;
+        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &ref, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "unboxed", ":D", &val)) {
+            UIEFFECT_LOG_E("Object_CallMethodByName_Ref or Object_CallMethodByName_Double Failed");
             return retVal;
         }
-        stretchPercent[i] = static_cast<float>(floatValue);
+        stretchPercent[i] = static_cast<float>(val);
     }
     pixelStretchPara->SetStretchPercent(stretchPercent);
 
@@ -410,13 +430,13 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     if (vm->GetEnv(ANI_VERSION_1, &env) != ANI_OK) {
         UIEFFECT_LOG_E("[ANI_Constructor] Unsupported ANI_VERSION_1");
         return ANI_ERROR;
-    };
+    }
     static const char* staticClassName = "L@ohos/graphics/uiEffect/uiEffect;";
     ani_namespace uiEffectNamespace;
     if (env->FindNamespace(staticClassName, &uiEffectNamespace) != ANI_OK) {
         UIEFFECT_LOG_E("[ANI_Constructor] FindNamespace failed");
         return ANI_ERROR;
-    };
+    }
     std::array staticMethods = {
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateEffect) },
         ani_native_function { "createBrightnessBlender", nullptr,
@@ -426,7 +446,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     if (env->Namespace_BindNativeFunctions(uiEffectNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
         UIEFFECT_LOG_E("[ANI_Constructor] Namespace_BindNativeFunctions failed");
         return ANI_ERROR;
-    };
+    }
 
     ani_status status = OHOS::Rosen::AniEffect::BindVisualEffectMethod(env);
     if (status != ANI_OK) {
