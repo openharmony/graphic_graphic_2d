@@ -156,14 +156,19 @@ void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask
         isRenderServiceTask);
 }
 
-void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)
+void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName,
+    bool dvsyncTimeUpdate, uint64_t dvsyncTime)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
         RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction failed, DataStack not empty");
         return;
     }
-    timestamp_ = std::max(timestamp, timestamp_);
+    if (dvsyncTimeUpdate) {
+        timestamp_ = timestamp;
+    } else {
+        timestamp_ = std::max(timestamp, timestamp_);
+    }
     thread_local pid_t tid = gettid();
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
         implicitCommonTransactionData_->timestamp_ = timestamp_;
@@ -187,6 +192,8 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     std::swap(implicitRemoteTransactionData_, transactionData);
     transactionData->timestamp_ = timestamp_;
     transactionData->tid_ = tid;
+    transactionData->dvsyncTimeUpdate_ = dvsyncTimeUpdate;
+    transactionData->dvsyncTime_ = dvsyncTime;
     if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
         commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_);

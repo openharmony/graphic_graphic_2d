@@ -354,6 +354,9 @@ ErrCode RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransacti
         RS_LOGW("CommitTransaction data droped");
         return ERR_INVALID_VALUE;
     }
+    if (transactionData && transactionData->GetDVSyncUpdate()) {
+        mainThread_->DVSyncUpdate(transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
+    }
     bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
     if (isProcessBySingleFrame) {
         mainThread_->ProcessDataBySingleFrameComposer(transactionData);

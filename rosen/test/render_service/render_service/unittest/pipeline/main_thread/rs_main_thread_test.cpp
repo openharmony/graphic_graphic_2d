@@ -6018,4 +6018,54 @@ HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level1)
     context->globalRootRenderNode_ = nullptr;
     mainThread->DumpMem(args, dumpString, type, pid);
 }
+
+/**
+ * @tc.name: NeedConsumeMultiCommand001
+ * @tc.desc: NeedConsumeMultiCommand001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, NeedConsumeMultiCommand001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    }
+    uint32_t dvsyncPid = 100;
+    auto ret = mainThread->NeedConsumeMultiCommand(dvsyncPid);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: NeedConsumeDVSyncCommand001
+ * @tc.desc: NeedConsumeDVSyncCommand001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    }
+
+    std::vector<std::unique_ptr<RSTransactionData>> trans;
+    uint32_t endIndex = 0;
+    auto ret = mainThread->NeedConsumeDVSyncCommand(endIndex, trans);
+    ASSERT_EQ(ret, false);
+
+    std::unique_ptr<RSTransactionData> rsTransactionData1 = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSTransactionData> rsTransactionData2 = std::make_unique<RSTransactionData>();
+    rsTransactionData1->timestamp_ = 100;
+    rsTransactionData2->timestamp_ = 90;
+
+    trans.push_back(std::move(rsTransactionData1));
+    trans.push_back(std::move(rsTransactionData2));
+    ret = mainThread->NeedConsumeDVSyncCommand(endIndex, trans);
+    ASSERT_EQ(ret, true);
+}
 } // namespace OHOS::Rosen

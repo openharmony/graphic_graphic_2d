@@ -142,7 +142,8 @@ void RSTransactionHandler::SetCommitTransactionCallback(CommitTransactionCallbac
     RSTransactionHandler::commitTransactionCallback_ = commitTransactionCallback;
 }
 
-void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)
+void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName,
+    bool dvsyncTimeUpdate, uint64_t dvsyncTime)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {

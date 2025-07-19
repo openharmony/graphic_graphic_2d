@@ -320,6 +320,12 @@ public:
      */
     static uint32_t GetHybridRenderTextBlobLenCount();
 
+    /**
+     * @brief Sets the dvsynctime to command which will update the dvsync time.
+     *
+     * @param dvsyncTime the time which need send to dvsync.
+     */
+    void SetDVSyncUpdate(uint64_t dvsyncTime);
 private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
@@ -366,6 +372,8 @@ private:
     bool isHgmConfigChangeCallbackReg_ = false;
     std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
     std::weak_ptr<RSRootNode> rootNode_;
+    bool dvsyncUpdate_ = false;
+    uint64_t dvsyncTime_ = 0;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

@@ -121,6 +121,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         }
         RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         int64_t time = transData == nullptr ? 0 : static_cast<int64_t>(transData->GetTimestamp());
+        if (transData && transData->GetDVSyncUpdate()) {
+            RSMainThread::Instance()->DVSyncUpdate(transData->GetDVSyncTime(), transData->GetTimestamp());
+        }
         {
             std::lock_guard<std::mutex> lock(transactionDataMutex_);
             cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));

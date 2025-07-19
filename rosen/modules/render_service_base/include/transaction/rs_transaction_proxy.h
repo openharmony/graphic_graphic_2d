@@ -46,7 +46,8 @@ public:
                     FollowType followType = FollowType::NONE, NodeId nodeId = 0);
     void AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType = FollowType::FOLLOW_TO_PARENT);
 
-    void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
+    void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "",
+        bool dvsyncTimeUpdate = false, uint64_t dvsyncTime = 0);
     void FlushImplicitTransactionFromRT(uint64_t timestamp);
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);

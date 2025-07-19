@@ -436,6 +436,13 @@ void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityNa
 {
     timeStamp_ = timeStamp;
     abilityName_ = abilityName;
+    dvsyncUpdate_ = false;
+}
+
+void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
+{
+    dvsyncUpdate_ = true;
+    dvsyncTime_ = dvsyncTime;
 }
 
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
@@ -538,7 +545,7 @@ void RSUIDirector::SendMessages()
         RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr) {
-            transaction->FlushImplicitTransaction(timeStamp_, abilityName_);
+            transaction->FlushImplicitTransaction(timeStamp_, abilityName_, dvsyncUpdate_, dvsyncTime_);
             index_ = transaction->GetTransactionDataIndex();
         } else {
             RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transaction is nullptr");
@@ -547,7 +554,7 @@ void RSUIDirector::SendMessages()
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands");
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
-            transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+            transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_, dvsyncUpdate_, dvsyncTime_);
             index_ = transactionProxy->GetTransactionDataIndex();
         } else {
             RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
