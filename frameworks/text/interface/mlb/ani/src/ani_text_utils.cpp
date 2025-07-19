@@ -78,9 +78,9 @@ ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
 bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
 {
     ani_boolean isUndefined = 0;
-    ani_status status = env->Reference_IsUndefined(env, &isUndefined);
+    ani_status status = env->Reference_IsUndefined(ref, &isUndefined);
     if (status != ANI_OK) {
-        TEXT_LOGE("Fail to check if undefined, status: %{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to check if undefined, status: %{public}d", static_cast<int32_t>(status));
         return false;
     }
     if (isUndefined != 0) {
