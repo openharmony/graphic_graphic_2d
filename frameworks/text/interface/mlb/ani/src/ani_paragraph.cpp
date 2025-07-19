@@ -291,7 +291,7 @@ ani_object AniParagraph::GetRectsForRange(
     }
     ani_size index = 0;
     for (const auto& textBox : rectsForRange) {
-        ani_object aniObj{nullptr};
+        ani_object aniObj = nullptr;
         ani_status status = AniTextRectConverter::ParseTextBoxToAni(env, textBox, aniObj);
         if (ANI_OK != status
             || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
@@ -324,7 +324,7 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
     }
     ani_size index = 0;
     for (const auto& textBox : rectsForRange) {
-        ani_object aniObj{nullptr};
+        ani_object aniObj = nullptr;
         ani_status status = AniTextRectConverter::ParseTextBoxToAni(env, textBox, aniObj);
         if (ANI_OK != status
             || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
@@ -346,7 +346,7 @@ ani_object AniParagraph::GetGlyphPositionAtCoordinate(ani_env* env, ani_object o
     }
 
     IndexAndAffinity indexAndAffinity = typography->GetGlyphIndexByCoordinate(x, y);
-    ani_object indexAndAffinityObj{nullptr};
+    ani_object indexAndAffinityObj = nullptr;
     ani_status ret =
         AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(env, indexAndAffinity, indexAndAffinityObj);
     if (ret != ANI_OK) {
@@ -365,7 +365,7 @@ ani_object AniParagraph::GetWordBoundary(ani_env* env, ani_object object, ani_do
     }
 
     Boundary boundary = typography->GetWordBoundaryByIndex(static_cast<size_t>(offset));
-    ani_object boundaryObj{nullptr};
+    ani_object boundaryObj = nullptr;
     ani_status ret = AniTextRectConverter::ParseBoundaryToAni(env, boundary, boundaryObj);
     if (ret != ANI_OK) {
         return AniTextUtils::CreateAniUndefined(env);
@@ -429,7 +429,7 @@ ani_object AniParagraph::GetActualTextRange(
         return AniTextUtils::CreateAniUndefined(env);
     }
     Boundary Boundary = typography->GetActualTextRange(static_cast<int>(lineNumber), static_cast<bool>(includeSpaces));
-    ani_object boundaryObj{nullptr};
+    ani_object boundaryObj = nullptr;
     ani_status ret = AniTextRectConverter::ParseBoundaryToAni(env, Boundary, boundaryObj);
     if (ret != ANI_OK) {
         return AniTextUtils::CreateAniUndefined(env);
