@@ -35,8 +35,9 @@ namespace Rosen {
 #ifdef RS_ENABLE_RDO
 #define MAX_PATH_LENGTH 128
 constexpr const char *RDOPARAM = "persist.graphic.profiler.renderservice.rdo.enable";
+constexpr const char *RDOINITPARAM = "persist.graphic.profiler.renderservice.rdo.init.successed";
 static char g_codeCachePath[MAX_PATH_LENGTH] = "/system/lib64/librender_service_codeCache.so";
-static char g_linkInfoPath[MAX_PATH_LENGTH] = "/system/lib64/librender_service_linkInfo.bin";
+static char g_linkInfoPath[MAX_PATH_LENGTH] = "/system/etc/librender_service_linkInfo.bin";
 static char g_binXOLoaderPath[MAX_PATH_LENGTH] = "/vendor/lib64/libbinxo_ld.so";
  
 #ifndef NSIG
@@ -53,9 +54,11 @@ static void SetRDOParam(const char *value)
  
 static bool IsRDOEnable()
 {
-    static std::string value = system::GetParameter(RDOPARAM, "undef");
-    RS_LOGI("[RDO] IsRDOEnable %{public}s", value.c_str());
-    return (value == "true");
+    static std::string rdoFlagValue = system::GetParameter(RDOPARAM, "undef");
+    RS_LOGI("[RDO] Is RDO Enable: %{public}s", rdoFlagValue.c_str());
+    static std::string rdoInitValue = system::GetParameter(RDOINITPARAM, "undef");
+    RS_LOGI("[RDO] Is RDO init successfully: %{public}s", rdoInitValue.c_str());
+    return (rdoFlagValue == "true" && rdoInitValue == "true");
 }
  
 static void ResetAndRethrowSignalIfNeed(int signo, siginfo_t *si)
@@ -113,7 +116,7 @@ void *HelperThreadforBinXO(void *arg)
         RS_LOGI("[RDO] RDO is not enabled");
         return nullptr;
     }
- 
+    system::SetParameter(RDOINITPARAM, "false");
     RDOInstallSignalHandler();
     RS_LOGI("[RDO] RDOInstallSignalHandler true");
  
@@ -151,6 +154,7 @@ void *HelperThreadforBinXO(void *arg)
     linkAll();
  
     dlclose(handle);
+    system::SetParameter(RDOINITPARAM, "true");
     return nullptr;
 }
  

@@ -185,7 +185,7 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     RSGfxDumpInit(); // Gfx Init
 
     RS_PROFILER_INIT(this);
- 
+
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();
 #endif

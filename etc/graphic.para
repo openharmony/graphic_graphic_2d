@@ -12,3 +12,4 @@
 # limitations under the License.
  
 persist.graphic.profiler.renderservice.rdo.enable = true
+persist.graphic.profiler.renderservice.rdo.init.successed = true
