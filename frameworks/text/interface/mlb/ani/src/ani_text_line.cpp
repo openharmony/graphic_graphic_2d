@@ -152,7 +152,7 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Failed to Create arrayObject");
+        TEXT_LOGE("Failed to create arrayObject");
         return arrayObj;
     }
     
