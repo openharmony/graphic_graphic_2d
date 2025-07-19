@@ -50,9 +50,10 @@ std::unordered_map<int, int> g_weightMap = {
         } \
     } while (0)
 
-#define READ_OPTIONAL_FIELD(env, obj, field, type, error_var) \
+#define READ_OPTIONAL_FIELD(env, obj, field, type, fontDescPtr, error_var) \
     do { \
-        ani_status _ret = AniTextUtils::ReadOptional##type##Field((env), (obj), #field, fontDesc->field); \
+        ani_status _ret = AniTextUtils::ReadOptional##type##Field( \
+            (env), (obj), #field, (fontDescPtr)->field); \
         if (_ret != ANI_OK) { \
             TEXT_LOGE("Failed to convert " #field); \
             (error_var) = ANI_INVALID_ARGS; \
@@ -120,14 +121,14 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
     ani_status status = ANI_OK;
-    READ_OPTIONAL_FIELD(env, aniObj, postScriptName, String, status);
-    READ_OPTIONAL_FIELD(env, aniObj, fullName, String, status);
-    READ_OPTIONAL_FIELD(env, aniObj, fontFamily, String, status);
-    READ_OPTIONAL_FIELD(env, aniObj, fontSubfamily, String, status);
-    READ_OPTIONAL_FIELD(env, aniObj, width, Int, status);
-    READ_OPTIONAL_FIELD(env, aniObj, italic, Int, status);
-    READ_OPTIONAL_FIELD(env, aniObj, monoSpace, Bool, status);
-    READ_OPTIONAL_FIELD(env, aniObj, symbolic, Bool, status);
+    READ_OPTIONAL_FIELD(env, aniObj, postScriptName, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, fullName, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, fontFamily, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, fontSubfamily, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, width, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, italic, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, monoSpace, Bool, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, symbolic, Bool, fontDesc.get(), status);
 
     return status;
 }
