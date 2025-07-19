@@ -83,7 +83,7 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
     ani_env* env, const OHOS::Rosen::TextRect textRect, ani_object& aniObj)
 {
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_BOX, ":V");
-    ani_object rectObj{nullptr};
+    ani_object rectObj = nullptr;
     if (ANI_OK == AniDrawingConverter::ParseRectToAni(env, textRect.rect, rectObj)) {
         env->Object_SetPropertyByName_Ref(aniObj, "rect", rectObj);
     }
