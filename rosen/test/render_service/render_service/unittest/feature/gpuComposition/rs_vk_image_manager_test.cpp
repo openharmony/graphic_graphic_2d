@@ -306,16 +306,17 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
     int canvasWidth = 10;
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = nullptr;
-    uint32_t threadIndex = 0;
+    BufferDrawParam params;
+    params.buffer = nullptr;
+    params.acquireFence = nullptr;
+    params.threadIndex = 0;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
-    auto res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
+    auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
     EXPECT_EQ(res, nullptr);
 
-    buffer = SurfaceBuffer::Create();
-    res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
+    params.buffer = SurfaceBuffer::Create();
+    res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
     EXPECT_NE(res, nullptr);
 }
 

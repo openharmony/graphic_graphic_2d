@@ -227,8 +227,11 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     EGLDisplay display = EGL_NO_DISPLAY;
     renderEngine->imageManager_ = std::make_shared<RSEglImageManager>(display);
-    auto img = renderEngine->imageManager_->CreateImageFromBuffer(*canvas,
-        node->GetRSSurfaceHandler()->GetBuffer(), nullptr, 0, nullptr);
+    BufferDrawParam params;
+    params.buffer = nullptr;
+    params.acquireFence = nullptr;
+    params.threadIndex = 0;
+    auto img = renderEngine->imageManager_->CreateImageFromBuffer(*canvas, params, nullptr);
     ASSERT_EQ(nullptr, img);
 }
 

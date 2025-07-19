@@ -57,6 +57,7 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     "image_framework:image_native",
     "opengles:libGLES",
     "hilog:libhilog",
+    "graphic_surface:surface_static",
   ]
 }
 

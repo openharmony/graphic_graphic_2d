@@ -1527,14 +1527,18 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::B
     return true;
 }
 
-Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer)
+Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,\
+    const Drawing::AlphaType alphaType)
 {
     Drawing::BitmapFormat format;
     if (buffer == nullptr) {
         return format;
     }
     Drawing::ColorType colorType = GetColorTypeFromBufferFormat(buffer->GetFormat());
-    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
+    if (alphaType == Drawing::AlphaType::ALPHATYPE_OPAQUE
+        && colorType == Drawing::ColorType::COLORTYPE_RGBA_8888) {
+        colorType = Drawing::ColorType::COLORTYPE_RGB_888X;
+    }
     format = { colorType, alphaType };
     return format;
 }

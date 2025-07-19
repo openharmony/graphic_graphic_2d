@@ -1502,4 +1502,43 @@ HWTEST_F(RSUniRenderUtilTest, GetYawFromQuaternionTest, TestSize.Level1)
     q[3] = std::cos(yaw / 2.f);
     ASSERT_TRUE(ROSEN_EQ(angle, RSUniRenderUtil::GetYawFromQuaternion(q), 0.001f));
 }
+
+/**
+ * @tc.name: CreateBufferDrawParamTest
+ * @tc.desc: test CreateBufferDrawParam
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParamTest003, TestSize.Level1)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceHandle = surfaceNode->GetRSSurfaceHandler();
+    const auto& surfaceConsumer = surfaceHandle->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+
+    producer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN);
+    params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+
+    params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceHandle, forceCPU);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
+    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
+    surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->id_);
+    surfaceDrawable->consumerOnDraw_ = surfaceConsumer;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
+    producer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE);
+    params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceDrawable, forceCPU, 0);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+
+    producer->SetAlphaType(GraphicAlphaType::GRAPHIC_ALPHATYPE_UNPREMUL);
+    params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU, 0, false);
+    ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+}
 } // namespace OHOS::Rosen

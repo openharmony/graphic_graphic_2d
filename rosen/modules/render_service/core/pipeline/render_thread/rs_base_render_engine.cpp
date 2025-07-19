@@ -637,9 +637,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: imageManager is nullptr!");
         return nullptr;
     }
-    image = imageManager_->CreateImageFromBuffer(canvas,
-        params.buffer, params.acquireFence, params.threadIndex,
-        videoInfo.drawingColorSpace_);
+    image = imageManager_->CreateImageFromBuffer(canvas, params, videoInfo.drawingColorSpace_);
     if (image == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: vk image is nullptr!");
         return nullptr;
