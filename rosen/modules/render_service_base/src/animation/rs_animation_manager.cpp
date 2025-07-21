@@ -37,16 +37,18 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
     if (animations_.empty()) {
         return;
     }
-    const auto lengthTwo = 2;
     out += ", RSAnimationManager: [";
+    bool hasValidAnimation = false;
     for (auto[id, animation]: animations_) {
         if (!animation) {
             continue;
         }
+        if (hasValidAnimation) {
+            out += ", ";
+        }
         animation->DumpAnimation(out);
-        out += ", ";
+        hasValidAnimation = true;
     }
-    out = out.substr(0, out.length() - lengthTwo);
     out += "]";
 }
 
