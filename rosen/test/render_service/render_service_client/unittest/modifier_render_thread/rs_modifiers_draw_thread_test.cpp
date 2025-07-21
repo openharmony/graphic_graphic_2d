@@ -691,4 +691,81 @@ HWTEST_F(RSModifiersDrawThreadTest, CreateDrawingContext002, TestSize.Level2)
     (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 }
+
+/**
+ * @tc.name: GetVulkanDeviceStatus001
+ * @tc.desc: test results of GetVulkanDeviceStatus while SetVulkanDeviceStatus CREATE_SUCCESS
+ * @tc.type:FUNC
+ * @tc.require: issueICNL0B
+ */
+HWTEST_F(RSModifiersDrawThreadTest, GetVulkanDeviceStatus001, TestSize.Level2)
+{
+    auto& interface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    interface.SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_SUCCESS);
+    ASSERT_EQ(RsVulkanContext::GetSingleton().GetVulkanDeviceStatus(), VulkanDeviceStatus::CREATE_SUCCESS);
+}
+
+/**
+ * @tc.name: ReleaseRecyclableSingleton001
+ * @tc.desc: test results of ReleaseRecyclableSingleton while CheckDrawingContextRecyclable is false
+ * @tc.type:FUNC
+ * @tc.require: issueICNL0B
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ReleaseRecyclableSingleton001, TestSize.Level2)
+{
+    RsVulkanContext::ReleaseDrawingContextMap();
+    RsVulkanContext::SetRecyclable(true);
+    RsVulkanContext::GetRecyclableSingleton().GetRecyclableDrawingContext();
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
+    RsVulkanContext::ReleaseRecyclableSingleton();
+}
+
+/**
+ * @tc.name: ReleaseRecyclableSingleton002
+ * @tc.desc: test results of ReleaseRecyclableSingleton while CheckDrawingContextRecyclable is true
+ * @tc.type:FUNC
+ * @tc.require: issueICNL0B
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ReleaseRecyclableSingleton002, TestSize.Level2)
+{
+    RsVulkanContext::ReleaseDrawingContextMap();
+    RsVulkanContext::SetRecyclable(true);
+    RsVulkanContext::GetRecyclableSingleton().GetDrawingContext();
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
+    ASSERT_EQ(RsVulkanContext::CheckDrawingContextRecyclable(), false);
+    RsVulkanContext::GetSingleton().GetVulkanDeviceStatus();
+    RsVulkanContext::ReleaseRecyclableSingleton();
+}
+
+/**
+ * @tc.name: CheckDrawingContextRecyclable001
+ * @tc.desc: test results of CheckDrawingContextRecyclable after GetRecyclableDrawingContext
+ * @tc.type:FUNC
+ * @tc.require: issueICNL0B
+ */
+HWTEST_F(RSModifiersDrawThreadTest, CheckDrawingContextRecyclable001, TestSize.Level2)
+{
+    auto& recyclableSingleton = RsVulkanContext::GetRecyclableSingletonPtr();
+    recyclableSingleton.reset();
+    RsVulkanContext::ReleaseDrawingContextMap();
+    RsVulkanContext::SetRecyclable(false);
+    RsVulkanContext::GetRecyclableSingleton().SetIsProtected(true);
+    RsVulkanContext::ReleaseDrawingContextMap();
+    RsVulkanContext::GetRecyclableSingleton().GetRecyclableDrawingContext();
+    ASSERT_EQ(RsVulkanContext::CheckDrawingContextRecyclable(), true);
+}
+
+/**
+ * @tc.name: CheckDrawingContextRecyclable002
+ * @tc.desc: test results of CheckDrawingContextRecyclable after GetDrawingContext
+ * @tc.type:FUNC
+ * @tc.require: issueICNL0B
+ */
+HWTEST_F(RSModifiersDrawThreadTest, CheckDrawingContextRecyclable002, TestSize.Level2)
+{
+    RsVulkanContext::ReleaseDrawingContextMap();
+    RsVulkanContext::GetSingleton().SetIsProtected(true);
+    RsVulkanContext::GetRecyclableSingleton().GetDrawingContext();
+    ASSERT_EQ(RsVulkanContext::CheckDrawingContextRecyclable(), false);
+}
 } // namespace OHOS::Rosen
