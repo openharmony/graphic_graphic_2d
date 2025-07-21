@@ -674,6 +674,7 @@ private:
     static std::string FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
     static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
+    static std::shared_ptr<RSRenderNode> GetLogicalDisplay();
 
     static void ScheduleTask(std::function<void()>&& task);
     static void RequestNextVSync();

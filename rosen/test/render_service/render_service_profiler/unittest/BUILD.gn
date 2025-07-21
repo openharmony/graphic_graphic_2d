@@ -24,6 +24,7 @@ group("unittest") {
     ":RSProfilerPacketTest",
     ":RSProfilerSocketTest",
     ":RSProfilerUtilsTest",
+    ":RSProfilerCapturingTest",
     "standard:test",
   ]
 }
@@ -316,6 +317,7 @@ ohos_unittest("RSProfilerTelemetryTest") {
 
   use_exceptions = true
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerUtilsTest  ##################################
@@ -368,6 +370,38 @@ ohos_unittest("RSProfilerCommandTest") {
     "init:libbegetutil",
   ]
 
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+############################# RSProfilerCapturingTest #################################
+ohos_unittest("RSProfilerCapturingTest") {
+  module_out_path = module_output_path
+  defines = [ "RS_PROFILER_ENABLED" ]
+  sources = [ "rs_profiler_capturing_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  use_exceptions = true
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

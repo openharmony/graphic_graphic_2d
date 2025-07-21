@@ -224,7 +224,16 @@ ohos_unittest("RSDirtyRectsDFXTest") {
 ## Build RSSkpCaptureDFXTest
 ohos_unittest("RSSkpCaptureDFXTest") {
   module_out_path = module_output_path
+  if (current_os == "ohos" && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines = [ "RS_PROFILER_ENABLED" ]
+  }
+  include_dirs = ["$graphic_2d_root/rosen/modules/render_service_profiler"]
   sources = [ "dfx/rs_skp_capture_dfx_test.cpp" ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
