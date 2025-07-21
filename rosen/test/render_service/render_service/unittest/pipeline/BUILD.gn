@@ -735,6 +735,7 @@ ohos_unittest("RSMainThreadTest") {
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    deps += [ "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",

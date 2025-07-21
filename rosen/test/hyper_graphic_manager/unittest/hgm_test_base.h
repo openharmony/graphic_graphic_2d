@@ -105,7 +105,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
             </DynamicSettings>
         </Category>
-        <Category name="small_size_property_animation_dynamic_settings" area="100" length="100">
+        <Category name="small_size_property_animation_dynamic_settings" area="1000" length="1000">
             <DynamicSettings name="aaa">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
             </DynamicSettings>
@@ -124,21 +124,21 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
             <App name="bbb" nodeName="12"/>
         </Category>
         <Category name="app_types">
-            <App name="aaa" strategy="12" />
-            <App name="111" strategy="12" />
-            <App name="333" strategy="33" />
+            <App name="aaa" strategy="12"/>
+            <App name="111" strategy="12"/>
+            <App name="333" strategy="33"/>
         </Category>
         <Category name="app_page_url_config">
             <Package name="com.company.pkg0">
-                <Strategy name="pageName" strategy="5">
+                <Strategy name="pageName" strategy="5"/>
             </Package>
         </Category>
         <Category name="performance_config">
-            <Ltpo name="pluseNum" value="1" />
-            <Ltpo name="pipelineDelayModeEnable" value="1" />
+            <Ltpo name="pluseNum" value="1"/>
+            <Ltpo name="pipelineDelayModeEnable" value="1"/>
         </Category>
         <Category name="xxx">
-            <App name="aaa" strategy="12" />
+            <App name="aaa" strategy="12"/>
         </Category>
         </Setting>
     </Params>
@@ -147,6 +147,9 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     </Params>
     <Params name="source_tuning_for_yuv420">
         <App name="aaa" value="1"/>
+    </Params>
+    <Params name="vrate_control_config">
+        <Vrate name="aaa" value="1"/>
     </Params>
     <Params name="rs_solid_color_layer_config">
         <App name="aaa" value="1"/>
@@ -162,9 +165,6 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     </Params>
     <Params name="xxx">
         <App name="aaa" value="1"/>
-    </Params>
-    <Params name="vrate_control_config">
-        <Vrate name="aaa" value="1"/>
     </Params>
     <InvalidParams/>
     </HgmConfig>)");

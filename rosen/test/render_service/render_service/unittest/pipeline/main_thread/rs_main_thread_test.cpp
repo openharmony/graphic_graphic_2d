@@ -5838,6 +5838,30 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitHgmTaskHandleThreadTest
+ * @tc.desc: InitHgmTaskHandleThreadTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBZ6NM
+ */
+HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->hgmContext_.InitHgmTaskHandleThread(mainThread->rsVSyncController_, mainThread->appVSyncController_,
+        mainThread->vsyncGenerator_, mainThread->appVSyncDistributor_);
+    ASSERT_EQ(mainThread->forceUpdateUniRenderFlag_, true);
+    mainThread->hgmContext_.ProcessHgmFrameRate(0, mainThread->rsVSyncDistributor_, mainThread->vsyncId_);
+
+    ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(static_cast<RSPropertyUnit>(0xff), 0.f, 0, 0), 0);
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    ASSERT_EQ(HgmCore::Instance().GetFrameRateMgr(), nullptr);
+    ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
+    HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
+    ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
+}
+
+/**
  * @tc.name: DoDirectComposition004
  * @tc.desc: Test DoDirectComposition For HwcNodes
  * @tc.type: FUNC

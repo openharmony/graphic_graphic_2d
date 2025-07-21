@@ -32,6 +32,9 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
+int64_t offset0 = 0;
+int32_t testThreadNums = 100;
+int32_t touchCnt = 1;
 const std::string otherSurface = "Other_SF";
 const std::string settingStrategyName = "99";
 const int32_t HGM_REFRESHRATE_MODE_HIGH = 2;
@@ -55,6 +58,9 @@ constexpr int32_t errorVelocity = -1;
 constexpr int32_t strategy3 = 3;
 constexpr int32_t maxSize = 25;
 const std::string testScene = "TestScene";
+const std::string pkgName0 = "com.pkg.other:0:-1";
+const std::string pkgName1 = "com.ss.hm.ugc.aweme:1001:10067";
+const std::string pkgName2 = "com.wedobest.fivechess.harm:1002:10110";
 const GraphicIRect rectF {
     .x = 0,
     .y = 0,
@@ -490,42 +496,42 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallT
  */
 HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level0)
 {
-    int64_t offset = 0;
-    int32_t testThreadNum = 100;
-    int32_t touchCnt = 1;
-    std::string pkg0 = "com.pkg.other:0:-1";
-    std::string pkg1 = "com.ss.hm.ugc.aweme:1001:10067";
-    std::string pkg2 = "com.wedobest.fivechess.harm:1002:10110";
-
     HgmFrameRateManager frameRateMgr;
     auto vsyncGenerator = CreateVSyncGenerator();
-    sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
+    sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset0);
     ASSERT_NE(rsController, nullptr);
-    sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
+    sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset0);
     ASSERT_NE(appController, nullptr);
     sptr<VSyncDistributor> appDistributor = new VSyncDistributor(appController, "connection");
     frameRateMgr.Init(rsController, appController, vsyncGenerator, appDistributor);
     frameRateMgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
-
+    auto& touchManager = frameRateMgr.GetTouchManager();
+    touchManager.ChangeState(TouchState::DOWN_STATE);
+    touchManager.ChangeState(TouchState::UP_STATE);
+    usleep(100000); // 100000us
+    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+    touchManager.ChangeState(TouchState::IDLE_STATE);
+    usleep(100000); // 100000us
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
     ASSERT_NE(vsyncGenerator, nullptr);
     ASSERT_NE(rsController, nullptr);
     ASSERT_NE(appController, nullptr);
     ASSERT_NE(appDistributor, nullptr);
     HgmTaskHandleThread::Instance().PostTask([&]() {
-        for (int i = 0; i < testThreadNum; i++) {
+        for (int i = 0; i < testThreadNums; i++) {
             // HandleLightFactorStatus
             frameRateMgr.HandleLightFactorStatus(i, LightFactorStatus::NORMAL_LOW);
             frameRateMgr.HandleLightFactorStatus(i, LightFactorStatus::NORMAL_HIGH);
 
             // HandlePackageEvent
-            frameRateMgr.HandlePackageEvent(i, { pkg0 });
-            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkg0 }), EXEC_SUCCESS);
-            frameRateMgr.HandlePackageEvent(i, { pkg1 });
-            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkg1 }), EXEC_SUCCESS);
-            frameRateMgr.HandlePackageEvent(i, { pkg2 });
-            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkg2 }), EXEC_SUCCESS);
-            frameRateMgr.HandlePackageEvent(i, { pkg0, pkg1 });
-            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkg0, pkg1 }), EXEC_SUCCESS);
+            frameRateMgr.HandlePackageEvent(i, { pkgName0 });
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkgName0 }), EXEC_SUCCESS);
+            frameRateMgr.HandlePackageEvent(i, { pkgName1 });
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkgName1 }), EXEC_SUCCESS);
+            frameRateMgr.HandlePackageEvent(i, { pkgName2 });
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkgName2 }), EXEC_SUCCESS);
+            frameRateMgr.HandlePackageEvent(i, { pkgName0, pkgName1 });
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({ pkgName0, pkgName1 }), EXEC_SUCCESS);
 
             // HandleRefreshRateEvent
             frameRateMgr.HandleRefreshRateEvent(i, {});
@@ -690,11 +696,14 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
         return;
     }
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
+    mgr->GetPreferredFps("aaa", 100.f, 100.f, 100.f);
+    mgr->GetPreferredFps("aaa", 100.f, 0.f, 0.f);
+
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_EQ(hgm.mPolicyConfigData_, nullptr);
     ASSERT_EQ(nullptr, hgm.GetPolicyConfigData());
-    mgr->GetPreferredFps("translate", 100.f, 0.f, 0.f);
+    mgr->GetPreferredFps("aaa", 100.f, 0.f, 0.f);
 
     EventInfo eventInfo = { .eventName = "VOTER_GAMES", .eventStatus = false,
         .description = pkg0,
@@ -877,7 +886,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
-    EXPECT_EQ(frameRateMgr->GetPreferredFps("translate", errorVelocity, 0, 0), 0);
+    EXPECT_EQ(frameRateMgr->GetPreferredFps("aaa", errorVelocity, 0, 0), 0);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
     VSyncController* rsController;
     VSyncController* appController;
