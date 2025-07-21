@@ -25,6 +25,7 @@
 #include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
+#include "ui_effect/filter/include/filter_bezier_warp_para.h"
 
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
@@ -74,6 +75,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::VARIABLE_RADIUS_BLUR, [] {
             return std::make_shared<RSNGVariableRadiusBlurFilter>();
+        }
+    },
+    {RSNGEffectType::BEZIER_WARP, [] {
+            return std::make_shared<RSNGBezierWarpFilter>();
         }
     },
 };
@@ -182,6 +187,35 @@ std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_
         RSNGMaskBase::Create(variableRadiusBlurFilterPara->GetMask()));
     return variableRadiusBlurFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertBezierWarpFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::BEZIER_WARP);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    auto bezierWarpFilterPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
+    auto bezierCtrlPoints = bezierWarpFilterPara->GetBezierControlPoints();
+    std::array<RSNGEffectType, BEZIER_WARP_POINT_NUM> bezierCtrlPointsNGType = {
+        RSNGEffectType::BezierWarpControlPoint0Tag,
+        RSNGEffectType::BezierWarpControlPoint1Tag,
+        RSNGEffectType::BezierWarpControlPoint2Tag,
+        RSNGEffectType::BezierWarpControlPoint3Tag,
+        RSNGEffectType::BezierWarpControlPoint4Tag,
+        RSNGEffectType::BezierWarpControlPoint5Tag,
+        RSNGEffectType::BezierWarpControlPoint6Tag,
+        RSNGEffectType::BezierWarpControlPoint7Tag,
+        RSNGEffectType::BezierWarpControlPoint8Tag,
+        RSNGEffectType::BezierWarpControlPoint9Tag,
+        RSNGEffectType::BezierWarpControlPoint10Tag,
+        RSNGEffectType::BezierWarpControlPoint11Tag
+    };
+    for (size_t i = 0; i < BEZIER_WARP_POINT_NUM; ++i) {
+        bezierWarpFilter->Setter<bezierCtrlPointsNGType[i]>(bezierCtrlPoints[i]);
+    }
+    return bezierWarpFilter;
+}
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -192,6 +226,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::COLOR_GRADIENT, ConvertColorGradientFilterPara },
     { FilterPara::ParaType::MASK_TRANSITION, ConvertMaskTransitionFilterPara },
     { FilterPara::ParaType::VARIABLE_RADIUS_BLUR, ConvertVariableRadiusBlurFilterPara },
+    { FilterPara::ParaType::BEZIER_WARP, ConvertBezierWarpFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

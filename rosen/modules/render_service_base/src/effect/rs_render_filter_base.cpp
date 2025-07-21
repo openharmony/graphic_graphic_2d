@@ -65,6 +65,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderVariableRadiusBlurFilter>();
         }
     },
+    {RSNGEffectType::BEZIER_WARP, [] {
+            return std::make_shared<RSNGRenderBezierWarpFilter>();
+        }
+    }
 };
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
