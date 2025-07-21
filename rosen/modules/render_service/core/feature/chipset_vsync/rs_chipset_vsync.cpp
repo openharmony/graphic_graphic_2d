@@ -15,7 +15,6 @@
 
 #include "rs_chipset_vsync.h"
 #include <dlfcn.h>
-#include <string_view>
 #include "platform/common/rs_log.h"
 
 namespace {
@@ -63,7 +62,7 @@ void RsChipsetVsync::ResetChipsetVsyncFunc()
 int32_t RsChipsetVsync::InitChipsetVsync()
 {
     if(initChipsetVsyncFunc_ == nullptr) {
-        return -1；
+        return -1;
     }
     return initChipsetVsyncFunc_();
 }
@@ -71,7 +70,7 @@ int32_t RsChipsetVsync::InitChipsetVsync()
 int32_t RsChipsetVsync::SetVsync(int64_t timeStamp, uint64_t curTime, int64_t period, bool allowFramerateChange)
 {
     if(setVsyncFunc_ == nullptr) {
-        return -1；
+        return -1;
     }
     return setVsyncFunc_(timeStamp, curTime, period, allowFramerateChange);
 }

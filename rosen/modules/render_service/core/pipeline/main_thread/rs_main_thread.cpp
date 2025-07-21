@@ -423,6 +423,9 @@ RSMainThread::~RSMainThread() noexcept
     RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(nullptr);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    RsChipsetVsync::Instance.CloseLibrary()
+#endif
     if (rsAppStateListener_) {
         Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
     }
