@@ -16,8 +16,14 @@
 #include "gtest/gtest.h"
 
 #include "effect/image_filter.h"
+#include "effect/image_filter_lazy.h"
 #include "image/image.h"
-
+#include "utils/object_helper.h"
+#ifdef ROSEN_OHOS
+#include <parcel.h>
+#include <message_parcel.h>
+#endif
+#include "transaction/rs_marshalling_helper.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -36,6 +42,18 @@ void ImageFilterTest::SetUpTestCase() {}
 void ImageFilterTest::TearDownTestCase() {}
 void ImageFilterTest::SetUp() {}
 void ImageFilterTest::TearDown() {}
+
+// Create a mock filter that will return null from Serialize
+class MockImageFilter : public ImageFilter {
+public:
+    MockImageFilter() : ImageFilter(FilterType::BLUR) {}
+
+    // Override Serialize to return null to simulate empty data scenario
+    std::shared_ptr<Data> Serialize() const override
+    {
+        return nullptr;
+    }
+};
 
 /*
  * @tc.name: CreateBlurImageFilterTest001
@@ -318,6 +336,435 @@ HWTEST_F(ImageFilterTest, CreateImageImageFilterTest001, TestSize.Level1)
     auto imageFilter2 = ImageFilter::CreateImageImageFilter(nullptr, rect, rect2, options);
     EXPECT_TRUE(imageFilter2 != nullptr);
 }
+
+#ifdef ROSEN_OHOS
+/*
+ * @tc.name: UnmarshallingCompleteRoundTrip001
+ * @tc.desc: Test complete round-trip marshalling and serialization data consistency
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageFilterTest, UnmarshallingCompleteRoundTrip001, TestSize.Level1)
+{
+    // Test 1: Complete round-trip with multiple filter types
+    std::vector<std::shared_ptr<ImageFilter>> testFilters;
+    Rect cropRect(0.0f, 0.0f, 100.0f, 100.0f);
+    // BlurFilter
+    testFilters.push_back(ImageFilter::CreateBlurImageFilter(3.0f, 3.0f, TileMode::CLAMP, nullptr,
+        ImageBlurType::GAUSS, cropRect));
+    // OffsetFilter
+    testFilters.push_back(ImageFilter::CreateOffsetImageFilter(5.0f, 10.0f, nullptr, cropRect));
+
+    // ColorFilterImageFilter
+    auto colorFilter = ColorFilter::CreateBlendModeColorFilter(0xFFFF0000, BlendMode::MULTIPLY);
+    if (colorFilter) {
+        testFilters.push_back(ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr, cropRect));
+    }
+
+    for (auto& originalFilter : testFilters) {
+        ASSERT_NE(originalFilter, nullptr);
+        auto originalType = originalFilter->GetType();
+
+        // Marshal and unmarshal
+        Parcel parcel;
+        bool marshalResult = originalFilter->Marshalling(parcel);
+        EXPECT_TRUE(marshalResult);
+
+        bool isValid = true;
+        auto unmarshaledFilter = ImageFilter::Unmarshalling(parcel, isValid);
+        EXPECT_NE(unmarshaledFilter, nullptr);
+        EXPECT_TRUE(isValid);
+        EXPECT_EQ(unmarshaledFilter->GetType(), originalType);
+
+        // Verify data serialization consistency
+        auto originalData = originalFilter->Serialize();
+        auto unmarshaledData = unmarshaledFilter->Serialize();
+        if (originalData && unmarshaledData) {
+            EXPECT_EQ(originalData->GetSize(), unmarshaledData->GetSize());
+            const uint8_t* originalBytes = static_cast<const uint8_t*>(originalData->GetData());
+            const uint8_t* unmarshaledBytes = static_cast<const uint8_t*>(unmarshaledData->GetData());
+            int memResult = memcmp(originalBytes, unmarshaledBytes, originalData->GetSize());
+            EXPECT_EQ(memResult, 0);
+        } else {
+            // If either serialization fails, both should fail consistently
+            EXPECT_EQ(originalData, unmarshaledData);
+        }
+    }
+}
+
+/*
+ * @tc.name: UnmarshallingErrorHandling001
+ * @tc.desc: Test ImageFilter::Unmarshalling error handling scenarios and boundary conditions
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageFilterTest, UnmarshallingErrorHandling001, TestSize.Level1)
+{
+    // Test 1: Empty parcel
+    {
+        Parcel emptyParcel;
+        bool isValid = true;
+        auto result = ImageFilter::Unmarshalling(emptyParcel, isValid);
+        EXPECT_EQ(result, nullptr);
+    }
+
+    // Test 2: NO_TYPE - 1 (negative boundary)
+    {
+        Parcel parcel;
+        parcel.WriteInt32(static_cast<int32_t>(ImageFilter::FilterType::NO_TYPE) - 1);
+        bool isValid = true;
+        auto result = ImageFilter::Unmarshalling(parcel, isValid);
+        EXPECT_EQ(result, nullptr); // Should be rejected due to invalid type
+    }
+
+    // Test 3: NO_TYPE (lower boundary) - can construct empty ImageFilter
+    {
+        Parcel parcel;
+        parcel.WriteInt32(static_cast<int32_t>(ImageFilter::FilterType::NO_TYPE));
+        parcel.WriteInt32(false);
+        bool isValid = true;
+        auto result = ImageFilter::Unmarshalling(parcel, isValid);
+        EXPECT_NE(result, nullptr); // Should succeed, creating empty ImageFilter
+        EXPECT_TRUE(isValid);
+        if (result) {
+            EXPECT_EQ(result->GetType(), ImageFilter::FilterType::NO_TYPE);
+        }
+    }
+
+    // Test 4: LAZY_IMAGE_FILTER (should be rejected in normal ImageFilter unmarshalling)
+    {
+        Parcel parcel;
+        parcel.WriteInt32(static_cast<int32_t>(ImageFilter::FilterType::LAZY_IMAGE_FILTER));
+        bool isValid = true;
+        auto result = ImageFilter::Unmarshalling(parcel, isValid);
+        EXPECT_EQ(result, nullptr); // Should be rejected
+    }
+
+    // Test 5: Beyond LAZY_IMAGE_FILTER (upper boundary + 1)
+    {
+        Parcel parcel;
+        parcel.WriteInt32(static_cast<int32_t>(ImageFilter::FilterType::LAZY_IMAGE_FILTER) + 1);
+        bool isValid = true;
+        auto result = ImageFilter::Unmarshalling(parcel, isValid);
+        EXPECT_EQ(result, nullptr); // Should be rejected due to invalid type
+    }
+
+    // Test 6: Large invalid value
+    {
+        Parcel parcel;
+        parcel.WriteInt32(999);
+        bool isValid = true;
+        auto result = ImageFilter::Unmarshalling(parcel, isValid);
+        EXPECT_EQ(result, nullptr); // Should be rejected
+    }
+}
+
+/*
+ * @tc.name: MarshallingEmptyData001
+ * @tc.desc: Test ImageFilter::Marshalling with empty Serialize data
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, MarshallingEmptyData001, TestSize.Level1)
+{
+    auto mockFilter = std::make_shared<MockImageFilter>();
+    Parcel parcel;
+    // Should succeed even with null Serialize data
+    bool result = mockFilter->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    // Verify the parcel contains the expected structure
+    // Read type
+    int32_t type;
+    EXPECT_TRUE(parcel.ReadInt32(type));
+    EXPECT_EQ(type, static_cast<int32_t>(ImageFilter::FilterType::BLUR));
+
+    // Read hasData flag - should be false
+    bool hasData;
+    EXPECT_TRUE(parcel.ReadBool(hasData));
+    EXPECT_FALSE(hasData);
+
+    // No more data should be available since hasData was false
+    EXPECT_EQ(parcel.GetDataSize() - parcel.GetReadPosition(), 0);
+}
+
+/*
+ * @tc.name: UnmarshallingEmptyData001
+ * @tc.desc: Test ImageFilter::Unmarshalling with empty data marker
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, UnmarshallingEmptyData001, TestSize.Level1)
+{
+    Parcel parcel;
+    // Write type
+    EXPECT_TRUE(parcel.WriteInt32(static_cast<int32_t>(ImageFilter::FilterType::BLUR)));
+    // Write hasData as false to simulate empty data scenario
+    EXPECT_TRUE(parcel.WriteBool(false));
+
+    // Should successfully create empty filter
+    bool isValid = true;
+    auto filter = ImageFilter::Unmarshalling(parcel, isValid);
+    EXPECT_NE(filter, nullptr);
+    EXPECT_TRUE(isValid);
+    EXPECT_EQ(filter->GetType(), ImageFilter::FilterType::BLUR);
+}
+
+/*
+ * @tc.name: MarshallingUnmarshallingEmptyData001
+ * @tc.desc: Test round-trip Marshalling and Unmarshalling with empty data
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, MarshallingUnmarshallingEmptyData001, TestSize.Level1)
+{
+    auto originalFilter = std::make_shared<MockImageFilter>();
+    Parcel parcel;
+    // Marshal - should succeed with empty data
+    bool marshalResult = originalFilter->Marshalling(parcel);
+    EXPECT_TRUE(marshalResult);
+
+    // Unmarshal - should create empty filter with correct type
+    bool isValid = true;
+    auto unmarshaledFilter = ImageFilter::Unmarshalling(parcel, isValid);
+    EXPECT_NE(unmarshaledFilter, nullptr);
+    EXPECT_TRUE(isValid);
+    EXPECT_EQ(unmarshaledFilter->GetType(), ImageFilter::FilterType::BLUR);
+
+    // Serialize validation - both should return null consistently
+    auto originalData = originalFilter->Serialize();
+    auto unmarshaledData = unmarshaledFilter->Serialize();
+    EXPECT_EQ(originalData, nullptr);
+    EXPECT_EQ(unmarshaledData, nullptr);
+}
+
+/*
+ * @tc.name: MarshallingCallbackFailure001
+ * @tc.desc: Test ImageFilter::Marshalling with callback failure to cover (!callback(parcel, data)) branch
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, MarshallingCallbackFailure001, TestSize.Level1)
+{
+    // Create a valid filter with non-null Serialize data
+    Rect cropRect(0.0f, 0.0f, 100.0f, 100.0f);
+    auto filter = ImageFilter::CreateBlurImageFilter(5.0f, 5.0f, TileMode::CLAMP, nullptr,
+        ImageBlurType::GAUSS, cropRect);
+    ASSERT_NE(filter, nullptr);
+
+    // Backup original callback
+    auto originalCallback = ObjectHelper::Instance().GetDataMarshallingCallback();
+
+    // Set a failing callback to trigger the (!callback(parcel, data)) branch
+    ObjectHelper::Instance().SetDataMarshallingCallback(
+        [](Parcel& parcel, std::shared_ptr<Drawing::Data> data) -> bool {
+            return false; // Always fail
+        }
+    );
+
+    Parcel parcel;
+    bool result = filter->Marshalling(parcel);
+    // Should fail due to callback failure
+    EXPECT_FALSE(result);
+
+    // Restore original callback
+    ObjectHelper::Instance().SetDataMarshallingCallback(originalCallback);
+}
+
+/*
+ * @tc.name: UnmarshallingCallbackNull001
+ * @tc.desc: Test ImageFilter::Unmarshalling with null callback to cover (if (!callback)) branch
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, UnmarshallingCallbackNull001, TestSize.Level1)
+{
+    // Backup original callback
+    auto originalCallback = ObjectHelper::Instance().GetDataUnmarshallingCallback();
+
+    // Set null callback to trigger the (if (!callback)) branch
+    ObjectHelper::Instance().SetDataUnmarshallingCallback(nullptr);
+
+    Parcel parcel;
+    // Write valid type
+    EXPECT_TRUE(parcel.WriteInt32(static_cast<int32_t>(ImageFilter::FilterType::BLUR)));
+    // Write hasData as true to reach the callback check
+    EXPECT_TRUE(parcel.WriteBool(true));
+
+    bool isValid = true;
+    auto result = ImageFilter::Unmarshalling(parcel, isValid);
+    // Should fail due to null callback
+    EXPECT_EQ(result, nullptr);
+
+    // Restore original callback
+    ObjectHelper::Instance().SetDataUnmarshallingCallback(originalCallback);
+}
+
+/*
+ * @tc.name: CreateBlurImageFilterLazyInput001
+ * @tc.desc: Test ImageFilter::CreateBlurImageFilter with lazy input
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, CreateBlurImageFilterLazyInput001, TestSize.Level1)
+{
+    // Create a lazy filter as input
+    auto lazyFilter = ImageFilterLazy::CreateBlur(2.0f, 3.0f, TileMode::CLAMP);
+    ASSERT_NE(lazyFilter, nullptr);
+    EXPECT_TRUE(lazyFilter->IsLazy());
+
+    // CreateBlurImageFilter should return nullptr with lazy input
+    auto result = ImageFilter::CreateBlurImageFilter(1.0f, 1.0f, TileMode::CLAMP, lazyFilter);
+    EXPECT_EQ(result, nullptr);
+}
+
+/*
+ * @tc.name: CreateColorFilterImageFilterLazyInput001
+ * @tc.desc: Test ImageFilter::CreateColorFilterImageFilter with lazy input
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, CreateColorFilterImageFilterLazyInput001, TestSize.Level1)
+{
+    // Create a lazy filter as input
+    auto lazyFilter = ImageFilterLazy::CreateOffset(5.0f, 5.0f);
+    ASSERT_NE(lazyFilter, nullptr);
+    EXPECT_TRUE(lazyFilter->IsLazy());
+
+    // Create a color filter
+    auto colorFilter = ColorFilter::CreateLinearToSrgbGamma();
+    ASSERT_NE(colorFilter, nullptr);
+
+    // CreateColorFilterImageFilter should return nullptr with lazy input
+    auto result = ImageFilter::CreateColorFilterImageFilter(*colorFilter, lazyFilter);
+    EXPECT_EQ(result, nullptr);
+}
+
+/*
+ * @tc.name: CreateOffsetImageFilterLazyInput001
+ * @tc.desc: Test ImageFilter::CreateOffsetImageFilter with lazy input
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, CreateOffsetImageFilterLazyInput001, TestSize.Level1)
+{
+    // Create a lazy filter as input
+    auto lazyFilter = ImageFilterLazy::CreateBlur(3.0f, 3.0f, TileMode::CLAMP);
+    ASSERT_NE(lazyFilter, nullptr);
+    EXPECT_TRUE(lazyFilter->IsLazy());
+
+    // CreateOffsetImageFilter should return nullptr with lazy input
+    auto result = ImageFilter::CreateOffsetImageFilter(10.0f, 10.0f, lazyFilter);
+    EXPECT_EQ(result, nullptr);
+}
+
+/*
+ * @tc.name: CreateGradientBlurImageFilterLazyInput001
+ * @tc.desc: Test ImageFilter::CreateGradientBlurImageFilter with lazy input
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, CreateGradientBlurImageFilterLazyInput001, TestSize.Level1)
+{
+    // Create a lazy filter as input
+    auto lazyFilter = ImageFilterLazy::CreateOffset(2.0f, 2.0f);
+    ASSERT_NE(lazyFilter, nullptr);
+    EXPECT_TRUE(lazyFilter->IsLazy());
+
+    // CreateGradientBlurImageFilter should return nullptr with lazy input
+    std::vector<std::pair<float, float>> fractionStops = {{0.0f, 0.5f}, {1.0f, 1.0f}};
+    auto result = ImageFilter::CreateGradientBlurImageFilter(5.0f, fractionStops,
+        GradientDir::LEFT, GradientBlurType::ALPHA_BLEND, lazyFilter);
+    EXPECT_EQ(result, nullptr);
+}
+
+/*
+ * @tc.name: CreateArithmeticImageFilterLazyInput001
+ * @tc.desc: Test ImageFilter::CreateArithmeticImageFilter with lazy inputs
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, CreateArithmeticImageFilterLazyInput001, TestSize.Level1)
+{
+    // Create lazy filters as inputs
+    auto lazyBackground = ImageFilterLazy::CreateBlur(1.0f, 1.0f, TileMode::CLAMP);
+    auto lazyForeground = ImageFilterLazy::CreateOffset(2.0f, 2.0f);
+    ASSERT_NE(lazyBackground, nullptr);
+    ASSERT_NE(lazyForeground, nullptr);
+    EXPECT_TRUE(lazyBackground->IsLazy());
+    EXPECT_TRUE(lazyForeground->IsLazy());
+
+    // CreateArithmeticImageFilter should return nullptr with lazy background
+    std::vector<scalar> coefficients = {1.0f, 0.0f, 0.0f, 0.0f};
+    auto result1 = ImageFilter::CreateArithmeticImageFilter(coefficients, true, lazyBackground, nullptr);
+    EXPECT_EQ(result1, nullptr);
+
+    // CreateArithmeticImageFilter should return nullptr with lazy foreground
+    auto result2 = ImageFilter::CreateArithmeticImageFilter(coefficients, true, nullptr, lazyForeground);
+    EXPECT_EQ(result2, nullptr);
+}
+
+/*
+ * @tc.name: CreateComposeImageFilterLazyInput001
+ * @tc.desc: Test ImageFilter::CreateComposeImageFilter with lazy inputs
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, CreateComposeImageFilterLazyInput001, TestSize.Level1)
+{
+    // Create lazy filters as inputs
+    auto lazyFilter1 = ImageFilterLazy::CreateBlur(2.0f, 2.0f, TileMode::CLAMP);
+    auto lazyFilter2 = ImageFilterLazy::CreateOffset(3.0f, 3.0f);
+    ASSERT_NE(lazyFilter1, nullptr);
+    ASSERT_NE(lazyFilter2, nullptr);
+    EXPECT_TRUE(lazyFilter1->IsLazy());
+    EXPECT_TRUE(lazyFilter2->IsLazy());
+
+    // CreateComposeImageFilter should return nullptr with lazy f1
+    auto result1 = ImageFilter::CreateComposeImageFilter(lazyFilter1, nullptr);
+    EXPECT_EQ(result1, nullptr);
+
+    // CreateComposeImageFilter should return nullptr with lazy f2
+    auto result2 = ImageFilter::CreateComposeImageFilter(nullptr, lazyFilter2);
+    EXPECT_EQ(result2, nullptr);
+
+    // CreateComposeImageFilter should return nullptr with both lazy filters
+    auto result3 = ImageFilter::CreateComposeImageFilter(lazyFilter1, lazyFilter2);
+    EXPECT_EQ(result3, nullptr);
+}
+
+/*
+ * @tc.name: CreateBlendImageFilterLazyInput001
+ * @tc.desc: Test ImageFilter::CreateBlendImageFilter with lazy inputs
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ImageFilterTest, CreateBlendImageFilterLazyInput001, TestSize.Level1)
+{
+    // Create lazy filters as inputs
+    auto lazyBackground = ImageFilterLazy::CreateOffset(1.0f, 2.0f);
+    auto lazyForeground = ImageFilterLazy::CreateBlur(3.0f, 4.0f, TileMode::CLAMP);
+    ASSERT_NE(lazyBackground, nullptr);
+    ASSERT_NE(lazyForeground, nullptr);
+    EXPECT_TRUE(lazyBackground->IsLazy());
+    EXPECT_TRUE(lazyForeground->IsLazy());
+
+    // CreateBlendImageFilter should return nullptr with lazy background
+    auto result1 = ImageFilter::CreateBlendImageFilter(BlendMode::SRC_OVER, lazyBackground, nullptr);
+    EXPECT_EQ(result1, nullptr);
+
+    // CreateBlendImageFilter should return nullptr with lazy foreground
+    auto result2 = ImageFilter::CreateBlendImageFilter(BlendMode::SRC_OVER, nullptr, lazyForeground);
+    EXPECT_EQ(result2, nullptr);
+
+    // CreateBlendImageFilter should return nullptr with both lazy filters
+    auto result3 = ImageFilter::CreateBlendImageFilter(BlendMode::SRC_OVER, lazyBackground, lazyForeground);
+    EXPECT_EQ(result3, nullptr);
+}
+#endif
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
