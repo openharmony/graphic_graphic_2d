@@ -480,11 +480,11 @@ HWTEST_F(VSyncDistributorTest, GetUiCommandDelayTime001, Function | MediumTest| 
 }
 
 /*
-* Function: GetRsDelayTime001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetRsDelayTime
+ * Function: GetRsDelayTime001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetRsDelayTime
  */
 HWTEST_F(VSyncDistributorTest, GetRsDelayTime001, Function | MediumTest| Level3)
 {
