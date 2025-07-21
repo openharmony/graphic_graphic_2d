@@ -1694,7 +1694,6 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetConsumer() != nullptr);
     surfaceNode->DumpTree(0, outTest);
-    surfaceNode->DumpTree(0, outTest, true);
     ASSERT_TRUE(outTest.find("ScalingMode") != string::npos);
     ASSERT_TRUE(outTest.find("TransformType") != string::npos);
 

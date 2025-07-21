@@ -908,7 +908,7 @@ bool RSRenderNode::IsFirstLevelNode()
     return id_ == firstLevelNodeId_;
 }
 
-void RSRenderNode::DumpTree(int32_t depth, std::string& out, bool dumpSingleNode) const
+void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 {
     // Exceed max depth for dumping render node tree, refuse to continue and add a warning.
     // Possible reason: loop in the render node tree
@@ -1048,10 +1048,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out, bool dumpSingleNode
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
     ChildrenListDump(out);
-    if (dumpSingleNode) {
-        return;
-    }
-    
+
     for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
