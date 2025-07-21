@@ -28,46 +28,46 @@ RSRenderAnimation::RSRenderAnimation(AnimationId id) : id_(id) {}
 
 void RSRenderAnimation::DumpAnimation(std::string& out) const
 {
-    out += "Animation: [id:" + std::to_string(id_) + ", ";
+    out.append("Animation: [id:").append(std::to_string(id_)).append(", ");
     DumpAnimationInfo(out);
-    out += ", AnimationState:" + std::to_string(static_cast<int>(state_));
+    out.append(", AnimationState:").append(std::to_string(static_cast<int>(state_)));
     if (!targetName_.empty()) {
-        out += ", NodeName:" + targetName_;
+        out.append(", NodeName:").append(targetName_);
     }
-    out += ", Duration:" + std::to_string(animationFraction_.GetDuration());
-    out += ", runningTime:" + std::to_string(animationFraction_.GetRunningTime());
+    out.append(", Duration:").append(std::to_string(animationFraction_.GetDuration()));
+    out.append(", runningTime:").append(std::to_string(animationFraction_.GetRunningTime()));
     if (animationFraction_.GetStartDelay() != 0) {
-        out += ", StartDelay:" + std::to_string(animationFraction_.GetStartDelay());
+        out.append(", StartDelay:").append(std::to_string(animationFraction_.GetStartDelay()));
     }
     if (ROSEN_NE(animationFraction_.GetSpeed(), 1.0f)) {
-        out += ", Speed:" + std::to_string(animationFraction_.GetSpeed());
+        out.append(", Speed:").append(std::to_string(animationFraction_.GetSpeed()));
     }
     if (animationFraction_.GetRepeatCount() != 1) {
-        out += ", RepeatCount:" + std::to_string(animationFraction_.GetRepeatCount());
+        out.append(", RepeatCount:").append(std::to_string(animationFraction_.GetRepeatCount()));
     }
     if (animationFraction_.GetAutoReverse()) {
-        out += ", AutoReverse:" + std::to_string(animationFraction_.GetAutoReverse());
+        out.append(", AutoReverse:").append(std::to_string(animationFraction_.GetAutoReverse()));
     }
     if (!animationFraction_.GetDirection()) {
-        out += ", Direction:" + std::to_string(animationFraction_.GetDirection());
+        out.append(", Direction:").append(std::to_string(animationFraction_.GetDirection()));
     }
     if (animationFraction_.GetFillMode() != FillMode::FORWARDS) {
-        out += ", FillMode:" + std::to_string(static_cast<int>(animationFraction_.GetFillMode()));
+        out.append(", FillMode:").append(std::to_string(static_cast<int>(animationFraction_.GetFillMode())));
     }
     if (animationFraction_.GetRepeatCallbackEnable()) {
-        out += ", RepeatCallbackEnable:" + std::to_string(animationFraction_.GetRepeatCallbackEnable());
+        out.append(", RepeatCallbackEnable:").append(std::to_string(animationFraction_.GetRepeatCallbackEnable()));
     }
-    out += ", FrameRateRange_min:" + std::to_string(animationFraction_.GetFrameRateRange().min_);
-    out += ", FrameRateRange_max:" + std::to_string(animationFraction_.GetFrameRateRange().max_);
-    out += ", FrameRateRange_prefered:" + std::to_string(animationFraction_.GetFrameRateRange().preferred_);
-    out += ", FrameRateRange_componentScene:" + animationFraction_.GetFrameRateRange().GetComponentName();
-    out += ", Token:" + std::to_string(token_);
-    out += "]";
+    out.append(", FrameRateRange_min:").append(std::to_string(animationFraction_.GetFrameRateRange().min_));
+    out.append(", FrameRateRange_max:").append(std::to_string(animationFraction_.GetFrameRateRange().max_));
+    out.append(", FrameRateRange_prefered:").append(std::to_string(animationFraction_.GetFrameRateRange().preferred_));
+    out.append(", FrameRateRange_componentScene:").append(animationFraction_.GetFrameRateRange().GetComponentName());
+    out.append(", Token:").append(std::to_string(token_));
+    out.append("]");
 }
 
 void RSRenderAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:Unknown";
+    out.append("Type:Unknown");
 }
 
 AnimationId RSRenderAnimation::GetAnimationId() const
