@@ -4261,19 +4261,6 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 
     RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
     RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
-    dumpString.append("---------------RenderServiceTreeDump-Begin---------------\n");
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode != nullptr) {
-        rootNode->DumpTree(0, dumpString);
-    }
-    const auto& nodeMap = context_->GetNodeMap();
-    nodeMap.TraversalNodes([&dumpString](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr || !node->IsOnTheTree()) {
-            return;
-        }
-        node->DumpTree(0, dumpString, true);
-    });
-    dumpString.append("---------------RenderServiceTreeDump-End---------------\n");
 #else
     dumpString.append("No GPU in this device");
 #endif
