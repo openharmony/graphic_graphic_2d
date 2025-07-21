@@ -3086,7 +3086,7 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation Read result failed");
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }
@@ -3150,7 +3150,7 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode Read result failed");
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }
@@ -3267,7 +3267,7 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTypeface Read result failed");
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }
