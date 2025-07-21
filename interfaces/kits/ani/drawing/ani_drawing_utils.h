@@ -48,9 +48,21 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
+enum class DrawingErrorCode : int32_t {
+    OK = 0,
+    ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
+    ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
+    ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
+    ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+};
+
 constexpr char NATIVE_OBJ[] = "nativeObj";
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
+
+ani_status ThrowBusinessError(ani_env* env, DrawingErrorCode errorCode, const char* message);
+
+ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err);
 
 inline ani_string CreateAniString(ani_env* env, const std::string& stdStr)
 {
