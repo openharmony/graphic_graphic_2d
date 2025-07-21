@@ -250,6 +250,12 @@ check_modifiers_draw_ext_file_args = [
       "//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni"),
 ]
 
+check_subtree_ext_file_args = [
+  "--filename",
+  rebase_path(
+    "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni"),
+]
+
 if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
                 "string") == "True") {
@@ -346,6 +352,17 @@ if (exec_script(check_graphic_ext_file_script,
   graphic_2d_modifiers_draw_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni")
+  }
+}
+
+graphic_2d_subtree_config = {}
+
+if (exec_script(check_graphic_ext_file_script,
+                check_subtree_ext_file_args,
+                "string") == "True") {
+  graphic_2d_subtree_config = {
+    import(
+      "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config/gni")
   }
 }
 

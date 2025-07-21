@@ -59,6 +59,7 @@ public:
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
     virtual void SetDisplayHeadroom(float headroom) {};
+    virtual bool NeedForceSubmit() const { return false; }
 
     enum FilterType {
         NONE = 0,

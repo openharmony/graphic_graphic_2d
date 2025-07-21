@@ -896,8 +896,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
 #ifdef SUBTREE_PARALLEL_ENABLE
-    // Adapt to the subtree feature to ensure the correct thread ID(TID) is used.
-    RSParallelMisc::AdaptSubTreeThreadId(threadId, threadId);
+    // Adapt to the subtree feature to ensure the correct thread ID(TID) is set.
+    RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
 
     bool isHdrOn = false;
@@ -1089,9 +1089,10 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
 #endif
     return ret;
 }
+
 void RSRenderNodeDrawable::ClearOpincState()
 {
-    // Init opincRootTotalCount when the new thread init
+    // init opincRootTotalCount_ when the new thread init
     opincRootTotalCount_ = 0;
     isOpincDropNodeExt_ = true;
 }

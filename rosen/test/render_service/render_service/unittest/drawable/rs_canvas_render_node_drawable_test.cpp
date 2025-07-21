@@ -211,7 +211,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest001, TestSize.Level1)
     ASSERT_TRUE(canvas);
     canvasDrawable->OnDraw(*canvas);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-    canvas->SetQuickDraw(true);
+    canvas->SetQuickGetDrawState(true);
     canvasDrawable->OnDraw(*canvas);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
 }
@@ -219,7 +219,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest001, TestSize.Level1)
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**
  * @tc.name: QuickDrawTest001
- * @tc.desc: Test QuickDraw
+ * @tc.desc: Test QuickGetDrawState
  * @tc.type: FUNC
  * @tc.require: IC8TIV
  */
@@ -230,17 +230,17 @@ HWTEST(RSCanvasRenderNodeDrawableTest, QuickDrawTest001, TestSize.Level1)
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
     auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(
         RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    pCanvas->SetQuickDraw(false);
-    canvasDrawable->QuickDraw(*pCanvas);
+    pCanvas->SetQuickGetDrawState(false);
+    canvasDrawable->QuickGetDrawState(*pCanvas);
 
-    pCanvas->SetQuickDraw(true);
+    pCanvas->SetQuickGetDrawState(true);
     canvasDrawable->nodeId_ = 0;
-    canvasDrawable->QuickDraw(*pCanvas);
+    canvasDrawable->QuickGetDrawState(*pCanvas);
 
     canvasDrawable->nodeId_ = 1;
     canvasDrawable->occlusionCullingEnabled_ = true;
     pCanvas->culledEntireSubtree_.insert(1);
-    canvasDrawable->QuickDraw(*pCanvas);
+    canvasDrawable->QuickGetDrawState(*pCanvas);
 }
 #endif
 }

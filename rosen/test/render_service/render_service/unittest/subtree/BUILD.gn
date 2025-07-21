@@ -20,16 +20,22 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":CompileCheck",
     ":RSParallelExecutorManagerMultiwinTest",
     ":RSParallelExecutorMultiwinTest",
-    ":RSParallelFuncTest",
     ":RSParallelManagerTest",
     ":RSParallelMultiwinPolicyTest",
+    ":RSParallelRBPolicyTest",
   ]
 }
 
+action("CompileCheck") {
+  script = "$graphic_2d_ext_root/subtree/test/unittest/CompileCheck.py"
+  outputs = [ "$target_out_dir/CompileCheckResult.txt" ]
+}
+
 ###############################################################################
-config("drawable_test") {
+config("subtree_test") {
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
@@ -41,12 +47,20 @@ ohos_unittest("RSParallelExecutorManagerMultiwinTest") {
   ]
   deps = [
     ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "c_utils:utils",
-    "hilog:libhilog",
     "ffrt:libffrt",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "memmgr:memmgrclient",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -61,32 +75,47 @@ ohos_unittest("RSParallelExecutorMultiwinTest") {
   ]
   deps = [
     ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "c_utils:utils",
-    "hilog:libhilog",
     "ffrt:libffrt",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "memmgr:memmgrclient",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
 
-ohos_unittest("RSParallelFuncTest") {
+ohos_unittest("RSParallelRBPolicyTest") {
   module_out_path = module_output_path
   sources = [
-    "$graphic_2d_ext_root/subtree/test/unittest/rs_parallel_func_test.cpp",
+    "$graphic_2d_ext_root/subtree/test/unittest/rs_parallel_rb_policy_test.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
   ]
   deps = [
     ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ffrt:libffrt",
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -102,12 +131,20 @@ ohos_unittest("RSParallelManagerTest") {
   ]
   deps = [
     ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "c_utils:utils",
-    "hilog:libhilog",
     "ffrt:libffrt",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "memmgr:memmgrclient",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -122,19 +159,27 @@ ohos_unittest("RSParallelMultiwinPolicyTest") {
   ]
   deps = [
     ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "c_utils:utils",
-    "hilog:libhilog",
     "ffrt:libffrt",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "memmgr:memmgrclient",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
 
-## Build rs_test_common.a
+## Build rs_test_common
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
@@ -180,35 +225,6 @@ ohos_static_library("rs_test_common") {
   defines += gpu_defines
   sources = [ "../pipeline/rs_test_util.cpp" ]
   public_configs = [ ":rs_test_common_public_config" ]
-
-  public_deps = [
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
-    "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-  ]
-
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-
-  external_deps = [ 
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-   ]
-
-  public_external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hitrace:hitrace_meter",
-    "init:libbegetutil",
-    "ipc:ipc_core",
-    "memmgr:memmgrclient",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

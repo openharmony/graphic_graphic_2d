@@ -232,6 +232,11 @@ public:
         return filterRegion_;
     }
 
+    inline bool HasForceSubmit() const
+    {
+        return hasForceSubmit_;
+    }
+
     inline bool IsRepaintBoundary() const
     {
         return isRepaintBoundary_;
@@ -947,7 +952,6 @@ public:
     }
 
     void UpdateVirtualScreenWhiteListInfo();
-
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
@@ -1068,6 +1072,7 @@ protected:
 private:
     // mark cross node in physical extended screen model
     bool isRepaintBoundary_ = false;
+    bool hasForceSubmit_ = false;
     bool isCrossNode_ = false;
     bool isCloneCrossNode_ = false;
     bool isFirstLevelCrossNode_ = false;

@@ -651,8 +651,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
 {
     NodeId id = 21;
     auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::static_pointer_cast<RSRenderNodeDrawableAdapter>(
-        std::make_shared<RSRenderNodeDrawable>(std::move(node)));
+    auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     Drawing::RecordingCanvas::DrawFunc drawFuncCallBack = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         printf("DrawQuickImplTest drawFuncCallBack\n");
     };
@@ -660,12 +659,16 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Rect rect;
     adapter->DrawQuickImpl(canvas, rect);
+
     ASSERT_EQ(adapter->drawCmdList_.size(), 1);
     adapter->drawCmdIndex_.transitionIndex_ = 0;
     adapter->DrawQuickImpl(canvas, rect);
 
     adapter->drawCmdIndex_.envForeGroundColorIndex_ = 0;
     adapter->drawCmdIndex_.bgSaveBoundsIndex_ = 0;
+    adapter->DrawQucikImpl(canvas, rect);
+
+    adapter->drawCmdIndex_.bgRestoreBoundsIndex_ = 0;
     adapter->DrawQuickImpl(canvas, rect);
 
     adapter->drawCmdIndex_.bgSaveBoundsIndex_ = -1;

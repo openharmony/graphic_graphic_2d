@@ -21,6 +21,12 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#include "rs_parallel_misc.h"
+#include "rs_parallel_multiwin_policy.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
@@ -803,6 +809,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateFilterDisplayHeadroomTest, TestSize.Lev
     EXPECT_EQ(filter->shaderFilters_.size(), 1);
 }
 
+#ifdef SUBTREE_PARALLEL_ENABLE
 /**
  * @tc.name: OnDrawTest
  * @tc.desc: Test OnDraw
@@ -815,8 +822,11 @@ HWTEST_F(RSRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     auto pCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
     ASSERT_TRUE(pCanvas != nullptr);
 
+    RSParallelManager::Singleton().state_ = RSParallelManager::FrameType::PARALLEL;
+    RSParallelManager::Singleton().workingPolicy_ = std::make_shared<RSParallelPolicy>();
     drawable->OnDraw(*pCanvas);
-    pCanvas->SetQuickDraw(true);
+    pCanvas->SetQuickGetDrawState(true);
     drawable->OnDraw(*pCanvas);
 }
+#endif
 }

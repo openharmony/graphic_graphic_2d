@@ -352,7 +352,9 @@ void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
     frameNodeTag_ = tag;
+#ifdef SUBTREE_PARALLEL_ENABLE
     MarkRepaintBoundary(tag);
+#endif
 }
 
 int32_t RSNode::GetFrameNodeId()

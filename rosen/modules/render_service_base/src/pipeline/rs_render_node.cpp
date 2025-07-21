@@ -411,6 +411,7 @@ void RSRenderNode::SetHasUnobscuredUEC()
     stagingRenderParams_->SetHasUnobscuredUEC(hasUnobscuredUEC);
 }
 
+#ifdef SUBTREE_PARALLEL_ENABLE
 void RSRenderNode::ClearSubtreeParallelNodes()
 {
     subtreeParallelNodes_.clear();
@@ -419,12 +420,14 @@ void RSRenderNode::ClearSubtreeParallelNodes()
 void RSRenderNode::ResetRepaintBoundaryInfo()
 {
     isAllChildRepaintBoundary_ = true;
+    hasForceSubmit_ = false;
     repaintBoundaryWeight_ = 0;
 }
 
 void RSRenderNode::UpdateRepaintBoundaryInfo(RSRenderNode& node)
 {
     isAllChildRepaintBoundary_ = isAllChildRepaintBoundary_ && node.IsRepaintBoundary();
+    hasForceSubmit_ = hasForceSubmit_ || node.HasForceSubmit() || node.GetRenderProperties().GetNeedForceSubmit();
     repaintBoundaryWeight_ += node.GetRepaintBoundaryWeight() + 1;
 }
 
@@ -453,6 +456,7 @@ std::unordered_set<NodeId>& RSRenderNode::GetSubtreeParallelNodes()
 {
     return subtreeParallelNodes_;
 }
+#endif
 
 void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType)
 {
@@ -1029,9 +1033,11 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (drawableVecStatus_ != 0) {
         out += ", drawableVecStatus: " + std::to_string(drawableVecStatus_);
     }
+#ifdef SUBTREE_PARALLEL_ENABLE
     if (isRepaintBoundary_) {
         out += ", RB: true";
     }
+#endif
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
@@ -5645,7 +5651,9 @@ void RSRenderNode::SubTreeSkipPrepare(
         UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
     }
     if (isDirty && GetChildrenCount() == 0) {
+#ifdef SUBTREE_PARALLEL_ENABLE
         ClearSubtreeParallelNodes();
+#endif
         ResetChildRelevantFlags();
     }
     SetGeoUpdateDelay(accumGeoDirty);

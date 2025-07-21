@@ -111,6 +111,8 @@ public:
 
     void SetDisplayHeadroom(float headroom) override;
 
+    bool NeedForceSubmit() const override;
+
 private:
     struct DrawImageRectAttributes {
         Drawing::Rect src;

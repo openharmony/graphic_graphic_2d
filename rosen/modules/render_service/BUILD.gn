@@ -315,20 +315,9 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable) {
-    sources += [
-      "$graphic_2d_ext_root/subtree/container/rs_parallel_container.cpp",
-      "$graphic_2d_ext_root/subtree/container/rs_parallel_data.cpp",
-      "$graphic_2d_ext_root/subtree/executor/multiwin/rs_parallel_executor_manager_multiwin.cpp",
-      "$graphic_2d_ext_root/subtree/executor/multiwin/rs_parallel_executor_multiwin.cpp",
-      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_executor_manager_rb.cpp",
-      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_executor_rb.cpp",
-      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_task_pool.cpp",
-      "$graphic_2d_ext_root/subtree/policy/rs_parallel_rb_policy.cpp",
-      "$graphic_2d_ext_root/subtree/policy/rs_parallel_multiwin_policy.cpp",
-      "$graphic_2d_ext_root/subtree/policy/rs_parallel_policy.cpp",
-      "$graphic_2d_ext_root/subtree/rs_parallel_manager.cpp",
-    ]
+  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable
+      && defined(graphic_2d_subtree_configs.subtree_root)) {
+    sources += graphic_2d_subtree_configs.librender_service_subtree_sources
   }
 
   if (use_memmgr_plugin || use_memmgr) {
@@ -375,10 +364,8 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
 
-  if (graphic_2d_feature_subtree_parallel_enable) {
-    include_dirs += [ "$graphic_2d_ext_root/subtree" ]
-    include_dirs += [ "$graphic_2d_ext_root/subtree/executor" ]
-    include_dirs += [ "$graphic_2d_ext_root/subtree/policy" ]
+  if (graphic_2d_feature_subtree_parallel_enable && defined(graphic_2d_subtree_configs.subtree_root)) {
+    include_dirs += graphic_2d_subtree_configs.librender_service_subtree_include
   }
 
   deps = [

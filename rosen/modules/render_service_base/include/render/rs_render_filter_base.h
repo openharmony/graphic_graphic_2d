@@ -209,8 +209,10 @@ public:
 
     virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) {};
     virtual void PostProcess(Drawing::Canvas& canvas) {};
-    
+
     virtual void SetDisplayHeadroom(float headroom) {};
+
+    virtual bool NeedForceSubmit() const { return false; }
 
     uint32_t Hash() const
     {

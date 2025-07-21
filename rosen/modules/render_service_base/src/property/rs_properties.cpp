@@ -310,6 +310,13 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
 
 } // namespace
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+static inline bool IsFilterNeedForceSubmit(const std::shared_ptr<RSFilter>& filter)
+{
+    return filter != nullptr && filter->NeedForceSubmit();
+}
+#endif
+
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef ROSEN_ARKUI_X
@@ -5237,6 +5244,13 @@ void RSProperties::UpdateFilter()
                      IsDynamicLightUpValid() || linearGradientBlurPara_ != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
                      needDrawBehindWindow_ || colorFilter_ != nullptr || localMagnificationCap_;
+#ifdef SUBTREE_PARALLEL_ENABLE
+    needForceSubmit_ = IsFilterNeedForceSubmit(filter_) ||
+                       IsFilterNeedForceSubmit(backgroundFilter_) ||
+                       IsFilterNeedForceSubmit(foregroundFilter_) ||
+                       IsFilterNeedForceSubmit(foregroundFilterCache_) ||
+                       GetShadowColotStratergy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+#endif
 }
 
 void RSProperties::UpdateForegroundFilter()

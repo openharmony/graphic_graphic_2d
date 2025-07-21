@@ -17,6 +17,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature_param/performance_feature/rotateoffscreen_param.h"
+#include "params/rs_effect_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -1634,9 +1635,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw004, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     canvas_->SetIsParallelCanvas(true);
     surfaceParams->isHardCursor_ = false;
-    canvas_->SetQuickDraw(true);
+    canvas_->SetQuickGetDrawState(true);
     surfaceDrawable_->OnDraw(*canvas_);
-    canvas_->SetQuickDraw(false);
+    canvas_->SetQuickGetDrawState(false);
     surfaceDrawable_->OnDraw(*canvas_);
     canvas_->canvas_->gpuContext_ = nullptr;
     surfaceDrawable_->OnDraw(*canvas_);
@@ -1681,12 +1682,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion002, TestSi
     Occlusion::Region region1(DEFAULT_RECT);
     surfaceParams->SetVisibleRegion(region1);
     surfaceDrawable_->globalDirtyRegion_ = region1;
-    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
+    surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
     ASSERT_TRUE(result.IsEmpty());
 
     params = nullptr;
     RSUniRenderThread::Instance().Sync(std::move(params));
-    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
+    surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
     ASSERT_TRUE(result.IsEmpty());
 }
 
@@ -1706,8 +1707,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest003, 
 }
 
 /**
- * @tc.name: QuickDraw
- * @tc.desc: Test QuickDraw
+ * @tc.name: QuickGetDrawState
+ * @tc.desc: Test QuickGetDrawState
  * @tc.type: FUNC
  * @tc.require: issueIAEDYI
  */
@@ -1717,25 +1718,25 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, QuickDrawTest, TestSize.Level1)
     ASSERT_NE(canvas_, nullptr);
     Drawing::Region region;
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    canvas_->SetQuickDraw(false);
-    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    canvas_->SetQuickGetDrawState(false);
+    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
 
-    canvas_->SetQuickDraw(true);
-    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    canvas_->SetQuickGetDrawState(true);
+    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
 
     params->windowInfo_.isMainWindowType_ = true;
-    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
     ASSERT_EQ(params->needOffscreen_, false);
 
     params->needOffscreen_ = true;
-    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
 
     RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(false);
-    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
     ASSERT_EQ(canvas_->GetDisableFilterCache(), false);
 
     params->isOcclusionCullingOn_ = true;
-    surfaceDrawable_->QuickDraw(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
 }
 
 /**
@@ -1759,7 +1760,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, UpdateSurfaceDirtyRegionTest, TestSize
     surfaceParams->isSkipDraw_ = true;
     surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
 
-    surfaceDrawable_->renderParams_ = nullptr;
+    surfaceDrawable_->renderParams_ = std::make_unique<RSEffectRenderParams>(DEFAULT_ID);
+    surfaceDrawable_->renderParams_->shouldPaint_ = true;
     surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
 }
 

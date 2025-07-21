@@ -1589,6 +1589,21 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawBlurImageTest003, TestSize.Level1)
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**
+ * @tc.name: SetParallelRender
+ * @tc.desc: Test SetParallelRender
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetParallelRender, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<PaintFilterCanvasBaseTest> paintFilterCanvasBase =
+        std::make_shared<PaintFilterCanvasBaseTest>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+    paintFilterCanvasBase->SetParallelRender(true);
+}
+
+/**
  * @tc.name: DrawBlurImageTest004
  * @tc.desc: DrawBlurImage Test
  * @tc.type:FUNC

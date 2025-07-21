@@ -72,7 +72,10 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
 ## Build RSScreenRenderNodeDrawableTest
 ohos_unittest("RSScreenRenderNodeDrawableTest") {
   module_out_path = module_output_path
-  sources = [ "rs_screen_render_node_drawable_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "rs_screen_render_node_drawable_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -98,6 +101,7 @@ ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ffrt:libffrt",
     "graphic_surface:surface_headers",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -114,6 +118,7 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "ffrt:libffrt",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -168,6 +173,7 @@ ohos_unittest("RSRenderNodeDrawableTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "ffrt:libffrt",
     "samgr:samgr_proxy",
   ]
 }
@@ -271,6 +277,14 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
     "$graphic_2d_root/utils/socketpair/export",
   ]
+
+  if (graphic_2d_feature_subtree_parallel_enable) {
+    include_dirs += [
+      "$graphic_2d_ext_root/subtree",
+      "$graphic_2d_ext_root/subtree/multiwindow",
+      "$graphic_2d_ext_root/subtree/policy",
+    ]
+  }
 
   cflags = [
     "-Wall",

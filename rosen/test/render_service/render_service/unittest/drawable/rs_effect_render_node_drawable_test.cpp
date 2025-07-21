@@ -20,6 +20,12 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h
+#include "rs_parallel_multiwin_policy.h"
+#include "rs_parallel_misc.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
@@ -84,7 +90,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     ASSERT_NE(effectNode, nullptr);
     auto effectDrawable = static_cast<RSEffectRenderNodeDrawable*>(
         RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
-    ASSERT_NE(effectDrawable, nullptr);
+    ASSERT_NE(effectDrawable->renderParams_, nullptr);
 
     auto canvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rsPaintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
@@ -92,9 +98,13 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     // default case, shouldpaint == false
     effectDrawable->OnDraw(*rsPaintFilterCanvas);
 
-    //if should paint
+    // if should paint
     effectDrawable->renderParams_->shouldPaint_ = true;
-    effectDrawable->renderParams_->contentEmpty_ = true;
+    effectDrawable->OnDraw(*rsPaintFilterCanvas);
+
+    RSParallelManager::Singleton().state_ = RSParallelManager::FrameType::PARALLEL;
+    RSParallelManager::Singleton().workingPolicy_ = std::make_shared<RSParallelMultiwinPolicy>();
+    rsPaintFilterCanvas->SetQuickGetDrawState(true);
     effectDrawable->OnDraw(*rsPaintFilterCanvas);
 }
 #endif
@@ -128,25 +138,6 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
  * @tc.require: #ICEF7K
  */
 HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw, TestSize.Level1)
-{
-    ASSERT_NE(effectDrawable_, nullptr);
-    ASSERT_NE(drawable_->renderParams_, nullptr);
-    // default case, shouldpaint == false
-    effectDrawable_->OnDraw(*drawingCanvas_);
-
-    // if should paint
-    drawable_->renderParams_->shouldPaint_ = true;
-    drawable_->renderParams_->contentEmpty_ = false;
-    effectDrawable_->OnDraw(*drawingCanvas_);
-}
-
-/**
- * @tc.name: OnDraw002
- * @tc.desc: Test OnDraw
- * @tc.type: FUNC
- * @tc.require: #ICEF7K
- */
-HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest002, TestSize.Level1)
 {
     ASSERT_NE(effectDrawable_, nullptr);
     ASSERT_NE(drawable_->renderParams_, nullptr);

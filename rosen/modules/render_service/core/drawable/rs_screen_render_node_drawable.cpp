@@ -894,8 +894,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         {
             RSSkpCaptureDfx capture(curCanvas_);
             Drawing::AutoCanvasRestore acr(*curCanvas_, true);
+
 #ifdef SUBTREE_PARALLEL_ENABLE
-            RSParallelManager::Singleton().Reset(curCanvas_, params, needOffscreen, vsyncRefreshRate);
+            RSParallelManager::Singleton().Reset(curCanvas_, params, vsyncRefreshRate);
 #endif
             if (uniParam->IsOpDropped()) {
                 if (uniParam->IsDirtyAlignEnabled()) {
@@ -908,7 +909,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             } else {
                 curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             }
-            // just used in subTree, used for check whether a new surface need to be created in the subtree thread.
+            // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.
             curCanvas_->SetWeakSurface(drSurface);
 
             curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
@@ -963,7 +964,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGI("Drawing Performance Flush start %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
     }
 #ifdef SUBTREE_PARALLEL_ENABLE
-    // wait for all sub threads process complete
+    // Wait for all sub threads process completely.
     RSParallelManager::Singleton().WaitUntilSubTreeFinish(curCanvas_);
 #endif
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable Flush");
