@@ -358,6 +358,52 @@ HWTEST_F(RSScreenRenderNodeTest, SetFingerprintTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FixVirtualBuffer10BitTest
+ * @tc.desc: test results of SetFixVirtualBuffer10Bit, GetFixVirtualBuffer10Bit
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, FixVirtualBuffer10BitTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->SetFixVirtualBuffer10Bit(false);
+    node->SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(node->GetFixVirtualBuffer10Bit(), false);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    node->SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(node->GetFixVirtualBuffer10Bit(), true);
+    node->stagingRenderParams_->SetNeedSync(false);
+    node->SetFixVirtualBuffer10Bit(false);
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(node->GetFixVirtualBuffer10Bit(), true);
+}
+
+/**
+ * @tc.name: ExistHWCNodeTest
+ * @tc.desc: test results of SetExistHWCNode, GetExistHWCNode
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, ExistHWCNodeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->SetExistHWCNode(false);
+    node->SetExistHWCNode(true);
+    EXPECT_EQ(node->GetExistHWCNode(), false);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    node->SetExistHWCNode(true);
+    EXPECT_EQ(node->GetExistHWCNode(), true);
+    node->stagingRenderParams_->SetNeedSync(false);
+    node->SetExistHWCNode(false);
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetExistHWCNode(true);
+    EXPECT_EQ(node->GetExistHWCNode(), true);
+}
+
+/**
  * @tc.name: SetHDRPresentTest
  * @tc.desc: test results of SetHDRPresent
  * @tc.type:FUNC

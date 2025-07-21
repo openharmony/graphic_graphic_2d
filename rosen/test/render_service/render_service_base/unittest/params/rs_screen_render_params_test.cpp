@@ -59,6 +59,40 @@ HWTEST_F(RSScreenRenderParamsTest, OnSync001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FixVirtualBuffer10Bit
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, FixVirtualBuffer10BitTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    params.SetFixVirtualBuffer10Bit(params.GetFixVirtualBuffer10Bit());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: ExistHWCNode
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, ExistHWCNodeTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    params.SetExistHWCNode(params.GetExistHWCNode());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetExistHWCNode(true);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
  * @tc.name: SetHDRPresent
  * @tc.desc:
  * @tc.type:FUNC

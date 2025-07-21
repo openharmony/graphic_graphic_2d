@@ -109,6 +109,12 @@ public:
     void SetFingerprint(bool hasFingerprint) override;
     bool GetFingerprint() override;
 
+    void SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit);
+    bool GetFixVirtualBuffer10Bit() const;
+
+    void SetExistHWCNode(bool isExistHWCNode);
+    bool GetExistHWCNode() const;
+
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
@@ -213,6 +219,8 @@ private:
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needForceUpdateHwcNodes_ = false;
     bool hasFingerprint_ = false;
+    bool isFixVirtualBuffer10Bit_ = false;
+    bool existHWCNode_ = false;
     bool hasHdrPresent_ = false;
     bool isHDRStatusChanged_ = false;
     // Only used in virtual expand screen to record accumulate frame status

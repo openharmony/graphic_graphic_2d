@@ -229,6 +229,8 @@ ohos_unittest("RSHdrUtilTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
