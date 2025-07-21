@@ -156,6 +156,7 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
     } else {
         chosenRect = specifiedAreaRect;
     }
+    captureHandle->IsStartEndSameNode();
     auto taskName = UICAPTURE_TASK_PREFIX + std::to_string(id);
     std::function<void()> captureTask = [captureHandle, id, captureConfig, callback, chosenRect]() -> void {
         RSSystemProperties::SetForceHpsBlurDisabled(true);
@@ -190,8 +191,24 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
         return false;
     }
     Drawing::RectF targetRect = specifiedAreaRect;
-    if (HasEndNodeRect()) {
-        targetRect = Drawing::Rect(0.f, 0.f, endRect_.width_, endRect_.height_);
+    if (HasEndNodeRect() && !isStartEndNodeSame_) {
+        auto endNode = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(endNodeId_);
+        if (endNode == nullptr) {
+            RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid endNodeId:[%{public}" PRIu64 "]", endNodeId_);
+            return false;
+        }
+        if (auto surfaceNode = endNode->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+            endNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+                DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        } else if (auto canvasNode = endNode->ReinterpretCastTo<RSCanvasRenderNode>()) {
+            endNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+                DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode));
+        } else {
+            RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid RSRenderEndNode");
+            return false;
+        }
+        const auto& endNodeParams = endNodeDrawable_->GetRenderParams();
+        targetRect = endNodeParams->GetBounds();
     }
 #ifdef RS_ENABLE_VK
     float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
@@ -288,17 +305,20 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     int32_t rectTop = specifiedAreaRect.GetTop();
     Drawing::scalar xOffset = static_cast<Drawing::scalar>(-1 * rectLeft);
     Drawing::scalar yOffset = static_cast<Drawing::scalar>(-1 * rectTop);
-    if (HasEndNodeRect()) {
-        xOffset = captureConfig_.scaleX * (startRect_.left_ - endRect_.left_);
-        yOffset = captureConfig_.scaleY * (startRect_.top_ - endRect_.top_);
-    }
     relativeMatrix.Set(Drawing::Matrix::Index::TRANS_X, xOffset);
     relativeMatrix.Set(Drawing::Matrix::Index::TRANS_Y, yOffset);
     RS_LOGD("RSUiCaptureTaskParallel::Run: specifiedAreaRect offsetX is [%{public}f], offsetY is [%{public}f]",
         xOffset, yOffset);
     Drawing::Matrix invertMatrix;
-    if (nodeParams->GetMatrix().Invert(invertMatrix)) {
-        relativeMatrix.PreConcat(invertMatrix);
+    if (HasEndNodeRect()) {
+        if (endMatrix_.Invert(invertMatrix)) {
+            relativeMatrix.PreConcat(invertMatrix);
+        }
+        relativeMatrix.PreConcat(startMatrix_);
+    } else {
+        if (nodeParams->GetMatrix().Invert(invertMatrix)) {
+            relativeMatrix.PreConcat(invertMatrix);
+        }
     }
     canvas.SetMatrix(relativeMatrix);
 
@@ -306,7 +326,37 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
     RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
         captureConfig_.uiCaptureInRangeParam.endNodeId));
-    nodeDrawable_->OnCapture(canvas);
+    if (HasEndNodeRect() && !isStartEndNodeSame_) {
+        auto offScreenWidth = nodeParams->GetBounds().GetWidth();
+        auto offScreenHeight = nodeParams->GetBounds().GetHeight();
+        auto originSurface = canvas.GetSurface();
+        if (originSurface == nullptr) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: originSurface is nullptr");
+            return false;
+        }
+        auto offScreenSurface = originSurface->MakeSurface(offScreenWidth, offScreenHeight);
+        if (offScreenSurface == nullptr) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: offScreenSurface is nullptr");
+            return false;
+        }
+        RSPaintFilterCanvas offScreenCanvas(offScreenSurface.get());
+        offScreenCanvas.SetDisableFilterCache(true);
+        offScreenCanvas.SetUICapture(true);
+        offScreenCanvas.CopyHDRConfiguration(canvas);
+        offScreenCanvas.CopyConfigurationToOffscreenCanvas(canvas);
+        offScreenCanvas.ResetMatrix();
+        nodeDrawable_->OnCapture(offScreenCanvas);
+        auto image = offScreenSurface->GetImageSnapshot();
+        if (!image) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: image is nullptr");
+            return false;
+        }
+        RS_LOGD("RSUiCaptureTaskParallel::Run: offScreenSurface width: %{public}d, height: %{public}d",
+            offScreenSurface->Width(), offScreenSurface->Height());
+        canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    } else {
+        nodeDrawable_->OnCapture(canvas);
+    }
     RSUniRenderThread::ResetCaptureParam();
 #ifdef RS_PROFILER_ENABLED
     // finish capturing if started
@@ -555,6 +605,7 @@ bool RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect()
     RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect startRect %{public}s", startRect_.ToString().c_str());
 
     NodeId endNodeId = captureConfig_.uiCaptureInRangeParam.endNodeId;
+    endNodeId_ = endNodeId;
     if (!HasEndNodeRect()) {
         RS_LOGE("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect end node invalid %{public}" PRIu64, endNodeId);
         return false;
@@ -574,7 +625,17 @@ bool RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect()
 
     endRect_ = endNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endRect %{public}s", endRect_.ToString().c_str());
+    startMatrix_ = startNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+    endMatrix_ = endNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+
     return true;
+}
+
+bool RSUiCaptureTaskParallel::IsStartEndSameNode()
+{
+    isStartEndNodeSame_ = (nodeId_ == captureConfig_.uiCaptureInRangeParam.endNodeId);
+    RS_LOGD("RSUiCaptureTaskParallel::IsStartEndSameNode isStartEndNodeSame_: %{public}d", isStartEndNodeSame_);
+    return isStartEndNodeSame_;
 }
 } // namespace Rosen
 } // namespace OHOS

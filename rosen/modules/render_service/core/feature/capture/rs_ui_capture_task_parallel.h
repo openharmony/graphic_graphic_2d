@@ -79,18 +79,24 @@ public:
 
 private:
     static bool IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect);
+    bool IsStartEndSameNode();
     bool HasEndNodeRect() const;
     bool UpdateStartAndEndNodeRect();
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap) const;
     std::unique_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
     std::unique_ptr<Media::PixelMap> CreatePixelMapByRect(const Drawing::Rect& specifiedAreaRect) const;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawable> endNodeDrawable_ = nullptr;
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     NodeId nodeId_ = INVALID_NODEID;
+    NodeId endNodeId_ = INVALID_NODEID;
+    Drawing::Matrix startMatrix_;
+    Drawing::Matrix endMatrix_;
     RSSurfaceCaptureConfig captureConfig_ = {};
     static inline std::atomic<int32_t> captureCount_ = 0;
     RectI startRect_ = {};
     RectI endRect_ = {};
+    bool isStartEndNodeSame_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
