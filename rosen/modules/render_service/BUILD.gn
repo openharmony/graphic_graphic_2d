@@ -140,6 +140,7 @@ ohos_shared_library("librender_service") {
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_buffer.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_info.cpp",
+    "core/feature/chipset_vsync/rs_chipset_vsync.cpp",
     "core/pipeline/hardware_thread/rs_realtime_refresh_rate_manager.cpp",
     "core/pipeline/hwc/rs_uni_hwc_visitor.cpp",
     "core/pipeline/main_thread/rs_main_thread.cpp",
@@ -394,8 +395,7 @@ ohos_shared_library("librender_service") {
 
   if (graphic_2d_feature_enable_chipset_vsync) {
     defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
-    deps += [ "$graphic_2d_ext_root/chipset_vsync:libchipset_vsync" ]
-    include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
+    include_dirs += [ "core/feature/chipset_vsync/include" ]
   }
 
   if (graphic_2d_feature_overlay_display_enable) {

@@ -147,7 +147,7 @@
 #endif
 
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
-#include "chipset_vsync_impl.h"
+#include "rs_chipset_vsync.h"
 #endif
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
@@ -673,6 +673,9 @@ void RSMainThread::Init()
 #endif // RS_ENABLE_GL
     RS_LOGI("OpenInnovationSo");
     RSInnovation::OpenInnovationSo();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    RsChipsetVsync::Instance().LoadLibrary();
+#endif
 #if defined(RS_ENABLE_UNI_RENDER)
     RS_LOGI("InitRenderContext");
     /* move to render thread ? */
@@ -3461,7 +3464,7 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
 void RSMainThread::ConnectChipsetVsyncSer()
 {
-    if (initVsyncServiceFlag_ && (OHOS::Camera::ChipsetVsyncImpl::Instance().InitChipsetVsyncImpl() == -1)) {
+    if (initVsyncServiceFlag_ && (RsChipsetVsync::Instance().InitChipsetVsync() == -1)) {
         initVsyncServiceFlag_ = true;
     } else {
         initVsyncServiceFlag_ = false;
@@ -3482,7 +3485,7 @@ void RSMainThread::SetVsyncInfo(uint64_t timestamp)
         allowFramerateChange = context_->GetAnimatingNodeList().empty() &&
             context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     }
-    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
+    RsChipsetVsync::Instance().SetVsync(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
     RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld, "
         "period = %{public}lld, allowFramerateChange = %{public}d",
         static_cast<long long>(timestamp), static_cast<long long>(curTime_),
