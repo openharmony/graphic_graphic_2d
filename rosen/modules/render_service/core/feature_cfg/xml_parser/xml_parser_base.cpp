@@ -35,8 +35,7 @@ void XMLParserBase::Destroy()
     }
 }
 
-1
-int32_t XMLParserBase::LoadSysConfiguration(std::string& fileDir)
+int32_t XMLParserBase::LoadSysConfiguration(const std::string& fileDir)
 {
     for (const std::string& configPath : sysPaths_) {
         std::string graphicFilePath = configPath + fileDir;
@@ -53,7 +52,7 @@ int32_t XMLParserBase::LoadSysConfiguration(std::string& fileDir)
     return PARSE_EXEC_SUCCESS;
 }
 
-void XMLParserBase::LoadProdConfiguration(std::string& fileDir)
+void XMLParserBase::LoadProdConfiguration(const std::string& fileDir)
 {
     std::string graphicFilePath = prodPath_ + fileDir;
     xmlProdDocument_ = xmlReadFile(graphicFilePath.c_str(), nullptr, 0);
@@ -62,7 +61,7 @@ void XMLParserBase::LoadProdConfiguration(std::string& fileDir)
     }
 }
 
-int32_t XMLParserBase::LoadGraphicConfiguration(std::string& fileDir)
+int32_t XMLParserBase::LoadGraphicConfiguration(const std::string& fileDir)
 {
     RS_LOGI("XMLParserBase opening xml file");
     // System base config file read
