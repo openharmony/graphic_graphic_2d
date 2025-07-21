@@ -630,7 +630,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (!curScreenDirtyManager_) {
         return;
     }
-    if (curScreenNode_ == nullptr) {
+    if (curScreenNode_ == nullptr || screenManager_ == nullptr) {
         return;
     }
     bool ret = CheckScreenPowerChange() ||
@@ -643,7 +643,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfOverdrawSwitch() ||
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged() ||
-        curScreenNode_->HasMirroredScreenChanged();
+        curScreenNode_->HasMirroredScreenChanged() ||
+        screenManager_->CheckPSurfaceChanged(curScreenNode_->GetScreenId());
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // if overlay display status changed, ......

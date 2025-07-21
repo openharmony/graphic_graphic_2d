@@ -183,6 +183,8 @@ public:
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
     virtual int32_t GetVirtualSecLayerOption() const = 0;
+    virtual bool GetPSurfaceChange() const = 0;
+    virtual void SetPSurfaceChange(bool pSurfaceChange) = 0;
 };
 
 namespace impl {
@@ -327,6 +329,8 @@ public:
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
     int32_t GetVirtualSecLayerOption() const override;
+    bool GetPSurfaceChange() const override;
+    void SetPSurfaceChange(bool pSurfaceChange) override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -443,6 +447,8 @@ private:
     std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
     std::atomic<bool> hasLogBackLightAfterPowerStatusChanged_ = false;
+
+    std::atomic<bool> pSurfaceChange_ = false; // just for dirty region to use
 };
 } // namespace impl
 } // namespace Rosen

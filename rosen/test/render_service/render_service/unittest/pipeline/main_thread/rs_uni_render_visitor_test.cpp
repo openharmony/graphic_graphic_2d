@@ -5145,6 +5145,31 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateTopLayersDirtyStatusTest, TestSize.Level2
 }
 
 /*
+ * @tc.name: ResetDisplayDirtyRegion
+ * @tc.desc: Test function ResetDisplayDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICMB9P
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetDisplayDirtyRegion, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
+    ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
+    rsUniRenderVisitor->ResetDisplayDirtyRegion();
+    ASSERT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->dirtyRegion_.left_, 0);
+    rsUniRenderVisitor->screenManager_ = nullptr;
+    rsUniRenderVisitor->ResetDisplayDirtyRegion();
+    ASSERT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->dirtyRegion_.left_, 0);
+    rsUniRenderVisitor->curScreenNode_ = nullptr;
+    rsUniRenderVisitor->ResetDisplayDirtyRegion();
+    ASSERT_EQ(rsUniRenderVisitor->curScreenDirtyManager_->dirtyRegion_.left_, 0);
+}
+
+/*
  * @tc.name: HandleTunnelLayerId002
  * @tc.desc: Test HandleTunnelLayerId002
  * @tc.type: FUNC
