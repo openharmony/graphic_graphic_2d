@@ -17,6 +17,7 @@
 
 #include <unordered_set>
 
+#include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
@@ -25,7 +26,6 @@
 #include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
-#include "ui_effect/filter/include/filter_bezier_warp_para.h"
 
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
@@ -105,15 +105,11 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     }
     auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
     auto edgeLightFilterPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
-    // note: the order of values has to be same with the order of ADD_PROPERTY_ATG in DECLARE_TILTER(/SHADER/MASK)
-    auto values = std::make_tuple(
-        edgeLightFilterPara->GetColor(),
-        edgeLightFilterPara->GetAlpha(),
-        RSNGMaskBase::Create(edgeLightFilterPara->GetMask()),
-        edgeLightFilterPara->GetBloom(),
-        edgeLightFilterPara->GetUseRawColor()
-    );
-    edgeLightFilter->SetterAll(values);
+    edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor());
+    edgeLightFilter->Setter<EdgeLightAlphaTag>(edgeLightFilterPara->GetAlpha());
+    edgeLightFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(edgeLightFilterPara->GetMask()));
+    edgeLightFilter->Setter<EdgeLightBloomTag>(edgeLightFilterPara->GetBloom());
+    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(edgeLightFilterPara->GetUseRawColor());
     return edgeLightFilter;
 }
 
@@ -200,24 +196,10 @@ std::shared_ptr<RSNGFilterBase> ConvertBezierWarpFilterPara(std::shared_ptr<Filt
     }
     auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
     auto bezierWarpFilterPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
-    auto bezierCtrlPoints = bezierWarpFilterPara->GetBezierControlPoints();
-    std::array<RSNGEffectType, BEZIER_WARP_POINT_NUM> bezierCtrlPointsNGType = {
-        RSNGEffectType::BezierWarpControlPoint0Tag,
-        RSNGEffectType::BezierWarpControlPoint1Tag,
-        RSNGEffectType::BezierWarpControlPoint2Tag,
-        RSNGEffectType::BezierWarpControlPoint3Tag,
-        RSNGEffectType::BezierWarpControlPoint4Tag,
-        RSNGEffectType::BezierWarpControlPoint5Tag,
-        RSNGEffectType::BezierWarpControlPoint6Tag,
-        RSNGEffectType::BezierWarpControlPoint7Tag,
-        RSNGEffectType::BezierWarpControlPoint8Tag,
-        RSNGEffectType::BezierWarpControlPoint9Tag,
-        RSNGEffectType::BezierWarpControlPoint10Tag,
-        RSNGEffectType::BezierWarpControlPoint11Tag
-    };
-    for (size_t i = 0; i < BEZIER_WARP_POINT_NUM; ++i) {
-        bezierWarpFilter->Setter<bezierCtrlPointsNGType[i]>(bezierCtrlPoints[i]);
-    }
+    std::array<Vector2f, BEZIER_WARP_POINT_NUM> bezierCtrlPoints = bezierWarpFilterPara->GetBezierControlPoints();
+    // note: the order of values has to be same with the order of ADD_PROPERTY_ATG in DECLARE_TILTER
+    auto values = std::apply([](auto... args) { return std::tie(args...); }, bezierCtrlPoints);
+    bezierWarpFilter->SetterAll(values);
     return bezierWarpFilter;
 }
 }
