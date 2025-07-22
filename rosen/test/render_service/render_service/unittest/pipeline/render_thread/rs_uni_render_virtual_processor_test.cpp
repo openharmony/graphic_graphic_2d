@@ -305,20 +305,19 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurface, TestSize.Level2)
 
 #ifdef RS_ENABLE_VK
 /**
- * @tc.name: MergeFenceForHardwareEnabledDrawables
+ * @tc.name: MergeFenceForHardwareEnabledDrawablesTest
  * @tc.desc: Test MergeFenceForHardwareEnabledDrawables
  * @tc.type: FUNC
  * @tc.require: issueICNZ6M
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawables, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawablesTest, TestSize.Level2)
 {
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
     virtualProcessor->MergeFenceForHardwareEnabledDrawables();
-    std::unique_ptr<RSRenderThreadParams> newThreadParams(new RSRenderThreadParams());
-    RSUniRenderThread::Instance().Sync(std::move(newThreadParams));
+    std::unique_ptr<RSRenderThreadParams> newUniParam(new RSRenderThreadParams());
+    RSUniRenderThread::Instance().Sync(std::move(newUniParam));
     virtualProcessor->MergeFenceForHardwareEnabledDrawables();
 
     auto csurf = IConsumerSurface::Create();
@@ -326,7 +325,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawables,
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface1 = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     auto tmpSurface = std::make_shared<Drawing::Surface>();
-    auto surfaceFrame = std::make_unique<RSSurfaceFrame>(tmpSurface, 100, 100, 10);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, 100, 100, 10);
     virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, std::move(surfaceFrame));
     ASSERT_NE(virtualProcessor->renderFrame_, nullptr);
     ASSERT_NE(virtualProcessor->renderFrame_->surfaceFrame_, nullptr);
@@ -336,6 +335,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawables,
     virtualProcessor->renderFrame_->acquireFence_ = nullptr;
     virtualProcessor->MergeFenceForHardwareEnabledDrawables();
 
+    int fenceFd = open("/data/local/tmpfile", O_RDONLY | O_CREAT);
     virtualProcessor->renderFrame_->acquireFence_ = sptr<SyncFence>(new SyncFence(100));
     ASSERT_TRUE(virtualProcessor->renderFrame_->acquireFence_->IsValid());
     virtualProcessor->MergeFenceForHardwareEnabledDrawables();
@@ -344,15 +344,15 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawables,
     NodeId displayNodeId = 1000;
     NodeId surfaceNodeId = 200;
     auto surfaceNode0 = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
-    auto drawable0 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode0);
-    ASSERT_EQ(drawable0->renderFrame_, nullptr);
+    auto drawable0 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(surfaceNode0));
+    ASSERT_EQ(drawable0->renderParams_, nullptr);
 
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
-    auto drawable1 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode1);
+    auto drawable1 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(surfaceNode1));
     drawable1->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNodeId);
 
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
-    auto drawable2 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode2);
+    auto drawable2 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(surfaceNode2));
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     ASSERT_NE(buffer, nullptr);
     Rect damageRect;
@@ -368,6 +368,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawables,
 
     newUniParam = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(newUniParam));
+    close(fenceFd);
 }
 #endif // RS_ENABLE_VK
 
