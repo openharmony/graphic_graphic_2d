@@ -424,6 +424,10 @@ void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
         RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderThreadParams null!", __func__);
         return;
     }
+    if (renderFrame_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderFrame_ null!", __func__);
+        return;
+    }
     auto acquireFence = renderFrame_->GetAcquireFence();
     if (!acquireFence || !acquireFence->IsValid()) {
         RS_LOGE("RSUniRenderVirtualProcessor::%{public}s acquireFence not valid!", __func__);
