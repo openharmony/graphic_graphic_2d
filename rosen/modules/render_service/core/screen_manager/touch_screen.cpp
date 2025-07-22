@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr std::string_view TOUCHSCREEN_WRAPPER_PATH = "lithp_extra_innerapi.z.so";
+constexpr std::string_view TOUCHSCREEN_WRAPPER_PATH = "libthp_extra_innerapi.z.so";
 
 template<typename Handle>
 void GetHandleBySymbol(void* dlHandle, Handle& handle, const char* symbol)
