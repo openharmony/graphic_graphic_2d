@@ -1467,15 +1467,6 @@ namespace text {
     value: number;
   }
 
-  /**
-   * Obtain the corresponding font full names array based on the font type.
-   * @param { SystemFontType } fontType - System font type.
-   * @returns { Promise<Array<string>> } An array of font full names.
-   * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
-   * <br>2. Incorrect parameter types; 3. Parameter verification failed.
-   * @syscap SystemCapability.Graphics.Drawing
-   * @since 14
-   */
   native function getSystemFontFullNamesByTypeSync(fontType: SystemFontType): Array<string>;
 
   export async function getSystemFontFullNamesByType(fontType: SystemFontType): Promise<Array<string>> {
@@ -1492,17 +1483,6 @@ namespace text {
     });
   }
 
-  /**
-   * Get font details according to the font full name and the font type, supporting generic fonts, stylish fonts, and
-   * installed fonts.
-   * @param { string } fullName - Font full name.
-   * @param { SystemFontType } fontType - System font type.
-   * @returns { Promise<FontDescriptor> } Returns the font descriptor.
-   * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
-   * <br>2. Incorrect parameter types.
-   * @syscap SystemCapability.Graphics.Drawing
-   * @since 14
-   */
   native function getFontDescriptorByFullNameSync(fullName: string, fontType: SystemFontType): FontDescriptor;
 
   export async function getFontDescriptorByFullName(fullName: string, fontType: SystemFontType): Promise<FontDescriptor> {
@@ -1519,17 +1499,6 @@ namespace text {
     });
   }
 
-  /**
-   * Obtain all system font descriptive symbols that match the specified font descriptor.
-   * @param { FontDescriptor } desc - Custom font descriptor, where the 'path' fields are not
-   * considered as valid matching values. If all fields are default values, get all font descriptors.
-   * @returns { Promise<Array<FontDescriptor>> } List of font descriptors, and an empty array will be returned
-   * if the matching fails.
-   * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
-   * <br>2. Incorrect parameter types.
-   * @syscap SystemCapability.Graphics.Drawing
-   * @since 18
-   */
   native function matchFontDescriptorsSync(desc: FontDescriptor): Array<FontDescriptor>;
 
   export async function matchFontDescriptors(desc: FontDescriptor): Promise<Array<FontDescriptor>> {
@@ -1546,134 +1515,24 @@ namespace text {
     });
   }
 
-  /**
-   * An enumeration of system font types.
-   * @enum { number }
-   * @syscap SystemCapability.Graphics.Drawing
-   * @since 14
-   */
   export enum SystemFontType {
-    /**
-     * All font types.
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     ALL = 1 << 0,
-
-    /**
-     * System generic font type.
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     GENERIC = 1 << 1,
-
-    /**
-     * Stylish font type.
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     STYLISH = 1 << 2,
-
-    /**
-     * Installed font types.
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     INSTALLED = 1 << 3,
-
-    /**
-     * Customized font types.
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
-     */
     CUSTOMIZED = 1 << 4,
   }
 
-  /**
-   * Font descriptor
-   * @typedef FontDescriptor
-   * @syscap SystemCapability.Graphics.Drawing
-   * @since 14
-   */
   export interface FontDescriptor {
-    /**
-     * Font file path
-     * @type { ?string }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     path?: string;
-
-    /**
-     * Font postScript name
-     * @type { ?string }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     postScriptName?: string;
-
-    /**
-     * Full font name
-     * @type { ?string }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     fullName?: string;
-
-    /**
-     * Font family name
-     * @type { ?string }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     fontFamily?: string;
-
-    /**
-     * Font subfamily name
-     * @type { ?string }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     fontSubfamily?: string;
-
-    /**
-     * Font weight
-     * @type { ?FontWeight }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     weight?: FontWeight;
-
-    /**
-     * Font width
-     * @type { ?number }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     width?: number;
-
-    /**
-     * Font slant, non-0 means italic.
-     * @type { ?number }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     italic?: number;
-
-    /**
-     * Whether the font is monospaced
-     * @type { ?boolean }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     monoSpace?: boolean;
-
-    /**
-     * Whether to support symbols
-     * @type { ?boolean }
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 14
-     */
     symbolic?: boolean;
   }
 
