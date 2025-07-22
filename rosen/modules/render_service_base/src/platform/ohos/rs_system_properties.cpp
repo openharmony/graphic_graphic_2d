@@ -865,6 +865,12 @@ bool RSSystemProperties::GetSubtreeLogEnabled()
     return subtreeLogEnabled;
 }
 
+bool RSSystemProperties::GetSubtreeDeviceControl()
+{
+    static const bool subtreeDeviceControl = std::atoi((system::GetParameter(
+        "persist.sys.graphic.subtreeDeviceControl", "0")).c_str()) != 0;
+    return subtreeDeviceControl;
+}
 
 bool RSSystemProperties::GetUIFirstEnabled()
 {

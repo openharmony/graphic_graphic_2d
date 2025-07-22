@@ -275,6 +275,7 @@ public:
     static bool GetWideColorSpaceEnabled();
     static bool GetSubtreeParallelEnable();
     static bool GetSubtreeLogEnabled();
+    static bool GetSubtreeDeviceControl();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
