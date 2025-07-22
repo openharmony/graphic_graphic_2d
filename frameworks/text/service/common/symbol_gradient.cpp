@@ -234,8 +234,9 @@ void SymbolLineGradient::PointsFromAngle(float angle, const Drawing::Rect& bound
 
 
 SymbolRadialGradient::SymbolRadialGradient(const Drawing::Point& centerPtRatio, float radiusRatio)
-    : centerPtRatio_(centerPtRatio), radiusRatio_(radiusRatio)
+    : centerPtRatio_(centerPtRatio)
 {
+    radiusRatio_ = std::max(radiusRatio, 0.0f);
     gradientType_ = GradientType::RADIAL_GRADIENT;
 }
 
@@ -246,13 +247,13 @@ void SymbolRadialGradient::SetCenterPoint(const Drawing::Point& centerPtRatio)
 
 void SymbolRadialGradient::SetRadiusRatio(float radiusRatio)
 {
-    radiusRatio_ = radiusRatio;
+    radiusRatio_ = std::max(radiusRatio, 0.0f);
     isRadiusRatio_ = true;
 }
 
 void SymbolRadialGradient::SetRadius(float radius)
 {
-    radius_ = radius;
+    radius_ = std::max(radius, 0.0f);
     isRadiusRatio_ = false;
 }
 
