@@ -488,6 +488,11 @@ HWTEST_F(RSNodeCommandTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
     bool needUseCmdlistDrawRegion = false;
     RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
+
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    context.nodeMap.renderNodeMap_[ExtractPid(nodeId)][nodeId] = node;
+    RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
+    EXPECT_FALSE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
 }
 
 /**

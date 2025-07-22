@@ -1615,13 +1615,23 @@ HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion001, TestSize.Level1)
 {
-    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     Font font;
-    auto textBlob = TextBlob::MakeFromString("12", font, TextEncoding::UTF8);
     Paint paint;
-    DrawTextBlobOpItem opItem { textBlob.get(), 10, 10, paint };
-    ASSERT_TRUE(textBlob->Bounds() != nullptr);
-    ASSERT_TRUE(!(opItem.GetOpItemCmdlistDrawRegion().IsEmpty()));
+    auto textBlob1 = TextBlob::MakeFromString("12", font, TextEncoding::UTF8);
+    DrawTextBlobOpItem opItem1 { textBlob1.get(), 10, 10, paint };
+    ASSERT_TRUE(textBlob1->Bounds() != nullptr);
+    ASSERT_TRUE(!(opItem1.GetOpItemCmdlistDrawRegion().IsEmpty()));
+
+    opItem1.textBlob_->textBlobImpl_ = nullptr;
+    ASSERT_TRUE(opItem1.GetOpItemCmdlistDrawRegion().IsEmpty());
+
+    opItem1.textBlob_ = nullptr;
+    ASSERT_TRUE(opItem1.GetOpItemCmdlistDrawRegion().IsEmpty());
+
+    auto textBlob2 = TextBlob::MakeFromString("12", font, TextEncoding::UTF8);
+    DrawTextBlobOpItem opItem2 { textBlob2.get(), 0, 0, paint };
+    ASSERT_TRUE(textBlob2->Bounds() != nullptr);
+    ASSERT_FALSE(opItem2.GetOpItemCmdlistDrawRegion().IsEmpty());
 }
 
 /**
@@ -1632,13 +1642,18 @@ HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion001, TestSize.Level1)
  */
 HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion002, TestSize.Level1)
 {
-    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    Rect rect;
-    PaintHandle paintHandle;
-    DrawRectOpItem::ConstructorHandle handle { rect, paintHandle };
-    ASSERT_TRUE(drawCmdList != nullptr);
-    DrawRectOpItem opItem { *drawCmdList, &handle };
-    ASSERT_TRUE((opItem.GetOpItemCmdlistDrawRegion().IsEmpty()));
+    Rect rect1 { 0, 0, 0, 0 };
+    ASSERT_TRUE(rect1.IsEmpty());
+    Rect rect2 { 0, 0, 10, 10 };
+    ASSERT_FALSE(rect2.IsEmpty());
+    Paint paint;
+    DrawRectOpItem opItem1(rect1, paint);
+    opItem1.rect_ = rect1;
+    DrawRectOpItem opItem2(rect2, paint);
+    opItem2.rect_ = rect2;
+
+    ASSERT_TRUE(opItem1.GetOpItemCmdlistDrawRegion().IsEmpty());
+    ASSERT_FALSE(opItem2.GetOpItemCmdlistDrawRegion().IsEmpty());
 }
 
 /**
@@ -1650,9 +1665,19 @@ HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion002, TestSize.Level1)
 HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion003, TestSize.Level1)
 {
     Path path;
+    path.Offset(1.0f, 1.0f);
     Paint paint;
     DrawPathOpItem opItem{path, paint};
-    ASSERT_TRUE((opItem.GetOpItemCmdlistDrawRegion().IsEmpty()));
+    opItem.path_ = nullptr;
+    ASSERT_TRUE(opItem.GetOpItemCmdlistDrawRegion().IsEmpty());
+
+    opItem.path_ = std::make_shared<Path>();
+    ASSERT_NE(opItem.path_, nullptr);
+    ASSERT_TRUE(opItem.GetOpItemCmdlistDrawRegion().IsEmpty());
+
+    opItem.path_->MoveTo(1.0f, 2.0f);
+    opItem.path_->LineTo(3.0f, 4.0f);
+    ASSERT_FALSE(opItem.GetOpItemCmdlistDrawRegion().IsEmpty());
 }
 } // namespace Drawing
 } // namespace Rosen
