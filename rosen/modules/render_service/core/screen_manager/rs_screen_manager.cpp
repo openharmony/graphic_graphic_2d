@@ -1465,9 +1465,27 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     RS_LOGI("%{public}s: set virtual screen surface success!", __func__);
     RS_TRACE_NAME("RSScreenManager::SetVirtualScreenSurface, ForceRefreshOneFrame.");
     ForceRefreshOneFrame();
+    screen->SetPSurfaceChange(true);
     return SUCCESS;
 }
 
+// only used in dirtyRegion
+bool RSScreenManager::CheckPSurfaceChanged(ScreenId id)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return false;
+    }
+    if (!screen->IsVirtual()) {
+        return false;
+    }
+    if (screen->GetPSurfaceChange()) {
+        screen->SetPSurfaceChange(false);
+        return true;
+    }
+    return false;
+}
 bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const
 {
     auto virtualScreen = GetScreen(id);
