@@ -44,6 +44,51 @@ ani_status AniThrowError(ani_env* env, const std::string& message)
     return ANI_OK;
 }
 
+ani_status ThrowBusinessError(ani_env* env, DrawingErrorCode errorCode, const char* message)
+{
+    ani_object aniError;
+    ani_status status = CreateBusinessError(env, static_cast<int32_t>(errorCode), message, aniError);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to create business, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    status = env->ThrowError(static_cast<ani_error>(aniError));
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Fail to throw err, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    return ANI_OK;
+}
+
+ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
+{
+    ani_class aniClass;
+    ani_status status = env->FindClass("L@ohos/base/BusinessError;", &aniClass);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to find class, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    ani_method aniCtor;
+    status = env->Class_FindMethod(aniClass, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &aniCtor);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    ani_string aniMsg = CreateAniString(env, message);
+    status = env->Object_New(aniClass, aniCtor, &err, aniMsg, CreateAniUndefined(env));
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to new err, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    status = env->Object_SetPropertyByName_Double(err, "code", static_cast<ani_int>(error));
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to set code, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    return ANI_OK;
+}
+
+
 bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
 {
     ani_class colorClass;

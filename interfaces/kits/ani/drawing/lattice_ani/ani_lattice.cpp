@@ -170,12 +170,12 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     Lattice lat;
     if (!GetLatticeDividers(env, xDivs, xCount, lat.fXDivs)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice xDividers are invalid");
-        AniThrowError(env, "Incorrect parameter0 type.");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
         return CreateAniUndefined(env);
     }
     if (!GetLatticeDividers(env, yDivs, yCount, lat.fYDivs)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice yDividers are invalid");
-        AniThrowError(env, "Incorrect parameter1 type.");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
         return CreateAniUndefined(env);
     }
     lat.fXCount = xCount;
@@ -194,7 +194,7 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     int count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
     if (!isUndefined && !isNull) {
         if (!GetLatticeRectTypes(env, fRectTypes, count, lat.fRectTypes)) {
-            AniThrowError(env, "Incorrect parameter6 type.");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter6 type.");
             return CreateAniUndefined(env);
         }
     }
@@ -203,7 +203,7 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     env->Reference_IsNull(fColors, &isNull);
     if (!isUndefined && !isNull) {
         if (!GetLatticeColors(env, fColors, count, lat.fColors)) {
-            AniThrowError(env, "Incorrect parameter7 type.");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter7 type.");
             return CreateAniUndefined(env);
         }
     }
