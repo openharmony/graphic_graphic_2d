@@ -1835,8 +1835,8 @@ HWTEST_F(RSRenderNodeTest, AddChildTest005, TestSize.Level1)
     EXPECT_TRUE(childTest->needUseCmdlistDrawRegion_);
     EXPECT_TRUE(childTest->GetNeedUseCmdlistDrawRegion());
     nodeTest->AddChild(childTest, 0);
-    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", std::to_string(optimizeCanvasDrawRegionEnabled));
-    system::SetParameter("rosen.graphic.optimizeParentNodeRegion.enabled", std::to_string(optimizeParentNodeRegionEnabled));
+    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled",
+        std::to_string(optimizeCanvasDrawRegionEnabled));
 }
 
 /**
@@ -2961,7 +2961,8 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawRectAndDirtyRegion002, TestSize.Level1)
     node.needUseCmdlistDrawRegion_ = false;
     node.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_TRUE(node.absCmdlistDrawRect_.IsEmpty());
-    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", std::to_string(optimizeCanvasDrawRegionEnabled));
+    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled",
+        std::to_string(optimizeCanvasDrawRegionEnabled));
 }
 
 /**
@@ -3431,7 +3432,8 @@ HWTEST_F(RSRenderNodeTest, CalcCmdlistDrawRegionFromOpItem001, TestSize.Level1)
     node->needUseCmdlistDrawRegion_ = true;
     node->CalcCmdlistDrawRegionFromOpItem(modifier);
     ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), true);
-    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", std::to_string(optimizeCanvasDrawRegionEnabled));
+    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled",
+        std::to_string(optimizeCanvasDrawRegionEnabled));
 }
  
 /*
@@ -3464,7 +3466,8 @@ HWTEST_F(RSRenderNodeTest, CalcCmdlistDrawRegionFromOpItem002, TestSize.Level1)
     node->needUseCmdlistDrawRegion_ = true;
     node->CalcCmdlistDrawRegionFromOpItem(modifier);
     ASSERT_EQ(node->cmdlistDrawRegion_.IsEmpty(), true);
-    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", std::to_string(optimizeCanvasDrawRegionEnabled));
+    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled",
+        std::to_string(optimizeCanvasDrawRegionEnabled));
 }
 
 /*
@@ -3531,7 +3534,8 @@ HWTEST_F(RSRenderNodeTest, ResetParent, TestSize.Level1)
     node2->needUseCmdlistDrawRegion_ = false;
     node2->ResetParent();
     ASSERT_EQ(node2->parent_.lock(), nullptr);
-    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", std::to_string(optimizeCanvasDrawRegionEnabled));
+    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled",
+        std::to_string(optimizeCanvasDrawRegionEnabled));
 }
  
 class RSC_EXPORT MockRSRenderNode : public RSRenderNode {
@@ -3566,7 +3570,8 @@ HWTEST_F(RSRenderNodeTest, ResetAndApplyModifiers, TestSize.Level1)
     ASSERT_NE(modifier, nullptr);
     node->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)].emplace_back(modifier);
     node->ResetAndApplyModifiers();
-    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", std::to_string(optimizeCanvasDrawRegionEnabled));
+    system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled",
+        std::to_string(optimizeCanvasDrawRegionEnabled));
 }
 
 /*
