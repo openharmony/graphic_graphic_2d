@@ -16,7 +16,6 @@
 #include <memory>
 #include <vector>
 
-#include "SkPoint.h"
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_run.h"
@@ -25,6 +24,7 @@
 #include "ani_text_utils.h"
 #include "ani_typographic_bounds_converter.h"
 #include "canvas_ani/ani_canvas.h"
+#include "SkPoint.h"
 #include "text_line_base.h"
 #include "typography.h"
 #include "typography_types.h"
@@ -172,6 +172,8 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set runs item %{public}zu", index);
+            delete runPtr;
+            runPtr = nullptr;
             continue;
         }
         index++;

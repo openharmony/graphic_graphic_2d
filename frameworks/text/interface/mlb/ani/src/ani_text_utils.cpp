@@ -83,10 +83,7 @@ bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
         TEXT_LOGE("Failed to check if undefined, status: %{public}d", static_cast<int32_t>(status));
         return false;
     }
-    if (isUndefined != 0) {
-        return true;
-    }
-    return false;
+    return isUndefined != 0;
 }
 
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)

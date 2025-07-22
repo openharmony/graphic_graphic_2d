@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
@@ -91,8 +91,6 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     ani_status ret = env->Object_SetFieldByName_Long(runObj, NATIVE_OBJ, reinterpret_cast<ani_long>(run));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set run");
-        delete run;
-        run = nullptr;
         return AniTextUtils::CreateAniUndefined(env);
     }
     return runObj;
