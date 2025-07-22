@@ -456,6 +456,8 @@ void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
         buffer->SetAndMergeSyncFence(acquireFence);
         RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: fence merged id: %" PRIu64 " name: %s",
             __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
+        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: fence merged id: %{public}" PRIu64 " name: %{public}s",
+            __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
     }
 }
 
