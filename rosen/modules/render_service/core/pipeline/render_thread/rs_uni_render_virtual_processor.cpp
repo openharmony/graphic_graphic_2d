@@ -450,7 +450,7 @@ void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
             continue; // skip protected layer
         }
         buffer->SetAndMergeSyncFence(acquireFence);
-        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%{public}s: fence merged id: %" PRIu64 " name: %s",
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: fence merged id: %" PRIu64 " name: %s",
             __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
     }
 }
