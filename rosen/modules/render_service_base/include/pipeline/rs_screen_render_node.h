@@ -91,21 +91,6 @@ public:
         return screenRect_;
     }
 
-    void SetBootAnimation(bool isBootAnimation) override
-    {
-        ROSEN_LOGD("SetBootAnimation:: id:[%{public}" PRIu64 ", isBootAnimation:%{public}d",
-            GetId(), isBootAnimation);
-        isBootAnimation_ = isBootAnimation;
-
-        auto parent = GetParent().lock();
-        if (parent == nullptr) {
-            return;
-        }
-        if (isBootAnimation) {
-            parent->SetContainBootAnimation(true);
-        }
-    }
-
     static void SetReleaseTask(ReleaseDmaBufferTask callback);
 
     int32_t GetScreenOffsetX() const
