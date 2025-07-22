@@ -394,7 +394,7 @@ HWTEST_F(DrawCmdListTest, GetCmdlistDrawRegion001, TestSize.Level1)
  * @tc.require: ICI6YB
  */
 HWTEST_F(DrawCmdListTest, GetCmdlistDrawRegion002, TestSize.Level1)
- {
+{
     Path path;
     path.Offset(1.0f, 1.0f);
     Paint paint;
@@ -414,7 +414,7 @@ HWTEST_F(DrawCmdListTest, GetCmdlistDrawRegion002, TestSize.Level1)
     drawCmdList->drawOpItems_.emplace_back(fulshOpItemPtr);
     EXPECT_TRUE(drawCmdList->GetCmdlistDrawRegion().IsEmpty());
     delete drawCmdList;
- }
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
