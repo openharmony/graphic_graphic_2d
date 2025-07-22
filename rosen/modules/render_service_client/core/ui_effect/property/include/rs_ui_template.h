@@ -117,6 +117,7 @@ class RSNGEffectTemplate : public Base {
 public:
     using RenderEffectTemplate = RSNGRenderEffectTemplate<typename Base::RenderEffectBase,
         Type, typename PropertyTags::RenderPropertyTagType...>;
+    using ValuesTypeTuple = std::tuple<typename PropertyTags::ValueType...>;
 
     RSNGEffectTemplate() = default;
     ~RSNGEffectTemplate() override = default;
@@ -191,18 +192,49 @@ public:
     constexpr const auto& Getter() const
     {
         static_assert(is_property_tag_v<Tag>, "Tag must be a property tag.");
-        static_assert(sizeof...(PropertyTags) > 0, "Cannot call Getter: No properties are defined in this group.");
+        static_assert(propTagsSize_ > 0, "Cannot call Getter: No properties are defined in this effect.");
         static_assert(Contains<Tag>(), "Target property not registered.");
         return std::get<Tag>(properties_).value_;
     }
 
     template<typename Tag>
-    constexpr void Setter(typename Tag::ValueType value)
+    constexpr void Setter(const typename Tag::ValueType& value)
     {
         static_assert(is_property_tag_v<Tag>, "Tag must be a property tag.");
-        static_assert(sizeof...(PropertyTags) > 0, "Cannot call Setter: No properties are defined in this group.");
+        static_assert(propTagsSize_ > 0, "Cannot call Setter: No properties are defined in this effect.");
         static_assert(Contains<Tag>(), "Target property not registered.");
         return std::get<Tag>(properties_).value_->Set(value);
+    }
+
+    template<std::size_t Index>
+    using PropertyTagAt = typename std::tuple_element<Index, std::tuple<PropertyTags...>>::type;
+
+    template<std::size_t Index>
+    constexpr const auto& Getter() const
+    {
+        static_assert(propTagsSize_ > 0, "Cannot call Setter: No properties are defined in this effect.");
+        static_assert(Index < propTagsSize_, "Cannot call Setter: Index exceeds the size of properties.");
+        return std::get<Index>(properties_).value_;
+    }
+
+    template<std::size_t Index>
+    constexpr const auto& Setter(const typename PropertyTagAt<Index>::ValueType& value) const
+    {
+        static_assert(propTagsSize_ > 0, "Cannot call Setter: No properties are defined in this effect.");
+        static_assert(Index < propTagsSize_, "Cannot call Setter: Index exceeds the size of properties.");
+        return std::get<Index>(properties_).value_->Set(value);
+    }
+
+    template<typename ValueTuple>
+    constexpr void SetterAll(const ValueTuple& values)
+    {
+        static_assert(std::tuple_size_v<ValueTuple> == propTagsSize_,
+            "The size of ValueTuple must match PropertyTags.");
+        // IMPORTANT: Types and order must match exactly.
+        // For example, double or int is NOT allowed where float is expected.
+        static_assert(std::is_same<std::decay_t<ValueTuple>, ValuesTypeTuple>::value,
+            "The type of values must be exactly ValuesTypeTuple.");
+        SetterWithIndex<ValueTuple>(values, std::make_index_sequence<propTagsSize_>{});
     }
 
     const std::tuple<PropertyTags...>& GetProperties() const
@@ -212,6 +244,20 @@ public:
 
 private:
     RSNGEffectTemplate(std::tuple<PropertyTags...>&& properties) : properties_(std::move(properties)) {}
+
+    template<typename ValueTuple, std::size_t... Index>
+    constexpr void SetterWithIndex(const ValueTuple& values, std::index_sequence<Index...>)
+    {
+        std::apply(
+            [this](const typename PropertyTagAt<Index>::ValueType&... value) {
+                // unpack values and Index... together here
+                ( Setter<PropertyTagAt<Index>>(value), ... );
+            },
+            values
+        );
+    }
+
+    static constexpr size_t propTagsSize_ = sizeof...(PropertyTags);
     std::tuple<PropertyTags...> properties_;
 };
 

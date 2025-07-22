@@ -105,11 +105,15 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     }
     auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
     auto edgeLightFilterPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
-    edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor());
-    edgeLightFilter->Setter<EdgeLightAlphaTag>(edgeLightFilterPara->GetAlpha());
-    edgeLightFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(edgeLightFilterPara->GetMask()));
-    edgeLightFilter->Setter<EdgeLightBloomTag>(edgeLightFilterPara->GetBloom());
-    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(edgeLightFilterPara->GetUseRawColor());
+    // note: the order of values has to be same with the order of ADD_PROPERTY_ATG in DECLARE_TILTER(/SHADER/MASK)
+    auto values = std::make_tuple(
+        edgeLightFilterPara->GetColor(),
+        edgeLightFilterPara->GetAlpha(),
+        RSNGMaskBase::Create(edgeLightFilterPara->GetMask()),
+        edgeLightFilterPara->GetBloom(),
+        edgeLightFilterPara->GetUseRawColor()
+    );
+    edgeLightFilter->SetterAll(values);
     return edgeLightFilter;
 }
 
