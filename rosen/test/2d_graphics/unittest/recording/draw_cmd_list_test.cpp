@@ -379,9 +379,12 @@ HWTEST_F(DrawCmdListTest, Dump003, TestSize.Level1)
  */
 HWTEST_F(DrawCmdListTest, GetCmdlistDrawRegion001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto drawCmdList = new DrawCmdList();
+    EXPECT_TRUE(drawCmdList->GetCmdlistDrawRegion().IsEmpty());
+
     drawCmdList->drawOpItems_.emplace_back(nullptr);
     EXPECT_TRUE(drawCmdList->GetCmdlistDrawRegion().IsEmpty());
+    delete drawCmdList;
 }
 
 /**
