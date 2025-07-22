@@ -25,8 +25,7 @@ namespace OHOS::Rosen {
 using InitChipsetVsyncFunc = int32_t (*)();
 using SetVsyncFunc = int32_t (*)(int64_t, uint64_t, int64_t, bool);
 
-class RsChipsetVsync
-{
+class RsChipsetVsync {
 public:
     static RsChipsetVsync& Instance();
     void LoadLibrary();

@@ -29,9 +29,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-
 };
-
 void RsChipsetVsyncTest::SetUpTestCase() {}
 void RsChipsetVsyncTest::TearDownTestCase() {}
 void RsChipsetVsyncTest::SetUp() {}
@@ -86,10 +84,10 @@ HWTEST_F(RsChipsetVsyncTest, InitChipsetVsync001, TestSize.Level1)
 HWTEST_F(RsChipsetVsyncTest, SetVsync001, TestSize.Level1)
 {
     RsChipsetVsync::Instance.LoadLibrary();
-    RsChipsetVsync::Instance.SetVsync(0,0,16666666,false);
+    RsChipsetVsync::Instance.SetVsync(0, 0, 16666666, false);
     ASSERT_NE(RsChipsetVsync::Instance.chipsetVsyncLibHandle_, nullptr);
     RsChipsetVsync::Instance.CloseLibrary();
-    RsChipsetVsync::Instance.SetVsync(0,0,16666666,false);
+    RsChipsetVsync::Instance.SetVsync(0, 0, 16666666, false);
     ASSERT_EQ(RsChipsetVsync::Instance.chipsetVsyncLibHandle_, nullptr);
 }
 
