@@ -179,6 +179,8 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set textline item %{public}zu", index);
+            delete textLineBasePtr;
+            textLineBasePtr = nullptr;
             continue;
         }
         index++;

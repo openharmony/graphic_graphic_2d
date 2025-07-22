@@ -59,7 +59,7 @@ namespace Rosen {
             supressed = 0;                                                                               \
             printCount = 1;                                                                              \
             if (supressedCnt != 0) {                                                                     \
-                ((void)HILOG_IMPL((type), (level), TEXT_LOG_DOMAIN, TEXT_LOG_TAG,                                  \
+                ((void)HILOG_IMPL((type), (level), TEXT_LOG_DOMAIN, TEXT_LOG_TAG,                        \
                     "%{public}s log suppressed cnt %{public}u", __func__, supressedCnt));                \
             }                                                                                            \
             (canPrint) = true;                                                                           \

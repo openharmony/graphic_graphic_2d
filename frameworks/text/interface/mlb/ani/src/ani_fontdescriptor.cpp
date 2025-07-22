@@ -20,8 +20,8 @@
 #include "ani_text_utils.h"
 #include "font_descriptor_mgr.h"
 #include "font_parser.h"
-#include "utils/text_log.h"
 #include "typography_types.h"
+#include "utils/text_log.h"
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
@@ -44,7 +44,7 @@ std::unordered_map<int, int> g_weightMap = {
         ani_status ret = (env)->Object_SetPropertyByName_Ref( \
             (obj), (propName), AniTextUtils::CreateAni##type##Obj((env), (value))); \
         if (ret != ANI_OK) { \
-            TEXT_LOGE("Fail to parse " propName); \
+            TEXT_LOGE("Failed to parse %{public}s: ret %{public}d", propName, ret); \
             (error_var) = ret; \
             break; \
         } \
@@ -52,10 +52,10 @@ std::unordered_map<int, int> g_weightMap = {
 
 #define READ_OPTIONAL_FIELD(env, obj, field, type, fontDescPtr, error_var) \
     do { \
-        ani_status _ret = AniTextUtils::ReadOptional##type##Field( \
+        ani_status ret = AniTextUtils::ReadOptional##type##Field( \
             (env), (obj), #field, (fontDescPtr)->field); \
-        if (_ret != ANI_OK) { \
-            TEXT_LOGE("Failed to convert " #field); \
+        if (ret != ANI_OK) { \
+            TEXT_LOGE("Failed to convert %{public}s: ret %{public}d", #field, ret); \
             (error_var) = ANI_INVALID_ARGS; \
             break; \
         } \
@@ -254,9 +254,13 @@ ani_object AniFontDescriptor::MatchFontDescriptors(ani_env* env, ani_object desc
     for (const auto& item : matchResult) {
         ani_object aniObj = nullptr;
         ani_status status = ParseFontDescriptorToAni(env, item, aniObj);
-        if (status != ANI_OK
-            || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Failed to set FontDescriptor item %{public}zu", index);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
             continue;
         }
         index++;
