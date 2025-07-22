@@ -68,6 +68,9 @@ group("unittest") {
   if (graphic_2d_feature_tv_metadata_enable) {
     deps += [ ":TvMetadataTest" ]
   }
+  if (graphic_2d_feature_enable_chipset_vsync) {
+    deps += [ ":RSChipsetVsyncTest" ]
+  }
 }
 
 ###############################################################################
@@ -1063,6 +1066,17 @@ ohos_unittest("RSHpaeBufferTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+}
+
+##Build RSChipsetVsyncTest
+ohos_unittest("RSChipsetVsyncTest") {
+  module_out_path = module_output_path
+  sources = [ "chipset_vsync/rs_chipset_vsync_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 }
 
 ## Build rs_test_common.a {{{

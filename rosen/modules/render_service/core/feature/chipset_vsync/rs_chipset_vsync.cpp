@@ -31,15 +31,15 @@ RsChipsetVsync& RsChipsetVsync::Instance()
 
 void RsChipsetVsync::LoadLibrary()
 {
-    if(chipsetVsyncLibHandle_ == nullptr) {
-        chipsetVsyncLibHandle_ = dlopen(CHIPSET_VSYNC_LIB_PATH.c_str(),RTLD_NOW);
+    if (chipsetVsyncLibHandle_ == nullptr) {
+        chipsetVsyncLibHandle_ = dlopen(CHIPSET_VSYNC_LIB_PATH.c_str(), RTLD_NOW);
         GetChipsetVsyncFunc();
     }
 }
 
 void RsChipsetVsync::CloseLibrary()
 {
-    if(chipsetVsyncLibHandle_ != nullptr) {
+    if (chipsetVsyncLibHandle_ != nullptr) {
         ResetChipsetVsyncFunc();
         dlclose(chipsetVsyncLibHandle_);
     }
@@ -61,7 +61,7 @@ void RsChipsetVsync::ResetChipsetVsyncFunc()
 
 int32_t RsChipsetVsync::InitChipsetVsync()
 {
-    if(initChipsetVsyncFunc_ == nullptr) {
+    if (initChipsetVsyncFunc_ == nullptr) {
         return -1;
     }
     return initChipsetVsyncFunc_();
@@ -69,7 +69,7 @@ int32_t RsChipsetVsync::InitChipsetVsync()
 
 int32_t RsChipsetVsync::SetVsync(int64_t timeStamp, uint64_t curTime, int64_t period, bool allowFramerateChange)
 {
-    if(setVsyncFunc_ == nullptr) {
+    if (setVsyncFunc_ == nullptr) {
         return -1;
     }
     return setVsyncFunc_(timeStamp, curTime, period, allowFramerateChange);

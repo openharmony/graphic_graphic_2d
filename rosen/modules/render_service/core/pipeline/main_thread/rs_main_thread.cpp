@@ -424,7 +424,7 @@ RSMainThread::~RSMainThread() noexcept
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
-    RsChipsetVsync::Instance.CloseLibrary()
+    RsChipsetVsync::Instance.CloseLibrary();
 #endif
     if (rsAppStateListener_) {
         Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
