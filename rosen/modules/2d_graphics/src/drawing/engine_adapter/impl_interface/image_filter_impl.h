@@ -52,6 +52,16 @@ enum class ImageBlurType : uint8_t {
     GAUSS,
 };
 
+enum class HDSampleType : uint8_t {
+    SLR = 0,
+};
+
+struct HDSampleInfo {
+    HDSampleType type = HDSampleType::SLR;
+    float alpha = 0.15f; // sharpness for laplas in SLR
+    bool isUniformScale = false;
+};
+
 class ImageFilterImpl : public BaseImpl {
 public:
     ImageFilterImpl() noexcept {}
@@ -77,6 +87,8 @@ public:
     virtual void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) = 0;
     virtual void InitWithImage(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect,
         const SamplingOptions& options) = 0;
+    virtual void InitWithHDSample(const std::shared_ptr<Image>& image,
+        const Rect& src, const Rect& dst, const HDSampleInfo& info) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

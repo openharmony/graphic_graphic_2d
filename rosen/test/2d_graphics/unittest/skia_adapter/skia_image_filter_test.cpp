@@ -189,6 +189,30 @@ HWTEST_F(SkiaImageFilterTest, AllFunc001, TestSize.Level1)
     skiaImageFilter->InitWithShader(nullptr, rect);
     EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
 }
+
+/**
+ * @tc.name: InitWithHDSample001
+ * @tc.desc: Test InitWithHDSample
+ * @tc.type: FUNC
+ * @tc.require: ICR1ZE
+ */
+HWTEST_F(SkiaImageFilterTest, InitWithHDSample001, TestSize.Level1)
+{
+    int32_t width = 200;
+    int32_t height = 200;
+    Rect srcRect(0.0f, 0.0f, width, height);
+    Rect dstRect(0.0f, 0.0f, width / 2.0f, height / 2.0f);
+    std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
+
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
+    Bitmap bitmap;
+    bitmap.Build(width, height, bitmapFormat);
+    std::shared_ptr<Image> image = bitmap.MakeImage();
+    EXPECT_TRUE(image != nullptr);
+    HDSampleInfo hdSampleInfo;
+    skiaImageFilter->InitWithHDSample(image, srcRect, dstRect, hdSampleInfo);
+    EXPECT_TRUE(skiaImageFilter->filter_ != nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

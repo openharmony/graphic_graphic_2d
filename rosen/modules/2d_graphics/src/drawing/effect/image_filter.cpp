@@ -260,6 +260,24 @@ ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, con
     impl_->InitWithShader(shader, cropRect);
 }
 
+std::shared_ptr<ImageFilter> ImageFilter::CreateHDSampleImageFilter(
+    const std::shared_ptr<Image>& image, const Rect& src, const Rect& dst, const HDSampleInfo& info)
+{
+    if (!image || src.IsEmpty() || dst.IsEmpty()) {
+        LOGE("ImageFilter::CreateHDSampleImageFilter, image is nullptr or src or dst is empty.");
+        return nullptr;
+    }
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::HD_SAMPLE, image, src, dst, info);
+}
+
+ImageFilter::ImageFilter(FilterType t, const std::shared_ptr<Image>& image,
+    const Rect& src, const Rect& dst, const HDSampleInfo& info) noexcept
+    : ImageFilter()
+{
+    type_ = t;
+    impl_->InitWithHDSample(image, src, dst, info);
+}
+
 #ifdef ROSEN_OHOS
 bool ImageFilter::Marshalling(Parcel& parcel)
 {

@@ -349,6 +349,33 @@ HWTEST_F(ImageFilterTest, CreateImageImageFilterTest001, TestSize.Level1)
     EXPECT_TRUE(imageFilter2 != nullptr);
 }
 
+/*
+ * @tc.name: CreateHDSampleImageFilterTest001
+ * @tc.desc: test for creating HDSampleImageFilter.
+ * @tc.type: FUNC
+ * @tc.require:ICR1ZE
+ */
+HWTEST_F(ImageFilterTest, CreateHDSampleImageFilterTest001, TestSize.Level1)
+{
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    Rect srcRect {0, 0, 100.0f, 100.0f};
+    Rect dstRect {0, 0, 10.0f, 10.0f};
+    HDSampleInfo info;
+    auto imageFilter = ImageFilter::CreateHDSampleImageFilter(image, srcRect, dstRect, info);
+    EXPECT_TRUE(imageFilter != nullptr);
+ 
+    auto imageFilter1 = ImageFilter::CreateHDSampleImageFilter(nullptr, srcRect, dstRect, info);
+    EXPECT_TRUE(imageFilter1 == nullptr);
+ 
+    Rect srcRect1 {100.0f, 100.0f, 100.0f, 100.0f};
+    auto imageFilter2 = ImageFilter::CreateHDSampleImageFilter(image, srcRect1, dstRect, info);
+    EXPECT_TRUE(imageFilter2 == nullptr);
+ 
+    Rect dstRect1 {10.0f, 10.0f, 10.0f, 10.0f};
+    auto imageFilter3 = ImageFilter::CreateHDSampleImageFilter(image, srcRect, dstRect1, info);
+    EXPECT_TRUE(imageFilter3 == nullptr);
+}
+
 #ifdef ROSEN_OHOS
 /*
  * @tc.name: UnmarshallingCompleteRoundTrip001

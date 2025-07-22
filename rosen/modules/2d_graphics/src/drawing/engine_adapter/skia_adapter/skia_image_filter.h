@@ -54,6 +54,9 @@ public:
     void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) override;
     void InitWithImage(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect,
         const SamplingOptions& options) override;
+    void InitWithHDSample(const std::shared_ptr<Image>& image,
+        const Rect& src, const Rect& dst, const HDSampleInfo& info) override;
+
     sk_sp<SkImageFilter> GetImageFilter() const;
     /*
      * @brief  Update the member variable to filter, adaptation layer calls.

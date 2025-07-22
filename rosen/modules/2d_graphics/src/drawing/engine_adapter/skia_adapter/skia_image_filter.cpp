@@ -296,6 +296,13 @@ void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader, const
     filter_ = SkImageFilters::Shader(skShader, skCropRect);
 }
 
+void SkiaImageFilter::InitWithHDSample(
+    const std::shared_ptr<Image>& image, const Rect& src, const Rect& dst, const HDSampleInfo& info)
+{
+    SamplingOptions options(FilterMode::LINEAR);
+    InitWithImage(image, src, dst, options);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
