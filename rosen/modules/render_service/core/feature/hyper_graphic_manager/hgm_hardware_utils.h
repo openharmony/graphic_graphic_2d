@@ -51,6 +51,7 @@ public:
 
 private:
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
+
     // key: ScreenId, value: <needRetrySetRate, retryCount>
     std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;

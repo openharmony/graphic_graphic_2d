@@ -76,7 +76,6 @@ HWTEST_F(HfbcParamTest, SetHfbcConfigForApp, Function | SmallTest | Level1)
     EXPECT_EQ(CheckHfbcStatus(packages), false); // enabled
 
     HFBCParam::SetHfbcConfigForApp(appName, "1");
-
     EXPECT_EQ(CheckHfbcStatus(packages), true); // disabled
 
     packages = { { "com.test.allowapp", "1"} };
