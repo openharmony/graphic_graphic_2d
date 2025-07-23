@@ -49,6 +49,11 @@ namespace {
     const std::string GET_ACTUAL_TEXT_RANGE_SIGNATURE = "DZ:" + std::string(ANI_INTERFACE_RANGE);
 } // namespace
 
+ani_object ThrowErrorAndReturnUndefined(ani_env* env) {
+    AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    return AniTextUtils::CreateAniUndefined(env);
+}
+
 ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* typography)
 {
     if (typography == nullptr) {
@@ -275,18 +280,15 @@ ani_object AniParagraph::GetRectsForRange(
     TextRectHeightStyle heightStyleInner;
     if (AniTextRectConverter::ParseRangeToNative(env, range, rectRange) != ANI_OK) {
         TEXT_LOGE("Failed to parse range");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
     if (AniTextRectConverter::ParseWidthStyleToNative(env, widthStyle, widthStyleInner) != ANI_OK) {
         TEXT_LOGE("Failed to parse width style");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
     if (AniTextRectConverter::ParseHeightStyleToNative(env, heightStyle, heightStyleInner) != ANI_OK) {
         TEXT_LOGE("Failed to parse height style");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
     std::vector<TextRect> rectsForRange =
         typography->GetTextRectsByBoundary(rectRange.start, rectRange.end, heightStyleInner, widthStyleInner);
@@ -320,8 +322,7 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
 
     std::vector<TextRect> rectsForRange = typography->GetTextRectsOfPlaceholders();
@@ -356,8 +357,7 @@ ani_object AniParagraph::GetGlyphPositionAtCoordinate(ani_env* env, ani_object o
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
 
     IndexAndAffinity indexAndAffinity = typography->GetGlyphIndexByCoordinate(x, y);
@@ -375,8 +375,7 @@ ani_object AniParagraph::GetWordBoundary(ani_env* env, ani_object object, ani_do
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
 
     Boundary boundary = typography->GetWordBoundaryByIndex(static_cast<size_t>(offset));
@@ -440,8 +439,7 @@ ani_object AniParagraph::GetActualTextRange(
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
     Boundary Boundary = typography->GetActualTextRange(static_cast<int>(lineNumber), static_cast<bool>(includeSpaces));
     ani_object boundaryObj = nullptr;
@@ -529,8 +527,7 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return AniTextUtils::CreateAniUndefined(env);
+        return ThrowErrorAndReturnUndefined(env);
     }
     LineMetrics lineMetrics;
     if (!typography->GetLineMetricsAt(lineNumber, &lineMetrics)) {
