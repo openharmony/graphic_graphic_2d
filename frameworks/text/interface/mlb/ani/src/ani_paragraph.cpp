@@ -47,7 +47,8 @@ namespace {
     const std::string GET_ACTUAL_TEXT_RANGE_SIGNATURE = "DZ:" + std::string(ANI_INTERFACE_RANGE);
 } // namespace
 
-ani_object ThrowErrorAndReturnUndefined(ani_env* env) {
+ani_object ThrowErrorAndReturnUndefined(ani_env* env)
+{
     AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     return AniTextUtils::CreateAniUndefined(env);
 }
