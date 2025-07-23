@@ -12,12 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "ani_line_typeset.h"
+
 #include <memory>
 #include <string>
 #include <utility>
 
 #include "ani_common.h"
-#include "ani_line_typeset.h"
 #include "ani_text_line.h"
 #include "ani_text_utils.h"
 #include "line_typography.h"

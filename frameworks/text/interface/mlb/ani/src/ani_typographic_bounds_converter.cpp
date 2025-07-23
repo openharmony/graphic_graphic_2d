@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include "ani_typographic_bounds_converter.h"
+
 #include "ani_common.h"
 #include "ani_text_utils.h"
-#include "ani_typographic_bounds_converter.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;

@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
+#include "ani_run.h"
+
 #include <cstdint>
 #include <memory>
 
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
-#include "ani_run.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "ani_typographic_bounds_converter.h"

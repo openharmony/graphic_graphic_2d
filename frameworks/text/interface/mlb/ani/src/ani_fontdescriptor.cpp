@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
+#include "font_descriptor_mgr.h"
+
 #include <unordered_set>
 
 #include "ani_common.h"
 #include "ani_fontdescriptor.h"
 #include "ani_text_utils.h"
-#include "font_descriptor_mgr.h"
 #include "font_parser.h"
 #include "typography_types.h"
 #include "utils/text_log.h"
