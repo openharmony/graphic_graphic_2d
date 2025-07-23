@@ -107,6 +107,19 @@ namespace text {
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
     native layoutSync(width: number): void;
+    async layout(width: number): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
+        try {
+          taskpool.execute((): void => {
+            this.layoutSync(width);
+          }).then(() => {
+            resolve(undefined);
+          })
+        } catch (err) {
+          reject(err as BusinessError);
+        }
+      });
+    }
     native paint(canvas: drawing.Canvas, x: number, y: number): void;
     native paintOnPath(canvas: drawing.Canvas, path: drawing.Path, hOffset: number, vOffset: number): void;
     native getMaxWidth(): number;

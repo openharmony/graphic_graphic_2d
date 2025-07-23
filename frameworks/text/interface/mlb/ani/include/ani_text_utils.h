@@ -29,7 +29,7 @@ public:
     static ani_status ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message);
     static ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err);
     template <typename T>
-    static T* GetNativeFromObj(ani_env* env, ani_object obj);
+    static T* GetNativeFromObj(ani_env* env, ani_object obj, const char* name = NATIVE_OBJ);
 
     static ani_object CreateAniUndefined(ani_env* env);
     template <typename... Args>
@@ -58,6 +58,8 @@ public:
     static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value);
     template <typename EnumType>
     static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value);
+    template <typename EnumType>
+    static ani_status ReadEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value);
     template <typename T, typename Converter>
     static ani_status ReadOptionalArrayField(
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
@@ -94,7 +96,7 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
         ani_object aniObj = convert(env, item);
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (ret != ANI_OK) {
-            TEXT_LOGE("Array $_set failed, ret:%{public}d", ret);
+            TEXT_LOGE("Array $_set failed, ret %{public}d", ret);
             continue;
         }
         index++;
@@ -103,12 +105,12 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
 }
 
 template <typename T>
-T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj)
+T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj, const char* name)
 {
     ani_status ret;
     ani_long nativeObj{};
-    if ((ret = env->Object_GetFieldByName_Long(obj, NATIVE_OBJ, &nativeObj)) != ANI_OK) {
-        TEXT_LOGE("Failed to get native obj");
+    if ((ret = env->Object_GetFieldByName_Long(obj, name, &nativeObj)) != ANI_OK) {
+        TEXT_LOGE("Failed to get native obj, ret %{public}d", ret);
         return nullptr;
     }
     T* object = reinterpret_cast<T*>(nativeObj);
@@ -125,7 +127,22 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        ani_size index;
+        ani_size index = 0;
+        result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
+        if (result == ANI_OK) {
+            value = static_cast<EnumType>(index);
+        }
+    }
+    return result;
+};
+
+template <typename EnumType>
+ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
+    if (result == ANI_OK && ref != nullptr) {
+        ani_size index = 0;
         result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK) {
             value = static_cast<EnumType>(index);

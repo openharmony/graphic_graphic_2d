@@ -31,7 +31,10 @@ private:
     static void PushStyle(ani_env* env, ani_object object, ani_object textStyle);
     static void PopStyle(ani_env* env, ani_object object);
     static void AddText(ani_env* env, ani_object object, ani_string text);
+    static void AddPlaceholder(ani_env* env, ani_object object, ani_object placeholderSpan);
     static ani_object Build(ani_env* env, ani_object object);
+    static ani_object BuildLineTypeset(ani_env* env, ani_object object);
+    static void AddSymbol(ani_env* env, ani_object object, ani_double symbolId);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H

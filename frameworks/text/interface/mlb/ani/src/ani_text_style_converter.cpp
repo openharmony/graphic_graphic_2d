@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include "ani_text_style_converter.h"
+
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
-#include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 
@@ -92,7 +93,7 @@ void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj
 
 inline void GetPointXFromJsBumber(ani_env* env, ani_object argValue, Drawing::Point& point)
 {
-    ani_double objValue{0};
+    ani_double objValue = 0;
     ani_status ret = env->Object_GetPropertyByName_Double(argValue, "x", &objValue);
     if (ret != ANI_OK) {
         TEXT_LOGE("Param x is invalid, ret %{public}d", ret);
@@ -103,7 +104,7 @@ inline void GetPointXFromJsBumber(ani_env* env, ani_object argValue, Drawing::Po
 
 inline void GetPointYFromJsBumber(ani_env* env, ani_object argValue, Drawing::Point& point)
 {
-    ani_double objValue{0};
+    ani_double objValue = 0;
     ani_status ret = env->Object_GetPropertyByName_Double(argValue, "y", &objValue);
     if (ret != ANI_OK) {
         TEXT_LOGE("Param y is invalid, ret %{public}d", ret);

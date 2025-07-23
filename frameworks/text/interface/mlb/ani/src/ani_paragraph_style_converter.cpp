@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ani_common.h"
+
 #include "ani_paragraph_style_converter.h"
+
+#include "ani_common.h"
 #include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
