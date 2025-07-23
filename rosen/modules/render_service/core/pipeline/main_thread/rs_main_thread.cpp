@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <string>
 #include <unistd.h>
-//
+
 #include "app_mgr_client.h"
 #include "delegate/rs_functional_delegate.h"
 #include "hgm_energy_consumption_policy.h"
