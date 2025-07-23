@@ -49,7 +49,7 @@ void RSFrameRateVoteTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, SetTransactionFlags001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, SetTransactionFlags001, Function | SmallTest | Level0)
 {
     std::string transactionFlags = "";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SetTransactionFlags(transactionFlags);
@@ -62,7 +62,7 @@ HWTEST_F(RSFrameRateVoteTest, SetTransactionFlags001, Function | SmallTest | Lev
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, CheckSurfaceAndUi001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, CheckSurfaceAndUi001, Function | SmallTest | Level0)
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
@@ -106,7 +106,7 @@ HWTEST_F(RSFrameRateVoteTest, CheckSurfaceAndUi001, Function | SmallTest | Level
 }
 
 
-HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Level0)
 {
     sptr<SurfaceBuffer> nullBuffer = nullptr;
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
@@ -158,7 +158,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote002, Function | SmallTest | Level1) {
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote002, Function | SmallTest | Level0) {
     sptr<SurfaceBuffer> nullBuffer = nullptr;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = false;
 
@@ -205,7 +205,7 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote002, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, ReleaseSurfaceMap001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, ReleaseSurfaceMap001, Function | SmallTest | Level0)
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
@@ -226,7 +226,7 @@ HWTEST_F(RSFrameRateVoteTest, ReleaseSurfaceMap001, Function | SmallTest | Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, SurfaceVideoVote001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, SurfaceVideoVote001, Function | SmallTest | Level0)
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
@@ -260,7 +260,7 @@ HWTEST_F(RSFrameRateVoteTest, SurfaceVideoVote001, Function | SmallTest | Level1
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, VoteRate001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, VoteRate001, Function | SmallTest | Level0)
 {
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VoteRate(DEFAULT_PID, "VOTER_VIDEO", 30);
@@ -273,7 +273,7 @@ HWTEST_F(RSFrameRateVoteTest, VoteRate001, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level0)
 {
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_ = true;
     ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
@@ -287,7 +287,7 @@ HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | Level1)
+HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | Level0)
 {
     EventInfo eventInfo1 = {
         .eventName = "VOTER_VIDEO",
