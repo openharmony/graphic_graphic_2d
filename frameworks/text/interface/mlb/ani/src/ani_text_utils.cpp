@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 
+#include "ani_text_utils.h"
+
 #include <cstdarg>
 #include <cstdint>
 #include <fstream>
 #include <sstream>
 #include <string>
 
-#include "ani_text_utils.h"
 #include "typography_style.h"
 
 namespace OHOS::Text::ANI {

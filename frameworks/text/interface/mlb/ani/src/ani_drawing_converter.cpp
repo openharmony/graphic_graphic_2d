@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
+#include "ani_drawing_converter.h"
+
 #include <cstdint>
 
 #include "ani_common.h"
-#include "ani_drawing_converter.h"
 #include "ani_text_utils.h"
 
 namespace OHOS::Text::ANI {

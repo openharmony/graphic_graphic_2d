@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "ani_paragraph.h"
+
 #include <codecvt>
 #include <cstddef>
 #include <cstdint>
@@ -21,7 +23,6 @@
 #include "ani_common.h"
 #include "ani_index_and_affinity_converter.h"
 #include "ani_line_metrics_converter.h"
-#include "ani_paragraph.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "canvas_ani/ani_canvas.h"

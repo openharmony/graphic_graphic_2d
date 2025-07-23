@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 
+#include "ani_paragraph.h"
+
 #include <algorithm>
 #include <codecvt>
 #include <cstdint>
 
 #include "ani_common.h"
 #include "ani_font_collection.h"
-#include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
 #include "ani_paragraph_style_converter.h"
 #include "ani_placeholder_converter.h"

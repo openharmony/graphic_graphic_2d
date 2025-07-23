@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "ani_common.h"
 #include "ani_placeholder_converter.h"
+
+#include "ani_common.h"
 #include "ani_text_utils.h"
 
 namespace OHOS::Text::ANI {

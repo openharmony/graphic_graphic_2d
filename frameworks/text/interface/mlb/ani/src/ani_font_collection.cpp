@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
+#include "ani_font_collection.h"
+
 #include <codecvt>
 #include <cstdint>
 #include <sys/stat.h>
 
 #include "ani_common.h"
-#include "ani_font_collection.h"
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
