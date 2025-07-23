@@ -24,6 +24,8 @@
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "pixel_map.h"
+#include "sk_image_chain.h"
+#include "sk_image_filter_factory.h"
 
 
 namespace OHOS {
@@ -41,20 +43,22 @@ std::shared_ptr<Media::PixelMap> AniFilter::GetSrcPixelMap()
     return srcPixelMap_;
 }
 
-DrawingError AniFilter::Render(bool forceCPU)
+DrawError AniFilter::Render(bool forceCPU)
 {
-    EffectImageRender imageRender;
-    return imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
+    Rosen::SKImageChain skImage(srcPixelMap_);
+    DrawError ret = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
+
+    return ret;
 }
 
-void AniFilter::AddNextFilter(std::shared_ptr<EffectImageFilter> filter)
+void AniFilter::AddNextFilter(sk_sp<SkImageFilter> filter)
 {
-    effectFilters_.emplace_back(filter);
+    skFilters_.emplace_back(filter);
 }
 
 ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
 {
-    Drawing::TileMode tileMode = Drawing::TileMode::DECAL;
+    SkTileMode tileMode = SkTileMode::kDecal;
     AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
     if (aniFilter == nullptr) {
         EFFECT_LOG_E("GetFilterFromEnv failed");
@@ -65,7 +69,7 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
     if (param >= 0) {
         radius = static_cast<float>(param);
     }
-    auto blur = EffectImageFilter::Blur(radius, tileMode);
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius, tileMode);
     aniFilter->AddNextFilter(blur);
 
     static const char* className = ANI_CLASS_FILTER.c_str();
@@ -82,7 +86,7 @@ ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     bool forceCpu = false;
-    if (thisFilter->Render(forceCpu) != DrawingError::ERR_OK) {
+    if (thisFilter->Render(forceCpu) != DrawError::ERR_OK) {
         EFFECT_LOG_E("Render error");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }

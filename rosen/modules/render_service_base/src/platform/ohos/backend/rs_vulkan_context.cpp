@@ -544,12 +544,6 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
     } else {
         drawingContext->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
-    return drawingContext;
-}
-
-std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir)
-{
-    auto drawingContext = DoCreateDrawingContext(cacheDir);
     RsVulkanContext::SaveNewDrawingContext(gettid(), drawingContext);
     return drawingContext;
 }
