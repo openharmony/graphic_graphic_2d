@@ -1872,13 +1872,27 @@ static bool CheckOverlayDisplayEnable()
 #endif
 }
 
+bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)
+{
+    auto screenList = rootNode->GetChildrenCount();
+    uint32_t count = 0;
+    for (auto node : screenList) {
+        auto screenNode = node.lock();
+        if (screenNode && screenNode->GetChildrenCount() > 0 )
+        {
+            count++;
+        }
+    }
+    return count > 1;
+}
+
 void RSMainThread::CheckIfHardwareForcedDisabled()
 {
     ColorFilterMode colorFilterMode = RSBaseRenderEngine::GetColorFilterMode();
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
+    bool isMultiDisplay = GetMultiDisplay(rootNode);
     MultiDisplayChange(isMultiDisplay);
 
     // check all children of global root node, and only disable hardware composer
