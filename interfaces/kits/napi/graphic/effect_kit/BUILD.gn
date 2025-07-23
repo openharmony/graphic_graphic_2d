@@ -58,12 +58,6 @@ if (is_arkui_x) {
     deps = [
       "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
-      "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
-    ]
-
-    external_deps = [
-      "image_framework:image",
-      "image_framework:image_native",
     ]
 
     if (current_os == "ios") {
