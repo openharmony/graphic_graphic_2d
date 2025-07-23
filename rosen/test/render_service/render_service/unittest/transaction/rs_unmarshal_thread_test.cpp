@@ -150,6 +150,32 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RecvParcel003
+ * @tc.desc: Test RecvParcel
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
+{
+    RSUnmarshalThread::Instance().Start();
+    ASSERT_NE(RSUnmarshalThread::Instance().runner_, nullptr);
+    ASSERT_NE(RSUnmarshalThread::Instance().handler_, nullptr);
+
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    transactionData->SetDVSyncUpdate(true);
+
+    RSUnmarshalThread::Instance().RecvParcel(data);
+
+    bool success = data->WriteParcelable(transactionData.get());
+    ASSERT_EQ(success,true);
+    RSUnmarshalThread::Instance().RecvParcel(data);
+    bool isNonSystemAppCalling = true;
+    pid_t callingPid = 1111;
+    RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
+}
+
+/**
  * @tc.name: TransactionDataStatistics001
  * @tc.desc: Test ReportTransactionDataStatistics and ClearTransactionDataStatistics
  * @tc.type: FUNC

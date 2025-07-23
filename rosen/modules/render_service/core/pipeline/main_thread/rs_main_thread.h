@@ -577,7 +577,7 @@ private:
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
     bool ExistBufferIsVisibleAndUpdate();
-    bool NeedConsumeMultiCommand(uint32_t& dvsyncPid);
+    bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
         std::vector<std::unique_ptr<RSTransactionData>>& transactionVec);
     class RSScreenNodeListener : public RSIScreenNodeListener {

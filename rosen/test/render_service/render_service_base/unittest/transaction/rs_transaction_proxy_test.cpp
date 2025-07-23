@@ -925,5 +925,23 @@ HWTEST_F(RSTransactionProxyTest, StartCloseSyncTransactionFallbackTaskTest, Test
     sleep(8);
     ASSERT_TRUE(instance->taskNames_.empty());
 }
+
+/**
+ * @tc.name: FlushImplicitTransaction008
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction008, TestSize.Level1)
+{
+    uint64_t timestamp = 1;
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    ASSERT_NE(rsTransactionProxy,nullptr);
+    rsTransactionProxy->StartSyncTransaction();
+    rsTransactionProxy->needSync_ = false;
+    std::string ability = "";
+    rsTransactionProxy->FlushImplicitTransaction(timestamp, ability, true);
+    ASSERT_EQ(rsTransactionProxy->timestamp_, 1);
+}
 } // namespace Rosen
 } // namespace OHOS

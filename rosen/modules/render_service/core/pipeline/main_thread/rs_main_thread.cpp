@@ -1292,7 +1292,7 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 #endif
 }
 
-bool RSMainThread::NeedConsumeMultiCommand(uint32_t& dvsyncPid)
+bool RSMainThread::NeedConsumeMultiCommand(int32_t& dvsyncPid)
 {
     bool needUpdateDVSyncTime = rsVSyncDistributor_->NeedUpdateVSyncTime(dvsyncPid);
     int64_t lastUpdateTime = rsVSyncDistributor_->GetLastUpdateTime();
@@ -1326,7 +1326,7 @@ bool RSMainThread::NeedConsumeDVSyncCommand(uint32_t& endIndex,
 void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
     std::string& transactionFlags)
 {
-    uint32_t dvsyncPid = 0;
+    int32_t dvsyncPid = 0;
     bool needConsume = NeedConsumeMultiCommand(dvsyncPid);
     for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
         auto pid = rsTransactionElem.first;

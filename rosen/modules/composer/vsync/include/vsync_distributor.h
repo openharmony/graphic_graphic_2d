@@ -160,7 +160,7 @@ public:
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
     VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
-    int64_t GetUiCommandDelayTime();
+    virtual int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
     int64_t GetVsyncCount();
@@ -183,10 +183,10 @@ public:
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
     void SetTaskEndWithTime(uint64_t time);
     bool NeedSkipForSurfaceBuffer(uint64_t id);
-    bool NeedUpdateVSyncTime(uint32_t &pid);
+    virtual bool NeedUpdateVSyncTime(uint32_t &pid);
     void SetVSyncTimeUpdated();
-    int64_t GetLastUpdateTime();
-    void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
+    virtual int64_t GetLastUpdateTime();
+    virtual void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
 
 private:
 
