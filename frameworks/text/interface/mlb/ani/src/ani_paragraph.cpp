@@ -34,6 +34,19 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+    const std::string PAINT_SIGNATURE = std::string(ANI_CLASS_CANVAS) + "DD:V";
+    const std::string PAINT_ON_PATH_SIGNATURE = std::string(ANI_CLASS_CANVAS) + std::string(ANI_CLASS_PATH) + "DD:V";
+    const std::string GET_RECTS_FOR_RANGE_SIGNATURE =
+        std::string(ANI_INTERFACE_RANGE) + std::string(ANI_ENUM_RECT_WIDTH_STYLE) +
+        std::string(ANI_ENUM_RECT_HEIGHT_STYLE) + ":" + std::string(ANI_ARRAY);
+    const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGNATURE =
+        "DD:" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY);
+    const std::string GET_WORD_BOUNDARY_SIGNATURE = "D:" + std::string(ANI_INTERFACE_RANGE);
+    const std::string GET_TEXT_LINES_SIGNATURE = ":" + std::string(ANI_ARRAY);
+    const std::string GET_ACTUAL_TEXT_RANGE_SIGNATURE = "DZ:" + std::string(ANI_INTERFACE_RANGE);
+} // namespace
+
 ani_object AniParagraph::SetTypography(ani_env* env, std::unique_ptr<OHOS::Rosen::Typography>& typography)
 {
     ani_object pargraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
@@ -63,18 +76,10 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         return ANI_NOT_FOUND;
     }
 
-    std::string paintSignature = std::string(ANI_CLASS_CANVAS) + "DD:V";
-    std::string paintOnPathSignature = std::string(ANI_CLASS_CANVAS) + std::string(ANI_CLASS_PATH) + "DD:V";
-    std::string getRectsForRangeSignature = std::string(ANI_INTERFACE_RANGE) + std::string(ANI_ENUM_RECT_WIDTH_STYLE)
-                                            + std::string(ANI_ENUM_RECT_HEIGHT_STYLE) + ":" + std::string(ANI_ARRAY);
-    std::string getGlyphPositionAtCoordinateSignature = "DD:" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY);
-    std::string getWordBoundarySignature = "D:" + std::string(ANI_INTERFACE_RANGE);
-    std::string getTextLinesSignature = ":" + std::string(ANI_ARRAY);
-    std::string getActualTextRangeSignature = "DZ:" + std::string(ANI_INTERFACE_RANGE);
     std::array methods = {
         ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
-        ani_native_function{"paint", paintSignature.c_str(), reinterpret_cast<void*>(Paint)},
-        ani_native_function{"paintOnPath", paintOnPathSignature.c_str(), reinterpret_cast<void*>(PaintOnPath)},
+        ani_native_function{"paint", PAINT_SIGNATURE.c_str(), reinterpret_cast<void*>(Paint)},
+        ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGNATURE.c_str(), reinterpret_cast<void*>(PaintOnPath)},
         ani_native_function{"getMaxWidth", ":D", reinterpret_cast<void*>(GetMaxWidth)},
         ani_native_function{"getHeight", ":D", reinterpret_cast<void*>(GetHeight)},
         ani_native_function{"getLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
@@ -84,19 +89,19 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"getAlphabeticBaseline", ":D", reinterpret_cast<void*>(GetAlphabeticBaseline)},
         ani_native_function{"getIdeographicBaseline", ":D", reinterpret_cast<void*>(GetIdeographicBaseline)},
         ani_native_function{
-            "getRectsForRange", getRectsForRangeSignature.c_str(), reinterpret_cast<void*>(GetRectsForRange)},
+            "getRectsForRange", GET_RECTS_FOR_RANGE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetRectsForRange)},
         ani_native_function{
             "getRectsForPlaceholders", ":Lescompat/Array;", reinterpret_cast<void*>(GetRectsForPlaceholders)},
-        ani_native_function{"getGlyphPositionAtCoordinate", getGlyphPositionAtCoordinateSignature.c_str(),
+        ani_native_function{"getGlyphPositionAtCoordinate", GET_GLYPH_POSITION_AT_COORDINATE_SIGNATURE.c_str(),
             reinterpret_cast<void*>(GetGlyphPositionAtCoordinate)},
         ani_native_function{
-            "getWordBoundary", getWordBoundarySignature.c_str(), reinterpret_cast<void*>(GetWordBoundary)},
+            "getWordBoundary", GET_WORD_BOUNDARY_SIGNATURE.c_str(), reinterpret_cast<void*>(GetWordBoundary)},
         ani_native_function{"getLineCount", ":D", reinterpret_cast<void*>(GetLineCount)},
         ani_native_function{"getLineHeight", "D:D", reinterpret_cast<void*>(GetLineHeight)},
         ani_native_function{"getLineWidth", "D:D", reinterpret_cast<void*>(GetLineWidth)},
         ani_native_function{"didExceedMaxLines", ":Z", reinterpret_cast<void*>(DidExceedMaxLines)},
         ani_native_function{
-            "getActualTextRange", getActualTextRangeSignature.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
+            "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;",
             reinterpret_cast<void*>(GetLineMetricsAt)},
@@ -262,7 +267,6 @@ ani_object AniParagraph::GetRectsForRange(
     OHOS::Text::ANI::RectRange rectRange;
     TextRectWidthStyle widthStyleInner;
     TextRectHeightStyle heightStyleInner;
-
     if (AniTextRectConverter::ParseRangeToNative(env, range, rectRange) != ANI_OK) {
         TEXT_LOGE("Failed to parse range");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -278,10 +282,8 @@ ani_object AniParagraph::GetRectsForRange(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-
     std::vector<TextRect> rectsForRange =
         typography->GetTextRectsByBoundary(rectRange.start, rectRange.end, heightStyleInner, widthStyleInner);
-
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, rectsForRange.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
