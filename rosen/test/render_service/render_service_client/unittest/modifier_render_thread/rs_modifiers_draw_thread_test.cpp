@@ -210,12 +210,7 @@ HWTEST_F(RSModifiersDrawThreadTest, TargetCommand001, TestSize.Level1)
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
     cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::CANVAS);
     uint64_t propertyId = 1;
-#if defined(MODIFIER_NG)
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-        nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
     ASSERT_TRUE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::SVG, cmd->GetType(),
         cmd->GetSubType(), false));
 }
@@ -232,12 +227,7 @@ HWTEST_F(RSModifiersDrawThreadTest, TargetCommand002, TestSize.Level1)
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
     cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::NONE);
     uint64_t propertyId = 1;
-#if defined(MODIFIER_NG)
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-        nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_INCREMENTAL);
-#endif
     ASSERT_FALSE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
         cmd->GetSubType(), false));
     ASSERT_FALSE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
@@ -310,12 +300,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest003, TestSize.Level1)
     ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
     ASSERT_FALSE(cmdList->IsEmpty());
     for (int i = 0; i < opCnt; i++) {
-#if defined(MODIFIER_NG)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-        auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
         nodeId++;
         propertyId++;
@@ -340,12 +325,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
     cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
     auto transactionData = std::make_unique<RSTransactionData>();
-#if defined(MODIFIER_NG)
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, nullptr, propertyId);
-#else
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-        nodeId, nullptr, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
     bool isNeedCommit = true;
@@ -373,12 +353,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
     Drawing::BrushHandle brushHandle;
     Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
     ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
-#if defined(MODIFIER_NG)
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-        nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
     bool isNeedCommit = true;
@@ -406,12 +381,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest006, TestSize.Level1)
     Drawing::BrushHandle brushHandle;
     Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
     ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
-#if defined(MODIFIER_NG)
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-        nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
     bool isNeedCommit = true;
@@ -437,12 +407,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest007, TestSize.Level1)
     Drawing::BrushHandle brushHandle;
     Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
     ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
-#if defined(MODIFIER_NG)
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-        nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
     bool isNeedCommit = true;
@@ -469,12 +434,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest008, TestSize.Level1)
         Drawing::BrushHandle brushHandle;
         Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
         ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
-#if defined(MODIFIER_NG)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-        auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
@@ -502,12 +462,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest009, TestSize.Level1)
         Drawing::BrushHandle brushHandle;
         Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
         ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
-#if defined(MODIFIER_NG)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-        auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
@@ -536,12 +491,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest010, TestSize.Level1)
         Drawing::BrushHandle brushHandle;
         Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
         ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
-#if defined(MODIFIER_NG)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-        auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
@@ -570,12 +520,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest011, TestSize.Level1)
         Drawing::BrushHandle brushHandle;
         Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
         ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
-#if defined(MODIFIER_NG)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-#else
-        auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            nodeId, cmdList, propertyId, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
-#endif
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
     auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
