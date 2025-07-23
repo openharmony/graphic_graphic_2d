@@ -44,7 +44,7 @@ void PolicyConfigVisitorImpl::SetSettingModeId(int32_t settingModeId)
     if (xmlModeId_ == xmlModeId.value()) {
         return;
     }
-    HGM_LOGI("Cur xmlModeId: %{public}d, new xmlModeId: %{public}d", xmlModeId_, xmlModeId.value());
+    HGM_LOGI("Cur xmlModeId: %{public}s, new xmlModeId: %{public}s", xmlModeId_.c_str(), xmlModeId.value().c_str());
     xmlModeId_ = xmlModeId.value();
     OnUpdate();
 }
