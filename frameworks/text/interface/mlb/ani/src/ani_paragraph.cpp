@@ -36,16 +36,14 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-    const std::string PAINT_SIGNATURE = std::string(ANI_CLASS_CANVAS) + "DD:V";
-    const std::string PAINT_ON_PATH_SIGNATURE = std::string(ANI_CLASS_CANVAS) + std::string(ANI_CLASS_PATH) + "DD:V";
-    const std::string GET_RECTS_FOR_RANGE_SIGNATURE =
-        std::string(ANI_INTERFACE_RANGE) + std::string(ANI_ENUM_RECT_WIDTH_STYLE) +
-        std::string(ANI_ENUM_RECT_HEIGHT_STYLE) + ":" + std::string(ANI_ARRAY);
-    const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGNATURE =
-        "DD:" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY);
-    const std::string GET_WORD_BOUNDARY_SIGNATURE = "D:" + std::string(ANI_INTERFACE_RANGE);
-    const std::string GET_TEXT_LINES_SIGNATURE = ":" + std::string(ANI_ARRAY);
-    const std::string GET_ACTUAL_TEXT_RANGE_SIGNATURE = "DZ:" + std::string(ANI_INTERFACE_RANGE);
+    const std::string PAINT_SIGN = std::string(ANI_CLASS_CANVAS) + "DD:V";
+    const std::string PAINT_ON_PATH_SIGN = std::string(ANI_CLASS_CANVAS) + std::string(ANI_CLASS_PATH) + "DD:V";
+    const std::string GET_RECTS_SIGN = std::string(ANI_INTERFACE_RANGE) + std::string(ANI_ENUM_RECT_WIDTH_STYLE)
+        + std::string(ANI_ENUM_RECT_HEIGHT_STYLE) + ":" + std::string(ANI_ARRAY);
+    const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGN = "DD:" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY);
+    const std::string GET_WORD_BOUNDARY_SIGN = "D:" + std::string(ANI_INTERFACE_RANGE);
+    const std::string GET_TEXT_LINES_SIGN = ":" + std::string(ANI_ARRAY);
+    const std::string GET_ACTUAL_TEXT_RANGE_SIGN = "DZ:" + std::string(ANI_INTERFACE_RANGE);
 } // namespace
 
 ani_object ThrowErrorAndReturnUndefined(ani_env* env)
@@ -88,8 +86,8 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 
     std::array methods = {
         ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
-        ani_native_function{"paint", PAINT_SIGNATURE.c_str(), reinterpret_cast<void*>(Paint)},
-        ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGNATURE.c_str(), reinterpret_cast<void*>(PaintOnPath)},
+        ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
+        ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGN.c_str(), reinterpret_cast<void*>(PaintOnPath)},
         ani_native_function{"getMaxWidth", ":D", reinterpret_cast<void*>(GetMaxWidth)},
         ani_native_function{"getHeight", ":D", reinterpret_cast<void*>(GetHeight)},
         ani_native_function{"getLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
@@ -98,21 +96,20 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"getMaxIntrinsicWidth", ":D", reinterpret_cast<void*>(GetMaxIntrinsicWidth)},
         ani_native_function{"getAlphabeticBaseline", ":D", reinterpret_cast<void*>(GetAlphabeticBaseline)},
         ani_native_function{"getIdeographicBaseline", ":D", reinterpret_cast<void*>(GetIdeographicBaseline)},
-        ani_native_function{
-            "getRectsForRange", GET_RECTS_FOR_RANGE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetRectsForRange)},
+        ani_native_function{"getRectsForRange", GET_RECTS_SIGN.c_str(), reinterpret_cast<void*>(GetRectsForRange)},
         ani_native_function{
             "getRectsForPlaceholders", ":Lescompat/Array;", reinterpret_cast<void*>(GetRectsForPlaceholders)},
-        ani_native_function{"getGlyphPositionAtCoordinate", GET_GLYPH_POSITION_AT_COORDINATE_SIGNATURE.c_str(),
+        ani_native_function{"getGlyphPositionAtCoordinate", GET_GLYPH_POSITION_AT_COORDINATE_SIGN.c_str(),
             reinterpret_cast<void*>(GetGlyphPositionAtCoordinate)},
         ani_native_function{
-            "getWordBoundary", GET_WORD_BOUNDARY_SIGNATURE.c_str(), reinterpret_cast<void*>(GetWordBoundary)},
+            "getWordBoundary", GET_WORD_BOUNDARY_SIGN.c_str(), reinterpret_cast<void*>(GetWordBoundary)},
         ani_native_function{"getLineCount", ":D", reinterpret_cast<void*>(GetLineCount)},
         ani_native_function{"getLineHeight", "D:D", reinterpret_cast<void*>(GetLineHeight)},
         ani_native_function{"getLineWidth", "D:D", reinterpret_cast<void*>(GetLineWidth)},
         ani_native_function{"didExceedMaxLines", ":Z", reinterpret_cast<void*>(DidExceedMaxLines)},
         ani_native_function{
-            "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
-        ani_native_function{"getTextLines", GET_TEXT_LINES_SIGNATURE.c_str(), reinterpret_cast<void*>(GetTextLines)},
+            "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
+        ani_native_function{"getTextLines", GET_TEXT_LINES_SIGN.c_str(), reinterpret_cast<void*>(GetTextLines)},
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;",
             reinterpret_cast<void*>(GetLineMetricsAt)},

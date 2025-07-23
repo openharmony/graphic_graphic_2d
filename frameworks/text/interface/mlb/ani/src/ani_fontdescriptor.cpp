@@ -47,7 +47,6 @@ std::unordered_map<int, int> g_weightMap = {
         if (ret != ANI_OK) { \
             TEXT_LOGE("Failed to parse %{public}s: ret %{public}d", propName, ret); \
             (error_var) = ret; \
-            break; \
         } \
     } while (0)
 
@@ -58,7 +57,6 @@ std::unordered_map<int, int> g_weightMap = {
         if (ret != ANI_OK) { \
             TEXT_LOGE("Failed to convert %{public}s: ret %{public}d", #field, ret); \
             (error_var) = ANI_INVALID_ARGS; \
-            break; \
         } \
     } while (0)
 
