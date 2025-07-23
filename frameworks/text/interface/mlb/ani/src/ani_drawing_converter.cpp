@@ -112,19 +112,19 @@ ani_object AniDrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawin
 ani_status AniDrawingConverter::ParseRectToAni(ani_env* env, const OHOS::Rosen::Drawing::RectF& rect, ani_object& obj)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT, ":V");
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(rect.left_))) {
+    if (env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(rect.left_)) != ANI_OK) {
         TEXT_LOGE("Param left is invalid");
         return ANI_INVALID_ARGS;
     }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(rect.top_))) {
+    if (env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(rect.top_)) != ANI_OK) {
         TEXT_LOGE("Param top is invalid");
         return ANI_INVALID_ARGS;
     }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "right", ani_double(rect.right_))) {
+    if (env->Object_SetPropertyByName_Double(aniObj, "right", ani_double(rect.right_)) != ANI_OK) {
         TEXT_LOGE("Param right is invalid");
         return ANI_INVALID_ARGS;
     }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(rect.bottom_))) {
+    if (env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(rect.bottom_)) != ANI_OK) {
         TEXT_LOGE("Param bottom is invalid");
         return ANI_INVALID_ARGS;
     }
@@ -135,10 +135,10 @@ ani_status AniDrawingConverter::ParseRectToAni(ani_env* env, const OHOS::Rosen::
 ani_status AniDrawingConverter::ParsePointToAni(ani_env* env, const OHOS::Rosen::Drawing::Point& point, ani_object& obj)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_POINT, ":V");
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "x", ani_double(point.GetX()))) {
+    if (env->Object_SetPropertyByName_Double(aniObj, "x", ani_double(point.GetX())) != ANI_OK) {
         return ANI_INVALID_ARGS;
     }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "y", ani_double(point.GetY()))) {
+    if (env->Object_SetPropertyByName_Double(aniObj, "y", ani_double(point.GetY())) != ANI_OK) {
         return ANI_INVALID_ARGS;
     }
     obj = aniObj;

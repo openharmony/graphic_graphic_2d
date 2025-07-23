@@ -263,17 +263,17 @@ ani_object AniParagraph::GetRectsForRange(
     TextRectWidthStyle widthStyleInner;
     TextRectHeightStyle heightStyleInner;
 
-    if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
+    if (AniTextRectConverter::ParseRangeToNative(env, range, rectRange) != ANI_OK) {
         TEXT_LOGE("Failed to parse range");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    if (ANI_OK != AniTextRectConverter::ParseWidthStyleToNative(env, widthStyle, widthStyleInner)) {
+    if (AniTextRectConverter::ParseWidthStyleToNative(env, widthStyle, widthStyleInner) != ANI_OK) {
         TEXT_LOGE("Failed to parse width style");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    if (ANI_OK != AniTextRectConverter::ParseHeightStyleToNative(env, heightStyle, heightStyleInner)) {
+    if (AniTextRectConverter::ParseHeightStyleToNative(env, heightStyle, heightStyleInner) != ANI_OK) {
         TEXT_LOGE("Failed to parse height style");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
@@ -282,8 +282,7 @@ ani_object AniParagraph::GetRectsForRange(
     std::vector<TextRect> rectsForRange =
         typography->GetTextRectsByBoundary(rectRange.start, rectRange.end, heightStyleInner, widthStyleInner);
 
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, rectsForRange.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, rectsForRange.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
@@ -294,9 +293,13 @@ ani_object AniParagraph::GetRectsForRange(
     for (const auto& textBox : rectsForRange) {
         ani_object aniObj = nullptr;
         ani_status status = AniTextRectConverter::ParseTextBoxToAni(env, textBox, aniObj);
-        if (ANI_OK != status
-            || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Failed to set textBox item %{public}zu", index);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to parse text box,index %{public}zu,status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to set textBox item,index %{public}zu,status %{public}d", index, status);
             continue;
         }
         index++;
@@ -315,8 +318,7 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
 
     std::vector<TextRect> rectsForRange = typography->GetTextRectsOfPlaceholders();
 
-    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    arrayObj = AniTextUtils::CreateAniArray(env, rectsForRange.size());
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, rectsForRange.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
@@ -327,9 +329,13 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
     for (const auto& textBox : rectsForRange) {
         ani_object aniObj = nullptr;
         ani_status status = AniTextRectConverter::ParseTextBoxToAni(env, textBox, aniObj);
-        if (ANI_OK != status
-            || ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Failed to set textBox item %{public}zu", index);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to parse text box,index %{public}zu,status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to set textBox item,index %{public}zu,status %{public}d", index, status);
             continue;
         }
         index++;
