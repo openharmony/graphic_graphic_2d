@@ -439,12 +439,11 @@ void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
             continue;
         }
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
-        auto& params = surfaceDrawable->GetRenderParams();
-        if (!params) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+        if (!surfaceParams) {
             RS_LOGW("RSUniRenderVirtualProcessor::%{public}s surfaceParams null!", __func__);
             continue;
         }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
         auto buffer = surfaceParams->GetBuffer();
         if (!buffer) {
             RS_LOGI("RSUniRenderVirtualProcessor::%{public}s buffer null!", __func__);
@@ -453,11 +452,11 @@ void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
         if (surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
             continue; // skip protected layer
         }
-        buffer->SetAndMergeSyncFence(acquireFence);
         RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: fence merged id: %" PRIu64 " name: %s",
             __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
         RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: fence merged id: %{public}" PRIu64 " name: %{public}s",
             __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
+        buffer->SetAndMergeSyncFence(acquireFence);
     }
 }
 
