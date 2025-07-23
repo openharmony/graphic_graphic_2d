@@ -294,12 +294,12 @@ ani_object AniParagraph::GetRectsForRange(
         ani_object aniObj = nullptr;
         ani_status status = AniTextRectConverter::ParseTextBoxToAni(env, textBox, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse text box,index %{public}zu,status %{public}d", index, status);
+            TEXT_LOGE("Failed to parse text box,index %{public}zu, status %{public}d", index, status);
             continue;
         }
         status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to set textBox item,index %{public}zu,status %{public}d", index, status);
+            TEXT_LOGE("Failed to set textBox item,index %{public}zu, status %{public}d", index, status);
             continue;
         }
         index++;
@@ -330,12 +330,12 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
         ani_object aniObj = nullptr;
         ani_status status = AniTextRectConverter::ParseTextBoxToAni(env, textBox, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to parse text box,index %{public}zu,status %{public}d", index, status);
+            TEXT_LOGE("Failed to parse text box,index %{public}zu, status %{public}d", index, status);
             continue;
         }
         status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (status != ANI_OK) {
-            TEXT_LOGE("Failed to set textBox item,index %{public}zu,status %{public}d", index, status);
+            TEXT_LOGE("Failed to set textBox item,index %{public}zu, status %{public}d", index, status);
             continue;
         }
         index++;

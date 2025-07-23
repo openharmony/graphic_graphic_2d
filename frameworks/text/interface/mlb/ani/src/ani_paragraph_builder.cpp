@@ -208,7 +208,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
     ani_status ret =
         env->Object_SetFieldByName_Long(lineTypographyObj, NATIVE_OBJ, reinterpret_cast<ani_long>(lineTypographyPtr));
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to create ani Paragraph obj, ani_status: %{public}d", ret);
+        TEXT_LOGE("Failed to create ani Paragraph obj, ret %{public}d", ret);
         delete lineTypographyPtr;
         lineTypographyPtr = nullptr;
         return AniTextUtils::CreateAniUndefined(env);
