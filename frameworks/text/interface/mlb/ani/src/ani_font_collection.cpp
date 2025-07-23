@@ -156,7 +156,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     std::string globalInstance = ":" + std::string(ANI_CLASS_FONT_COLLECTION);
-    std::string loadFontSync = "Lstd/core/String;Lstd/core/Object;:V";
+    std::string loadFontSync = "C{std.core.String}X{C{global.resource.Resource}C{std.core.String}}:";
 
     std::array methods = {
         ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
