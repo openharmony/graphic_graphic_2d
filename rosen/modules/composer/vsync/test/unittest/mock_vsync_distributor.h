@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,14 +16,14 @@
 #ifndef MOCK_VSYNC_VSYNC_DISTRIBUTOR_H
 #define MOCK_VSYNC_VSYNC_DISTRIBUTOR_H
 
-#include"vsync_distributor.h"
-namespace OHOS{
-namespace Rosen{
+#include "vsync_distributor.h"
+namespace OHOS {
+namespace Rosen {
 
-class MockVSyncDistributor: public VSyncDistributor{
+class MockVSyncDistributor : public VSyncDistributor{
 public:
-    MockVSyncDistributor(sptr<VSyncController> controller, std::string name, DVSyncFeatureParam dvsyncParam={})
-        : VSyncDistributor(controller, name, dvsyncParam){}
+    MockVSyncDistributor(sptr<VSyncController> controller, std::string name, DVSyncFeatureParam dvsyncParam = {})
+        : VSyncDistributor(controller, name, dvsyncParam) {}
     ~MockVSyncDistributor() {};
     // nocopyable
     MockVSyncDistributor(const MockVSyncDistributor &) = delete;

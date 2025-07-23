@@ -936,7 +936,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction008, TestSize.Level1)
 {
     uint64_t timestamp = 1;
     auto rsTransactionProxy = RSTransactionProxy::GetInstance();
-    ASSERT_NE(rsTransactionProxy,nullptr);
+    ASSERT_NE(rsTransactionProxy, nullptr);
     rsTransactionProxy->StartSyncTransaction();
     rsTransactionProxy->needSync_ = false;
     std::string ability = "";

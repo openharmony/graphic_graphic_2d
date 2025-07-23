@@ -168,7 +168,7 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
     RSUnmarshalThread::Instance().RecvParcel(data);
 
     bool success = data->WriteParcelable(transactionData.get());
-    ASSERT_EQ(success,true);
+    ASSERT_EQ(success, true);
     RSUnmarshalThread::Instance().RecvParcel(data);
     bool isNonSystemAppCalling = true;
     pid_t callingPid = 1111;
