@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include "ani_text_style_converter.h"
+
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
-#include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
 #include "draw/color.h"
 #include "utils/text_log.h"

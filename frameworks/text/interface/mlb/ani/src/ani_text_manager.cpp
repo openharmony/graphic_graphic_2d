@@ -121,7 +121,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[Manager] Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods for Manager, ret %{public}d", ret);
         return ANI_ERROR;
     }
     return ANI_OK;

@@ -32,7 +32,26 @@ private:
     static void Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y);
     static void PaintOnPath(
         ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset, ani_double vOffset);
+    static ani_double GetMaxWidth(ani_env* env, ani_object object);
+    static ani_double GetHeight(ani_env* env, ani_object object);
     static ani_double GetLongestLine(ani_env* env, ani_object object);
+    static ani_double GetLongestLineWithIndent(ani_env* env, ani_object object);
+    static ani_double GetMinIntrinsicWidth(ani_env* env, ani_object object);
+    static ani_double GetMaxIntrinsicWidth(ani_env* env, ani_object object);
+    static ani_double GetAlphabeticBaseline(ani_env* env, ani_object object);
+    static ani_double GetIdeographicBaseline(ani_env* env, ani_object object);
+    static ani_object GetRectsForRange(
+        ani_env* env, ani_object object, ani_object range, ani_object widthStyle, ani_object heightStyle);
+    static ani_object GetRectsForPlaceholders(ani_env* env, ani_object object);
+    static ani_object GetGlyphPositionAtCoordinate(ani_env* env, ani_object object, ani_double x, ani_double y);
+    static ani_object GetWordBoundary(ani_env* env, ani_object object, ani_double offset);
+    static ani_double GetLineCount(ani_env* env, ani_object object);
+    static ani_double GetLineHeight(ani_env* env, ani_object object, ani_double line);
+    static ani_double GetLineWidth(ani_env* env, ani_object object, ani_double line);
+    static ani_boolean DidExceedMaxLines(ani_env* env, ani_object object);
+    static ani_ref GetTextLines(ani_env* env, ani_object object);
+    static ani_object GetActualTextRange(
+        ani_env* env, ani_object object, ani_double lineNumber, ani_boolean includeSpaces);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
 };

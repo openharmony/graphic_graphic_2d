@@ -60,14 +60,16 @@ ani_object AniColorFilter::CreateBlendModeColorFilter(
     ColorQuad color;
     if (!GetColorQuadFromColorObj(env, objColor, color)) {
         ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilter failed cause by colorObj");
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid objColor params.");
         return CreateAniUndefined(env);
     }
 
     ani_int blendMode;
     if (ANI_OK != env->EnumItem_GetValue_Int(aniBlendMode, &blendMode)) {
         ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilter failed cause by blendMode");
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid blendMode params.");
         return CreateAniUndefined(env);
     }
 
@@ -89,14 +91,16 @@ ani_object AniColorFilter::CreateBlendModeColorFilterWithNumber(
     ColorQuad color;
     if (!GetColorQuadFromParam(env, objColor, color)) {
         ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilterWithNumber failed cause by colorObj");
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return CreateAniUndefined(env);
     }
 
     ani_int blendMode;
     if (ANI_OK != env->EnumItem_GetValue_Int(aniBlendMode, &blendMode)) {
         ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilterWithNumber failed cause by blendMode");
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return CreateAniUndefined(env);
     }
 

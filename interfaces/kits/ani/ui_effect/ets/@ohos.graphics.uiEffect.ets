@@ -56,6 +56,10 @@ namespace uiEffect {
     fraction: number;
   }
   export class BrightnessBlenderInternal implements BrightnessBlender {
+    private brightnessBlenderNativeObj: long = 0;
+    constructor(context: long) {
+      this.brightnessBlenderNativeObj = context;
+    }
     cubicRate: number;
     quadraticRate: number;
     linearRate: number;

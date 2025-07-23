@@ -42,7 +42,7 @@ public:
 
 private:
     static thread_local std::shared_ptr<ColorPicker> sColorPicker_;
-    };
+};
 } // namespace Rosen
 } // namespace OHOS
 #endif // OHOS_ANI_COLOR_PICKER_H

@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 
+#include "ani_text_utils.h"
+
 #include <cstdarg>
 #include <cstdint>
 #include <fstream>
 #include <sstream>
 #include <string>
 
-#include "ani_text_utils.h"
 #include "typography_style.h"
 
 namespace OHOS::Text::ANI {
@@ -294,7 +295,6 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        std::string familyName;
         ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), str);
         if (ret != ANI_OK) {
             return result;

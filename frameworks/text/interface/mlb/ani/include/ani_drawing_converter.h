@@ -20,6 +20,8 @@
 
 #include "draw/color.h"
 #include "text/font_metrics.h"
+#include "utils/point.h"
+#include "utils/rect.h"
 
 namespace OHOS::Text::ANI {
 
@@ -32,8 +34,10 @@ class AniDrawingConverter final {
 public:
     static ani_status ParseDrawingColorToNative(
         ani_env* env, ani_object obj, const std::string& str, OHOS::Rosen::Drawing::Color& colorSrc);
-
+    static ani_status ParseDrawingPointToNative(ani_env* env, ani_object obj, OHOS::Rosen::Drawing::Point& point);
     static ani_object ParseFontMetricsToAni(ani_env* env, const OHOS::Rosen::Drawing::FontMetrics& fontMetrics);
+    static ani_status ParseRectToAni(ani_env* env, const OHOS::Rosen::Drawing::RectF& rect, ani_object& obj);
+    static ani_status ParsePointToAni(ani_env* env, const OHOS::Rosen::Drawing::Point& point, ani_object& obj);
     static ani_status ParseColorToAni(ani_env* env, const OHOS::Rosen::Drawing::Color& color, ani_object& obj);
 };
 } // namespace OHOS::Text::ANI

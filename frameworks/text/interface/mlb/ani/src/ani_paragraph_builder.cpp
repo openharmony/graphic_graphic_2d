@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "ani_paragraph_builder.h"
+
 #include <algorithm>
 #include <codecvt>
 #include <cstdint>
@@ -20,8 +22,8 @@
 #include "ani_common.h"
 #include "ani_font_collection.h"
 #include "ani_paragraph.h"
-#include "ani_paragraph_builder.h"
 #include "ani_paragraph_style_converter.h"
+#include "ani_placeholder_converter.h"
 #include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
 #include "font_collection.h"
@@ -65,7 +67,7 @@ void AniParagraphBuilder::Constructor(
     TypographyCreate* typographyCreate = typographyCreateNative.release();
     ani_status ret = env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyCreate));
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to create ani ParagraphBuilder obj");
+        TEXT_LOGE("Failed to create ani TypographyCreate obj");
         delete typographyCreate;
         typographyCreate = nullptr;
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "AniParagraphBuilder create error.");
@@ -93,17 +95,23 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + std::string(ANI_CLASS_FONT_COLLECTION) + ":V";
     std::string pushStyleSignature = std::string(ANI_INTERFACE_TEXT_STYLE) + ":V";
     std::string buildStyleSignature = ":" + std::string(ANI_CLASS_PARAGRAPH);
+    std::string addPlaceholderSignature = std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + ":V";
+    std::string buildLineTypesetSignature = ":" + std::string(ANI_ClASS_LINE_TYPESET);
     std::array methods = {
         ani_native_function{"constructorNative", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
         ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(PushStyle)},
         ani_native_function{"popStyle", ":V", reinterpret_cast<void*>(PopStyle)},
         ani_native_function{"addText", "Lstd/core/String;:V", reinterpret_cast<void*>(AddText)},
+        ani_native_function{"addPlaceholder", addPlaceholderSignature.c_str(), reinterpret_cast<void*>(AddPlaceholder)},
         ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(Build)},
+        ani_native_function{
+            "buildLineTypeset", buildLineTypesetSignature.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
+        ani_native_function{"addSymbol", "D:V", reinterpret_cast<void*>(AddSymbol)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind methods, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods for TypographyCreate, ret %{public}d", ret);
         return ANI_ERROR;
     }
     return ANI_OK;
@@ -113,7 +121,7 @@ void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object 
 {
     TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
     if (typographyCreate == nullptr) {
-        TEXT_LOGE("ParagraphBuilder is null");
+        TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
@@ -128,7 +136,7 @@ void AniParagraphBuilder::PopStyle(ani_env* env, ani_object object)
 {
     TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
     if (typographyCreate == nullptr) {
-        TEXT_LOGE("ParagraphBuilder is null");
+        TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
@@ -146,18 +154,34 @@ void AniParagraphBuilder::AddText(ani_env* env, ani_object object, ani_string te
     }
     TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
     if (typographyCreate == nullptr) {
-        TEXT_LOGE("ParagraphBuilder is null");
+        TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
     typographyCreate->AppendText(textStr);
 }
 
+void AniParagraphBuilder::AddPlaceholder(ani_env* env, ani_object object, ani_object placeholderSpan)
+{
+    TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
+    if (typographyCreate == nullptr) {
+        TEXT_LOGE("TypographyCreate is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
+    PlaceholderSpan placeholderSpanInner;
+    ani_status ret = AniPlaceholderConverter::ParsePlaceholderSpanToNative(env, placeholderSpan, placeholderSpanInner);
+    if (ret != ANI_OK) {
+        return;
+    }
+    typographyCreate->AppendPlaceholder(placeholderSpanInner);
+}
+
 ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
 {
     TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
     if (typographyCreate == nullptr) {
-        TEXT_LOGE("ParagraphBuilder is null");
+        TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -170,5 +194,47 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
         typographyPtr = nullptr;
     }
     return typographyObj;
+}
+
+ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object)
+{
+    TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
+    if (typographyCreate == nullptr) {
+        TEXT_LOGE("TypographyCreate is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    std::unique_ptr<OHOS::Rosen::LineTypography> lineTypography = typographyCreate->CreateLineTypography();
+    if (lineTypography == nullptr) {
+        TEXT_LOGE("TypographyCreate is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_LINE_TYPESET, ":V");
+    LineTypography* lineTypographyPtr = lineTypography.release();
+    ani_status ret =
+        env->Object_SetFieldByName_Long(lineTypographyObj, NATIVE_OBJ, reinterpret_cast<ani_long>(lineTypographyPtr));
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to create ani Paragraph obj, ret %{public}d", ret);
+        delete lineTypographyPtr;
+        lineTypographyPtr = nullptr;
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    return lineTypographyObj;
+}
+
+void AniParagraphBuilder::AddSymbol(ani_env* env, ani_object object, ani_double symbolId)
+{
+    TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
+    if (typographyCreate == nullptr) {
+        TEXT_LOGE("TypographyCreate is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
+    if (symbolId == 0) {
+        TEXT_LOGE("Invalid param symbolId");
+        return;
+    }
+    typographyCreate->AppendSymbol(static_cast<uint32_t>(symbolId));
 }
 } // namespace OHOS::Text::ANI

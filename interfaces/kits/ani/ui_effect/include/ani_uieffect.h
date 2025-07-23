@@ -63,7 +63,7 @@ public:
 
 private:
     static ani_object CreateAniObject(ani_env* env, std::string name, const char* signature, ani_long addr);
-    static void ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::shared_ptr<BrightnessBlender>& blender);
+    static void ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::unique_ptr<BrightnessBlender>& blender);
 };
 } // namespace Rosen
 } // namespace OHOS

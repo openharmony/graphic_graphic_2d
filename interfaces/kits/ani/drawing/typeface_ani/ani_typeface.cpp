@@ -30,6 +30,7 @@ ani_status AniTypeface::AniInit(ani_env *env)
     }
 
     std::array methods = {
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "getFamilyName", ":Lstd/core/String;",
             reinterpret_cast<void*>(GetFamilyName) },
         ani_native_function { "makeFromFile", "Lstd/core/String;:L@ohos/graphics/drawing/drawing/Typeface;",
@@ -46,6 +47,16 @@ ani_status AniTypeface::AniInit(ani_env *env)
     }
 
     return ANI_OK;
+}
+
+void AniTypeface::Constructor(ani_env* env, ani_object obj)
+{
+    AniTypeface* aniTypeface = new AniTypeface(GetZhCnTypeface());
+    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+        ROSEN_LOGE("AniTypeface::Constructor failed create aniTypeface");
+        delete aniTypeface;
+        return;
+    }
 }
 
 ani_string AniTypeface::GetFamilyName(ani_env* env, ani_object obj)
@@ -100,6 +111,21 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
         ROSEN_LOGE("AniTypeface::MakeFromFileWithArguments failed cause aniObj is undefined");
     }
     return aniObj;
+}
+
+std::shared_ptr<Typeface> LoadZhCnTypeface()
+{
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(AniTypeface::ZH_CN_TTF);
+    if (typeface == nullptr) {
+        typeface = Typeface::MakeDefault();
+    }
+    return typeface;
+}
+
+std::shared_ptr<Typeface> AniTypeface::GetZhCnTypeface()
+{
+    static std::shared_ptr<Typeface> zhCnTypeface = LoadZhCnTypeface();
+    return zhCnTypeface;
 }
 
 std::shared_ptr<Typeface> AniTypeface::GetTypeface()

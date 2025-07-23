@@ -775,6 +775,18 @@ namespace drawing {
       }
     }
 
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    /**
+     * Constructor for the Typeface.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native constructorNative(): void;
+
     /**
      * Get the family name for this typeface.
      * @returns { string } Family name.

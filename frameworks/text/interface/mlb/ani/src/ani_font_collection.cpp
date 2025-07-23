@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
+#include "ani_font_collection.h"
+
 #include <codecvt>
 #include <cstdint>
 #include <sys/stat.h>
 
 #include "ani_common.h"
-#include "ani_font_collection.h"
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
@@ -150,12 +151,12 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_FONT_COLLECTION, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        TEXT_LOGE("Failed to find class: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
         return ANI_NOT_FOUND;
     }
 
     std::string globalInstance = ":" + std::string(ANI_CLASS_FONT_COLLECTION);
-    std::string loadFontSync = "Lstd/core/String;Lstd/core/Object;:V";
+    std::string loadFontSync = "C{std.core.String}X{C{global.resource.Resource}C{std.core.String}}:";
 
     std::array methods = {
         ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
@@ -166,7 +167,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind methods: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        TEXT_LOGE("Failed to bind methods for FontCollection: %{public}s", ANI_CLASS_FONT_COLLECTION);
         return ANI_ERROR;
     }
     return ANI_OK;
