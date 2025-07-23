@@ -25,7 +25,7 @@ namespace {
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr uint32_t DELAY_TIME_OFFSET = 100;
 constexpr int32_t MAX_SETRATE_RETRY_COUNT = 20;
-constexpr int32_t MAX_HAL_DISPLAY_ID = 20;
+constexpr ScreenId MAX_HAL_DISPLAY_ID = 20;
 }
 
 void HgmHardwareUtils::ExecuteSwitchRefreshRate(
@@ -79,22 +79,22 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(
     }
 }
 
-void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t ret)
+void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet)
 {
     if (auto retryIter = setRateRetryMap_.find(id); retryIter != setRateRetryMap_.end()) {
         auto& [needRetrySetRate, setRateRetryCount] = retryIter->second;
-        needRetrySetRate = (ret == StatusCode::SET_RATE_ERROR);
+        needRetrySetRate = (setRateRet == static_cast<uint32_t>(StatusCode::SET_RATE_ERROR));
         if (!needRetrySetRate) {
             setRateRetryCount = 0;
         } else if (setRateRetryCount < MAX_SETRATE_RETRY_COUNT) {
             setRateRetryCount++;
         } else {
-            RS_LOGW("skip retrying for ScreenId:%{public}" PRIu64 ", set rate failed more than %{public}" PRId32,
+            RS_LOGW("skip retrying for ScreenId:%{public}" PRIu64 ", set refresh rate failed more than %{public}d",
                 id, MAX_SETRATE_RETRY_COUNT);
             needRetrySetRate = false;
         }
         RS_LOGD_IF(needRetrySetRate,
-            "PerformSetActiveMode: need retry set modeId %{public}" PRId32 ", ScreenId:%{public}" PRIu64, modeId, id);
+            "RSHardwareThread: need retry set modeId %{public}" PRId32 ", ScreenId:%{public}" PRIu64, modeId, id);
     }
 }
 

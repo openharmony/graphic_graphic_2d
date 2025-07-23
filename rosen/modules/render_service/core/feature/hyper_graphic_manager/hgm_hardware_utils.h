@@ -39,7 +39,6 @@ public:
     void ExecuteSwitchRefreshRate(const std::shared_ptr<HdiOutput> output, uint32_t refreshRate);
     void PerformSetActiveMode(std::shared_ptr<HdiOutput> output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void UpdateRefreshRateParam();
-    void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t ret);
     void SetScreenVBlankIdle(ScreenId screenId)
     {
         vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
@@ -51,7 +50,8 @@ public:
     }
 
 private:
-    // key: screenId, value: <needRetry, retryCount>
+    void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
+    // key: ScreenId, value: <needRetrySetRate, retryCount>
     std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;

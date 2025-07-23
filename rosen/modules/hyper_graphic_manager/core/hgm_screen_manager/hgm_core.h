@@ -320,7 +320,6 @@ public:
         return multiSelfOwnedScreenEnable_.load();
     }
 
-    // called by RSMainThread
     HgmHfbcConfig& GetHfbcConfig()
     {
         return hfbcConfig_;

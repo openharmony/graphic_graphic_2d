@@ -73,14 +73,14 @@ HWTEST_F(HfbcParamTest, SetHfbcConfigForApp, Function | SmallTest | Level1)
     std::string appName = "com.test.banapp";
     std::vector<std::string> packages = { appName };
 
-    EXPECT_EQ(CheckHfbcStatus(packages), false);
+    EXPECT_EQ(CheckHfbcStatus(packages), false); // enabled
 
     HFBCParam::SetHfbcConfigForApp(appName, "1");
 
-    EXPECT_EQ(CheckHfbcStatus(packages), true);
+    EXPECT_EQ(CheckHfbcStatus(packages), true); // disabled
 
-    packages = { { "com.test.banapp2", "1"} };
-    EXPECT_EQ(CheckHfbcStatus(packages), false);
+    packages = { { "com.test.allowapp", "1"} };
+    EXPECT_EQ(CheckHfbcStatus(packages), false); // enabled
 }
 
 /**
