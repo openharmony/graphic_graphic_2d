@@ -125,9 +125,39 @@ private:
 
     bool IsHpsBlurApplied(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush, float radius);
+    /**
+     * @brief Apply GE Kawase Blur on image
+     *
+     * KAWASE filter will be excuted by GE Kawase BLur on image
+     *
+     * @param canvas                the canvas that draw Kawase filter
+     * @param outImage              the image that needed to apply Kawase filter
+     * @param attr                  the Attributes of canvas
+     * @param brush                 the brush that will be attached on canvas
+     * @param kawaseShaderFilter    the Kawase filter that will be applyed
+     */
     void DrawKawaseEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush,
         std::shared_ptr<RSRenderFilterParaBase>& kawaseShaderFilter);
+    /**
+     * @brief Apply HPS Effect on image
+     *
+     * Try to apply all shaderFilters_ by HPSEffect on image
+     * When calling ApplyHpsImageEffect(),
+       if outImage == nullptr means:
+           HPS draw shaderFilters_ fail, and func will return false,
+       if outImage != nullptr and return true means:
+           shaderFilters_ contain Kawase or Mesa and HPS draw shaderFilters_ succ,
+       if outImage != nullptr and return false means:
+           shaderFilters_ not contain Kawase and Mesa and HPS draw shaderFilters_ succ.
+     *
+     * @param canvas                the canvas that draw all shaderFilters_
+     * @param image                 the image that needed to apply all shaderFilters_
+     * @param outImage              the image after applying all shaderFilters_
+     * @param attr                  the Attributes of canvas
+     * @param brush                 the brush that will be attached on canvas
+     * @return  true when HPS draw Kawase or Mesa succ, false otherwise.
+     */
     bool ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush);
     bool ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
