@@ -28,7 +28,7 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
     ani_class cls;
     ani_status ret = env->FindClass(ANI_INTERFACE_RANGE, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class:%{public}d", ret);
+        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ret;
     }
     ani_boolean isObj = false;
@@ -40,13 +40,13 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
     ani_double startTmp = 0;
     ret = env->Object_GetPropertyByName_Double(obj, "start", &startTmp);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get start, ani_status: %{public}d", ret);
+        TEXT_LOGE("Failed to get start, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     ani_double endTmp = 0;
     ret = env->Object_GetPropertyByName_Double(obj, "end", &endTmp);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get end, ani_status: %{public}d", ret);
+        TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     rectRange.start = static_cast<size_t>(startTmp);
@@ -60,7 +60,7 @@ ani_status AniTextRectConverter::ParseWidthStyleToNative(
     ani_size index = 0;
     ani_status result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(obj), &index);
     if (result != ANI_OK) {
-        TEXT_LOGE("Failed to enum widthStyle, ani_status: %{public}d", result);
+        TEXT_LOGE("Failed to enum widthStyle, ret %{public}d", result);
         return result;
     }
     widthStyle = static_cast<TextRectWidthStyle>(index);
@@ -73,7 +73,7 @@ ani_status AniTextRectConverter::ParseHeightStyleToNative(
     ani_size index = 0;
     ani_status result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(obj), &index);
     if (result != ANI_OK) {
-        TEXT_LOGE("Failed to enum heightStyle, ani_status: %{public}d", result);
+        TEXT_LOGE("Failed to enum heightStyle, ret %{public}d", result);
         return result;
     }
     heightStyle = static_cast<TextRectHeightStyle>(index);

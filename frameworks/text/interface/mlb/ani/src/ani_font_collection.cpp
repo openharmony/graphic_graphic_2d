@@ -151,7 +151,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_FONT_COLLECTION, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        TEXT_LOGE("Failed to find class: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
         return ANI_NOT_FOUND;
     }
 
