@@ -25,7 +25,9 @@
 #include "effect/blur_image_filter_obj.h"
 #include "effect/color_filter.h"
 #include "effect/image_filter.h"
+#define private public
 #include "effect/image_filter_lazy.h"
+#undef private
 #include "effect/shader_effect.h"
 #include "effect_test_utils.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -887,6 +889,113 @@ HWTEST_F(ImageFilterLazyTest, UnmarshallingCreateFilterLazyFailure001, TestSize.
     }
 #endif
 }
+
+#ifdef ROSEN_OHOS
+/*
+ * @tc.name: MarshallingNullImageFilterObj001
+ * @tc.desc: Test ImageFilterLazy::Marshalling with null imageFilterObj_
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageFilterLazyTest, MarshallingNullImageFilterObj001, TestSize.Level1)
+{
+    // Create lazy filter with null object using private constructor access
+    auto nullLazyFilter = std::shared_ptr<ImageFilterLazy>(new ImageFilterLazy(nullptr));
+    ASSERT_NE(nullLazyFilter, nullptr);
+    EXPECT_EQ(nullLazyFilter->imageFilterObj_, nullptr);
+
+    // Test Marshalling should fail due to null imageFilterObj_
+    Parcel parcel;
+    bool result = nullLazyFilter->Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: MarshallingWriteTypeFailure001
+ * @tc.desc: Test ImageFilterLazy::Marshalling write type failure by filling parcel to capacity
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageFilterLazyTest, MarshallingWriteTypeFailure001, TestSize.Level1)
+{
+    auto lazyBlur = ImageFilterLazy::CreateBlur(2.0f, 3.0f, TileMode::CLAMP);
+    ASSERT_NE(lazyBlur, nullptr);
+
+    // Create buffer to fill parcel capacity (200K minimum)
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Test 1: Fill parcel completely, then try Marshalling (should fail on WriteInt32(type))
+    Parcel parcel1;
+    parcel1.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult1 = parcel1.WriteBuffer(fillBuffer.data(), BUFFER_SIZE);
+    EXPECT_TRUE(fillResult1);
+    // Now parcel is full, Marshalling should fail on WriteInt32(type)
+    bool result1 = lazyBlur->Marshalling(parcel1);
+    EXPECT_FALSE(result1);
+
+    // Test 2: Fill parcel leaving space for type only (4 bytes)
+    Parcel parcel2;
+    parcel2.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult2 = parcel2.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 4);
+    EXPECT_TRUE(fillResult2);
+    // Should fail on WriteInt32(subType)
+    bool result2 = lazyBlur->Marshalling(parcel2);
+    EXPECT_FALSE(result2);
+}
+
+/*
+ * @tc.name: MarshallingWriteSubTypeFailure001
+ * @tc.desc: Test ImageFilterLazy::Marshalling write subType failure and imageFilterObj Marshalling failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageFilterLazyTest, MarshallingWriteSubTypeFailure001, TestSize.Level1)
+{
+    auto lazyOffset = ImageFilterLazy::CreateOffset(10.0f, 15.0f);
+    ASSERT_NE(lazyOffset, nullptr);
+
+    // Create buffer to fill parcel capacity
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Test 3: Fill parcel leaving space for type and subType (8 bytes), should fail in imageFilterObj->Marshalling
+    Parcel parcel3;
+    parcel3.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult3 = parcel3.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 8);
+    EXPECT_TRUE(fillResult3);
+    // Should fail in imageFilterObj_->Marshalling() due to insufficient space
+    bool result3 = lazyOffset->Marshalling(parcel3);
+    EXPECT_FALSE(result3);
+}
+
+/*
+ * @tc.name: MarshallingImageFilterObjMarshallingFailure001
+ * @tc.desc: Test ImageFilterLazy::Marshalling when imageFilterObj->Marshalling fails without callback
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ImageFilterLazyTest, MarshallingImageFilterObjMarshallingFailure001, TestSize.Level1)
+{
+    auto lazyColorFilter = ImageFilterLazy::CreateColorFilter(
+        ColorFilter::CreateLinearToSrgbGamma(), nullptr);
+    ASSERT_NE(lazyColorFilter, nullptr);
+
+    // Temporarily clear marshalling callback to force imageFilterObj->Marshalling to fail
+    auto savedCallback = EffectTestUtils::ClearMarshallingCallback();
+
+    Parcel parcel;
+    bool result = lazyColorFilter->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to missing callback
+
+    // Restore callback
+    EffectTestUtils::RestoreMarshallingCallback(savedCallback);
+}
+#endif
 
 } // namespace Drawing
 } // namespace Rosen

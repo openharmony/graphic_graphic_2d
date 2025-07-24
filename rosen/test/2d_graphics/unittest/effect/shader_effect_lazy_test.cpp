@@ -22,7 +22,11 @@
 
 #include "effect/blend_shader_obj.h"
 #include "effect/shader_effect.h"
+
+#define private public
 #include "effect/shader_effect_lazy.h"
+#undef private
+
 #include "effect_test_utils.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "utils/object_helper.h"
@@ -632,6 +636,136 @@ HWTEST_F(ShaderEffectLazyTest, UnmarshallingCreateLazyFailure001, TestSize.Level
             static_cast<int32_t>(ShaderEffect::ShaderEffectType::BLEND),
             originalFunc);
     }
+#endif
+}
+
+/*
+ * @tc.name: MarshallingWriteTypeFailure001
+ * @tc.desc: Test ShaderEffectLazy::Marshalling with WriteInt32(type) failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectLazyTest, MarshallingWriteTypeFailure001, TestSize.Level1)
+{
+#ifdef ROSEN_OHOS
+    // Create a valid lazy shader using CreateBlendShader
+    auto dstShader = ShaderEffect::CreateColorShader(Color::COLOR_BLUE);
+    auto srcShader = ShaderEffect::CreateColorShader(Color::COLOR_RED);
+    auto lazyShader = ShaderEffectLazy::CreateBlendShader(dstShader, srcShader, BlendMode::SRC_OVER);
+    ASSERT_NE(lazyShader, nullptr);
+
+    // Create buffer to fill parcel capacity (200K minimum)
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Fill parcel completely, then try Marshalling (should fail on WriteInt32(type))
+    Parcel parcel;
+    parcel.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult = parcel.WriteBuffer(fillBuffer.data(), BUFFER_SIZE);
+    EXPECT_TRUE(fillResult);
+
+    bool result = lazyShader->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to WriteInt32 failure
+#endif
+}
+
+/*
+ * @tc.name: MarshallingWriteSubTypeFailure001
+ * @tc.desc: Test ShaderEffectLazy::Marshalling with WriteInt32(subType) failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectLazyTest, MarshallingWriteSubTypeFailure001, TestSize.Level1)
+{
+#ifdef ROSEN_OHOS
+    // Create a valid lazy shader using CreateBlendShader
+    auto dstShader = ShaderEffect::CreateColorShader(Color::COLOR_RED);
+    auto srcShader = ShaderEffect::CreateColorShader(Color::COLOR_GREEN);
+    auto lazyShader = ShaderEffectLazy::CreateBlendShader(dstShader, srcShader, BlendMode::SRC_OVER);
+    ASSERT_NE(lazyShader, nullptr);
+
+    // Create buffer to fill parcel capacity (200K minimum)
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Fill parcel leaving space for first int32 only (4 bytes), should fail on WriteInt32(subType)
+    Parcel parcel;
+    parcel.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult = parcel.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 4);
+    EXPECT_TRUE(fillResult);
+
+    bool result = lazyShader->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to WriteInt32(subType) failure
+#endif
+}
+
+/*
+ * @tc.name: MarshallingNullShaderEffectObj001
+ * @tc.desc: Test ShaderEffectLazy::Marshalling with null shaderEffectObj_
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectLazyTest, MarshallingNullShaderEffectObj001, TestSize.Level1)
+{
+    // Create a lazy shader using CreateBlendShader
+    auto dstShader = ShaderEffect::CreateColorShader(Color::COLOR_GREEN);
+    auto srcShader = ShaderEffect::CreateColorShader(Color::COLOR_BLUE);
+    auto lazyShader = ShaderEffectLazy::CreateBlendShader(dstShader, srcShader, BlendMode::SRC_OVER);
+    ASSERT_NE(lazyShader, nullptr);
+
+    // Set shaderEffectObj_ to null to trigger the (!shaderEffectObj_) branch
+    lazyShader->shaderEffectObj_ = nullptr;
+
+    Parcel parcel;
+    bool result = lazyShader->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to null shaderEffectObj_
+}
+
+/*
+ * @tc.name: MarshallingShaderEffectObjFailure001
+ * @tc.desc: Test ShaderEffectLazy::Marshalling with shaderEffectObj_->Marshalling() failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectLazyTest, MarshallingShaderEffectObjFailure001, TestSize.Level1)
+{
+#ifdef ROSEN_OHOS
+    // Create a valid lazy shader using CreateBlendShader
+    auto dstShader = ShaderEffect::CreateColorShader(Color::COLOR_YELLOW);
+    auto srcShader = ShaderEffect::CreateColorShader(Color::COLOR_CYAN);
+    auto lazyShader = ShaderEffectLazy::CreateBlendShader(dstShader, srcShader, BlendMode::SRC_OVER);
+    ASSERT_NE(lazyShader, nullptr);
+
+    // Clear marshalling callback to make shaderEffectObj_->Marshalling() fail
+    auto originalCallback = ObjectHelper::Instance().GetDataMarshallingCallback();
+    ObjectHelper::Instance().SetDataMarshallingCallback(nullptr);
+
+    Parcel parcel;
+    bool result = lazyShader->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to shaderEffectObj_->Marshalling() failure
+
+    // Restore original callback
+    ObjectHelper::Instance().SetDataMarshallingCallback(originalCallback);
+#endif
+}
+
+/*
+ * @tc.name: UnmarshallingGetFuncNull001
+ * @tc.desc: Test ShaderEffectLazy::Unmarshalling with ObjectHelper::GetFunc() returning null
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectLazyTest, UnmarshallingGetFuncNull001, TestSize.Level1)
+{
+#ifdef ROSEN_OHOS
+    Parcel parcel;
+    // Write a valid type but unregistered subType to make GetFunc return null
+    parcel.WriteInt32(static_cast<int32_t>(Object::ObjectType::SHADER_EFFECT));
+    parcel.WriteInt32(9999); // Invalid/unregistered subType
+
+    bool isValid = true;
+    auto result = ShaderEffectLazy::Unmarshalling(parcel, isValid, 0);
+    EXPECT_EQ(result, nullptr); // Should fail due to GetFunc returning null
 #endif
 }
 } // namespace Drawing

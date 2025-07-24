@@ -402,13 +402,13 @@ HWTEST_F(BlurImageFilterObjTest, MarshallingFailureTest, TestSize.Level1)
 }
 
 /*
- * @tc.name: MarshallingWriteFailureTest
- * @tc.desc: Test BlurImageFilterObj::Marshalling write branch failures by filling parcel to capacity
+ * @tc.name: MarshallingWriteFailureTest001
+ * @tc.desc: Test BlurImageFilterObj::Marshalling write failures for basic parameters and cropRect
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(BlurImageFilterObjTest, MarshallingWriteFailureTest, TestSize.Level1)
+HWTEST_F(BlurImageFilterObjTest, MarshallingWriteFailureTest001, TestSize.Level1)
 {
     scalar sigmaX = 3.0f;
     scalar sigmaY = 5.0f;
@@ -496,24 +496,49 @@ HWTEST_F(BlurImageFilterObjTest, MarshallingWriteFailureTest, TestSize.Level1)
     // Should fail on WriteFloat(cropRect.bottom)
     bool result8 = obj->Marshalling(parcel8);
     EXPECT_FALSE(result8);
+}
 
-    // Test 9: Fill parcel leaving space for all floats only (32 bytes, no room for hasInput bool)
-    MessageParcel parcel9;
-    parcel9.SetMaxCapacity(BUFFER_SIZE);
-    bool fillResult9 = parcel9.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 32);
-    EXPECT_TRUE(fillResult9);
+/*
+ * @tc.name: MarshallingWriteFailureTest002
+ * @tc.desc: Test BlurImageFilterObj::Marshalling write failures for hasInput and isLazy booleans
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlurImageFilterObjTest, MarshallingWriteFailureTest002, TestSize.Level1)
+{
+    scalar sigmaX = 3.0f;
+    scalar sigmaY = 5.0f;
+    TileMode tileMode = TileMode::CLAMP;
+    Rect cropRect(0.0f, 0.0f, 100.0f, 100.0f);
+    Rect inputCropRect(0.0f, 0.0f, 50.0f, 50.0f);
+    auto input = ImageFilter::CreateBlurImageFilter(1.0f, 2.0f, TileMode::CLAMP, nullptr,
+        ImageBlurType::GAUSS, inputCropRect);
+    auto obj = BlurImageFilterObj::Create(sigmaX, sigmaY, tileMode, input,
+        ImageBlurType::GAUSS, cropRect);
+    ASSERT_NE(obj, nullptr);
+
+    // Create buffer to fill parcel capacity (200K minimum)
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Test 1: Fill parcel leaving space for all floats only (32 bytes, no room for hasInput bool)
+    MessageParcel parcel1;
+    parcel1.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult1 = parcel1.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 32);
+    EXPECT_TRUE(fillResult1);
     // Should fail on WriteBool(hasInput) - bool takes 4 bytes
-    bool result9 = obj->Marshalling(parcel9);
-    EXPECT_FALSE(result9);
+    bool result1 = obj->Marshalling(parcel1);
+    EXPECT_FALSE(result1);
 
-    // Test 10: Fill parcel leaving space for all basic data but fail on WriteBool(isLazy)
-    MessageParcel parcel10;
-    parcel10.SetMaxCapacity(BUFFER_SIZE);
-    bool fillResult10 = parcel10.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 36);
-    EXPECT_TRUE(fillResult10);
+    // Test 2: Fill parcel leaving space for all basic data but fail on WriteBool(isLazy)
+    MessageParcel parcel2;
+    parcel2.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult2 = parcel2.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 36);
+    EXPECT_TRUE(fillResult2);
     // Should fail on WriteBool(isLazy) - bool takes 4 bytes
-    bool result10 = obj->Marshalling(parcel10);
-    EXPECT_FALSE(result10);
+    bool result2 = obj->Marshalling(parcel2);
+    EXPECT_FALSE(result2);
 }
 
 /*
