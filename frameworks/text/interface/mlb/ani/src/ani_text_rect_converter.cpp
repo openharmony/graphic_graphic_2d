@@ -93,7 +93,8 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
     return ANI_OK;
 }
 
-ani_status AniTextRectConverter::ParseBoundaryToAni(ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
+ani_status AniTextRectConverter::ParseBoundaryToAni(
+    ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RANGE, ":V");
     env->Object_SetPropertyByName_Int(aniObj, "start", boundary.leftIndex);
