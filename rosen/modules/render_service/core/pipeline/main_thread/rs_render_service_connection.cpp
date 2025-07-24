@@ -104,6 +104,8 @@ constexpr int SLEEP_TIME_US = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
 const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
+constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
+constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
 }
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -702,6 +704,10 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
+    if (whiteList.size() > MAX_WHITE_LIST_NUM) {
+        RS_LOGW("%{public}s: white list is over max size!", __func__);
+        return INVALID_SCREEN_ID;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
         return StatusCode::SCREEN_NOT_FOUND;
@@ -719,6 +725,10 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
 
 int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
+    if (blackListVector.size() > MAX_BLACK_LIST_NUM) {
+        RS_LOGW("%{public}s: black list is over max size!", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     if (blackListVector.empty()) {
         RS_LOGW("SetVirtualScreenBlackList blackList is empty.");
     }
@@ -747,6 +757,11 @@ ErrCode RSRenderServiceConnection::SetVirtualScreenTypeBlackList(
 ErrCode RSRenderServiceConnection::AddVirtualScreenBlackList(
     ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
+    if (blackListVector.size() > MAX_BLACK_LIST_NUM) {
+        RS_LOGW("%{public}s: black list is over max size!", __func__);
+        repCode = StatusCode::INVALID_ARGUMENTS;
+        return ERR_INVALID_VALUE;
+    }
     if (blackListVector.empty()) {
         RS_LOGW("AddVirtualScreenBlackList blackList is empty.");
         repCode = StatusCode::BLACKLIST_IS_EMPTY;

@@ -56,6 +56,7 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
+constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 const std::string FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
 void SensorPostureDataCallback(SensorEvent* event)
 {
@@ -1166,11 +1167,21 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
     return SUCCESS;
 }
 
+static inline bool IsBlackListExceeded(const std::vector<uint64_t>& blackList,
+    const std::unordered_set<uint64_t>& screenBlacklist)
+{
+    return blackList.size() + screenBlacklist.size() > MAX_BLACK_LIST_NUM;
+}
+
 int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
-        RS_LOGI("%{public}s: Cast screen blacklists", __func__);
         std::lock_guard<std::mutex> lock(blackListMutex_);
+        if (IsBlackListExceeded(blackList, castScreenBlackList_)) {
+            RS_LOGW("%{public}s: blacklist is over max size!", __func__);
+            return INVALID_ARGUMENTS;
+        }
+        RS_LOGI("%{public}s: Cast screen blacklists", __func__);
         castScreenBlackList_.insert(blackList.cbegin(), blackList.cend());
         return SUCCESS;
     }
@@ -1178,6 +1189,10 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
+    }
+    if (IsBlackListExceeded(blackList, virtualScreen->GetBlackList())) {
+        RS_LOGW("%{public}s: blacklist is over max size!", __func__);
+        return INVALID_ARGUMENTS;
     }
     RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->AddBlackList(blackList);
@@ -1194,6 +1209,10 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
         if (mainScreen == nullptr) {
             RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, mainId);
             return SCREEN_NOT_FOUND;
+        }
+        if (IsBlackListExceeded(blackList, mainScreen->GetBlackList())) {
+            RS_LOGW("%{public}s: blacklist is over max size!", __func__);
+            return INVALID_ARGUMENTS;
         }
         mainScreen->AddBlackList(blackList);
     }
@@ -2481,6 +2500,11 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
 {
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return;
+    }
     std::lock_guard<std::mutex> lock(renderControlMutex_);
     RS_LOGI("%{public}s: Add Screen_%{public}" PRIu64 " for disable power-off render control.", __func__, id);
     disableRenderControlScreens_.insert(id);

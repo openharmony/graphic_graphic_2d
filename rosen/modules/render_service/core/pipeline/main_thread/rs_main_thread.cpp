@@ -228,6 +228,7 @@ constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
+constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -4681,11 +4682,19 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
                 systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
+                if (threeFingerScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
+                    RS_LOGD("%{public}s: threeFingerScenesList is over max size!", __func__);
+                    return false;
+                }
                 threeFingerScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER &&
                 systemAnimatedScenes != SystemAnimatedScenes::ENTER_RECENTS &&
                 systemAnimatedScenes != SystemAnimatedScenes::EXIT_RECENTS) {
+                if (systemAnimatedScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
+                    RS_LOGD("%{public}s: systemAnimatedScenesList is over max size!", __func__);
+                    return false;
+                }
                 // systemAnimatedScenesList_ is only for pc now
                 systemAnimatedScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }

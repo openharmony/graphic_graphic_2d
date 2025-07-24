@@ -30,6 +30,7 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -61,6 +62,8 @@ constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
+constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
+constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -3823,6 +3826,111 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes009, TestSize.Level1)
     mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
     mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
+}
+
+/**
+ * @tc.name: SetSystemAnimatedScenes010
+ * @tc.desc: SetSystemAnimatedScenes Test, check size is over max
+ * @tc.type: FUNC
+ * @tc.require: issueICON9P
+ */
+HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes010, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    SystemAnimatedScenes scenes = SystemAnimatedScenes::ENTER_TFS_WINDOW;
+
+    const uint32_t MAX_SCENES_NUM = 0xFFFF;
+    for (auto id = 0; id <= MAX_SCENES_NUM; id++) {
+        mainThread->systemAnimatedScenesList_.emplace_back(
+            std::make_pair(SystemAnimatedScenes::ENTER_MISSION_CENTER, static_cast<uint64_t>(id)));
+    }
+    ASSERT_FALSE(mainThread->SetSystemAnimatedScenes(scenes));
+
+    for (auto id = 0; id <= MAX_SCENES_NUM; id++) {
+        mainThread->threeFingerScenesList_.emplace_back(
+            std::make_pair(SystemAnimatedScenes::ENTER_MISSION_CENTER, static_cast<uint64_t>(id)));
+    }
+    ASSERT_FALSE(mainThread->SetSystemAnimatedScenes(scenes));
+}
+
+/**
+ * @tc.name: CreateVirtualScreen
+ * @tc.desc: CreateVirtualScreen Test, invalid white list
+ * @tc.type: FUNC
+ * @tc.require: issueICON9P
+ */
+HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+
+    std::string name("name");
+    uint32_t width = 1;
+    uint32_t height = 1;
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    sptr<IBufferProducer> producer = consumer->GetProducer();
+    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
+    ScreenId mirrorId = 1;
+    int32_t flags = 1;
+    std::vector<NodeId> whiteList = {};
+    EXPECT_NE(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
+        INVALID_SCREEN_ID);
+
+    for (auto nodeId = 0; nodeId <= MAX_WHITE_LIST_NUM + 1; nodeId++) {
+        whiteList.push_back(nodeId);
+    }
+    EXPECT_EQ(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
+        INVALID_SCREEN_ID);
+}
+
+/**
+ * @tc.name: SetVirtualScreenBlackList
+ * @tc.desc: SetVirtualScreenBlackList Test, invalid black list
+ * @tc.type: FUNC
+ * @tc.require: issueICON9P
+ */
+HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+
+    ScreenId id = 100;
+    std::vector<uint64_t> blackList = {};
+    EXPECT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
+
+    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+        blackList.push_back(nodeId);
+    }
+    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackList
+ * @tc.desc: AddVirtualScreenBlackList Test, invalid black list
+ * @tc.type: FUNC
+ * @tc.require: issueICON9P
+ */
+HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+
+    ScreenId id = 100;
+    std::vector<uint64_t> blackList = {};
+    int32_t repCode;
+    EXPECT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
+
+    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+        blackList.push_back(nodeId);
+    }
+    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
 }
 
 /**
