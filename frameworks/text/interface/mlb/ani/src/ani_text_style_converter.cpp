@@ -18,6 +18,7 @@
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_text_utils.h"
+#include "draw/color.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -252,6 +253,10 @@ void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj,
         TEXT_LOGE("Object mismatch, ret %{public}d", ret);
         return;
     }
+    Drawing::Color color;
+    if (AniDrawingConverter::ParseDrawingColorToNative(env, obj, "color", color) == ANI_OK) {
+        rectStyle.color = color.CastToColorQuad();
+    }
     env->Object_GetPropertyByName_Double(obj, "leftTopRadius", &rectStyle.leftTopRadius);
     env->Object_GetPropertyByName_Double(obj, "rightTopRadius", &rectStyle.rightTopRadius);
     env->Object_GetPropertyByName_Double(obj, "rightBottomRadius", &rectStyle.rightBottomRadius);
@@ -263,6 +268,11 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, ":V");
     env->Object_SetPropertyByName_Ref(
         aniObj, "decoration", AniTextStyleConverter::ParseDecorationToAni(env, textStyle));
+    ani_object aniColorObj = nullptr;
+    ani_status status = AniDrawingConverter::ParseColorToAni(env, textStyle.color, aniColorObj);
+    if (status == ANI_OK) {
+        env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
+    }
     env->Object_SetPropertyByName_Ref(aniObj, "fontWeight",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_WEIGHT, static_cast<int>(textStyle.fontWeight)));
     env->Object_SetPropertyByName_Ref(aniObj, "fontStyle",
@@ -302,7 +312,18 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
 ani_object AniTextStyleConverter::ParseTextShadowToAni(ani_env* env, const TextShadow& textShadow)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXTSHADOW, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "blurRadius", ani_double(textShadow.blurRadius));
+    ani_object aniColorObj = nullptr;
+    ani_status status = AniDrawingConverter::ParseColorToAni(env, textShadow.color, aniColorObj);
+    if (status == ANI_OK) {
+        env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
+    }
+    ani_object aniPointObj = nullptr;
+    status = AniDrawingConverter::ParsePointToAni(env, textShadow.offset, aniPointObj);
+    if (status == ANI_OK) {
+        env->Object_SetPropertyByName_Ref(aniObj, "point", aniPointObj);
+    }
+    env->Object_SetPropertyByName_Ref(
+        aniObj, "blurRadius", AniTextUtils::CreateAniDoubleObj(env, textShadow.blurRadius));
     return aniObj;
 }
 
@@ -311,15 +332,27 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_DECORATION, ":V");
     env->Object_SetPropertyByName_Ref(aniObj, "textDecoration",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE, static_cast<int>(textStyle.decoration)));
+    ani_object aniColorObj = nullptr;
+    ani_status status = AniDrawingConverter::ParseColorToAni(env, textStyle.decorationColor, aniColorObj);
+    if (status == ANI_OK) {
+        env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
+    }
     env->Object_SetPropertyByName_Ref(aniObj, "decorationStyle",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE, static_cast<int>(textStyle.decorationStyle)));
-    env->Object_SetPropertyByName_Double(aniObj, "blurRadius", textStyle.decorationThicknessScale);
+    env->Object_SetPropertyByName_Ref(
+        aniObj, "decorationThicknessScale", AniTextUtils::CreateAniDoubleObj(env, textStyle.decorationThicknessScale));
     return aniObj;
 }
 
 ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectStyle& rectStyle)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE, ":V");
+    OHOS::Rosen::Drawing::Color color = OHOS::Rosen::Drawing::Color(rectStyle.color);
+    ani_object aniColorObj = nullptr;
+    ani_status status = AniDrawingConverter::ParseColorToAni(env, color, aniColorObj);
+    if (status == ANI_OK) {
+        env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
+    }
     env->Object_SetPropertyByName_Double(aniObj, "leftTopRadius", rectStyle.leftTopRadius);
     env->Object_SetPropertyByName_Double(aniObj, "rightTopRadius", rectStyle.rightTopRadius);
     env->Object_SetPropertyByName_Double(aniObj, "rightBottomRadius", rectStyle.rightBottomRadius);

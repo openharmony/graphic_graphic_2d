@@ -13,20 +13,30 @@
  * limitations under the License.
  */
 #include <ani.h>
+#include <cinttypes>
 #include <tuple>
 
 #include "ani_common.h"
 #include "ani_font_collection.h"
+#include "ani_fontdescriptor.h"
+#include "ani_line_typeset.h"
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
+#include "ani_run.h"
+#include "ani_text_line.h"
 #include "ani_text_utils.h"
+#include "line_typography.h"
+#include "text_line_base.h"
+#include "typography.h"
+#include "typography_create.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
 #define STRUCT_LIST(...) using AniTypes = std::tuple<__VA_ARGS__>
 
 // add new struct in this macro
-STRUCT_LIST(AniFontCollection, AniParagraph, AniParagraphBuilder);
+STRUCT_LIST(
+    AniFontCollection, AniParagraph, AniParagraphBuilder, AniLineTypeset, AniTextLine, AniRun, AniFontDescriptor);
 
 template <typename T>
 static ani_status InitOneStruct(ani_vm* vm, uint32_t* result)
@@ -44,26 +54,32 @@ static ani_status InitAllStruct(ani_vm* vm, uint32_t* result, std::index_sequenc
 }
 
 template <typename T>
-void SafeDelete(ani_long& ptr)
+void SafeDelete(ani_long& ptrAddr)
 {
-    if (ptr != 0) {
-        T* pointer = reinterpret_cast<T*>(ptr);
+    if (ptrAddr != 0) {
+        T* pointer = reinterpret_cast<T*>(ptrAddr);
         delete pointer;
         pointer = nullptr;
-        ptr = 0;
+        ptrAddr = 0;
     }
 }
 
 static void Clean(ani_env* env, ani_object object)
 {
-    ani_long ptr;
-    ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptr);
+    ani_long ptrAddr = 0;
+    ani_status ret = env->Object_GetFieldByName_Long(object, "ptrAddr", &ptrAddr);
     if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to clean ptrAddr");
+        return;
+    }
+    if (ptrAddr == 0) {
+        TEXT_LOGE("Auto clean failed, undefined ptrAddr");
         return;
     }
     ani_ref stringRef = nullptr;
     ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
     if (ret != ANI_OK) {
+        TEXT_LOGE("Auto clean failed, ptrAddr %{public}" PRId64, ptrAddr);
         return;
     }
 
@@ -74,20 +90,21 @@ static void Clean(ani_env* env, ani_object object)
     }
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
-        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Paragraph", SafeDelete<AniParagraph>},
-        {"FontCollection", SafeDelete<AniFontCollection>}};
+        {"ParagraphBuilder", SafeDelete<Rosen::TypographyCreate>}, {"Typography", SafeDelete<Rosen::Typography>},
+        {"FontCollection", SafeDelete<AniFontCollection>}, {"LineTypeset", SafeDelete<Rosen::LineTypography>},
+        {"TextLine", SafeDelete<Rosen::TextLineBase>}, {"Run", SafeDelete<Rosen::Run>}};
 
     if (deleteMap.count(className)) {
-        deleteMap.at(className)(ptr);
+        deleteMap.at(className)(ptrAddr);
     }
 }
 
 static ani_status AniCleanerInit(ani_vm* vm)
 {
-    ani_env* env;
+    ani_env* env = nullptr;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env, ret %{public}d", ret);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -105,7 +122,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Manager, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }

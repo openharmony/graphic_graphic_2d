@@ -77,10 +77,10 @@ void AniParagraphBuilder::Constructor(
 
 ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env;
+    ani_env* env = nullptr;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env, ret %{public}d", ret);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -112,7 +112,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for TypographyCreate, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
@@ -186,7 +186,14 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    return AniParagraph::SetTypography(env, typography);
+    OHOS::Rosen::Typography* typographyPtr = typography.release();
+    ani_object typographyObj = AniParagraph::SetTypography(env, typographyPtr);
+    if (AniTextUtils::IsUndefined(env, typographyObj)) {
+        TEXT_LOGE("Failed to create typography obj");
+        delete typographyPtr;
+        typographyPtr = nullptr;
+    }
+    return typographyObj;
 }
 
 ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object)

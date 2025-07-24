@@ -24,6 +24,8 @@ import type common2D from '@ohos.graphics.common2D';
 import { Resource } from 'global.resource';
 
 namespace text {
+  loadLibrary('text_engine_ani.z');
+
   class Cleaner {
     static { loadLibrary('text_engine_ani.z') }
     private ptr: long = 0;
@@ -588,5 +590,87 @@ namespace text {
   class PointInternal implements common2D.Point {
     x: number;
     y: number;
+  }
+
+  native function getSystemFontFullNamesByTypeSync(fontType: SystemFontType): Array<string>;
+
+  export async function getSystemFontFullNamesByType(fontType: SystemFontType): Promise<Array<string>> {
+    return await new Promise<Array<string>>((resolve, reject) => {
+      try {
+        taskpool.execute((): Array<string> => {
+          return getSystemFontFullNamesByTypeSync(fontType);
+        }).then((result) => {
+          resolve(result);
+        })
+      } catch (err) {
+        reject(err as BusinessError);
+      }
+    });
+  }
+
+  native function getFontDescriptorByFullNameSync(fullName: string, fontType: SystemFontType): FontDescriptor;
+
+  export async function getFontDescriptorByFullName(fullName: string, fontType: SystemFontType): Promise<FontDescriptor> {
+    return await new Promise<FontDescriptor>((resolve, reject) => {
+      try {
+        taskpool.execute((): FontDescriptor => {
+          return getFontDescriptorByFullNameSync(fullName, fontType);
+        }).then((result) => {
+          resolve(result);
+        })
+      } catch (err) {
+        reject(err as BusinessError);
+      }
+    });
+  }
+
+  native function matchFontDescriptorsSync(desc: FontDescriptor): Array<FontDescriptor>;
+
+  export async function matchFontDescriptors(desc: FontDescriptor): Promise<Array<FontDescriptor>> {
+    return await new Promise<Array<FontDescriptor>>((resolve, reject) => {
+      try {
+        taskpool.execute((): Array<FontDescriptor> => {
+          return matchFontDescriptorsSync(desc);
+        }).then((result) => {
+          resolve(result);
+        })
+      } catch (err) {
+        reject(err as BusinessError);
+      }
+    });
+  }
+
+  export enum SystemFontType {
+    ALL = 1 << 0,
+    GENERIC = 1 << 1,
+    STYLISH = 1 << 2,
+    INSTALLED = 1 << 3,
+    CUSTOMIZED = 1 << 4,
+  }
+
+  export interface FontDescriptor {
+    path?: string;
+    postScriptName?: string;
+    fullName?: string;
+    fontFamily?: string;
+    fontSubfamily?: string;
+    weight?: FontWeight;
+    width?: number;
+    italic?: number;
+    monoSpace?: boolean;
+    symbolic?: boolean;
+  }
+
+  class FontDescriptorInternal implements FontDescriptor {
+    path?: string;
+    postScriptName?: string;
+    fullName?: string;
+    fontFamily?: string;
+    fontSubfamily?: string;
+    weight?: FontWeight;
+    width?: number;
+    italic?: number;
+    monoSpace?: boolean;
+    symbolic?: boolean;
   }
 }

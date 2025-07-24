@@ -76,6 +76,17 @@ ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
     return reinterpret_cast<ani_object>(aniRef);
 }
 
+bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
+{
+    ani_boolean isUndefined = 0;
+    ani_status status = env->Reference_IsUndefined(ref, &isUndefined);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to check if undefined, status: %{public}d", static_cast<int32_t>(status));
+        return false;
+    }
+    return isUndefined != 0;
+}
+
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
     ani_class arrayCls;
@@ -264,6 +275,17 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         env->Object_CallMethodByName_Double(reinterpret_cast<ani_object>(ref), "unboxed", ":D", &value);
+    }
+    return result;
+}
+
+
+ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "intValue", ":I", &value);
     }
     return result;
 }

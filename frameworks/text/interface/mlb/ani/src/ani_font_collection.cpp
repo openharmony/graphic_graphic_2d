@@ -141,10 +141,10 @@ void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 
 ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 {
-    ani_env* env;
+    ani_env* env = nullptr;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("null env");
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -168,7 +168,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for FontCollection: %{public}s", ANI_CLASS_FONT_COLLECTION);
-        return ANI_NOT_FOUND;
+        return ANI_ERROR;
     }
     return ANI_OK;
 }

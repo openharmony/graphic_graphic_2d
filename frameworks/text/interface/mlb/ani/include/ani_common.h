@@ -19,12 +19,18 @@
 
 namespace OHOS::Text::ANI {
 /**
+ * define namespace
+ */
+constexpr const char* ANI_NAMESPACE_TEXT = "L@ohos/graphics/text/text;";
+
+/**
  * define ani
  */
 constexpr const char* NATIVE_OBJ = "nativeObj";
 constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
 constexpr const char* ANI_INT = "Lstd/core/Int;";
 constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
+constexpr const char* ANI_STRING = "Lstd/core/String;";
 constexpr const char* ANI_MAP = "Lescompat/Map;";
 constexpr const char* ANI_ARRAY = "Lescompat/Array;";
 /**
@@ -43,6 +49,7 @@ constexpr const char* ANI_INTERFACE_TYPOGRAPHIC_BOUNDS = "L@ohos/graphics/text/t
 constexpr const char* ANI_INTERFACE_POINT = "L@ohos/graphics/common2D/common2D/Point;";
 constexpr const char* ANI_INTERFACE_RECT = "L@ohos/graphics/common2D/common2D/Rect;";
 constexpr const char* ANI_INTERFACE_POSITION_WITH_AFFINITY = "L@ohos/graphics/text/text/PositionWithAffinity;";
+constexpr const char* ANI_INTERFACE_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptor;";
 /**
  * define class
  */
@@ -71,7 +78,8 @@ constexpr const char* ANI_ClASS_LINE_TYPESET = "L@ohos/graphics/text/text/LineTy
 constexpr const char* ANI_CLASS_RUN = "L@ohos/graphics/text/text/Run;";
 constexpr const char* ANI_ClASS_POINT = "L@ohos/graphics/text/text/PointInternal;";
 constexpr const char* ANI_CLASS_TYPOGRAPHIC_BOUNDS = "L@ohos/graphics/text/text/TypographicBoundsInternal;";
-
+constexpr const char* ANI_CLASS_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptorInternal;";
+constexpr const char* ANI_CLASS_COLOR = "L@ohos/graphics/text/text/ColorInternal;";
 /**
  * define enum
  */
@@ -85,6 +93,7 @@ constexpr const char* ANI_ENUM_RECT_WIDTH_STYLE = "L@ohos/graphics/text/text/Rec
 constexpr const char* ANI_ENUM_RECT_HEIGHT_STYLE = "L@ohos/graphics/text/text/RectHeightStyle;";
 constexpr const char* ANI_ENUM_TEXT_DIRECTION = "L@ohos/graphics/text/text/TextDirection;";
 constexpr const char* ANI_ENUM_AFFINITY = "L@ohos/graphics/text/text/Affinity;";
+constexpr const char* ANI_ENUM_SYSTEM_FONT_TYPE = "L@ohos/graphics/text/text/SystemFontType;";
 
 enum class TextErrorCode : int32_t {
     OK = 0,

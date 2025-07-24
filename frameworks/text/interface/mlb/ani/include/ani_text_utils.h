@@ -32,6 +32,7 @@ public:
     static T* GetNativeFromObj(ani_env* env, ani_object obj, const char* name = NATIVE_OBJ);
 
     static ani_object CreateAniUndefined(ani_env* env);
+    static bool IsUndefined(ani_env* env, ani_ref ref);
     template <typename... Args>
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params);
     static ani_object CreateAniArray(ani_env* env, size_t size);
@@ -52,6 +53,7 @@ public:
 
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
+    static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
     static ani_status ReadOptionalU16StringField(
         ani_env* env, ani_object obj, const char* fieldName, std::u16string& str);
