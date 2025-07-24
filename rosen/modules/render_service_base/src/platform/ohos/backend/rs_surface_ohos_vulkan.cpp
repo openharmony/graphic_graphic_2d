@@ -63,6 +63,10 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 {
     mSurfaceMap.clear();
     mSurfaceList.clear();
+    {
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        protectedSurfaceBufferList_.clear();
+    }
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
     if (mReservedFlushFd != -1) {
@@ -79,6 +83,8 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        protectedSurfaceBufferList_.clear();
     }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
