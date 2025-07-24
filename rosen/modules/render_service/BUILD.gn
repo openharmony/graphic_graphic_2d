@@ -395,7 +395,7 @@ ohos_shared_library("librender_service") {
 
   if (graphic_2d_feature_enable_chipset_vsync) {
     defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
-    include_dirs += [ "core/feature/chipset_vsync/include" ]
+    sources += [ "core/feature/chipset_vsync/rs_chipset_vsync.cpp" ]
   }
 
   if (graphic_2d_feature_overlay_display_enable) {
