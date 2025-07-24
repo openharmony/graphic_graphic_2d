@@ -20,8 +20,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-class AnimationTest : public RSGraphicTest {
+class AnimationCurveTest : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
@@ -34,7 +33,12 @@ public:
     }
 };
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_1)
+/*
+ * @tc.name: Animation_Curve_Test_1
+ * @tc.desc: Test the built-in animation curve EASE_IN_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_1)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -52,7 +56,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_1)
         []() { std::cout << "Animation_Curve_Test_1 animation finish callback" << std::endl; });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_2)
+/*
+ * @tc.name: Animation_Curve_Test_2
+ * @tc.desc: Test the built-in animation curve SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_2)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -71,7 +80,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_2)
         []() { std::cout << "Animation_Curve_Test_2 animation finish callback" << std::endl; });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_3)
+/*
+ * @tc.name: Animation_Curve_Test_3
+ * @tc.desc: Test the built-in animation curve LINEAR
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_3)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -92,7 +106,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_3)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_4)
+/*
+ * @tc.name: Animation_Curve_Test_4
+ * @tc.desc: Test the built-in animation curve LINEAR
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_4)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -113,7 +132,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_4)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_5)
+/*
+ * @tc.name: Animation_Curve_Test_5
+ * @tc.desc: Test the built-in animation curve LINEAR
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_5)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -134,7 +158,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_5)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_6)
+/*
+ * @tc.name: Animation_Curve_Test_6
+ * @tc.desc: Test the built-in animation curve LINEAR
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_6)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -155,7 +184,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_6)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_7)
+/*
+ * @tc.name: Animation_Curve_Test_7
+ * @tc.desc: Test the built-in animation curve LINEAR
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_7)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -176,8 +210,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_7)
     });
 }
 
-
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_8)
+/*
+ * @tc.name: Animation_Curve_Test_8
+ * @tc.desc: Test the built-in animation curve EASE
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_8)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -198,7 +236,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_8)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_9)
+/*
+ * @tc.name: Animation_Curve_Test_9
+ * @tc.desc: Test the built-in animation curve EASE
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_9)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -219,7 +262,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_9)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_10)
+/*
+ * @tc.name: Animation_Curve_Test_10
+ * @tc.desc: Test the built-in animation curve EASE
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_10)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -240,7 +288,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_10)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_11)
+/*
+ * @tc.name: Animation_Curve_Test_11
+ * @tc.desc: Test the built-in animation curve EASE
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_11)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -261,7 +314,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_11)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_12)
+/*
+ * @tc.name: Animation_Curve_Test_12
+ * @tc.desc: Test the built-in animation curve EASE
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_12)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -282,7 +340,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_12)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_13)
+/*
+ * @tc.name: Animation_Curve_Test_13
+ * @tc.desc: Test the built-in animation curve EASE_IN
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_13)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -303,7 +366,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_13)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_14)
+/*
+ * @tc.name: Animation_Curve_Test_14
+ * @tc.desc: Test the built-in animation curve EASE_IN
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_14)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -324,7 +392,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_14)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_15)
+/*
+ * @tc.name: Animation_Curve_Test_15
+ * @tc.desc: Test the built-in animation curve EASE_IN
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_15)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -345,7 +418,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_15)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_16)
+/*
+ * @tc.name: Animation_Curve_Test_16
+ * @tc.desc: Test the built-in animation curve EASE_IN
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_16)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -366,7 +444,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_16)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_17)
+/*
+ * @tc.name: Animation_Curve_Test_17
+ * @tc.desc: Test the built-in animation curve EASE_IN
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_17)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -387,7 +470,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_17)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_18)
+/*
+ * @tc.name: Animation_Curve_Test_18
+ * @tc.desc: Test the built-in animation curve EASE_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_18)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -408,7 +496,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_18)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_19)
+/*
+ * @tc.name: Animation_Curve_Test_19
+ * @tc.desc: Test the built-in animation curve EASE_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_19)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -429,7 +522,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_19)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_20)
+/*
+ * @tc.name: Animation_Curve_Test_20
+ * @tc.desc: Test the built-in animation curve EASE_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_20)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -450,7 +548,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_20)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_21)
+/*
+ * @tc.name: Animation_Curve_Test_21
+ * @tc.desc: Test the built-in animation curve EASE_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_21)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -471,7 +574,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_21)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_22)
+/*
+ * @tc.name: Animation_Curve_Test_22
+ * @tc.desc: Test the built-in animation curve EASE_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_22)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -492,7 +600,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_22)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_23)
+/*
+ * @tc.name: Animation_Curve_Test_23
+ * @tc.desc: Test the built-in animation curve EASE_IN_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_23)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -513,7 +626,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_23)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_24)
+/*
+ * @tc.name: Animation_Curve_Test_24
+ * @tc.desc: Test the built-in animation curve EASE_IN_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_24)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -534,7 +652,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_24)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_25)
+/*
+ * @tc.name: Animation_Curve_Test_25
+ * @tc.desc: Test the built-in animation curve EASE_IN_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_25)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -555,7 +678,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_25)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_26)
+/*
+ * @tc.name: Animation_Curve_Test_26
+ * @tc.desc: Test the built-in animation curve EASE_IN_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_26)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -576,7 +704,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_26)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_27)
+/*
+ * @tc.name: Animation_Curve_Test_27
+ * @tc.desc: Test the built-in animation curve EASE_IN_OUT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_27)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -597,7 +730,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_27)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_28)
+/*
+ * @tc.name: Animation_Curve_Test_28
+ * @tc.desc: Test the built-in animation curve DEFAULT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_28)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -618,7 +756,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_28)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_29)
+/*
+ * @tc.name: Animation_Curve_Test_29
+ * @tc.desc: Test the built-in animation curve DEFAULT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_29)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -639,7 +782,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_29)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_30)
+/*
+ * @tc.name: Animation_Curve_Test_30
+ * @tc.desc: Test the built-in animation curve DEFAULT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_30)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -660,7 +808,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_30)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_31)
+/*
+ * @tc.name: Animation_Curve_Test_31
+ * @tc.desc: Test the built-in animation curve DEFAULT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_31)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -681,7 +834,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_31)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_32)
+/*
+ * @tc.name: Animation_Curve_Test_32
+ * @tc.desc: Test the built-in animation curve DEFAULT
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_32)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -702,7 +860,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_32)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_33)
+/*
+ * @tc.name: Animation_Curve_Test_33
+ * @tc.desc: Test the built-in animation curve SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_33)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -723,7 +886,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_33)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_34)
+/*
+ * @tc.name: Animation_Curve_Test_34
+ * @tc.desc: Test the built-in animation curve SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_34)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -744,7 +912,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_34)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_35)
+/*
+ * @tc.name: Animation_Curve_Test_35
+ * @tc.desc: Test the built-in animation curve SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_35)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -765,7 +938,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_35)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_36)
+/*
+ * @tc.name: Animation_Curve_Test_36
+ * @tc.desc: Test the built-in animation curve SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_36)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -786,7 +964,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_36)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_37)
+/*
+ * @tc.name: Animation_Curve_Test_37
+ * @tc.desc: Test the built-in animation curve SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_37)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -807,7 +990,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_37)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_38)
+/*
+ * @tc.name: Animation_Curve_Test_38
+ * @tc.desc: Test the built-in animation curve INTERACTIVE_SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_38)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -828,7 +1016,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_38)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_39)
+/*
+ * @tc.name: Animation_Curve_Test_39
+ * @tc.desc: Test the built-in animation curve INTERACTIVE_SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_39)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -849,7 +1042,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_39)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_40)
+/*
+ * @tc.name: Animation_Curve_Test_40
+ * @tc.desc: Test the built-in animation curve INTERACTIVE_SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_40)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -870,7 +1068,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_40)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_41)
+/*
+ * @tc.name: Animation_Curve_Test_41
+ * @tc.desc: Test the built-in animation curve INTERACTIVE_SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_41)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -891,7 +1094,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_41)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_42)
+/*
+ * @tc.name: Animation_Curve_Test_42
+ * @tc.desc: Test the built-in animation curve INTERACTIVE_SPRING
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_42)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -912,7 +1120,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_42)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_43)
+/*
+ * @tc.name: Animation_Curve_Test_43
+ * @tc.desc: Test the default animation curve
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_43)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -933,7 +1146,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_43)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_44)
+/*
+ * @tc.name: Animation_Curve_Test_44
+ * @tc.desc: Test the default animation curve
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_44)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -954,7 +1172,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_44)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_45)
+/*
+ * @tc.name: Animation_Curve_Test_45
+ * @tc.desc: Test the default animation curve
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_45)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -975,7 +1198,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_45)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_46)
+/*
+ * @tc.name: Animation_Curve_Test_46
+ * @tc.desc: Test the default animation curve
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_46)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
@@ -996,7 +1224,12 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_46)
     });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_47)
+/*
+ * @tc.name: Animation_Curve_Test_47
+ * @tc.desc: Test the default animation curve
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AnimationCurveTest, ANIMATION_TEST, Animation_Curve_Test_47)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({0, 0, 1200, 2000});
