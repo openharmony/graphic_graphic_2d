@@ -75,6 +75,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/effect_background_blender_test.cpp",
   "rs_effect_feature/effect_background_effect_test.cpp",
   "rs_effect_feature/effect_fg_dynamiclightup_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_test.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test_data_manager.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test_factory.cpp",
