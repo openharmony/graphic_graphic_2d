@@ -26,7 +26,7 @@ using namespace OHOS::Rosen;
 namespace {
 bool GetColorValue(ani_env* env, ani_object colorObj, const char* name, int32_t& value)
 {
-    ani_double tempValue = 0;
+    ani_int tempValue = 0;
     ani_status isAlphaOk =
         env->Object_GetPropertyByName_Int(reinterpret_cast<ani_object>(colorObj), name, &tempValue);
     if (isAlphaOk != ANI_OK) {
