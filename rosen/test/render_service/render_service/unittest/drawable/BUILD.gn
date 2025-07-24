@@ -67,6 +67,9 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
     "c_utils:utils",
     "hilog:libhilog",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  } 
 }
 
 ## Build RSDisplayRenderNodeDrawableTest
@@ -92,6 +95,9 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
     "c_utils:utils",
     "hilog:libhilog",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }  
 }
 
 ## Build RSRcdSurfaceRenderNodeDrawableTest

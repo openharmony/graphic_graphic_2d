@@ -691,4 +691,24 @@ HWTEST_F(RSRenderParamsTest, SetNeedSwapBuffer, TestSize.Level2)
     EXPECT_TRUE(renderParams->GetNeedSwapBuffer());
     EXPECT_TRUE(renderParams->needSync_);
 }
+
+/**
+ * @tc.name: SetVirtualScreenWhiteListInfo
+ * @tc.desc: Test SetVirtualScreenWhiteListInfo
+ * @tc.type: FUNC
+ * @tc.require:#issueICF7P6
+ */
+HWTEST_F(RSRenderParamsTest, SetVirtualScreenWhiteListInfo, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
+    std::unordered_map<ScreenId, bool> info = {};
+    renderParams->hasVirtualScreenWhiteList_ = {};
+    renderParams->SetVirtualScreenWhiteListInfo(info);
+    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+    ScreenId screenId = 1;
+    info[screenId] = true;
+    renderParams->SetVirtualScreenWhiteListInfo(info);
+    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+}
 } // namespace OHOS::Rosen

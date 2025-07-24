@@ -1366,17 +1366,26 @@ std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
     return allBlackList;
 }
 
-std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList() const
+std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     std::unordered_set<uint64_t> allWhiteList;
-    for (const auto& screen : screens_) {
-        if (screen.second != nullptr) {
-            const auto& whiteList = screen.second->GetWhiteList();
+    for (const auto& [id, screen] : screens_) {
+        if (screen == nullptr) {
+            continue;
+        }
+        const auto& whiteList = screen->GetWhiteList();
+        if (!whiteList.empty()) {
             allWhiteList.insert(whiteList.begin(), whiteList.end());
+            screenWhiteList_[id] = whiteList;
         }
     }
     return allWhiteList;
+}
+
+std::unordered_map<ScreenId, std::unordered_set<uint64_t>> RSScreenManager::GetScreenWhiteList() const
+{
+    return screenWhiteList_;
 }
 
 int32_t RSScreenManager::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)

@@ -532,7 +532,8 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
-
+    void UpdateVirtualScreenWhiteListInfo(
+        const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
 

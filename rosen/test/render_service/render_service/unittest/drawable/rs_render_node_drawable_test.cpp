@@ -910,6 +910,80 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DealWithWhiteListNodes001
+ * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    RSUniRenderThread::SetCaptureParam(params);
+
+    drawable->renderParams_ = nullptr;
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_EQ(drawable->GetRenderParams(), nullptr);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+
+    ScreenId screenid = 1;
+    params.virtualScreenId_ = screenid;
+    std::unordered_map<ScreenId, bool> info;
+    info[screenid] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+
+    info.clear();
+    info[screenid + 1] = true;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+}
+
+/**
+ * @tc.name: DealWithWhiteListNodes002
+ * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes002, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    CaptureParam params;
+    params.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    params.rootIdInWhiteList_ = nodeId;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+
+    params.isMirror_ = true;
+    RSUniRenderThread::Instance().SetWhiteList({});
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+
+    params.isMirror_ = false;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+}
+
+/**
  * @tc.name: ProcessedNodeCount
  * @tc.desc: Test ProcessedNodeCount
  * @tc.type: FUNC

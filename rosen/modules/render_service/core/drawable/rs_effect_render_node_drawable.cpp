@@ -138,6 +138,9 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
 
 void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     RSEffectRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_effect_render_node_drawable.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 
@@ -49,5 +50,37 @@ HWTEST(RSEffectRenderNodeDrawableTest, CreateEffectRenderNodeDrawable, TestSize.
     auto effectNode = std::make_shared<RSEffectRenderNode>(id, rsContext->weak_from_this());
     auto drawable = RSEffectRenderNodeDrawable::OnGenerate(effectNode);
     ASSERT_NE(drawable, nullptr);
+}
+
+/**
+ * @tc.name: OnCaptureTest
+ * @tc.desc: Test If OnCapture Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+
+    CaptureParam params;
+    drawable->renderParams_ = nullptr;
+    params.isMirror_ = true;
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    RSUniRenderThread::SetCaptureParam(params);
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
 }
 }
