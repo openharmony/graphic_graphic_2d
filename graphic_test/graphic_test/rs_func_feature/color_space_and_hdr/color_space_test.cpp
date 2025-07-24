@@ -83,6 +83,11 @@ private:
     }
 };
 
+/*
+ * @tc.name: ColorSpace_ImageInsRGBWindow_Test_01
+ * @tc.desc: Test srgb image
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_Test_01)
 {
     int columnCount = 2;
@@ -114,6 +119,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     }
 }
 
+/*
+ * @tc.name: ColorSpace_ImageInsRGBWindow_Test_02
+ * @tc.desc: Test rgb image
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_Test_02)
 {
     int columnCount = 2;
@@ -145,6 +155,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     }
 }
 
+/*
+ * @tc.name: ColorSpace_ImageInsRGBWindow_Test_03
+ * @tc.desc: Test p3 image
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_Test_03)
 {
     int columnCount = 2;
@@ -176,6 +191,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     }
 }
 
+/*
+ * @tc.name: ColorSpace_ImageInP3Window_Test_01
+ * @tc.desc: Test p3 color space
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Test_01)
 {
     int columnCount = 2;
@@ -207,6 +227,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     }
 }
 
+/*
+ * @tc.name: ColorSpace_ImageInP3Window_Test_02
+ * @tc.desc: Test p3 color space
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Test_02)
 {
     int columnCount = 2;
@@ -238,6 +263,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     }
 }
 
+/*
+ * @tc.name: ColorSpace_ImageInP3Window_Test_03
+ * @tc.desc: Test p3 color space
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Test_03)
 {
     int columnCount = 2;
@@ -269,6 +299,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     }
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_01
+ * @tc.desc: Test GetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_01)
 {
     std::string testText = "TEST";
@@ -291,6 +326,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_02
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_02)
 {
     std::string testText = "TEST";
@@ -314,6 +354,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_03
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_03)
 {
     std::string testText = "TEST";
@@ -337,6 +382,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_04
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_04)
 {
     std::string testText = "TEST";
@@ -360,6 +410,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_05
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_05)
 {
     std::string testText = "TEST";
@@ -383,6 +438,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_06
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_06)
 {
     std::string testText = "TEST";
@@ -406,6 +466,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_07
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_07)
 {
     std::string testText = "TEST";
@@ -429,6 +494,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_08
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_08)
 {
     std::string testText = "TEST";
@@ -452,6 +522,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_09
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_09)
 {
     std::string testText = "TEST";
@@ -475,6 +550,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetAndGetScreenColoorSpace_Test_10
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenColoorSpace_Test_10)
 {
     std::string testText = "TEST";
@@ -498,6 +578,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
     RegisterNode(testNodeImg);
 }
 
+/*
+ * @tc.name: ColorSpace_SetWideColorGamut_Test_01
+ * @tc.desc: Test SetColorGamut
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_Test_01)
 {
     CreateTestSurfaceNode(true);
@@ -519,6 +604,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     }
 }
 
+/*
+ * @tc.name: ColorSpace_SetWideColorGamut_Test_02
+ * @tc.desc: Test SetColorGamut
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_Test_02)
 {
     CreateTestSurfaceNode(true);
@@ -540,6 +630,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     }
 }
 
+/*
+ * @tc.name: ColorSpace_SetWideColorGamut_Test_03
+ * @tc.desc: Test SetColorGamut
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_Test_03)
 {
     CreateTestSurfaceNode(false);
@@ -561,6 +656,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     }
 }
 
+/*
+ * @tc.name: ColorSpace_SetWideColorGamut_Test_04
+ * @tc.desc: Test SetColorGamut
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_Test_04)
 {
     CreateTestSurfaceNode(true);
@@ -582,6 +682,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     }
 }
 
+/*
+ * @tc.name: ColorSpace_SetBackgroundColor_Test_01
+ * @tc.desc: Test SetBackgroundColor
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor_Test_01)
 {
     CreateTestSurfaceNode(true);
@@ -595,6 +700,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_SetBackgroundColor_Test_02
+ * @tc.desc: Test SetBackgroundColor
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor_Test_02)
 {
     CreateTestSurfaceNode(false);
@@ -608,6 +718,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_SetBackgroundColor_Test_03
+ * @tc.desc: Test SetBackgroundColor
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor_Test_03)
 {
     CreateTestSurfaceNode(true);
@@ -620,6 +735,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_SetBackgroundColor_Test_04
+ * @tc.desc: Test SetBackgroundColor
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor_Test_04)
 {
     CreateTestSurfaceNode(false);
@@ -632,6 +752,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_ShaderEffect_Test_01
+ * @tc.desc: Test ShaderEffect
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_01)
 {
     CreateTestSurfaceNode(true);
@@ -651,6 +776,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_ShaderEffect_Test_02
+ * @tc.desc: Test ShaderEffect
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_02)
 {
     CreateTestSurfaceNode(true);
@@ -672,6 +802,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_ShaderEffect_Test_03
+ * @tc.desc: Test ShaderEffect
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_03)
 {
     CreateTestSurfaceNode(true);
@@ -693,6 +828,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_ShaderEffect_Test_04
+ * @tc.desc: Test ShaderEffect
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_04)
 {
     CreateTestSurfaceNode(true);
@@ -714,6 +854,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_ShaderEffect_Test_05
+ * @tc.desc: Test ShaderEffect
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_05)
 {
     CreateTestSurfaceNode(true);
@@ -735,6 +880,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_ShaderEffect_Test_06
+ * @tc.desc: Test ShaderEffect
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_06)
 {
     CreateTestSurfaceNode(true);
@@ -756,6 +906,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_ShaderEffect_Test_07
+ * @tc.desc: Test ShaderEffect
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_07)
 {
     CreateTestSurfaceNode(true);
@@ -777,6 +932,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_Screen_Test_01
+ * @tc.desc: Test GetScreenColorSpace
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_Screen_Test_01)
 {
     CreateTestSurfaceNode(true);
@@ -801,6 +961,11 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_Screen_Test_01)
     RegisterNode(testNode);
 }
 
+/*
+ * @tc.name: ColorSpace_Screen_Test_02
+ * @tc.desc: Test GetScreenSupportedColorSpaces
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_Screen_Test_02)
 {
     CreateTestSurfaceNode(true);
