@@ -3274,6 +3274,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
 
 void RSMainThread::DumpEventHandlerInfo()
 {
+    std::lock_guard<std::mutex> lock(dumpInfoMutex_);
     RSEventDumper dumper;
     handler_->Dump(dumper);
     dumpInfo_ = dumper.GetOutput().c_str();
