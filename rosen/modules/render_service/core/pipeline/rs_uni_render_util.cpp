@@ -104,6 +104,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     // DFX START
     rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
     // DFX END
+    params.SetDrawnRegion(dirtyRegion.Or(globalDirtyRegion));
 
     RectI rect = dirtyManager->GetDirtyRegionFlipWithinSurface();
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);

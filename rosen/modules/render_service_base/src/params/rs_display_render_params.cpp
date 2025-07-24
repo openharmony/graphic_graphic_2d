@@ -15,6 +15,7 @@
 
 #include "params/rs_display_render_params.h"
 
+#include "common/rs_occlusion_region.h"
 #include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
 using RSRenderNodeDrawableAdapterSharedPtr = DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr;
@@ -284,4 +285,13 @@ bool RSDisplayRenderParams::GetNeedOffscreen() const
     return needOffscreen_;
 }
 
+void RSDisplayRenderParams::SetDrawnRegion(const Occlusion::Region& region)
+{
+    drawnRegion_ = region;
+}
+
+const Occlusion::Region& RSDisplayRenderParams::GetDrawnRegion() const
+{
+    return drawnRegion_;
+}
 } // namespace OHOS::Rosen
