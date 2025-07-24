@@ -89,6 +89,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color, Vector4f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Thickness, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(AuroraNoise, Noise, float);
 

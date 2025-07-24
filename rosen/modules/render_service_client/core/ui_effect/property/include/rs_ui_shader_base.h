@@ -50,7 +50,8 @@ DECLARE_SHADER(ContourDiagonalFlowLight, CONTOUR_DIAGONAL_FLOW_LIGHT,
 
 DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
     ADD_PROPERTY_TAG(WavyRippleLight, Center),
-    ADD_PROPERTY_TAG(WavyRippleLight, Radius)
+    ADD_PROPERTY_TAG(WavyRippleLight, Radius),
+    ADD_PROPERTY_TAG(WavyRippleLight, Thickness)
 );
 
 DECLARE_SHADER(AuroraNoise, AURORA_NOISE,
