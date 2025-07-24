@@ -135,7 +135,7 @@ ani_status AniDrawingConverter::ParseRectToAni(ani_env* env, const OHOS::Rosen::
 
 ani_status AniDrawingConverter::ParsePointToAni(ani_env* env, const OHOS::Rosen::Drawing::Point& point, ani_object& obj)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_POINT, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POINT, ":V");
     if (env->Object_SetPropertyByName_Double(aniObj, "x", ani_double(point.GetX())) != ANI_OK) {
         return ANI_INVALID_ARGS;
     }

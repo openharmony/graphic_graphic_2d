@@ -36,8 +36,8 @@ public:
     static ani_status ParseHeightStyleToNative(
         ani_env* env, ani_object obj, OHOS::Rosen::TextRectHeightStyle& heightStyle);
 
-    static ani_status ParseTextBoxToAni(ani_env* env, const OHOS::Rosen::TextRect textRect, ani_object& obj);
-    static ani_status ParseBoundaryToAni(ani_env* env, OHOS::Rosen::Boundary& Boundary, ani_object& obj);
+    static ani_status ParseTextBoxToAni(ani_env* env, const OHOS::Rosen::TextRect& textRect, ani_object& obj);
+    static ani_status ParseBoundaryToAni(ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& obj);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_TEXT_RECT_CONVERTER_H

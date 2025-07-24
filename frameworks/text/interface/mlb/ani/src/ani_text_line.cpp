@@ -44,7 +44,7 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_ClASS_TEXT_LINE, &cls);
+    ret = env->FindClass(ANI_CLASS_TEXT_LINE, &cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
@@ -54,7 +54,7 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
     std::string getGlyphRunsSignature = ":" + std::string(ANI_ARRAY);
     std::string paintSignature = std::string(ANI_CLASS_CANVAS) + "DD:V";
     std::string createTruncatedLineSignature =
-        "D" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "Lstd/core/String;:" + std::string(ANI_ClASS_TEXT_LINE);
+        "D" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "Lstd/core/String;:" + std::string(ANI_CLASS_TEXT_LINE);
     std::string getTypographicBoundsSignature = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
     std::string getImageBoundsSignature = ":" + std::string(ANI_INTERFACE_RECT);
     std::string getStringIndexForPositionSignature = std::string(ANI_INTERFACE_POINT) + ":I";
@@ -93,7 +93,7 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
         TEXT_LOGE("Failed to create text line, emtpy ptr");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_TEXT_LINE, ":V");
+    ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":V");
     ani_status ret = env->Object_SetFieldByName_Long(textLineObj, NATIVE_OBJ, reinterpret_cast<ani_long>(textLine));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine, ani_status: %{public}d", ret);
@@ -328,7 +328,7 @@ static bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vec
         return false;
     }
     ani_boolean result = false;
-    env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
+    ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get result, ani_status: %{public}d", ret);
         return false;

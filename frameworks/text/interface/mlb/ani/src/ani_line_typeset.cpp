@@ -39,15 +39,15 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_ClASS_LINE_TYPESET, &cls);
+    ret = env->FindClass(ANI_CLASS_LINE_TYPESET, &cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
-    std::string createLineSignature = "II:" + std::string(ANI_ClASS_TEXT_LINE);
+    std::string createLineSignature = "II:" + std::string(ANI_CLASS_TEXT_LINE);
     std::array methods = {
         ani_native_function{"getLineBreak", "ID:I", reinterpret_cast<void*>(GetLineBreak)},
-        ani_native_function{"createLine", createLineSignature.c_str(), reinterpret_cast<void*>(GreateLine)},
+        ani_native_function{"createLine", createLineSignature.c_str(), reinterpret_cast<void*>(CreateLine)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -70,7 +70,7 @@ ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int st
     return static_cast<ani_int>(lineTypography->GetLineBreak(static_cast<size_t>(startIndex), width));
 }
 
-ani_object AniLineTypeset::GreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count)
+ani_object AniLineTypeset::CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count)
 {
     LineTypography* lineTypography = AniTextUtils::GetNativeFromObj<LineTypography>(env, object);
     if (lineTypography == nullptr) {

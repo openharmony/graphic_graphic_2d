@@ -40,7 +40,7 @@ std::unordered_map<int, int> g_weightMap = {
 };
 }
 
-#define SET_STRING_PROPERTY(env, obj, propName, value, type, error_var) \
+#define SET_PROPERTY(env, obj, propName, value, type, error_var) \
     do { \
         ani_status ret = (env)->Object_SetPropertyByName_Ref( \
             (obj), (propName), AniTextUtils::CreateAni##type##Obj((env), (value))); \
@@ -56,7 +56,7 @@ std::unordered_map<int, int> g_weightMap = {
             (env), (obj), #field, (fontDescPtr)->field); \
         if (ret != ANI_OK) { \
             TEXT_LOGE("Failed to convert %{public}s: ret %{public}d", #field, ret); \
-            (error_var) = ANI_INVALID_ARGS; \
+            (error_var) = ret; \
         } \
     } while (0)
 
@@ -141,15 +141,15 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, ":V");
 
     ani_status status = ANI_OK;
-    SET_STRING_PROPERTY(env, aniObj, "path", fontDesc->path, String, status);
-    SET_STRING_PROPERTY(env, aniObj, "postScriptName", fontDesc->postScriptName, String, status);
-    SET_STRING_PROPERTY(env, aniObj, "fullName", fontDesc->fullName, String, status);
-    SET_STRING_PROPERTY(env, aniObj, "fontFamily", fontDesc->fontFamily, String, status);
-    SET_STRING_PROPERTY(env, aniObj, "fontSubfamily", fontDesc->fontSubfamily, String, status);
-    SET_STRING_PROPERTY(env, aniObj, "width", fontDesc->width, Int, status);
-    SET_STRING_PROPERTY(env, aniObj, "italic", fontDesc->italic, Int, status);
-    SET_STRING_PROPERTY(env, aniObj, "monoSpace", fontDesc->monoSpace, Boolean, status);
-    SET_STRING_PROPERTY(env, aniObj, "symbolic", fontDesc->symbolic, Boolean, status);
+    SET_PROPERTY(env, aniObj, "path", fontDesc->path, String, status);
+    SET_PROPERTY(env, aniObj, "postScriptName", fontDesc->postScriptName, String, status);
+    SET_PROPERTY(env, aniObj, "fullName", fontDesc->fullName, String, status);
+    SET_PROPERTY(env, aniObj, "fontFamily", fontDesc->fontFamily, String, status);
+    SET_PROPERTY(env, aniObj, "fontSubfamily", fontDesc->fontSubfamily, String, status);
+    SET_PROPERTY(env, aniObj, "width", fontDesc->width, Int, status);
+    SET_PROPERTY(env, aniObj, "italic", fontDesc->italic, Int, status);
+    SET_PROPERTY(env, aniObj, "monoSpace", fontDesc->monoSpace, Boolean, status);
+    SET_PROPERTY(env, aniObj, "symbolic", fontDesc->symbolic, Boolean, status);
 
     auto iter = g_weightMap.find(fontDesc->weight);
     if (iter == g_weightMap.end()) {

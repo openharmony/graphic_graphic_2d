@@ -96,7 +96,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     std::string pushStyleSignature = std::string(ANI_INTERFACE_TEXT_STYLE) + ":V";
     std::string buildStyleSignature = ":" + std::string(ANI_CLASS_PARAGRAPH);
     std::string addPlaceholderSignature = std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + ":V";
-    std::string buildLineTypesetSignature = ":" + std::string(ANI_ClASS_LINE_TYPESET);
+    std::string buildLineTypesetSignature = ":" + std::string(ANI_CLASS_LINE_TYPESET);
     std::array methods = {
         ani_native_function{"constructorNative", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
         ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(PushStyle)},
@@ -210,7 +210,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_LINE_TYPESET, ":V");
+    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINE_TYPESET, ":V");
     LineTypography* lineTypographyPtr = lineTypography.release();
     ani_status ret =
         env->Object_SetFieldByName_Long(lineTypographyObj, NATIVE_OBJ, reinterpret_cast<ani_long>(lineTypographyPtr));
