@@ -187,13 +187,13 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
                 return "";
             }
 
-            ani_int valueDouble;
-            ret = env->Object_GetPropertyByName_Int(obj, "value", &valueDouble);
+            ani_int valueInt;
+            ret = env->Object_GetPropertyByName_Int(obj, "value", &valueInt);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get value, ret %{public}d", ret);
                 return "";
             }
-            fontFeatures.SetFeature(name, static_cast<int>(valueDouble));
+            fontFeatures.SetFeature(name, static_cast<int>(valueInt));
             return "";
         });
 }
