@@ -51,6 +51,18 @@ ohos_unittest("vsync_connection_test") {
 
 ## UnitTest vsync_connection_test }}}
 
+## UnitTest vsync_system_ability_listener_test {{{
+ohos_unittest("vsync_system_ability_listener_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_system_ability_listener_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+
+}
+
+## UnitTest vsync_system_ability_listener_test }}}
+
 ## UnitTest vsync_controller_test {{{
 ohos_unittest("vsync_controller_test") {
   module_out_path = module_out_path
