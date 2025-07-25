@@ -75,11 +75,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
-    auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    bool shouldPaint = ShouldPaint();
-    if (canvas.GetUICapture() && captureParam.endNodeId_ != INVALID_NODEID) {
-        shouldPaint = true;
-    }
+    bool shouldPaint = ShouldPaint() || (canvas.GetUICapture() && RSUniRenderThread::IsEndNodeIdValid());
     if (!shouldPaint) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;

@@ -277,7 +277,7 @@ public:
 
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
-    int GetParallelThreadId();
+    uint32_t GetParallelThreadId();
     void SetParallelThreadId(int idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
@@ -509,7 +509,7 @@ private:
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
 
     Occlusion::Region drawnRegion_;
-    int threadId_;
+    uint32_t threadId_;
     std::weak_ptr<Drawing::Surface> weakSurface_;
     bool isQuickDraw_= false;
 };

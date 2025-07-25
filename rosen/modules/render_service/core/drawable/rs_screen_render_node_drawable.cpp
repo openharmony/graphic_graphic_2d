@@ -72,11 +72,12 @@
 #include "c/ffrt_cpu_boost.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
+
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
 #endif
-// hpae offline
-#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 namespace {

@@ -1607,7 +1607,7 @@ uint32_t RSPaintFilterCanvas::GetParallelThreadIdx() const
     return threadIndex_;
 }
 
-int RSPaintFilterCanvas::GetParallelThreadId()
+uint32_t RSPaintFilterCanvas::GetParallelThreadId()
 {
     return threadId_;
 }

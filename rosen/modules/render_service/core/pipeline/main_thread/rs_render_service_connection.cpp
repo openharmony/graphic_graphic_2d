@@ -2343,7 +2343,7 @@ ErrCode RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<
         } else if (tid == UNI_RENDER_THREAD_INDEX) {
             renderThread->PostTask(getDrawablePixelmapTask);
         } else {
-            auto tidMap = RSSubThreadManager::Instance()->GetReThreadIndexMap();
+            const auto& tidMap = RSSubThreadManager::Instance()->GetReThreadIndexMap();
             if (auto found = tidMap.find(tid); found != tidMap.end()) {
                 RSTaskDispatcher::GetInstance().PostTask(found->second, getDrawablePixelmapTask, false);
             } else {
