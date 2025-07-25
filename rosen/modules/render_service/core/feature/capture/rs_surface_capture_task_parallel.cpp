@@ -211,8 +211,11 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
-        bool isHDRCapture = captureConfig_.isHdrCapture && surfaceNode->GetHDRPresent();
-        pixelMap_ = CreatePixelMapBySurfaceNode(curNode, isHDRCapture);
+        // When the window freeze capture invokes the F16 screenshot mode and window need use F16 capture,
+        // or when the HDR mode is invoked and the window contains HDR resources, an F16 buffer needs to be allocated.
+        bool isF16Capture = (captureConfig_.needF16WindowCaptureForScRGB && RSHdrUtil::NeedUseF16Capture(curNode)) ||
+            (captureConfig_.isHdrCapture && surfaceNode->GetHDRPresent());
+        pixelMap_ = CreatePixelMapBySurfaceNode(curNode, isF16Capture);
         screenId_ = surfaceNode->GetScreenId();
     } else if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
         displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
@@ -437,7 +440,7 @@ bool RSSurfaceCaptureTaskParallel::RunHDR(
 }
 
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode(
-    std::shared_ptr<RSSurfaceRenderNode> node, bool isHDRCapture)
+    std::shared_ptr<RSSurfaceRenderNode> node, bool isF16Capture)
 {
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: node == nullptr");
@@ -447,7 +450,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
 
     Media::InitializationOptions opts;
-    if (isHDRCapture) {
+    if (isF16Capture) {
         opts.pixelFormat = Media::PixelFormat::RGBA_F16;
     }
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
@@ -458,14 +461,14 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
         " useDma: [%{public}d], useCurWindow: [%{public}d],"
-        " isOnTheTree: [%{public}d], isVisible: [%{public}d], isHDRCapture: [%{public}d]",
+        " isOnTheTree: [%{public}d], isVisible: [%{public}d], isF16Capture: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
-        !surfaceNode_->GetVisibleRegion().IsEmpty(), isHDRCapture);
+        !surfaceNode_->GetVisibleRegion().IsEmpty(), isF16Capture);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-        if (!isHDRCapture) {
+        if (!isF16Capture) {
             windowColorGamut = node->IsLeashWindow() ? node->GetFirstLevelNodeColorGamut() : node->GetColorSpace();
         }
         pixelMap->InnerSetColorSpace(windowColorGamut == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB ?

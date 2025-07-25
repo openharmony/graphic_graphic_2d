@@ -400,4 +400,36 @@ HWTEST_F(RSHdrUtilTest, UpdateHDRCastPropertiesTest, TestSize.Level1)
     EXPECT_EQ(param->GetHDRPresent(), true);
 }
 
+/**
+ * @tc.name: NeedUseF16Capture
+ * @tc.desc: Test NeedUseF16Capture
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, NeedUseF16CaptureTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+
+    EXPECT_EQ(surfaceNode->GetAncestorScreenNode().lock(), nullptr);
+    EXPECT_FALSE(RSHdrUtil::NeedUseF16Capture(nullptr));
+    EXPECT_FALSE(RSHdrUtil::NeedUseF16Capture(surfaceNode));
+
+    surfaceNode->SetAncestorScreenNode(screenNode);
+    EXPECT_NE(surfaceNode->GetAncestorScreenNode().lock(), nullptr);
+    EXPECT_FALSE(RSHdrUtil::NeedUseF16Capture(surfaceNode));
+    screenNode->InitRenderParams();
+    auto param = screenNode->GetStagingRenderParams().get();
+    EXPECT_NE(param, nullptr);
+    EXPECT_FALSE(RSHdrUtil::NeedUseF16Capture(surfaceNode));
+
+    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    EXPECT_FALSE(RSHdrUtil::NeedUseF16Capture(surfaceNode));
+}
 } // namespace OHOS::Rosen
