@@ -1620,7 +1620,7 @@ HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion001, TestSize.Level1)
     auto textBlob1 = TextBlob::MakeFromString("12", font, TextEncoding::UTF8);
     DrawTextBlobOpItem opItem1 { textBlob1.get(), 10, 10, paint };
     ASSERT_TRUE(textBlob1->Bounds() != nullptr);
-    ASSERT_TRUE(!(opItem1.GetOpItemCmdlistDrawRegion().IsEmpty()));
+    ASSERT_FALSE(opItem1.GetOpItemCmdlistDrawRegion().IsEmpty());
 
     opItem1.textBlob_->textBlobImpl_ = nullptr;
     ASSERT_TRUE(opItem1.GetOpItemCmdlistDrawRegion().IsEmpty());
