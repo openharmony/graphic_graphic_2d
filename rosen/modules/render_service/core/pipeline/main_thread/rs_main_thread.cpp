@@ -2517,7 +2517,17 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
-    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(children->front());
+    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+    {
+        auto screenNodeList = rootNode->GetChildrenList();
+        for (const auto& child : screenNodeList) {
+            auto node = child.lock();
+            if (node && node->GetChildrenCount() > 0) {
+                screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
+                break;
+            }
+        }
+    }
     if (!screenNode ||
         screenNode->GetCompositeType() != CompositeType::UNI_RENDER_COMPOSITE) {
         RS_LOGE("DoDirectComposition screenNode state error");
