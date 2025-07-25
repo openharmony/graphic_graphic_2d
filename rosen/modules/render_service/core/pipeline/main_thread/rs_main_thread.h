@@ -857,6 +857,7 @@ private:
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     HgmContext hgmContext_;
+    std::mutex dumpInfoMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
