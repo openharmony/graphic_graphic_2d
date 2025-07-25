@@ -52,13 +52,11 @@ class RSSurfaceRenderNodeDrawable;
 }
 struct FrameContextConfig {
 public:
-    FrameContextConfig(bool isProtected, bool independentContext)
+    explicit FrameContextConfig(bool isProtected)
     {
         this->isProtected = isProtected;
-        this->independentContext = independentContext;
     }
     bool isProtected = false;
-    bool independentContext = false;
     bool isVirtual = false;
     int32_t timeOut = 3000; // ms
 };
@@ -172,12 +170,12 @@ public:
     // for framebuffer surface
     std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
-        const FrameContextConfig& frameContextConfig = {false, false});
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
-        const FrameContextConfig& frameContextConfig = {false, false});
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
     std::shared_ptr<RSSurfaceOhos> MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU);
     static void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSSurfaceOhos> surfaceOhos);

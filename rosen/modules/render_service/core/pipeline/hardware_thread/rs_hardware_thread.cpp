@@ -945,10 +945,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             frameBufferSurfaceOhosMap_[surfaceId] = frameBufferSurfaceOhos;
         }
     }
-    FrameContextConfig frameContextConfig = {isProtected, false};
-#ifdef RS_ENABLE_VKQUEUE_PRIORITY
-    frameContextConfig.independentContext = RSSystemProperties::GetVkQueuePriorityEnable();
-#endif
+    FrameContextConfig frameContextConfig = FrameContextConfig(isProtected);
     std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
     auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos, renderFrameConfig,
         forceCPU, true, frameContextConfig);

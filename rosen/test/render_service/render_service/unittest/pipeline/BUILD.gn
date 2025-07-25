@@ -55,10 +55,6 @@ group("unittest") {
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [ ":RSRenderTaskTest" ]
   }
-  if (graphic_2d_feature_enable_vulkan &&
-      graphic_2d_feature_vkqueue_priority_enable) {
-    deps += [ ":RSFeatureVkQueuePriorityTest" ]
-  }
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     deps += [ ":RSMagicPointerRenderManagerTest" ]
@@ -757,30 +753,6 @@ ohos_unittest("RSRenderTaskTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
-  }
-}
-
-## Build RSFeatureVkQueuePriorityTest
-ohos_unittest("RSFeatureVkQueuePriorityTest") {
-  module_out_path = module_output_path
-  sources = [ "feature_render/rs_feature_vkqueue_priority_test.cpp" ]
-  deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
   }
 }
 

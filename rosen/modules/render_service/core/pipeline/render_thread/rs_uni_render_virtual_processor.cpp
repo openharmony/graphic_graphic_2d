@@ -106,7 +106,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     SetVirtualScreenSize(screenDrawable, screenManager);
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
-    FrameContextConfig frameContextConfig = {false, false};
+    FrameContextConfig frameContextConfig = FrameContextConfig(false);
     frameContextConfig.isVirtual = true;
     frameContextConfig.timeOut = 0;
 
