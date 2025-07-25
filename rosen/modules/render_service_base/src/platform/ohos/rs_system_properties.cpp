@@ -1569,16 +1569,6 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
     isTypicalResidentProcess_ = isTypicalResidentProcess;
 }
 
-bool RSSystemProperties::GetImplicitAnimatorScene()
-{
-    return isImplicitAnimatorScene_;
-}
-
-void RSSystemProperties::SetImplicitAnimatorScene(bool isImplicitAnimatorScene)
-{
-    isImplicitAnimatorScene_ = isImplicitAnimatorScene;
-}
-
 bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     static int isAccessToVulkanConfigFile = access(VULKAN_CONFIG_FILE_PATH, F_OK);

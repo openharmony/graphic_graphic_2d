@@ -918,17 +918,9 @@ void RSInterfaces::ReportJankStats()
     renderServiceClient_->ReportJankStats();
 }
 
-void RSInterfaces::CollectImplicitAnimatorInfo(const DataBaseRs& info)
-{
-    if (info.sceneId == "ABILITY_OR_PAGE_SWITCH" && !info.isDisplayAnimator) {
-        RSSystemProperties::SetImplicitAnimatorScene(true);
-    }
-}
-
 void RSInterfaces::ReportEventResponse(DataBaseRs info)
 {
     renderServiceClient_->ReportEventResponse(info);
-    CollectImplicitAnimatorInfo(info);
 }
 
 void RSInterfaces::ReportEventComplete(DataBaseRs info)

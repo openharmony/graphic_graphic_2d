@@ -1185,31 +1185,5 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Leve
     RSSystemProperties::SetTypicalResidentProcess(enabled);
     EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
-
-/**
- * @tc.name: SetImplicitAnimatorScene001
- * @tc.desc: set isImplicitAnimatorScene_ to true and GetImplicitAnimatorScene
- * @tc.type: FUNC
- * @tc.require: issuesICNX7C
- */
-HWTEST_F(RSSystemPropertiesTest, SetImplicitAnimatorScene001, TestSize.Level1)
-{
-    bool isImplicitAnimatorScene = true;
-    RSSystemProperties::SetImplicitAnimatorScene(isImplicitAnimatorScene);
-    EXPECT_EQ(RSSystemProperties::GetImplicitAnimatorScene(), isImplicitAnimatorScene);
-}
-
-/**
- * @tc.name: SetImplicitAnimatorScene002
- * @tc.desc: set isImplicitAnimatorScene_ to false and GetImplicitAnimatorScene
- * @tc.type: FUNC
- * @tc.require: issuesICNX7C
- */
-HWTEST_F(RSSystemPropertiesTest, SetImplicitAnimatorScene002, TestSize.Level1)
-{
-    bool isImplicitAnimatorScene = false;
-    RSSystemProperties::SetImplicitAnimatorScene(isImplicitAnimatorScene);
-    EXPECT_EQ(RSSystemProperties::GetImplicitAnimatorScene(), isImplicitAnimatorScene);
-}
 } // namespace Rosen
 } // namespace OHOS

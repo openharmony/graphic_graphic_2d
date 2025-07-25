@@ -370,8 +370,6 @@ public:
     static bool GetHybridRenderHmsymbolEnabled();
     static bool GetTypicalResidentProcess();
     static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
-    static bool GetImplicitAnimatorScene();
-    static void SetImplicitAnimatorScene(bool isImplicitAnimatorScene);
 
     static bool GetVKImageUseEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
@@ -393,7 +391,6 @@ private:
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;
     static inline bool isTypicalResidentProcess_ = false;
-    static inline bool isImplicitAnimatorScene_ = false;
     static bool isEnableEarlyZ_;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;

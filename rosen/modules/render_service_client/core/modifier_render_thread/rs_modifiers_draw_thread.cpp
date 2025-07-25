@@ -238,9 +238,10 @@ bool RSModifiersDrawThread::TargetCommand(
     return targetCmd;
 }
 
-bool RSModifiersDrawThread::LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData,
-    uint32_t& enableHybridOpCnt, uint32_t& enableTextHybridOpCnt)
+bool RSModifiersDrawThread::LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData)
 {
+    int enableHybridOpCnt = 0;
+    int enableTextHybridOpCnt = 0;
     for (const auto& [nodeId, followType, command] : transactionData->GetPayload()) {
         auto drawCmdList = command == nullptr ? nullptr : command->GetDrawCmdList();
         if (drawCmdList == nullptr) {
@@ -260,7 +261,9 @@ bool RSModifiersDrawThread::LimitEnableHybridOpCnt(std::unique_ptr<RSTransaction
             enableTextHybridOpCnt++;
         }
     }
-    return (enableHybridOpCnt != 0) && (enableHybridOpCnt <= HYBRID_MAX_ENABLE_OP_CNT) &&
+    RS_OPTIONAL_TRACE_NAME_FMT("LimitEnableHybridOpCnt opCnt=%d, textOpCnt=%d",
+        enableHybridOpCnt, enableTextHybridOpCnt);
+    return (enableHybridOpCnt <= HYBRID_MAX_ENABLE_OP_CNT) &&
         (enableTextHybridOpCnt <= HYBRID_MAX_TEXT_ENABLE_OP_CNT);
 }
 
@@ -282,26 +285,14 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
     std::shared_ptr<RSIRenderClient> renderServiceClient,
     bool& isNeedCommit)
 {
-    uint32_t enableHybridOpCnt = 0;
-    uint32_t enableTextHybridOpCnt = 0;
-    bool isEnableHybridByOpCnt = LimitEnableHybridOpCnt(transactionData, enableHybridOpCnt, enableTextHybridOpCnt);
-    bool isFirstFrame = RSModifiersDrawThread::GetIsFirstFrame();
-    if (!isEnableHybridByOpCnt && isFirstFrame) {
+    bool isEnableHybridByOpCnt = LimitEnableHybridOpCnt(transactionData);
+    if (!isEnableHybridByOpCnt && RSModifiersDrawThread::GetIsFirstFrame()) {
         renderServiceClient->CommitTransaction(transactionData);
         // still need playback when firstFrame is true
         isNeedCommit = false;
     } else if (!isEnableHybridByOpCnt) {
         return transactionData;
     }
-    // In ABILITY_OR_PAGE_SWITCH implicitAnimator scene, return when opCnt is greater than or equal to thread loop num
-    if (RSSystemProperties::GetImplicitAnimatorScene() && enableHybridOpCnt >= DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM) {
-        RSSystemProperties::SetImplicitAnimatorScene(false);
-        RS_OPTIONAL_TRACE_NAME_FMT("return, ABILITY_OR_PAGE_SWITCH implicitAnimator scene, opCnt=%d",
-            enableHybridOpCnt);
-        return transactionData;
-    }
-    RS_TRACE_NAME_FMT("ConvertTransaction opCnt:%d, textOpCnt:%d, firstFrame:%d",
-        enableHybridOpCnt, enableTextHybridOpCnt, isFirstFrame);
     static std::unique_ptr<ffrt::queue> queue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "ModifiersDraw",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM));
     std::vector<ffrt::task_handle> handles;
@@ -349,7 +340,6 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
         queue->wait(handle);
     }
     RSModifiersDraw::PurgeContextResource();
-    RSSystemProperties::SetImplicitAnimatorScene(false);
 
     return transactionData;
 }

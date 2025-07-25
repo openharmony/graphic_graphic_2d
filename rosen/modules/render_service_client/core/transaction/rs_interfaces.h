@@ -1246,8 +1246,6 @@ private:
     bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         float scaleX, float scaleY);
 
-    void CollectImplicitAnimatorInfo(const DataBaseRs& info);
-
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
 };
 } // namespace Rosen

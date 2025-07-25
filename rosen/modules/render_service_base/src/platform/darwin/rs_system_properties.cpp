@@ -766,15 +766,6 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 {
 }
 
-bool RSSystemProperties::GetImplicitAnimatorScene()
-{
-    return false;
-}
-
-void RSSystemProperties::SetImplicitAnimatorScene(bool isImplicitAnimatorScene)
-{
-}
-
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
     return true;
