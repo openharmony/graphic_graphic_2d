@@ -188,10 +188,11 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, DrawCurtainScreen, TestSize.Level1)
     auto params = std::make_unique<RSRenderThreadParams>();
     params->isCurtainScreenOn_ = true;
     RSUniRenderThread::Instance().Sync(std::move(params));
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isCurtainScreenOn_ = true;
     screenDrawable_->DrawCurtainScreen();
     EXPECT_TRUE(RSUniRenderThread::Instance().IsCurtainScreenOn());
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isCurtainScreenOn_ = false;
+    params = std::make_unique<RSRenderThreadParams>();
+    params->isCurtainScreenOn_ = false;
+    RSUniRenderThread::Instance().Sync(std::move(params));
 }
 
 /**
@@ -240,7 +241,9 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RenderOverDraw, TestSize.Level1)
     if (drawingCanvas_) {
         screenDrawable_->curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
     }
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isOverDrawEnabled_ = true;
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->isOverDrawEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(params));
     screenDrawable_->RenderOverDraw();
 }
 
@@ -268,7 +271,9 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Lev
     auto renderNode = std::make_shared<RSRenderNode>(nodeId);
     auto drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
     EXPECT_NE(drawablePtr, nullptr);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableVec_ = { { nodeId, 0, drawablePtr } };
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->hardCursorDrawableVec_ = { { nodeId, 0, drawablePtr } };
+    RSUniRenderThread::Instance().Sync(move(renderParams));
     result = screenDrawable_->HardCursorCreateLayer(processor);
     ASSERT_EQ(result, false);
 
@@ -298,7 +303,9 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
     ASSERT_EQ(result, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 1;
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->forceCommitReason_ = 1;
+    RSUniRenderThread::Instance().Sync(move(renderParams));
     result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
@@ -320,8 +327,9 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
     screenDrawable_->syncDirtyManager_->debugRect_ = { 1, 1, 1, 1 };
     result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     ASSERT_EQ(result, false);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 0;
+    renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->forceCommitReason_ = 0;
+    RSUniRenderThread::Instance().Sync(move(renderParams));
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
 

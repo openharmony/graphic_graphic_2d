@@ -53,51 +53,50 @@ void RSFrameRateVote::SetTransactionFlags(const std::string& transactionFlags)
     transactionFlags_ = transactionFlags;
 }
 
-bool RSFrameRateVote::CheckSurfaceAndUi(OHSurfaceSource sourceType)
+void RSFrameRateVote::CheckSurfaceAndUi()
 {
-    std::string transactionFlags = "";
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        transactionFlags = transactionFlags_;
+    if (!hasUiOrSurface) {
+        return;
     }
-    // transactionFlags_ format is [pid, eventId]
-    auto strLastVotedPid = "[" + std::to_string(lastVotedPid_) + ",";
-    if (sourceType == OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO &&
-        (transactionFlags == "" || transactionFlags.find(strLastVotedPid) == std::string::npos)) {
-        return false;
-    }
+    hasUiOrSurface = false;
     auto lastUpdateTime = currentUpdateTime_;
-    currentUpdateTime_ = OHOS::Rosen::HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
+    currentUpdateTime_ = OHOS::Rosen::HgmCore::Instance().GetActualTimestamp() / NS_PER_MS;
     auto duration = currentUpdateTime_ > lastUpdateTime ? currentUpdateTime_ - lastUpdateTime : 0;
     if (duration < DANMU_MAX_INTERVAL_TIME) {
-        return true;
-    } else {
-        return false;
+        if (lastVotedRate_ == OLED_NULL_HZ) {
+            return;
+        }
+        uint64_t currentId = lastSurfaceNodeId_.load();
+        {
+            std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
+            auto votingAddress = surfaceVideoFrameRateVote_.find(currentId);
+            if (votingAddress != surfaceVideoFrameRateVote_.end() && votingAddress->second) {
+                votingAddress->second->ReSetLastRate();
+            }
+        }
+        SurfaceVideoVote(currentId, 0);
     }
 }
 
 void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType,
     sptr<SurfaceBuffer>& buffer)
 {
-    // OH SURFACE SOURCE VIDEO AN UI VOTE
-    if (CheckSurfaceAndUi(sourceType)) {
-        if (lastVotedRate_ == OLED_NULL_HZ) {
-            return;
-        }
-        uint64_t currentId = lastSurfaceNodeId_.load();
-        std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
-        auto task = [this, currentId]() {
-            auto votingAddress = this->surfaceVideoFrameRateVote_.find(currentId);
-            if (votingAddress != this->surfaceVideoFrameRateVote_.end() && votingAddress->second) {
-                votingAddress->second->ReSetLastRate();
-            }
-            this->SurfaceVideoVote(currentId, 0);
-        };
-        if (ffrtQueue_) {
-            ffrtQueue_->submit(task);
-        }
-        return;
+    // transactionFlags_ format is [pid, eventId]
+    std::string transactionFlags = "";
+    std::string strLastVotedPid;
+    pid_t lastVotedPid;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        transactionFlags = transactionFlags_;
+        strLastVotedPid = "[" + std::to_string(lastVotedPid_) + ",";
+        lastVotedPid = lastVotedPid_;
     }
+    if (ExtractPid(surfaceNodeId) == lastVotedPid  &&
+        (sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO
+        || transactionFlags.find(strLastVotedPid) != std::string::npos)) {
+        hasUiOrSurface = true;
+    }
+    // OH SURFACE SOURCE VIDEO AN UI VOTE
     if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
         return;
     }
@@ -106,8 +105,8 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
     if (extraData != nullptr) {
         extraData->ExtraGet(VIDEO_RATE_FLAG, videoRate);
     }
-    std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
     auto initTask = [this, surfaceNodeId, videoRate]() {
+        std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
         std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote;
         if (surfaceVideoFrameRateVote_.find(surfaceNodeId) == surfaceVideoFrameRateVote_.end()) {
             rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(surfaceNodeId,
@@ -127,9 +126,9 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
 
 void RSFrameRateVote::ReleaseSurfaceMap(uint64_t surfaceNodeId)
 {
-    std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
     auto initTask = [this, surfaceNodeId]() {
         SurfaceVideoVote(surfaceNodeId, 0);
+        std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
         auto it = surfaceVideoFrameRateVote_.find(surfaceNodeId);
         if (it != surfaceVideoFrameRateVote_.end()) {
             RS_LOGI("video vote release surfaceNodeId(%{public}s), size(%{public}d)",
@@ -174,6 +173,7 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
     CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
     lastVotedPid_ = maxPid;
     lastVotedRate_ = maxRate;
+    // Delay for one second to stabilize the voting
     if (ffrtQueue_ && taskHandler_) {
         ffrtQueue_->cancel(taskHandler_);
         taskHandler_ = nullptr;

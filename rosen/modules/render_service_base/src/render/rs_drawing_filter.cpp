@@ -542,7 +542,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     /*
      * When calling ApplyHpsImageEffect(),
        if outImage == nullptr means:
-           HPS draw shaderFilters_ fail,
+           HPS draw shaderFilters_ fail, and func will return false,
        if outImage != nullptr and return true means:
            shaderFilters_ contain Kawase or Mesa and HPS draw shaderFilters_ succ,
        if outImage != nullptr and return false means:

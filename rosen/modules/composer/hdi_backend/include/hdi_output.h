@@ -17,6 +17,7 @@
 #define HDI_BACKEND_HDI_OUTPUT_H
 
 #include <array>
+#include <list>
 #include <stdint.h>
 #include <vector>
 #include <unordered_map>
@@ -134,6 +135,8 @@ private:
     std::array<int64_t, COMPOSITION_RECORDS_NUM> compositionTimeRecords_ = {};
     uint32_t compTimeRcdIndex_ = 0;
     sptr<HdiFramebufferSurface> fbSurface_ = nullptr;
+    std::list<LayerPtr> layersTobeRelease_;
+
     // layerId -- layer ptr
     std::unordered_map<uint32_t, LayerPtr> layerIdMap_;
     // surface unique id -- layer ptr

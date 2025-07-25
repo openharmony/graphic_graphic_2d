@@ -670,9 +670,7 @@ public:
      */
     std::string Dump() const;
 private:
-#if defined(MODIFIER_NG)
     Vector4f GetBgImageDstRect() const;
-#endif
 
     NodeId id_;
     std::weak_ptr<RSUIContext> rsUIContext_;

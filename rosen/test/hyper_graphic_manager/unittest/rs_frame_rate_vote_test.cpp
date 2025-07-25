@@ -25,6 +25,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+}
 class RSFrameRateVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
@@ -62,45 +64,47 @@ HWTEST_F(RSFrameRateVoteTest, SetTransactionFlags001, Function | SmallTest | Lev
  */
 HWTEST_F(RSFrameRateVoteTest, CheckSurfaceAndUi001, Function | SmallTest | Level0)
 {
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
-        OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO),
-        false);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
+    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
+        nullptr, nullptr);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastSurfaceNodeId_ = 1002;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 100;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = false;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, false);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    usleep(1000000);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
     usleep(40000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
-        OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
-        true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[1000,30]";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
     usleep(40000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
-        OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
-        true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[1000,30]";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 100;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.insert(
+        std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(1002, nullptr));
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
     usleep(40000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
-        OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO),
-        true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->ReleaseSurfaceMap(1002);
+    sleep(1);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.insert(
+        std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(1002, rsVideoFrameRateVote));
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 100;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
     usleep(40000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
-        OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
-        true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
-        OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO),
-        false);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 0;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->ReleaseSurfaceMap(1002);
 }
+
 
 HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Level0)
 {
@@ -154,52 +158,45 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote002, Function | SmallTest | Level1) {
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
-        nullptr, nullptr);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.insert(
-        std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(1000, rsVideoFrameRateVote));
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 60;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->ffrtQueue_ =
-        std::make_shared<ffrt::queue>("frame_rate_vote_queue");
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastSurfaceNodeId_ = 500;
+HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote002, Function | SmallTest | Level0) {
+    sptr<SurfaceBuffer> nullBuffer = nullptr;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = false;
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
-    usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.insert(
-        std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(1000, rsVideoFrameRateVote));
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, false);
+
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 60;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->ffrtQueue_ = nullptr;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastSurfaceNodeId_ = 1000;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
-    usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 60);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, false);
+
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "";
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 60;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->ffrtQueue_ =
-        std::make_shared<ffrt::queue>("frame_rate_vote_queue");
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_[1000] = nullptr;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
-    usleep(500000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.erase(1000);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
-    rsVideoFrameRateVote = nullptr;
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[0,30]";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[0,30]";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
 }
 
 /**

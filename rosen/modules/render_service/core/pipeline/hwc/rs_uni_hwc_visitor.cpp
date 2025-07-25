@@ -843,11 +843,65 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     }
 }
 
+bool RSUniHwcVisitor::IsBackgroundFilterUnderSurface(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+    const std::shared_ptr<RSRenderNode>& filterNode)
+{
+    auto buildRSRenderNodePath =
+        [this](const std::shared_ptr<RSRenderNode>& startNode) -> std::stack<std::shared_ptr<RSRenderNode>> {
+        std::stack<std::shared_ptr<RSRenderNode>> nodeStack;
+        auto currentNode = startNode;
+        while (currentNode && currentNode != uniRenderVisitor_.curSurfaceNode_) {
+            nodeStack.push(currentNode);
+            currentNode = currentNode->GetParent().lock();
+        }
+        if (currentNode != nullptr) {
+            nodeStack.push(currentNode);
+        }
+        return nodeStack;
+    };
+    std::stack<std::shared_ptr<RSRenderNode>> surfaceNodeStack = buildRSRenderNodePath(hwcNode);
+    std::stack<std::shared_ptr<RSRenderNode>> filterNodeStack = buildRSRenderNodePath(filterNode);
+    if (surfaceNodeStack.top() != filterNodeStack.top()) {
+        return false;
+    }
+
+    std::shared_ptr<RSRenderNode> publicParentNode = nullptr;
+    while (surfaceNodeStack.size() > 1 && filterNodeStack.size() > 1 &&
+        surfaceNodeStack.top() == filterNodeStack.top()) {
+        publicParentNode = surfaceNodeStack.top();
+        surfaceNodeStack.pop();
+        filterNodeStack.pop();
+    }
+    if (!publicParentNode) {
+        return false;
+    }
+
+    auto surfaceParent = surfaceNodeStack.top();
+    auto filterParent = filterNodeStack.top();
+    if (surfaceParent == filterParent) {
+        return (surfaceParent != hwcNode && filterParent == filterNode);
+    } else {
+        uint32_t surfaceZOrder = surfaceParent->GetHwcRecorder().GetZOrderForHwcEnableByFilter();
+        uint32_t filterZOrder = filterParent->GetHwcRecorder().GetZOrderForHwcEnableByFilter();
+        return publicParentNode->GetCurFrameInfoDetail().curFrameReverseChildren ?
+            (filterZOrder > surfaceZOrder) : (filterZOrder < surfaceZOrder);
+    }
+}
+
 void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    RSRenderNode& filterNode, int32_t filterZOrder)
+    RSRenderNode& filterNode, uint32_t filterZOrder)
 {
     if (!node) {
         return;
+    }
+    if (filterZOrder != 0 && node->GetHwcRecorder().GetZOrderForHwcEnableByFilter() != 0 &&
+        node->GetInstanceRootNodeId() == filterNode.GetInstanceRootNodeId() &&
+        RSUniHwcComputeUtil::IsBlendNeedBackground(filterNode) && uniRenderVisitor_.curSurfaceNode_ &&
+        uniRenderVisitor_.curSurfaceNode_->GetId() == node->GetInstanceRootNodeId() &&
+        RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(node->GetBundleName()) == "1") {
+        if (IsBackgroundFilterUnderSurface(node, filterNode.shared_from_this())) {
+            return;
+        }
     }
     auto bound = node->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     bool isIntersect = !bound.IntersectRect(filterNode.GetOldDirtyInSurface()).IsEmpty();
@@ -865,7 +919,7 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    RSRenderNode& filterNode, int32_t filterZOrder)
+    RSRenderNode& filterNode, uint32_t filterZOrder)
 {
     if (filterNode.GetOldDirtyInSurface().IsEmpty()) {
         return;
@@ -1020,8 +1074,6 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
                 hwcNodePtr->GetId(), parentNode ? parentNode->GetId() : 0,
                 hwcNodePtr->GetRSSurfaceHandler() && hwcNodePtr->GetRSSurfaceHandler()->GetBuffer());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
-                HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, hwcNodePtr->GetName());
             continue;
         }
         auto renderNode = hwcNodePtr->ReinterpretCastTo<RSRenderNode>();

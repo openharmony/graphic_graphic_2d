@@ -65,6 +65,13 @@ enum class VulkanInterfaceType : uint32_t {
     UNPROTECTED_REDRAW,
     MAX_INTERFACE_TYPE,
 };
+
+enum class VulkanDeviceStatus : uint32_t {
+    UNINITIALIZED = 0,
+    CREATE_SUCCESS,
+    CREATE_FAIL,
+    MAX_DEVICE_STATUS,
+};
 class MemoryHandler;
 class RsVulkanInterface {
 public:
@@ -283,6 +290,7 @@ public:
     VkSemaphore RequireSemaphore();
     void SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd);
     void DestroyAllSemaphoreFence();
+    VulkanDeviceStatus GetVulkanDeviceStatus();
     static std::atomic<uint64_t> callbackSemaphoreInfoCnt_;
     static std::atomic<uint64_t> callbackSemaphoreInfoRSDerefCnt_;
     static std::atomic<uint64_t> callbackSemaphoreInfo2DEngineDerefCnt_;
@@ -324,6 +332,7 @@ private:
     RsVulkanInterface(RsVulkanInterface &&) = delete;
     RsVulkanInterface &operator=(RsVulkanInterface &&) = delete;
 
+    void SetVulkanDeviceStatus(VulkanDeviceStatus status);
     bool OpenLibraryHandle();
     bool SetupLoaderProcAddresses();
     bool CloseLibraryHandle();
@@ -343,6 +352,7 @@ private:
     };
     std::list<semaphoreFence> usedSemaphoreFenceList_;
     std::mutex semaphoreLock_;
+    std::atomic<VulkanDeviceStatus> deviceStatus_ = VulkanDeviceStatus::UNINITIALIZED;
 };
 
 class RsVulkanContext {
@@ -423,6 +433,11 @@ public:
         return std::to_string(VK_API_VERSION_1_2);
     }
 
+    VulkanDeviceStatus GetVulkanDeviceStatus()
+    {
+        return GetRsVulkanInterface().GetVulkanDeviceStatus();
+    }
+
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
     std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext();
@@ -458,6 +473,7 @@ public:
 private:
     static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
     static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");
+    static bool CheckDrawingContextRecyclable();
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
     std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;

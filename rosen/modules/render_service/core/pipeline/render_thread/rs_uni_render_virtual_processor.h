@@ -79,14 +79,10 @@ public:
     {
         return canvasMatrix_;
     }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    GSError SetMetadata(const Media::VideoProcessingEngine::CM_ColorSpaceInfo& colorspaceInfo);
-#endif
     void SetDirtyInfo(const std::vector<RectI>& damageRegion);
     int32_t GetBufferAge() const;
     // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
     GSError SetRoiRegionToCodec(const std::vector<RectI>& damageRegion);
-    bool RequestVirtualFrame(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     void CalculateTransform(ScreenRotation rotation);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
     void CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix = Drawing::Matrix(),
@@ -96,18 +92,17 @@ public:
     {
         drawMirrorCopy_ = drawMirrorCopy;
     }
-    void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& screenDrawable);
-
     bool GetDrawVirtualMirrorCopy() const
     {
         return drawMirrorCopy_;
     }
+    void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
 private:
+    void MergeFenceForHardwareEnabledDrawables();
     void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawble,
         const sptr<RSScreenManager>& screenManager);
     bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
-    bool EnableVisibleRect();
     bool EnableSlrScale();
     GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
 
@@ -120,25 +115,24 @@ private:
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
-    float mirrorWidth_ = 0.f;
-    float mirrorHeight_ = 0.f;
-    float mainWidth_ = 0.f;
-    float mainHeight_ = 0.f;
     float originalVirtualScreenWidth_ = 0.f; // used for recording the original virtual screen width
     float originalVirtualScreenHeight_ = 0.f; // used for recording the original virtual screen height
     float virtualScreenWidth_ = 0.f;
     float virtualScreenHeight_ = 0.f;
     float mirroredScreenWidth_ = 0.f;
     float mirroredScreenHeight_ = 0.f;
-    bool updateFlag_ = false;
     bool canvasRotation_ = false;
     bool autoBufferRotation_ = false; // whether buffer rotation is automatically adjusted based on the screen rotation
+    bool isMirroredDisplayRotating_ = false;
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
     float mirrorScaleX_ = 1.0f;
     float mirrorScaleY_ = 1.0f;
+    float mirroredTranslateX_ = 0.f;
+    float mirroredTranslateY_ = 0.f;
     Drawing::Matrix canvasMatrix_;
+    bool enableVisibleRect_ = false;
     Drawing::Rect visibleRect_;
     sptr<RSScreenManager> screenManager_ = nullptr;
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;

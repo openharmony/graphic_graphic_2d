@@ -43,7 +43,7 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     }
     uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
     uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate(screenId);
-    static bool showRealtimeRefreshRate = system::GetParameter("const.logsystem.versiontype", "") == "beta";
+    static bool showRealtimeRefreshRate = RSSystemProperties::GetVersionType() == "beta";
     std::string info = std::to_string(currentRefreshRate);
     if (showRealtimeRefreshRate || RSSystemParameters::GetShowRefreshRateEnabled()) {
         info += " " + std::to_string(realtimeRefreshRate);
@@ -58,11 +58,9 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     brush.SetColor(currentRefreshRate <= 60 ? SK_ColorRED : SK_ColorGREEN); // low refresh rate 60
     brush.SetAntiAlias(true);
     RSAutoCanvasRestore acr(&canvas);
-    canvas.ResetMatrix();
     canvas.AttachBrush(brush);
     if (!RefreshRateRotationProcess(canvas, params->GetScreenRotation(),
-        static_cast<uint32_t>(params->GetBounds().GetWidth()),
-        static_cast<uint32_t>(params->GetBounds().GetHeight()))) {
+        params->GetBounds().GetWidth(), params->GetBounds().GetHeight())) {
         return;
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
@@ -71,7 +69,7 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
 }
 
 bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
-    ScreenRotation rotation, uint32_t translateWidth, uint32_t translateHeight)
+    ScreenRotation rotation, float translateWidth, float translateHeight)
 {
     auto params = static_cast<RSLogicalDisplayRenderParams*>(logicalDisplayParams_.get());
     auto screenManager = CreateOrGetScreenManager();
@@ -79,9 +77,10 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
         return false;
     }
     Drawing::Matrix invertMatrix;
-    if (params->GetNeedOffscreen() && params->GetMatrix().Invert(invertMatrix)) {
+    if (params->GetMatrix().Invert(invertMatrix)) {
         canvas.ConcatMatrix(invertMatrix);
     }
+
     auto screenId = params->GetScreenId();
     auto screenCorrection = screenManager->GetScreenCorrection(screenId);
     if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
@@ -91,17 +90,22 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
             - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
     }
 
+    // 2: if ret is odd, width and height should be swapped
+    if ((static_cast<int32_t>(rotation) - static_cast<int32_t>(params->GetNodeRotation())) % 2) {
+        std::swap(translateWidth, translateHeight);
+    }
+
+    canvas.Translate(params->GetOffsetX(), params->GetOffsetY());
     if (rotation != ScreenRotation::ROTATION_0) {
         if (rotation == ScreenRotation::ROTATION_90) {
             canvas.Rotate(-90, 0, 0); // 90 degree for text draw
-            canvas.Translate(-(static_cast<float>(translateWidth)), 0);
+            canvas.Translate(-translateWidth, 0);
         } else if (rotation == ScreenRotation::ROTATION_180) {
-            // 180 degree for text draw
-            canvas.Rotate(-180, static_cast<float>(translateWidth) / 2, // 2 half of screen width
-                static_cast<float>(translateHeight) / 2);                 // 2 half of screen height
+            // 180: degree for text draw, 2: half
+            canvas.Rotate(-180, translateWidth / 2, translateHeight / 2);
         } else if (rotation == ScreenRotation::ROTATION_270) {
             canvas.Rotate(-270, 0, 0); // 270 degree for text draw
-            canvas.Translate(0, -(static_cast<float>(translateHeight)));
+            canvas.Translate(0, -translateHeight);
         } else {
             return false;
         }

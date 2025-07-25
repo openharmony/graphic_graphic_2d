@@ -77,7 +77,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-#if defined(MODIFIER_NG)
 namespace {
 constexpr static float FLOAT_DATA_ZERO = 0.0f;
 constexpr static float FLOAT_DATA_POSITIVE = 485.44f;
@@ -91,7 +90,6 @@ constexpr static float FLOAT_DATA[] = {
     FLOAT_DATA_MAX, FLOAT_DATA_MIN, FLOAT_DATA_INIT, FLOAT_DATA_UPDATE
 };
 }
-#endif // MODIFIER_NG
 
 class RSNodeTest2 : public testing::Test {
 public:
@@ -112,7 +110,6 @@ void RSNodeTest2::TearDownTestCase()
 void RSNodeTest2::SetUp() {}
 void RSNodeTest2::TearDown() {}
 
-#if defined(MODIFIER_NG)
 /**
  * @tc.name: SetUIBackgroundFilter
  * @tc.desc: test results of SetUIBackgroundFilter
@@ -646,5 +643,4 @@ HWTEST_F(RSNodeTest2, DetachUIFilterProperties, TestSize.Level1)
     rsNode->DetachUIFilterProperties(foregroundFilterModifier);
     EXPECT_TRUE(property2 == nullptr);
 }
-#endif // MODIFIER_NG
 } // namespace OHOS::Rosen

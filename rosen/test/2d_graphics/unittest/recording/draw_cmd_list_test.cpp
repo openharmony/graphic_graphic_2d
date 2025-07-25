@@ -415,6 +415,101 @@ HWTEST_F(DrawCmdListTest, GetCmdlistDrawRegion002, TestSize.Level1)
     EXPECT_TRUE(drawCmdList->GetCmdlistDrawRegion().IsEmpty());
     delete drawCmdList;
 }
+
+// Mock Object class for testing
+class MockDrawingObject : public Object {
+public:
+    MockDrawingObject() : Object(ObjectType::NO_TYPE, 0) {}
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) override
+    {
+        return true;
+    }
+
+    bool Unmarshalling(Parcel& parcel, bool& isValid, int32_t depth = 0) override
+    {
+        return true;
+    }
+#endif
+
+    std::shared_ptr<void> GenerateBaseObject() override
+    {
+        return std::make_shared<int>(42); // Return a simple test object, random 42
+    }
+};
+
+/**
+ * @tc.name: GetDrawingObjectOutOfBounds001
+ * @tc.desc: Test the GetDrawingObject function with index out of bounds
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(DrawCmdListTest, GetDrawingObjectOutOfBounds001, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    ASSERT_NE(drawCmdList, nullptr);
+
+    // Test case 1: Empty drawingObjectVec_ - any index should return nullptr
+    auto result1 = drawCmdList->GetDrawingObject(0);
+    EXPECT_EQ(result1, nullptr); // index 0 >= size 0
+
+    auto result2 = drawCmdList->GetDrawingObject(1);
+    EXPECT_EQ(result2, nullptr); // index 1 >= size 0
+
+    auto result3 = drawCmdList->GetDrawingObject(UINT32_MAX);
+    EXPECT_EQ(result3, nullptr); // index UINT32_MAX >= size 0
+
+    // Test case 2: Add one drawing object, then test boundary
+    std::shared_ptr<Object> mockObject = std::make_shared<MockDrawingObject>();
+    ASSERT_NE(mockObject, nullptr);
+
+    uint32_t addedIndex = drawCmdList->AddDrawingObject(mockObject);
+    EXPECT_EQ(addedIndex, 0); // First object should be at index 0
+
+    // Valid index should work
+    auto validResult = drawCmdList->GetDrawingObject(0);
+    EXPECT_NE(validResult, nullptr);
+    EXPECT_EQ(validResult, mockObject);
+
+    // Test index equal to size (should fail)
+    auto boundaryResult = drawCmdList->GetDrawingObject(1);
+    EXPECT_EQ(boundaryResult, nullptr); // index 1 >= size 1
+
+    // Test index greater than size (should fail)
+    auto outOfBoundsResult1 = drawCmdList->GetDrawingObject(2);
+    EXPECT_EQ(outOfBoundsResult1, nullptr); // index 2 >= size 1
+
+    auto outOfBoundsResult2 = drawCmdList->GetDrawingObject(100);
+    EXPECT_EQ(outOfBoundsResult2, nullptr); // index 100 >= size 1
+
+    auto outOfBoundsResult3 = drawCmdList->GetDrawingObject(UINT32_MAX);
+    EXPECT_EQ(outOfBoundsResult3, nullptr); // index UINT32_MAX >= size 1
+
+    // Test case 3: Add multiple objects and test various boundary conditions
+    std::shared_ptr<Object> mockObject2 = std::make_shared<MockDrawingObject>();
+    std::shared_ptr<Object> mockObject3 = std::make_shared<MockDrawingObject>();
+
+    uint32_t addedIndex2 = drawCmdList->AddDrawingObject(mockObject2);
+    uint32_t addedIndex3 = drawCmdList->AddDrawingObject(mockObject3);
+
+    EXPECT_EQ(addedIndex2, 1);
+    EXPECT_EQ(addedIndex3, 2);
+
+    // Valid indices should work
+    EXPECT_EQ(drawCmdList->GetDrawingObject(0), mockObject);
+    EXPECT_EQ(drawCmdList->GetDrawingObject(1), mockObject2);
+    EXPECT_EQ(drawCmdList->GetDrawingObject(2), mockObject3);
+
+    // Index equal to size should fail
+    auto boundaryResult2 = drawCmdList->GetDrawingObject(3);
+    EXPECT_EQ(boundaryResult2, nullptr); // index 3 >= size 3
+
+    // Index greater than size should fail
+    auto outOfBoundsResult4 = drawCmdList->GetDrawingObject(4);
+    EXPECT_EQ(outOfBoundsResult4, nullptr); // index 4 >= size 3
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

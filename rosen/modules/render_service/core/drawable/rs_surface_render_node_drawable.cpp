@@ -711,8 +711,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     
     // Regional screen recording does not enable uifirst.
-    bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
-    if (!enableVisiableRect) {
+    bool enableVisibleRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
+    if (!enableVisibleRect) {
         if (subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
             if (GetDrawSkipType() == DrawSkipType::NONE) {
                 SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
@@ -1185,9 +1185,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
-    bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
+    bool enableVisibleRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
-        enableVisiableRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
+        enableVisibleRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
         // if its sub tree has a blacklist, skip drawing in UIFirst scenario
         if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
             surfaceParams.HasBlackListByScreenId(RSUniRenderThread::GetCaptureParam().virtualScreenId_) &&

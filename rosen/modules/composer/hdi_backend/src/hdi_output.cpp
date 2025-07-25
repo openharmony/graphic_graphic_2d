@@ -167,10 +167,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             continue;
         }
 
-        int32_t ret = CreateLayerLocked(surfaceId, layerInfo);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            return;
-        }
+        CreateLayerLocked(surfaceId, layerInfo);
     }
 
     DeletePrevLayersLocked();
@@ -240,12 +237,25 @@ void HdiOutput::DeletePrevLayersLocked()
             ++layerIter;
         }
     }
+
+    auto iter = layersTobeRelease_.begin();
+    while (iter != layersTobeRelease_.end()) {
+        const LayerPtr &layer = *iter;
+        if (!layer->GetLayerStatus()) {
+            layersTobeRelease_.erase(iter++);
+        } else {
+            ++iter;
+        }
+    }
 }
 
 void HdiOutput::ResetLayerStatusLocked()
 {
     for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
         iter->second->SetLayerStatus(false);
+    }
+    for (auto iter = layersTobeRelease_.begin(); iter != layersTobeRelease_.end(); ++iter) {
+        (*iter)->SetLayerStatus(false);
     }
     if (maskLayer_) {
         maskLayer_->SetLayerStatus(false);
@@ -273,7 +283,9 @@ bool HdiOutput::CheckSupportCopybitMetadata()
 int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo)
 {
     LayerPtr layer = HdiLayer::CreateHdiLayer(screenId_);
-    if (layer == nullptr || !layer->Init(layerInfo)) {
+    if (!layer->Init(layerInfo)) {
+        layer->UpdateLayerInfo(layerInfo);
+        layersTobeRelease_.emplace_back(layer);
         HLOGE("Init hdiLayer failed");
         return GRAPHIC_DISPLAY_FAILURE;
     }
@@ -730,6 +742,15 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
                 releaseFence = fence;
             }
         }
+    }
+    for (const auto& layer : layersTobeRelease_) {
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
+            layer->GetLayerInfo()->GetSurface() == nullptr) {
+            continue;
+        }
+        auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
+        auto consumer = layer->GetLayerInfo()->GetSurface();
+        releaseBuffer(preBuffer, SyncFence::InvalidFence(), consumer);
     }
 }
 

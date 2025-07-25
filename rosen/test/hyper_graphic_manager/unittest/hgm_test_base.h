@@ -105,6 +105,164 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
             </DynamicSettings>
         </Category>
+        <Category name="small_size_property_animation_dynamic_settings" area="1000" length="1000">
+            <DynamicSettings name="aaa">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
+            </DynamicSettings>
+        </Category>
+        <Category name="scene_list">
+            <Scene name="aaa" strategy="12" priority="1"/>
+        </Category>
+        <Category name="game_scene_list">
+            <Scene name="aaa" value="1"/>
+        </Category>
+        <Category name="anco_scene_list">
+            <Scene name="aaa" value="1"/>
+        </Category>
+        <Category name="app_list" multi_app_strategy="focus">
+            <App name="aaa" strategy="12"/>
+            <App name="bbb" nodeName="12"/>
+        </Category>
+        <Category name="app_types">
+            <App name="aaa" strategy="12"/>
+            <App name="111" strategy="12"/>
+            <App name="333" strategy="33"/>
+        </Category>
+        <Category name="app_page_url_config">
+            <Package name="com.company.pkg0">
+                <Strategy name="pageName" strategy="5"/>
+            </Package>
+        </Category>
+        <Category name="performance_config">
+            <Ltpo name="pluseNum" value="1"/>
+            <Ltpo name="pipelineDelayModeEnable" value="1"/>
+        </Category>
+        <Category name="xxx">
+            <App name="aaa" strategy="12"/>
+        </Category>
+        </Setting>
+    </Params>
+    <Params name="rs_video_frame_rate_vote_config" switch="1">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="source_tuning_for_yuv420">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="vrate_control_config">
+        <Vrate name="aaa" value="1"/>
+    </Params>
+    <Params name="rs_solid_color_layer_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="hfbc_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="timeout_strategy_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="video_call_layer_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="xxx">
+        <App name="aaa" value="1"/>
+    </Params>
+    <InvalidParams/>
+    </HgmConfig>)");
+
+const std::string TEST_XML_CONTENT_1 = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <!-- Copyright (c) 2025 Device Co., Ltd.
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+    -->
+    <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <Param name="default_refreshrate_mode" value="-1"/>
+    <Param name="p3_node_count_config" value="1"/>
+    <Param name="is_covered_surface_close_p3_config" value="1"/>
+    <Params name="refresh_rate_4settings">
+        <Setting name="-1" id="-1"/>
+        <Setting name="60" id="1"/>
+        <Setting name="120" id="2"/>
+    </Params>
+    <Params name="refresh_rate_4settings" deviceMode="padmode">
+        <Setting name="-1" id="-1"/>
+        <Setting name="60" id="1"/>
+        <Setting name="120" id="2"/>
+        <Setting name="144" id="3"/>
+        <Setting name="155" id="testid"/>
+        <Setting name="testName" id="4"/>
+        <Setting name="testName" id="testid"/>
+        <Setting name="testName" id="testid"/>
+    </Params>
+    <Params name="refresh_rate_4settings" deviceMode="pcmode">
+        <Setting name="-1" id="-101"/>
+        <Setting name="60" id="101"/>
+        <Setting name="120" id="102"/>
+    </Params>
+    <Params name="refresh_rate_4settings" deviceMode="testmode0">
+        <Setting value="testName" name="testid"/>
+    </Params>
+    <Params name="refresh_rate_4settings" deviceMode="testmode_no_auto">
+        <Setting name="60" id="101"/>
+        <Setting name="120" id="102"/>
+    </Params>
+    <Params name="additional_touch_rate_config">
+        <Strategy name="aaa"/>
+    </Params>
+    <Params name="refreshRate_strategy_config">
+        <Strategy name="8" min="60" max="120" dynamicMode="1" pointerMode="1"/>
+        <Strategy name="12" min="120" max="120" dynamicMode="0"/>
+    </Params>
+    <Params name="refreshRate_virtual_display_config" switch="1">
+    </Params>
+    <Params name="safe_vote" switch="1">
+    </Params>
+    <Params name="screen_strategy_config">
+        <Strategy name="screen0_LTPO" type="LTPO-DEFAULT"/>
+    </Params>
+    <Params name="screen_config" type="LTPO-DEFAULT">
+        <Category name="supported_mode">
+        <Mode name="aaa" value="1 2 3"/>
+        <Mode name="bbb" value="1 2"/>
+        </Category>
+        <Setting id="-1" strategy="8">
+        <Category name="LTPO_config">
+            <Ltpo name="switch" value="1"/>
+            <Ltpo name="maxTE" value="360"/>
+            <Ltpo name="alignRate" value="100"/>
+            <Ltpo name="pipelineOffsetPulseNum" value="100"/>
+            <Ltpo name="adaptiveSync" value="0"/>
+            <Ltpo name="vBlankIdleCorrectSwitch" value="100"/>
+            <Ltpo name="lowRateToHighQuickSwitch" value="100"/>
+            <Ltpo name="xxx" value="100"/>
+        </Category>
+        <Category name="rs_animation_power_config">
+            <Setting name="aaa" value="60"/>
+        </Category>
+        <Category name="ui_power_config">
+            <Setting name="aaa" value="60"/>
+        </Category>
+        <Category name="component_power_config">
+            <Setting name="aaa" value="60"/>
+        </Category>
+        <Category name="property_animation_dynamic_settings">
+            <DynamicSettings name="aaa">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
+            </DynamicSettings>
+        </Category>
+        <Category name="ace_scene_dynamic_settings">
+            <DynamicSettings name="aaa">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
+            </DynamicSettings>
+        </Category>
         <Category name="small_size_property_animation_dynamic_settings" area="100" length="100">
             <DynamicSettings name="aaa">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="60"/>
@@ -129,9 +287,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
             <App name="333" strategy="33" />
         </Category>
         <Category name="app_page_url_config">
-            <Package name="com.company.pkg0">
-                <Strategy name="pageName" strategy="5">
-            </Package>
+            <App name="aaa" strategy="12" />
         </Category>
         <Category name="performance_config">
             <Ltpo name="pluseNum" value="1" />
@@ -148,6 +304,9 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     <Params name="source_tuning_for_yuv420">
         <App name="aaa" value="1"/>
     </Params>
+    <Params name="vrate_control_config">
+        <Vrate name="aaa" value="1"/>
+    </Params>
     <Params name="rs_solid_color_layer_config">
         <App name="aaa" value="1"/>
     </Params>
@@ -163,10 +322,6 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     <Params name="xxx">
         <App name="aaa" value="1"/>
     </Params>
-    <Params name="vrate_control_config">
-        <Vrate name="aaa" value="1"/>
-    </Params>
-    <InvalidParams/>
     </HgmConfig>)");
 
 inline xmlDoc* StringToXmlDoc(const std::string& xmlContent)

@@ -19,7 +19,7 @@
 
 #include "hgm_hfbc_config.h"
 #include "hgm_test_base.h"
-#include "parameters.h"
+#include <parameters.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -85,7 +85,7 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level0)
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.banapp", "1" }, { "com.test.banapp2", "1" }
     };
-    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.SetHfbcConfigMap(hfbcConfig); });
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
     EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
 
     g_hfbcConfig.SetHfbcControlMode(true);
@@ -94,10 +94,8 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level0)
     std::vector<std::string> packageList;
     packageList.emplace_back("com.test.allowapp");
     packageList.emplace_back("com.test.allowapp2");
-    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.HandleHfbcConfig(packageList); });
-
-    std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
-    ASSERT_EQ(hfbcStatus == "0", true);
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.HandleHfbcConfig(packageList);});
+    ASSERT_EQ(HgmHfbcConfig::curHfbcStatus_, 0);
 }
 
 /**
@@ -111,7 +109,7 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level0)
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
     };
-    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.SetHfbcConfigMap(hfbcConfig); });
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
     EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
 
     g_hfbcConfig.SetHfbcControlMode(false);
@@ -120,10 +118,8 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level0)
     std::vector<std::string> packageList;
     packageList.emplace_back("com.test.allowapp");
     packageList.emplace_back("com.test.allowapp2");
-    ASSERT_NO_FATAL_FAILURE({ g_hfbcConfig.HandleHfbcConfig(packageList); });
-
-    std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
-    ASSERT_EQ(hfbcStatus == "0", true);
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.HandleHfbcConfig(packageList);});
+    ASSERT_EQ(HgmHfbcConfig::curHfbcStatus_, 0);
 }
 
 } // namespace Rosen

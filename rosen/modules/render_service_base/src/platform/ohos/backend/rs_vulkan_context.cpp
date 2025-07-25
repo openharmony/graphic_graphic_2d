@@ -336,8 +336,10 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
     };
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         ROSEN_LOGE("vkCreateDevice failed");
+        SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_FAIL);
         return false;
     }
+    SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_SUCCESS);
     if (!SetupDeviceProcAddresses(device_)) {
         return false;
     }
@@ -565,6 +567,16 @@ void RsVulkanInterface::DestroyAllSemaphoreFence()
     usedSemaphoreFenceList_.clear();
 }
 
+void RsVulkanInterface::SetVulkanDeviceStatus(VulkanDeviceStatus status)
+{
+    deviceStatus_ = status;
+}
+
+VulkanDeviceStatus RsVulkanInterface::GetVulkanDeviceStatus()
+{
+    return deviceStatus_.load();
+}
+
 VkSemaphore RsVulkanInterface::RequireSemaphore()
 {
     {
@@ -701,9 +713,31 @@ RsVulkanContext& RsVulkanContext::GetSingleton(const std::string& cacheDir)
     return singleton;
 }
 
+bool RsVulkanContext::CheckDrawingContextRecyclable()
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    for (const auto& iter : RsVulkanContext::drawingContextMap_) {
+        // check the tag only set to true when GetRecyclableDrawingContext
+        if (!iter.second.second) {
+            return false;
+        }
+    }
+    for (const auto& iter : RsVulkanContext::protectedDrawingContextMap_) {
+        // check the tag only set to true when GetRecyclableDrawingContext
+        if (!iter.second.second) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void RsVulkanContext::ReleaseRecyclableSingleton()
 {
     if (!isRecyclable_) {
+        return;
+    }
+    if (!CheckDrawingContextRecyclable()) {
+        ReleaseRecyclableDrawingContext();
         return;
     }
     ReleaseDrawingContextMap();

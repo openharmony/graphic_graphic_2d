@@ -42,276 +42,361 @@ private:
     }
 };
 
+/*
+ * @tc.name: ConstantProtocolTest01
+ * @tc.desc: Test the built-in protocol DEFAULT
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, ConstantProtocolTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol = RSAnimationTimingProtocol::DEFAULT;
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_1 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: ConstantProtocolTest02
+ * @tc.desc: Test the built-in protocol IMMEDIATE
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, ConstantProtocolTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol = RSAnimationTimingProtocol::IMMEDIATE;
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetDurationTest01
+ * @tc.desc: Test animation duration < 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDurationTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(-100);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetDurationTest02
+ * @tc.desc: Test animation duration = 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDurationTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(0);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetDurationTest03
+ * @tc.desc: Test animation duration > 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDurationTest03)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetStartDelayTest01
+ * @tc.desc: Test animation delay < 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetStartDelay(-400);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetStartDelayTest02
+ * @tc.desc: Test animation delay < 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetStartDelay(-100);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetStartDelayTest03
+ * @tc.desc: Test animation delay = 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest03)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetStartDelay(0);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetStartDelayTest04
+ * @tc.desc: Test animation delay > 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest04)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetStartDelay(400);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetSpeedTest01
+ * @tc.desc: Test animation speed < 1
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetSpeedTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetSpeed(0.5);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetSpeedTest02
+ * @tc.desc: Test animation speed = 1
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetSpeedTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetSpeed(1);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetSpeedTest03
+ * @tc.desc: Test animation speed > 1
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetSpeedTest03)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetSpeed(2);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetRepeatCountTest01
+ * @tc.desc: Test animation repeat = 0
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetRepeatCountTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetRepeatCount(0);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetRepeatCountTest02
+ * @tc.desc: Test animation repeat = 1
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetRepeatCountTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetRepeatCount(1);
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetDirectionTest01
+ * @tc.desc: Test animation direction
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDirectionTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetDirection(false);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetDirectionTest02
+ * @tc.desc: Test animation direction
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDirectionTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetDirection(true);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetAutoReverseTest01
+ * @tc.desc: Test animation auto reverse
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetAutoReverseTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetRepeatCount(2);
@@ -319,17 +404,22 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetAutoReverseTest01)
     protocol.SetDuration(400);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetAutoReverseTest02
+ * @tc.desc: Test animation auto reverse
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetAutoReverseTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetRepeatCount(2);
@@ -337,58 +427,73 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetAutoReverseTest02)
     protocol.SetDuration(400);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetFinishCallbackTypeTest01
+ * @tc.desc: Test animation finish callback type
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetFinishCallbackTypeTest01)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetFinishCallbackType(FinishCallbackType::TIME_SENSITIVE);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetFinishCallbackTypeTest02
+ * @tc.desc: Test animation finish callback type
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetFinishCallbackTypeTest02)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetFinishCallbackType(FinishCallbackType::TIME_INSENSITIVE);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });
 }
 
+/*
+ * @tc.name: SetFinishCallbackTypeTest03
+ * @tc.desc: Test animation finish callback type
+ * @tc.type: FUNC
+ */
 GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetFinishCallbackTypeTest03)
 {
-    auto pointMoidifier = std::make_shared<PointCustomModifier>();
-    RegisterTestNode(pointMoidifier);
-    pointMoidifier->SetPosition(100);
+    auto pointModifier = std::make_shared<PointCustomModifier>();
+    RegisterTestNode(pointModifier);
+    pointModifier->SetPosition(100);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetFinishCallbackType(FinishCallbackType::LOGICALLY);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSNode::Animate(protocol, timingCurve, [&]() {
-        pointMoidifier->SetPosition(1000);
+        pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
     });

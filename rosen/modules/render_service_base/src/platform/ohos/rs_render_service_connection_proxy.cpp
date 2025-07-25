@@ -1934,6 +1934,7 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
         !data.WriteBool(captureConfig.isHdrCapture) ||
+        !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
@@ -3086,7 +3087,7 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation Read result failed");
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }
@@ -3150,7 +3151,7 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode Read result failed");
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }
@@ -3267,7 +3268,7 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTypeface Read result failed");
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }

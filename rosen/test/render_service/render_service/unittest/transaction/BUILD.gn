@@ -90,7 +90,6 @@ ohos_unittest("RSRenderServiceConnectionStubTest") {
     "googletest:gmock_main",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
-    "ffrt:libffrt",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

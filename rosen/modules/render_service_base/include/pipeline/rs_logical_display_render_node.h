@@ -86,7 +86,7 @@ public:
         screenRotation_ = screenRotation;
     }
 
-    ScreenRotation GetScreenRotation()
+    ScreenRotation GetScreenRotation() const
     {
         return screenRotation_;
     }
@@ -151,16 +151,6 @@ public:
         hasCaptureWindow_ = hasCaptureWindow;
     }
 
-    void SetAncestorScreenNode(const RSBaseRenderNode::WeakPtr& ancestorScreenNode)
-    {
-        ancestorScreenNode_ = ancestorScreenNode;
-    }
-
-    RSBaseRenderNode::WeakPtr GetAncestorScreenNode()
-    {
-        return ancestorScreenNode_;
-    }
-
     void NotifySetOnTreeFlag()
     {
         waitToSetOnTree_ = true;
@@ -220,7 +210,6 @@ private:
     // Use in mirror screen visible rect projection
     std::vector<NodeId> securityVisibleLayerList_;  // surface node id
 
-    RSBaseRenderNode::WeakPtr ancestorScreenNode_;
     // window Container
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
 

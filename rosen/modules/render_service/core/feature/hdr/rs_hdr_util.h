@@ -72,8 +72,10 @@ public:
     static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag);
     static bool GetRGBA1010108Enabled();
     static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    static void UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut);
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);
     static ScreenColorGamut GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    static bool NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     std::shared_ptr<Drawing::ShaderEffect> MakeHdrHeadroomShader(float hrRatio,
         std::shared_ptr<Drawing::ShaderEffect> imageShader);
 #ifdef USE_VIDEO_PROCESSING_ENGINE

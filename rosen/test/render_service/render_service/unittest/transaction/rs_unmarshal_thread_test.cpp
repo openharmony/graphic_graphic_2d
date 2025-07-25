@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "ffrt_inner.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -43,7 +44,9 @@ void RSUnmarshalThreadTest::TearDown() {}
 HWTEST_F(RSUnmarshalThreadTest, PostTask001, TestSize.Level1)
 {
     std::function<void()> func = []() -> void {};
+    RSUnmarshalThread::Instance().queue_ = nullptr;
     RSUnmarshalThread::Instance().PostTask(func);
+
     RSUnmarshalThread::Instance().Start();
     ASSERT_NE(RSUnmarshalThread::Instance().queue_, nullptr);
     RSUnmarshalThread::Instance().PostTask(func);

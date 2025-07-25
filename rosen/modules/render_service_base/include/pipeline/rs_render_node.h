@@ -257,7 +257,7 @@ public:
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
     std::list<WeakPtr> GetChildrenList() const;
 
-    void DumpTree(int32_t depth, std::string& ou, bool dumpSingleNode = false) const;
+    void DumpTree(int32_t depth, std::string& out) const;
     void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
@@ -475,6 +475,8 @@ public:
     void MapAndUpdateChildrenRect();
     void UpdateSubTreeInfo(const RectI& clipRect);
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
+    void NodePostPrepare(
+        std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
 
     void SetStaticCached(bool isStaticCached);
     virtual bool IsStaticCached() const;
@@ -1028,6 +1030,8 @@ protected:
     bool lastFrameHasVisibleEffect_ = false;
     bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
+    mutable bool isChildrenSorted_ = true;
+    mutable bool childrenHasSharedTransition_ = false;
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
@@ -1068,10 +1072,13 @@ private:
     bool isCloneCrossNode_ = false;
     bool isFirstLevelCrossNode_ = false;
     bool autoClearCloneNode_ = false;
-    bool isChildrenSorted_ = true;
-    bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
     bool shouldPaint_ = true;
+    bool isAccumulatedClipFlagChanged_ = false;
+    bool geoUpdateDelay_ = false;
+    int subSurfaceCnt_ = 0;
+    bool selfAddForSubSurfaceCnt_ = false;
+    bool visitedForSubSurfaceCnt_ = false;
     // drawing group cache
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     bool isTextureExportNode_ = false;
@@ -1099,19 +1106,15 @@ private:
     bool isSelfDrawingNode_ = false;
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
-    bool isAccumulatedClipFlagChanged_ = false;
     bool hasAccumulatedClipFlag_ = false;
     // since preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
-    bool geoUpdateDelay_ = false;
     bool lastFrameHasChildrenOutOfRect_ = false;
     MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     bool isContainBootAnimation_ = false;
     CacheType cacheType_ = CacheType::NONE;
     bool isDrawingCacheChanged_ = false;
     bool drawingCacheNeedUpdate_ = false;
-    bool selfAddForSubSurfaceCnt_ = false;
-    bool visitedForSubSurfaceCnt_ = false;
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
     bool isScaleInPreFrame_ = false;
@@ -1150,7 +1153,6 @@ private:
     uint32_t disappearingTransitionCount_ = 0;
     float globalAlpha_ = 1.0f;
     // collect subtree's surfaceNode including itself
-    int subSurfaceCnt_ = 0;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
@@ -1199,10 +1201,10 @@ private:
     RectI absDrawRect_;
     RectF absDrawRectF_;
     RectI oldAbsDrawRect_;
+    // round in by absDrawRectF_, only used for opaque region calculations
+    RectI innerAbsDrawRect_;
     // map parentMatrix by cmdlist draw region
     RectI absCmdlistDrawRect_;
-    // round in by absDrawRectF_ or selfDrawingNodeAbsDirtyRectF_, and apply the clip of parent component
-    RectI innerAbsDrawRect_;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
     RectI childrenRect_;

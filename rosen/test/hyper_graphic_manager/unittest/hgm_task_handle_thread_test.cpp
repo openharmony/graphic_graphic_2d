@@ -17,6 +17,7 @@
 #include <test_header.h>
 #include <thread>
 
+#include "ffrt_inner.h"
 #include "hgm_task_handle_thread.h"
 #include "hgm_test_base.h"
 
@@ -37,16 +38,24 @@ void HgmTaskHandleThreadTest::SetUpTestCase()
 {
     HgmTestBase::SetUpTestCase();
 }
-void HgmTaskHandleThreadTest::TearDownTestCase() {}
+
+void HgmTaskHandleThreadTest::TearDownTestCase()
+{
+    HgmTaskHandleThread::Instance().queue_ = std::make_shared<ffrt::queue>(
+        static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "HgmTaskHandleThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+}
+
 void HgmTaskHandleThreadTest::SetUp()
 {
     if (!HgmTaskHandleThread::Instance().queue_) {
-        HgmTaskHandleThread::Instance().queue_ =
-            std::make_shared<ffrt::queue>("HgmTaskHandleThread", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+        HgmTaskHandleThread::Instance().queue_ = std::make_shared<ffrt::queue>(
+            static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter),
+            "HgmTaskHandleThread", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
     }
 }
-void HgmTaskHandleThreadTest::TearDown() {}
 
+void HgmTaskHandleThreadTest::TearDown() {}
 
 /**
  * @tc.name: Instance
@@ -159,7 +168,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostEvent001, TestSize.Level0)
 {
     HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
     std::function<void()> func = []() -> void {};
-    int64_t delayTime = 100;
+    int64_t delayTime = 1000;
     std::string eventId = "eventId";
 
     EXPECT_NE(instance.queue_, nullptr);
@@ -169,11 +178,12 @@ HWTEST_F(HgmTaskHandleThreadTest, PostEvent001, TestSize.Level0)
 
     delayTime = -1;
     instance.PostEvent(eventId, func, delayTime);
-    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 1);
 
     delayTime = UINT64_MAX / 100;
     instance.PostEvent(eventId, func, delayTime);
-    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 3);
+    EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount + 2);
 
     instance.RemoveEvent(eventId);
     EXPECT_EQ(instance.queue_->get_task_cnt(), taskCount);

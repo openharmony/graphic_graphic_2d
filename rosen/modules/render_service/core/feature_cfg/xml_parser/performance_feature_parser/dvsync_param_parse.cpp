@@ -101,7 +101,11 @@ int32_t DVSyncParamParse::ParseFeatureMultiParam(xmlNode &node, std::string &nam
         if (!IsNumber(val)) {
             return PARSE_ERROR;
         }
-        DVSyncParam::SetAdaptiveConfig(paramName, val);
+        if (name == "ForceRsDVsyncConfig") {
+            DVSyncParam::SetForceRsDVsyncConfig(paramName, val);
+        } else {
+            DVSyncParam::SetAdaptiveConfig(paramName, val);
+        }
     }
     return PARSE_EXEC_SUCCESS;
 }

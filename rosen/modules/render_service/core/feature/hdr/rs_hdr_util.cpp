@@ -18,14 +18,16 @@
 #include <parameters.h>
 
 #include "display_engine/rs_color_temperature.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "hdi_layer_info.h"
 #include "metadata_helper.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "utils/system_properties.h"
+#include "v2_2/cm_color_space.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "render/rs_colorspace_convert.h"
 #endif
-#include "v2_2/cm_color_space.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -249,13 +251,28 @@ void RSHdrUtil::UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node)
 {
     const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     for (const auto& selfDrawingNode : selfDrawingNodes) {
-        if (!selfDrawingNode || !selfDrawingNode->GetAncestorScreenNode().lock()) {
-            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc selfDrawingNode or ancestoreNode is nullptr");
+        if (!selfDrawingNode) {
+            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc selfDrawingNode is nullptr");
             continue;
         }
-        auto ancestor = selfDrawingNode->GetAncestorScreenNode().lock()->ReinterpretCastTo<RSScreenRenderNode>();
-        if (ancestor != nullptr && node.GetId() == ancestor->GetId()) {
+        auto ancestorPtr = selfDrawingNode->GetAncestorScreenNode().lock();
+        if (!ancestorPtr) {
+            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc ancestor is nullptr");
+            continue;
+        }
+        auto ancestor = ancestorPtr->ReinterpretCastTo<RSScreenRenderNode>();
+        if (!ancestor) {
+            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc ancestor is not screen node");
+            continue;
+        }
+        if (node.GetId() == ancestor->GetId()) {
             CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, node);
+        }
+        bool needSetExistHWCNode = !ancestor->GetExistHWCNode() && selfDrawingNode->IsOnTheTree() &&
+            !selfDrawingNode->IsHardwareForcedDisabled() && node.GetId() == ancestor->GetId();
+        if (needSetExistHWCNode) {
+            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc there exist HWCNode");
+            ancestor->SetExistHWCNode(true);
         }
     }
 }
@@ -297,9 +314,10 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
 
 bool RSHdrUtil::GetRGBA1010108Enabled()
 {
-    static bool isDDGR = system::GetParameter("persist.sys.graphic.GpuApitype", "1") == "2";
+    static bool isDDGR = Drawing::SystemProperties::GetSystemGraphicGpuType() == GpuApiType::DDGR;
     static bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
-    return isDDGR && rgba1010108;
+    static bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.rgba_1010108.enabled", true);
+    return isDDGR && rgba1010108 && debugSwitch;
 }
 
 void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag)
@@ -325,6 +343,31 @@ ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const 
     return screenColorGamut;
 }
 
+bool RSHdrUtil::NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+{
+    if (!surfaceNode) {
+        RS_LOGE("RSHdrUtil::NeedUseF16Capture surfaceNode is nullptr.");
+        return false;
+    }
+    auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
+    if (!screenNode) {
+        RS_LOGE("RSHdrUtil::NeedUseF16Capture surfaceNode get ancestor screenNode failed.");
+        return false;
+    }
+    const auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
+    if (!screenParams) {
+        RS_LOGE("RSHdrUtil::NeedUseF16Capture get params from screenNode failed.");
+        return false;
+    }
+    bool isHDROn = screenParams->GetHDRPresent();
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(screenParams->GetNewColorSpace()) &&
+        RSUifirstManager::Instance().GetUiFirstSwitch();
+    GraphicColorGamut colorGamut = surfaceNode->IsLeashWindow() ? surfaceNode->GetFirstLevelNodeColorGamut() :
+        surfaceNode->GetColorSpace();
+    // When the main screen uses F16 buffer and the window color space is not sRGB,
+    // the window freeze capture can use F16 format to optimize performance.
+    return (isHDROn || isScRGBEnable) && colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+}
 
 std::shared_ptr<Drawing::ShaderEffect> RSHdrUtil::MakeHdrHeadroomShader(float hrRatio,
     std::shared_ptr<Drawing::ShaderEffect> imageShader)
@@ -371,44 +414,42 @@ std::shared_ptr<Drawing::ShaderEffect> RSHdrUtil::MakeHdrHeadroomShader(float hr
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
     if (node.GetCompositeType() == CompositeType::UNI_RENDER_MIRROR_COMPOSITE) {
-        ScreenColorGamut screenColorGamut;
-        if (screenManager->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
-            RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus get screen color gamut failed.");
-            return;
-        }
+        ScreenColorGamut screenColorGamut = RSHdrUtil::GetScreenColorGamut(node, screenManager);
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
             RS_LOGE("RSHdrUtil::HandleVirtualScreenHDRStatus get mirror source failed.");
             return;
         }
-        bool mirrorNodeIsHdrOn = RSLuminanceControl::Get().IsHdrOn(mirrorNode->GetScreenId()) &&
+        bool mirrorNodeIsHDROn = RSLuminanceControl::Get().IsHdrOn(mirrorNode->GetScreenId()) &&
             mirrorNode->GetDisplayHdrStatus() != HdrStatus::NO_HDR;
-        bool isNeedHDRCast = (node.IsFirstFrameOfInit() || node.GetEnabledHDRCast()) && mirrorNodeIsHdrOn &&
-            static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
-        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast mirrorNodeIsHdrOn: %{public}d, "
-            "ColorGamut: %{public}d, IsFirstFrameOfInit: %{public}d, GetEnabledHDRCast: %{public}d",
-            mirrorNodeIsHdrOn, screenColorGamut, node.IsFirstFrameOfInit(), node.GetEnabledHDRCast());
-        if (isNeedHDRCast) {
-            node.SetHDRPresent(true);
-            node.SetEnabledHDRCast(true);
-        }
-        node.SetFirstFrameOfInit(false);
+        bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
+        bool isNeedHDRCast = mirrorNodeIsHDROn && hdrCastColorGamut;
+        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast mirrorNodeIsHDROn: %{public}d, "
+            "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
+            mirrorNodeIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
+        UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
     } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
-        ScreenColorGamut screenColorGamut;
-        if (screenManager->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
-            RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus get screen color gamut failed.");
-            return;
+        ScreenColorGamut screenColorGamut = RSHdrUtil::GetScreenColorGamut(node, screenManager);
+        bool expandIsHDROn = node.GetDisplayHdrStatus() != HdrStatus::NO_HDR;
+        bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
+        bool isNeedHDRCast = expandIsHDROn && hdrCastColorGamut;
+        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast expandIsHDROn: %{public}d, "
+            "ColorGamut: %{public}d, GetFirstFrameVirtualScreenInit: %{public}d",
+            expandIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
+        UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
+    }
+}
+
+void RSHdrUtil::UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut)
+{
+    if (node.GetFirstFrameVirtualScreenInit()) {
+        node.SetFirstFrameVirtualScreenInit(false);
+        if (hdrCastColorGamut) {
+            node.SetFixVirtualBuffer10Bit(true);
         }
-        bool isNeedHDRCast = (node.IsFirstFrameOfInit() || node.GetEnabledHDRCast()) &&
-            static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
-        RS_LOGD("RSHdrUtil::HandleVirtualScreenHDRStatus HDRCast ColorGamut: %{public}d, "
-            "IsFirstFrameOfInit: %{public}d, GetEnabledHDRCast: %{public}d",
-            screenColorGamut, node.IsFirstFrameOfInit(), node.GetEnabledHDRCast());
-        if (isNeedHDRCast) {
-            node.SetHDRPresent(true);
-            node.SetEnabledHDRCast(true);
-        }
-        node.SetFirstFrameOfInit(false);
+    }
+    if (node.GetFixVirtualBuffer10Bit()) {
+        node.SetHDRPresent(isNeedHDRCast);
     }
 }
 
@@ -419,7 +460,7 @@ bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfi
         return false;
     }
     // current version fix 1010102 format although is not hdr on
-    if (screenParams->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_BT2100_HLG) {
+    if (screenParams->GetFixVirtualBuffer10Bit()) {
         renderFrameConfig.format = GRAPHIC_PIXEL_FMT_RGBA_1010102;
         RS_LOGD("RSHdrUtil::IsHDRCast set 1010102 buffer");
         if (screenParams->GetHDRPresent()) {

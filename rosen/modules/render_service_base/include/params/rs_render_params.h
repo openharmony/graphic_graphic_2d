@@ -327,7 +327,6 @@ public:
         return {};
     }
 
-    // hsc toDo: no need to use virtual func
     virtual void SetRotationChanged(bool changed) {}
     virtual bool IsRotationChanged() const
     {

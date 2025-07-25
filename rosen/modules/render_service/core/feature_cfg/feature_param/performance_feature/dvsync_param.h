@@ -33,6 +33,7 @@ public:
     static uint32_t GetNativeBufferCount();
     static uint32_t GetWebBufferCount();
     static std::unordered_map<std::string, std::string> GetAdaptiveConfig();
+    static std::unordered_map<std::string, std::string> GetForceRsDVsyncConfig();
 
 protected:
     static void SetDVSyncEnable(bool isEnable);
@@ -44,6 +45,7 @@ protected:
     static void SetNativeBufferCount(int32_t cnt);
     static void SetWebBufferCount(int32_t cnt);
     static void SetAdaptiveConfig(const std::string &name, const std::string &val);
+    static void SetForceRsDVsyncConfig(const std::string &name, const std::string &val);
 
 private:
     inline static bool isRsDVSyncEnabled_ = false;
@@ -55,6 +57,7 @@ private:
     inline static uint32_t nativeBufferCount_ = 2;
     inline static uint32_t webBufferCount_ = 1;
     inline static std::unordered_map<std::string, std::string> adaptiveConfig_;
+    inline static std::unordered_map<std::string, std::string> forceRsDvsyncConfig_;
 
     friend class DVSyncParamParse;
 };

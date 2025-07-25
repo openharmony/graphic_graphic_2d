@@ -37,6 +37,7 @@
 #include "animation/rs_spring_model.h"
 #include "animation/rs_steps_interpolator.h"
 #include "animation/rs_value_estimator.h"
+#include "command/rs_message_processor.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_path.h"
@@ -138,15 +139,12 @@ void RSRenderInterpolatingSpringAnimationFuzzerTest2()
     animation->SetZeroThreshold(zeroThreshold);
 
     animation->InitValueEstimator();
-    animation->OnSetFraction(fraction);
     animation->UpdateFractionAfterContinue();
     animation->CalculateTimeFraction(fraction);
-    animation->OnAnimate(fraction);
-    animation->OnAnimate(1.0f);
     animation->OnInitialize(time);
-    animation->CalculateVelocity(fraction);
     animation->GetNeedLogicallyFinishCallback();
     animation->CallLogicallyFinishCallback();
+    RSMessageProcessor::Instance().GetAllTransactions().clear();
 }
 
 void RSSpringValueEstimatorFuzzerTest()

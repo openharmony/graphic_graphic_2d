@@ -1551,27 +1551,9 @@ public:
     void MarkContentChanged(bool isChanged) {}
     // driven render was shelved, functions will be deleted soon [end]
 
-#if defined(MODIFIER_NG)
     void AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
 
     void RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
-#else
-    /**
-     * @brief Adds a modifier to the current node.
-     *
-     * If the specific modifier is already exist, it will not be added again.
-     *
-     * @param modifier A shared pointer to the RSModifier to be added.
-     */
-    void AddModifier(const std::shared_ptr<RSModifier> modifier);
-
-    /**
-     * @brief Removes a modifier from the current node.
-     *
-     * @param modifier A shared pointer to the RSModifier to be removed.
-     */
-    void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
-#endif
 
     const std::shared_ptr<ModifierNG::RSModifier> GetModifierByType(const ModifierNG::RSModifierType& type);
 
@@ -1941,7 +1923,6 @@ private:
     void RemoveChildByNode(SharedPtr child);
     virtual void CreateRenderNodeForTextureExportSwitch() {};
 
-#if defined(MODIFIER_NG)
     /**
      * @brief Sets a property value for a specific modifier.
      *
@@ -1975,19 +1956,6 @@ private:
      */
     template<typename ModifierType, auto Setter, typename T>
     void SetUIFilterPropertyNG(T value);
-#else
-    /**
-     * @brief Sets a property value for a specific modifier.
-     *
-     * If property already exists, it will be updated.
-     * If property does not exist, it will be created.
-     *
-     * @param modifierType The type of the modifier to which the property belongs.
-     * @param value The value to assign to the property.
-     */
-    template<typename ModifierName, typename PropertyName, typename T>
-    void SetProperty(RSModifierType modifierType, T value);
-#endif
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);

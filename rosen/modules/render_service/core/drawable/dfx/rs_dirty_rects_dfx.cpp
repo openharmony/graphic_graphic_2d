@@ -284,7 +284,7 @@ void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas,
     if (!screenParams_) {
         return;
     }
-    // hsc todo:dfx迁移到display, 使用displayParams
+
     auto params = static_cast<RSScreenRenderParams*>(screenParams_.get());
     if (surfaceParams.IsFirstLevelCrossNode() && !params->IsFirstVisitCrossNodeDisplay()) {
         return;

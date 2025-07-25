@@ -21,10 +21,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "event_handler.h"
-#include "ffrt.h"
-#include "ffrt_inner.h"
 #include "refbase.h"
+
+namespace ffrt {
+class queue;
+}
 
 namespace OHOS::Rosen {
 namespace HgmDetail {
@@ -58,6 +59,8 @@ public:
     {
         return queue_;
     }
+    // IMPORTANT: std::move transfers ownership of the task to the queue_
+    // After this call, the original task object is moved-from and must not be reused
     void PostTask(const std::function<void()>& task, int64_t delayTime = 0);
     bool PostSyncTask(const std::function<void()>& task);
     void PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime = 0);

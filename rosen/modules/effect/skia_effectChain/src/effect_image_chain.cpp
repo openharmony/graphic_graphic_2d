@@ -204,6 +204,7 @@ void EffectImageChain::DrawOnFilter()
     canvas_->DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
     canvas_->DetachPaint();
     canvas_->Restore();
+    canvas_->Flush();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 

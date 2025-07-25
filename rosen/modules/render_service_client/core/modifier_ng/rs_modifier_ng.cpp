@@ -324,7 +324,6 @@ void RSModifier::OnDetach()
 
 void RSModifier::SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager)
 {
-#if defined(MODIFIER_NG)
     if (isDirty_ == isDirty) {
         // not changed
         return;
@@ -341,7 +340,6 @@ void RSModifier::SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>
         return;
     }
     modifierManager->AddModifier(shared_from_this());
-#endif
 }
 
 std::shared_ptr<RSRenderModifier> RSModifier::CreateRenderModifier()

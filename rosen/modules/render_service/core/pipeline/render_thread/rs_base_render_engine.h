@@ -22,6 +22,10 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "sync_fence.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
+#endif // RS_ENABLE_VK
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
 #else
@@ -78,6 +82,12 @@ public:
     {
         if (targetSurface_ != nullptr && surfaceFrame_ != nullptr) {
             targetSurface_->FlushFrame(surfaceFrame_);
+#ifdef RS_ENABLE_VK
+            auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(surfaceFrame_.get());
+            if (frameOhosVulkan) {
+                acquireFence_ = frameOhosVulkan->GetAcquireFence();
+            }
+#endif // RS_ENABLE_VK
             targetSurface_ = nullptr;
             surfaceFrame_ = nullptr;
         }
@@ -89,6 +99,10 @@ public:
     const std::unique_ptr<RSSurfaceFrame>& GetFrame() const
     {
         return surfaceFrame_;
+    }
+    const sptr<SyncFence>& GetAcquireFence() const
+    {
+        return acquireFence_;
     }
     std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
     {
@@ -125,6 +139,7 @@ protected:
 private:
     std::shared_ptr<RSSurfaceOhos> targetSurface_;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
 };
 
 // function that will be called before drawing Buffer / Image.

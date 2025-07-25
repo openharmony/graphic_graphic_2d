@@ -17,6 +17,9 @@
 
 namespace OHOS {
 namespace Rosen {
+std::unordered_set<NodeId> RSFilterDirtyCollector::validOcclusionFilterCache_ = {};
+bool RSFilterDirtyCollector::enablePartialRender_ = true;
+
 void RSFilterDirtyCollector::CollectFilterDirtyRegionInfo(const FilterDirtyRegionInfo& filterInfo, bool syncToRT)
 {
     auto& list = syncToRT ? pureCleanFilters_ : filtersWithBelowDirty_;

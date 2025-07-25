@@ -17,7 +17,7 @@
 
 #include <unistd.h>
 
-#include "c/queue_ext.h"
+#include "ffrt_inner.h"
 #include "hgm_log.h"
 #include "xcollie/watchdog.h"
 
@@ -27,6 +27,16 @@ constexpr uint32_t WATCHDOG_TIMEVAL = 30000;
 constexpr uint32_t WATCHDOG_DELAY_TIME = 600000;
 constexpr uint64_t MILLISECONDS_TO_MICROSECONDS = 1000;
 constexpr uint64_t MAX_ALLOWED_DELAY = UINT64_MAX / 1000;
+
+uint64_t ConvertMillisecondsToMicroseconds(int64_t delayTime)
+{
+    if (delayTime < 0) {
+        delayTime = 0;
+    } else if (delayTime > MAX_ALLOWED_DELAY) {
+        delayTime = MAX_ALLOWED_DELAY;
+    }
+    return static_cast<uint64_t>(delayTime) * MILLISECONDS_TO_MICROSECONDS;
+}
 }
 
 HgmTaskHandleThread& HgmTaskHandleThread::Instance()
@@ -37,28 +47,28 @@ HgmTaskHandleThread& HgmTaskHandleThread::Instance()
 
 HgmTaskHandleThread::HgmTaskHandleThread()
 {
-    queue_ = std::make_shared<ffrt::queue>("HgmTaskHandleThread", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
-    PostTask([] { HiviewDFX::Watchdog::GetInstance().InitFfrtWatchdog(); }, WATCHDOG_DELAY_TIME);
+    queue_ = std::make_shared<ffrt::queue>(
+        static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "HgmTaskHandleThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+    PostTask([]() { HiviewDFX::Watchdog::GetInstance().InitFfrtWatchdog(); }, WATCHDOG_DELAY_TIME);
 }
 
 void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t delayTime)
 {
     if (queue_) {
-        if (delayTime < 0) {
-            delayTime = 0;
-        }
-        if (delayTime > MAX_ALLOWED_DELAY) {
-            delayTime = MAX_ALLOWED_DELAY;
-        }
+        auto microDelayTime = ConvertMillisecondsToMicroseconds(delayTime);
         queue_->submit(
-            std::move(task), ffrt::task_attr().delay(static_cast<uint64_t>(delayTime) * MILLISECONDS_TO_MICROSECONDS));
+            std::move(task), ffrt::task_attr()
+                                 .delay(microDelayTime)
+                                 .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
     }
 }
 
 bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
 {
     if (queue_) {
-        auto handle = queue_->submit_h(std::move(task));
+        auto handle = queue_->submit_h(std::move(task),
+            ffrt::task_attr().priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_vip)));
         queue_->wait(handle);
         return true;
     }
@@ -68,15 +78,8 @@ bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
 void HgmTaskHandleThread::PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime)
 {
     if (queue_) {
-        if (delayTime < 0) {
-            delayTime = 0;
-        }
-        if (delayTime > MAX_ALLOWED_DELAY) {
-            delayTime = MAX_ALLOWED_DELAY;
-        }
-        queue_->submit(std::move(task), ffrt::task_attr()
-                                            .name(eventId.c_str())
-                                            .delay(static_cast<uint64_t>(delayTime) * MILLISECONDS_TO_MICROSECONDS));
+        auto microDelayTime = ConvertMillisecondsToMicroseconds(delayTime);
+        queue_->submit(std::move(task), ffrt::task_attr().name(eventId.c_str()).delay(microDelayTime));
     }
 }
 

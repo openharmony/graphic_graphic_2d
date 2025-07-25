@@ -100,6 +100,34 @@ bool RSScreenRenderParams::GetFingerprint()
     return hasFingerprint_;
 }
 
+void RSScreenRenderParams::SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit)
+{
+    if (isFixVirtualBuffer10Bit_ == isFixVirtualBuffer10Bit) {
+        return;
+    }
+    isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit;
+    needSync_ = true;
+}
+
+bool RSScreenRenderParams::GetFixVirtualBuffer10Bit() const
+{
+    return isFixVirtualBuffer10Bit_;
+}
+
+void RSScreenRenderParams::SetExistHWCNode(bool existHWCNode)
+{
+    if (existHWCNode_ == existHWCNode) {
+        return;
+    }
+    existHWCNode_ = existHWCNode;
+    needSync_ = true;
+}
+
+bool RSScreenRenderParams::GetExistHWCNode() const
+{
+    return existHWCNode_;
+}
+
 void RSScreenRenderParams::SetHDRPresent(bool hasHdrPresent)
 {
     if (hasHdrPresent_ == hasHdrPresent) {
@@ -186,7 +214,13 @@ bool RSScreenRenderParams::GetZoomed() const
 
 void RSScreenRenderParams::SetHasMirrorScreen(bool hasMirrorScreen)
 {
-    if (hasMirrorScreen_ == hasMirrorScreen) {
+    if (hasMirrorScreen) {
+        mirrorDstCount_++;
+    } else {
+        mirrorDstCount_--;
+    }
+    bool ret = (mirrorDstCount_ != 0);
+    if (hasMirrorScreen_ == ret) {
         return;
     }
     needSync_ = true;
@@ -244,6 +278,8 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->hasHdrPresent_ = hasHdrPresent_;
     targetScreenParams->isHDRStatusChanged_ = isHDRStatusChanged_;
     targetScreenParams->brightnessRatio_ = brightnessRatio_;
+    targetScreenParams->isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit_;
+    targetScreenParams->existHWCNode_ = existHWCNode_;
     targetScreenParams->zOrder_ = zOrder_;
     targetScreenParams->isZoomed_ = isZoomed_;
     targetScreenParams->hasMirrorScreen_ = hasMirrorScreen_;
@@ -271,20 +307,6 @@ std::string RSScreenRenderParams::ToString() const
 DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSScreenRenderParams::GetMirrorSourceDrawable()
 {
     return mirrorSourceDrawable_;
-}
-
-void RSScreenRenderParams::SetNeedOffscreen(bool needOffscreen)
-{
-    if (needOffscreen_ == needOffscreen) {
-        return;
-    }
-    needOffscreen_ = needOffscreen;
-    needSync_ = true;
-}
-
-bool RSScreenRenderParams::GetNeedOffscreen() const
-{
-    return needOffscreen_;
 }
 
 void RSScreenRenderParams::SetDrawnRegion(const Occlusion::Region& region)

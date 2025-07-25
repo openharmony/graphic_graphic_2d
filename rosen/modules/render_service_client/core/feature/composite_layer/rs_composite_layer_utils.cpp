@@ -28,7 +28,7 @@ namespace {
 constexpr uint32_t COMPOSITE_SURFACE_SIZE = 5;
 #endif
 }
-RSCompositeLayerUtils::RSCompositeLayerUtils(std::shared_ptr<RSNode> rootNode, uint32_t zOrder)
+RSCompositeLayerUtils::RSCompositeLayerUtils(const std::shared_ptr<RSNode>& rootNode, uint32_t zOrder)
 {
     rootNode_ = rootNode;
     topLayerZOrder_ = zOrder;
@@ -98,9 +98,9 @@ void RSCompositeLayerUtils::UpdateVirtualNodeBounds(const Vector4f& bounds)
     }
     if (compositeNode_) {
         compositeNode_->SetBounds({bounds.x_, bounds.y_, bounds.z_, bounds.w_});
-    }
-    if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
-        rsUiDirector_->SendMessages();
+        if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
+            rsUiDirector_->SendMessages();
+        }
     }
 }
 

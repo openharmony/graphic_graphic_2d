@@ -26,9 +26,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-#ifndef MODIFIER_NG
-constexpr static float FLOAT_DATA_INIT = 0.5f;
-#endif
 class RSModifierTest : public testing::Test {
 public:
     constexpr static float floatData[] = {

@@ -108,4 +108,16 @@ std::string RsCommonHook::GetTvPlayerBundleName() const
     return tvPlayerBundleName_;
 }
 
+void RsCommonHook::SetFilterUnderHwcConfigByApp(std::string appName, std::string val)
+{
+    filterUnderHwcConfig_[std::move(appName)] = std::move(val);
+}
+
+const std::string& RsCommonHook::GetFilterUnderHwcConfigByApp(const std::string& appName)
+{
+    if (auto it = filterUnderHwcConfig_.find(appName); it != filterUnderHwcConfig_.end()) {
+        return it->second;
+    }
+    return "";
+}
 } // namespace OHOS::Rosen

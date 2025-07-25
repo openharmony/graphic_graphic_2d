@@ -142,7 +142,7 @@ void HgmFrameRateManager::InitConfig()
             configVisitor->ChangeScreen(curScreenStrategyId_);
         }
         curScreenDefaultStrategyId_ = curScreenStrategyId_;
-        if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO && configData->xmlCompatibleMode_) {
+        if (configData->xmlCompatibleMode_) {
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();

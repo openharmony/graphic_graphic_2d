@@ -46,6 +46,8 @@ void RSLogicalDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>&
     targetLogicalDisplayRenderParam->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     targetLogicalDisplayRenderParam->ancestorScreenDrawable_ = ancestorScreenDrawable_;
     targetLogicalDisplayRenderParam->hasCaptureWindow_ = hasCaptureWindow_;
+    targetLogicalDisplayRenderParam->offsetX_ = offsetX_;
+    targetLogicalDisplayRenderParam->offsetY_ = offsetY_;
 
     RSRenderParams::OnSync(target);
 }

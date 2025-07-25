@@ -27,6 +27,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,20 +35,27 @@ class RSRootRenderNode;
 
 void RSAnimationManager::DumpAnimations(std::string& out) const
 {
+    RS_TRACE_NAME_FMT("DumpAnimations, size: %zu", animations_.size());
     if (animations_.empty()) {
         return;
     }
     const auto lengthTwo = 2;
-    out += ", RSAnimationManager: [";
+    bool hasAnimation = false;
+    out.append(", RSAnimationManager: [");
     for (auto[id, animation]: animations_) {
         if (!animation) {
             continue;
         }
         animation->DumpAnimation(out);
-        out += ", ";
+        out.append(", ");
+        if (hasAnimation == false) {
+            hasAnimation = true;
+        }
     }
-    out = out.substr(0, out.length() - lengthTwo);
-    out += "]";
+    if (hasAnimation) {
+        out.erase(out.end() - lengthTwo, out.end());
+    }
+    out.append("]");
 }
 
 void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

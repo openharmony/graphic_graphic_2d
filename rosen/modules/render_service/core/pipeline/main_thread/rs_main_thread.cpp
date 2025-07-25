@@ -147,7 +147,7 @@
 #endif
 
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
-#include "chipset_vsync_impl.h"
+#include "rs_chipset_vsync.h"
 #endif
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
@@ -407,7 +407,6 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
-    RSAnimationFraction::Init();
     return &instance;
 }
 
@@ -423,6 +422,9 @@ RSMainThread::~RSMainThread() noexcept
     RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(nullptr);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    RsChipsetVsync::Instance.CloseLibrary();
+#endif
     if (rsAppStateListener_) {
         Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
     }
@@ -673,6 +675,9 @@ void RSMainThread::Init()
 #endif // RS_ENABLE_GL
     RS_LOGI("OpenInnovationSo");
     RSInnovation::OpenInnovationSo();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    RsChipsetVsync::Instance().LoadLibrary();
+#endif
 #if defined(RS_ENABLE_UNI_RENDER)
     RS_LOGI("InitRenderContext");
     /* move to render thread ? */
@@ -713,6 +718,7 @@ void RSMainThread::Init()
             RequestNextVSync("OverDrawUpdate");
         });
     });
+    RSAnimationFraction::Init();
     RS_LOGI("RSOverdrawController init");
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
@@ -1348,7 +1354,8 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
             auto curIndex = (*iter)->GetIndex();
             RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex);
             if (curIndex == lastIndex + 1) {
-                if ((*iter)->GetTimestamp() + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime())
+                if ((*iter)->GetTimestamp() + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) +
+                    rsVSyncDistributor_->GetRsDelayTime(pid)
                     >= timestamp_ && (!isDVSyncConsume || curIndex > endIndex)) {
                     RequestNextVsyncForCachedCommand(transactionFlags, pid, curIndex);
                     break;
@@ -1732,7 +1739,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
     RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
-
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (requestNextVsyncTime_ != -1) {
@@ -1924,13 +1931,26 @@ static bool CheckOverlayDisplayEnable()
 #endif
 }
 
+bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)
+{
+    auto screenList = rootNode->GetChildrenList();
+    uint32_t count = 0;
+    for (auto node : screenList) {
+        auto screenNode = node.lock();
+        if (screenNode && screenNode->GetChildrenCount() > 0) {
+            count++;
+        }
+    }
+    return count > 1;
+}
+
 void RSMainThread::CheckIfHardwareForcedDisabled()
 {
     ColorFilterMode colorFilterMode = RSBaseRenderEngine::GetColorFilterMode();
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
+    bool isMultiDisplay = GetMultiDisplay(rootNode);
     MultiDisplayChange(isMultiDisplay);
 
     // check all children of global root node, and only disable hardware composer
@@ -2515,14 +2535,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_LOGE("DoDirectComposition: ScreenState error!");
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenState error");
         return false;
-    }
-
-    // children->size() is 1, the extended screen is not supported
-    // there is no visible hwc node or visible hwc nodes don't need update
-    if (children->size() == 1 && (!screenNode->HwcDisplayRecorder().HasVisibleHwcNodes() ||
-                                  !ExistBufferIsVisibleAndUpdate())) {
-        RS_TRACE_NAME_FMT("%s: no hwcNode in visibleRegion", __func__);
-        return true;
     }
 
 #ifdef RS_ENABLE_GPU
@@ -3461,7 +3473,7 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
 void RSMainThread::ConnectChipsetVsyncSer()
 {
-    if (initVsyncServiceFlag_ && (OHOS::Camera::ChipsetVsyncImpl::Instance().InitChipsetVsyncImpl() == -1)) {
+    if (initVsyncServiceFlag_ && (RsChipsetVsync::Instance().InitChipsetVsync() == -1)) {
         initVsyncServiceFlag_ = true;
     } else {
         initVsyncServiceFlag_ = false;
@@ -3482,7 +3494,7 @@ void RSMainThread::SetVsyncInfo(uint64_t timestamp)
         allowFramerateChange = context_->GetAnimatingNodeList().empty() &&
             context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     }
-    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
+    RsChipsetVsync::Instance().SetVsync(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
     RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld, "
         "period = %{public}lld, allowFramerateChange = %{public}d",
         static_cast<long long>(timestamp), static_cast<long long>(curTime_),
@@ -4269,19 +4281,6 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 
     RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
     RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
-    dumpString.append("---------------RenderServiceTreeDump-Begin---------------\n");
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode != nullptr) {
-        rootNode->DumpTree(0, dumpString);
-    }
-    const auto& nodeMap = context_->GetNodeMap();
-    nodeMap.TraversalNodes([&dumpString](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr || !node->IsOnTheTree()) {
-            return;
-        }
-        node->DumpTree(0, dumpString, true);
-    });
-    dumpString.append("---------------RenderServiceTreeDump-End---------------\n");
 #else
     dumpString.append("No GPU in this device");
 #endif
@@ -4889,13 +4888,13 @@ bool RSMainThread::IsSingleDisplay()
     return rootNode->GetChildrenCount() == 1;
 }
 
-// hsc todo
 bool RSMainThread::HasMirrorDisplay() const
 {
     bool hasWiredMirrorDisplay = false;
     bool hasVirtualMirrorDisplay = false;
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
+    bool isSingleNodeOrEmpty = rootNode == nullptr || rootNode->GetChildrenCount() <= 1;
+    if (isSingleNodeOrEmpty) {
         hasWiredMirrorDisplay_.store(false);
         hasVirtualMirrorDisplay_.store(false);
         LppVideoHandler::Instance().SetHasVirtualMirrorDisplay(false);
@@ -4903,7 +4902,8 @@ bool RSMainThread::HasMirrorDisplay() const
     }
 
     for (auto& child : *rootNode->GetSortedChildren()) {
-        if (!child || !child->IsInstanceOf<RSScreenRenderNode>()) {
+        bool isScreenNodeChild = child && child->IsInstanceOf<RSScreenRenderNode>();
+        if (!isScreenNodeChild) {
             continue;
         }
         auto screenNode = child->ReinterpretCastTo<RSScreenRenderNode>();
@@ -5428,6 +5428,14 @@ void RSMainThread::HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& 
 void RSMainThread::DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime)
 {
     rsVSyncDistributor_->DVSyncUpdate(dvsyncTime, vsyncTime);
+}
+
+void RSMainThread::SetForceRsDVsync()
+{
+    if (rsVSyncDistributor_ != nullptr) {
+        RS_TRACE_NAME("RSMainThread::SetForceRsDVsync");
+        rsVSyncDistributor_->ForceRsDVsync();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

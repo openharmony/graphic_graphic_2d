@@ -88,7 +88,6 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
-    "ffrt:libffrt",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {

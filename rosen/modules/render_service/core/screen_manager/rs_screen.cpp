@@ -1503,6 +1503,17 @@ int32_t RSScreen::GetVirtualSecLayerOption() const
 {
     return virtualSecLayerOption_;
 }
+
+bool RSScreen::GetPSurfaceChange() const
+{
+    return pSurfaceChange_;
+}
+
+// only used in virtual screen
+void RSScreen::SetPSurfaceChange(bool pSurfaceChange)
+{
+    pSurfaceChange_ = pSurfaceChange;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

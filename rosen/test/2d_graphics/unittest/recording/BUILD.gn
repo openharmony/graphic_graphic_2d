@@ -28,6 +28,12 @@ ohos_unittest("2d_graphics_recording_test") {
     "recording_canvas_test.cpp",
   ]
 
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+  ]
+
   defines = [
     "ACE_ENABLE_GPU",
     "RS_ENABLE_GPU",
@@ -41,8 +47,10 @@ ohos_unittest("2d_graphics_recording_test") {
   external_deps = [
     "c_utils:utils",
     "graphic_2d:2d_graphics",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "image_framework:image_native",
+    "ipc:ipc_core",
   ]
 
   cflags = [

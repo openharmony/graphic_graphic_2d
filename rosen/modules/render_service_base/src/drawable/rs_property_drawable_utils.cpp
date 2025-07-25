@@ -838,10 +838,11 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeShadowBlender(con
         uniform half ubo_constant;
 
         float4 main(float4 src, float4 dst) {
-            float lum = dot(dst, float3(0.2126, 0.7152, 0.0722));
+            float lum = dot(unpremul(dst).rgb, float3(0.2126, 0.7152, 0.0722));
             float opacity = saturate(ubo_cubic * lum * lum * lum +
                 ubo_quadratic * lum * lum + ubo_linear * lum + ubo_constant);
-            return float4(src.rgb, src.a * opacity);
+            half4 srcNew = src * opacity;
+            return mix(dst, vec4(srcNew.rgb, 1.0), src.a);
         }
     )";
     if (shadowBlenderEffect_ == nullptr) {

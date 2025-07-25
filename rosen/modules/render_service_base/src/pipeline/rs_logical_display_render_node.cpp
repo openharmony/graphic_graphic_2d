@@ -20,7 +20,6 @@
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS::Rosen {
-
 RSLogicalDisplayRenderNode::RSLogicalDisplayRenderNode(NodeId id,
     const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSRenderNode(id, context, isTextureExportNode), screenId_(config.screenId) {}
@@ -98,15 +97,19 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
     logicalDisplayRenderParam->compositeType_ = compositeType_;
     logicalDisplayRenderParam->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     logicalDisplayRenderParam->hasCaptureWindow_ = hasCaptureWindow_;
-    auto screenNode = ancestorScreenNode_.lock();
+    auto screenNode = GetParent().lock();
     auto screenDrawable = screenNode ? screenNode->GetRenderDrawable() : nullptr;
     logicalDisplayRenderParam->SetAncestorScreenDrawable(screenDrawable);
+    auto& boundGeo = GetRenderProperties().GetBoundsGeometry();
+    if (boundGeo) {
+        logicalDisplayRenderParam->offsetX_ = boundGeo->GetX();
+        logicalDisplayRenderParam->offsetY_ = boundGeo->GetY();
+    }
     RSRenderNode::UpdateRenderParams();
 }
 
 RSRenderNode::ChildrenListSharedPtr RSLogicalDisplayRenderNode::GetSortedChildren() const
 {
-    return RSRenderNode::GetSortedChildren();
     int32_t currentScbPid = GetCurrentScbPid();
     ChildrenListSharedPtr fullChildrenList = RSRenderNode::GetSortedChildren();
     if (currentScbPid < 0) {

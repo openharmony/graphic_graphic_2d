@@ -19,33 +19,46 @@ ohos_unittest("2d_graphics_effect_test") {
   module_out_path = module_output_path
 
   sources = [
+    "blend_shader_obj_test.cpp",
     "blur_draw_looper_test.cpp",
+    "blur_image_filter_obj_test.cpp",
+    "color_filter_image_filter_obj_test.cpp",
     "color_filter_test.cpp",
     "color_matrix_test.cpp",
     "color_space_test.cpp",
+    "effect_test_utils.cpp",
     "filter_test.cpp",
+    "image_filter_lazy_test.cpp",
     "image_filter_test.cpp",
     "mask_filter_test.cpp",
+    "offset_image_filter_obj_test.cpp",
     "path_effect_test.cpp",
     "shader_effect_test.cpp",
+    "shader_effect_lazy_test.cpp",
+    "shader_image_filter_obj_test.cpp",
   ]
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
   ]
+
+  defines = [ "ROSEN_OHOS" ]
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
   ]
 
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines = [ "USE_ROSEN_DRAWING" ]
+    defines += [ "USE_ROSEN_DRAWING" ]
   }
 
   part_name = "graphic_2d"

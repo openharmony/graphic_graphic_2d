@@ -390,6 +390,50 @@ void RSScreenRenderNode::SetFingerprint(bool hasFingerprint)
 #endif
 }
 
+void RSScreenRenderNode::SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit)
+{
+    if (isFixVirtualBuffer10Bit_ == isFixVirtualBuffer10Bit) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    screenParams->SetFixVirtualBuffer10Bit(isFixVirtualBuffer10Bit);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit;
+}
+
+bool RSScreenRenderNode::GetFixVirtualBuffer10Bit() const
+{
+    return isFixVirtualBuffer10Bit_;
+}
+
+void RSScreenRenderNode::SetExistHWCNode(bool existHWCNode)
+{
+    if (existHWCNode_ == existHWCNode) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    screenParams->SetExistHWCNode(existHWCNode);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    existHWCNode_ = existHWCNode;
+}
+
+bool RSScreenRenderNode::GetExistHWCNode() const
+{
+    return existHWCNode_;
+}
+
 void RSScreenRenderNode::SetHDRPresent(bool hdrPresent)
 {
 #ifdef RS_ENABLE_GPU

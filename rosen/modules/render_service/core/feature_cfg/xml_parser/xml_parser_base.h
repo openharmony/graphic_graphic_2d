@@ -49,7 +49,7 @@ public:
         return 0;
     };
 
-    int32_t LoadGraphicConfiguration(std::string& fileDir);
+    int32_t LoadGraphicConfiguration(const std::string& fileDir);
     int32_t ParseSysDoc();
     int32_t ParseProdDoc();
     bool ParseFeatureSwitch(std::string val);
@@ -60,8 +60,8 @@ public:
     static bool IsNumber(const std::string& str);
 
 private:
-    int32_t LoadSysConfiguration(std::string& fileDir);
-    void LoadProdConfiguration(std::string& fileDir);
+    int32_t LoadSysConfiguration(const std::string& fileDir);
+    void LoadProdConfiguration(const std::string& fileDir);
     bool ParseInternal(xmlNode &node);
     xmlDoc *xmlSysDocument_ = nullptr;
     xmlDoc *xmlProdDocument_ = nullptr;

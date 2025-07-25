@@ -223,7 +223,14 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize
     node->GetGravityTranslate(imgWidth, imgHeight);
     task.surfaceNode_ = node;
     auto pxiemap = task.CreatePixelMapBySurfaceNode(node);
-    ASSERT_EQ(pxiemap, nullptr);
+    EXPECT_EQ(pxiemap, nullptr);
+
+    node->renderProperties_.SetBoundsWidth(1.0f);
+    node->renderProperties_.SetBoundsHeight(1.0f);
+    pxiemap = task.CreatePixelMapBySurfaceNode(node, false);
+    EXPECT_NE(pxiemap, nullptr);
+    pxiemap = task.CreatePixelMapBySurfaceNode(node, true);
+    EXPECT_NE(pxiemap, nullptr);
 }
 
 /*
@@ -255,29 +262,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestS
 }
 
 /*
- * @tc.name: CreatePixelMapByDisplayNode004
- * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAHND9
-*/
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode004, TestSize.Level2)
-{
-    RSSurfaceCaptureConfig captureConfig;
-    RSSurfaceCaptureTaskParallel task(0, captureConfig);
-    RSDisplayNodeConfig config;
-    std::shared_ptr<RSLogicalDisplayRenderNode> node = std::make_shared<RSLogicalDisplayRenderNode>(0, config);
-    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
-    
-    NodeId id = 0;
-    ScreenId screenId = 0;
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    ASSERT_NE(screenNode, nullptr);
-    node->SetAncestorScreenNode(screenNode);
-    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
-}
-
-/*
  * @tc.name: CreatePixelMapByDisplayNode003
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode003 with pixelmap is nullptr
  * @tc.type: FUNC
@@ -295,7 +279,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestS
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_EQ(screenNode, nullptr);
-    node->SetAncestorScreenNode(screenNode);
+    screenNode->AddChild(node);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
 }
 

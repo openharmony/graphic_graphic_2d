@@ -16,7 +16,7 @@
 #include "transaction/rs_unmarshal_thread.h"
 
 #include "app_mgr_client.h"
-#include "c/queue_ext.h"
+#include "ffrt_inner.h"
 #include "hisysevent.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -42,7 +42,6 @@ namespace OHOS::Rosen {
 namespace {
 constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
-constexpr uint32_t DEFAULT_RS_UNMARSHAL_THREAD_CONCURRENCY = 16;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::shared_ptr<AppExecFwk::AppMgrClient> GetAppMgrClient()
@@ -61,14 +60,19 @@ RSUnmarshalThread& RSUnmarshalThread::Instance()
 
 void RSUnmarshalThread::Start()
 {
-    queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "RSUnmarshalThread",
-        ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_RS_UNMARSHAL_THREAD_CONCURRENCY));
+    queue_ = std::make_shared<ffrt::queue>(
+        static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "RSUnmarshalThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive));
 }
 
 void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (queue_) {
-        queue_->submit(std::move(task), ffrt::task_attr().name(name.c_str()).delay(0));
+        queue_->submit(
+            std::move(task), ffrt::task_attr()
+                                 .name(name.c_str())
+                                 .delay(0)
+                                 .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
     }
 }
 

@@ -72,8 +72,8 @@ public:
             isGeometryInitialized_ = true;
             properties.SetBounds({0, 0, info.width, info.height});
             properties.SetFrame({0, 0, info.width, info.height});
-            screenInfo_ = std::move(info);
         }
+        screenInfo_ = std::move(info);
     }
 
     const ScreenInfo& GetScreenInfo() const
@@ -89,21 +89,6 @@ public:
     RectI GetScreenRect() const
     {
         return screenRect_;
-    }
-
-    void SetBootAnimation(bool isBootAnimation) override
-    {
-        ROSEN_LOGD("SetBootAnimation:: id:[%{public}" PRIu64 ", isBootAnimation:%{public}d",
-            GetId(), isBootAnimation);
-        isBootAnimation_ = isBootAnimation;
-
-        auto parent = GetParent().lock();
-        if (parent == nullptr) {
-            return;
-        }
-        if (isBootAnimation) {
-            parent->SetContainBootAnimation(true);
-        }
     }
 
     static void SetReleaseTask(ReleaseDmaBufferTask callback);
@@ -324,25 +309,23 @@ public:
         return pixelFormat_;
     }
 
-    void SetEnabledHDRCast(bool isEnabledHDRCast)
+    bool GetFirstFrameVirtualScreenInit() const
     {
-        isEnabledHDRCast_ = isEnabledHDRCast;
+        return isFirstFrameVirtualScreenInit_;
     }
 
-    bool GetEnabledHDRCast() const
+    void SetFirstFrameVirtualScreenInit(bool isFirstFrameVirtualScreenInit)
     {
-        return isEnabledHDRCast_;
+        isFirstFrameVirtualScreenInit_ = isFirstFrameVirtualScreenInit;
     }
 
-    bool IsFirstFrameOfInit() const
-    {
-        return isFirstFrameOfInit_;
-    }
+    void SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit);
 
-    void SetFirstFrameOfInit(bool isFirstFrameOfInit)
-    {
-        isFirstFrameOfInit_ = isFirstFrameOfInit;
-    }
+    bool GetFixVirtualBuffer10Bit() const;
+
+    void SetExistHWCNode(bool existHWCNode);
+
+    bool GetExistHWCNode() const;
 
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     void UpdateColorSpace(const GraphicColorGamut& newColorSpace);
@@ -521,8 +504,9 @@ private:
     bool hasMirroredScreenChanged_ = false;
     bool isSecurityDisplay_ = false;
     bool isForceCloseHdr_ = false;
-    bool isFirstFrameOfInit_ = true;
-    bool isEnabledHDRCast_ = false;
+    bool isFirstFrameVirtualScreenInit_ = true;
+    bool isFixVirtualBuffer10Bit_ = false;
+    bool existHWCNode_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;

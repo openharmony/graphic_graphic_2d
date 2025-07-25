@@ -220,6 +220,8 @@ public:
     virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
 
     virtual void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) = 0;
+
+    virtual bool CheckPSurfaceChanged(ScreenId id) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -400,7 +402,7 @@ public:
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
 
     void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) override;
-
+    bool CheckPSurfaceChanged(ScreenId id) override;
 private:
     RSScreenManager() = default;
     ~RSScreenManager() override = default;

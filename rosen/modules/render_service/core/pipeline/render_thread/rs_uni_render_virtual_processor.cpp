@@ -19,6 +19,7 @@
 #include <parameters.h>
 
 #include "metadata_helper.h"
+#include "sync_fence.h"
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -49,6 +50,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     if (!params) {
         return false;
     }
+
     virtualScreenId_ = params->GetScreenId();
     VirtualScreenStatus screenStatus = screenManager->GetVirtualScreenStatus(virtualScreenId_);
     if (screenStatus == VIRTUAL_SCREEN_PAUSE) {
@@ -57,9 +59,10 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     }
 
     scaleMode_ = screenManager->GetScaleMode(virtualScreenId_);
-
+    const auto& virtualScreenInfo = params->GetScreenInfo();
+    enableVisibleRect_ = virtualScreenInfo.enableVisibleRect;
     canvasRotation_ = screenManager->GetCanvasRotation(virtualScreenId_);
-    if (EnableVisibleRect()) {
+    if (enableVisibleRect_) {
         const auto& rect = screenManager->GetMirrorScreenVisibleRect(virtualScreenId_);
         visibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
         // not support rotation for MirrorScreen visibleRect
@@ -67,21 +70,26 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     }
     bool mirrorScreenHDR = false;
     bool expandScreenHDR = false;
-
     renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    auto mirroredDisplayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
-        params->GetMirrorSourceDrawable().lock());
-    auto mirroredParams = mirroredDisplayDrawable ?
-        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable->GetRenderParams().get()) : nullptr;
-    if (mirroredParams) {
-        screenRotation_ = mirroredParams->GetScreenRotation();
-        screenCorrection_ = screenManager->GetScreenCorrection(mirroredParams->GetScreenId());
-        auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredParams->GetScreenId());
-        mirroredScreenWidth_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyWidth) :
-            static_cast<float>(mainScreenInfo.width);
-        mirroredScreenHeight_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyHeight) :
-            static_cast<float>(mainScreenInfo.height);
-        if (params->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+    auto mirroredScreenDrawable =
+        std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
+    if (mirroredScreenDrawable) {
+        auto childDrawables = params->GetDisplayDrawables();
+        if (childDrawables.empty() || childDrawables.front() == nullptr) {
+            RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: no child display in mirror screen");
+            return false;
+        }
+        auto displayDrawable = childDrawables.front();
+        auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+        auto mirroredDisplayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+            displayParams->GetMirrorSourceDrawable().lock());
+        auto mirroredDisplayParams = static_cast<RSLogicalDisplayRenderParams*>(
+            mirroredDisplayDrawable->GetRenderParams().get());
+        auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable->GetRenderParams().get());
+        screenRotation_ = mirroredDisplayParams->GetScreenRotation();
+        screenCorrection_ = screenManager->GetScreenCorrection(mirroredDisplayParams->GetScreenId());
+        if (params->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB &&
+            mirroredScreenParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
             renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
             RS_LOGD("RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
         }
@@ -162,7 +170,10 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
 
 bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)
 {
-    auto& params = displayDrawable.GetRenderParams();
+    if (!RSProcessor::UpdateMirrorInfo(displayDrawable)) {
+        return false;
+    }
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
     if (!params) {
         return false;
     }
@@ -175,63 +186,28 @@ bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayR
     if (mirroredDisplayDrawable) {
         auto& mirroredParams = mirroredDisplayDrawable->GetRenderParams();
         if (mirroredParams) {
-            auto mirriredDisplayParams = static_cast<RSLogicalDisplayRenderParams*>(mirroredParams.get());
-            screenRotation_ = mirriredDisplayParams->GetScreenRotation();
-            screenCorrection_ = screenManager->GetScreenCorrection(mirriredDisplayParams->GetScreenId());
-            auto mainScreenInfo = screenManager->QueryScreenInfo(mirriredDisplayParams->GetScreenId());
-            // 宽高改成node bounds
-            mirroredScreenWidth_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyWidth) :
-                static_cast<float>(mainScreenInfo.width);
-            mirroredScreenHeight_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyHeight) :
-                static_cast<float>(mainScreenInfo.height);
+            auto mirroredDisplayParams = static_cast<RSLogicalDisplayRenderParams*>(mirroredParams.get());
+            auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredDisplayParams->GetScreenId());
+            mirroredScreenWidth_ = mirroredDisplayParams->GetBounds().GetWidth();
+            mirroredScreenHeight_ = mirroredDisplayParams->GetBounds().GetHeight();
+            if (mirroredDisplayParams->GetNodeRotation() == ScreenRotation::ROTATION_90 ||
+                mirroredDisplayParams->GetNodeRotation() == ScreenRotation::ROTATION_270) {
+                std::swap(mirroredScreenWidth_, mirroredScreenHeight_);
+            }
+            if (mainScreenInfo.isSamplingOn) {
+                mirroredScreenWidth_ *= mainScreenInfo.samplingScale;
+                mirroredScreenHeight_ *= mainScreenInfo.samplingScale;
+            }
+            mirroredTranslateX_ = mirroredDisplayParams->GetOffsetX();
+            mirroredTranslateY_ = mirroredDisplayParams->GetOffsetY();
+            isMirroredDisplayRotating_ = mirroredDisplayParams->IsRotationChanged();
         }
-    }
-    return true;
-}
-
-bool RSUniRenderVirtualProcessor::RequestVirtualFrame(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
-{
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (renderEngine == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::RequestVirtualFrame RenderEngine is null!");
-        return false;
-    }
-    if (producerSurface_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::RequestVirtualFrame for virtualScreen(id %{public}" PRIu64 "):"
-            "ProducerSurface is null!", virtualScreenId_);
-        return false;
-    }
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        renderFrame_ = renderEngine->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU_, false);
-    }
-#endif
-    if (renderFrame_ == nullptr) {
-        uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
-        auto rsSurface = screenDrawable.GetVirtualSurface(pSurfaceUniqueId);
-        if (rsSurface == nullptr || updateFlag_) {
-            RS_LOGD("RSUniRenderVirtualProcessor::RequestVirtualFrame,"
-                "Make rssurface from producer virtualScreen(id %{public}" PRIu64 ")", virtualScreenId_);
-            RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::RequestVirtualFrame,"
-                "Make rssurface from producer virtualScreen(id %" PRIu64 ")", virtualScreenId_);
-            rsSurface = renderEngine->MakeRSSurface(producerSurface_, forceCPU_);
-            screenDrawable.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
-        }
-        renderFrame_ = renderEngine->RequestFrame(
-            std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
-    }
-    if (renderFrame_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::RequestVirtualFrame RenderFrame is null!");
-        return false;
     }
     return true;
 }
 
 void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)
 {
-    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
-    // displayDrawable.GetRenderParams() not null in caller
-
     // Save the initial canvas state
     canvas_->Save();
     if (displayDrawable.IsFirstTimeToProcessor() || canvasRotation_ || autoBufferRotation_) {
@@ -245,8 +221,8 @@ void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSLogicalDisplayRenderN
         }
         displayDrawable.SetOriginScreenRotation(screenRotation_);
     }
-    auto rotationDiff = static_cast<int>(displayDrawable.GetOriginScreenRotation()) -
-        static_cast<int>(screenCorrection_);
+    auto rotationDiff =
+        static_cast<int>(displayDrawable.GetOriginScreenRotation()) - static_cast<int>(screenCorrection_);
     auto rotationAngle = static_cast<ScreenRotation>((rotationDiff + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     OriginScreenRotation(rotationAngle, renderFrameConfig_.width, renderFrameConfig_.height);
 
@@ -382,6 +358,18 @@ void RSUniRenderVirtualProcessor::OriginScreenRotation(ScreenRotation screenRota
     }
 }
 
+void RSUniRenderVirtualProcessor::CalculateTransform(ScreenRotation rotation)
+{
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::CalculateTransform: Canvas is null!");
+        return;
+    }
+
+    canvas_->Save();
+    ScaleMirrorIfNeed(rotation, *canvas_);
+    canvasMatrix_ = canvas_->GetTotalMatrix();
+}
+
 void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas)
 {
     if (screenCorrection_ == ScreenRotation::ROTATION_90 ||
@@ -396,7 +384,7 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
 
     float mirroredScreenWidth = mirroredScreenWidth_;
     float mirroredScreenHeight = mirroredScreenHeight_;
-    if (EnableVisibleRect()) {
+    if (enableVisibleRect_) {
         mirroredScreenWidth = visibleRect_.GetWidth();
         mirroredScreenHeight = visibleRect_.GetHeight();
         if (mirroredScreenWidth < EPSILON || mirroredScreenHeight < EPSILON) {
@@ -410,15 +398,65 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
         mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_,
         static_cast<int>(screenCorrection_), static_cast<int>(angle), static_cast<int>(scaleMode_));
 
-    if (!EnableVisibleRect() &&
-        ROSEN_EQ(mirroredScreenWidth, virtualScreenWidth_) && ROSEN_EQ(mirroredScreenHeight, virtualScreenHeight_)) {
-        return;
+    bool needScale = ROSEN_NE(mirroredScreenWidth, virtualScreenWidth_) ||
+                     ROSEN_NE(mirroredScreenHeight, virtualScreenHeight_);
+    if (needScale) {
+        if (scaleMode_ == ScreenScaleMode::FILL_MODE) {
+            Fill(canvas, mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_);
+        } else if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
+            UniScale(canvas, mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_);
+        }
     }
 
-    if (scaleMode_ == ScreenScaleMode::FILL_MODE) {
-        Fill(canvas, mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_);
-    } else if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
-        UniScale(canvas, mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_);
+    if (enableVisibleRect_ && !drawMirrorCopy_) {
+        canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
+        RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed: Scale With VisibleRect, "
+            "mirrorScaleX_: %{public}f, mirrorScaleY_: %{public}f", mirrorScaleX_, mirrorScaleY_);
+    } else {
+        canvas.Translate(-mirroredTranslateX_, -mirroredTranslateY_);
+    }
+}
+
+void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
+{
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderThreadParams null!", __func__);
+        return;
+    }
+    if (renderFrame_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderFrame_ null!", __func__);
+        return;
+    }
+    auto acquireFence = renderFrame_->GetAcquireFence();
+    if (!acquireFence || !acquireFence->IsValid()) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s acquireFence not valid!", __func__);
+        return;
+    }
+    for (const auto& [_, __, drawable] : renderThreadParams->GetHardwareEnabledTypeDrawables()) {
+        if (!drawable) {
+            RS_LOGW("RSUniRenderVirtualProcessor::%{public}s drawable null!", __func__);
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGW("RSUniRenderVirtualProcessor::%{public}s surfaceParams null!", __func__);
+            continue;
+        }
+        auto buffer = surfaceParams->GetBuffer();
+        if (!buffer) {
+            RS_LOGI("RSUniRenderVirtualProcessor::%{public}s buffer null!", __func__);
+            continue;
+        }
+        if (surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+            continue; // skip protected layer
+        }
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: fence merged id: %" PRIu64 " name: %s",
+            __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
+        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: fence merged id: %{public}" PRIu64 " name: %{public}s",
+            __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
+        buffer->SetAndMergeSyncFence(acquireFence);
     }
 }
 
@@ -431,6 +469,8 @@ void RSUniRenderVirtualProcessor::PostProcess()
     auto surfaceOhos = renderFrame_->GetSurface();
     RSBaseRenderEngine::SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
+    // Merge virtual screen fence to hardware enabled drawables, preventing buffer from being released too early.
+    MergeFenceForHardwareEnabledDrawables();
     RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
 }
@@ -439,18 +479,6 @@ void RSUniRenderVirtualProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 {
     (void)node;
     RS_LOGI("RSUniRenderVirtualProcessor::ProcessSurface() is not supported.");
-}
-
-void RSUniRenderVirtualProcessor::CalculateTransform(ScreenRotation rotation)
-{
-    if (canvas_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::CalculateTransform: Canvas is null!");
-        return;
-    }
-
-    canvas_->Save();
-    ScaleMirrorIfNeed(rotation, *canvas_);
-    canvasMatrix_ = canvas_->GetTotalMatrix();
 }
 
 void RSUniRenderVirtualProcessor::ProcessScreenSurfaceForRenderThread(
@@ -465,8 +493,11 @@ void RSUniRenderVirtualProcessor::ProcessScreenSurfaceForRenderThread(
         return;
     }
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceHandler, forceCPU_);
+    if (renderEngine_ == nullptr) {
+        return;
+    }
     params.isMirror = true;
-    if (EnableVisibleRect()) {
+    if (enableVisibleRect_) {
         params.srcRect = visibleRect_;
         params.dstRect = Drawing::Rect(0, 0, visibleRect_.GetWidth(), visibleRect_.GetHeight());
     }
@@ -481,9 +512,6 @@ void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,
         mirrorScaleX_ = mirrorWidth / mainWidth;
         mirrorScaleY_ = mirrorHeight / mainHeight;
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
-        if (EnableVisibleRect() && !drawMirrorCopy_) {
-            canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
-        }
     }
 }
 
@@ -505,7 +533,7 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
         startY = (mirrorHeight / mirrorScaleY_ - mainHeight) / 2; // 2 for calc Y
     }
 
-    if (EnableSlrScale()) {
+    if (EnableSlrScale() && !isMirroredDisplayRotating_) {
         if (slrManager_ == nullptr) {
             slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
                 mirroredScreenWidth_, mirroredScreenHeight_);
@@ -521,12 +549,6 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
     }
 
     canvas.Scale(mirrorScaleX_, mirrorScaleY_);
-    if (EnableVisibleRect() && !drawMirrorCopy_) {
-        canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
-        RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With VisibleRect, "
-            "mirrorScaleX_: %{public}f, mirrorScaleY_: %{public}f, startX: %{public}f, startY: %{public}f",
-            mirrorScaleX_, mirrorScaleY_, startX, startY);
-    }
     canvas.Translate(startX, startY);
 }
 
@@ -534,7 +556,7 @@ bool RSUniRenderVirtualProcessor::EnableSlrScale()
 {
     float slrScale = std::min(mirrorScaleX_, mirrorScaleY_);
     if (MultiScreenParam::IsSlrScaleEnabled() && RSSystemProperties::GetSLRScaleEnabled() &&
-        (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect() && drawMirrorCopy_) {
+        (slrScale < SLR_SCALE_THR_HIGH) && !enableVisibleRect_ && drawMirrorCopy_) {
         return true;
     }
     return false;
@@ -546,12 +568,7 @@ void RSUniRenderVirtualProcessor::ProcessCacheImage(Drawing::Image& cacheImage)
         RS_LOGE("RSUniRenderVirtualProcessor::ProcessCacheImage: Canvas is null!");
         return;
     }
-    if (EnableSlrScale()) {
-        if (slrManager_ == nullptr) {
-            RS_LOGW("RSUniRenderVirtualProcessor::ProcessCacheImage: SlrManager is null!");
-            RSUniRenderUtil::ProcessCacheImage(*canvas_, cacheImage);
-            return;
-        }
+    if (EnableSlrScale() && slrManager_) {
         slrManager_->ProcessCacheImage(*canvas_, cacheImage);
         RS_LOGD("RSUniRenderVirtualProcessor::ProcessCacheImage: Darw With SLR.");
         return;
@@ -569,10 +586,11 @@ void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing:
     if (scaleMode_ != ScreenScaleMode::UNISCALE_MODE) {
         return;
     }
-    Drawing::Rect rect(0, 0, mirroredScreenWidth_, mirroredScreenHeight_);
+    Drawing::Rect rect(mirroredTranslateX_, mirroredTranslateY_,
+        mirroredTranslateX_ + mirroredScreenWidth_, mirroredTranslateY_ + mirroredScreenHeight_);
     // SLR scaling does not scale canvas, get scale matrix from slrManager_ if SLR scaling is enabled.
     auto matrix = EnableSlrScale() && slrManager_ ? slrManager_->GetScaleMatrix() : canvas_->GetTotalMatrix();
-    if (EnableVisibleRect()) {
+    if (enableVisibleRect_) {
         if (drawMirrorCopy_) {
             rect = Drawing::Rect(0, 0, visibleRect_.GetWidth(), visibleRect_.GetHeight());
         } else {
@@ -595,15 +613,6 @@ void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing:
 void RSUniRenderVirtualProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
 {
     RS_LOGI("RSUniRenderVirtualProcessor::ProcessRcdSurface() is not supported.");
-}
-
-bool RSUniRenderVirtualProcessor::EnableVisibleRect()
-{
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        return false;
-    }
-    return screenManager->QueryScreenInfo(virtualScreenId_).enableVisibleRect;
 }
 
 bool RSUniRenderVirtualProcessor::CheckIfBufferSizeNeedChange(
@@ -633,6 +642,8 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenSize(
             std::swap(virtualScreenInfo.width, virtualScreenInfo.height);
             RS_LOGI("RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}" PRIu32
                 ", height: %{public}" PRIu32, __func__, renderFrameConfig_.width, renderFrameConfig_.height);
+            RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: swap buffer width and height, "
+                "width: %" PRIu32 "height: %" PRIu32, __func__, renderFrameConfig_.width, renderFrameConfig_.height);
         }
     }
 

@@ -5838,6 +5838,30 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitHgmTaskHandleThreadTest
+ * @tc.desc: InitHgmTaskHandleThreadTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBZ6NM
+ */
+HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->hgmContext_.InitHgmTaskHandleThread(mainThread->rsVSyncController_, mainThread->appVSyncController_,
+        mainThread->vsyncGenerator_, mainThread->appVSyncDistributor_);
+    ASSERT_EQ(mainThread->forceUpdateUniRenderFlag_, true);
+    mainThread->hgmContext_.ProcessHgmFrameRate(0, mainThread->rsVSyncDistributor_, mainThread->vsyncId_);
+
+    ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(static_cast<RSPropertyUnit>(0xff), 0.f, 0, 0), 0);
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    ASSERT_EQ(HgmCore::Instance().GetFrameRateMgr(), nullptr);
+    ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
+    HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
+    ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
+}
+
+/**
  * @tc.name: DoDirectComposition004
  * @tc.desc: Test DoDirectComposition For HwcNodes
  * @tc.type: FUNC
@@ -5965,58 +5989,6 @@ HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
         //reset
         frameRateMgr->isAdaptive_.store(status.load());
     }
-}
-
-/**
- * @tc.name: DumpMem001
- * @tc.desc: Test DumpMem
- * @tc.type: FUNC
- */
-HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto& uniRenderThread = RSUniRenderThread::Instance();
-    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    std::unordered_set<std::u16string> args;
-    std::string dumpString;
-    std::string type = "";
-    pid_t pid = 0;
-
-    // prepare nodes
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
-    RSRenderNodeMap& nodeMap = context->GetMutableNodeMap();
-    ASSERT_NE(rootNode, nullptr);
-
-    //prepare nodemap
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(node1, nullptr);
-    node1->SetIsOnTheTree(true);
-    nodeMap.renderNodeMap_[pid].insert({ config.id, node1 });
-
-    config.id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(node2, nullptr);
-    node2->SetIsOnTheTree(false);
-    node2->instanceRootNodeId_ = INVALID_NODEID;
-    nodeMap.renderNodeMap_[pid].insert({ config.id, node2 });
-
-    config.id = 3;
-    auto node3 = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(node3, nullptr);
-    node3->SetIsOnTheTree(true);
-    node3->instanceRootNodeId_ = 1;
-    nodeMap.renderNodeMap_[pid].insert({ config.id, node3 });
-    nodeMap.renderNodeMap_[pid].insert({ 4, nullptr });
-    mainThread->DumpMem(args, dumpString, type, pid);
-
-    // rootNode == nullptr
-    context->globalRootRenderNode_ = nullptr;
-    mainThread->DumpMem(args, dumpString, type, pid);
 }
 
 /**

@@ -3344,29 +3344,6 @@ HWTEST_F(RSMainThreadUnitTest, CheckAndUpdateInstanceContentStaticStatus003, Tes
 }
 
 /**
- * @tc.name: UpdateRogSizeIfNeeded
- * @tc.desc: UpdateRogSizeIfNeeded Test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadUnitTest, UpdateRogSizeIfNeeded, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    // prepare context
-    auto contextInit = mainThread->context_;
-    auto context = std::make_shared<RSContext>();
-    auto rootNode = context->GetGlobalRootRenderNode();
-    NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    rootNode->AddChild(childDisplayNode);
-    mainThread->context_ = context;
-    mainThread->UpdateRogSizeIfNeeded();
-    mainThread->context_ = contextInit;
-}
-
-/**
  * @tc.name: ReleaseSurface
  * @tc.desc: ReleaseSurface Test
  * @tc.type: FUNC

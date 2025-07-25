@@ -134,8 +134,6 @@ private:
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
-    void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
-    void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     void SetScreenNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSScreenRenderParams& params, const ScreenInfo& screenInfo);
@@ -147,7 +145,7 @@ private:
     void UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
         RSScreenRenderParams* params);
 
-    void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
+    static void UpdateSlrScale(ScreenInfo& screenInfo);
 
     void CheckHpaeBlurRun(bool isHdrOn);
     
@@ -163,23 +161,11 @@ private:
     std::unique_ptr<RSRenderFrame> expandRenderFrame_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
-    std::unordered_set<NodeId> currentBlackList_ = {};
-    std::unordered_set<NodeType> currentTypeBlackList_ = {};
-    std::unordered_set<NodeId> lastBlackList_ = {};
-    std::unordered_set<NodeType> lastTypeBlackList_ = {};
-    bool curSecExemption_ = false;
-    bool lastSecExemption_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForMultiScreenView_ = nullptr;
-    int32_t specialLayerType_ = 0;
-    bool castScreenEnableSkipWindow_ = false;
     bool isScreenNodeSkip_ = false;
     bool isScreenNodeSkipStatusChanged_ = false;
-    Drawing::Matrix lastMatrix_;
-    Drawing::Matrix lastMirrorMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
-    std::shared_ptr<RSScreenRenderNodeDrawable> mirrorSourceDrawable_ = nullptr;
     uint64_t virtualSurfaceUniqueId_ = 0;
-    bool resetRotate_ = false;
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
     std::vector<RectI> dirtyRects_;

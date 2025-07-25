@@ -247,7 +247,6 @@ private:
     void CheckForceUpdateCallback(uint32_t refreshRate)
     {
         if (needForceUpdateUniRender_ && refreshRate != currRefreshRate_.load() && forceUpdateCallback_) {
-            needForceUpdateUniRender_ = false;
             forceUpdateCallback_(false, true);
         }
     }

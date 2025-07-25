@@ -68,22 +68,21 @@ std::shared_ptr<void> ShaderImageFilterObj::GenerateBaseObject()
 #ifdef ROSEN_OHOS
 bool ShaderImageFilterObj::Marshalling(Parcel& parcel)
 {
-    // Return failure if shader is null
-    if (!shader_) {
-        return false;
-    }
-
     // Serialize cropRect and ShaderEffect (type and subType handled externally)
     bool ret = parcel.WriteFloat(cropRect_.GetLeft());
     ret &= parcel.WriteFloat(cropRect_.GetTop());
     ret &= parcel.WriteFloat(cropRect_.GetRight());
     ret &= parcel.WriteFloat(cropRect_.GetBottom());
+    ret &= parcel.WriteBool(shader_ != nullptr);
     if (!ret) {
         LOGE("ShaderImageFilterObj::Marshalling, failed to write basic data");
         return false;
     }
 
-    // Serialize whether it's Lazy type
+    if (!shader_) {
+        return true;
+    }
+
     if (!parcel.WriteBool(shader_->IsLazy())) {
         LOGE("ShaderImageFilterObj::Marshalling, failed to write isLazy flag");
         return false;
@@ -117,7 +116,17 @@ bool ShaderImageFilterObj::Unmarshalling(Parcel& parcel, bool& isValid, int32_t 
     }
     cropRect_ = Rect(left, top, right, bottom);
 
-    // Deserialize whether it's Lazy type
+    // Deserialize shader ShaderEffect
+    bool hasShader;
+    if (!parcel.ReadBool(hasShader)) {
+        LOGE("ShaderImageFilterObj::Unmarshalling, failed to read hasShader flag");
+        return false;
+    }
+
+    if (!hasShader) {
+        return true;
+    }
+
     bool isLazy;
     if (!parcel.ReadBool(isLazy)) {
         LOGE("ShaderImageFilterObj::Unmarshalling, failed to read isLazy flag");
