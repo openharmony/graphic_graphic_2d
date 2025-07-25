@@ -25,8 +25,8 @@ public:
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
 
 private:
-    static ani_double GetLineBreak(ani_env* env, ani_object object, ani_double startIndex, ani_double width);
-    static ani_object GreateLine(ani_env* env, ani_object object, ani_double startIndex, ani_double count);
+    static ani_int GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width);
+    static ani_object CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_LINE_TYPESET_H

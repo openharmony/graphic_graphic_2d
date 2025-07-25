@@ -29,7 +29,7 @@ public:
     static ani_object CreateTextLine(ani_env* env, Rosen::TextLineBase* textLine);
 
 private:
-    static ani_double GetGlyphCount(ani_env* env, ani_object object);
+    static ani_int GetGlyphCount(ani_env* env, ani_object object);
     static ani_object GetTextRange(ani_env* env, ani_object object);
     static ani_object GetGlyphRuns(ani_env* env, ani_object object);
     static void Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y);
@@ -38,8 +38,8 @@ private:
     static ani_object GetTypographicBounds(ani_env* env, ani_object object);
     static ani_object GetImageBounds(ani_env* env, ani_object object);
     static ani_double GetTrailingSpaceWidth(ani_env* env, ani_object object);
-    static ani_double GetStringIndexForPosition(ani_env* env, ani_object object, ani_object point);
-    static ani_double GetOffsetForStringIndex(ani_env* env, ani_object object, ani_double index);
+    static ani_int GetStringIndexForPosition(ani_env* env, ani_object object, ani_object point);
+    static ani_double GetOffsetForStringIndex(ani_env* env, ani_object object, ani_int index);
     static void EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_object object, ani_fn_object callback);
     static ani_double GetAlignmentOffset(
         ani_env* env, ani_object object, ani_double alignmentFactor, ani_double alignmentWidth);

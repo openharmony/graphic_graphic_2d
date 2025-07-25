@@ -94,7 +94,7 @@ namespace text {
     native addPlaceholder(placeholderSpan: PlaceholderSpan): void;
     native build(): Paragraph;
     native buildLineTypeset(): LineTypeset;
-    native addSymbol(symbolId: number): void;
+    native addSymbol(symbolId: int): void;
   }
 
   export class Paragraph {
@@ -108,8 +108,8 @@ namespace text {
       this.cleaner = new Cleaner("Typography", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
-    native layoutSync(width: number): void;
-    async layout(width: number): Promise<void> {
+    native layoutSync(width: double): void;
+    async layout(width: double): Promise<void> {
       await new Promise<void>((resolve, reject) => {
         try {
           taskpool.execute((): void => {
@@ -122,32 +122,32 @@ namespace text {
         }
       });
     }
-    native paint(canvas: drawing.Canvas, x: number, y: number): void;
-    native paintOnPath(canvas: drawing.Canvas, path: drawing.Path, hOffset: number, vOffset: number): void;
-    native getMaxWidth(): number;
-    native getHeight(): number;
-    native getLongestLine(): number;
-    native getLongestLineWithIndent(): number;
-    native getMinIntrinsicWidth(): number;
-    native getMaxIntrinsicWidth(): number;
-    native getAlphabeticBaseline(): number;
-    native getIdeographicBaseline(): number;
+    native paint(canvas: drawing.Canvas, x: double, y: double): void;
+    native paintOnPath(canvas: drawing.Canvas, path: drawing.Path, hOffset: double, vOffset: number): void;
+    native getMaxWidth(): double;
+    native getHeight(): double;
+    native getLongestLine(): double;
+    native getLongestLineWithIndent(): double;
+    native getMinIntrinsicWidth(): double;
+    native getMaxIntrinsicWidth(): double;
+    native getAlphabeticBaseline(): double;
+    native getIdeographicBaseline(): double;
     native getRectsForRange(range: Range, widthStyle: RectWidthStyle, heightStyle: RectHeightStyle): Array<TextBox>;
     native getRectsForPlaceholders(): Array<TextBox>;
-    native getGlyphPositionAtCoordinate(x: number, y: number): PositionWithAffinity;
-    native getWordBoundary(offset: number): Range;
-    native getLineCount(): number;
-    native getLineHeight(line: number): number;
-    native getLineWidth(line: number): number;
+    native getGlyphPositionAtCoordinate(x: double, y: double): PositionWithAffinity;
+    native getWordBoundary(offset: double): Range;
+    native getLineCount(): int;
+    native getLineHeight(line: int): double;
+    native getLineWidth(line: int): double;
     native didExceedMaxLines(): boolean;
     native getTextLines(): Array<TextLine>;
-    native getActualTextRange(lineNumber: number, includeSpaces: boolean): Range;
+    native getActualTextRange(lineNumber: int, includeSpaces: boolean): Range;
     native getLineMetrics(): Array<LineMetrics>;
-    getLineMetrics(lineNumber: number): LineMetrics | undefined {
+    getLineMetrics(lineNumber: int): LineMetrics | undefined {
         return this.nativeGetLineMetricsAt(lineNumber);
     };
 
-    private native nativeGetLineMetricsAt(lineNumber: number): LineMetrics | undefined;
+    private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
   }
 
   enum FontWidth {
@@ -201,9 +201,9 @@ namespace text {
     fontStyle?: FontStyle;
     fontWidth?: FontWidth;
     fontWeight?: FontWeight;
-    fontSize?: number;
-    height?: number;
-    leading?: number;
+    fontSize?: double;
+    height?: double;
+    leading?: double;
     forceHeight?: boolean;
     enabled?: boolean;
     heightOverride?: boolean;
@@ -212,7 +212,7 @@ namespace text {
 
   interface TextTab {
     alignment: TextAlign;
-    location: number;
+    location: double;
   }
 
   export interface ParagraphStyle {
@@ -220,7 +220,7 @@ namespace text {
     textDirection?: TextDirection;
     align?: TextAlign;
     wordBreak?: WordBreak;
-    maxLines?: number;
+    maxLines?: int;
     breakStrategy?: BreakStrategy;
     strutStyle?: StrutStyle;
     textHeightBehavior?: TextHeightBehavior;
@@ -230,13 +230,13 @@ namespace text {
   interface TextShadow {
     color?: common2D.Color;
     point?: common2D.Point;
-    blurRadius?: number;
+    blurRadius?: double;
   }
 
   class TextShadowInternal implements TextShadow {
     color?: common2D.Color;
     point?: common2D.Point;
-    blurRadius?: number;
+    blurRadius?: double;
   }
 
   export interface TextStyle {
@@ -246,16 +246,16 @@ namespace text {
     fontStyle?: FontStyle;
     baseline?: TextBaseline;
     fontFamilies?: Array<string>;
-    fontSize?: number;
-    letterSpacing?: number;
-    wordSpacing?: number;
-    heightScale?: number;
+    fontSize?: double;
+    letterSpacing?: double;
+    wordSpacing?: double;
+    heightScale?: double;
     halfLeading?: boolean;
     heightOnly?: boolean;
     ellipsis?: string;
     ellipsisMode?: EllipsisMode;
     locale?: string;
-    baselineShift?: number;
+    baselineShift?: double;
     fontFeatures?: Array<FontFeature>;
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
@@ -269,16 +269,16 @@ namespace text {
     fontStyle?: FontStyle;
     baseline?: TextBaseline;
     fontFamilies?: Array<string>;
-    fontSize?: number;
-    letterSpacing?: number;
-    wordSpacing?: number;
-    heightScale?: number;
+    fontSize?: double;
+    letterSpacing?: double;
+    wordSpacing?: double;
+    heightScale?: double;
     halfLeading?: boolean;
     heightOnly?: boolean;
     ellipsis?: string;
     ellipsisMode?: EllipsisMode;
     locale?: string;
-    baselineShift?: number;
+    baselineShift?: double;
     fontFeatures?: Array<FontFeature>;
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
@@ -286,31 +286,31 @@ namespace text {
   }
 
   interface LineMetrics {
-    startIndex: number;
-    endIndex: number;
-    ascent: number;
-    descent: number;
-    height: number;
-    width: number;
-    left: number;
-    baseline: number;
-    lineNumber: number;
-    topHeight: number;
-    runMetrics: Map<number, RunMetrics>;
+    startIndex: int;
+    endIndex: int;
+    ascent: double;
+    descent: double;
+    height: double;
+    width: double;
+    left: double;
+    baseline: double;
+    lineNumber: int;
+    topHeight: double;
+    runMetrics: Map<int, RunMetrics>;
   }
 
   class LineMetricsInternal implements LineMetrics {
-    startIndex: number;
-    endIndex: number;
-    ascent: number;
-    descent: number;
-    height: number;
-    width: number;
-    left: number;
-    baseline: number;
-    lineNumber: number;
-    topHeight: number;
-    runMetrics: Map<number, RunMetrics>;
+    startIndex: int;
+    endIndex: int;
+    ascent: double;
+    descent: double;
+    height: double;
+    width: double;
+    left: double;
+    baseline: double;
+    lineNumber: int;
+    topHeight: double;
+    runMetrics: Map<int, RunMetrics>;
   }
 
   export enum FontWeight {
@@ -346,24 +346,24 @@ namespace text {
     textDecoration?: TextDecorationType;
     color?: common2D.Color;
     decorationStyle?: TextDecorationStyle;
-    decorationThicknessScale?: number;
+    decorationThicknessScale?: double;
   }
 
   class DecorationInternal implements Decoration {
     textDecoration?: TextDecorationType;
     color?: common2D.Color;
     decorationStyle?: TextDecorationStyle;
-    decorationThicknessScale?: number;
+    decorationThicknessScale?: double;
   }
 
   export interface FontFeature {
     name: string;
-    value: number;
+    value: int;
   }
   
   class FontFeatureInternal implements FontFeature {
     name: string;
-    value: number;
+    value: int;
   }
 
   export enum TextDecorationType {
@@ -393,28 +393,28 @@ namespace text {
 
   export interface RectStyle {
     color: common2D.Color;
-    leftTopRadius: number;
-    rightTopRadius: number;
-    rightBottomRadius: number;
-    leftBottomRadius: number;
+    leftTopRadius: double;
+    rightTopRadius: double;
+    rightBottomRadius: double;
+    leftBottomRadius: double;
   }
 
   class RectStyleInternal implements RectStyle {
     color: common2D.Color;
-    leftTopRadius: number;
-    rightTopRadius: number;
-    rightBottomRadius: number;
-    leftBottomRadius: number;
+    leftTopRadius: double;
+    rightTopRadius: double;
+    rightBottomRadius: double;
+    leftBottomRadius: double;
   }
 
   export interface FontVariation {
     axis: string;
-    value: number;
+    value: double;
   }
 
   class FontVariationInternal implements FontVariation {
     axis: string;
-    value: number;
+    value: double;
   }
 
   export interface TextBox {
@@ -428,10 +428,10 @@ namespace text {
   }
 
   class RectInternal implements common2D.Rect {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
+    left: double;
+    top: double;
+    right: double;
+    bottom: double;
   }
 
   class ColorInternal implements common2D.Color {
@@ -442,13 +442,13 @@ namespace text {
   }
 
   export interface Range {
-    start: number;
-    end: number;
+    start: int;
+    end: int;
   }
 
   class RangeInternal implements Range {
-    start: number;
-    end: number;
+    start: int;
+    end: int;
   }
 
   export enum RectWidthStyle {
@@ -466,12 +466,12 @@ namespace text {
   }
 
   export interface PositionWithAffinity {
-    position: number;
+    position: int;
     affinity: Affinity;
   }
 
   class PositionWithAffinityInternal implements PositionWithAffinity {
-    position: number;
+    position: int;
     affinity: Affinity;
   }
 
@@ -480,7 +480,7 @@ namespace text {
     DOWNSTREAM,
   }
 
-  type CaretOffsetsCallback = (offset: number, index: number, leadingEdge: boolean) => boolean;
+  type CaretOffsetsCallback = (offset: int, index: int, leadingEdge: boolean) => boolean;
 
   export class TextLine {
     static { loadLibrary('text_engine_ani.z') }
@@ -494,18 +494,18 @@ namespace text {
       this.cleaner = new Cleaner(className , ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
-    native getGlyphCount(): number;
+    native getGlyphCount(): int;
     native getTextRange(): Range;
     native getGlyphRuns(): Array<Run>;
-    native paint(canvas: drawing.Canvas, x: number, y: number): void;
-    native createTruncatedLine(width: number, ellipsisMode: EllipsisMode, ellipsis: string): TextLine;
+    native paint(canvas: drawing.Canvas, x: double, y: double): void;
+    native createTruncatedLine(width: double, ellipsisMode: EllipsisMode, ellipsis: string): TextLine;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
-    native getTrailingSpaceWidth(): number;
-    native getStringIndexForPosition(point: common2D.Point): number;
-    native getOffsetForStringIndex(index: number): number;
+    native getTrailingSpaceWidth(): double;
+    native getStringIndexForPosition(point: common2D.Point): int;
+    native getOffsetForStringIndex(index: int): double;
     native enumerateCaretOffsets(callback: CaretOffsetsCallback): void;
-    native getAlignmentOffset(alignmentFactor: number, alignmentWidth: number): number;
+    native getAlignmentOffset(alignmentFactor: double, alignmentWidth: double): double;
   }
 
   export class Run {
@@ -520,12 +520,12 @@ namespace text {
       this.cleaner = new Cleaner(className , ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
-    native getGlyphCount(): number;
-    native getGlyphs(): Array<number>;
-    getGlyphs(range: Range): Array<number> {
+    native getGlyphCount(): int;
+    native getGlyphs(): Array<int>;
+    getGlyphs(range: Range): Array<int> {
       return this.nativeGetGlyphs(range);
     }
-    private native nativeGetGlyphs(range: Range): Array<number>;
+    private native nativeGetGlyphs(range: Range): Array<int>;
     native getPositions(): Array<common2D.Point>;
     getPositions(range: Range): Array<common2D.Point> {
       return this.nativeGetPositions(range);
@@ -533,19 +533,19 @@ namespace text {
     private native nativeGetPositions(range: Range): Array<common2D.Point>;
     native getOffsets(): Array<common2D.Point>;
     native getFont(): drawing.Font;
-    native paint(canvas: drawing.Canvas, x: number, y: number): void;
-    native getStringIndices(range?: Range): Array<number>;
+    native paint(canvas: drawing.Canvas, x: double, y: double): void;
+    native getStringIndices(range?: Range): Array<int>;
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
   }
 
   export interface PlaceholderSpan {
-    width: number;
-    height: number;
+    width: double;
+    height: double;
     align: PlaceholderAlignment;
     baseline: TextBaseline;
-    baselineOffset: number;
+    baselineOffset: double;
   }
 
   export enum PlaceholderAlignment {
@@ -569,27 +569,27 @@ namespace text {
       this.cleaner = new Cleaner("LineTypeset", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
-    native getLineBreak(startIndex: number, width: number): number;
-    native createLine(startIndex: number, count: number): TextLine;
+    native getLineBreak(startIndex: int, width: double): int;
+    native createLine(startIndex: int, count: int): TextLine;
   }
 
   export interface TypographicBounds {
-    ascent: number;
-    descent: number;
-    leading: number;
-    width: number;
+    ascent: double;
+    descent: double;
+    leading: double;
+    width: double;
   }
 
   class TypographicBoundsInternal implements TypographicBounds {
-    ascent: number;
-    descent: number;
-    leading: number;
-    width: number;
+    ascent: double;
+    descent: double;
+    leading: double;
+    width: double;
   }
 
   class PointInternal implements common2D.Point {
-    x: number;
-    y: number;
+    x: double;
+    y: double;
   }
 
   native function getSystemFontFullNamesByTypeSync(fontType: SystemFontType): Array<string>;
@@ -655,8 +655,8 @@ namespace text {
     fontFamily?: string;
     fontSubfamily?: string;
     weight?: FontWeight;
-    width?: number;
-    italic?: number;
+    width?: int;
+    italic?: int;
     monoSpace?: boolean;
     symbolic?: boolean;
   }
@@ -668,8 +668,8 @@ namespace text {
     fontFamily?: string;
     fontSubfamily?: string;
     weight?: FontWeight;
-    width?: number;
-    italic?: number;
+    width?: int;
+    italic?: int;
     monoSpace?: boolean;
     symbolic?: boolean;
   }

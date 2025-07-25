@@ -96,7 +96,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     std::string pushStyleSignature = std::string(ANI_INTERFACE_TEXT_STYLE) + ":V";
     std::string buildStyleSignature = ":" + std::string(ANI_CLASS_PARAGRAPH);
     std::string addPlaceholderSignature = std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + ":V";
-    std::string buildLineTypesetSignature = ":" + std::string(ANI_ClASS_LINE_TYPESET);
+    std::string buildLineTypesetSignature = ":" + std::string(ANI_CLASS_LINE_TYPESET);
     std::array methods = {
         ani_native_function{"constructorNative", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
         ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(PushStyle)},
@@ -106,7 +106,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(Build)},
         ani_native_function{
             "buildLineTypeset", buildLineTypesetSignature.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
-        ani_native_function{"addSymbol", "D:V", reinterpret_cast<void*>(AddSymbol)},
+        ani_native_function{"addSymbol", "I:V", reinterpret_cast<void*>(AddSymbol)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -210,7 +210,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_ClASS_LINE_TYPESET, ":V");
+    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINE_TYPESET, ":V");
     LineTypography* lineTypographyPtr = lineTypography.release();
     ani_status ret =
         env->Object_SetFieldByName_Long(lineTypographyObj, NATIVE_OBJ, reinterpret_cast<ani_long>(lineTypographyPtr));
@@ -223,7 +223,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
     return lineTypographyObj;
 }
 
-void AniParagraphBuilder::AddSymbol(ani_env* env, ani_object object, ani_double symbolId)
+void AniParagraphBuilder::AddSymbol(ani_env* env, ani_object object, ani_int symbolId)
 {
     TypographyCreate* typographyCreate = AniTextUtils::GetNativeFromObj<TypographyCreate>(env, object);
     if (typographyCreate == nullptr) {

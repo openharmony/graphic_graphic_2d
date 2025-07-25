@@ -45,15 +45,15 @@ private:
     static ani_object GetRectsForPlaceholders(ani_env* env, ani_object object);
     static ani_object GetGlyphPositionAtCoordinate(ani_env* env, ani_object object, ani_double x, ani_double y);
     static ani_object GetWordBoundary(ani_env* env, ani_object object, ani_double offset);
-    static ani_double GetLineCount(ani_env* env, ani_object object);
-    static ani_double GetLineHeight(ani_env* env, ani_object object, ani_double line);
-    static ani_double GetLineWidth(ani_env* env, ani_object object, ani_double line);
+    static ani_int GetLineCount(ani_env* env, ani_object object);
+    static ani_double GetLineHeight(ani_env* env, ani_object object, ani_int line);
+    static ani_double GetLineWidth(ani_env* env, ani_object object, ani_int line);
     static ani_boolean DidExceedMaxLines(ani_env* env, ani_object object);
     static ani_ref GetTextLines(ani_env* env, ani_object object);
     static ani_object GetActualTextRange(
-        ani_env* env, ani_object object, ani_double lineNumber, ani_boolean includeSpaces);
+        ani_env* env, ani_object object, ani_int lineNumber, ani_boolean includeSpaces);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
-    static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
+    static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_int lineNumber);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_H

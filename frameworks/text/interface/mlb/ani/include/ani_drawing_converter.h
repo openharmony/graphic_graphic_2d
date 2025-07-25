@@ -25,7 +25,7 @@
 
 namespace OHOS::Text::ANI {
 
-inline int32_t ConvertClampFromJsValue(ani_double jsValue, int32_t low, int32_t high)
+inline int32_t ConvertClampFromJsValue(ani_int jsValue, int32_t low, int32_t high)
 {
     return std::clamp(static_cast<int32_t>(jsValue), low, high);
 }
