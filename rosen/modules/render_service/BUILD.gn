@@ -504,10 +504,6 @@ ohos_shared_library("librender_service") {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
-  if (tp_feature_enable) {
-    external_deps += [ "drivers_interface_tp_extra:libtp_proxy_1.1"]
-  }
-
   if (defined(ddgr_ext_configs)) {
     libs = ddgr_ext_configs.ddgr_libs
     defines += ddgr_ext_configs.ddgr_defines

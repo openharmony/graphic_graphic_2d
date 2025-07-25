@@ -3047,6 +3047,10 @@ ErrCode RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const cha
 {
     switch (tpFeatureConfigType) {
         case TpFeatureConfigType::DEFAULT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetFeatureConfigHandleValid()) {
+                RS_LOGW("SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
+                return ERR_INVALID_VALUE;
+            }
             if (TOUCH_SCREEN->SetFeatureConfig(feature, config) < 0) {
                 RS_LOGW("SetTpFeatureConfig: SetFeatureConfig failed");
                 return ERR_INVALID_VALUE;
@@ -3054,6 +3058,10 @@ ErrCode RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const cha
             return ERR_OK;
         }
         case TpFeatureConfigType::AFT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetAftConfigHandleValid()) {
+                RS_LOGW("SetTpFeatureConfig: SetAftConfigHandl is nullptr");
+                return ERR_INVALID_VALUE;
+            }
             if (TOUCH_SCREEN->SetAftConfig(config) < 0) {
                 RS_LOGW("SetTpFeatureConfig: SetAftConfig failed");
                 return ERR_INVALID_VALUE;
