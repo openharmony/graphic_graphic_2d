@@ -331,7 +331,7 @@ bool RSRoundCornerDisplayManagerAPIsFuzzTest(const uint8_t* data, size_t size)
 bool RSRcdSurfaceRenderNodeSetRcdBufferWidthFuzzTest(const uint8_t* data, size_t size)
 {
     int dataNum = 2;
-    if (data == nullptr || size < sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum) {
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum)) {
         return false;
     }
 
@@ -350,7 +350,7 @@ bool RSRcdSurfaceRenderNodeSetRcdBufferWidthFuzzTest(const uint8_t* data, size_t
 
 bool RSRcdSurfaceRenderNodeFuzzTest01(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || sizeof(Rosen::NodeId) + size < sizeof(uint32_t)) {
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t))) {
         return false;
     }
 
@@ -367,7 +367,7 @@ bool RSRcdSurfaceRenderNodeFuzzTest01(const uint8_t* data, size_t size)
 bool RSRcdSurfaceRenderNodeBuffSetGetFuzzTest(const uint8_t* data, size_t size)
 {
     int dataNum = 8;
-    if (data == nullptr || size < sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum) {
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum)) {
         return false;
     }
 
@@ -437,7 +437,7 @@ bool RSRcdSurfaceRenderNodePrepareHardwareFuzzTest(const uint8_t* data, size_t s
 bool RSRcdSurfaceRenderNodeSetHardwareFuzzTest(const uint8_t* data, size_t size)
 {
     int dataNum = 4;
-    if (data == nullptr || size < sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum) {
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum)) {
         return false;
     }
 
@@ -459,7 +459,7 @@ bool RSRcdSurfaceRenderNodeSetHardwareFuzzTest(const uint8_t* data, size_t size)
 
 bool RSRcdSurfaceIsTypeFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || sizeof(Rosen::NodeId) + size < sizeof(uint32_t)) {
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t))) {
         return false;
     }
 
@@ -479,7 +479,7 @@ bool RSRcdSurfaceIsTypeFuzzTest(const uint8_t* data, size_t size)
 
 bool RSRcdSurfacePrintResetFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || sizeof(Rosen::NodeId) + size < sizeof(uint32_t)) {
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) +  sizeof(uint32_t))) {
         return false;
     }
 

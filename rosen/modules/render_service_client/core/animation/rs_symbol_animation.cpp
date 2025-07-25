@@ -1275,10 +1275,6 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
         ROSEN_LOGD("Invalid parameter input of scale.");
         return;
     }
-    if (rsNode == nullptr) {
-        ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
-        return;
-    }
 
     if (scaleProperty == nullptr) {
         SetNodePivot(rsNode);
