@@ -60,8 +60,7 @@ protected:
     explicit RSLogicalDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 
 private:
-    void SetCanvasBlack(RSProcessor& processor);
-    void SetSecurityMask(RSProcessor& processor);
+    void DrawSecurityMask();
     void CheckDirtyRefresh(CompositeType type, bool hasSecLayerInVisibleRect);
     void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
     void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
@@ -71,9 +70,10 @@ private:
         RSRenderThreadParams& uniParam);
     void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
-    void DrawWiredMirrorCopy(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
-    void DrawWiredMirrorOnDraw(
-        RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogicalDisplayRenderParams& params);
+    void DrawWiredMirrorCopy(
+        RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogcialDisplayRenderParams& params);
+    void DrawWiredMirrorOnDraw(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable,
+        RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawExpandDisplay(RSLogicalDisplayRenderParams& params);
     void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false,
