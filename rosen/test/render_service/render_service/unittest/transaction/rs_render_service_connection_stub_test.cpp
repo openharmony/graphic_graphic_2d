@@ -113,6 +113,7 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
     data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
     data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
     data.WriteUInt64Vector(captureConfig.blackList);
+    data.WriteUint32(captureConfig.backGroundColor);
 }
 
 /**

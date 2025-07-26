@@ -1504,9 +1504,10 @@ int32_t RSScreen::GetVirtualSecLayerOption() const
     return virtualSecLayerOption_;
 }
 
-bool RSScreen::GetPSurfaceChange() const
+bool RSScreen::GetAndResetPSurfaceChange()
 {
-    return pSurfaceChange_;
+    bool expected = true;
+    return pSurfaceChange_.compare_exchange_strong(expected, false);
 }
 
 // only used in virtual screen
