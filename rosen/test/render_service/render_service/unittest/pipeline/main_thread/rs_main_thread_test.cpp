@@ -6043,7 +6043,6 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
     mainThread->rsVSyncDistributor_ = nullptr;
 }
 
-
 /**
  * @tc.name: CheckAndUpdateTransactionIndex001
  * @tc.desc: CheckAndUpdateTransactionIndex001
@@ -6090,5 +6089,4 @@ HWTEST_F(RSMainThreadTest, CheckAndUpdateTransactionIndex001, TestSize.Level1)
     ASSERT_EQ(ret, false);
     mainThread->rsVSyncDistributor_ = nullptr;
 }
-
 } // namespace OHOS::Rosen

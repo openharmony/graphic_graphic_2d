@@ -158,8 +158,7 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel002, TestSize.Level1)
 HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
 {
     RSUnmarshalThread::Instance().Start();
-    ASSERT_NE(RSUnmarshalThread::Instance().runner_, nullptr);
-    ASSERT_NE(RSUnmarshalThread::Instance().handler_, nullptr);
+    ASSERT_NE(RSUnmarshalThread::Instance().queue_, nullptr);
 
     std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
     std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();

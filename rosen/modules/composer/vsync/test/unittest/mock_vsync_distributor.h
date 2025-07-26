@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class MockVSyncDistributor : public VSyncDistributor{
+class MockVSyncDistributor : public VSyncDistributor {
 public:
     MockVSyncDistributor(sptr<VSyncController> controller, std::string name, DVSyncFeatureParam dvsyncParam = {})
         : VSyncDistributor(controller, name, dvsyncParam) {}
