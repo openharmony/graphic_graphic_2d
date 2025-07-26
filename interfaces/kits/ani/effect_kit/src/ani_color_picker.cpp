@@ -126,7 +126,7 @@ ani_object AniColorPicker::GetLargestProportionColor(ani_env *env, ani_object ob
     return BuildColor(env, color);
 }
 
-ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, ani_double param)
+ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, ani_int param)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
@@ -137,8 +137,8 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
         EFFECT_LOG_E("[GetTopProportionColors] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    constexpr double PROPORTION_COLORS_NUM_LIMIT = 256.0;
-    unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0.0, PROPORTION_COLORS_NUM_LIMIT));
+    constexpr int PROPORTION_COLORS_NUM_LIMIT = 10;
+    unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0, PROPORTION_COLORS_NUM_LIMIT));
     std::vector<ColorManager::Color> colors;
     colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
     ani_class cls;
@@ -217,7 +217,7 @@ ani_object AniColorPicker::GetAverageColor(ani_env *env, ani_object obj)
     return BuildColor(env, color);
 }
 
-ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object obj, ani_double colorValue)
+ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object obj, ani_int colorValue)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
