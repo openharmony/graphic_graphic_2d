@@ -28,6 +28,7 @@ public:
     virtual ~RSNGShaderBase() = default;
 
     static std::shared_ptr<RSNGShaderBase> Create(RSNGEffectType type);
+    static std::shared_ptr<RSNGShaderBase> Create(std::shared_ptr<VisualEffectPara> effectPara);
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
@@ -64,6 +65,14 @@ DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
     ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
 );
 
+DECLARE_SHADER(BorderLight, BORDER_LIGHT,
+    ADD_PROPERTY_TAG(BorderLight, Position),
+    ADD_PROPERTY_TAG(BorderLight, Color),
+    ADD_PROPERTY_TAG(BorderLight, Intensity),
+    ADD_PROPERTY_TAG(BorderLight, Width),
+    ADD_PROPERTY_TAG(BorderLight, RotationAngle),
+    ADD_PROPERTY_TAG(BorderLight, CornerRadius)
+);
 
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHADER

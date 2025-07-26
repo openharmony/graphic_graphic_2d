@@ -19,6 +19,7 @@
 
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
+#include "ui_effect/filter/include/filter_content_light_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
@@ -74,6 +75,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::VARIABLE_RADIUS_BLUR, [] {
             return std::make_shared<RSNGVariableRadiusBlurFilter>();
+        }
+    },
+    {RSNGEffectType::CONTENT_LIGHT, [] {
+            return std::make_shared<RSNGContentLightFilter>();
         }
     },
 };
@@ -183,6 +188,20 @@ std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_
         RSNGMaskBase::Create(variableRadiusBlurFilterPara->GetMask()));
     return variableRadiusBlurFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto contentLightFilter = std::static_pointer_cast<RSNGContentLightFilter>(filter);
+    auto contentLightFilterPara = std::static_pointer_cast<ContentLightPara>(filterPara);
+    contentLightFilter->Setter<ContentLightPositionTag>(contentLightFilterPara->GetLightPosition());
+    contentLightFilter->Setter<ContentLightColorTag>(contentLightFilterPara->GetLightColor());
+    contentLightFilter->Setter<ContentLightIntenSityTag>(contentLightFilterPara->GetLightIntensity());
+    return variableRadiusBlurFilter;
+}
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -193,6 +212,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::COLOR_GRADIENT, ConvertColorGradientFilterPara },
     { FilterPara::ParaType::MASK_TRANSITION, ConvertMaskTransitionFilterPara },
     { FilterPara::ParaType::VARIABLE_RADIUS_BLUR, ConvertVariableRadiusBlurFilterPara },
+    { FilterPara::ParaType::CONTENT_LIGHT, ConvertContentLightFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

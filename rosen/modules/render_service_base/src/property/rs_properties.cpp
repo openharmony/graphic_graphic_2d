@@ -28,6 +28,8 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -578,13 +580,8 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
     lastRect_ = rect;
     bgShaderNeedUpdate_ = true;
-    if (foregroundRenderFilter_) {
-        for (auto type : foregroundRenderFilter_->GetUIFilterTypes()) {
-            if (type == RSUIFilterType::CONTENT_LIGHT) {
-                filterNeedUpdate_ = true;
-                break;
-            }
-        }
+    if (fgNGRenderFilter_) {
+        filterNeedUpdate_ = true;
     }
     return dirtyFlag;
 }
@@ -3969,6 +3966,8 @@ void RSProperties::ComposeNGRenderFilter(
     originDrawingFilter->SetNGRenderFilter(filter);
     if (filter) {
         originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+        RSUIFilterHelper::SetRotationAngle(filter, rotationAngle);
     }
     originFilter = originDrawingFilter;
 }
@@ -5286,14 +5285,14 @@ void RSProperties::UpdateBackgroundShader()
             bgShader->MakeDrawingShader(GetBoundsRect(), paramValue);
         }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
-        if (bgShader->GetShaderType() == RSShader::ShaderType::BORDER_LIGHT) {
-            Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
-            float cornerRadius = GetCornerRadius().x_;
-            auto RSBLShader = std::static_pointer_cast<RSBorderLightShader>(bgShader);
-            RSBLShader->SetRotationAngle(rotationAngle);
-            RSBLShader->SetCornerRadius(cornerRadius);
-        }
     }
+    if (bgNGRenderShader_) {
+       Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+        float cornerRadius = GetCornerRadius().x_;
+        RSNGRenderShaderHelper::SetRotationAngle(bgNGRenderShader_, rotationAngle);
+        RSNGRenderShaderHelper::SetCornerRadius(bgNGRenderShader_, cornerRadius); 
+    }
+    
 }
 
 void RSProperties::CalculatePixelStretch()
