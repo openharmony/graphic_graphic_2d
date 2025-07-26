@@ -185,7 +185,7 @@ public:
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
     void SetTaskEndWithTime(uint64_t time);
     bool NeedSkipForSurfaceBuffer(uint64_t id);
-    virtual bool NeedUpdateVSyncTime(int32_t& pid);
+    virtual bool NeedUpdateVSyncTime(uint32_t& pid);
     void SetVSyncTimeUpdated();
     virtual int64_t GetLastUpdateTime();
     virtual void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
