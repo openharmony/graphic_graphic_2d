@@ -996,5 +996,172 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
     typography->SetTextEffectAssociation(true);
     EXPECT_TRUE(typography->GetTextEffectAssociation());
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText001
+ * @tc.desc: test for split run in rtl language situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for rtl situation
+    style.fontSize = 11;
+    std::u16string text = u"ولكن مع انهيار العلاقات بين الصين وروسيا، سقطت في";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for rtl situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
+    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
+    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
+        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText002
+ * @tc.desc: test for split run in Myanmese language situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText002, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for rtl situation
+    style.fontSize = 11;
+    std::u16string text =
+        u"ဘယ်တော့မှပြန်မသွားရန်မြင့်မားသောအခန်းများရှိတောက်ပသောမှန်များတွင်မည်မျှချစ်စရာကောင်းသောသော့ခလောက်များကိုကြည့်ပါ။.";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for rtl situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
+    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
+    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
+        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText003
+ * @tc.desc: test for split run in New Thai language situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText003, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for rtl situation
+    style.fontSize = 11;
+    // Run's clusterIndexes: [0, 3, 3, 6, 9...]
+    std::u16string text = u"மொழிகளில்";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for rtl situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
+    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
+    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
+        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText004
+ * @tc.desc: test for split run in hard break symbol situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText004, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for rtl situation
+    style.fontSize = 11;
+    // Symbol < and hardbreak will shape to one run
+    std::u16string text = u"<\n";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for rtl situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
+    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
+    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
+        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
