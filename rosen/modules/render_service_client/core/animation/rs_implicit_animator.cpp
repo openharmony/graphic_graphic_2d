@@ -696,18 +696,11 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         repeatCallback.reset();
     }
 
-#if defined(MODIFIER_NG)
     RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
         property->GetId(), animation->GetId(), params->GetType(), property->GetPropertyTypeNG(),
         startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
         animation->GetDuration(), protocol.GetRepeatCount(), protocol.GetInterfaceName(), target->GetFrameNodeId(),
         target->GetFrameNodeTag(), target->GetType());
-#else
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
-        property->GetId(), animation->GetId(), params->GetType(), property->type_, startValue->GetRenderProperty(),
-        endValue->GetRenderProperty(), animation->GetStartDelay(), animation->GetDuration(), protocol.GetRepeatCount(),
-        protocol.GetInterfaceName(), target->GetFrameNodeId(), target->GetFrameNodeTag(), target->GetType());
-#endif
 
     if (params->GetType() == ImplicitAnimationParamType::TRANSITION ||
         params->GetType() == ImplicitAnimationParamType::KEYFRAME) {
@@ -783,18 +776,11 @@ void RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity(const std::s
     }
 
     auto protocol = std::get<RSAnimationTimingProtocol>(globalImplicitParams_.top());
-#if defined(MODIFIER_NG)
     RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
         property->GetId(), animation->GetId(), params->GetType(), property->GetPropertyTypeNG(),
         startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
         animation->GetDuration(), protocol.GetRepeatCount(), protocol.GetInterfaceName(), target->GetFrameNodeId(),
         target->GetFrameNodeTag(), target->GetType());
-#else
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
-        property->GetId(), animation->GetId(), params->GetType(), property->type_, startValue->GetRenderProperty(),
-        endValue->GetRenderProperty(), animation->GetStartDelay(), animation->GetDuration(), protocol.GetRepeatCount(),
-        protocol.GetInterfaceName(), target->GetFrameNodeId(), target->GetFrameNodeTag(), target->GetType());
-#endif
     target->AddAnimation(animation);
     implicitAnimations_.top().emplace_back(animation, target->GetId());
 }

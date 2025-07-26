@@ -993,7 +993,7 @@ napi_value FilterNapi::SetMaskDirectionLight(napi_env env, napi_callback_info in
     if (realArgc == NUM_5) {
         float maskFactor = 0.f;
         maskFactor = GetSpecialValue(env, argv[NUM_4]);
-        para->SetLightIntensity(maskFactor);
+        para->SetMaskFactor(maskFactor);
     }
 
     Filter* filterObj = nullptr;

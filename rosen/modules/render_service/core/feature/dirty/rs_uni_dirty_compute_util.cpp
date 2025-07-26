@@ -167,10 +167,12 @@ void RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(Occlusion::Region& d
     const std::optional<Drawing::Matrix>& matrix, bool dirtyAlign)
 {
     dirtyAlignEnabled_ = dirtyAlign;
-    auto& screenParams = screenNodeDrawable.GetRenderParams();
-    if (UNLIKELY(screenParams == nullptr)) {
+    if (UNLIKELY(screenNodeDrawable.GetRenderParams() == nullptr)) {
         return;
     }
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenNodeDrawable.GetRenderParams().get());
+    // If screen zoomed, filter cache is globally disabled, thus partial render of filter cache should be disabled.
+    RSFilterDirtyCollector::SetValidCachePartialRender(!screenParams->GetZoomed());
     auto& surfaceDrawables = screenParams->GetAllMainAndLeashSurfaceDrawables();
     // Iteratively process filters recorded in screen manager and surface manager, until convergence.
     bool elementChanged = false;
@@ -190,8 +192,7 @@ bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForScreen(Occlusion::Region
     if (UNLIKELY(screenDirtyManager == nullptr)) {
         return false;
     }
-    return CheckMergeFilterDirty(damageRegion, drawRegion,
-        screenDirtyManager->GetFilterCollector(), matrix, std::nullopt);
+    return CheckMergeFilterDirty(damageRegion, drawRegion, *screenDirtyManager, matrix, std::nullopt);
 }
 
 bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(Occlusion::Region& damageRegion,
@@ -211,17 +212,31 @@ bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(Occlusion::Regio
             RS_LOGI("DealWithFilterDirtyForSurface surface param or dirty manager is nullptr");
             continue;
         }
-        elementChanged |= CheckMergeFilterDirty(damageRegion, drawRegion, surfaceDirtyManager->GetFilterCollector(),
+        bool skipComputeIfOccluded =
+            surfaceParams->GetVisibleRegion().IsEmpty() || surfaceParams->GetOccludedByFilterCache();
+        if (skipComputeIfOccluded) {
+            RS_OPTIONAL_TRACE_FMT("Skip filter dirty processing for %s occluded.", surfaceParams->GetName().c_str());
+            continue;
+        }
+        elementChanged |= CheckMergeFilterDirty(damageRegion, drawRegion, *surfaceDirtyManager,
             matrix, surfaceParams->GetVisibleRegion());
     }
     return elementChanged;
 }
 
 bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
-    RSFilterDirtyCollector& collector, const std::optional<Drawing::Matrix>& matrix,
+    RSDirtyRegionManager& dirtyManager, const std::optional<Drawing::Matrix>& matrix,
     const std::optional<Occlusion::Region>& visibleRegion)
 {
+    auto& collector = dirtyManager.GetFilterCollector();
+    bool filterCachePartialRender =
+        !dirtyManager.IsCurrentFrameDirty() && RSFilterDirtyCollector::GetValidCachePartialRender();
     auto addDirtyInIntersect = [&] (FilterDirtyRegionInfo& info) {
+        // case - 0. If this filter satisfied certain partial render conditions, skip it.
+        if (filterCachePartialRender && RSFilterDirtyCollector::GetFilterCacheValidForOcclusion(info.id_)) {
+            RS_TRACE_NAME_FMT("Filter [%" PRIu64 "], partial render enabled, skip dirty expanding.", info.id_);
+            return false;
+        }
         // case - 1. If this filter is already counted in damage region, skip it.
         if (info.addToDirty_) {
             return false;
@@ -271,6 +286,7 @@ void RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(DrawableV2::RSScreenRend
             std::for_each(surfaceFilterList.begin(), surfaceFilterList.end(), resetFilterStatus);
         }
     }
+    RSFilterDirtyCollector::ResetFilterCacheValidForOcclusion();
 }
 
 FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(

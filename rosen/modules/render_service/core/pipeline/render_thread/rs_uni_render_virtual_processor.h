@@ -98,6 +98,7 @@ public:
     }
     void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
 private:
+    void MergeFenceForHardwareEnabledDrawables();
     void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawble,
         const sptr<RSScreenManager>& screenManager);
     bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);

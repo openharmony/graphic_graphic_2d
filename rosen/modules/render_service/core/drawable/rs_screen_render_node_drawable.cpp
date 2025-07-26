@@ -72,11 +72,12 @@
 #include "c/ffrt_cpu_boost.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
+
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
 #endif
-// hpae offline
-#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
@@ -466,9 +467,11 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
         // 4.The node type is not EFFECT_NODE;
         if (ROSEN_EQ(filterParams->GetGlobalAlpha(), 1.f) && !dirtyBelowContainsFilterNode &&
             !filterParams->HasGlobalCorner() && filterParams->GetType() != RSRenderNodeType::EFFECT_NODE) {
-            surfaceParams.CheckValidFilterCacheFullyCoverTarget(
-                filterNodeDrawable->IsFilterCacheValidForOcclusion(),
-                filterNodeDrawable->GetFilterCachedRegion(), screenRect);
+            bool cacheValid = filterNodeDrawable->IsFilterCacheValidForOcclusion();
+            RectI filterCachedRect = filterNodeDrawable->GetFilterCachedRegion();
+            surfaceParams.CheckValidFilterCacheFullyCoverTarget(cacheValid, filterCachedRect, screenRect);
+            RSFilterDirtyCollector::RecordFilterCacheValidForOcclusion(filterNodeId,
+                surfaceParams.IsMainWindowType() && cacheValid && screenRect.IsInsideOf(filterCachedRect));
         }
         RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], globalAlpha: %f, "
             "hasInvalidFilterCacheBefore: %d, hasNoCorner: %d, isNodeTypeCorrect: %d, isCacheValid: %d, "

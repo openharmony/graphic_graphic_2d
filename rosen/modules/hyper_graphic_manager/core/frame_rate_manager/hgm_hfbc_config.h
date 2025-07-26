@@ -40,6 +40,7 @@ private:
     std::unordered_map<std::string, std::string> hfbcConfig_ = {};
     // true: disable list mode, false: enable list mode
     bool isHfbcDisableListMode_ = true;
+    inline static int32_t curHfbcStatus_ = 0;
 };
 
 } // namespace Rosen

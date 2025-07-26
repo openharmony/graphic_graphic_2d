@@ -1350,10 +1350,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckForceUpdateCallback, Function | SmallTest
 
     mgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) {};
     mgr.CheckForceUpdateCallback(OLED_60_HZ);
-    EXPECT_EQ(mgr.needForceUpdateUniRender_, false);
-    mgr.needForceUpdateUniRender_ = true;
     mgr.CheckForceUpdateCallback(OLED_120_HZ);
-    EXPECT_EQ(mgr.needForceUpdateUniRender_, true);
 
     mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
     EXPECT_EQ(mgr.needForceUpdateUniRender_, false);

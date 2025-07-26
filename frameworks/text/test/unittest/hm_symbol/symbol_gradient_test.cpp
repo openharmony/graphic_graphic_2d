@@ -231,5 +231,23 @@ HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient001, TestSize.Level0)
     gradient.Make(bounds);
     EXPECT_FALSE(gradient.isRadiusRatio_);
 }
+
+/*
+ * @tc.name: SymbolRadialGradient_SetRadius
+ * @tc.desc: test SetRadius of SymbolRadialGradient by radius < 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient_SetRadius, TestSize.Level0)
+{
+    Drawing::Point centerPt = Drawing::Point(0.5f, 0.5f); // 0.5f: x, 0.5f: y
+    float radiusRatio = -0.6f; // -0.6f test radiusRatio < 0
+    SymbolRadialGradient gradient = SymbolRadialGradient(centerPt, radiusRatio);
+    EXPECT_EQ(gradient.GetRadiusRatio(), 0.0f);
+
+    gradient.SetRadius(-10.5f); // -10.5f is radius < 0
+    EXPECT_EQ(gradient.GetRadius(), 0.0f);
+    gradient.SetRadiusRatio(-0.5f); // -0.5f is RadiusRatios < 0
+    EXPECT_EQ(gradient.GetRadiusRatio(), 0.0f);
+}
 } // namespace Rosen
 } // namespace OHOS

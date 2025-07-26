@@ -303,6 +303,7 @@ HWTEST_F(RSUIDirectorTest, UIDirectorTotal001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
 
+    director->Init(true, true);
     director->SetRoot(rootNode->GetId());
 
     director->SetTimeStamp(345, "test");
@@ -379,6 +380,7 @@ HWTEST_F(RSUIDirectorTest, setflushEmptyCallbackTest, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    director->Init(true, true);
     director->SetFlushEmptyCallback(nullptr);
 }
 

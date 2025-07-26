@@ -522,4 +522,38 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_005, TestSize.Leve
         damageRegion, damageRegion, surfaceDrawables, std::nullopt));
     RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(*screenDrawable, surfaceDrawables);
 }
+
+/**
+ * @tc.name: CheckMergeFilterDirty001
+ * @tc.desc: test CheckMergeFilterDirty, if filter can be partially rendered, dirty collection can be skipped.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICMQKE
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckMergeFilterDirty001, TestSize.Level1)
+{
+    auto testFunc = [](bool cacheValid, bool partialRender, bool expectation) {
+        auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+        ASSERT_NE(dirtyManager, nullptr);
+        NodeId nodeId = 1;
+        FilterDirtyRegionInfo filterInfo = {
+            .id_ = nodeId,
+            .intersectRegion_ = Occlusion::Rect(DEFAULT_RECT1),
+            .filterDirty_ = Occlusion::Rect(DEFAULT_RECT2),
+        };
+        dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
+
+        Occlusion::Region damageRegion = Occlusion::Rect(DEFAULT_RECT1);
+        RSFilterDirtyCollector::RecordFilterCacheValidForOcclusion(nodeId, cacheValid);
+        RSFilterDirtyCollector::SetValidCachePartialRender(partialRender);
+
+        RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(
+            damageRegion, damageRegion, *dirtyManager, std::nullopt, std::nullopt);
+        ASSERT_EQ(damageRegion.Area() == DEFAULT_RECT1.GetWidth() * DEFAULT_RECT1.GetHeight(), expectation);
+        RSFilterDirtyCollector::ResetFilterCacheValidForOcclusion();
+    };
+    testFunc(false, false, false);
+    testFunc(false, true, false);
+    testFunc(true, false, false);
+    testFunc(true, true, true);
+}
 } // namespace OHOS::Rosen

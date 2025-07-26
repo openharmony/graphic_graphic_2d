@@ -480,6 +480,19 @@ HWTEST_F(VSyncDistributorTest, GetUiCommandDelayTime001, Function | MediumTest| 
 }
 
 /*
+ * Function: GetRsDelayTime001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetRsDelayTime
+ */
+HWTEST_F(VSyncDistributorTest, GetRsDelayTime001, Function | MediumTest| Level3)
+{
+    auto res = VSyncDistributorTest::vsyncDistributor->GetRsDelayTime(1);
+    ASSERT_EQ(res, 0);
+}
+
+/*
 * Function: SetUiDvsyncConfig001
 * Type: Function
 * Rank: Important(2)
@@ -999,6 +1012,61 @@ HWTEST_F(VSyncDistributorTest, InitDVSyncTest001, Function | MediumTest| Level3)
     vsyncDistributor->isRs_ = false;
     vsyncDistributor->InitDVSync();
     ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/**
+ * @tc.name: SetQosVSyncRateByConnId001
+ * @tc.desc: SetQosVSyncRateByConnId Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByConnId001, Function | MediumTest| Level3)
+{
+    uint64_t connId = 1;
+    int32_t rate = 30;
+    auto ret = vsyncDistributor->SetQosVSyncRateByConnId(connId, rate);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/**
+ * @tc.name: GetVsyncConnection001
+ * @tc.desc: GetVsyncConnection Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, GetVsyncConnection001, Function | MediumTest| Level3)
+{
+    uint64_t id = -1;
+    auto ret = vsyncDistributor->GetVSyncConnection(id);
+    ASSERT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: PrintConnectionsStatus001
+ * @tc.desc: PrintConnectionsStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, PrintConnectionsStatus001, Function | MediumTest| Level3)
+{
+    int sizeStart = vsyncDistributor->connections_.size();
+    vsyncDistributor->PrintConnectionsStatus();
+    int sizeEnd = vsyncDistributor->connections_.size();
+    ASSERT_EQ(sizeStart, sizeEnd);
+}
+
+/**
+ * @tc.name: SetNativeDVSyncSwitch001
+ * @tc.desc: SetNativeDVSyncSwitch Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, SetNativeDVSyncSwitch001, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    bool dvsyncSwitch = true;
+    auto res = vsyncDistributor->SetNativeDVSyncSwitch(dvsyncSwitch, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
 }
 
 /*

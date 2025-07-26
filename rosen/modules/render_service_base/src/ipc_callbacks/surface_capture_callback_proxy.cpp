@@ -30,6 +30,7 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
 {
     // send mainScreenRect only to reduce ipc data size
     if (!data.WriteBool(captureConfig.isHdrCapture) ||
+        !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||

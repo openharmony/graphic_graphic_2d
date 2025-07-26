@@ -16,6 +16,7 @@
 #include "vsync_distributor.h"
 #include "vsync_generator.h"
 #include "vsync_controller.h"
+#include "vsync_connection_proxy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,7 +32,53 @@ public:
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncConnection> vsyncConnection = nullptr;
+    static inline sptr<VSyncConnectionProxy> vsyncConnectionProxyMock_ = nullptr;
     static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
+};
+
+constexpr int MAX_RETRY = 5;
+class MockIRemoteObject : public IRemoteObject {
+public:
+    MockIRemoteObject() : IRemoteObject {u"MockIRemoteObject"}
+    {
+        count_ = 0;
+    }
+
+    ~MockIRemoteObject()
+    {
+    }
+
+    int32_t GetObjectRefCount()
+    {
+        return 0;
+    }
+
+    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+    {
+        count_++;
+        if (count_ <= MAX_RETRY) {
+            return UNKNOWN_ERROR;
+        }
+        return NO_ERROR;
+    }
+
+    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    int Dump(int fd, const std::vector<std::u16string> &args)
+    {
+        return 0;
+    }
+
+    int sendRequestResult_ = 0;
+    int count_ = 0;
 };
 
 void VSyncConnectionTest::SetUpTestCase()
@@ -40,6 +87,8 @@ void VSyncConnectionTest::SetUpTestCase()
     vsyncController = new VSyncController(vsyncGenerator, 0);
     vsyncDistributor = new VSyncDistributor(vsyncController, "VSyncConnection");
     vsyncConnection = new VSyncConnection(vsyncDistributor, "VSyncConnection");
+    auto vsyncConnectionObjectMock = new MockIRemoteObject();
+    vsyncConnectionProxyMock_ = new VSyncConnectionProxy(vsyncConnectionObjectMock);
 }
 
 void VSyncConnectionTest::TearDownTestCase()
@@ -50,6 +99,7 @@ void VSyncConnectionTest::TearDownTestCase()
     vsyncGenerator = nullptr;
     vsyncDistributor = nullptr;
     vsyncConnection = nullptr;
+    vsyncConnectionProxyMock_ = nullptr;
 }
 
 namespace {
@@ -89,6 +139,35 @@ HWTEST_F(VSyncConnectionTest, RequestNextVSync002, Function | MediumTest| Level3
 HWTEST_F(VSyncConnectionTest, RequestNextVSync003, Function | MediumTest| Level3)
 {
     ASSERT_EQ(VSyncConnectionTest::vsyncConnection->RequestNextVSync("unknown", 0), VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: OnRemoteDied001
+ * @tc.desc: OnRemoteDied Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncConnectionTest, OnRemoteDied001, Function | MediumTest| Level3)
+{
+    sptr<MockIRemoteObject> remoteObj = new MockIRemoteObject();
+    wptr<MockIRemoteObject> remoteObjWeakPtr(remoteObj);
+    ASSERT_NE(remoteObj, nullptr);
+    ASSERT_NE(VSyncConnectionTest::vsyncConnection->vsyncConnDeathRecipient_, nullptr);
+    VSyncConnectionTest::vsyncConnection->vsyncConnDeathRecipient_->OnRemoteDied(nullptr);
+    VSyncConnectionTest::vsyncConnection->vsyncConnDeathRecipient_->OnRemoteDied(remoteObjWeakPtr);
+    ASSERT_NE(remoteObjWeakPtr, nullptr);
+}
+
+/**
+ * @tc.name: SetNativeDVSyncSwitch001
+ * @tc.desc: SetNativeDVSyncSwitch Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncConnectionTest, SetNativeDVSyncSwitch001, Function | MediumTest| Level3)
+{
+    auto res = vsyncConnectionProxyMock_->SetNativeDVSyncSwitch(true);
+    ASSERT_NE(res, NO_ERROR);
 }
 
 /*

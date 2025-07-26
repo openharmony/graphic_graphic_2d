@@ -69,7 +69,6 @@ declare_args() {
 
 declare_args() {
   graphic_2d_feature_enable_stack_culling = false
-  graphic_2d_feature_vkqueue_priority_enable = false
 }
 
 if (graphic_2d_feature_product == "phone" ||
@@ -136,11 +135,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
   rs_enable_gpu = false
   surface_enable_gpu = false
   libvulkan = []
-}
-
-if (graphic_2d_feature_enable_vulkan &&
-    graphic_2d_feature_vkqueue_priority_enable) {
-  gpu_defines += [ "RS_ENABLE_VKQUEUE_PRIORITY" ]
 }
 
 if (graphic_2d_feature_subtree_parallel_enable) {

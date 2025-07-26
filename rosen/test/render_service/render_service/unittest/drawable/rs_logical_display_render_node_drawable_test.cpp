@@ -1971,6 +1971,33 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest011, TestSi
 }
 
 /**
+ * @tc.name: DrawMirrorScreenTest012
+ * @tc.desc: Test DrawMirrorScreen when mirroredScreenIsPause is true
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest012, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto mirroredRenderParams =
+        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get());
+    ASSERT_NE(mirroredRenderParams, nullptr);
+    VirtualScreenStatus status = screenManager->GetVirtualScreenStatus(mirroredRenderParams->GetScreenId());
+    screenManager->SetVirtualScreenStatus(mirroredRenderParams->GetScreenId(), VIRTUAL_SCREEN_PAUSE);
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    virtualProcesser->canvas_ = drawingFilterCanvas_;
+    displayDrawable_->DrawMirrorScreen(*renderParams, virtualProcesser);
+    // recover virtualScreenStatus
+    screenManager->SetVirtualScreenStatus(mirroredRenderParams->GetScreenId(), status);
+    EXPECT_FALSE(virtualProcesser->GetDrawVirtualMirrorCopy());
+}
+
+/**
  * @tc.name: DrawMirrorCopyTest001
  * @tc.desc: Test DrawMirrorCopy when curScreenDrawable is nullptr
  * @tc.type: FUNC

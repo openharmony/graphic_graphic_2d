@@ -542,7 +542,7 @@ void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t insta
 void RSUIDirector::SendMessages()
 {
     if (rsUIContext_) {
-        RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
+        RS_TRACE_NAME_FMT("SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr) {
             transaction->FlushImplicitTransaction(timeStamp_, abilityName_, dvsyncUpdate_, dvsyncTime_);

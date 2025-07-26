@@ -1685,8 +1685,10 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_lastCacheImageCount = 0;
 
     if (!OpenBetaRecordFile(g_recordFile)) {
+        const auto overridePath = args.String(1);
+        const auto path = (!overridePath.empty() && args.String(0) == "-f") ? overridePath : RSFile::GetDefaultPath();
         g_recordFile.SetVersion(RSFILE_VERSION_LATEST);
-        g_recordFile.Create(RSFile::GetDefaultPath());
+        g_recordFile.Create(path);
     }
 
     g_recordMinVsync = 0;

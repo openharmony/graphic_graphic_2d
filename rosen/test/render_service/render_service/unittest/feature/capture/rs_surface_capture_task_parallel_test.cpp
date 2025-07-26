@@ -223,7 +223,14 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize
     node->GetGravityTranslate(imgWidth, imgHeight);
     task.surfaceNode_ = node;
     auto pxiemap = task.CreatePixelMapBySurfaceNode(node);
-    ASSERT_EQ(pxiemap, nullptr);
+    EXPECT_EQ(pxiemap, nullptr);
+
+    node->renderProperties_.SetBoundsWidth(1.0f);
+    node->renderProperties_.SetBoundsHeight(1.0f);
+    pxiemap = task.CreatePixelMapBySurfaceNode(node, false);
+    EXPECT_NE(pxiemap, nullptr);
+    pxiemap = task.CreatePixelMapBySurfaceNode(node, true);
+    EXPECT_NE(pxiemap, nullptr);
 }
 
 /*

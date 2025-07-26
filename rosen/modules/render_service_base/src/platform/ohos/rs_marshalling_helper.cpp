@@ -670,11 +670,19 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     int height{0};
     if (!parcel.ReadUint32(rb) || !parcel.ReadInt32(width) || !parcel.ReadInt32(height)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ImageInfo failed");
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
         return false;
     }
     uint32_t ct{0};
     if (!parcel.ReadUint32(ct)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ct failed");
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
         return false;
     }
     Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_UNKNOWN;
@@ -684,6 +692,10 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     uint32_t at{0};
     if (!parcel.ReadUint32(at)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read at failed");
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
         return false;
     }
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_UNKNOWN;

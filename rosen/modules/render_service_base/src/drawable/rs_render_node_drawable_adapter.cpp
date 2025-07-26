@@ -262,7 +262,7 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 void RSRenderNodeDrawableAdapter::DrawQuickImpl(
-    Drawing::Canvas &canvas, const Drawing::Rect &rect) const
+    Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     if (drawCmdList_.empty()) {
         return;

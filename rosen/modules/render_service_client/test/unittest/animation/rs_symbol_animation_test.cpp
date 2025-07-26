@@ -1366,34 +1366,6 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest001 end";
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: SetNodePivotTest002
- * @tc.desc: move the scale center to the center of a node
- * @tc.type: FUNC
- */
-HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest002, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest002 start";
-    /**
-     * @tc.steps: step1. init data if scale center not equals the center of a node
-     */
-    auto symbolAnimation = RSSymbolAnimation();
-    auto newCanvasNode = RSCanvasNode::Create();
-    Vector2f pivotOffset = Vector2f(0.1f, 0.1f); // 0.1f is offset on x-axis and y-axis
-    auto pivotProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(pivotOffset);
-    auto pivotModifier = std::make_shared<RSPivotModifier>(pivotProperty);
-    newCanvasNode->AddModifier(pivotModifier);
-    symbolAnimation.SetNodePivot(newCanvasNode);
-    /**
-     * @tc.steps: step2. start SetNodePivot test
-     */
-    NotifyStartAnimation();
-    EXPECT_FALSE(symbolAnimation.rsNode_);
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest002 end";
-}
-#endif
-
 /**
  * @tc.name: SpliceAnimation001
  * @tc.desc: implement animation according to type

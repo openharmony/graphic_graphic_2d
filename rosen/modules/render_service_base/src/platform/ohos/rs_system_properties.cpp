@@ -293,11 +293,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 
 StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.stencilpixelocclusionculling.enabled", "-1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.stencilpixelocclusionculling.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<StencilPixelOcclusionCullingType>(ConvertToInt(enable,
-        static_cast<int>(StencilPixelOcclusionCullingType::DEFAULT)));
+        static_cast<int>(StencilPixelOcclusionCullingType::DISABLED)));
 }
 
 AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()

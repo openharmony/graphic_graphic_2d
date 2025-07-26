@@ -69,6 +69,7 @@ private:
     void ReplenishMissingScreenAppGameConfig(PolicyConfigData::ScreenSetting& screenSetting,
         const PolicyConfigData::ScreenSetting& screenSettingDefalut);
     int32_t ParsePerformanceConfig(xmlNode& node, std::unordered_map<std::string, std::string>& performanceConfig);
+    int32_t ParseRefreshRate4Settings(xmlNode& node);
     int32_t ParseVideoFrameVoteConfig(xmlNode& node);
     std::string ExtractPropertyValue(const std::string& propName, xmlNode& node);
     static std::vector<uint32_t> StringToVector(const std::string& str, const std::string& pattern = " ");

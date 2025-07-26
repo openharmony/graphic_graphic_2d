@@ -24,36 +24,47 @@ namespace ColorManager {
 static const std::string COLOR_SPACE_MANAGER_CLS_NAME =
     "L@ohos/graphics/colorSpaceManager/colorSpaceManager/ColorSpaceManagerInner;";
 static const std::string DOUBLE_CLS_NAME = "Lstd/core/Double;";
-static const std::string ERROR_CLS_NAME = "Lescompat/Error;";
+static const ani_double INVALID_PARAMETER = 401;
+static const ani_double ABNORMAL_PARAMETER = 18600001;
 
-static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
+static ani_error CreateAniError(ani_env* env, std::string&& errMsg, ani_double code)
 {
-    ani_class cls {};
-    static const char* className = ERROR_CLS_NAME.c_str();
-    if (ANI_OK != env->FindClass(className, &cls)) {
-        ACMLOGE("Not found class '%{public}s'.", className);
+    if (!env) {
+        return nullptr;
+    }
+    ani_class errClass;
+    if (ANI_OK != env->FindClass("L@ohos/base/BusinessError;", &errClass)) {
+        ACMLOGE("AniError, find class failed");
         return nullptr;
     }
     ani_method ctor;
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "Lstd/core/String;:V", &ctor)) {
-        ACMLOGE("Not found ctor '%{public}s'.", className);
+    if (ANI_OK != env->Class_FindMethod(errClass, "<ctor>", ":V", &ctor)) {
+        ACMLOGE("AniError, Cannot find constructor for class.");
         return nullptr;
     }
-    ani_string error_msg;
-    env->String_NewUTF8(errMsg.c_str(), 17U, &error_msg);
-    ani_object errorObject;
-    env->Object_New(cls, ctor, &errorObject, error_msg);
-    return static_cast<ani_error>(errorObject);
-}
-
-static AniColorSpaceManager* unwrap(ani_env *env, ani_object object)
-{
-    ani_long nativePtrLong;
-    if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativePtr", &nativePtrLong)) {
-        ACMLOGE("[ANI]Object_GetField_Long failed");
+    ani_string errMessage;
+    if (ANI_OK != env->String_NewUTF8(errMsg.c_str(), errMsg.size(), &errMessage)) {
+        ACMLOGE("AniError, Convert string to ani string failed.");
         return nullptr;
     }
-    return reinterpret_cast<AniColorSpaceManager *>(nativePtrLong);
+    ani_object errObj;
+    if (ANI_OK != env->Object_New(errClass, ctor, &errObj)) {
+        ACMLOGE("AniError, Cannot create ani error object.");
+        return nullptr;
+    }
+    if (ANI_OK != env->Object_SetFieldByName_Double(errObj, "code", code)) {
+        ACMLOGE("AniError, set error code failed");
+        return nullptr;
+    }
+    if (ANI_OK != env->Object_SetFieldByName_Double(errObj, "code_", code)) {
+        ACMLOGE("AniError, set error code_ failed");
+        return nullptr;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Ref(errObj, "message", errMessage)) {
+        ACMLOGE("AniError, set error message failed");
+        return nullptr;
+    }
+    return static_cast<ani_error>(errObj);
 }
 
 static ani_object DoubleToObject(ani_env *env, double value)
@@ -84,7 +95,7 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
     if (csType >= ApiColorSpaceType::TYPE_END) {
         ACMLOGE("[ANI]ColorSpaceType is invalid: %{public}u", csType);
         ani_error aniErr = CreateAniError(env,
-            "BusinessError 401: Parameter error, csType value is out of range.");
+            "BusinessError 401: Parameter error, csType value is out of range.", INVALID_PARAMETER);
         env->ThrowError(aniErr);
         return false;
     }
@@ -93,11 +104,21 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
         std::string errMsg = "Parameter value is abnormal. Cannot create color"
             " manager object using ApiColorSpaceType " +
             std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM));
-        ani_error aniErr = CreateAniError(env, errMsg.c_str());
+        ani_error aniErr = CreateAniError(env, errMsg.c_str(), ABNORMAL_PARAMETER);
         env->ThrowError(aniErr);
         return false;
     }
     return true;
+}
+
+AniColorSpaceManager* AniColorSpaceManager::unwrap(ani_env *env, ani_object object)
+{
+    ani_long nativePtrLong;
+    if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativePtr", &nativePtrLong)) {
+        ACMLOGE("[ANI]Object_GetField_Long failed");
+        return nullptr;
+    }
+    return reinterpret_cast<AniColorSpaceManager *>(nativePtrLong);
 }
 
 ani_object AniColorSpaceManager::CreateByColorSpace(ani_env* env, ani_enum_item enumObj)
@@ -145,7 +166,8 @@ ani_object AniColorSpaceManager::CreateByColorSpacePrimaries(ani_env* env, ani_o
     if (!ParseColorSpacePrimaries(env, aniPrimaries, primaries)) {
         ACMLOGE("[ANI]ParseColorSpacePrimaries failed");
         ani_error aniErr = CreateAniError(env,
-            "BusinessError 401: Parameter error, the first parameter cannot be convert to ColorSpacePrimaries.");
+            "BusinessError 401: Parameter error, the first parameter cannot be convert to ColorSpacePrimaries.",
+            INVALID_PARAMETER);
         env->ThrowError(aniErr);
         return result;
     }
@@ -249,7 +271,7 @@ ani_enum_item AniColorSpaceManager::OnGetColorSpaceName(ani_env *env, ani_object
     if (colorSpaceToken_ == nullptr) {
         ACMLOGE("[ANI]colorSpaceToken_ is nullptr");
         ani_error aniErr = CreateAniError(env,
-            "Parameter check fails. Native color space object is nullptr.");
+            "Parameter check fails. Native color space object is nullptr.", INVALID_PARAMETER);
         env->ThrowError(aniErr);
         return value;
     }
@@ -269,7 +291,7 @@ ani_enum_item AniColorSpaceManager::OnGetColorSpaceName(ani_env *env, ani_object
     ACMLOGE("[ANI]get color space name %{public}u, but not in api type", csName);
     std::string errMsg = "BusinessError 401: Parameter error, the type of colorspace " +
         std::to_string(static_cast<int32_t>(csName)) + "must be in supported type list.";
-    ani_error aniErr = CreateAniError(env, errMsg.c_str());
+    ani_error aniErr = CreateAniError(env, errMsg.c_str(), INVALID_PARAMETER);
     env->ThrowError(aniErr);
     return value;
 }
@@ -280,7 +302,7 @@ ani_ref AniColorSpaceManager::OnGetWhitePoint(ani_env *env, ani_object obj)
     if (colorSpaceToken_ == nullptr) {
         ACMLOGE("[ANI]colorSpaceToken_ is nullptr");
         ani_error aniErr = CreateAniError(env,
-            "Parameter check fails. Native color space object is nullptr.");
+            "Parameter check fails. Native color space object is nullptr.", INVALID_PARAMETER);
         env->ThrowError(aniErr);
         return arrayValue;
     }
@@ -322,7 +344,7 @@ ani_double AniColorSpaceManager::OnGetGamma(ani_env *env, ani_object obj)
         ACMLOGE("[ANI]colorSpaceToken_ is nullptr");
         
         ani_error aniErr = CreateAniError(env,
-            "Parameter check fails. Native color space object is nullptr.");
+            "Parameter check fails. Native color space object is nullptr.", INVALID_PARAMETER);
         env->ThrowError(aniErr);
         return value;
     }

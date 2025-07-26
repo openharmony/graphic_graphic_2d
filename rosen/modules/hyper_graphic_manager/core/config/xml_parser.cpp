@@ -195,21 +195,7 @@ int32_t XMLParser::ParseParams(xmlNode& node)
 
     int32_t setResult = EXEC_SUCCESS;
     if (paraName == "refresh_rate_4settings") {
-        std::unordered_map<std::string, std::string> refreshRateForSettings;
-        setResult = ParseSimplex(node, refreshRateForSettings);
-        if (setResult != EXEC_SUCCESS) {
-            mParsedData_->xmlCompatibleMode_ = true;
-            setResult = ParseSimplex(node, refreshRateForSettings, "id");
-        }
-        mParsedData_->refreshRateForSettings_.clear();
-        for (auto& [name, id]: refreshRateForSettings) {
-            if (IsNumber(name) && IsNumber(id)) {
-                mParsedData_->refreshRateForSettings_.emplace_back(
-                    std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
-            }
-        }
-        std::sort(mParsedData_->refreshRateForSettings_.begin(), mParsedData_->refreshRateForSettings_.end(),
-            [](auto rateId0, auto rateId1) { return rateId0.first < rateId1.first; });
+        setResult = ParseRefreshRate4Settings(node);
     } else {
         setResult = ParseSubSequentParams(node, paraName);
     }
@@ -218,6 +204,33 @@ int32_t XMLParser::ParseParams(xmlNode& node)
         HGM_LOGI("XMLParser failed to ParseParams %{public}s", paraName.c_str());
     }
     return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseRefreshRate4Settings(xmlNode& node)
+{
+    int32_t setResult = EXEC_SUCCESS;
+    std::string deviceMode = ExtractPropertyValue("deviceMode", node);
+    std::unordered_map<std::string, std::string> refreshRateForSettingsTemp;
+    std::vector<std::pair<int32_t, int32_t>> refreshRateForSettings;
+    setResult = ParseSimplex(node, refreshRateForSettingsTemp);
+    if (setResult != EXEC_SUCCESS) {
+        mParsedData_->xmlCompatibleMode_ = true;
+        setResult = ParseSimplex(node, refreshRateForSettingsTemp, "id");
+    }
+    for (auto& [name, id]: refreshRateForSettingsTemp) {
+        if (IsNumber(name) && IsNumber(id)) {
+            refreshRateForSettings.emplace_back(
+                std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
+        }
+    }
+    std::sort(refreshRateForSettings.begin(), refreshRateForSettings.end(),
+        [=] (auto rateId0, auto rateId1) { return rateId0.first < rateId1.first; });
+
+    mParsedData_->refreshRateForSettingsMap_[deviceMode] = refreshRateForSettings;
+    if (deviceMode == "") {
+        mParsedData_->refreshRateForSettings_ = refreshRateForSettings;
+    }
+    return setResult;
 }
 
 int32_t XMLParser::ParseVideoFrameVoteConfig(xmlNode& node)

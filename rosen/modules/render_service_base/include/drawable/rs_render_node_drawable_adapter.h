@@ -148,7 +148,7 @@ public:
     virtual void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const;
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-    void DrawQuickImpl(Drawing::Canvas &canvas, const Drawing::Rect &rect) const;
+    void DrawQuickImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 #endif
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);

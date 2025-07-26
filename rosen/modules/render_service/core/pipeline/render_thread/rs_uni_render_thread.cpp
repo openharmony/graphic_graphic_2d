@@ -146,6 +146,11 @@ bool RSUniRenderThread::IsExpandScreenMode()
     return !captureParam_.isSnapshot_ && !captureParam_.isMirror_;
 }
 
+bool RSUniRenderThread::IsEndNodeIdValid()
+{
+    return captureParam_.endNodeId_ != INVALID_NODEID;
+}
+
 RSUniRenderThread& RSUniRenderThread::Instance()
 {
     static RSUniRenderThread instance;

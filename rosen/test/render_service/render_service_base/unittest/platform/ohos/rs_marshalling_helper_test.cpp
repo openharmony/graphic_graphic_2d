@@ -28,6 +28,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "effect/shader_effect_lazy.h"
 #include "memory/rs_memory_track.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
@@ -53,6 +54,8 @@
 #endif
 #include "recording/mask_cmd_list.h"
 #include "property/rs_properties_def.h"
+#include "utils/object.h"
+#include "utils/object_helper.h"
 
 
 using namespace testing;
@@ -1903,6 +1906,226 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest053, TestSize.Level1)
     // test max depth
     EXPECT_FALSE(RSMarshallingHelper::Marshalling(*parcel, drawCmdList));
     RSMarshallingHelper::EndNoSharedMem();
+}
+
+/**
+ * @tc.name: MarshallingDrawCmdListObjectLimitTest001
+ * @tc.desc: Verify function Marshalling DrawCmdList with object count exceeding USHRT_MAX
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingDrawCmdListObjectLimitTest001, TestSize.Level1)
+{
+    // Create RecordingCanvas and draw operations to get DrawCmdList
+    int32_t width = 100;
+    int32_t height = 100;
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+
+    // Draw a rect to create a valid DrawCmdList
+    Drawing::Rect rect(0, 0, width, height);
+    canvas->DrawRect(rect);
+
+    auto drawCmdList = canvas->GetDrawCmdList();
+    ASSERT_NE(drawCmdList, nullptr);
+
+    // Add objects to exceed USHRT_MAX limit (65535)
+    // Create ShaderEffectLazy and get ShaderEffectObj from it
+    auto normalDstShader = Drawing::ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto normalSrcShader = Drawing::ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto lazyShader = Drawing::ShaderEffectLazy::CreateBlendShader(normalDstShader,
+        normalSrcShader, Drawing::BlendMode::SRC_OVER);
+    auto shaderObj = lazyShader->GetShaderEffectObj();
+
+    // Add USHRT_MAX + 1 objects to trigger the limit check
+    for (uint32_t i = 0; i <= USHRT_MAX; i++) {
+        drawCmdList->AddDrawingObject(shaderObj);
+    }
+
+    Parcel parcel;
+    // This should fail because object count exceeds USHRT_MAX
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, drawCmdList));
+}
+
+/**
+ * @tc.name: MarshallingDrawCmdListObjectMarshallingFailureTest001
+ * @tc.desc: Verify function Marshalling DrawCmdList when object->Marshalling fails
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingDrawCmdListObjectMarshallingFailureTest001, TestSize.Level1)
+{
+    // Create RecordingCanvas and draw operations to get DrawCmdList
+    int32_t width = 100;
+    int32_t height = 100;
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+
+    // Draw a rect to create a valid DrawCmdList
+    Drawing::Rect rect(0, 0, width, height);
+    canvas->DrawRect(rect);
+
+    auto drawCmdList = canvas->GetDrawCmdList();
+    ASSERT_NE(drawCmdList, nullptr);
+
+    // Create a custom mock object that will fail marshalling
+    class MockFailingObject : public Drawing::Object {
+    public:
+        MockFailingObject() : Drawing::Object(Drawing::Object::ObjectType::SHADER_EFFECT, 0) {}
+
+        bool Marshalling(Parcel& parcel) override {
+            // Simulate marshalling failure
+            return false;
+        }
+
+        bool Unmarshalling(Parcel& parcel, bool& isValid, int32_t depth = 0) override
+        {
+            // Not used in this test
+            return false;
+        }
+
+        std::shared_ptr<void> GenerateBaseObject() override
+        {
+            // Not used in this test
+            return nullptr;
+        }
+    };
+
+    // Add the failing object to DrawCmdList
+    auto failingObject = std::make_shared<MockFailingObject>();
+    drawCmdList->AddDrawingObject(failingObject);
+
+    Parcel parcel;
+    // This should fail because object->Marshalling returns false
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, drawCmdList));
+}
+
+/**
+ * @tc.name: UnmarshallingDrawCmdListObjectHelperGetFuncFailureTest001
+ * @tc.desc: Verify function Unmarshalling DrawCmdList when ObjectHelper::GetFunc returns null for unregistered type
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectHelperGetFuncFailureTest001, TestSize.Level1)
+{
+    // Create RecordingCanvas and draw operations to get DrawCmdList
+    int32_t width = 100;
+    int32_t height = 100;
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+
+    // Draw a rect to create a valid DrawCmdList
+    Drawing::Rect rect(0, 0, width, height);
+    canvas->DrawRect(rect);
+
+    auto drawCmdList = canvas->GetDrawCmdList();
+    ASSERT_NE(drawCmdList, nullptr);
+
+    // Create an object with unregistered type/subType that will marshal successfully but fail unmarshalling
+    class MockUnregisteredObject : public Drawing::Object {
+    public:
+        MockUnregisteredObject() : Drawing::Object(Drawing::Object::ObjectType::SHADER_EFFECT, 999) {}
+
+        bool Marshalling(Parcel& parcel) override {
+            // Successfully marshal some dummy data
+            return parcel.WriteInt32(42);
+        }
+
+        bool Unmarshalling(Parcel& parcel, bool& isValid, int32_t depth = 0) override
+        {
+            // This won't be called due to GetFunc failure
+            return false;
+        }
+
+        std::shared_ptr<void> GenerateBaseObject() override
+        {
+            return nullptr;
+        }
+    };
+
+    // Add the unregistered object to DrawCmdList
+    auto unregisteredObject = std::make_shared<MockUnregisteredObject>();
+    drawCmdList->AddDrawingObject(unregisteredObject);
+
+    // First marshal the DrawCmdList (this should succeed)
+    Parcel parcel;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, drawCmdList));
+
+    // Now try to unmarshal (this should fail because ObjectHelper::GetFunc(SHADER_EFFECT, 999) returns nullptr)
+    std::shared_ptr<Drawing::DrawCmdList> unmarshalledDrawCmdList = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalledDrawCmdList));
+}
+
+/**
+ * @tc.name: UnmarshallingDrawCmdListObjectCreationFailureTest001
+ * @tc.desc: Verify function Unmarshalling DrawCmdList when func() returns nullptr
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureTest001, TestSize.Level1)
+{
+    // Create RecordingCanvas and draw operations to get DrawCmdList
+    int32_t width = 100;
+    int32_t height = 100;
+    auto canvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+
+    // Draw a rect to create a valid DrawCmdList
+    Drawing::Rect rect(0, 0, width, height);
+    canvas->DrawRect(rect);
+
+    auto drawCmdList = canvas->GetDrawCmdList();
+    ASSERT_NE(drawCmdList, nullptr);
+
+    // Create an object that will cause unmarshalling function to return nullptr
+    class MockObjectReturningNull : public Drawing::Object {
+    public:
+        MockObjectReturningNull() : Drawing::Object(Drawing::Object::ObjectType::SHADER_EFFECT, 888) {}
+
+        bool Marshalling(Parcel& parcel) override {
+            // Successfully marshal some data that will cause unmarshalling to fail
+            return parcel.WriteInt32(123) && parcel.WriteInt32(456);
+        }
+
+        bool Unmarshalling(Parcel& parcel, bool& isValid, int32_t depth = 0) override
+        {
+            // This won't be called directly, but we need to implement it
+            return false;
+        }
+
+        std::shared_ptr<void> GenerateBaseObject() override
+        {
+            return nullptr;
+        }
+    };
+
+    // Register a custom unmarshalling function that returns nullptr
+    auto originalFunc = Drawing::ObjectHelper::Instance().GetFunc(
+        static_cast<int32_t>(Drawing::Object::ObjectType::SHADER_EFFECT), 888);
+
+    // Register a function that will return nullptr to simulate object creation failure
+    Drawing::ObjectHelper::Instance().Register(
+        static_cast<int32_t>(Drawing::Object::ObjectType::SHADER_EFFECT), 888,
+        [](Parcel& parcel, bool& isValid, int32_t depth) -> std::shared_ptr<Drawing::Object> {
+            // Read the data but return nullptr to simulate creation failure
+            parcel.ReadInt32();
+            parcel.ReadInt32();
+            return nullptr; // This will trigger the failure branch
+        });
+
+    // Add the object to DrawCmdList
+    auto mockObject = std::make_shared<MockObjectReturningNull>();
+    drawCmdList->AddDrawingObject(mockObject);
+
+    // First marshal the DrawCmdList (this should succeed)
+    Parcel parcel;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, drawCmdList));
+
+    // Now try to unmarshal (this should fail because func() returns nullptr)
+    std::shared_ptr<Drawing::DrawCmdList> unmarshalledDrawCmdList = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalledDrawCmdList));
+
+    // Restore original function if it existed
+    if (originalFunc) {
+        Drawing::ObjectHelper::Instance().Register(
+            static_cast<int32_t>(Drawing::Object::ObjectType::SHADER_EFFECT), 888, originalFunc);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

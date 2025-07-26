@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "display_engine/rs_color_temperature.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "hdi_layer_info.h"
 #include "metadata_helper.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -342,6 +343,31 @@ ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const 
     return screenColorGamut;
 }
 
+bool RSHdrUtil::NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+{
+    if (!surfaceNode) {
+        RS_LOGE("RSHdrUtil::NeedUseF16Capture surfaceNode is nullptr.");
+        return false;
+    }
+    auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
+    if (!screenNode) {
+        RS_LOGE("RSHdrUtil::NeedUseF16Capture surfaceNode get ancestor screenNode failed.");
+        return false;
+    }
+    const auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
+    if (!screenParams) {
+        RS_LOGE("RSHdrUtil::NeedUseF16Capture get params from screenNode failed.");
+        return false;
+    }
+    bool isHDROn = screenParams->GetHDRPresent();
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(screenParams->GetNewColorSpace()) &&
+        RSUifirstManager::Instance().GetUiFirstSwitch();
+    GraphicColorGamut colorGamut = surfaceNode->IsLeashWindow() ? surfaceNode->GetFirstLevelNodeColorGamut() :
+        surfaceNode->GetColorSpace();
+    // When the main screen uses F16 buffer and the window color space is not sRGB,
+    // the window freeze capture can use F16 format to optimize performance.
+    return (isHDROn || isScRGBEnable) && colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+}
 
 std::shared_ptr<Drawing::ShaderEffect> RSHdrUtil::MakeHdrHeadroomShader(float hrRatio,
     std::shared_ptr<Drawing::ShaderEffect> imageShader)

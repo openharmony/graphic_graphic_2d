@@ -100,7 +100,6 @@ void SendFrameEvent(bool start)
 RSRenderThread& RSRenderThread::Instance()
 {
     static RSRenderThread renderThread;
-    RSAnimationFraction::Init();
     return renderThread;
 }
 
@@ -142,6 +141,7 @@ RSRenderThread::RSRenderThread()
     };
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
+    RSAnimationFraction::Init();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {

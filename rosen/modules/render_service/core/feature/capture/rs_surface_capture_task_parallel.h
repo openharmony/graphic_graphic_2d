@@ -84,7 +84,7 @@ private:
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
-        bool isHDRCapture = false);
+        bool isF16Capture = false);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSLogicalDisplayRenderNode> node,
         bool isHDRCapture = false);

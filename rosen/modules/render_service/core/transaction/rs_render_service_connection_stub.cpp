@@ -3893,6 +3893,7 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||

@@ -16,8 +16,8 @@
 
 #include "rs_trace.h"
 #include "platform/common/rs_log.h"
-#include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_task_dispatcher.h"
 
 namespace OHOS::Rosen {
 #ifdef ROSEN_OHOS

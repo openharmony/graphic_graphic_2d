@@ -40,12 +40,12 @@ namespace colorSpaceManager {
     P3_PQ_LIMIT = 22,
     LINEAR_P3 = 23,
     LINEAR_SRGB = 24,
-    LINEAR_BT709 = 24,
+    LINEAR_BT709 = LINEAR_SRGB,
     LINEAR_BT2020 = 25,
-    DISPLAY_SRGB = 4,
-    DISPLAY_P3_SRGB = 3,
-    DISPLAY_P3_HLG = 11,
-    DISPLAY_P3_PQ = 12,
+    DISPLAY_SRGB = SRGB,
+    DISPLAY_P3_SRGB = DISPLAY_P3,
+    DISPLAY_P3_HLG = P3_HLG,
+    DISPLAY_P3_PQ = P3_PQ,
     CUSTOM = 5
   }
 

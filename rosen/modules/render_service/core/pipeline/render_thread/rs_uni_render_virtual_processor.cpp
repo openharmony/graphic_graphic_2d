@@ -19,6 +19,7 @@
 #include <parameters.h>
 
 #include "metadata_helper.h"
+#include "sync_fence.h"
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -105,7 +106,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     SetVirtualScreenSize(screenDrawable, screenManager);
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
-    FrameContextConfig frameContextConfig = {false, false};
+    FrameContextConfig frameContextConfig = FrameContextConfig(false);
     frameContextConfig.isVirtual = true;
     frameContextConfig.timeOut = 0;
 
@@ -416,6 +417,49 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
     }
 }
 
+void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
+{
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderThreadParams null!", __func__);
+        return;
+    }
+    if (renderFrame_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderFrame_ null!", __func__);
+        return;
+    }
+    auto acquireFence = renderFrame_->GetAcquireFence();
+    if (!acquireFence || !acquireFence->IsValid()) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s acquireFence not valid!", __func__);
+        return;
+    }
+    for (const auto& [_, __, drawable] : renderThreadParams->GetHardwareEnabledTypeDrawables()) {
+        if (!drawable) {
+            RS_LOGW("RSUniRenderVirtualProcessor::%{public}s drawable null!", __func__);
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+        if (!surfaceParams) {
+            RS_LOGW("RSUniRenderVirtualProcessor::%{public}s surfaceParams null!", __func__);
+            continue;
+        }
+        auto buffer = surfaceParams->GetBuffer();
+        if (!buffer) {
+            RS_LOGI("RSUniRenderVirtualProcessor::%{public}s buffer null!", __func__);
+            continue;
+        }
+        if (surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+            continue; // skip protected layer
+        }
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: fence merged id: %" PRIu64 " name: %s",
+            __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
+        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: fence merged id: %{public}" PRIu64 " name: %{public}s",
+            __func__, surfaceParams->GetId(), surfaceParams->GetName().c_str());
+        buffer->SetAndMergeSyncFence(acquireFence);
+    }
+}
+
 void RSUniRenderVirtualProcessor::PostProcess()
 {
     if (renderFrame_ == nullptr || renderEngine_ == nullptr) {
@@ -425,6 +469,8 @@ void RSUniRenderVirtualProcessor::PostProcess()
     auto surfaceOhos = renderFrame_->GetSurface();
     RSBaseRenderEngine::SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
+    // Merge virtual screen fence to hardware enabled drawables, preventing buffer from being released too early.
+    MergeFenceForHardwareEnabledDrawables();
     RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
 }

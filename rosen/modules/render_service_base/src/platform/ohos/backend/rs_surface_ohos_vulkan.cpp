@@ -546,6 +546,12 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     mReservedFlushFd = ::dup(fenceFd);
     fdsan_exchange_owner_tag(mReservedFlushFd, 0, LOG_DOMAIN);
 
+    auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(frame.get());
+    if (frameOhosVulkan) {
+        sptr<SyncFence> acquireFence = sptr<SyncFence>(new SyncFence(::dup(fenceFd)));
+        frameOhosVulkan->SetAcquireFence(acquireFence);
+    }
+
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);

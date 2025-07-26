@@ -62,11 +62,7 @@ RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 
 void RSPropertyBase::MarkCustomModifierDirty()
 {
-#if defined(MODIFIER_NG)
     if (auto modifier = modifierNG_.lock()) {
-#else
-    if (auto modifier = modifier_.lock()) {
-#endif
         auto node = target_.lock();
         if (node && node->GetRSUIContext()) {
             modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());

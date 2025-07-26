@@ -147,7 +147,7 @@
 #endif
 
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
-#include "chipset_vsync_impl.h"
+#include "rs_chipset_vsync.h"
 #endif
 #ifdef RES_SCHED_ENABLE
 #include "system_ability_definition.h"
@@ -407,7 +407,6 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
-    RSAnimationFraction::Init();
     return &instance;
 }
 
@@ -423,6 +422,9 @@ RSMainThread::~RSMainThread() noexcept
     RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(nullptr);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    RsChipsetVsync::Instance.CloseLibrary();
+#endif
     if (rsAppStateListener_) {
         Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
     }
@@ -673,6 +675,9 @@ void RSMainThread::Init()
 #endif // RS_ENABLE_GL
     RS_LOGI("OpenInnovationSo");
     RSInnovation::OpenInnovationSo();
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    RsChipsetVsync::Instance().LoadLibrary();
+#endif
 #if defined(RS_ENABLE_UNI_RENDER)
     RS_LOGI("InitRenderContext");
     /* move to render thread ? */
@@ -713,6 +718,7 @@ void RSMainThread::Init()
             RequestNextVSync("OverDrawUpdate");
         });
     });
+    RSAnimationFraction::Init();
     RS_LOGI("RSOverdrawController init");
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
@@ -1348,7 +1354,8 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
             auto curIndex = (*iter)->GetIndex();
             RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex);
             if (curIndex == lastIndex + 1) {
-                if ((*iter)->GetTimestamp() + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime())
+                if ((*iter)->GetTimestamp() + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) +
+                    rsVSyncDistributor_->GetRsDelayTime(pid)
                     >= timestamp_ && (!isDVSyncConsume || curIndex > endIndex)) {
                     RequestNextVsyncForCachedCommand(transactionFlags, pid, curIndex);
                     break;
@@ -1732,7 +1739,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
     RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
-
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (requestNextVsyncTime_ != -1) {
@@ -1924,13 +1931,26 @@ static bool CheckOverlayDisplayEnable()
 #endif
 }
 
+bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)
+{
+    auto screenList = rootNode->GetChildrenList();
+    uint32_t count = 0;
+    for (auto node : screenList) {
+        auto screenNode = node.lock();
+        if (screenNode && screenNode->GetChildrenCount() > 0) {
+            count++;
+        }
+    }
+    return count > 1;
+}
+
 void RSMainThread::CheckIfHardwareForcedDisabled()
 {
     ColorFilterMode colorFilterMode = RSBaseRenderEngine::GetColorFilterMode();
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
+    bool isMultiDisplay = GetMultiDisplay(rootNode);
     MultiDisplayChange(isMultiDisplay);
 
     // check all children of global root node, and only disable hardware composer
@@ -2497,7 +2517,17 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
-    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(children->front());
+    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+    {
+        auto screenNodeList = rootNode->GetChildrenList();
+        for (const auto& child : screenNodeList) {
+            auto node = child.lock();
+            if (node && node->GetChildrenCount() > 0) {
+                screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
+                break;
+            }
+        }
+    }
     if (!screenNode ||
         screenNode->GetCompositeType() != CompositeType::UNI_RENDER_COMPOSITE) {
         RS_LOGE("DoDirectComposition screenNode state error");
@@ -3254,6 +3284,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
 
 void RSMainThread::DumpEventHandlerInfo()
 {
+    std::lock_guard<std::mutex> lock(dumpInfoMutex_);
     RSEventDumper dumper;
     handler_->Dump(dumper);
     dumpInfo_ = dumper.GetOutput().c_str();
@@ -3453,7 +3484,7 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
 void RSMainThread::ConnectChipsetVsyncSer()
 {
-    if (initVsyncServiceFlag_ && (OHOS::Camera::ChipsetVsyncImpl::Instance().InitChipsetVsyncImpl() == -1)) {
+    if (initVsyncServiceFlag_ && (RsChipsetVsync::Instance().InitChipsetVsync() == -1)) {
         initVsyncServiceFlag_ = true;
     } else {
         initVsyncServiceFlag_ = false;
@@ -3474,7 +3505,7 @@ void RSMainThread::SetVsyncInfo(uint64_t timestamp)
         allowFramerateChange = context_->GetAnimatingNodeList().empty() &&
             context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     }
-    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
+    RsChipsetVsync::Instance().SetVsync(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
     RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld, "
         "period = %{public}lld, allowFramerateChange = %{public}d",
         static_cast<long long>(timestamp), static_cast<long long>(curTime_),
