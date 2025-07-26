@@ -23,6 +23,7 @@
 #include "rs_trace.h"
 
 #include "platform/common/rs_log.h"
+#include "sandbox_utils.h"
 #include "transaction/rs_transaction_proxy.h"
 
 #ifdef _WIN32
@@ -175,6 +176,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     transactionData->token_ = token_;
     transactionData->tid_ = tid;
     if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
+        RS_TRACE_NAME_FMT("HybridRender transactionFlag:[%d,%" PRIu64 "]", GetRealPid(), transactionDataIndex_ + 1);
         RSTransactionHandler::commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_);
         return;
