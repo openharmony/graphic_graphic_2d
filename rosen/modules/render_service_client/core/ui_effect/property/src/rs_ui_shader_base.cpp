@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 using ShaderCreator = std::function<std::shared_ptr<RSNGShaderBase>()>;
-using ShaderConvertor = std::function<std::shared_ptr<RSNGShaderBase>(std::shared_ptr<VisualEffectPara)>;
+using ShaderConvertor = std::function<std::shared_ptr<RSNGShaderBase>(std::shared_ptr<VisualEffectPara>)>;
 
 static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     {RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT, [] {
@@ -46,7 +46,7 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
 };
 
 namespace {
-std::shared_ptr<RSNGShaderBase> ConverBorderLightPara(std::shared_ptr<VisualEffectPara> effectPara)
+std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEffectPara> effectPara)
 {
     auto effect = RSNGShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
     bool isInvalid = (effect == nullptr || effectPara == nullptr);
@@ -60,15 +60,21 @@ std::shared_ptr<RSNGShaderBase> ConverBorderLightPara(std::shared_ptr<VisualEffe
     borderLightEffect->Setter<BorderLightColorTag>(borderLightEffectPara->GetLightColor());
     borderLightEffect->Setter<BorderLightIntensityTag>(borderLightEffectPara->GetLightIntensity());
     borderLightEffect->Setter<BorderLightWidthTag>(borderLightEffectPara->GetLightWidth());
+    return borderLightEffect;
 }
 }
+
+static std::unordered_map<VisualEffectPara::ParaType, ShaderConvertor> convertorLUT = {
+    { VisualEffectPara::ParaType::BORDER_LIGHT_EFFECT, ConvertBorderLightPara },
+};
+
 std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(RSNGEffectType type)
 {
     auto it = creatorLUT.find(type);
     return it != creatorLUT.end() ? it->second() : nullptr;
 }
 
-std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(std::shared_ptr<VisualEffect> effectPara)
+std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(std::shared_ptr<VisualEffectPara> effectPara)
 {
     if (!effectPara) {
         return nullptr;
@@ -77,6 +83,5 @@ std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(std::shared_ptr<VisualEff
     auto it = convertorLUT.find(effectPara->GetParaType());
     return it != convertorLUT.end() ? it->second(effectPara) : nullptr;
 }
-
 } // namespace Rosen
 } // namespace OHOS
