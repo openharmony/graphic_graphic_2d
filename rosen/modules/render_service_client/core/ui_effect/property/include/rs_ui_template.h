@@ -206,7 +206,7 @@ public:
         // IMPORTANT: Implicit type conversion is not allowed.
         // For example, double or int is NOT allowed where float is expected.
         static_assert(std::is_same_v<typename Tag::ValueType, std::decay_t<T>> ||
-            std::is_base_of_v<std::decay_t<T>,typename Tag::ValueType>,
+            std::is_base_of_v<std::decay_t<T>, typename Tag::ValueType>,
             "Setter type mismatch, explicit conversion required.");
         return std::get<Tag>(properties_).value_->Set(std::forward<T>(value));
     }
