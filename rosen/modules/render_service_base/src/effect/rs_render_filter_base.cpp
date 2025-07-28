@@ -172,7 +172,7 @@ void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> 
     }
 }
 
-void RSUIFilterHelper::static void SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
+void RSUIFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
     const Vector3f& rotationAngle)
 {
     auto current = filter;
