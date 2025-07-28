@@ -331,8 +331,11 @@ private:
     void AttachSurface();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
+    static void ProcessInstanceMessages(
+        std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId);
+    static void ProcessUIContextMessages(
+        std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
-    static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance);
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
         AnimationCallbackEvent event);
     static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId); // DFX to do
