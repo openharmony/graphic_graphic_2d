@@ -63,10 +63,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 {
     mSurfaceMap.clear();
     mSurfaceList.clear();
-    {
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
-        protectedSurfaceBufferList_.clear();
-    }
+    protectedSurfaceBufferList_.clear();
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
     if (mReservedFlushFd != -1) {
