@@ -5287,7 +5287,7 @@ void RSProperties::UpdateBackgroundShader()
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
     }
     if (bgNGRenderShader_) {
-       Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+        Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
         float cornerRadius = GetCornerRadius().x_;
         RSNGRenderShaderHelper::SetRotationAngle(bgNGRenderShader_, rotationAngle);
         RSNGRenderShaderHelper::SetCornerRadius(bgNGRenderShader_, cornerRadius); 
