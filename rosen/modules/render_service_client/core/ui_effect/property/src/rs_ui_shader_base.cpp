@@ -53,7 +53,7 @@ std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEff
     if (isInvalid) {
         return nullptr;
     }
-    auto borderLightEffect = std::static_pointer_cast<RSNGBoderLight>(effect);
+    auto borderLightEffect = std::static_pointer_cast<RSNGBorderLight>(effect);
     auto borderLightEffectPara = std::static_pointer_cast<BorderLightEffectPara>(effectPara);
 
     borderLightEffect->Setter<BorderLightPositionTag>(borderLightEffectPara->GetLightPosition());
