@@ -96,6 +96,7 @@ rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_history_test.cpp",
   "rs_perform_feature/dirty_region/update_self_draw_rect_test.cpp",
+  "rs_perform_feature/hybrid_render/hybrid_render_test.cpp",
 ]
 
 group("test") {
