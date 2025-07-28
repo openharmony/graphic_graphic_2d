@@ -4851,7 +4851,9 @@ void RSRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
+#ifndef ROSEN_ARKUI_X
         RS_LOGE("RSRenderNode::InitRenderParams failed");
+#endif
         return;
     }
 #endif
