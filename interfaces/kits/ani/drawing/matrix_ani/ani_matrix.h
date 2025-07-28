@@ -32,7 +32,7 @@ public:
     static void Constructor(ani_env* env, ani_object obj);
     static void ConstructorWithMatrix(ani_env* env, ani_object obj, ani_object aniMatrixObj);
     static void SetTranslation(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
-    static ani_double GetValue(ani_env* env, ani_object obj, ani_double index);
+    static ani_double GetValue(ani_env* env, ani_object obj, ani_int index);
     static void Reset(ani_env* env, ani_object obj);
 
     Matrix& GetMatrix();

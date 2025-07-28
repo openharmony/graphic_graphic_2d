@@ -34,7 +34,7 @@ ani_status AniMatrix::AniInit(ani_env *env)
         ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Matrix;:V",
             reinterpret_cast<void*>(ConstructorWithMatrix) },
-        ani_native_function { "getValue", "D:D", reinterpret_cast<void*>(GetValue) },
+        ani_native_function { "getValue", "I:D", reinterpret_cast<void*>(GetValue) },
         ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
         ani_native_function { "setTranslation", "DD:V", reinterpret_cast<void*>(SetTranslation) },
     };
@@ -95,7 +95,7 @@ void AniMatrix::SetTranslation(ani_env* env, ani_object obj, ani_double dx, ani_
     aniMatrix->GetMatrix().Translate(dx, dy);
 }
 
-ani_double AniMatrix::GetValue(ani_env* env, ani_object obj, ani_double index)
+ani_double AniMatrix::GetValue(ani_env* env, ani_object obj, ani_int index)
 {
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj);
     if (aniMatrix == nullptr) {

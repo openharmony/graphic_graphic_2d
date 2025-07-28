@@ -32,7 +32,7 @@ ani_status AniRegion::AniInit(ani_env *env)
         ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Region;:V",
             reinterpret_cast<void*>(ConstructorWithRegion) },
-        ani_native_function { "constructorNative", "DDDD:V", reinterpret_cast<void*>(ConstructorWithRect) },
+        ani_native_function { "constructorNative", "IIII:V", reinterpret_cast<void*>(ConstructorWithRect) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -70,8 +70,8 @@ void AniRegion::ConstructorWithRegion(ani_env* env, ani_object obj, ani_object a
     }
 }
 
-void AniRegion::ConstructorWithRect(ani_env* env, ani_object obj, ani_double left, ani_double top, ani_double right,
-    ani_double bottom)
+void AniRegion::ConstructorWithRect(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+    ani_int bottom)
 {
     AniRegion* aniRegion = new AniRegion();
     RectI rect = Drawing::RectI(left, top, right, bottom);
