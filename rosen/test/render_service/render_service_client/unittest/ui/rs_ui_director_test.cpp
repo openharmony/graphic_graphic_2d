@@ -918,4 +918,19 @@ HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
     RSSystemProperties::SetTypicalResidentProcess(enabled);
     EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
+
+/**
+ * @tc.name: SetDVSyncUpdate001
+ * @tc.desc: SetDVSyncUpdate Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetDVSyncUpdate001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    const uint64_t time = 1000;
+    director->SetDVSyncUpdate(time);
+    EXPECT_EQ(time, director->dvsyncTime_);
+    EXPECT_EQ(true, director->dvsyncUpdate_);
+}
 } // namespace OHOS::Rosen
