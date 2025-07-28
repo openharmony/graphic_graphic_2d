@@ -83,7 +83,7 @@ public:
     
     static void SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase> shader,
         float cornerRadius);
-}
+};
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 
