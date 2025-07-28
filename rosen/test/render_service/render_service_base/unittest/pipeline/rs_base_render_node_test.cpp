@@ -1382,18 +1382,4 @@ HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
     ASSERT_TRUE(node->GetOpincCache().isNeedCalculate_);
     ASSERT_TRUE(node->IsDirty());
 }
-
-/**
- * @tc.name: QuickGetNodeDebugInfo001
- * @tc.desc: test results of QuickGetNodeDebugInfo
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSBaseRenderNodeTest, QuickGetNodeDebugInfo001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto& opincCache = node->GetOpincCache();
-    node->QuickGetNodeDebugInfo();
-    EXPECT_TRUE(opincCache.isUnchangeMarkEnable_ == false);
-}
 } // namespace OHOS::Rosen
