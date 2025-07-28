@@ -197,7 +197,7 @@ DECLARE_FILTER(ContentLight, CONTENT_LIGHT,
     ADD_PROPERTY_TAG(ContentLight, Position),
     ADD_PROPERTY_TAG(ContentLight, Color),
     ADD_PROPERTY_TAG(ContentLight, Intensity),
-    ADD_PROPERTY_TAG(ContentLight, rotationAngle)
+    ADD_PROPERTY_TAG(ContentLight, RotationAngle)
 );
 
 #undef ADD_PROPERTY_TAG
