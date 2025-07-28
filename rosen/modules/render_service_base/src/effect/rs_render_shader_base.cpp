@@ -103,23 +103,23 @@ void RSNGRenderShaderBase::Dump(std::string& out) const
     }
 }
 
-void RSNGRenderShaderHelper::static void SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase> shader,
-        const Vector3f& rotationAngle)
+void RSNGRenderShaderHelper::SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase> shader,
+    const Vector3f& rotationAngle)
 {
-    auto current = filter;
+    auto current = shader;
     while(current) {
         if (current->GetType() == RSNGEffectType::BORDER_LIGHT) {
             auto borderLightShader = std::static_pointer_cast<RSNGRenderBorderLight>(current);
-            borderLightShader->Setter<BorderLightLightRotationAngleRenderTag>(rotationAngle);
+            borderLightShader->Setter<BorderLightRotationAngleRenderTag>(rotationAngle);
         }
         current =  current->nextEffect_;
     }
 }
 
-void RSNGRenderShaderHelper::static void SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase> shader,
-        float cornerRadius)
+void RSNGRenderShaderHelper::SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase> shader,
+    float cornerRadius)
 {
-    auto current = filter;
+    auto current = shader;
     while(current) {
         if (current->GetType() == RSNGEffectType::BORDER_LIGHT) {
             auto borderLightShader = std::static_pointer_cast<RSNGRenderBorderLight>(current);
