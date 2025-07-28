@@ -199,7 +199,7 @@ std::shared_ptr<RSNGFilterBase> ConvertBezierWarpFilterPara(std::shared_ptr<Filt
     auto& bezierCtrlPoints = bezierWarpFilterPara->GetBezierControlPoints();
     // note: the order of values has to be same with the order of ADD_PROPERTY_ATG in DECLARE_TILTER
     const auto& values = std::apply([](auto&... args) { return std::tie(args...); }, bezierCtrlPoints);
-    bezierWarpFilter->SetterAll(values);
+    bezierWarpFilter->Setter(values);
     return bezierWarpFilter;
 }
 }
