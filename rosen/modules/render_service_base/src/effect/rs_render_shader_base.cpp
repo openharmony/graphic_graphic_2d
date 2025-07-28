@@ -107,7 +107,7 @@ void RSNGRenderShaderHelper::SetRotationAngle(std::shared_ptr<RSNGRenderShaderBa
     const Vector3f& rotationAngle)
 {
     auto current = shader;
-    while(current) {
+    while (current) {
         if (current->GetType() == RSNGEffectType::BORDER_LIGHT) {
             auto borderLightShader = std::static_pointer_cast<RSNGRenderBorderLight>(current);
             borderLightShader->Setter<BorderLightRotationAngleRenderTag>(rotationAngle);
@@ -120,7 +120,7 @@ void RSNGRenderShaderHelper::SetCornerRadius(std::shared_ptr<RSNGRenderShaderBas
     float cornerRadius)
 {
     auto current = shader;
-    while(current) {
+    while (current) {
         if (current->GetType() == RSNGEffectType::BORDER_LIGHT) {
             auto borderLightShader = std::static_pointer_cast<RSNGRenderBorderLight>(current);
             borderLightShader->Setter<BorderLightCornerRadiusRenderTag>(cornerRadius);
