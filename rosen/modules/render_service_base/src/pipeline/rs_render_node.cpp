@@ -3026,6 +3026,8 @@ void RSRenderNode::CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::R
     auto rect = drawCmdlistPtr->GetCmdlistDrawRegion();
     RectF cmdlistDrawRegion = RectF { rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight() };
     cmdlistDrawRegion_ = cmdlistDrawRegion_.JoinRect(cmdlistDrawRegion);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::CalcCmdlistDrawRegionFromOpItem id:%llu cmdlistDrawRegion is %s",
+        GetId(), cmdlistDrawRegion_.ToString().c_str());
 }
 
 CM_INLINE void RSRenderNode::ApplyModifiers()
