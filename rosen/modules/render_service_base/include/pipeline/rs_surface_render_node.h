@@ -185,8 +185,15 @@ public:
 
     bool IsHardwareEnabledTopSurface() const;
     void SetHardCursorStatus(bool status);
-    bool GetHardCursorStatus() const;
-    bool GetHardCursorLastStatus() const;
+    bool GetHardCursorStatus() const
+    {
+        return isHardCursor_;
+    }
+
+    bool GetHardCursorLastStatus() const
+    {
+        return isLastHardCursor_;
+    }
 
     void SetLayerTop(bool isTop, bool isTopLayerForceRefresh = true);
 
@@ -265,7 +272,10 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
-    bool GetFixRotationByUser() const;
+    bool GetFixRotationByUser() const
+    {
+        return isFixRotationByUser_;
+    }
     bool IsInFixedRotation() const;
     void SetInFixedRotation(bool isRotating);
 
@@ -613,10 +623,16 @@ public:
     bool GetBootAnimation() const override;
 
     void SetGlobalPositionEnabled(bool isEnabled);
-    bool GetGlobalPositionEnabled() const override;
+    bool GetGlobalPositionEnabled() const override
+    {
+        return isGlobalPositionEnabled_;
+    }
 
     void SetHwcGlobalPositionEnabled(bool isEnabled);
-    bool GetHwcGlobalPositionEnabled() const;
+    bool GetHwcGlobalPositionEnabled() const
+    {
+        return isHwcGlobalPositionEnabled_;
+    }
 
     void SetHwcCrossNode(bool isCrossNode);
     bool IsHwcCrossNode() const;
@@ -632,7 +648,10 @@ public:
         const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
 
     // get whether it is a security/skip layer itself
-    LeashPersistentId GetLeashPersistentId() const;
+    LeashPersistentId GetLeashPersistentId() const
+    {
+        return leashPersistentId_;
+    }
 
     // set ability state that surfaceNode belongs to as foreground or background
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
@@ -658,20 +677,35 @@ public:
     void SyncColorGamutInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
-    bool GetFingerprint() const;
+    bool GetFingerprint() const
+    {
+        return hasFingerprint_;
+    }
 
     // [Attention] The function only used for unlocking screen for PC currently
     void SetClonedNodeRenderDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable);
-    bool IsCloneNode() const;
+    bool IsCloneNode() const
+    {
+        return isCloneNode_;
+    }
     void SetClonedNodeInfo(NodeId id, bool needOffscreen);
     void SetIsCloned(bool isCloned);
-    void SetIsClonedNodeOnTheTree(bool isOnTheTree);
+    void SetIsClonedNodeOnTheTree(bool isOnTheTree)
+    {
+        isClonedNodeOnTheTree_ = isOnTheTree;
+    }
 
     void SetForceUIFirst(bool forceUIFirst);
-    bool GetForceUIFirst() const;
+    bool GetForceUIFirst() const
+    {
+        return forceUIFirst_;
+    }
 
     bool GetForceDrawWithSkipped() const;
-    void SetForceDrawWithSkipped(bool GetForceDrawWithSkipped);
+    void SetForceDrawWithSkipped(bool GetForceDrawWithSkipped)
+    {
+        uifirstForceDrawWithSkipped_ = GetForceDrawWithSkipped;
+    }
 
     void SetUIFirstIsPurge(bool IsPurge)
     {
@@ -696,12 +730,18 @@ public:
     // Used to distinguish whether this node is an Anco node
     void SetAncoFlags(uint32_t flags);
     // Determine whether it is an Anco node
-    uint32_t GetAncoFlags() const;
+    uint32_t GetAncoFlags() const
+    {
+        return ancoFlags_.load();
+    }
     // Set the buffer srcRect of the anco node. Only used on anco nodes.
     void SetAncoSrcCrop(const Rect& srcCrop);
 
     void SetHDRPresent(bool hasHdrPresent);
-    bool GetHDRPresent() const;
+    bool GetHDRPresent() const
+    {
+        return hdrPhotoNum_ > 0 || hdrUIComponentNum_ > 0;
+    }
 
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
@@ -711,7 +751,10 @@ public:
 
     bool IsHdrEffectColorGamut() const;
 
-    const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
+    const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const
+    {
+        return dirtyManager_;
+    }
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -795,7 +838,10 @@ public:
         alphaChanged_ = true;
     }
 
-    void SetStencilVal(int64_t stencilVal);
+    void SetStencilVal(int64_t stencilVal)
+    {
+        stencilVal_ = stencilVal;
+    }
 
     void SetOcclusionVisible(bool visible);
 
@@ -909,8 +955,14 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
-    void SetBlendType(GraphicBlendType blendType);
-    GraphicBlendType GetBlendType();
+    void SetBlendType(GraphicBlendType blendType)
+    {
+        blendType_ = blendType;
+    }
+    GraphicBlendType GetBlendType()
+    {
+        return blendType_;
+    }
 #endif
 
     void UpdateSurfaceDefaultSize(float width, float height);
@@ -1072,14 +1124,25 @@ public:
 
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
-    const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
+    const std::unordered_set<NodeId>& GetAbilityNodeIds() const
+    {
+        return abilityNodeIds_;
+    }
+
     void AddAbilityComponentNodeIds(std::unordered_set<NodeId>& nodeIds);
     void ResetAbilityNodeIds();
 
     // manage appWindowNode's child hardware enabled nodes info
-    void ResetChildHardwareEnabledNodes();
+    void ResetChildHardwareEnabledNodes()
+    {
+        childHardwareEnabledNodes_.clear();
+    }
+
     void AddChildHardwareEnabledNode(WeakPtr childNode);
-    const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const;
+    const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const
+    {
+        return childHardwareEnabledNodes_;
+    }
 
     bool IsFocusedNode(uint64_t focusedNodeId) const
     {
@@ -1172,9 +1235,15 @@ public:
     void SetWaitUifirstFirstFrame(bool wait);
 
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
-    CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
+    CacheProcessStatus GetCacheSurfaceProcessedStatus() const
+    {
+        return cacheProcessStatus_.load();
+    }
 
-    void RegisterTreeStateChangeCallback(TreeStateChangeCallback callback);
+    void RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
+    {
+        treeStateChangeCallback_ = callback;
+    }
     void NotifyTreeStateChange();
 
     /* For filter cache occlusion calculation */
@@ -1198,7 +1267,10 @@ public:
     void CalcFilterCacheValidForOcclusion();
     // mark occluded by upper filtercache
     void UpdateOccludedByFilterCache(bool val);
-    bool IsOccludedByFilterCache() const;
+    bool IsOccludedByFilterCache() const
+    {
+        return isOccludedByFilterCache_;
+    }
 
     bool IsFilterCacheStatusChanged() const
     {
@@ -1345,7 +1417,10 @@ public:
     }
     bool QuerySubAssignable(bool isRotation);
     bool QueryIfAllHwcChildrenForceDisabledByFilter();
-    bool GetHasSharedTransitionNode() const;
+    bool GetHasSharedTransitionNode() const
+    {
+        return hasSharedTransitionNode_;
+    }
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     void UpdateTransparentSurface();
@@ -1399,7 +1474,10 @@ public:
         return overDrawBufferNodeCornerRadius_;
     }
 
-    bool HasSubSurfaceNodes() const;
+    bool HasSubSurfaceNodes() const
+    {
+        return childSubSurfaceNodes_.size() != 0;
+    }
     void SetIsSubSurfaceNode(bool isSubSurfaceNode);
     bool IsSubSurfaceNode() const;
     const std::map<NodeId, RSSurfaceRenderNode::WeakPtr>& GetChildSubSurfaceNodes() const;
@@ -1407,7 +1485,10 @@ public:
     std::string SubSurfaceNodesDump() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
-    bool IsNodeToBeCaptured() const;
+    bool IsNodeToBeCaptured() const
+    {
+        return isNodeToBeCaptured_;
+    }
 
     void SetDoDirectComposition(bool flag)
     {
@@ -1571,7 +1652,10 @@ public:
 
     bool IsUIBufferAvailable();
 
-    bool GetUIExtensionUnobscured() const;
+    bool GetUIExtensionUnobscured() const
+    {
+        return UIExtensionUnobscured_;
+    }
 
     std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()
     {
@@ -1615,7 +1699,10 @@ public:
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
-    bool GetFrameGravityNewVersionEnabled() const;
+    bool GetFrameGravityNewVersionEnabled() const
+    {
+        return isFrameGravityNewVersionEnabled_;
+    }
 
     // Used for control-level occlusion culling scene info and culled nodes transmission.
     std::shared_ptr<OcclusionParams> GetOcclusionParams()
