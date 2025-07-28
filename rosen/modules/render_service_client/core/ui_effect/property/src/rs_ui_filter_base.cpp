@@ -199,7 +199,7 @@ std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<Fi
     auto contentLightFilterPara = std::static_pointer_cast<ContentLightPara>(filterPara);
     contentLightFilter->Setter<ContentLightPositionTag>(contentLightFilterPara->GetLightPosition());
     contentLightFilter->Setter<ContentLightColorTag>(contentLightFilterPara->GetLightColor());
-    contentLightFilter->Setter<ContentLightIntenSityTag>(contentLightFilterPara->GetLightIntensity());
+    contentLightFilter->Setter<ContentLightIntensityTag>(contentLightFilterPara->GetLightIntensity());
     return contentLightFilter;
 }
 }
