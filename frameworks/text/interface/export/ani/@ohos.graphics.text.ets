@@ -135,7 +135,7 @@ namespace text {
     native getRectsForRange(range: Range, widthStyle: RectWidthStyle, heightStyle: RectHeightStyle): Array<TextBox>;
     native getRectsForPlaceholders(): Array<TextBox>;
     native getGlyphPositionAtCoordinate(x: double, y: double): PositionWithAffinity;
-    native getWordBoundary(offset: double): Range;
+    native getWordBoundary(offset: int): Range;
     native getLineCount(): int;
     native getLineHeight(line: int): double;
     native getLineWidth(line: int): double;
