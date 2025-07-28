@@ -173,10 +173,10 @@ void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> 
 }
 
 void RSUIFilterHelper::static void SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
-        const Vector3f& rotationAngle)
+    const Vector3f& rotationAngle)
 {
     auto current = filter;
-    while(current) {
+    while (current) {
         if (current->GetType() == RSNGEffectType::CONTENT_LIGHT) {
             auto contentLightFilter = std::static_pointer_cast<RSNGRenderContentLightFilter>(current);
             contentLightFilter->Setter<ContentLightRotationAngleRenderTag>(rotationAngle);
