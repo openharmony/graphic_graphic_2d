@@ -1060,7 +1060,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText002, TestS
     // Special font size 11 for rtl situation
     style.fontSize = 11;
     std::u16string text =
-        u"ဘယ်တော့မှပြန်မသွားရန်မြင့်မားသောအခန်းများရှိတောက်ပသောမှန်များတွင်မည်မျှချစ်စရာကောင်းသောသော့ခလောက်များကိုကြည့်ပါ။.";
+        u"ဘယ်တော့မှပြန်မသွားရန်မြင့်မားသောအခ\
+        န်းများရှိတောက်ပသောမှန်များတွင်မည်မျှချစ်စ\
+        ရာကောင်းသောသော့ခလောက်များကိုကြည့်ပါ။.";
     typographyCreate->PushStyle(style);
     typographyCreate->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
