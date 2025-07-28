@@ -205,7 +205,8 @@ public:
         static_assert(Contains<Tag>(), "Target property not registered.");
         // IMPORTANT: Implicit type conversion is not allowed.
         // For example, double or int is NOT allowed where float is expected.
-        static_assert(std::is_same_v<typename Tag::ValueType, std::decay_t<T>>,
+        static_assert(std::is_same_v<typename Tag::ValueType, std::decay_t<T>> ||
+            std::is_base_of_v<std::decay_t<T>,typename Tag::ValueType>,
             "Setter type mismatch, explicit conversion required.");
         return std::get<Tag>(properties_).value_->Set(std::forward<T>(value));
     }
@@ -228,7 +229,9 @@ public:
         static_assert(Index < propTagsSize_, "Cannot call Setter: Index exceeds the size of properties.");
         // IMPORTANT: Implicit type conversion is not allowed.
         // For example, double or int is NOT allowed where float is expected.
-        static_assert(std::is_same_v<typename PropertyTagAt<Index>::ValueType, std::decay_t<T>>, "Setter type mismatch, explicit conversion requeired.");
+        using ValueTypeIn = typename PropertyTagAt<Index>::ValueType;
+        static_assert(std::is_same_v<ValueTypeIn, std::decay_t<T>> || std::is_base_of_v<std::decay_t<T>, ValueTypeIn>,
+            "Setter type mismatch, explicit conversion requeired.");
         return std::get<Index>(properties_).value_->Set(std::forward<T>(value));
     }
 
@@ -238,7 +241,7 @@ public:
         static_assert(std::tuple_size_v<std::decay_t<ValueTuple>> == propTagsSize_,
             "The size of ValueTuple must match the size of properties.");
         SetterWithIndex<ValueTuple>(std::forward<ValueTuple>(values), std::make_index_sequence<propTagsSize_>{});
-   }
+    }
 
     const std::tuple<PropertyTags...>& GetProperties() const
     {
