@@ -233,7 +233,7 @@ public:
     }
 
     template<typename ValueTuple>
-    constexpr void SetterAll(ValueTuple&& values)
+    constexpr void Setter(ValueTuple&& values)
     {
         static_assert(std::tuple_size_v<std::decay_t<ValueTuple>> == propTagsSize_,
             "The size of ValueTuple must match the size of properties.");
