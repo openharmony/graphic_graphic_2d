@@ -1384,7 +1384,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     // stop visit invisible or clean without filter subtree
     // Exception: If cross-display node is fully invisible under current visited display, its subtree can't be skipped,
     // since it may be visible on other displays, and it is only prepared once.
-    if (!shouldPaint_ || (isOccluded && !IsFirstLevelCrossNode())) {
+    if (!shouldPaint_ || (isOccluded && !IsFirstLevelCrossNode() && !IsTreeStateChangeDirty())) {
         // when subTreeOccluded, need to applyModifiers to node's children
         RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint [%d], isOccluded [%d], "
             "CrossDisplay: %d", GetId(), shouldPaint_, isOccluded, IsFirstLevelCrossNode());
@@ -1396,6 +1396,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     if (IsSubTreeDirty()) {
         // reset iff traverses dirty subtree
         SetSubTreeDirty(false);
+        SetTreeStateChangeDirty(false);
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
@@ -2144,6 +2145,25 @@ void RSRenderNode::SetParentSubTreeDirty()
     if (parentNode && !parentNode->IsSubTreeDirty()) {
         parentNode->SetSubTreeDirty(true);
         parentNode->SetParentSubTreeDirty();
+    }
+}
+
+bool RSRenderNode::IsTreeStateChangeDirty() const
+{
+    return isTreeStateChangeDirty_;
+}
+
+void RSRenderNode::SetTreeStateChangeDirty(bool val)
+{
+    isTreeStateChangeDirty_ = val;
+}
+
+void RSRenderNode::SetParentTreeStateChangeDirty()
+{
+    auto parentNode = parent_.lock();
+    if (parentNode && !parentNode->IsSubTreeDirty()) {
+        parentNode->SetTreeStateChangeDirty(true);
+        parentNode->SetParentTreeStateChangeDirty();
     }
 }
 
@@ -4092,6 +4112,7 @@ void RSRenderNode::OnTreeStateChanged()
         uifirstNeedSync_ = true;
         AddToPendingSyncList();
     }
+    SetParentTreeStateChangeDirty();
     auto& properties = GetMutableRenderProperties();
     bool useEffect = properties.GetUseEffect();
     UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());

@@ -173,6 +173,9 @@ public:
     bool IsSubTreeDirty() const;
     void SetSubTreeDirty(bool val);
     void SetParentSubTreeDirty();
+    bool IsTreeStateChangeDirty() const;
+    void SetTreeStateChangeDirty(bool val);
+    void SetParentTreeStateChangeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
@@ -1098,6 +1101,7 @@ private:
     bool hasChildrenOutOfRect_ = false;
 
     bool isSubTreeDirty_ = false;
+    bool isTreeStateChangeDirty_ = false;
     bool isContentDirty_ = false;
     bool nodeGroupIncludeProperty_ = false;
     bool isNewOnTree_ = false;
