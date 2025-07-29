@@ -47,10 +47,6 @@
 
 namespace OHOS {
 namespace Rosen {
-struct LoadOptParamsForScreen {
-    LoadOptParamsForHdiBackend loadOptParamsForHdiBackend;
-};
-
 class RSScreen;
 class RSIScreenNodeListener;
 class RSScreenManager : public RefBase {
@@ -218,8 +214,6 @@ public:
     virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
     virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
-
-    virtual void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) = 0;
 
     virtual bool CheckPSurfaceChanged(ScreenId id) = 0;
 };
@@ -401,7 +395,6 @@ public:
     // Get all whiteList and their screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
 
-    void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) override;
     bool CheckPSurfaceChanged(ScreenId id) override;
 private:
     RSScreenManager() = default;
@@ -534,8 +527,6 @@ private:
 
     mutable std::mutex whiteListMutex_;
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
-
-    LoadOptParamsForScreen loadOptParamsForScreen_ = {};
 };
 } // namespace impl
 } // namespace Rosen

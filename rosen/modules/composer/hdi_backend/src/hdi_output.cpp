@@ -41,6 +41,7 @@ namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static const std::string GENERIC_METADATA_KEY_COPYBIT_NEEDED = "TryToDoCopybit";
+static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 1);
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -53,9 +54,6 @@ HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
     arsrPreEnabled_ = system::GetBoolParameter("const.display.enable_arsr_pre", true);
     arsrPreEnabledForVm_ = system::GetBoolParameter("const.display.enable_arsr_pre_for_vm", false);
     vmArsrWhiteList_ = system::GetParameter("const.display.vmlayer.whitelist", "unknown");
-
-    // LOAD OPTIMIZATION FLAG
-    isMergeFenceSkippedDfx_ = system::GetBoolParameter("persist.sys.graphic.enableSkipMergeFence", true);
 }
 
 HdiOutput::~HdiOutput()
@@ -799,7 +797,7 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
         }
 
         const LayerPtr &layer = iter->second;
-        if (isMergeFenceSkipped_ && isMergeFenceSkippedDfx_) {
+        if (g_enableMergeFence == 0) {
             layer->SetReleaseFence(fences_[i]);
             res[layer->GetLayerInfo()] = fences_[i];
         } else {
@@ -1026,17 +1024,6 @@ void HdiOutput::ClearBufferCache()
 void HdiOutput::SetActiveRectSwitchStatus(bool flag)
 {
     isActiveRectSwitching_ = flag;
-}
-
-void HdiOutput::InitLoadOptParams(LoadOptParamsForHdiOutput& loadOptParamsForHdiOutput)
-{
-    loadOptParamsForHdiOutput_ = loadOptParamsForHdiOutput;
-    auto switchParams = loadOptParamsForHdiOutput_.switchParams;
-
-    isMergeFenceSkipped_ = (switchParams.find(IS_MERGE_FENCE_SKIPPED) != switchParams.end())
-                               ? switchParams.at(IS_MERGE_FENCE_SKIPPED)
-                               : false;
-    HLOGD("[%{public}s] %{public}s is %{public}d", __func__, IS_MERGE_FENCE_SKIPPED.c_str(), isMergeFenceSkipped_);
 }
 
 void HdiOutput::ANCOTransactionOnComplete(const LayerInfoPtr& layerInfo, const sptr<SyncFence>& previousReleaseFence)

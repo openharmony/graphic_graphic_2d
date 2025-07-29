@@ -4268,23 +4268,6 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
  }
 
 /*
- * @tc.name: InitLoadOptParams001
- * @tc.desc: Test InitLoadOptParams
- * @tc.type: FUNC
- * @tc.require: issueIC2UGT
- */
-HWTEST_F(RSScreenManagerTest, InitLoadOptParams001, TestSize.Level1)
-{
-    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
-    EXPECT_NE(screenManagerImpl, nullptr);
-
-    LoadOptParamsForScreen params = {};
-    screenManagerImpl->RSScreenManager::InitLoadOptParams(params);
-    EXPECT_EQ(screenManagerImpl->loadOptParamsForScreen_.loadOptParamsForHdiBackend.loadOptParamsForHdiOutput
-                  .switchParams.size(), 0);
-}
-
-/*
  * @tc.name: OnHotPlug
  * @tc.desc: Test OnHotPlug
  * @tc.type: FUNC

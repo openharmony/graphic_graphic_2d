@@ -39,7 +39,6 @@ ohos_unittest("feature_cfg_test") {
     "hfbc_param_test.cpp",
     "hwc_param_parse_test.cpp",
     "hwc_param_test.cpp",
-    "loadoptimization_param_test.cpp",
     "mem_param_test.cpp",
     "multiscreen_param_test.cpp",
     "occlusion_culling_param_test.cpp",
