@@ -1092,7 +1092,7 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
 
 void RSRenderNodeDrawable::ClearOpincState()
 {
-    // init opincRootTotalCount_ when the new thread init
+    // Init opincRootTotalCount_ when the new thread init
     opincRootTotalCount_ = 0;
     isOpincDropNodeExt_ = true;
 }

@@ -681,7 +681,7 @@ void RSDrawingFilter::SetDisplayHeadroom(float headroom)
 bool RSDrawingFilter::NeedForceSubmit() const
 {
     auto found = find_if(shaderFilters_.begin(), shaderFilters_.end(),
-                            [](const auto& filter){ return filter != nullptr && filter->NeedForceSubmit(); });
+        [](const auto& filter) { return filter != nullptr && filter->NeedForceSubmit(); });
     return found != shaderFilters_.end();
 }
 } // namespace Rosen

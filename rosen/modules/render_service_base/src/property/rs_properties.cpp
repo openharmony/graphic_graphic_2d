@@ -5245,6 +5245,7 @@ void RSProperties::UpdateFilter()
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
                      needDrawBehindWindow_ || colorFilter_ != nullptr || localMagnificationCap_;
 #ifdef SUBTREE_PARALLEL_ENABLE
+    // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(filter_) ||
                        IsFilterNeedForceSubmit(backgroundFilter_) ||
                        IsFilterNeedForceSubmit(foregroundFilter_) ||

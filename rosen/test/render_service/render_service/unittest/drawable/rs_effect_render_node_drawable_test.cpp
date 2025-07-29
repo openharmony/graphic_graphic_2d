@@ -22,8 +22,8 @@
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h
-#include "rs_parallel_multiwin_policy.h"
 #include "rs_parallel_misc.h"
+#include "rs_parallel_multiwin_policy.h"
 #endif
 
 using namespace testing;

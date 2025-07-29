@@ -858,18 +858,11 @@ bool RSSystemProperties::GetSubtreeParallelEnable()
     return subtreeParallelEnable;
 }
 
-bool RSSystemProperties::GetSubtreeDebugEnabled()
+int RSSystemProperties::GetSubtreeDebugOption()
 {
-    static const bool subtreeDebugEnabled = std::atoi((system::GetParameter(
-        "persist.sys.graphic.subtreeDebugEnabled", "0")).c_str()) != 0;
-    return subtreeDebugEnabled;
-}
-
-bool RSSystemProperties::GetSubtreeDeviceControl()
-{
-    static const bool subtreeDeviceControl = std::atoi((system::GetParameter(
-        "persist.sys.graphic.subtreeDeviceControl", "0")).c_str()) != 0;
-    return subtreeDeviceControl;
+    static const int subtreeDebugOption =
+        std::atoi((system::GetParameter("persist.sys.graphic.subtreeDebugOption", "0")).c_str());
+    return subtreeDebugOption;
 }
 
 bool RSSystemProperties::GetUIFirstEnabled()
