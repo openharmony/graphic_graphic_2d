@@ -188,11 +188,21 @@ void TextFlipEffect::NoEffect(Drawing::Canvas* canvas, double x, double y)
 
 void TextFlipEffect::DrawTextFlip(std::vector<TextBlobRecordInfo>& infos, Drawing::Canvas* canvas, double x, double y)
 {
+    if (canvas == nullptr) {
+        return;
+    }
     auto animationFunc = typographyConfig_.typography->GetAnimation();
     double height = 0;
     for (auto& info : infos) {
         std::vector<std::vector<TextEngine::TextEffectElement>> effectElements = GenerateChangeElements(info.blob,
             x + info.offset.fX, y + info.offset.fY);
+        if (effectElements.empty()) {
+            Drawing::Brush brush;
+            brush.SetColor(info.color);
+            canvas->AttachBrush(brush);
+            canvas->DrawTextBlob(info.blob.get(), x + info.offset.fX, y + info.offset.fY);
+            continue;
+        }
         if (info.blob == nullptr || info.blob->Bounds() == nullptr) {
             continue;
         }
@@ -268,6 +278,9 @@ std::vector<std::vector<TextEngine::TextEffectElement>> TextFlipEffect::Generate
     for (size_t index = 0; index < glyphIds.size(); index++) {
         TextEngine::TextEffectElement effectElement;
         effectElement.path = Drawing::TextBlob::GetDrawingPathforTextBlob(glyphIds[index], blob.get());
+        if (!effectElement.path.IsValid()) {
+            return {};
+        }
         effectElement.offset = Drawing::Point{x + points[index].GetX(), y + points[index].GetY()};
         auto rect = effectElement.path.GetBounds();
         effectElement.width = rect.GetWidth();
