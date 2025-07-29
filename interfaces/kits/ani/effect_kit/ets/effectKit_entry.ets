@@ -32,8 +32,8 @@ function main() {
   console.log('Create image.createPixelMapSync success');
   let headFilter: effectKit.Filter = effectKit.createEffect(pixelMap);
   if (headFilter == undefined) {
-      console.log('Test createEffect failed');
-      return;
+    console.log('Test createEffect failed');
+    return;
   }
   console.log('Test createEffect success');
   let blurFilter: effectKit.Filter = headFilter.blur(10);

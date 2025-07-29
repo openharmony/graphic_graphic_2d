@@ -20,16 +20,16 @@
 #include <mutex>
 #include <vector>
 
-#include "ani.h"
-#include "pixel_map_ani.h"
-#include "effect_image_render.h"
+#include "include/core/SkImageFilter.h"
+#include "pixel_map_taihe_ani.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class DrawingError;
+enum class DrawError;
 class AniFilter {
 public:
     static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
+    static ani_object Grayscale(ani_env* env, ani_object obj);
     static ani_object GetEffectPixelMap(ani_env* env, ani_object obj);
     static ani_object CreateEffect(ani_env* env, ani_object para);
     static ani_status Init(ani_env* env);
@@ -37,9 +37,9 @@ public:
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
 
 private:
-    void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
-    DrawingError Render(bool forceCPU);
-    std::vector<std::shared_ptr<EffectImageFilter>> effectFilters_;
+    void AddNextFilter(sk_sp<SkImageFilter> filter);
+    DrawError Render(bool forceCPU);
+    std::vector<sk_sp<SkImageFilter>> skFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
 };
