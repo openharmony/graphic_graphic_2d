@@ -1966,7 +1966,7 @@ bool VSyncDistributor::NeedSkipForSurfaceBuffer(uint64_t id)
 #endif
 }
 
-bool VSyncDistributor::NeedUpdateVSyncTime(uint32_t& pid)
+bool VSyncDistributor::NeedUpdateVSyncTime(int32_t& pid)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
     return DVSync::Instance().NeedUpdateVSyncTime(pid);
