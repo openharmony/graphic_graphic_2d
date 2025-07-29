@@ -4274,7 +4274,7 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
     } else {
         MemoryManager::DumpMemoryUsage(log, type);
     }
-    if (type.empty() || type == MEM_GPU_TYPE) {
+    if ((type.empty() || type == MEM_GPU_TYPE) && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
             subThreadManager->DumpMem(log);
