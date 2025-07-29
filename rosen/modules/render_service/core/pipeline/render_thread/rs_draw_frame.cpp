@@ -91,7 +91,7 @@ void RSDrawFrame::RenderFrame()
     RSHdrManager::Instance().PostHdrSubTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
-    RsFrameReport::GetInstance().UnblockMainThread();
+    RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
     Render();
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
