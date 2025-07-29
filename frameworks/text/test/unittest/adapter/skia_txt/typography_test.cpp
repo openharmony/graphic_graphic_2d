@@ -15,6 +15,10 @@
 
 #include "gtest/gtest.h"
 
+#include "font_collection.h"
+#include "impl/paragraph_impl.h"
+#include "paragraph.h"
+#include "src/ParagraphImpl.h"
 #include "typography.h"
 #include "typography_create.h"
 #include "font_collection.h"
@@ -1018,7 +1022,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText001, TestS
     OHOS::Rosen::TextStyle style;
     // Special font size 11 for rtl situation
     style.fontSize = 11;
-    std::u16string text = u"ولكن مع انهيار العلاقات بين الصين وروسيا، سقطت في";
+    std::u16string text = u"ولكنمعانهيارالعلاقاتبينالصينوروسيا،سقطتفي";
     typographyCreate->PushStyle(style);
     typographyCreate->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
@@ -1031,11 +1035,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText001, TestS
     std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
     ASSERT_NE(defaultTypography, nullptr);
     defaultTypography->Layout(maxWidth);
-    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
-    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
-    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
-        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
-    }
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
 }
 
 /*
@@ -1057,7 +1065,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText002, TestS
         OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
     ASSERT_NE(typographyDefaultCreate, nullptr);
     OHOS::Rosen::TextStyle style;
-    // Special font size 11 for rtl situation
+    // Special font size 11 for Myanmese language situation
     style.fontSize = 11;
     std::u16string text =
         u"ဘယ်တော့မှပြန်မသွားရန်မြင့်မားသောအခ\
@@ -1067,7 +1075,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText002, TestS
     typographyCreate->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     ASSERT_NE(typography, nullptr);
-    // Special layout width 20 for rtl situation
+    // Special layout width 20 for Myanmese language situation
     double maxWidth = 20;
     typography->Layout(maxWidth);
     typographyDefaultCreate->PushStyle(style);
@@ -1075,11 +1083,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText002, TestS
     std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
     ASSERT_NE(defaultTypography, nullptr);
     defaultTypography->Layout(maxWidth);
-    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
-    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
-    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
-        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
-    }
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
 }
 
 /*
@@ -1101,7 +1113,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText003, TestS
         OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
     ASSERT_NE(typographyDefaultCreate, nullptr);
     OHOS::Rosen::TextStyle style;
-    // Special font size 11 for rtl situation
+    // Special font size 11 for New Thai language situation
     style.fontSize = 11;
     // Run's clusterIndexes: [0, 3, 3, 6, 9...]
     std::u16string text = u"மொழிகளில்";
@@ -1109,7 +1121,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText003, TestS
     typographyCreate->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     ASSERT_NE(typography, nullptr);
-    // Special layout width 20 for rtl situation
+    // Special layout width 20 for New Thai language situation
     double maxWidth = 20;
     typography->Layout(maxWidth);
     typographyDefaultCreate->PushStyle(style);
@@ -1117,11 +1129,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText003, TestS
     std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
     ASSERT_NE(defaultTypography, nullptr);
     defaultTypography->Layout(maxWidth);
-    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
-    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
-    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
-        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
-    }
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
 }
 
 /*
@@ -1143,7 +1159,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText004, TestS
         OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
     ASSERT_NE(typographyDefaultCreate, nullptr);
     OHOS::Rosen::TextStyle style;
-    // Special font size 11 for rtl situation
+    // Special font size 11 for hard break situation
     style.fontSize = 11;
     // Symbol < and hardbreak will shape to one run
     std::u16string text = u"<\n";
@@ -1151,7 +1167,51 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText004, TestS
     typographyCreate->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     ASSERT_NE(typography, nullptr);
-    // Special layout width 20 for rtl situation
+    // Special layout width 20 for hard break situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText005
+ * @tc.desc: test for split run in narmal English characters situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText005, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for normal English characters situation
+    style.fontSize = 11;
+    std::u16string text = u"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for normal English characters situation
     double maxWidth = 20;
     typography->Layout(maxWidth);
     typographyDefaultCreate->PushStyle(style);
@@ -1159,11 +1219,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText004, TestS
     std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
     ASSERT_NE(defaultTypography, nullptr);
     defaultTypography->Layout(maxWidth);
-    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), defaultTypography->GetLongestLineWithIndent());
-    ASSERT_EQ(typography->GetLineCount(), defaultTypography->GetLineCount());
-    for (size_t i = 0; i < typography->GetLineCount(); ++i) {
-        EXPECT_DOUBLE_EQ(typography->GetLineWidth(i), defaultTypography->GetLineWidth(i));
-    }
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
 }
 } // namespace Rosen
 } // namespace OHOS
