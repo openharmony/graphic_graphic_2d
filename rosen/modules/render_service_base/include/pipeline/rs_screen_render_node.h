@@ -142,7 +142,10 @@ public:
         return RSRenderNodeType::SCREEN_NODE;
     }
 
-    bool IsMirrorScreen() const;
+    bool IsMirrorScreen() const
+    {
+        return isMirroredScreen_;
+    }
 
     inline bool HasMirroredScreenChanged() const noexcept
     {
@@ -154,10 +157,19 @@ public:
         hasMirroredScreenChanged_ = false;
     }
 
-    void SetCompositeType(CompositeType type);
-    CompositeType GetCompositeType() const;
+    void SetCompositeType(CompositeType type)
+    {
+        compositeType_ = type;
+    }
+    CompositeType GetCompositeType() const
+    {
+        return compositeType_;
+    }
     void SetForceSoftComposite(bool flag);
-    bool IsForceSoftComposite() const;
+    bool IsForceSoftComposite() const
+    {
+        return forceSoftComposite_;
+    }
     void SetMirrorSource(SharedPtr node);
     void ResetMirrorSource();
     void SetIsMirrorScreen(bool isMirror);
@@ -240,8 +252,14 @@ public:
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams();
     Occlusion::Region GetTopSurfaceOpaqueRegion() const;
-    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect);
-    void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
+    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
+    {
+        topSurfaceOpaqueRects_.push_back(rect);
+    }
+    void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
+    {
+        curMainAndLeashSurfaceNodes_.push_back(surface);
+    }
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
     std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
@@ -330,7 +348,10 @@ public:
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     void UpdateColorSpace(const GraphicColorGamut& newColorSpace);
     void SelectBestGamut(const std::vector<ScreenColorGamut>& mode);
-    GraphicColorGamut GetColorSpace() const;
+    GraphicColorGamut GetColorSpace() const
+    {
+        return colorSpace_;
+    }
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
@@ -413,7 +434,10 @@ public:
         curZoomState_ = state;
     }
 
-    bool IsZoomStateChange() const;
+    bool IsZoomStateChange() const
+    {
+        return preZoomState_ != curZoomState_;
+    }
     void HandleCurMainAndLeashSurfaceNodes();
 
     void CollectHdrStatus(HdrStatus hdrStatus)

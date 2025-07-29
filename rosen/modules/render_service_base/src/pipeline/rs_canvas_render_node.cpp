@@ -341,11 +341,6 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
     hasHdrPresent_ = hasHdrPresent;
 }
 
-bool RSCanvasRenderNode::GetHDRPresent() const
-{
-    return hasHdrPresent_;
-}
-
 void RSCanvasRenderNode::SetColorGamut(uint32_t gamut)
 {
     if (colorGamut_ == gamut) {

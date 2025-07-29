@@ -891,11 +891,6 @@ void RSRenderNode::ResetParent()
     OnResetParent();
 }
 
-bool RSRenderNode::IsFirstLevelNode()
-{
-    return id_ == firstLevelNodeId_;
-}
-
 void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 {
     // Exceed max depth for dumping render node tree, refuse to continue and add a warning.
@@ -1285,11 +1280,6 @@ void RSRenderNode::DumpModifiers(std::string& out) const
     out += ", OtherModifiers:[" + propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]";
 }
 
-void RSRenderNode::ResetIsOnlyBasicGeoTransform()
-{
-    isOnlyBasicGeoTransform_ = true;
-}
-
 bool RSRenderNode::IsOnlyBasicGeoTransform() const
 {
     return isOnlyBasicGeoTransform_;
@@ -1603,11 +1593,6 @@ bool RSRenderNode::SetAccumulatedClipFlag(bool clipChange)
 }
 
 #ifdef RS_ENABLE_GPU
-std::unique_ptr<RSRenderParams>& RSRenderNode::GetStagingRenderParams()
-{
-    return stagingRenderParams_;
-}
-
 // Deprecated! Do not use this interface.
 // This interface has crash risks and will be deleted in later versions.
 const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
@@ -1730,16 +1715,6 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalPixelStretchRect();
     CollectAndUpdateLocalDistortionEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
-}
-
-const RectF& RSRenderNode::GetSelfDrawRect() const
-{
-    return selfDrawRect_;
-}
-
-const RectI& RSRenderNode::GetAbsDrawRect() const
-{
-    return absDrawRect_;
 }
 
 bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr)
@@ -2129,16 +2104,6 @@ bool RSRenderNode::IsDirty() const
     return dirtyStatus_ != NodeDirty::CLEAN || GetRenderProperties().IsDirty();
 }
 
-bool RSRenderNode::IsSubTreeDirty() const
-{
-    return isSubTreeDirty_;
-}
-
-void RSRenderNode::SetSubTreeDirty(bool val)
-{
-    isSubTreeDirty_ = val;
-}
-
 void RSRenderNode::SetParentSubTreeDirty()
 {
     auto parentNode = parent_.lock();
@@ -2473,11 +2438,6 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
         }
     }
 #endif
-}
-
-bool RSRenderNode::IsBackgroundInAppOrNodeSelfDirty() const
-{
-    return backgroundFilterInteractWithDirty_ || backgroundFilterRegionChanged_;
 }
 
 void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)
@@ -3415,11 +3375,6 @@ void RSRenderNode::SetSharedTransitionParam(const std::shared_ptr<SharedTransiti
     }
 }
 
-const std::shared_ptr<SharedTransitionParam>& RSRenderNode::GetSharedTransitionParam() const
-{
-    return sharedTransitionParam_;
-}
-
 void RSRenderNode::SetGlobalAlpha(float alpha)
 {
     if (globalAlpha_ == alpha) {
@@ -3435,11 +3390,6 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
         stagingRenderParams_->SetGlobalAlpha(alpha);
     }
 #endif
-}
-
-float RSRenderNode::GetGlobalAlpha() const
-{
-    return globalAlpha_;
 }
 
 void RSRenderNode::SetBootAnimation(bool isBootAnimation)
@@ -4164,11 +4114,6 @@ void RSRenderNode::CollectAllChildren(
     }
 }
 
-std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const
-{
-    return children_.empty() ? nullptr : children_.front().lock();
-}
-
 void RSRenderNode::GenerateFullChildrenList()
 {
     // both children_ and disappearingChildren_ are empty, no need to generate fullChildrenList_
@@ -4267,11 +4212,6 @@ void RSRenderNode::ResortChildren()
     std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
 }
 
-uint32_t RSRenderNode::GetChildrenCount() const
-{
-    return children_.size();
-}
-
 std::list<RSRenderNode::WeakPtr> RSRenderNode::GetChildrenList() const
 {
     return children_;
@@ -4297,14 +4237,6 @@ float RSRenderNode::GetHDRBrightness() const
 #endif
 }
 
-void RSRenderNode::SetTunnelHandleChange(bool change)
-{
-    isTunnelHandleChange_ = change;
-}
-bool RSRenderNode::GetTunnelHandleChange() const
-{
-    return isTunnelHandleChange_;
-}
 bool RSRenderNode::HasChildrenOutOfRect() const
 {
     if (GetRenderProperties().GetClipToBounds() || GetRenderProperties().GetClipToFrame()) {
@@ -4316,18 +4248,6 @@ void RSRenderNode::UpdateChildrenOutOfRectFlag(bool flag)
 {
     hasChildrenOutOfRect_ = flag;
 }
-void RSRenderNode::ResetHasRemovedChild()
-{
-    hasRemovedChild_ = false;
-}
-bool RSRenderNode::HasRemovedChild() const
-{
-    return hasRemovedChild_;
-}
-RectI RSRenderNode::GetChildrenRect() const
-{
-    return childrenRect_;
-}
 RectI RSRenderNode::GetRemovedChildrenRect() const
 {
     return removedChildrenRect_;
@@ -4337,10 +4257,6 @@ bool RSRenderNode::HasHpaeBackgroundFilter() const
     auto drawable = drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)];
     return drawable != nullptr;
 }
-bool RSRenderNode::ChildHasVisibleFilter() const
-{
-    return childHasVisibleFilter_;
-}
 void RSRenderNode::SetChildHasVisibleFilter(bool val)
 {
     childHasVisibleFilter_ = val;
@@ -4348,20 +4264,12 @@ void RSRenderNode::SetChildHasVisibleFilter(bool val)
     stagingRenderParams_->SetChildHasVisibleFilter(val);
 #endif
 }
-bool RSRenderNode::ChildHasVisibleEffect() const
-{
-    return childHasVisibleEffect_;
-}
 void RSRenderNode::SetChildHasVisibleEffect(bool val)
 {
     childHasVisibleEffect_ = val;
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetChildHasVisibleEffect(val);
 #endif
-}
-const std::vector<NodeId>& RSRenderNode::GetVisibleFilterChild() const
-{
-    return visibleFilterChild_;
 }
 void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 {
@@ -4372,10 +4280,6 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
     auto& childFilterNodes = childNode.GetVisibleFilterChild();
     visibleFilterChild_.insert(visibleFilterChild_.end(),
         childFilterNodes.begin(), childFilterNodes.end());
-}
-const std::unordered_set<NodeId>& RSRenderNode::GetVisibleEffectChild() const
-{
-    return visibleEffectChild_;
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
@@ -4470,36 +4374,12 @@ RectI RSRenderNode::GetOldDirty() const
 {
     return oldDirty_;
 }
-RectI RSRenderNode::GetOldDirtyInSurface() const
-{
-    return oldDirtyInSurface_;
-}
-RectI RSRenderNode::GetOldClipRect() const
-{
-    return oldClipRect_;
-}
-void RSRenderNode::SetOldDirtyInSurface(RectI oldDirtyInSurface)
-{
-    oldDirtyInSurface_ = oldDirtyInSurface;
-}
 
 bool RSRenderNode::IsForegroundFilterEnable()
 {
     return drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] != nullptr;
 }
 
-bool RSRenderNode::IsDirtyRegionUpdated() const
-{
-    return isDirtyRegionUpdated_;
-}
-void RSRenderNode::CleanDirtyRegionUpdated()
-{
-    isDirtyRegionUpdated_ = false;
-}
-bool RSRenderNode::IsShadowValidLastFrame() const
-{
-    return isShadowValidLastFrame_;
-}
 void RSRenderNode::SetStaticCached(bool isStaticCached)
 {
     isStaticCached_ = isStaticCached;
@@ -4586,10 +4466,6 @@ void RSRenderNode::SetCacheType(CacheType cacheType)
 {
     cacheType_ = cacheType;
 }
-CacheType RSRenderNode::GetCacheType() const
-{
-    return cacheType_;
-}
 int RSRenderNode::GetShadowRectOffsetX() const
 {
     return shadowRectOffsetX_;
@@ -4601,10 +4477,6 @@ int RSRenderNode::GetShadowRectOffsetY() const
 void RSRenderNode::SetDrawingCacheType(RSDrawingCacheType cacheType)
 {
     drawingCacheType_ = cacheType;
-}
-RSDrawingCacheType RSRenderNode::GetDrawingCacheType() const
-{
-    return drawingCacheType_;
 }
 void RSRenderNode::SetDrawingCacheChanged(bool cacheChanged)
 {
@@ -4697,10 +4569,6 @@ bool RSRenderNode::HasAnimation() const
 {
     return !animationManager_.animations_.empty();
 }
-bool RSRenderNode::HasFilter() const
-{
-    return hasFilter_;
-}
 void RSRenderNode::SetHasFilter(bool hasFilter)
 {
     hasFilter_ = hasFilter;
@@ -4710,10 +4578,6 @@ std::recursive_mutex& RSRenderNode::GetSurfaceMutex() const
     return surfaceMutex_;
 }
 
-bool RSRenderNode::HasAbilityComponent() const
-{
-    return hasAbilityComponent_;
-}
 void RSRenderNode::SetHasAbilityComponent(bool hasAbilityComponent)
 {
     hasAbilityComponent_ = hasAbilityComponent;
@@ -4735,21 +4599,9 @@ void RSRenderNode::SetIsMainThreadNode(bool isMainThreadNode)
 {
     isMainThreadNode_ = isMainThreadNode;
 }
-bool RSRenderNode::IsScale() const
-{
-    return isScale_;
-}
-void RSRenderNode::SetIsScale(bool isScale)
-{
-    isScale_ = isScale;
-}
 bool RSRenderNode::IsScaleInPreFrame() const
 {
     return isScaleInPreFrame_;
-}
-void RSRenderNode::SetIsScaleInPreFrame(bool isScale)
-{
-    isScaleInPreFrame_ = isScale;
 }
 void RSRenderNode::SetPriority(NodePriorityType priority)
 {
@@ -5224,11 +5076,6 @@ void RSRenderNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
     if (auto& firstNode = GetFirstLevelNode()) {
         firstNode->uiFirstSwitch_ = uiFirstSwitch;
     }
-}
-
-RSUIFirstSwitch RSRenderNode::GetUIFirstSwitch() const
-{
-    return uiFirstSwitch_;
 }
 
 void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
