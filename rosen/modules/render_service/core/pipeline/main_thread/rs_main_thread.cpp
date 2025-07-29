@@ -1302,7 +1302,7 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 bool RSMainThread::NeedConsumeMultiCommand(int32_t& dvsyncPid)
 {
     bool needUpdateDVSyncTime = rsVSyncDistributor_->NeedUpdateVSyncTime(dvsyncPid);
-    int64_t lastUpdateTime = rsVSyncDistributor_->GetLastUpdateTime();
+    uint64_t lastUpdateTime = static_cast<uint64_t>(rsVSyncDistributor_->GetLastUpdateTime());
     if (needUpdateDVSyncTime) {
         RS_TRACE_NAME("lastUpdateTime:" + std::to_string(lastUpdateTime));
         if (lastUpdateTime + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) < timestamp_) {
