@@ -1686,10 +1686,10 @@ HWTEST_F(RSMainThreadTest, GetMultiDisplay001, TestSize.Level1)
     ASSERT_FALSE(RSMainThread::GetMultiDisplay(rootNode));
 
     auto rsContext = std::make_shared<RSContext>();
-    auto node1 = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->week_from_this());
-    auto node2 = std::make_shared<RSScreenRenderNode>(2, 0, rsContext->week_from_this());
-    auto node3 = std::make_shared<RSScreenRenderNode>(3, true);
-    auto node4 = std::make_shared<RSScreenRenderNode>(4, true);
+    auto node1 = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto node2 = std::make_shared<RSScreenRenderNode>(2, 0, rsContext->weak_from_this());
+    auto node3 = std::make_shared<RSRenderNode>(3, true);
+    auto node4 = std::make_shared<RSRenderNode>(4, true);
     node1->AddChild(node3);
     node2->AddChild(node4);
     rootNode->AddChild(node1);
