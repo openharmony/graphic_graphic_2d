@@ -1810,7 +1810,7 @@ HWTEST_F(RSRenderNodeTest, AddChildTest004, TestSize.Level1)
 
 /**
  * @tc.name: AddChildTest005
- * @tc.desc: AddChild test
+ * @tc.desc: AddChild test when status of needUseCmdlistDrawRegion is true
  * @tc.type: FUNC
  * @tc.require: issueICI6YB
  */
