@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "rs_test_util.h"
+#include "feature/round_corner_display/rs_rcd_render_listener.h"
 #include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS::Rosen {
@@ -59,6 +60,39 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
     rsSurfaceRenderNode->SetDrawingGPUContext(drGPUContext.get());
     return rsSurfaceRenderNode;
+}
+
+std::shared_ptr<RSRcdSurfaceRenderNode> RSTestUtil::CreateRcdNodeWithBuffer()
+{
+    id++;
+    auto rcdNode = RSRcdSurfaceRenderNode::Create(id, RCDSurfaceType::TOP);
+    csurf = IConsumerSurface::Create("RcdNode");
+    if (csurf == nullptr) {
+        return nullptr;
+    }
+    rcdNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(rcdNode->GetRSSurfaceHandler());
+    csurf->RegisterConsumerListener(listener);
+    const auto& surfaceConsumer = rcdNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    if (psurf == nullptr) {
+        return nullptr;
+    }
+    psurf->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+    auto& surfaceHandler = *rcdNode->GetRSSurfaceHandler();
+    surfaceHandler.SetBuffer(cbuffer, acquireFence, damage, timestamp);
+    return rcdNode;
 }
 
 void RSTestUtil::InitRenderNodeGC()
