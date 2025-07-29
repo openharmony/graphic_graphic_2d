@@ -62,8 +62,6 @@ void HgmCore::SysModeChangeProcess(const char* key, const char* value, void* con
         HgmCore::Instance().SetRefreshRateMode(curMode);
         RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(curMode));
         HGM_LOGI("System mode changed to %{public}s, cur refresh mode is %{public}d", mode.c_str(), curMode);
- 
- 
     });
 }
 
