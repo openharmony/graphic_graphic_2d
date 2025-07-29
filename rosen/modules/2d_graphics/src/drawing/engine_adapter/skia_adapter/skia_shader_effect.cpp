@@ -26,6 +26,9 @@
 #include "src/core/SkWriteBuffer.h"
 #include "src/shaders/SkShaderBase.h"
 
+#ifdef RS_ENABLE_GPU
+#include "skia_gpu_context.h"
+#endif
 #include "skia_helper.h"
 #include "skia_image.h"
 #include "skia_matrix.h"
@@ -42,6 +45,29 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 SkiaShaderEffect::SkiaShaderEffect() noexcept : shader_(nullptr) {}
+
+SkiaShaderEffect::~SkiaShaderEffect()
+{
+#ifdef RS_ENABLE_GPU
+    if (gpuContext_ == nullptr) {
+        return;
+    }
+    auto skctx = gpuContext_->GetImpl<SkiaGPUContext>();
+    if (skctx == nullptr) {
+        return;
+    }
+    auto grctx = skctx->GetGrContext();
+    if (grctx == nullptr) {
+        return;
+    }
+    auto func = SkiaGPUContext::GetPostFunc(grctx);
+    if (func) {
+        func([shader = shader_.release()]() {
+            SkSafeUnref(shader);
+        });
+    }
+#endif
+}
 
 void SkiaShaderEffect::InitWithColor(ColorQuad color)
 {
@@ -230,6 +256,17 @@ void SkiaShaderEffect::SetSkShader(const sk_sp<SkShader>& skShader)
 {
     shader_ = skShader;
 }
+
+#ifdef RS_ENABLE_GPU
+void SkiaShaderEffect::SetGPUContext(std::shared_ptr<GPUContext> gpuContext)
+{
+    if (gpuContext_ != nullptr && gpuContext_ != gpuContext) {
+        LOGD("SkiaShaderEffect::SetGPUContext, gpuContext_ is overwritten!");
+        return;
+    }
+    gpuContext_ = gpuContext;
+}
+#endif
 
 std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
 {

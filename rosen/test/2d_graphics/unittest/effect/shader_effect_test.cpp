@@ -16,6 +16,9 @@
 #include "gtest/gtest.h"
 
 #include "effect/shader_effect.h"
+#ifdef RS_ENABLE_GPU
+#include "image/gpu_context.h"
+#endif
 #include "image/image.h"
 
 using namespace testing;
@@ -634,6 +637,23 @@ HWTEST_F(ShaderEffectTest, ArgsContructor018, TestSize.Level1)
     auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_SHADER, centerPoint,
         colors, position, TileMode::REPEAT, startAngle, endAngle, nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
+}
+
+/*
+ * @tc.name: SetGPUContext001
+ * @tc.desc: test ShaderEffect
+ * @tc.type: FUNC
+ * @tc.require: issue#ICHPKE
+ * @tc.author:
+ */
+HWTEST_F(ShaderEffectTest, SetGPUContext001, TestSize.Level1)
+{
+    auto shaderEffect = ShaderEffect::CreateColorShader(Color::COLOR_TRANSPARENT);
+    ASSERT_TRUE(shaderEffect != nullptr);
+#ifdef RS_ENABLE_GPU
+    auto gpuContext = std::make_shared<GPUContext>();
+    shaderEffect->SetGPUContext(gpuContext);
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen
