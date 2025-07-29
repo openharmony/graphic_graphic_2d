@@ -29,11 +29,18 @@
 
 namespace OHOS {
 namespace Rosen {
+struct DrawOpInfo {
+    bool isRenderWithForegroundColor = false;
+    NodeId nodeId = INVALID_NODEID;
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    std::shared_ptr<Drawing::DrawCmdList> cmdList = nullptr;
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+};
 class RSModifiersDraw {
 public:
     static void ConvertCmdListForCanvas(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId);
 
-    static void ConvertCmdList(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId);
+    static void ConvertCmdList(DrawOpInfo& targetCmd);
 
     static void RemoveSurfaceByNodeId(NodeId nodeId, bool postTask = false);
 
@@ -69,6 +76,8 @@ public:
     static void DestroySemaphore();
 
     static void PurgeContextResource();
+
+    static void GetFenceAndAddDrawOp(std::vector<DrawOpInfo>& targetCmds);
 private:
     struct SurfaceEntry {
         std::shared_ptr<Drawing::Surface> surface = nullptr;
@@ -103,10 +112,10 @@ private:
         int32_t width, int32_t height, sptr<SurfaceBuffer> surfaceBufferTmp);
 
     static bool Playback(const std::shared_ptr<Drawing::Surface>& surface,
-        const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, int32_t& fence);
+        const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, VkSemaphore& semaphore);
 
     static void FlushSurfaceWithFence(const std::shared_ptr<Drawing::Surface>& surface,
-        VkSemaphore& semaphore, int32_t& fence);
+        VkSemaphore& semaphore);
 
     static void DrawSnapshot(std::shared_ptr<Drawing::Canvas>& canvas, std::shared_ptr<Drawing::Image>& snapshot);
 
