@@ -42,6 +42,7 @@ ohos_unittest("feature_cfg_test") {
     "loadoptimization_param_test.cpp",
     "mem_param_test.cpp",
     "multiscreen_param_test.cpp",
+    "multiscreen_param_parse_test.cpp",
     "occlusion_culling_param_test.cpp",
     "opinc_param_parse_test.cpp",
     "opinc_param_test.cpp",
@@ -82,6 +83,7 @@ ohos_unittest("feature_cfg_test") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/utils/test_header:test_header",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
   ]
 
   external_deps = [

@@ -69,13 +69,15 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(xmlNode& node)
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "MipmapMode" && IsNumber(val)) {
-            int num = stoi(val);
+            int num = atoi(val.c_str());
             if (num == 0) {
                 MultiScreenParam::SetMipmapMode(Drawing::MipmapMode::NONE);
                 RS_LOGI("Mipmapmode value %{public}d", MultiScreenParam::GetMipmapMode());
+            } else {
+                RS_LOGD("Mipmapmode use default value.");
             }
         } else {
-            RS_LOGD("MultiScreenParamParse unknown feature name");
+            RS_LOGD("MultiScreenParamParse unknown feature name.");
         }
     }
     return PARSE_EXEC_SUCCESS;

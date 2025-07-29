@@ -36,6 +36,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
