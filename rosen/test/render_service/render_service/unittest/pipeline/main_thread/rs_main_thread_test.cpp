@@ -42,7 +42,7 @@
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
-
+#include "../test/unittest/mock_vsync_distributor.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -268,6 +268,12 @@ HWTEST_F(RSMainThreadTest, ProcessCommand, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+        vsyncGenerator->SetRSDistributor(mainThread->rsVSyncDistributor_);
+    }
     auto isUniRender = mainThread->isUniRender_;
     mainThread->isUniRender_ = false;
     mainThread->ProcessCommand();
@@ -6026,12 +6032,7 @@ HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, NeedConsumeMultiCommand001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    if (mainThread->rsVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
-    }
-    uint32_t dvsyncPid = 100;
+    int32_t dvsyncPid = 100;
     auto ret = mainThread->NeedConsumeMultiCommand(dvsyncPid);
     ASSERT_EQ(ret, false);
 }
@@ -6048,7 +6049,7 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
     if (mainThread->rsVSyncDistributor_ == nullptr) {
         auto vsyncGenerator = CreateVSyncGenerator();
         auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs", {});
     }
 
     std::vector<std::unique_ptr<RSTransactionData>> trans;
@@ -6065,5 +6066,53 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
     trans.push_back(std::move(rsTransactionData2));
     ret = mainThread->NeedConsumeDVSyncCommand(endIndex, trans);
     ASSERT_EQ(ret, true);
+    mainThread->rsVSyncDistributor_ = nullptr;
+}
+
+/**
+ * @tc.name: CheckAndUpdateTransactionIndex001
+ * @tc.desc: CheckAndUpdateTransactionIndex001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckAndUpdateTransactionIndex001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto vsyncGenerator = CreateVSyncGenerator();
+    auto vsyncController = new VSyncController(vsyncGenerator, 0);
+    sptr<MockVSyncDistributor> mockVSyncDistributor = new MockVSyncDistributor(vsyncController, "rs", {});
+    mainThread->rsVSyncDistributor_ = mockVSyncDistributor;
+    mockVSyncDistributor->needUpdateVsyncTime_ = true;
+    mockVSyncDistributor->delayTime_ = 0;
+    mockVSyncDistributor->lastTimeStamp_ = 0;
+    mainThread->timestamp_ = 100;
+    mockVSyncDistributor->mockPid_ = 1;
+
+    std::vector<std::unique_ptr<RSTransactionData>> trans;
+    int32_t pid = 0;
+    auto ret = mainThread->NeedConsumeMultiCommand(pid);
+    ASSERT_EQ(ret, true);
+    std::shared_ptr<TransactionDataMap> dataMap = std::make_shared<TransactionDataMap>();
+    std::unique_ptr<RSTransactionData> rsTransactionData1 = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSTransactionData> rsTransactionData2 = std::make_unique<RSTransactionData>();
+    rsTransactionData1->timestamp_ = 100;
+    rsTransactionData2->timestamp_ = 90;
+    (*dataMap)[1].push_back(std::move(rsTransactionData1));
+    (*dataMap)[1].push_back(std::move(rsTransactionData2));
+    std::string transactionFlags;
+    mainThread->CheckAndUpdateTransactionIndex(dataMap, transactionFlags);
+    rsTransactionData1 = std::make_unique<RSTransactionData>();
+    rsTransactionData2 = std::make_unique<RSTransactionData>();
+    rsTransactionData1->timestamp_ = 100;
+    rsTransactionData2->timestamp_ = 90;
+    mockVSyncDistributor->mockPid_ = 1;
+    (*dataMap)[2].push_back(std::move(rsTransactionData1));
+    (*dataMap)[2].push_back(std::move(rsTransactionData2));
+    mainThread->CheckAndUpdateTransactionIndex(dataMap, transactionFlags);
+    mainThread->DVSyncUpdate(1, 2);
+    mockVSyncDistributor->lastTimeStamp_ = 1000;
+    ret = mainThread->NeedConsumeMultiCommand(pid);
+    ASSERT_EQ(ret, false);
+    mainThread->rsVSyncDistributor_ = nullptr;
 }
 } // namespace OHOS::Rosen

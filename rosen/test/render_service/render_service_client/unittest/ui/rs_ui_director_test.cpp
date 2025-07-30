@@ -966,6 +966,7 @@ HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
  * @tc.name: SetDVSyncUpdate001
  * @tc.desc: SetDVSyncUpdate Test
  * @tc.type: FUNC
+ * @tc.require: issueICNDJ4
  */
 HWTEST_F(RSUIDirectorTest, SetDVSyncUpdate001, TestSize.Level1)
 {
