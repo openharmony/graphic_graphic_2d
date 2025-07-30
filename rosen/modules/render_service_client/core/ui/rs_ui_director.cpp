@@ -567,7 +567,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
 {
     if (rsUIContext_) {
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "multi-intance SendCommands With Callback");
-        RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
+        RS_TRACE_NAME_FMT("SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr && !transaction->IsEmpty()) {
             if (callback != nullptr) {
@@ -625,7 +625,7 @@ void RSUIDirector::RecvMessages()
     RecvMessages(transactionDataPtr);
 }
 
-void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance)
+void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
 {
     if (cmds == nullptr || cmds->IsEmpty()) {
         ROSEN_LOGD("RSUIDirector::RecvMessages cmd empty");
@@ -763,13 +763,17 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     }
 }
 
-void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId)
+void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;
     // use for dump transactionFlags [pid,index] in client tree dump
+    if (auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token)) {
+        rsUICtx->DumpNodeTreeProcessor(out, nodeId, pid, taskId);
+        return;
+    }
     int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);
     {
         std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex_);

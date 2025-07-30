@@ -330,7 +330,7 @@ private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
-    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
+    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
     static void ProcessInstanceMessages(
         std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId);
     static void ProcessUIContextMessages(
@@ -338,7 +338,7 @@ private:
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
         AnimationCallbackEvent event);
-    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId); // DFX to do
+    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId);        // DFX to do
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(
         const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing

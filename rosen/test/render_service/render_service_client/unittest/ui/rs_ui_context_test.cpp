@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
 
@@ -70,5 +71,39 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
     uint32_t delay = 0;
     uiContext1->PostDelayTask(task, delay);
     ASSERT_TRUE(flag);
+}
+
+/**
+ * @tc.name: DumpNodeTreeProcessorTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto transaction = uiContext->GetRSTransaction();
+    ASSERT_NE(transaction, nullptr);
+    auto canvasNode = RSCanvasNode::Create(false, false, uiContext);
+    std::string out = "";
+    uiContext->DumpNodeTreeProcessor(out, canvasNode->GetId(), 0, 0);
+    ASSERT_TRUE(out.find("transactionFlags") != std::string::npos);
+    ASSERT_TRUE(out.find("UIContext") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpNodeTreeProcessorTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    uiContext->rsTransactionHandler_ = nullptr;
+    auto transaction = uiContext->GetRSTransaction();
+    ASSERT_EQ(transaction, nullptr);
+    std::string out = "";
+    uiContext->DumpNodeTreeProcessor(out, 0, 0, 0);
+    ASSERT_TRUE(out.find("transactionFlags") == std::string::npos);
+    ASSERT_TRUE(out.find("UIContext") == std::string::npos);
 }
 } // namespace OHOS::Rosen

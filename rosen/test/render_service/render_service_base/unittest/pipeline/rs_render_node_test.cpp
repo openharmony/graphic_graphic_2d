@@ -1962,6 +1962,23 @@ HWTEST_F(RSRenderNodeTest, RSRootRenderNodeDumpTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSUIContextDumpTest
+ * @tc.desc: DumpNodeType DumpTree
+ * @tc.type: FUNC
+ * @tc.require: issueICPQSU
+ */
+HWTEST_F(RSRenderNodeTest, RSUIContextDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
+    uint64_t token = 1000;
+    canvasNode->SetUIContextToken(token++);
+    canvasNode->SetUIContextToken(token);
+    canvasNode->DumpTree(0, outTest);
+    ASSERT_TRUE(outTest.find("RSUIContextToken") != string::npos);
+}
+
+/**
  * @tc.name: IsContentNodeTest003
  * @tc.desc: IsContentNode test
  * @tc.type: FUNC
@@ -3369,7 +3386,25 @@ HWTEST_F(RSRenderNodeTest, SetUIContextTokenTest001, TestSize.Level1)
     ASSERT_NE(renderNode, nullptr);
     uint64_t token = 1001;
     renderNode->SetUIContextToken(token);
-    ASSERT_EQ(renderNode->uiContextToken_, token);
+    ASSERT_EQ(renderNode->GetUIContextToken(), token);
+    renderNode->SetUIContextToken(token);
+    ASSERT_EQ(renderNode->uiContextTokenList_.size(), 1);
+}
+
+/**
+ * @tc.name: GetUIContextTokenListTest001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueICPQSU
+ */
+HWTEST_F(RSRenderNodeTest, GetUIContextTokenListTest001, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    uint64_t token = 1001;
+    renderNode->SetUIContextToken(token);
+    auto uiContextTokenList = renderNode->GetUIContextTokenList();
+    ASSERT_EQ(uiContextTokenList.back(), token);
 }
 
 /**

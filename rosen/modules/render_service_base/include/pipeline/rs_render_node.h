@@ -115,6 +115,17 @@ public:
     void SetUIContextToken(uint64_t token)
     {
         uiContextToken_ = token;
+        if (std::find(uiContextTokenList_.begin(), uiContextTokenList_.end(), token) == uiContextTokenList_.end()) {
+            uiContextTokenList_.emplace_back(token);
+        }
+    }
+    uint64_t GetUIContextToken() const
+    {
+        return uiContextToken_;
+    }
+    std::vector<uint64_t> GetUIContextTokenList() const
+    {
+        return uiContextTokenList_;
     }
     void RemoveFromTree(bool skipTransition = false);
 
@@ -1165,6 +1176,7 @@ private:
     float boundsHeight_ = 0.0f;
     pid_t appPid_ = 0;
     uint64_t uiContextToken_ = 0;
+    std::vector<uint64_t> uiContextTokenList_;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;

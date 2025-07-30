@@ -174,8 +174,8 @@ public:
         const bool isInSameWindow);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
 
-    using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t)>;
-    static void DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId);
+    using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint64_t, uint32_t)>;
+    static void DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId);
     static RSB_EXPORT void SetDumpNodeTreeProcessor(DumpNodeTreeProcessor processor);
 
     using CommitDumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t, const std::string&)>;
@@ -385,7 +385,7 @@ ADD_COMMAND(RSRemoveAllModifiers,
 
 ADD_COMMAND(RSDumpClientNodeTree,
     ARG(PERMISSION_APP, RS_NODE, DUMP_CLIENT_NODE_TREE,
-        RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint32_t))
+        RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint64_t, uint32_t))
 ADD_COMMAND(RSCommitDumpClientNodeTree,
     ARG(PERMISSION_APP, RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
         RSNodeCommandHelper::CommitDumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))

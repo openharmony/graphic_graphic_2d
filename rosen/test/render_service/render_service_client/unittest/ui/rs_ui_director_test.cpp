@@ -765,11 +765,34 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    int32_t instanceId = 10;
+    director->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {}, 0);
+    director->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {}, instanceId);
     RSNode::SharedPtr rsNode = RSCanvasNode::Create();
-    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0);
+    rsNode->SetInstanceId(instanceId);
+    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0, 0);
     const NodeId invalidId = 1;
-    director->DumpNodeTreeProcessor(invalidId, 0, 0);
+    director->DumpNodeTreeProcessor(invalidId, 0, 0, 0);
     SUCCEED();
+}
+
+/**
+ * @tc.name: DumpNodeTreeProcessor002
+ * @tc.desc: DumpNodeTreeProcessor Test
+ * @tc.type: FUNC
+ * @tc.require: issueICPQSU
+ */
+HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->Init(true, true);
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    RSNode::SharedPtr rsNode = RSCanvasNode::Create();
+    uint64_t token = uiContext->GetToken();
+    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, token, 0);
+    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
 }
 
 /**
