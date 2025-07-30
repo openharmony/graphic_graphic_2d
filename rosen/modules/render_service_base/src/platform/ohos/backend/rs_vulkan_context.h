@@ -279,7 +279,6 @@ public:
     }
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(std::string cacheDir = "");
-    std::shared_ptr<Drawing::GPUContext> DoCreateDrawingContext(std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
     VulkanInterfaceType GetInterfaceType() const
