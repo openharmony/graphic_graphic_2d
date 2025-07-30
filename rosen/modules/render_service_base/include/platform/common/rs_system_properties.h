@@ -381,6 +381,8 @@ public:
     static bool GetAIBarOptEnabled();
     static bool GetRSMemoryInfoManagerParam();
 
+    static bool GetSupportScreenFreezeEnabled();
+
 private:
     RSSystemProperties() = default;
 

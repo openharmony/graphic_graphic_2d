@@ -202,6 +202,9 @@ public:
     {
         return logicalDisplayNodeDrawables_;
     }
+
+    bool GetForceFreeze() const;
+    void SetForceFreeze(bool forceFreeze);
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -241,6 +244,7 @@ private:
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     Occlusion::Region drawnRegion_;
+    bool forceFreeze_ = false;
 };
 } // namespace OHOS::Rosen
 

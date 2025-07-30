@@ -2535,6 +2535,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenNode state error");
         return false;
     }
+    if (UNLIKELY(screenNode->GetForceFreeze())) {
+        RS_TRACE_NAME("DoDirectComposition skip, screen frozen");
+        return true;
+    }
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         RS_LOGE("DoDirectComposition screenManager is nullptr");

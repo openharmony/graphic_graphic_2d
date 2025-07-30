@@ -6040,4 +6040,36 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
     ret = mainThread->NeedConsumeDVSyncCommand(endIndex, trans);
     ASSERT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueICPMFO
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    NodeId screenNodeId = 1;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    ASSERT_NE(rootNode, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->InitRenderParams();
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+    screenNode->SetForceFreeze(false);
+    rootNode->AddChild(screenNode);
+    rootNode->GenerateFullChildrenList();
+    auto ret = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_FALSE(ret);
+
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    screenNode->SetForceFreeze(true);
+    auto ret = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_TRUE(ret);
+}
 } // namespace OHOS::Rosen

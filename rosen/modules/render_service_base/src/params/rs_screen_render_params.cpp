@@ -288,6 +288,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->needForceUpdateHwcNodes_ = needForceUpdateHwcNodes_;
     targetScreenParams->childDisplayCount_ =  childDisplayCount_;
     targetScreenParams->logicalDisplayNodeDrawables_ =  std::move(logicalDisplayNodeDrawables_);
+    targetScreenParams->forceFreeze_ = forceFreeze_;
 
     RSRenderParams::OnSync(target);
 }
@@ -317,6 +318,20 @@ void RSScreenRenderParams::SetDrawnRegion(const Occlusion::Region& region)
 const Occlusion::Region& RSScreenRenderParams::GetDrawnRegion() const
 {
     return drawnRegion_;
+}
+
+void RSScreenRenderParams::SetForceFreeze(bool forceFreeze)
+{
+    if (forceFreeze_ == forceFreeze) {
+        return;
+    }
+    forceFreeze_ = forceFreeze;
+    needSync_ = true;
+}
+
+bool RSScreenRenderParams::GetForceFreeze() const
+{
+    return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
 
 } // namespace OHOS::Rosen

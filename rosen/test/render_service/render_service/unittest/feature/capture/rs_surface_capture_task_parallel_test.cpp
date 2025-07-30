@@ -558,5 +558,40 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestSurfaceCaputreIt, TestSize.Level2
     EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 }
 
+/*
+ * @tc.name: CaptureDisplayNode
+ * @tc.desc: Test CaptureDisplayNode
+ * @tc.type: FUNC
+ * @tc.require: #ICPMFO
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureParam captureParam;
+    auto screenShotType = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
+    task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
+    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<>(RSRenderThreadParams);
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    bool secExemption = uniParams == nullptr ? false : uniParams->GetSecExemption();
+    captureParam.secExemption = false;
+    task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
+    bool secExemption1 = uniParams == nullptr ? false : uniParams->GetSecExemption();
+    ASSERT_EQ(secExemption, secExemption1);
+
+    captureParam.secExemption = true;
+    task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
+    bool secExemption2 = uniParams == nullptr ? false : uniParams->GetSecExemption();
+    ASSERT_EQ(secExemption, secExemption2);
+}
 }
 }

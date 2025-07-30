@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
+
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
@@ -1335,6 +1337,41 @@ HWTEST_F(RSClientTest, ClearUifirstCacheTest, TestSize.Level1)
     ASSERT_NE(rsClient, nullptr);
     NodeId nodeId = 1;
     rsClient->ClearUifirstCache(nodeId);
+}
+
+/**
+ * @tc.name: SetScreenFreezeImmediately Test
+ * @tc.desc: SetScreenFreezeImmediately
+ * @tc.type:FUNC
+ * @tc.require: issueICPMFO
+ */
+HWTEST_F(RSClientTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool isFreeze = false;
+    std::shared_ptr<TestSurfaceCaptureCallback> cb;
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ASSERT_EQ(ret, true);
+
+    isFreeze = true;
+    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ASSERT_EQ(ret, false);
+
+    cb = std::make_shared<TestSurfaceCaptureCallback>();
+    ASSERT_EQ(cb, nullptr);
+    std::vector<std::shared_ptr<SurfaceBufferCallback>> callbackVector;
+    rsClient->surfaceCaptureCbMap_.emplace(std::make_pair(TEST_ID, captureConfig), callbackVector);
+    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ASSERT_EQ(ret, true);
+
+    rsClient->surfaceCaptureCbDirector_ = nullptr;
+    rsClient->surfaceCaptureCbMap_.clear();
+    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ASSERT_EQ(ret, true);
+
+    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ASSERT_EQ(ret, true);
 }
 } // namespace Rosen
 } // namespace OHOS

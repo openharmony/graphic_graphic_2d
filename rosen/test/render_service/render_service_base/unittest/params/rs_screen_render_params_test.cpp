@@ -225,4 +225,23 @@ HWTEST_F(RSScreenRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
     params.SetNeedForceUpdateHwcNodes(false);
     ASSERT_FALSE(params.needForceUpdateHwcNodes_);
 }
+
+/**
+ * @tc.name: SetForceFreeze
+ * @tc.desc: test result of SetForceFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueICPMFO
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetForceFreeze, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    ASSERT_FALSE(params.GetForceFreeze());
+
+    params.SetForceFreeze(false);
+    ASSERT_FALSE(params.GetForceFreeze());
+
+    params.SetForceFreeze(true);
+    ASSERT_TRUE(params.GetForceFreeze());
+}
 } // namespace OHOS::Rosen

@@ -1436,6 +1436,47 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
     mainThread_->PostTask(selfCaptureTask);
 }
 
+ErrCode RSRenderServiceConnection::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const RSSurfaceCapturePermissions& permissions)
+{
+    bool hasPermission = permissions.screenCapturePermission & permissions.isSystemCalling;
+    if (!mainThread_ || !hasPermission) {
+        if (callback) {
+            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+        }
+        RS_LOGE("%{public}s mainThread_ is nullptr or permission denied", __func__);
+        return ERR_PERMISSION_DENIED;
+    }
+    std::function<void()> setScreenFreezeTask =
+        [id, isFreeze, callback, captureConfig, hasPermission]() -> void {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(
+            RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
+        auto screenNode = displayNode == nullptr ? nullptr :
+            std::static_pointer_cast<RSScreenRenderNode>(displayNode->GetParent().lock());
+        if (!screenNode) {
+            if (callback) {
+                callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            }
+            RS_LOGE("%{public}s failed, screenNode is nullptr", __func__);
+            return;
+        }
+        screenNode->SetForceFreeze(isFreeze);
+        if (isFreeze) {
+            RSSurfaceCaptureParam captureParam;
+            captureParam.id = id;
+            captureParam.config = captureConfig;
+            captureParam.isSystemCalling = isSystemCalling;
+            captureParam.isFreeze = isFreeze;
+            cpautreParam.secExemption = hasPermission;
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+        }
+    };
+    mainThread_->PostTask(setScreenFreezeTask);
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)

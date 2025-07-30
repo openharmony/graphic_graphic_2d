@@ -1425,12 +1425,17 @@ void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimated
         case SystemAnimatedScenes::EXIT_SPLIT_SCREEN:
             isSplitScreenScene_.store(true);
             break;
+        case SystemAnimatedScenes::SNAPSHOT_ROTATION:
+            isSnapshotRotationScene_.store(true);
+            break;
         // enter and exit mission center or enter and exit split screen animation ends for PC
         case SystemAnimatedScenes::OTHERS:
             isMissionCenterScene_.store(false);
             isSplitScreenScene_.store(false);
+            isSnapshotRotationScene_.store(false);
             break;
         default:
+            isSnapshotRotationScene_.store(false);
             break;
     }
 }
@@ -1642,7 +1647,8 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     bool isScale = node.IsScale();
     bool hasFilter = node.HasFilter();
     bool isRotate = RSUifirstManager::Instance().rotationChanged_;
-    bool isRecentScene = RSUifirstManager::Instance().IsRecentTaskScene();
+    bool isRecentScene = RSUifirstManager::Instance().IsRecentTaskScene() &&
+        !RSUifirstManager::Instance().IsSnapshotRotationScene();
     if (isRecentScene) {
         isNeedAssignToSubThread = isScale && LeashWindowContainMainWindow(node);
     } else {
@@ -1658,11 +1664,13 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         return false;
     }
     RS_TRACE_NAME_FMT("IsLeashWindowCache: toSubThread[%d] IsScale[%d]"
-        " filter:[%d] rotate[%d] captured[%d]",
+        " filter:[%d] rotate[%d] captured[%d] snapshotRotation[%d]",
         isNeedAssignToSubThread, node.IsScale(),
-        node.HasFilter(), RSUifirstManager::Instance().rotationChanged_, node.IsNodeToBeCaptured());
+        node.HasFilter(), RSUifirstManager::Instance().rotationChanged_, node.IsNodeToBeCaptured(),
+        RSUifirstManager::Instance().IsSnapshotRotationScene());
     RS_LOGD("IsLeashWindowCache: toSubThread[%{public}d] recent[%{public}d] scale[%{public}d] filter[%{public}d] "
-        "rotate[%{public}d]", isNeedAssignToSubThread, isRecentScene, isScale, hasFilter, isRotate);
+        "rotate[%{public}d] snapshotRotation[%{public}d]", isNeedAssignToSubThread, isRecentScene, isScale, hasFilter,
+        isRotate, RSUifirstManager::Instance().IsSnapshotRotationScene());
     return isNeedAssignToSubThread;
 }
 

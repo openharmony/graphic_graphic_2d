@@ -896,4 +896,26 @@ HWTEST_F(RSUifirstManagerTest, IsInLeashWindowTree001, TestSize.Level1)
     res = uifirstManager_.IsInLeashWindowTree(node, instanceRootId);
     EXPECT_FALSE(res);
 }
+
+/**
+ * @tc.name: SnapshotRotation
+ * @tc.desc: Test SnapshotRotation
+ * @tc.type: FUNC
+ * @tc.require: issueICPMFO
+ */
+HWTEST_F(RSUifirstManagerTest, SnapshotRotation, TestSize.Level2)
+{
+    bool isSnapshotRotationScene = uifirstManager_.isSnapshotRotationScene_;
+    EXPECT_FALSE(uifirstManager_.IsSnapshotRotationScene());
+
+    auto scene = SystemAnimatedScenes::SNAPSHOT_ROTATION;
+    uifirstManager_.OnProcessAnimateScene(scene);
+    EXPECT_TRUE(uifirstManager_.IsSnapshotRotationScene());
+
+    scene = SystemAnimatedScenes::OTHERS;
+    uifirstManager_.OnProcessAnimateScene(scene);
+    EXPECT_FALSE(uifirstManager_.IsSnapshotRotationScene());
+
+    uifirstManager_.isSnapshotRotationScene_ = isSnapshotRotationScene;
+}
 }

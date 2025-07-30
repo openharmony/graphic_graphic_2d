@@ -268,6 +268,16 @@ bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> nod
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
+bool RSInterfaces::SetScreenFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->SetScreenFreezeImmediately(node->GetId(), isFreeze, callback, captureConfig);
+}
+
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {

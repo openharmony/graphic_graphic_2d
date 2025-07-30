@@ -769,5 +769,10 @@ bool RSSystemProperties::GetAIBarOptEnabled()
 {
     return true;
 }
+
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

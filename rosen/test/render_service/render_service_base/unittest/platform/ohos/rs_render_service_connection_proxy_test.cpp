@@ -1498,5 +1498,34 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ClearUifirstCacheTest, TestSize.Lev
     proxy->ClearUifirstCache(nodeId);
     ASSERT_TRUE(proxy);
 }
+
+/**
+ * @tc.name: SetScreenFreezeImmediately Test
+ * @tc.desc: SetScreenFreezeImmediately Test
+ * @tc.type:FUNC
+ * @tc.require: issueICPMFO
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    NodeId nodeId = 1;
+    bool isFreeze = false;
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    auto ret = proxy->SetScreenFreezeImmediately(id, isFreeze, callback, captureConfig);
+    EXPECT_EQ(ret, ERR_OK);
+
+    isFreeze = true;
+    auto ret = proxy->SetScreenFreezeImmediately(id, isFreeze, callback, captureConfig);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+    ASSERT_EQ(proxy->SetScreenChangeCallback(callback), 0);
+    ret = proxy->SetScreenFreezeImmediately(id, isFreeze, callback, captureConfig);
+    EXPECT_EQ(ret, ERR_OK);
+}
 } // namespace Rosen
 } // namespace OHOS

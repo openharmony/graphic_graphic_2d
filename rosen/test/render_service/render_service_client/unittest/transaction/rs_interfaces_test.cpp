@@ -806,4 +806,35 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
     int32_t res = instance.GetPidGpuMemoryInMB(pid, gpuMemInMB);
     EXPECT_NE(res, 0);
 }
+
+/*
+ * @tc.name: SetScreenFreezeImmediately
+ * @tc.desc: Test SetScreenFreezeImmediately
+ * @tc.type: FUNC
+ * @tc.require: issueICPMFO
+ */
+HWTEST_F(RSInterfacesTest, SetScreenFreezeImmediatelyTest001, TestSize.Level1)
+{
+    class TestSurfaceCapture : public SurfaceCaptureCallback {
+    public:
+        explicit TestSurfaceCapture() {}
+        ~TestSurfaceCapture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+    };
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<RSDisplayNode> displayNode;
+    std::shared_ptr<TestSurfaceCapture> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    bool isFreeze = true;
+    bool ret = instance.SetScreenFreezeImmediately(displayNode, isFreeze, callback, captureConfig);
+    EXPECT_EQ(res, false);
+
+    RSDisplayNodeConfig config;
+    displayNode = RSDisplayNode::Create(config);
+    callback = std::make_shared<TestSurfaceCapture>();
+    ret = instance.SetScreenFreezeImmediately(displayNode, isFreeze, callback, captureConfig);
+    EXPECT_EQ(res, true);
+}
 } // namespace OHOS::Rosen

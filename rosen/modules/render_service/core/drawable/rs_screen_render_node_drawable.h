@@ -148,6 +148,8 @@ private:
     static void UpdateSlrScale(ScreenInfo& screenInfo);
 
     void CheckHpaeBlurRun(bool isHdrOn);
+
+    bool CheckScreenFreezeSkip(RSScreenRenderParams& params);
     
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();

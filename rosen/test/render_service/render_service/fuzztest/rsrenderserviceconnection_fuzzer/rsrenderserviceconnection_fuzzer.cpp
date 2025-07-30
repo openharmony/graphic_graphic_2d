@@ -1534,6 +1534,19 @@ bool DoClearUifirstCache()
     return true;
 }
 
+bool DoSetScreenFreezeImmediately()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    NodeId nodeId = GetData<NodeId>();
+    bool isFreeze = GetData<bool>();
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    RSSurfaceCaptureConfig captureConfig;
+    rsConn_->SetScreenFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1658,6 +1671,7 @@ void DoFuzzerTest3()
     DoProfilerServicePopulateFiles();
     DoProfilerIsSecureScreen();
     DoClearUifirstCache();
+    DoSetScreenFreezeImmediately();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -260,4 +260,20 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsTaskMan
     const std::string callingCode = "test";
     ASSERT_EQ(verifier->IsTaskManagerCalling(callingCode), false);
 }
+
+/**
+ * @tc.name: IsSetScreenFreezeImmediately
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueICPMFO
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSetScreenFreezeImmediately,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
+        RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, false);
+}
 } // namespace OHOS::Rosen

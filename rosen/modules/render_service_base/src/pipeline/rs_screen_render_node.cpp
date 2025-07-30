@@ -604,5 +604,24 @@ void RSScreenRenderNode::SetHasMirrorScreen(bool hasMirrorScreen)
         AddToPendingSyncList();
     }
 }
+
+void RSScreenRenderNode::SetForceFreeze(bool forceFreeze)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetForceFreeze screenParams is null");
+        return;
+    }
+    forceFreeze_ = forceFreeze;
+    screenParams->SetForceFreeze(forceFreeze);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSScreenRenderNode::GetForceFreeze() const
+{
+    return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
+}
 } // namespace Rosen
 } // namespace OHOS

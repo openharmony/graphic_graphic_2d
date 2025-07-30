@@ -1225,4 +1225,25 @@ void RSScreenRenderNodeDrawable::CheckAndPostAsyncProcessOfflineTask()
     }
 }
 
+bool RSScreenRenderNodeDrawable::CheckScreenFreezeSkip(RSScreenRenderParams& params)
+{
+    if (UNLIKELY(params.GetForceFreeze())) {
+        SetDrawSkipType(DrawSkipType::SCREEN_FREEZE);
+        RS_TRACE_NAME("Screen frozen, skip");
+        return true;
+    }
+
+    auto mirrorDrawable = params.GetMirrorSourceDrawable().lock();
+    if (!mirrorDrawable) {
+        return false;
+    }
+    auto mirrorParams = static_cast<RSScreenRenderParams*>(mirrorDrawable->GetRenderParams().get());
+    if (mirrorParams && UNLIKELY(mirrorParams->GetForceFreeze())) {
+        RS_TRACE_NAME("MirrorScreen frozen, skip");
+        SetDrawSkipType(DrawSkipType::SCREEN_FREEZE);
+        return true;
+    }
+    return false;
+}
+
 } // namespace OHOS::Rosen::DrawableV2

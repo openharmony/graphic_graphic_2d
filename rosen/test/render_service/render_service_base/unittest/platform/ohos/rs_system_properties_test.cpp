@@ -1185,5 +1185,16 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Leve
     RSSystemProperties::SetTypicalResidentProcess(enabled);
     EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
+
+/**
+ * @tc.name: GetSupportScreenFreezeEnabled
+ * @tc.desc: GetSupportScreenFreezeEnabled
+ * @tc.type:FUNC
+ * @tc.require: issuesICPMFO
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSupportScreenFreezeEnabledTest, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetSupportScreenFreezeEnabled());
+}
 } // namespace Rosen
 } // namespace OHOS

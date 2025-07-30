@@ -1974,6 +1974,48 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkip_HDRStausChanged, Te
     EXPECT_FALSE(result);
 }
 
+/**
+ * @tc.name: CheckScreenFreezeSkip
+ * @tc.desc: Test CheckScreenFreezeSkip
+ * @tc.type: FUNC
+ * @tc.require: #ICPMFO
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenFreezeSkip, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_SCREEN_ID, context);
+    ASSERT_NE(screenNode, nullptr);
+    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(
+        RSScreenRenderNodeDrawable::OnGenerate(screenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_shared<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->forceFreeze_ = true;
+    auto ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_TRUE(ret);
+
+    screenParams->forceFreeze_ = false;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_FALSE(ret);
+
+    auto mirrorScreenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID + 1, DEFAULT_SCREEN_ID + 1, context);
+    ASSERT_NE(mirrorScreenNode, nullptr);
+    auto adapter = RSRenderNodeDrawableAdapter::OnGenerate(mirrorScreenNode);
+    auto mirrorScreenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(adapter);
+    ASSERT_NE(mirrorScreenDrawable, nullptr);
+    RSScreenRenderNodeDrawable::InitRenderParams(mirrorScreenNode, adapter);
+    screenParams->mirrorSourceDrawable_ = adapter;
+    auto mirrorParams = static_cast<RSScreenRenderParams*>(mirrorScreenDrawable->GetRenderParams().get());
+    ASSERT_NE(mirrorParams, nullptr);
+    mirrorParams->forceFreeze_ = false;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_FALSE(ret);
+    mirrorParams->forceFreeze_ = true;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_TRUE(ret);
+}
+
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**
  * @tc.name: UpdateSurfaceDrawRegion

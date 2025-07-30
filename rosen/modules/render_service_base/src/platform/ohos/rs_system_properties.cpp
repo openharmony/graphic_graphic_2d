@@ -1661,5 +1661,13 @@ bool RSSystemProperties::GetRSMemoryInfoManagerParam()
 {
     return false;
 }
+
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.debug.screen.freeze.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS
