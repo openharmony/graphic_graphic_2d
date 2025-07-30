@@ -596,18 +596,17 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
     director->Init(true, true);
-    director->requestVsyncCallback_ = nullptr;
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     uint64_t token = uiContext->GetToken();
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
+    ASSERT_NE(command->GetToken(), 0);
     cmds->AddCommand(command, token, FollowType::FOLLOW_TO_SELF);
-    ASSERT_EQ(director->requestVsyncCallback_, nullptr);
-    director->ProcessMessages(cmds, true);
-    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
-    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token)->GetRSTransaction(), nullptr);
+    director->ProcessMessages(cmds);
+    ASSERT_FALSE(cmds->IsEmpty());
+    ASSERT_EQ(std::get<2>(cmds->payload_.front()), nullptr);
 }
 
 /**
@@ -620,19 +619,63 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
     director->Init(true, true);
-    director->requestVsyncCallback_ = nullptr;
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
+    int32_t instanceId = 10;
+    director->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); }, instanceId, true);
+    auto node1 = RSCanvasNode::Create();
+    auto node2 = RSCanvasNode::Create();
+    node2->SetInstanceId(instanceId);
+    std::unique_ptr<RSCommand> command1 = std::make_unique<RSAnimationCallback>(node1->GetId(), 0, 0, FINISHED);
+    std::unique_ptr<RSCommand> command2 = std::make_unique<RSAnimationCallback>(node2->GetId(), 0, 0, FINISHED);
+    ASSERT_EQ(command1->GetToken(), 0);
+    ASSERT_EQ(command2->GetToken(), 0);
+    cmds->AddCommand(command1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
+    cmds->AddCommand(command2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
+    director->ProcessMessages(cmds);
+    ASSERT_FALSE(cmds->IsEmpty());
+    ASSERT_EQ(std::get<2>(cmds->payload_.front()), nullptr);
+}
+
+/**
+ * @tc.name: ProcessUIContextMessagesTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest001, TestSize.Level1)
+{
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
+    uint64_t token = 12345;
+    std::vector<std::unique_ptr<RSCommand>> commands;
+    auto command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
+    commands.push_back(std::move(command));
+    cmdMap[token] = std::move(commands);
+    RSUIDirector::ProcessUIContextMessages(cmdMap, 1);
+    ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
+}
+
+/**
+ * @tc.name: ProcessUIContextMessagesTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
+{
+    auto director = RSUIDirector::Create();
+    director->Init(true, true);
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_NE(uiContext, nullptr);
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
     uint64_t token = uiContext->GetToken();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
-    cmds->AddCommand(command, token, FollowType::FOLLOW_TO_SELF);
-    ASSERT_EQ(director->requestVsyncCallback_, nullptr);
-    uiContext->rsTransactionHandler_ = nullptr;
-    director->ProcessMessages(cmds, true);
+    std::vector<std::unique_ptr<RSCommand>> commands;
+    auto command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
+    commands.push_back(std::move(command));
+    cmdMap[token] = std::move(commands);
+    director->ProcessUIContextMessages(cmdMap, 1);
     ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
-    ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(token)->GetRSTransaction(), nullptr);
 }
 
 /**
@@ -917,5 +960,20 @@ HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
     // recover isTypicalResidentProcess_
     RSSystemProperties::SetTypicalResidentProcess(enabled);
     EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
+}
+
+/**
+ * @tc.name: SetDVSyncUpdate001
+ * @tc.desc: SetDVSyncUpdate Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetDVSyncUpdate001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    const uint64_t time = 1000;
+    director->SetDVSyncUpdate(time);
+    EXPECT_EQ(time, director->dvsyncTime_);
+    EXPECT_EQ(true, director->dvsyncUpdate_);
 }
 } // namespace OHOS::Rosen

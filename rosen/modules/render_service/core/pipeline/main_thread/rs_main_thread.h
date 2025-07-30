@@ -371,6 +371,8 @@ public:
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
+    static bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode);
+
     bool GetMultiDisplayChange() const
     {
         return isMultiDisplayChange_;

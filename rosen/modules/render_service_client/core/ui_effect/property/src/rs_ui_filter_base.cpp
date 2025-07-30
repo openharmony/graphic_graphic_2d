@@ -17,6 +17,7 @@
 
 #include <unordered_set>
 
+#include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
@@ -74,6 +75,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::VARIABLE_RADIUS_BLUR, [] {
             return std::make_shared<RSNGVariableRadiusBlurFilter>();
+        }
+    },
+    {RSNGEffectType::BEZIER_WARP, [] {
+            return std::make_shared<RSNGBezierWarpFilter>();
         }
     },
 };
@@ -183,6 +188,21 @@ std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_
         RSNGMaskBase::Create(variableRadiusBlurFilterPara->GetMask()));
     return variableRadiusBlurFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertBezierWarpFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::BEZIER_WARP);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    auto bezierWarpFilterPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
+    auto& bezierCtrlPoints = bezierWarpFilterPara->GetBezierControlPoints();
+    // note: the order of values has to be same with the order of ADD_PROPERTY_ATG in DECLARE_TILTER
+    const auto& values = std::apply([](auto&... args) { return std::tie(args...); }, bezierCtrlPoints);
+    bezierWarpFilter->Setter(values);
+    return bezierWarpFilter;
+}
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -193,6 +213,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::COLOR_GRADIENT, ConvertColorGradientFilterPara },
     { FilterPara::ParaType::MASK_TRANSITION, ConvertMaskTransitionFilterPara },
     { FilterPara::ParaType::VARIABLE_RADIUS_BLUR, ConvertVariableRadiusBlurFilterPara },
+    { FilterPara::ParaType::BEZIER_WARP, ConvertBezierWarpFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

@@ -126,7 +126,16 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
             dstRect = dstRect.IntersectRect(clipRect);
         }
     }
-
+    if (!node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        dstRect.left_ = static_cast<int>(
+            std::round(dstRect.left_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()));
+        dstRect.top_ = static_cast<int>(
+            std::round(dstRect.top_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()));
+        dstRect.width_ = static_cast<int>(
+            std::round(dstRect.width_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()));
+        dstRect.height_ = static_cast<int>(
+            std::round(dstRect.height_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()));
+    }
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&
         !node.GetHwcGlobalPositionEnabled()) {
         dstRect = dstRect.IntersectRect(uniRenderVisitor_.curSurfaceNode_->GetDstRect());
@@ -1263,10 +1272,11 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     node.HwcSurfaceRecorder().SetIntersectWithPreviousFilter(false);
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
                             uniRenderVisitor_.isScreenRotationAnimating_);
-    if (!node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
+    bool isHardwareForcedDisabled = !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
         (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
          IsDisableHwcOnExpandScreen() || uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
-         !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer())) {
+         !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer());
+    if (isHardwareForcedDisabled) {
         auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "param/invisible/no buffer, IsHardwareComposerEnabled[%d], IsDynamicHardwareEnable[%d], "

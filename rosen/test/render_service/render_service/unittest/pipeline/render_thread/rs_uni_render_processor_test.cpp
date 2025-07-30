@@ -743,4 +743,57 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
+
+/**
+ * @tc.name: GetLayerInfo006
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
+{
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->screenInfo_ = screenInfo;
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    params.SetHwcGlobalPositionEnabled(true);
+    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: ScaleLayerIfNeeded001
+ * @tc.desc: Test RSUniRenderProcessorTest.ScaleLayerIfNeeded
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, ScaleLayerIfNeeded001, TestSize.Level1)
+{
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSLayerInfo layerInfo;
+    layerInfo.dstRect.x = 1;
+
+    renderProcessor->ScaleLayerIfNeeded(layerInfo);
+    EXPECT_EQ(layerInfo.dstRect.x, 1);
+
+    screenInfo.isSamplingOn = true;
+    screenInfo.samplingTranslateX = 1.0;
+    screenInfo.samplingTranslateY = 1.0;
+    renderProcessor->screenInfo_ = screenInfo;
+    renderProcessor->ScaleLayerIfNeeded(layerInfo);
+    EXPECT_EQ(layerInfo.dstRect.x, 2);
+}
 }

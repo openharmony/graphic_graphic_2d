@@ -58,10 +58,12 @@ using RequestCompositionType = enum class RequestComposition : int32_t {
 
 using PreValidateFunc = int32_t (*)(uint32_t,
     const std::vector<RequestLayerInfo> &, std::map<uint64_t, RequestCompositionType> &);
+using HandleEventFunc = int32_t (*)(uint32_t, uint32_t, const std::vector<int32_t>& eventData);
 
 class RSUniHwcPrevalidateUtil {
 public:
     static RSUniHwcPrevalidateUtil& GetInstance();
+    void Init();
     bool PreValidate(
         ScreenId id, std::vector<RequestLayerInfo> infos, std::map<uint64_t, RequestCompositionType> &strategy);
     bool CreateSurfaceNodeLayerInfo(uint32_t zorder,
@@ -70,6 +72,7 @@ public:
         RSScreenRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     bool CreateRCDLayerInfo(
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
+    static void OnHwcEvent(uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data);
     bool IsPrevalidateEnable();
     bool GetPrevalidateEnabled();
     void CollectSurfaceNodeLayerInfo(
@@ -95,6 +98,7 @@ private:
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
+    HandleEventFunc handleEventFunc_ = nullptr;
     bool loadSuccess_ = false;
     bool isPrevalidateHwcNodeEnable_ = false;
     bool arsrPreEnabled_ = false;

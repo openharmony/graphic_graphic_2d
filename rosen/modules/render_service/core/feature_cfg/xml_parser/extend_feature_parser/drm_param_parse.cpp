@@ -43,11 +43,11 @@ int32_t DRMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
 
 int32_t DRMParamParse::ParseDrmInternal(xmlNode &node)
 {
-    xmlNode *curNode = &node;
+    xmlNode *currNode = &node;
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(*curNode);
-    auto name = ExtractPropertyValue("name", *curNode);
-    auto val = ExtractPropertyValue("value", *curNode);
+    int xmlParamType = GetXmlNodeAsInt(*currNode);
+    auto name = ExtractPropertyValue("name", *currNode);
+    auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "DrmEnabled") {

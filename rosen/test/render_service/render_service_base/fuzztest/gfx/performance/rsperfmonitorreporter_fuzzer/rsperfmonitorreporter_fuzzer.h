@@ -14,11 +14,11 @@
  */
 
 #include <cstdint>
-#include <unistd.h>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <unistd.h>
 
 #define FUZZ_PROJECT_NAME "rsperfmonitorreporter_fuzzer"
 

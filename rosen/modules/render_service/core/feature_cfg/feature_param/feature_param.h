@@ -46,7 +46,6 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "VRateConfig",
     "AccessibilityConfig",
     "RotateOffScreenConfig",
-    "LoadOptimizationConfig",
 };
 
 enum FeatureModule {
@@ -72,7 +71,6 @@ enum FeatureModule {
     VRATE,
     ACCESSIBILITY,
     ROTATEOFFSCREEN,
-    LOAD_OPTIMIZATION,
     // Do not change it.
     ENUM_LENGTH,
 };

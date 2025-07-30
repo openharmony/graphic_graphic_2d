@@ -249,7 +249,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.dstRect.x -= offsetX_;
         layerInfo.dstRect.y -= offsetY_;
     }
-    ScaleLayerIfNeeded(layerInfo);
+    if (params.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        ScaleLayerIfNeeded(layerInfo);
+    }
     layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);

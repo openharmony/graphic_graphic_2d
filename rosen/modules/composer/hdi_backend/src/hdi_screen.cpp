@@ -23,7 +23,7 @@
 #include <cstring>
 #include <securec.h>
 #include <mutex>
-#include "v1_2/include/idisplay_composer_interface.h"
+#include "v1_3/include/idisplay_composer_interface.h"
 
 #define CHECK_DEVICE_NULL(sptrDevice)                                \
     do {                                                             \

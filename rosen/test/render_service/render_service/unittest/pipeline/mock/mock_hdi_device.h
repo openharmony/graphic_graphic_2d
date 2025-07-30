@@ -65,6 +65,7 @@ public:
     MOCK_METHOD3(GetDisplayIdentificationData, int32_t(uint32_t, uint8_t&, std::vector<uint8_t>&));
     MOCK_METHOD3(SetDisplayPerFrameParameterSmq,
                  int32_t(uint32_t, const std::string&, const std::vector<int8_t>&));
+    MOCK_METHOD2(RegHwcEventCallback, int32_t(const RSHwcEventCallback&, void*));
     /* set & get device screen info end */
 
     /* set & get device layer info begin */

@@ -1672,6 +1672,32 @@ HWTEST_F(RSMainThreadTest, IsLastFrameUIFirstEnabled002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetMultiDisplay001
+ * @tc.desc: GetMultiDisplay test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, GetMultiDisplay001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    ASSERT_FALSE(RSMainThread::GetMultiDisplay(rootNode));
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node1 = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto node2 = std::make_shared<RSScreenRenderNode>(2, 0, rsContext->weak_from_this());
+    auto node3 = std::make_shared<RSRenderNode>(3, true);
+    auto node4 = std::make_shared<RSRenderNode>(4, true);
+    node1->AddChild(node3);
+    node2->AddChild(node4);
+    rootNode->AddChild(node1);
+    rootNode->AddChild(node2);
+    ASSERT_TRUE(RSMainThread::GetMultiDisplay(rootNode));
+}
+
+/**
  * @tc.name: CheckIfHardwareForcedDisabled
  * @tc.desc: CheckIfHardwareForcedDisabled test
  * @tc.type: FUNC

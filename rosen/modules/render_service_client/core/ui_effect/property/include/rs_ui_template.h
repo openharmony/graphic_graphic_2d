@@ -117,6 +117,7 @@ class RSNGEffectTemplate : public Base {
 public:
     using RenderEffectTemplate = RSNGRenderEffectTemplate<typename Base::RenderEffectBase,
         Type, typename PropertyTags::RenderPropertyTagType...>;
+    using ValuesTypeTuple = std::tuple<typename PropertyTags::ValueType...>;
 
     RSNGEffectTemplate() = default;
     ~RSNGEffectTemplate() override = default;
@@ -191,18 +192,55 @@ public:
     constexpr const auto& Getter() const
     {
         static_assert(is_property_tag_v<Tag>, "Tag must be a property tag.");
-        static_assert(sizeof...(PropertyTags) > 0, "Cannot call Getter: No properties are defined in this group.");
+        static_assert(propTagsSize_ > 0, "Cannot call Getter: No properties are defined in this effect.");
         static_assert(Contains<Tag>(), "Target property not registered.");
         return std::get<Tag>(properties_).value_;
     }
 
-    template<typename Tag>
-    constexpr void Setter(typename Tag::ValueType value)
+    template<typename Tag, typename T>
+    constexpr void Setter(T&& value)
     {
         static_assert(is_property_tag_v<Tag>, "Tag must be a property tag.");
-        static_assert(sizeof...(PropertyTags) > 0, "Cannot call Setter: No properties are defined in this group.");
+        static_assert(propTagsSize_ > 0, "Cannot call Setter: No properties are defined in this effect.");
         static_assert(Contains<Tag>(), "Target property not registered.");
-        return std::get<Tag>(properties_).value_->Set(value);
+        // IMPORTANT: Implicit type conversion is not allowed.
+        // For example, double or int is NOT allowed where float is expected.
+        static_assert(std::is_same_v<typename Tag::ValueType, std::decay_t<T>> ||
+            std::is_base_of_v<std::decay_t<T>, typename Tag::ValueType>,
+            "Setter type mismatch, explicit conversion required.");
+        return std::get<Tag>(properties_).value_->Set(std::forward<T>(value));
+    }
+
+    template<std::size_t Index>
+    using PropertyTagAt = typename std::tuple_element<Index, std::tuple<PropertyTags...>>::type;
+
+    template<std::size_t Index>
+    constexpr const auto& Getter() const
+    {
+        static_assert(propTagsSize_ > 0, "Cannot call Setter: No properties are defined in this effect.");
+        static_assert(Index < propTagsSize_, "Cannot call Setter: Index exceeds the size of properties.");
+        return std::get<Index>(properties_).value_;
+    }
+
+    template<std::size_t Index, typename T>
+    constexpr void Setter(T&& value) const
+    {
+        static_assert(propTagsSize_ > 0, "Cannot call Setter: No properties are defined in this effect.");
+        static_assert(Index < propTagsSize_, "Cannot call Setter: Index exceeds the size of properties.");
+        // IMPORTANT: Implicit type conversion is not allowed.
+        // For example, double or int is NOT allowed where float is expected.
+        using ValueTypeIn = typename PropertyTagAt<Index>::ValueType;
+        static_assert(std::is_same_v<ValueTypeIn, std::decay_t<T>> || std::is_base_of_v<std::decay_t<T>, ValueTypeIn>,
+            "Setter type mismatch, explicit conversion requeired.");
+        return std::get<Index>(properties_).value_->Set(std::forward<T>(value));
+    }
+
+    template<typename ValueTuple>
+    constexpr void Setter(ValueTuple&& values)
+    {
+        static_assert(std::tuple_size_v<std::decay_t<ValueTuple>> == propTagsSize_,
+            "The size of ValueTuple must match the size of properties.");
+        SetterWithIndex<ValueTuple>(std::forward<ValueTuple>(values), std::make_index_sequence<propTagsSize_>{});
     }
 
     const std::tuple<PropertyTags...>& GetProperties() const
@@ -212,6 +250,18 @@ public:
 
 private:
     RSNGEffectTemplate(std::tuple<PropertyTags...>&& properties) : properties_(std::move(properties)) {}
+
+    template<typename ValueTuple, std::size_t... Index>
+    constexpr void SetterWithIndex(ValueTuple&& values, std::index_sequence<Index...>)
+    {
+        std::apply(
+            [this](auto&&... value) {
+                (Setter<Index>(std::forward<decltype(value)>(value)), ...);
+            },
+            std::forward<ValueTuple>(values));
+    }
+
+    static constexpr size_t propTagsSize_ = sizeof...(PropertyTags);
     std::tuple<PropertyTags...> properties_;
 };
 

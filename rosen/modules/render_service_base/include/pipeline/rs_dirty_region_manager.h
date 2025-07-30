@@ -93,9 +93,15 @@ public:
     }
 
     // return current frame dirtyregion, can be changed in prepare and process (displaynode) stage
-    const RectI& GetCurrentFrameDirtyRegion();
+    const RectI& GetCurrentFrameDirtyRegion()
+    {
+        return currentFrameDirtyRegion_;
+    }
     // return merged historical region
-    const RectI& GetDirtyRegion() const;
+    const RectI& GetDirtyRegion() const
+    {
+        return dirtyRegion_;
+    }
     // return mapAbs dirtyRegion
     const RectI& GetCurrentFrameMpsAbsDirtyRect() const;
 
@@ -119,7 +125,11 @@ public:
         dirtyRegionForQuickReject_ = region;
     }
 
-    void SetCurrentFrameDirtyRect(const RectI& dirtyRect);
+    void SetCurrentFrameDirtyRect(const RectI& dirtyRect)
+    {
+        currentFrameAdvancedDirtyRegion_ = { dirtyRect };
+        currentFrameDirtyRegion_ = dirtyRect;
+    }
     /*  return merged historical region upside down in left-bottom origin coordinate
         reason: when use OpenGL SetDamageRegion, coordinate system conversion exists.
     */
@@ -222,7 +232,10 @@ public:
         return isDfxTarget_;
     }
 
-    bool HasOffset();
+    bool HasOffset()
+    {
+        return hasOffset_;
+    }
     void SetOffset(int offsetX, int offsetY);
     RectI GetOffsetedDirtyRegion() const;
 
@@ -246,8 +259,14 @@ public:
         return hwcDirtyRegion_;
     }
 
-    const RectI& GetUifirstFrameDirtyRegion();
-    void SetUifirstFrameDirtyRect(const RectI& dirtyRect);
+    const RectI& GetUifirstFrameDirtyRegion()
+    {
+        return uifirstFrameDirtyRegion_;
+    }
+    void SetUifirstFrameDirtyRect(const RectI& dirtyRect)
+    {
+        uifirstFrameDirtyRegion_ = dirtyRect;
+    }
 
     void SetMaxNumOfDirtyRects(int maxNumOfDirtyRects)
     {

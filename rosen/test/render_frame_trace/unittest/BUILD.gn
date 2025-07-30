@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,21 +16,26 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("render_frame_trace_test") {
   module_out_path = "graphic_2d/graphic_2d/rosen/modules/render_frame_trace"
-
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_frame_trace/include" ]
 
-  sources = [ "render_frame_trace_test.cpp" ]
+  sources = [
+    "render_frame_trace_test.cpp",
+    "render_frame_trace_impl_test.cpp",
+    "frame_rate_report_test.cpp",
+  ]
 
-  if (defined(global_parts_info)) {
-    if (defined(
-            global_parts_info.hmosresourceschedule_frame_aware_sched_override) || defined(
-            global_parts_info.resourceschedule_frame_aware_sched)) {
-      sources += [ "render_frame_trace_impl_test.cpp" ]
-    }
-  }
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
+    "$graphic_2d_root/utils/test_header:test_header",
+  ]
 
-  deps =
-      [ "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace" ]
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

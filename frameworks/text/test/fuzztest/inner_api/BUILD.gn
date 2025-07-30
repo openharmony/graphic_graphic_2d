@@ -20,5 +20,6 @@ group("fuzztest") {
     "linetypography_fuzzer:fuzztest",
     "run_fuzzer:fuzztest",
     "textlinebase_fuzzer:fuzztest",
+    "textflipeffect_fuzzer:fuzztest",
   ]
 }

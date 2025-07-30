@@ -1477,7 +1477,12 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
 void RSRenderServiceConnection::TakeUICaptureInRange(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
+    std::function<void()> captureTask = [id, callback, captureConfig]() -> void {
+        RS_TRACE_NAME_FMT("RSRenderServiceConnection::TakeUICaptureInRange captureTask nodeId:[%" PRIu64 "]", id);
+        RS_LOGD("RSRenderServiceConnection::TakeUICaptureInRange captureTask nodeId:[%{public}" PRIu64 "]", id);
+        TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
+    };
+    RSMainThread::Instance()->PostTask(captureTask);
 }
 
 ErrCode RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,

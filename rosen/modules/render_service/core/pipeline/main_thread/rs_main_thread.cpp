@@ -584,6 +584,7 @@ void RSMainThread::Init()
     });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
+    RSUniHwcPrevalidateUtil::GetInstance().Init();
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     if (isUniRender_) {
@@ -1931,17 +1932,17 @@ static bool CheckOverlayDisplayEnable()
 #endif
 }
 
-bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)
+bool RSMainThread::GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)
 {
-    auto screenList = rootNode->GetChildrenList();
-    uint32_t count = 0;
-    for (auto node : screenList) {
+    auto screenNodeList = rootNode->GetChildrenList();
+    uint32_t validCount = 0;
+    for (const auto& node : screenNodeList) {
         auto screenNode = node.lock();
         if (screenNode && screenNode->GetChildrenCount() > 0) {
-            count++;
+            validCount++;
         }
     }
-    return count > 1;
+    return validCount > 1;
 }
 
 void RSMainThread::CheckIfHardwareForcedDisabled()
@@ -2512,20 +2513,17 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
 bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT)
 {
-    auto children = rootNode->GetChildren();
-    if (children->empty()) {
+    auto children = rootNode->GetChildrenList();
+    if (children.empty()) {
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
     std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
-    {
-        auto screenNodeList = rootNode->GetChildrenList();
-        for (const auto& child : screenNodeList) {
-            auto node = child.lock();
-            if (node && node->GetChildrenCount() > 0) {
-                screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
-                break;
-            }
+    for (const auto& child : children) {
+        auto node = child.lock();
+        if (node && node->GetChildrenCount() > 0) {
+            screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
+            break;
         }
     }
     if (!screenNode ||
@@ -4273,7 +4271,7 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
     } else {
         MemoryManager::DumpMemoryUsage(log, type);
     }
-    if (type.empty() || type == MEM_GPU_TYPE) {
+    if ((type.empty() || type == MEM_GPU_TYPE) && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
             subThreadManager->DumpMem(log);

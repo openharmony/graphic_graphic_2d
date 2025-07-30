@@ -107,6 +107,8 @@ private:
     bool isComponentScreenshot_ = false;
     bool captureTypeToClear_ = false;
     bool profilerEnabled_ = false;
+
+    static bool testingTriggering_;
 };
 
 } // namespace OHOS::Rosen

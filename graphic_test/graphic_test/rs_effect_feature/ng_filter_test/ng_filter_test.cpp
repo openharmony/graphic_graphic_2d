@@ -119,9 +119,9 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test)
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
-            { doubleRippleMaskParams[i][0], doubleRippleMaskParams[i][1]});
+            Vector2f{ doubleRippleMaskParams[i][0], doubleRippleMaskParams[i][1]});
         doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
-            { doubleRippleMaskParams[i][2], doubleRippleMaskParams[i][3]});
+            Vector2f{ doubleRippleMaskParams[i][2], doubleRippleMaskParams[i][3]});
         doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[i][4]);
         doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[i][5]);
         doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[i][6]);
@@ -129,8 +129,8 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test)
         auto filter = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
         auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
         dispDistortFilter->Setter<DispDistortFactorTag>(
-            { displacementDistortParams[i][0], displacementDistortParams[i][1] });
-        dispDistortFilter->Setter<DispDistortMaskTag>(doubleRippleMask);
+            Vector2f{ displacementDistortParams[i][0], displacementDistortParams[i][1] });
+        dispDistortFilter->Setter<DispDistortMaskTag>(mask);
         
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
@@ -152,20 +152,23 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test)
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
-            {doubleRippleMaskParams[i][0], doubleRippleMaskParams[i][1]});
+            Vector2f{doubleRippleMaskParams[i][0], doubleRippleMaskParams[i][1]});
         doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
-            {doubleRippleMaskParams[i][2], doubleRippleMaskParams[i][3]});
+            Vector2f{doubleRippleMaskParams[i][2], doubleRippleMaskParams[i][3]});
         doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[i][4]);
         doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[i][5]);
         doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[i][6]);
         // Create color gradient filter
         auto filter = CreateFilter(RSNGEffectType::COLOR_GRADIENT);
         auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
-        colorGradientFilter->Setter<ColorGradientColorsTag>({colorGradientParams[i][0], colorGradientParams[i][1],
-                                                             colorGradientParams[i][2], colorGradientParams[i][3]});
-        colorGradientFilter->Setter<ColorGradientPositionsTag>({colorGradientParams[i][4], colorGradientParams[i][5]});
-        colorGradientFilter->Setter<ColorGradientStrengthsTag>({colorGradientParams[i][6]});
-        colorGradientFilter->Setter<ColorGradientMaskTag>(doubleRippleMask);
+        std::vector<float> colors = {colorGradientParams[i][0], colorGradientParams[i][1],
+                                     colorGradientParams[i][2], colorGradientParams[i][3]};
+        std::vector<float> positions = {colorGradientParams[i][4], colorGradientParams[i][5]};
+        std::vector<float> strengths = {colorGradientParams[i][6]};
+        colorGradientFilter->Setter<ColorGradientColorsTag>(colors);
+        colorGradientFilter->Setter<ColorGradientPositionsTag>(positions);
+        colorGradientFilter->Setter<ColorGradientStrengthsTag>(strengths);
+        colorGradientFilter->Setter<ColorGradientMaskTag>(mask);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;

@@ -18,6 +18,7 @@
 
 #include "hdi_device.h"
 #include "v1_2/include/idisplay_composer_interface.h"
+#include "v1_3/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -110,6 +111,7 @@ public:
     int32_t ClearLayerBuffer(uint32_t screenId, uint32_t layerId) override;
     int32_t ClearClientBuffer(uint32_t screenId) override;
     void Destroy() override;
+    int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) override;
 
 private:
     HdiDeviceImpl(const HdiDeviceImpl& rhs) = delete;

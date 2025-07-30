@@ -67,8 +67,6 @@
 #include "surface_capture_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
-#include "loadoptimization_param_parse.h"
-#include "loadoptimization_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -121,8 +119,6 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
-    {FEATURE_CONFIGS[LOAD_OPTIMIZATION], [] { return std::make_unique<LoadOptimizationParamParse>(); },
-        [] { return std::make_unique<LoadOptimizationParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

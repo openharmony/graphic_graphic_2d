@@ -264,19 +264,27 @@ HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
 }
 
 /*
- * Function: InitLoadOptParams001
+ * Function: RegHwcEventCallback001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call InitLoadOptParams()
+ * CaseDescription: 1. call egHwcEventCallback
  *                  2. check ret
  */
-HWTEST_F(HdiBackendTest, InitLoadOptParams001, Function | MediumTest | Level3)
+HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest| Level3)
 {
-    LoadOptParamsForHdiBackend params = {};
+    RosenError res = hdiBackend_->RegHwcEventCallback(nullptr, nullptr);
+    EXPECT_EQ(res, ROSEN_ERROR_INVALID_ARGUMENTS);
 
-    hdiBackend_->InitLoadOptParams(params);
-    EXPECT_EQ(hdiBackend_->loadOptParamsForHdiBackend_.loadOptParamsForHdiOutput.switchParams.size(), 0);
+    auto func = [](uint32_t devId, uint32_t envId, const std::vector<int32_t>& eventData, void* data) -> void {};
+    EXPECT_CALL(*hdiDeviceMock_, RegHwcEventCallback(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    hdiBackend_->device_ = hdiDeviceMock_;
+    RosenError ret = HdiBackendTest::hdiBackend_->RegHwcEventCallback(func, nullptr);
+    ASSERT_EQ(ret, ROSEN_ERROR_API_FAILED);
+ 
+    EXPECT_CALL(*hdiDeviceMock_, RegHwcEventCallback(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    ret = HdiBackendTest::hdiBackend_->RegHwcEventCallback(func, nullptr);
+    ASSERT_EQ(ret, ROSEN_ERROR_OK);
 }
 } // namespace
 } // namespace Rosen

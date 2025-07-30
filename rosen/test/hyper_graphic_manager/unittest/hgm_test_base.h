@@ -192,7 +192,7 @@ const std::string TEST_XML_CONTENT_1 = (R"(<?xml version="1.0" encoding="UTF-8" 
         <Setting name="60" id="1"/>
         <Setting name="120" id="2"/>
     </Params>
-    <Params name="refresh_rate_4settings" deviceMode="padmode">
+    <Params name="refresh_rate_4settings" type="padmode">
         <Setting name="-1" id="-1"/>
         <Setting name="60" id="1"/>
         <Setting name="120" id="2"/>
@@ -202,15 +202,15 @@ const std::string TEST_XML_CONTENT_1 = (R"(<?xml version="1.0" encoding="UTF-8" 
         <Setting name="testName" id="testid"/>
         <Setting name="testName" id="testid"/>
     </Params>
-    <Params name="refresh_rate_4settings" deviceMode="pcmode">
+    <Params name="refresh_rate_4settings" type="pcmode">
         <Setting name="-1" id="-101"/>
         <Setting name="60" id="101"/>
         <Setting name="120" id="102"/>
     </Params>
-    <Params name="refresh_rate_4settings" deviceMode="testmode0">
+    <Params name="refresh_rate_4settings" type="testmode0">
         <Setting value="testName" name="testid"/>
     </Params>
-    <Params name="refresh_rate_4settings" deviceMode="testmode_no_auto">
+    <Params name="refresh_rate_4settings" type="testmode_no_auto">
         <Setting name="60" id="101"/>
         <Setting name="120" id="102"/>
     </Params>

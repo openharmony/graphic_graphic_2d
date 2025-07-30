@@ -41,12 +41,6 @@ struct LayerDumpInfo {
     LayerPtr layer;
 };
 
-// Load Optimization Param
-const std::string IS_MERGE_FENCE_SKIPPED = "isMergeFenceSkipped";
-struct LoadOptParamsForHdiOutput {
-    std::unordered_map<std::string, bool> switchParams;
-};
-
 class HdiOutput {
 public:
     HdiOutput(uint32_t screenId);
@@ -67,7 +61,6 @@ public:
     {
         return device_ != nullptr;
     }
-    void InitLoadOptParams(LoadOptParamsForHdiOutput& loadOptParamsForHdiOutput);
     /* for RS end */
 
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);
@@ -160,11 +153,6 @@ private:
     std::string vmArsrWhiteList_ = "";
     // Protected framebuffer is allocated in advance
     std::atomic<bool> isProtectedBufferAllocated_ = false;
-
-    // Load Optimization Params
-    LoadOptParamsForHdiOutput loadOptParamsForHdiOutput_ = {};
-    bool isMergeFenceSkipped_ = false;
-    bool isMergeFenceSkippedDfx_ = true;
 
     LayerPtr maskLayer_ = nullptr;
 

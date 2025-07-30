@@ -20,9 +20,7 @@ ohos_unittest("frame_report_test") {
   sources = [ "rs_frame_report_test.cpp" ]
 
   if (current_os == "ohos") {
-    sources += [
-      "$graphic_2d_root/rosen/modules/frame_report/src/rs_frame_report.cpp",
-    ]
+    sources += [ "$graphic_2d_root/rosen/modules/frame_report/src/rs_frame_report.cpp" ]
   } else if (!is_arkui_x) {
     sources += [ "$graphic_2d_root/rosen/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }
