@@ -68,7 +68,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::BEZIER_WARP, [] {
             return std::make_shared<RSNGRenderBezierWarpFilter>();
         }
-    }，
+    },
     {RSNGEffectType::CONTENT_LIGHT, [] {
             return std::make_shared<RSNGRenderContentLightFilter>();
         }
