@@ -44,7 +44,7 @@ private:
         ani_env* env, ani_object object, ani_object range, ani_object widthStyle, ani_object heightStyle);
     static ani_object GetRectsForPlaceholders(ani_env* env, ani_object object);
     static ani_object GetGlyphPositionAtCoordinate(ani_env* env, ani_object object, ani_double x, ani_double y);
-    static ani_object GetWordBoundary(ani_env* env, ani_object object, ani_double offset);
+    static ani_object GetWordBoundary(ani_env* env, ani_object object, ani_int offset);
     static ani_int GetLineCount(ani_env* env, ani_object object);
     static ani_double GetLineHeight(ani_env* env, ani_object object, ani_int line);
     static ani_double GetLineWidth(ani_env* env, ani_object object, ani_int line);
