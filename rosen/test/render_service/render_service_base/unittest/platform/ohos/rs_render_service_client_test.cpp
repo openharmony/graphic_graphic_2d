@@ -15,8 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include <map>
-
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
@@ -1360,7 +1358,7 @@ HWTEST_F(RSClientTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
 
     cb = std::make_shared<TestSurfaceCaptureCallback>();
     ASSERT_EQ(cb, nullptr);
-    std::vector<std::shared_ptr<SurfaceBufferCallback>> callbackVector;
+    std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
     rsClient->surfaceCaptureCbMap_.emplace(std::make_pair(TEST_ID, captureConfig), callbackVector);
     ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
     ASSERT_EQ(ret, true);

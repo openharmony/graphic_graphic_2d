@@ -471,7 +471,7 @@ bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // get data
-    auto callback = std::make_shared<SurfaceCaptureCallback>();
+    auto callback = std::make_shared<SurfaceCaptureFuture>();
     RSDisplayNodeConfig displayConfig = {
         static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
     auto displayNode = RSDisplayNode::Create(displayConfig);

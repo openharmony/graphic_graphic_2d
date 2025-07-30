@@ -1255,7 +1255,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest002, T
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
     sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
-    auto mainThead = connection->mainThread_;
+    auto mainThread = connection->mainThread_;
     connection->mainThread_ = nullptr;
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCapturePermissions permissions;
@@ -1266,8 +1266,8 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest002, T
     ret = connection->SetScreenFreezeImmediately(0, false, callback, captureConfig, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
-    ASSERT_NE(mainThead, nullptr);
-    connection->mainThread_ = mainThead;
+    ASSERT_NE(mainThread, nullptr);
+    connection->mainThread_ = mainThread;
     permissions.screenCapturePermission = false;
     permissions.isSystemCalling = false;
     ret = connection->SetScreenFreezeImmediately(0, false, nullptr, captureConfig, permissions);
@@ -1370,6 +1370,5 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest003, T
     ASSERT_EQ(res, ERR_INVALID_DATA);
     delete callback2;
     callback2 = nullptr;
-    
 }
 } // namespace OHOS::Rosen
