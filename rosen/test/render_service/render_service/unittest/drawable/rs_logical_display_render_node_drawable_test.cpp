@@ -1116,50 +1116,47 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawSecurityMaskTest002, TestSi
     auto screen = std::make_unique<OHOS::Rosen::impl::RSScreen>(configs);
     screenManager->screens_.insert(std::make_pair(renderParams->GetScreenId(), std::move(screen)));
     ASSERT_NE(screenManager, nullptr);
-    // when image width is 0, height is 0
-    std::shared_ptr<Media::PixelMap> securityMask1 = std::make_shared<Media::PixelMap>();
+    
+    // when imagePtr is nullptr
+    displayDrawable_->DrawSecurityMask();
+
+    // when imagePtr is not nullptr, the image must be not nullptr
+    // image is not nullptr and width is 0
+    auto securityMask1 = std::make_shared<Media::PixelMap>();
     securityMask1->ImageInfo_.size.width = 0;
-    securityMask1->ImageInfo_.size.height = 0;
+    securityMask1->ImageInfo_.size.height = 1;
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask1);
     displayDrawable_->DrawSecurityMask();
 
-    // when image width is 1, height is 0
-    Media::InitializationOptions opts2;
-    opts2.size.width = 1;
-    opts2.size.height = 0;
-    std::shared_ptr<Media::PixelMap> securityMask2 = Media::PixelMap::Create(opts2);
+    // image width is 1, height is 0
+    auto securityMask2 = std::make_shared<Media::PixelMap>();
+    securityMask2->ImageInfo_.size.width = 1;
+    securityMask2->ImageInfo_.size.height = 0;
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask2);
     displayDrawable_->DrawSecurityMask();
 
-    // when image width is 0, height is 1
-    Media::InitializationOptions opts3;
-    opts3.size.width = 0;
-    opts3.size.height = 1;
-    std::shared_ptr<Media::PixelMap> securityMask3 = Media::PixelMap::Create(opts3);
+    // image width and height are both 1
+    auto securityMask3 = std::make_shared<Media::PixelMap>();
+    securityMask3->ImageInfo_.size.width = 1;
+    securityMask3->ImageInfo_.size.height = 1;
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask3);
     displayDrawable_->DrawSecurityMask();
 
-    // when image width is 1, height is 1
+    // do something to make watermark not nullptr
     Media::InitializationOptions opts4;
     opts4.size.width = 1;
     opts4.size.height = 1;
     std::shared_ptr<Media::PixelMap> securityMask4 = Media::PixelMap::Create(opts4);
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask4);
-    EXPECT_NE(screenManager->GetScreenSecurityMask(renderParams->GetScreenId()), nullptr);
-    displayDrawable_->DrawSecurityMask();
-
-    // when watermark is not empty
     auto myWatermark = std::make_shared<Drawing::Image>();
     ASSERT_NE(myWatermark, nullptr);
     auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    renderThreadParams->watermark_ = myWatermark;
+    renderThreadParams->SetWatermark(false, myWatermark);
     RSUniRenderThread::Instance().Sync(std::move(renderThreadParams));
     displayDrawable_->DrawSecurityMask();
 
-    // when imagePtr is not nullptr but image is nullptr
-    screenManager->GetScreenSecurityMask(renderParams->GetScreenId()).reset();
-    displayDrawable_->DrawSecurityMask();
-    screenManager->screens_erase(renderParams->GetScreenId());
+    // clear the screen
+    screenManager->screens_.erase(renderParams->GetScreenId());
 }
 
 /**
