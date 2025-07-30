@@ -103,6 +103,7 @@ group("test") {
   testonly = true
   deps = [
     ":RSGraphicTest",
+    ":RenderServiceRenderProfilerTest",
   ]
 }
 
@@ -148,4 +149,39 @@ ohos_unittest("RSGraphicTest") {
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
+}
+
+## Build RenderServiceRenderProfilerTest
+ohos_unittest("RenderServiceRenderProfilerTest") {
+  module_out_path = module_output_path
+  sources = [
+    "render_service_render_profiler_test.cpp"
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
+  ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "window_manager:libdm",
+    "window_manager:sms",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }

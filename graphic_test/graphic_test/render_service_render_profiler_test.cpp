@@ -26,21 +26,20 @@
 #include <thread>
 #include <unistd.h>
 
-#include "rs_graphic_test_utils.h"
 #include "rs_profiler_packet.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
 using namespace std;
 
-constexpr uint32_t MAX_WAITING_TIMES = 1000;
-constexpr int64_t INIT_WAIT_TIME = 50;
-constexpr int64_t SOCKET_REFRESH_TIME = 20;
+constexpr int MAX_WAITING_TIMES = 1000;
+constexpr int INIT_WAIT_TIME = 50;
+constexpr int SOCKET_REFRESH_TIME = 20;
 constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
 
-class RenderServiceClientRenderProfilerDemo {
+class RenderServiceRenderProfilerTest {
 public:
-    ~RenderServiceClientRenderProfilerDemo()
+    ~RenderServiceRenderProfilerTest()
     {
         Stop();
     }
@@ -51,7 +50,7 @@ public:
         auto time = std::chrono::milliseconds(INIT_WAIT_TIME);
         std::this_thread::sleep_for(time);
         running_ = true;
-        thread_ = std::thread(&RenderServiceClientRenderProfilerDemo::MainLoop, this);
+        thread_ = std::thread(&RenderServiceRenderProfilerTest::MainLoop, this);
     }
 
     void Stop()
@@ -236,7 +235,7 @@ private:
     std::condition_variable cv_;
 };
 
-void RecordStart(std::shared_ptr<RenderServiceClientRenderProfilerDemo> profilerThread)
+void RecordStart(std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread)
 {
     // 命令示例 ./demo record_start
     if (access("/data/service/el0/render_service/stop_recording", F_OK) == 0) {
@@ -264,11 +263,11 @@ void RecordStop()
 {
     // 命令示例 ./demo record_stop
     std::ofstream stopFlag("/data/service/el0/render_service/stop_recording");
-    stop_flag.close();
+    stopFlag.close();
     std::cout << "Stop recording flag created." << std::endl;
 }
 
-void ReplayStart(std::shared_ptr<RenderServiceClientRenderProfilerDemo> profilerThread,
+void ReplayStart(std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread,
     std::string ohrFile)
 {
     // 命令示例 ./demo replay_start -f filePath
@@ -306,7 +305,7 @@ void ReplayStop()
 {
     // 命令示例 ./demo replay_stop
     std::ofstream stopFlag("/data/service/el0/render_service/stop_replaying");
-    stop_flag.close();
+    stopFlag.close();
     std::cout << "Stop replaying flag created." << std::endl;
 }
 
@@ -328,14 +327,14 @@ int main(int argc, char * argv[])
     std::string message = "";
 
     if (cmdType == "record_start") {
-        std::shared_ptr<RenderServiceClientRenderProfilerDemo> profilerThread =
-            std::make_shared<RenderServiceClientRenderProfilerDemo>();
+        std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread =
+            std::make_shared<RenderServiceRenderProfilerTest>();
         RecordStart(profilerThread);
     } else if (cmdType == "record_stop") {
         RecordStop();
     } else if (cmdType == "replay_start") {
-        std::shared_ptr<RenderServiceClientRenderProfilerDemo> profilerThread =
-            std::make_shared<RenderServiceClientRenderProfilerDemo>();
+        std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread =
+            std::make_shared<RenderServiceRenderProfilerTest>();
         std::string ohrFile = argv[3];
         ReplayStart(profilerThread, ohrFile);
     } else if (cmdType == "replay_stop") {
