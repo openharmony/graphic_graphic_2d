@@ -1809,8 +1809,9 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation004, TestSize.Level1) {
     symbolAnimation.SetNode(rootNode);
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     symbolAnimationConfig->symbolNodes.resize(3); // symbolNodes size is 3
-    symbolAnimationConfig->numNodes = 3;
+    symbolAnimationConfig->numNodes = 3; // numNodes size is 3
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::DISABLE;
+
     bool result = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
     EXPECT_FALSE(result);
 }
@@ -1956,7 +1957,7 @@ HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation002, TestSize.Level1) {
 
 /**
  * @tc.name: SetDisableAnimation003
- * @tc.desc: Test SetDisableAnimation by symbolNodes with path and parameters
+ * @tc.desc: Test SetDisableAnimation by check disable symbol
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation003, TestSize.Level1) {
