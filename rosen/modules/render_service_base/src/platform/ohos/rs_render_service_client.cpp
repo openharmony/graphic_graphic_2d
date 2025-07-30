@@ -448,7 +448,7 @@ bool RSRenderServiceClient::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
         }
     }
 
-    auto ret = renderService->SetWindowFreezeImmediately(id, isFreeze, surfaceCaptureCbDirector_, captureConfig);
+    auto ret = renderService->SetScreenFreezeImmediately(id, isFreeze, surfaceCaptureCbDirector_, captureConfig);
     if (ret != ERR_OK) {
         ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__);
         std::lock_guard<std::mutex> lock(mutex_);
