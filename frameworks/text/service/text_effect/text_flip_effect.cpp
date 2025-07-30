@@ -201,6 +201,7 @@ void TextFlipEffect::DrawTextFlip(std::vector<TextBlobRecordInfo>& infos, Drawin
             brush.SetColor(info.color);
             canvas->AttachBrush(brush);
             canvas->DrawTextBlob(info.blob.get(), x + info.offset.fX, y + info.offset.fY);
+            canvas->DetachBrush();
             continue;
         }
         if (info.blob == nullptr || info.blob->Bounds() == nullptr) {
