@@ -166,7 +166,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_Test_006)
             testNode->SetTranslate(0.5, 0.5, 0.0);
         if (i == 2)
             testNode->SetShadowColor(0xff000000);
-        if (i == 4)
+        if (i == 3)
             testNode->SetShadowRadius(50);
         testNode->SetCornerRadius(250);
         GetRootNode()->AddChild(testNode);
