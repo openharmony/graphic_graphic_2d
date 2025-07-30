@@ -119,7 +119,7 @@ int RsFrameReport::GetEnable()
     }
 }
 
-void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload)
+void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
 {
     std::lock_guard<std::mutex> lock(reportSchedEventFuncLock_);
     if (reportSchedEventFunc_ == nullptr) {
@@ -185,12 +185,12 @@ void RsFrameReport::UniRenderEnd()
     ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_END, {});
 }
 
-void RsFrameReport::UnblockMainThread()
+void RsFrameReport::CheckUnblockMainThreadPoint()
 {
     ReportSchedEvent(FrameSchedEvent::RS_UNBLOCK_MAINTHREAD, {});
 }
 
-void RsFrameReport::PostAndWait()
+void RsFrameReport::CheckPostAndWaitPoint()
 {
     ReportSchedEvent(FrameSchedEvent::RS_POST_AND_WAIT, {});
 }
@@ -246,13 +246,11 @@ void RsFrameReport::ReportDDGRTaskInfo()
     ReportSchedEvent(FrameSchedEvent::RS_DDGR_TASK, {});
 }
 
-void RsFrameReport::ReportScbSceneInfo(std::string description, bool eventStatus)
+void RsFrameReport::ReportScbSceneInfo(const std::string& description, bool eventStatus)
 {
     std::unordered_map<std::string, std::string> payload = {};
     payload["description"] = description;
     payload["eventStatus"] = eventStatus ? "1" : "0"; // true:enter false:exit
-    LOGI("RsFrameReport:[ReportScbSceneInfo]description %{public}s, eventStatus %{public}s",
-        description.c_str(), payload["eventStatus"].c_str());
     ReportSchedEvent(FrameSchedEvent::GPU_SCB_SCENE_INFO, payload);
 }
 } // namespace Rosen
