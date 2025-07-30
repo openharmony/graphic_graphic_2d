@@ -19,7 +19,6 @@
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS {
 namespace OHOS::Rosen {
 
 class MultiScreenParamParseTest : public testing::Test {
@@ -84,5 +83,4 @@ HWTEST_F(MultiScreenParamParseTest, ParseFeatureParamTest, TestSize.Level1)
     res = paramParse.ParseFeatureParam(paramMapType, node);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
-} // namespace Rosen
-} // namespace OHOS
+}

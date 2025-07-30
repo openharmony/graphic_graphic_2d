@@ -21,8 +21,9 @@
 
 using namespace testing;
 using namespace testing::ext;
-
+namespace OHOS {
 namespace Rosen {
+
 class MultiScreenParamTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -119,4 +120,5 @@ HWTEST_F(MultiScreenParamTest, SetMipmapMode, Function | SmallTest | Level1)
     MultiScreenParam::SetMipmapMode(Drawing::MipmapMode::NEAREST);
     ASSERT_EQ(MultiScreenParam::GetMipmapMode(), Drawing::MipmapMode::NEAREST);
 }
-}
+} // namespace Rosen
+} // namespace OHOS
