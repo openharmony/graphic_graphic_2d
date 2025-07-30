@@ -167,7 +167,6 @@ public:
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
-    static void SetEnableHDREffect(RSContext &context, NodeId nodeId, bool hdrPresent);
     static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
@@ -368,10 +367,6 @@ ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
 ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
     ARG(PERMISSION_APP, RS_NODE, SET_NEED_USE_CMDLIST_DRAW_REGION,
         RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion, NodeId, bool))
-
-ADD_COMMAND(RSSetEnableHDREffect,
-    ARG(PERMISSION_APP, RS_NODE, SET_ENABLE_HDR_EFFECT,
-        RSNodeCommandHelper::SetEnableHDREffect, NodeId, bool))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,

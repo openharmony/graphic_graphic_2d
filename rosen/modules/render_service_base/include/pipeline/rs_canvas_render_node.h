@@ -67,7 +67,10 @@ public:
     void OnTreeStateChanged() override;
 
     void SetHDRPresent(bool hasHdrPresent);
-    bool GetHDRPresent() const;
+    bool GetHDRPresent() const
+    {
+        return hasHdrPresent_;
+    }
 
     void SetColorGamut(uint32_t colorGamut);
     uint32_t GetColorGamut();

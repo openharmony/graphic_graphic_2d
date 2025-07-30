@@ -1202,7 +1202,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
 
 bool RSPaintFilterCanvas::OnFilter() const
 {
-    return alphaStack_.top() > 0.f && !isQuickDraw_;
+    return alphaStack_.top() > 0.f && !isQuickGetDrawState_;
 }
 
 Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const

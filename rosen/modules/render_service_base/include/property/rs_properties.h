@@ -76,10 +76,19 @@ public:
     void SetBoundsPosition(Vector2f position);
     void SetBoundsPositionX(float positionX);
     void SetBoundsPositionY(float positionY);
-    Vector4f GetBounds() const;
+    Vector4f GetBounds() const
+    {
+        return { boundsGeo_->GetX(), boundsGeo_->GetY(), boundsGeo_->GetWidth(), boundsGeo_->GetHeight() };
+    }
     Vector2f GetBoundsSize() const;
-    float GetBoundsWidth() const;
-    float GetBoundsHeight() const;
+    float GetBoundsWidth() const
+    {
+        return boundsGeo_->GetWidth();
+    }
+    float GetBoundsHeight() const
+    {
+        return boundsGeo_->GetHeight();
+    }
     Vector2f GetBoundsPosition() const;
     float GetBoundsPositionX() const;
     float GetBoundsPositionY() const;
@@ -93,22 +102,40 @@ public:
     void SetFramePositionY(float positionY);
     Vector4f GetFrame() const;
     Vector2f GetFrameSize() const;
-    float GetFrameWidth() const;
-    float GetFrameHeight() const;
+    float GetFrameWidth() const
+    {
+        return frameGeo_.GetWidth();
+    }
+    float GetFrameHeight() const
+    {
+        return frameGeo_.GetHeight();
+    }
     Vector2f GetFramePosition() const;
     float GetFramePositionX() const;
     float GetFramePositionY() const;
-    float GetFrameOffsetX() const;
-    float GetFrameOffsetY() const;
+    float GetFrameOffsetX() const
+    {
+        return frameOffsetX_;
+    }
+    float GetFrameOffsetY() const
+    {
+        return frameOffsetY_;
+    }
 
     void SetSandBox(const std::optional<Vector2f>& parentPosition);
-    std::optional<Vector2f> GetSandBox() const;
+    std::optional<Vector2f> GetSandBox() const
+    {
+        return sandbox_ ? sandbox_->position_ : std::nullopt;
+    }
     void ResetSandBox();
     void UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix);
     std::optional<Drawing::Matrix> GetSandBoxMatrix() const;
 
     void SetPositionZ(float positionZ);
-    float GetPositionZ() const;
+    float GetPositionZ() const
+    {
+        return boundsGeo_->GetZ();
+    }
     void SetPositionZApplicableCamera3D(bool isApplicable);
     bool GetPositionZApplicableCamera3D() const;
 
@@ -116,7 +143,10 @@ public:
     void SetPivotX(float pivotX);
     void SetPivotY(float pivotY);
     void SetPivotZ(float pivotZ);
-    Vector2f GetPivot() const;
+    Vector2f GetPivot() const
+    {
+        return { boundsGeo_->GetPivotX(), boundsGeo_->GetPivotY() };
+    }
     float GetPivotX() const;
     float GetPivotY() const;
     float GetPivotZ() const;
@@ -129,35 +159,74 @@ public:
     void SetRotationX(float degree);
     void SetRotationY(float degree);
     void SetCameraDistance(float cameraDistance);
-    Quaternion GetQuaternion() const;
-    float GetRotation() const;
-    float GetRotationX() const;
-    float GetRotationY() const;
+    Quaternion GetQuaternion() const
+    {
+        return boundsGeo_->GetQuaternion();
+    }
+    float GetRotation() const
+    {
+        return boundsGeo_->GetRotation();
+    }
+    float GetRotationX() const
+    {
+        return boundsGeo_->GetRotationX();
+    }
+    float GetRotationY() const
+    {
+        return boundsGeo_->GetRotationY();
+    }
     float GetCameraDistance() const;
 
     void SetTranslate(Vector2f translate);
     void SetTranslateX(float translate);
     void SetTranslateY(float translate);
     void SetTranslateZ(float translate);
-    Vector2f GetTranslate() const;
-    float GetTranslateX() const;
-    float GetTranslateY() const;
-    float GetTranslateZ() const;
+    Vector2f GetTranslate() const
+    {
+        return Vector2f(GetTranslateX(), GetTranslateY());
+    }
+    float GetTranslateX() const
+    {
+        return boundsGeo_->GetTranslateX();
+    }
+    float GetTranslateY() const
+    {
+        return boundsGeo_->GetTranslateY();
+    }
+    float GetTranslateZ() const
+    {
+        return boundsGeo_->GetTranslateZ();
+    }
 
     void SetScale(Vector2f scale);
     void SetScaleX(float sx);
     void SetScaleY(float sy);
     void SetScaleZ(float sz);
-    Vector2f GetScale() const;
-    float GetScaleX() const;
-    float GetScaleY() const;
-    float GetScaleZ() const;
+    Vector2f GetScale() const
+    {
+        return { boundsGeo_->GetScaleX(), boundsGeo_->GetScaleY() };
+    }
+    float GetScaleX() const
+    {
+        return boundsGeo_->GetScaleX();
+    }
+    float GetScaleY() const
+    {
+        return boundsGeo_->GetScaleY();
+    }
+    float GetScaleZ() const
+    {
+        return boundsGeo_->GetScaleZ();
+    }
 
     void SetSkew(const Vector3f& skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
     void SetSkewZ(float skewZ);
-    Vector3f GetSkew() const;
+    Vector3f GetSkew() const
+    {
+        return { boundsGeo_->GetSkewX(), boundsGeo_->GetSkewY(), boundsGeo_->GetSkewZ() };
+    }
     float GetSkewX() const;
     float GetSkewY() const;
     float GetSkewZ() const;
@@ -167,14 +236,20 @@ public:
     void SetPerspY(float perspY);
     void SetPerspZ(float perspZ);
     void SetPerspW(float perspW);
-    Vector4f GetPersp() const;
+    Vector4f GetPersp() const
+    {
+        return { boundsGeo_->GetPerspX(), boundsGeo_->GetPerspY(), boundsGeo_->GetPerspZ(), boundsGeo_->GetPerspW() };
+    }
     float GetPerspX() const;
     float GetPerspY() const;
     float GetPerspZ() const;
     float GetPerspW() const;
 
     void SetAlpha(float alpha);
-    float GetAlpha() const;
+    float GetAlpha() const
+    {
+        return alpha_;
+    }
     void SetAlphaOffscreen(bool alphaOffscreen);
     bool GetAlphaOffscreen() const;
 
@@ -199,8 +274,16 @@ public:
         needSkipShadow_ = needSkipShadow;
     }
 
+    inline bool GetNeedForceSubmit() const
+    {
+        return needForceSubmit_;
+    }
+
     void SetHDRBrightnessFactor(float factor);
-    float GetHDRBrightnessFactor() const;
+    float GetHDRBrightnessFactor() const
+    {
+        return hdrBrightnessFactor_;
+    }
     void SetCanvasNodeHDRBrightnessFactor(float factor);
     float GetCanvasNodeHDRBrightnessFactor() const;
 
@@ -214,7 +297,10 @@ public:
 
     // background properties
     void SetBackgroundColor(Color color);
-    const Color& GetBackgroundColor() const;
+    const Color& GetBackgroundColor() const
+    {
+        return decoration_ ? decoration_->backgroundColor_ : RgbPalette::Transparent();
+    }
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
     std::shared_ptr<RSShader> GetBackgroundShader() const;
     void SetBackgroundShaderProgress(const float& progress);
@@ -263,7 +349,10 @@ public:
     Vector4f GetOutlineDashWidth() const;
     Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
-    const std::shared_ptr<RSBorder>& GetOutline() const;
+    const std::shared_ptr<RSBorder>& GetOutline() const
+    {
+        return outline_;
+    }
 
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;
@@ -271,7 +360,10 @@ public:
     void SetForegroundEffectDirty(bool dirty);
     bool GetForegroundEffectDirty() const;
     void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
-    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
+    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const
+    {
+        return foregroundFilterCache_;
+    }
 
     // filter properties
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
@@ -310,6 +402,7 @@ public:
     bool GetFgBrightnessHdr() const;
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
+    bool GetFgBrightnessEnableEDR() const;
 
     void SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params);
     std::optional<RSShadowBlenderPara> GetShadowBlenderParams() const;
@@ -326,7 +419,10 @@ public:
     void CreateFlyOutShaderFilter();
 
     void SetDistortionK(const std::optional<float>& distortionK);
-    const std::optional<float>& GetDistortionK() const;
+    const std::optional<float>& GetDistortionK() const
+    {
+        return distortionK_;
+    }
 
     void SetBgBrightnessRates(const Vector4f& rates);
     Vector4f GetBgBrightnessRates() const;
@@ -343,12 +439,18 @@ public:
 
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
-    const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
+    const std::shared_ptr<RSFilter>& GetBackgroundFilter() const
+    {
+        return backgroundFilter_;
+    }
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
     const std::shared_ptr<ParticleNoiseFields>& GetParticleNoiseFields() const;
     void IfLinearGradientBlurInvalid();
-    const std::shared_ptr<RSFilter>& GetFilter() const;
+    const std::shared_ptr<RSFilter>& GetFilter() const
+    {
+        return filter_;
+    }
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
     const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool NeedFilter() const;
@@ -356,7 +458,10 @@ public:
     bool NeedSkipSubtreeParallel() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
-    const std::shared_ptr<RSFilter>& GetForegroundFilter() const;
+    const std::shared_ptr<RSFilter>& GetForegroundFilter() const
+    {
+        return foregroundFilter_;
+    }
     void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
 
     void SetBackgroundBlurRadius(float backgroundBlurRadius);
@@ -456,23 +561,46 @@ public:
     bool IsShadowValid() const;
 
     void SetFrameGravity(Gravity gravity);
-    Gravity GetFrameGravity() const;
+    Gravity GetFrameGravity() const
+    {
+        return frameGravity_;
+    }
 
     void SetDrawRegion(const std::shared_ptr<RectF>& rect);
-    std::shared_ptr<RectF> GetDrawRegion() const;
+    std::shared_ptr<RectF> GetDrawRegion() const
+    {
+        return drawRegion_;
+    }
 
     void SetClipRRect(RRect clipRRect);
-    RRect GetClipRRect() const;
-    bool GetClipToRRect() const;
+    RRect GetClipRRect() const
+    {
+        return clipRRect_ ? *clipRRect_ : RRect();
+    }
+    bool GetClipToRRect() const
+    {
+        return clipRRect_.has_value() && !clipRRect_->rect_.IsEmpty();
+    }
     void SetClipBounds(const std::shared_ptr<RSPath>& path);
-    const std::shared_ptr<RSPath>& GetClipBounds() const;
+    const std::shared_ptr<RSPath>& GetClipBounds() const
+    {
+        return clipPath_;
+    }
     void SetClipToBounds(bool clipToBounds);
-    bool GetClipToBounds() const;
+    bool GetClipToBounds() const
+    {
+        return clipToBounds_;
+    }
     void SetClipToFrame(bool clipToFrame);
-    bool GetClipToFrame() const;
-
+    bool GetClipToFrame() const
+    {
+        return clipToFrame_;
+    }
     void SetVisible(bool visible);
-    bool GetVisible() const;
+    bool GetVisible() const
+    {
+        return visible_;
+    }
     std::string Dump() const;
 
     void SetMask(const std::shared_ptr<RSMask>& mask);
@@ -500,7 +628,10 @@ public:
     bool GetSystemBarEffect() const;
     RectI GetPixelStretchDirtyRect() const;
 
-    const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
+    const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const
+    {
+        return boundsGeo_;
+    }
     const RSObjGeometry& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset);
     bool UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
@@ -522,21 +653,34 @@ public:
     bool IsHDRUIBrightnessValid() const;
     void CreateHDRUIBrightnessFilter();
 
-    bool IsAttractionValid() const;
+    bool IsAttractionValid() const
+    {
+        return isAttractionValid_;
+    }
     void SetAttractionFraction(float fraction);
     void SetAttractionDstPoint(Vector2f dstPoint);
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
     void CreateAttractionEffectFilter();
     void CreateColorfulShadowFilter();
-    RectI GetAttractionEffectCurrentDirtyRegion() const;
+    RectI GetAttractionEffectCurrentDirtyRegion() const
+    {
+        return attractionEffectCurrentDirtyRegion_;
+    }
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
     bool IsDynamicLightUpValid() const;
     bool IsDynamicDimValid() const;
-    bool IsFgBrightnessValid() const;
-    bool IsBgBrightnessValid() const;
+    bool IsFgBrightnessValid() const
+    {
+        return fgBrightnessParams_.has_value() && fgBrightnessParams_->IsValid();
+    }
+
+    bool IsBgBrightnessValid() const
+    {
+        return bgBrightnessParams_.has_value() && bgBrightnessParams_->IsValid();
+    }
     bool IsShadowBlenderValid() const;
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
@@ -569,7 +713,10 @@ public:
     void SetColorBlend(const std::optional<Color>& colorBlend);
     const std::optional<Color>& GetColorBlend() const;
 
-    const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
+    const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const
+    {
+        return colorFilter_;
+    }
 
     void SetLightIntensity(float lightIntensity);
     void SetLightColor(Color lightColor);
@@ -606,18 +753,35 @@ public:
     void SetUseEffectType(int useEffectType);
     int GetUseEffectType() const;
     void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
-    bool GetNeedDrawBehindWindow() const;
-
-    void SetEnableHDREffect(bool useHDREffect);
-    bool GetEnableHDREffect() const;
+    bool GetNeedDrawBehindWindow() const
+    {
+        return needDrawBehindWindow_;
+    }
 
     void SetColorBlendMode(int colorBlendMode);
-    int GetColorBlendMode() const;
-    bool IsColorBlendModeValid() const;
-    bool IsColorBlendModeNone() const;
+    int GetColorBlendMode() const
+    {
+        return colorBlendMode_;
+    }
+    bool IsColorBlendModeValid() const
+    {
+        return colorBlendMode_ != static_cast<int>(RSColorBlendMode::SRC_OVER) &&
+               colorBlendMode_ != static_cast<int>(RSColorBlendMode::NONE);
+    }
+    bool IsColorBlendModeNone() const
+    {
+        return colorBlendMode_ == static_cast<int>(RSColorBlendMode::NONE);
+    }
+
     void SetColorBlendApplyType(int colorBlendApplyType);
-    int GetColorBlendApplyType() const;
-    bool IsColorBlendApplyTypeOffscreen() const;
+    int GetColorBlendApplyType() const
+    {
+        return colorBlendApplyType_;
+    }
+    bool IsColorBlendApplyTypeOffscreen() const
+    {
+        return colorBlendApplyType_ != static_cast<int>(RSColorBlendApplyType::FAST);
+    }
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
@@ -715,8 +879,8 @@ private:
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
     bool needHwcFilter_ = false;
+    bool needForceSubmit_ = false;
     bool useEffect_ = false;
-    bool enableHDREffect_ = false;
     bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;

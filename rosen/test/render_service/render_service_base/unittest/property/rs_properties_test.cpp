@@ -17,6 +17,7 @@
 
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "effect/rs_render_filter_base.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
@@ -1471,6 +1472,33 @@ HWTEST_F(RSPropertiesTest, SetNGetFgBrightnessParams001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetFgBrightnessEnableEDR001
+ * @tc.desc: test results of GetFgBrightnessEnableEDR
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetFgBrightnessEnableEDR001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetFgBrightnessEnableEDR());
+
+    RSDynamicBrightnessPara para;
+    std::optional<RSDynamicBrightnessPara> params;
+    params = para;
+    properties.SetFgBrightnessParams(params);
+    EXPECT_FALSE(properties.GetFgBrightnessEnableEDR());
+
+    para.enableHdr_ = true;
+    para.fraction_ = 1.0f;
+    params = para;
+    EXPECT_FALSE(properties.GetFgBrightnessEnableEDR());
+
+    para.fraction_ = 0.5f;
+    params = para;
+    properties.SetFgBrightnessParams(params);
+    EXPECT_TRUE(properties.GetFgBrightnessEnableEDR());
+}
+
+/**
  * @tc.name: SetNGetFgBrightnessRates001
  * @tc.desc: test results of SetNGetFgBrightnessRates001
  * @tc.type:FUNC
@@ -2652,6 +2680,10 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
     properties.systemBarEffect_ = true;
     properties.GenerateBackgroundFilter();
     EXPECT_TRUE(properties.systemBarEffect_);
+
+    properties.bgNGRenderFilter_ = std::make_shared<RSNGRenderEdgeLightFilter>();
+    properties.GenerateBackgroundFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
 
     properties.waterRippleProgress_ = 0.1f;
     uint32_t waveCount = 2;

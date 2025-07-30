@@ -255,6 +255,11 @@ bool RSMaterialFilter::IsValid() const
     return radius_ > epsilon;
 }
 
+bool RSMaterialFilter::NeedForceSubmit() const
+{
+    return colorMode_ == AVERAGE;
+}
+
 void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {

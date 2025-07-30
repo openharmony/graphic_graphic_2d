@@ -66,6 +66,9 @@ namespace OHOS {
     */
     std::string GetStringFromData(int strlen)
     {
+        if (strlen <= 0) {
+            return "fuzz";
+        }
         char cstr[strlen];
         cstr[strlen - 1] = '\0';
         for (int i = 0; i < strlen - 1; i++) {

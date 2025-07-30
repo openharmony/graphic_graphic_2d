@@ -18,6 +18,7 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -56,19 +57,21 @@ static inline void TaskDispatchFunc(const RSTaskDispatcher::RSTask& task, bool i
 HWTEST_F(SKResourceManagerTest, HoldResourceImg001, TestSize.Level1)
 {
 #ifdef ROSEN_OHOS
-    auto img = std::make_shared<Drawing::Image>();
-    // case 1: Task is not registered, should return immediately
-    skResManager_.HoldResource(img);
-    EXPECT_TRUE(skResManager_.images_.empty());
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        auto img = std::make_shared<Drawing::Image>();
+        // case 1: Task is not registered, should return immediately
+        skResManager_.HoldResource(img);
+        EXPECT_TRUE(skResManager_.images_.empty());
 
-    // case 2: Task is registered, the img push back to the images_
-    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
-    skResManager_.HoldResource(img);
-    EXPECT_EQ(skResManager_.images_.size(), 1);
+        // case 2: Task is registered, the img push back to the images_
+        RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
+        skResManager_.HoldResource(img);
+        EXPECT_EQ(skResManager_.images_.size(), 1);
 
-    // case 3: the img already exists
-    skResManager_.HoldResource(img);
-    EXPECT_EQ(skResManager_.images_.size(), 1);
+        // case 3: the img already exists
+        skResManager_.HoldResource(img);
+        EXPECT_EQ(skResManager_.images_.size(), 1);
+    }
 #endif
 }
 
@@ -81,19 +84,21 @@ HWTEST_F(SKResourceManagerTest, HoldResourceImg001, TestSize.Level1)
 HWTEST_F(SKResourceManagerTest, HoldResourceSurface001, TestSize.Level1)
 {
 #ifdef ROSEN_OHOS
-    auto surfacePtr = std::make_shared<Drawing::Surface>();
-    // case 1: Task is not registered, should return immediately
-    skResManager_.HoldResource(surfacePtr);
-    EXPECT_TRUE(skResManager_.skSurfaces_.empty());
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        auto surfacePtr = std::make_shared<Drawing::Surface>();
+        // case 1: Task is not registered, should return immediately
+        skResManager_.HoldResource(surfacePtr);
+        EXPECT_TRUE(skResManager_.skSurfaces_.empty());
 
-    // case 2: Task is registered, the surfacePtr push back to the skSurfaces_
-    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
-    skResManager_.HoldResource(surfacePtr);
-    EXPECT_EQ(skResManager_.skSurfaces_.size(), 1);
+        // case 2: Task is registered, the surfacePtr push back to the skSurfaces_
+        RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
+        skResManager_.HoldResource(surfacePtr);
+        EXPECT_EQ(skResManager_.skSurfaces_.size(), 1);
 
-    // case 3: the surfacePtr already exists
-    skResManager_.HoldResource(surfacePtr);
-    EXPECT_EQ(skResManager_.skSurfaces_.size(), 1);
+        // case 3: the surfacePtr already exists
+        skResManager_.HoldResource(surfacePtr);
+        EXPECT_EQ(skResManager_.skSurfaces_.size(), 1);
+    }
 #endif
 }
 
@@ -106,31 +111,33 @@ HWTEST_F(SKResourceManagerTest, HoldResourceSurface001, TestSize.Level1)
 HWTEST_F(SKResourceManagerTest, ReleaseResource001, TestSize.Level1)
 {
 #ifdef ROSEN_OHOS
-    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
-    // case 1: images_ isn't empty
-    {
-        auto img = std::make_shared<Drawing::Image>();
-        skResManager_.HoldResource(img);
-        EXPECT_EQ(skResManager_.images_.size(), 1);
-    }
-    skResManager_.ReleaseResource();
-    for (auto& images : skResManager_.images_) {
-        EXPECT_TRUE(images.second->IsEmpty());
-    }
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
+        // case 1: images_ isn't empty
+        {
+            auto img = std::make_shared<Drawing::Image>();
+            skResManager_.HoldResource(img);
+            EXPECT_EQ(skResManager_.images_.size(), 1);
+        }
+        skResManager_.ReleaseResource();
+        for (auto& images : skResManager_.images_) {
+            EXPECT_TRUE(images.second->IsEmpty());
+        }
 
-    // case 2: skSurfaces_ isn't empty
-    {
-        auto validDrawingSurface = std::make_shared<Drawing::Surface>();
-        skResManager_.HoldResource(validDrawingSurface);
-        std::shared_ptr<Drawing::Surface> nullDrawingSurface;
-        skResManager_.HoldResource(nullDrawingSurface);
-        auto newValidDrawingSurface = std::make_shared<Drawing::Surface>();
-        skResManager_.HoldResource(newValidDrawingSurface);
-        EXPECT_EQ(skResManager_.skSurfaces_.size(), 1);
-    }
-    skResManager_.ReleaseResource();
-    for (auto& skSurface : skResManager_.skSurfaces_) {
-        EXPECT_TRUE(skSurface.second.empty());
+        // case 2: skSurfaces_ isn't empty
+        {
+            auto validDrawingSurface = std::make_shared<Drawing::Surface>();
+            skResManager_.HoldResource(validDrawingSurface);
+            std::shared_ptr<Drawing::Surface> nullDrawingSurface;
+            skResManager_.HoldResource(nullDrawingSurface);
+            auto newValidDrawingSurface = std::make_shared<Drawing::Surface>();
+            skResManager_.HoldResource(newValidDrawingSurface);
+            EXPECT_EQ(skResManager_.skSurfaces_.size(), 1);
+        }
+        skResManager_.ReleaseResource();
+        for (auto& skSurface : skResManager_.skSurfaces_) {
+            EXPECT_TRUE(skSurface.second.empty());
+        }
     }
 #endif
 }
@@ -144,44 +151,46 @@ HWTEST_F(SKResourceManagerTest, ReleaseResource001, TestSize.Level1)
 HWTEST_F(SKResourceManagerTest, ReleaseResource002, TestSize.Level1)
 {
 #ifdef ROSEN_OHOS
-    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
-    skResManager_.ReleaseResource();
-    sleep(1); // make sure release clean
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
+        skResManager_.ReleaseResource();
+        sleep(1); // make sure release clean
 
-    {
-        auto imgptr = std::make_shared<Drawing::Image>();
-        skResManager_.HoldResource(imgptr);
-        EXPECT_EQ(skResManager_.images_.size(), 1);
+        {
+            auto imgptr = std::make_shared<Drawing::Image>();
+            skResManager_.HoldResource(imgptr);
+            EXPECT_EQ(skResManager_.images_.size(), 1);
+            for (auto& images : skResManager_.images_) {
+                // resource stil hold by imgptr, so HaveReleaseableResourceCheck should reture false
+                EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
+            }
+
+            imgptr = nullptr; // imgptr will not hold resource
+            for (auto& images : skResManager_.images_) {
+                // only skResManager_ hold resource, HaveReleaseableResourceCheck should reture true
+                EXPECT_TRUE(images.second->HaveReleaseableResourceCheck());
+            }
+        }
+
+        {
+            auto surfacePtr = std::make_shared<Drawing::Surface>();
+            skResManager_.HoldResource(surfacePtr);
+
+            // resource stil hold by surfacePtr, so HaveReleaseableResourceCheck should reture false
+            EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+            surfacePtr = nullptr;  // surfacePtr will not hold resource
+
+            // only skResManager_ hold resource, HaveReleaseableResourceCheck should reture true
+            EXPECT_TRUE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+        }
+
+        skResManager_.ReleaseResource();
+        sleep(1); // make sure release clean
+
+        EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
         for (auto& images : skResManager_.images_) {
-            // resource stil hold by imgptr, so HaveReleaseableResourceCheck should reture false
             EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
         }
-
-        imgptr = nullptr; // imgptr will not hold resource
-        for (auto& images : skResManager_.images_) {
-            // only skResManager_ hold resource, HaveReleaseableResourceCheck should reture true
-            EXPECT_TRUE(images.second->HaveReleaseableResourceCheck());
-        }
-    }
-
-    {
-        auto surfacePtr = std::make_shared<Drawing::Surface>();
-        skResManager_.HoldResource(surfacePtr);
-
-        // resource stil hold by surfacePtr, so HaveReleaseableResourceCheck should reture false
-        EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
-        surfacePtr = nullptr;  // surfacePtr will not hold resource
-
-        // only skResManager_ hold resource, HaveReleaseableResourceCheck should reture true
-        EXPECT_TRUE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
-    }
-
-    skResManager_.ReleaseResource();
-    sleep(1); // make sure release clean
-
-    EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
-    for (auto& images : skResManager_.images_) {
-        EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
     }
 #endif
 }
@@ -195,53 +204,55 @@ HWTEST_F(SKResourceManagerTest, ReleaseResource002, TestSize.Level1)
 HWTEST_F(SKResourceManagerTest, ReleaseResource003, TestSize.Level1)
 {
 #ifdef ROSEN_OHOS
-    const  uint32_t MAX_CHECK_SIZE = 20;
-    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
-    skResManager_.ReleaseResource();
-    sleep(1); // make sure release clean
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        const  uint32_t MAX_CHECK_SIZE = 20;
+        RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
+        skResManager_.ReleaseResource();
+        sleep(1); // make sure release clean
 
-    {
-        std::list<std::shared_ptr<Drawing::Image>> imagesMap;
-        for (uint32_t i = 0; i < MAX_CHECK_SIZE; i++) {
-            auto imgPtr = std::make_shared<Drawing::Image>();
-            imagesMap.push_back(imgPtr);
-            skResManager_.HoldResource(imgPtr);
+        {
+            std::list<std::shared_ptr<Drawing::Image>> imagesMap;
+            for (uint32_t i = 0; i < MAX_CHECK_SIZE; i++) {
+                auto imgPtr = std::make_shared<Drawing::Image>();
+                imagesMap.push_back(imgPtr);
+                skResManager_.HoldResource(imgPtr);
+            }
+            for (auto& images : skResManager_.images_) {
+                // imagesMap hold resource, so there is no resource need to release
+                EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
+            }
+            skResManager_.HoldResource(std::make_shared<Drawing::Image>());
+            for (auto& images : skResManager_.images_) {
+                /* imagesMap hold resource. but size is over MAX_CHECK_SIZE
+                * so there maybe have resource need to release
+                */
+                EXPECT_TRUE(images.second->HaveReleaseableResourceCheck());
+            }
         }
+
+        {
+            std::list<std::shared_ptr<Drawing::Surface>> skSurfacesMap;
+            for (uint32_t i = 0; i < MAX_CHECK_SIZE; i++) {
+                auto surfacePtr = std::make_shared<Drawing::Surface>();
+                skResManager_.HoldResource(surfacePtr);
+                skSurfacesMap.push_back(surfacePtr);
+            }
+            // skSurfacesMap hold resource, so there is no resource need to release
+            EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+            skResManager_.HoldResource(std::make_shared<Drawing::Surface>());
+
+            /* skSurfacesMap hold resource. but size is over MAX_CHECK_SIZE
+            * so there maybe have resource need to release
+            */
+            EXPECT_TRUE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+        }
+
+        skResManager_.ReleaseResource();
+        sleep(1); // make sure release clean
+        EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
         for (auto& images : skResManager_.images_) {
-            // imagesMap hold resource, so there is no resource need to release
             EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
         }
-        skResManager_.HoldResource(std::make_shared<Drawing::Image>());
-        for (auto& images : skResManager_.images_) {
-            /* imagesMap hold resource. but size is over MAX_CHECK_SIZE
-             * so there maybe have resource need to release
-             */
-            EXPECT_TRUE(images.second->HaveReleaseableResourceCheck());
-        }
-    }
-
-    {
-        std::list<std::shared_ptr<Drawing::Surface>> skSurfacesMap;
-        for (uint32_t i = 0; i < MAX_CHECK_SIZE; i++) {
-            auto surfacePtr = std::make_shared<Drawing::Surface>();
-            skResManager_.HoldResource(surfacePtr);
-            skSurfacesMap.push_back(surfacePtr);
-        }
-        // skSurfacesMap hold resource, so there is no resource need to release
-        EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
-        skResManager_.HoldResource(std::make_shared<Drawing::Surface>());
-
-        /* skSurfacesMap hold resource. but size is over MAX_CHECK_SIZE
-         * so there maybe have resource need to release
-         */
-        EXPECT_TRUE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
-    }
-
-    skResManager_.ReleaseResource();
-    sleep(1); // make sure release clean
-    EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
-    for (auto& images : skResManager_.images_) {
-        EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
     }
 #endif
 }

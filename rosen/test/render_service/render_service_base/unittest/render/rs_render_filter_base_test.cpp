@@ -37,24 +37,17 @@ void RSRenderFilterBaseTest::SetUp() {}
 void RSRenderFilterBaseTest::TearDown() {}
 
 /**
- * @tc.name: SetGeometry
- * @tc.desc: Test the SetGeometry method
+ * @tc.name: GenerateGEVisualEffect
+ * @tc.desc: Test the GenerateGEVisualEffect method
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, SetGeometry, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect, TestSize.Level1)
 {
-    auto filter = std::make_shared<RSNGRenderBlurFilter>();
-    Drawing::Canvas canvas;
-    float testValue = 20.f;
-    RSUIFilterHelper::SetGeometry(nullptr, canvas, testValue, testValue);
-    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    std::shared_ptr<RSNGRenderFilterBase> filterNull = nullptr;
+    RSUIFilterHelper::GenerateGEVisualEffect(filterNull);
+    std::shared_ptr<RSNGRenderFilterBase> filter = std::make_shared<RSNGRenderBlurFilter>();
+    RSUIFilterHelper::GenerateGEVisualEffect(filter);
     EXPECT_EQ(filter->geFilter_, nullptr);
-
-    filter->GenerateGEVisualEffect();
-    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
-    EXPECT_NE(filter->geFilter_, nullptr);
-    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoWidth_, testValue);
-    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoHeight_, testValue);
 }
 
 /**
@@ -375,6 +368,23 @@ HWTEST_F(RSRenderFilterBaseTest, DumpProperties001, TestSize.Level1)
     std::string out;
     filter1->DumpProperties(out);
     EXPECT_FALSE(out.empty());
+}
+
+/**
+ * @tc.name: CheckEnableEDR001
+ * @tc.desc: Test the CheckEnableEDR method could check enable edr for filters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
+{
+    auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
+    auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
+    filter1->nextEffect_ = filter2;
+    EXPECT_FALSE(RSUIFilterHelper::CheckEnableEDR(filter1));
+
+    Vector4f color{0.5f, 0.5f, 1.5f, 1.0f};
+    filter2->Setter<EdgeLightColorRenderTag>(color);
+    EXPECT_TRUE(RSUIFilterHelper::CheckEnableEDR(filter1));
 }
 
 /**

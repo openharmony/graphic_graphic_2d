@@ -1299,10 +1299,10 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 #endif
 }
 
-bool RSMainThread::NeedConsumeMultiCommand(uint32_t& dvsyncPid)
+bool RSMainThread::NeedConsumeMultiCommand(int32_t& dvsyncPid)
 {
     bool needUpdateDVSyncTime = rsVSyncDistributor_->NeedUpdateVSyncTime(dvsyncPid);
-    int64_t lastUpdateTime = rsVSyncDistributor_->GetLastUpdateTime();
+    uint64_t lastUpdateTime = static_cast<uint64_t>(rsVSyncDistributor_->GetLastUpdateTime());
     if (needUpdateDVSyncTime) {
         RS_TRACE_NAME("lastUpdateTime:" + std::to_string(lastUpdateTime));
         if (lastUpdateTime + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) < timestamp_) {
@@ -1333,7 +1333,7 @@ bool RSMainThread::NeedConsumeDVSyncCommand(uint32_t& endIndex,
 void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
     std::string& transactionFlags)
 {
-    uint32_t dvsyncPid = 0;
+    int32_t dvsyncPid = 0;
     bool needConsume = NeedConsumeMultiCommand(dvsyncPid);
     for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
         auto pid = rsTransactionElem.first;
@@ -2784,7 +2784,7 @@ void RSMainThread::OnUniRenderDraw()
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
-        RsFrameReport::GetInstance().PostAndWait();
+        RsFrameReport::GetInstance().CheckPostAndWaitPoint();
         drawFrame_.PostAndWait();
         RsFrameReport::GetInstance().RenderEnd();
         return;

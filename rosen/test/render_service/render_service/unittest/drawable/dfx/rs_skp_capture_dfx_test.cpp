@@ -21,6 +21,11 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_system_properties.h"
+
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -75,6 +80,15 @@ HWTEST_F(RSSkpCaptureDFXTest, captureTest001, TestSize.Level1)
         rtThread.uniRenderEngine_->renderContext_ = std::shared_ptr<RenderContext>();
         RSSkpCaptureDfx capture(canvas);
         ASSERT_EQ(capture.recordingCanvas_, nullptr);
+    }
+    {
+#ifdef RS_PROFILER_ENABLED
+        RSCaptureRecorder::testingTriggering_ = true;
+        RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::DEFAULT);
+        RSSkpCaptureDfx capture(canvas);
+        ASSERT_EQ(capture.recordingCanvas_, nullptr);
+        RSCaptureRecorder::testingTriggering_ = false;
+#endif
     }
 }
 }

@@ -15,7 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
 #include "render/rs_effect_luminance_manager.h"
+#include "render/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,41 +39,84 @@ void RSEffectLuminanceManagerTest::SetUp() {}
 void RSEffectLuminanceManagerTest::TearDown() {}
 
 /**
- * @tc.name: BrightnessSetGetTest
+ * @tc.name: HeadroomSetGetTest
  * @tc.desc: test results of SetDisplayHeadroom & GetDisplayHeadroom
  * @tc.type: FUNC
  */
-HWTEST_F(RSEffectLuminanceManagerTest, BrightnessSetGetTest, TestSize.Level1)
+HWTEST_F(RSEffectLuminanceManagerTest, HeadroomSetGetTest, TestSize.Level1)
 {
     auto& manager = RSEffectLuminanceManager::GetInstance();
+    EXPECT_EQ(manager.GetDisplayHeadroom(0), 1.0f);
     manager.SetDisplayHeadroom(0, 4.0f);
     EXPECT_EQ(manager.GetDisplayHeadroom(0), 4.0f);
 }
 
 /**
- * @tc.name: GetBrightnessMappingTest
- * @tc.desc: test results of GetBrightnessMapping
+ * @tc.name: GetEnableHdrEffectEdgeLightTest
+ * @tc.desc: test results of GetEnableHdrEffectEdgeLight
  * @tc.type: FUNC
  */
-HWTEST_F(RSEffectLuminanceManagerTest, GetBrightnessMappingTest, TestSize.Level1)
+HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrEffectEdgeLight, TestSize.Level1)
 {
-    EXPECT_EQ(RSEffectLuminanceManager::GetBrightnessMapping(10.0f, 4.0f), 4.0f);
-    EXPECT_EQ(RSEffectLuminanceManager::GetBrightnessMapping(1.5f, -1.0f), 0.0f);
-    EXPECT_NE(RSEffectLuminanceManager::GetBrightnessMapping(1.5f, 1.25f), 1.25f);
-    EXPECT_NE(RSEffectLuminanceManager::GetBrightnessMapping(1.5f, 1.1f), 1.1f);
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    EXPECT_FALSE(manager.GetEnableHdrEffect(std::shared_ptr<RSNGRenderFilterBase>(nullptr)));
+
+    auto elFilter = std::make_shared<RSNGRenderEdgeLightFilter>();
+    EXPECT_FALSE(manager.GetEnableHdrEffect(elFilter));
+
+    Vector4f color{0.5f, 1.5f, 0.5f, 1.0f};
+    elFilter->Setter<EdgeLightColorRenderTag>(color);
+    EXPECT_TRUE(manager.GetEnableHdrEffect(elFilter));
 }
 
 /**
- * @tc.name: CalcBezierResultYTest01
- * @tc.desc: test results of CalcBezierResultYTest
+ * @tc.name: GetEnableHdrEffectColorGradientTest
+ * @tc.desc: test results of GetEnableHdrEffectColorGradient
+ * @tc.type: FUNC
+*/
+HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrEffectColorGradient, TestSize.Level1)
+{
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    auto cgFilter = std::make_shared<RSNGRenderColorGradientFilter>();
+    EXPECT_FALSE(manager.GetEnableHdrEffect(cgFilter));
+
+    std::vector<float> color = {0.5f, 1.0f, 0.5f, 1.0f, 0.5f, 1.5f, 0.5f, 1.0f};
+    cgFilter->Setter<ColorGradientColorsRenderTag>(color);
+    EXPECT_TRUE(manager.GetEnableHdrEffect(cgFilter));
+}
+
+/**
+ * @tc.name: GetEnableHdrEffectSoundWaveTest
+ * @tc.desc: test results of GetEnableHdrEffectSoundWave
  * @tc.type: FUNC
  */
-HWTEST_F(RSEffectLuminanceManagerTest, CalcBezierResultYTest01, TestSize.Level1)
+HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrEffectSoundWave, TestSize.Level1)
 {
-    float y = 0.0f;
-    EXPECT_TRUE(RSEffectLuminanceManager::CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {0.5f, 0.5f}, 0.5f, y));
-    EXPECT_FALSE(RSEffectLuminanceManager::CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 2.0f}, 2.0f, y));
-    EXPECT_TRUE(RSEffectLuminanceManager::CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 2.0f}, 1.0f, y));
-    EXPECT_TRUE(RSEffectLuminanceManager::CalcBezierResultY({4.0f, 0.0f}, {-1.0f, 1.0f}, {2.0f, 2.0f}, 2.0f, y));
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    auto swFilter = std::make_shared<RSNGRenderSoundWaveFilter>();
+    EXPECT_FALSE(manager.GetEnableHdrEffect(swFilter));
+
+    Vector4f colorA{0.5f, 1.5f, 0.5f, 1.0f};
+    Vector4f colorB{0.5f, 1.5f, 0.5f, 1.0f};
+    Vector4f colorC{0.5f, 1.5f, 0.5f, 1.0f};
+    swFilter->Setter<SoundWaveColorARenderTag>(colorA);
+    swFilter->Setter<SoundWaveColorBRenderTag>(colorB);
+    swFilter->Setter<SoundWaveColorCRenderTag>(colorC);
+    EXPECT_TRUE(manager.GetEnableHdrEffect(swFilter));
 }
+
+/**
+ * @tc.name: GetEnableHdrShaderTest
+ * @tc.desc: test results of GetEnableHdrShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrShader, TestSize.Level1)
+{
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    EXPECT_FALSE(manager.GetEnableHdrEffect(std::shared_ptr<RSNGRenderShaderBase>(nullptr)));
+
+    auto cdflShader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    EXPECT_FALSE(manager.GetEnableHdrEffect(cdflShader));
+}
+
 } // namespace OHOS::Rosen

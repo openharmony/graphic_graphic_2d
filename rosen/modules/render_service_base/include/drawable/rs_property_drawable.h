@@ -144,9 +144,15 @@ public:
     bool WouldDrawLargeAreaBlur();
     bool WouldDrawLargeAreaBlurPrecisely();
 
+    void PostUpdate(const RSRenderNode& node);
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
     const RectI GetFilterCachedRegion() const;
+
+    bool GetEnableEDR() const override
+    {
+        return enableEDREffect_;
+    }
 
     bool IsFilterCacheValidForOcclusion();
 
@@ -164,9 +170,12 @@ protected:
 
     bool renderIntersectWithDRM_  = false;
     bool renderIsDarkColorMode_  = false;
+    bool enableEDREffect_ = false;
 
     NodeId stagingNodeId_ = INVALID_NODEID;
     NodeId renderNodeId_ = INVALID_NODEID;
+    NodeId screenNodeId_ = INVALID_NODEID;
+
     std::string stagingNodeName_ = "invalid0";
     std::string renderNodeName_ = "invalid0";
 

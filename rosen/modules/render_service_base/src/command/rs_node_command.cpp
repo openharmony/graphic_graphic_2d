@@ -166,15 +166,6 @@ void RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(RSContext& context, NodeId
     }
 }
 
-void RSNodeCommandHelper::SetEnableHDREffect(RSContext& context, NodeId nodeId, bool enableHDREffect)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetEnableHdrEffect(enableHDREffect);
-    }
-}
-
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
     const bool isInSameWindow)
 {

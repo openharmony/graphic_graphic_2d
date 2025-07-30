@@ -213,27 +213,5 @@ HWTEST_F(RSRenderColorGradientFilterTest, ParseFilterValuesTest001, TestSize.Lev
     auto filterCopy = filter->DeepCopy();
     EXPECT_NE(filterCopy, nullptr);
 }
-
-/**
- * @tc.name: CalcColorsIfHdrEffectTest001
- * @tc.desc: Verify function CalcColorsIfHdrEffect
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderColorGradientFilterTest, CalcColorsIfHdrEffectTest001, TestSize.Level1)
-{
-    auto filter = std::make_shared<RSRenderColorGradientFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
-
-    filter->colors_ = {0.5f, 0.5f, 0.0f, 1.0f, 1.5f, 0.5f, 0.0f, 1.0f};
-    filter->maxHeadroom_ = 2.0f;
-    auto colors = filter->CalcColorsIfHdrEffect();
-    ASSERT_EQ(colors.size(), 8);
-    EXPECT_EQ(colors[4], 1.5f);
-
-    filter->colors_ = {0.5f, 0.5f, 0.0f, 1.0f, 1.5f, 0.5f, 0.0f, 1.0f};
-    filter->maxHeadroom_ = 1.25f; // Active tone mapping
-    colors = filter->CalcColorsIfHdrEffect();
-    ASSERT_EQ(colors.size(), 8);
-    EXPECT_NE(colors[4], 1.5f);
-}
 } // namespace Rosen
 } // namespace OHOS

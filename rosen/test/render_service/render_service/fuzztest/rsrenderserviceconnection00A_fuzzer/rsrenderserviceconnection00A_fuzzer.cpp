@@ -54,7 +54,8 @@ namespace {
 const uint8_t DO_GET_MEMORY_GRAPHIC = 0;
 const uint8_t DO_GET_MEMORY_GRAPHICS = 1;
 const uint8_t DO_GET_TOTAL_APP_MEM_SIZE = 2;
-const uint8_t TARGET_SIZE = 3;
+const uint8_t DO_SET_WINDOW_EXPECTED_REFRESHRATE = 3;
+const uint8_t TARGET_SIZE = 4;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -156,6 +157,24 @@ void DoGetTotalAppMemSize()
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE);
     connectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
+
+void DoSetWindowExpectedRefreshRate()
+{
+    std::unordered_map<uint64_t, EventInfo> eventInfos;
+    uint64_t winId = GetData<uint64_t>();
+    EventInfo eventInfo;
+    eventInfo.eventName = GetData<std::string>();
+    eventInfo.eventStatus = GetData<bool>();
+    eventInfo.minRefreshRate = GetData<uint32_t>();
+    eventInfo.maxRefreshRate = GetData<uint32_t>();
+    eventInfo.description = GetData<std::string>();
+    eventInfos[winId] = eventInfo;
+    connectionStub_->SetWindowExpectedRefreshRate(eventInfos);
+    std::unordered_map<std::string, EventInfo> stringEventInfos;
+    std::string name = GetData<std::string>();
+    stringEventInfos[name] = eventInfo;
+    connectionStub_->SetWindowExpectedRefreshRate(stringEventInfos);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -193,6 +212,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_TOTAL_APP_MEM_SIZE:
             OHOS::Rosen::DoGetTotalAppMemSize();
+            break;
+        case OHOS::Rosen::DO_SET_WINDOW_EXPECTED_REFRESHRATE:
+            OHOS::Rosen::DoSetWindowExpectedRefreshRate();
             break;
         default:
             return -1;

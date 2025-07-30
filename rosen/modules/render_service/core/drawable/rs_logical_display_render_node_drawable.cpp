@@ -32,7 +32,6 @@
 // dfx
 #include "drawable/dfx/rs_refresh_rate_dfx.h"
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
-
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
 #endif

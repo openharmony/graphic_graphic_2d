@@ -470,8 +470,9 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
     float displayHeadroom =
         RSLuminanceControl::Get().GetDisplayNits(screenId) / RSLuminanceControl::Get().GetSdrDisplayNits(screenId);
-    RSEffectLuminanceManager::GetInstance().SetDisplayHeadroom(screenId, displayHeadroom);
-    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f", isHdrOn, hasUniRenderHdrSurface, brightnessRatio);
+    RSEffectLuminanceManager::GetInstance().SetDisplayHeadroom(node.GetScreenNodeId(), displayHeadroom);
+    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d, brightnessRatio:%f, screenId:%" PRIu64 ", status:%d", isHdrOn,
+        hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus());
     RS_LOGD("HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
         "brightnessRatio:%{public}f screenId:%{public}" PRIu64 " status:%{public}d", isHdrOn, hasUniRenderHdrSurface,
         brightnessRatio, screenId, node.GetDisplayHdrStatus());
@@ -1229,10 +1230,12 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     isSkipDrawInVirtualScreen_ = preIsSkipDraw;
     PrepareForUIFirstNode(node);
     PrepareForCrossNode(node);
+#ifdef SUBTREE_PARALLEL_ENABLE
     if (node.GetSubThreadAssignable() || (!node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) &&
         !node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()))) {
         node.ClearSubtreeParallelNodes();
     }
+#endif
     node.UpdateInfoForClonedNode(clonedSourceNodeId_);
     node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
@@ -1724,9 +1727,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
         RSOpincManager::Instance().OpincGetNodeSupportFlag(node));
     node.UpdateOpincParam();
     offscreenCanvasNodeId_ = preOffscreenCanvasNodeId;
+#ifdef SUBTREE_PARALLEL_ENABLE
     // used in subtree, add node into parallel list
     node.UpdateSubTreeParallelNodes();
-
+#endif
     // [Attention] Only used in PC window resize scene now
     NodeId linedRootNodeId = node.GetLinkedRootNodeId();
     if (UNLIKELY(linedRootNodeId != INVALID_NODEID)) {
@@ -1788,13 +1792,16 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     if (node.LastFrameSubTreeSkipped() && curSurfaceDirtyManager_) {
         node.ForceMergeSubTreeDirtyRegion(*curSurfaceDirtyManager_, prepareClipRect_);
     }
-    CollectNodeForOcclusion(node); // Collect prepared node into the control-level occlusion culling handler.
+    // Collect prepared node into the control-level occlusion culling handler.
+    CollectNodeForOcclusion(node);
     bool animationBackup = ancestorNodeHasAnimation_;
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation();
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
+#ifdef SUBTREE_PARALLEL_ENABLE
     node.ClearSubtreeParallelNodes();
     node.ResetRepaintBoundaryInfo();
+#endif
     auto children = node.GetSortedChildren();
     if (NeedPrepareChindrenInReverseOrder(node)) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
@@ -1813,7 +1820,9 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
             child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this());
+#ifdef SUBTREE_PARALLEL_ENABLE
             node.MergeSubtreeParallelNodes(*child);
+#endif
             curContainerDirty_ = containerDirty;
         });
     } else {
@@ -1829,7 +1838,9 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
             child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this());
+#ifdef SUBTREE_PARALLEL_ENABLE
             node.MergeSubtreeParallelNodes(*child);
+#endif
         });
     }
     ancestorNodeHasAnimation_ = animationBackup;
@@ -2993,7 +3004,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
             node.GetOpincCache().OpincGetRootFlag(),
             nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
+#ifdef SUBTREE_PARALLEL_ENABLE
         nodeParent->UpdateRepaintBoundaryInfo(node);
+#endif
     }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (stagingRenderParams != nullptr) {

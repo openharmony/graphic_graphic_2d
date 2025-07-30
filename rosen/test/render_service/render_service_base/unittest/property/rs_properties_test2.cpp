@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "property/rs_properties.h"
@@ -1502,21 +1503,6 @@ HWTEST_F(PropertiesTest,  GenerateAlwaysSnapshotFilterTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetEnableHDREffect Test
- * @tc.desc: test SetEnableHDREffect Get, Set and UpdateFilter
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, SetEnableHDREffectTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.SetEnableHDREffect(true);
-    properties.SetEnableHDREffect(true); // different branch if call again
-    EXPECT_EQ(properties.GetEnableHDREffect(), true);
-    properties.UpdateFilter();
-    EXPECT_FALSE(properties.needFilter_);
-}
-
-/**
  * @tc.name: ShadowBlenderTest
  * @tc.desc: test ShadowBlender SetParams, GetParams, Invalid and Description.
  * @tc.type: FUNC
@@ -1545,5 +1531,6 @@ HWTEST_F(PropertiesTest, ShadowBlenderTest, TestSize.Level1)
         ", constant: " + std::to_string(constant);
     EXPECT_EQ(description, properties.GetShadowBlenderDescription());
 }
+
 } // namespace Rosen
 } // namespace OHOS

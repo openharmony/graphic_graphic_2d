@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
@@ -230,6 +231,14 @@ RSDrawable::Ptr RSForegroundShaderDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 };
 
+void RSForegroundShaderDrawable::PostUpdate(const RSRenderNode& node)
+{
+    enableEDREffect_ = RSNGRenderShaderHelper::CheckEnableEDR(stagingShader_);
+    if (enableEDREffect_) {
+        screenNodeId_ = node.GetScreenNodeId();
+    }
+}
+
 bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
@@ -239,6 +248,7 @@ bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     }
     needSync_ = true;
     stagingShader_ = shader;
+    PostUpdate(node);
     return true;
 }
 
@@ -284,6 +294,7 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
+    PostUpdate(node);
     return true;
 }
 

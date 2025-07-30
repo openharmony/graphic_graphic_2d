@@ -5669,9 +5669,6 @@ HWTEST_F(RSNodeTest, SetBlender, TestSize.Level1)
     BrightnessBlender brightnessBlender;
     rsNode->SetBlender(&brightnessBlender);
     EXPECT_NE(rsNode, nullptr);
-    brightnessBlender.SetHdr(true);
-    rsNode->SetBlender(&brightnessBlender);
-    EXPECT_TRUE(rsNode->hdrEffectType_ > 0);
     ShadowBlender shadowBlender;
     rsNode->SetBlender(&shadowBlender);
     EXPECT_NE(rsNode, nullptr);
@@ -7868,24 +7865,6 @@ HWTEST_F(RSNodeTest, UpdateOcclusionCullingStatus001, TestSize.Level1)
     rsNode->UpdateOcclusionCullingStatus(true, id);
     rsNode->UpdateOcclusionCullingStatus(false, id);
     EXPECT_EQ(id, rsNode->GetId());
-}
-
-/**
- * @tc.name: SetEnableHDREffect
- * @tc.desc: test results of SetEnableHDREffect
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, SetEnableHDREffect, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-
-    rsNode->SetEnableHDREffect(1, true);
-    EXPECT_EQ(rsNode->hdrEffectType_, 1);
-
-    rsNode->SetEnableHDREffect(1, false);
-    rsNode->SetEnableHDREffect(2, false); // different branch if call again
-    EXPECT_EQ(rsNode->hdrEffectType_, 0);
 }
 
 /**

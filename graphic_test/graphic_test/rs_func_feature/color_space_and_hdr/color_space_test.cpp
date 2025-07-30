@@ -107,7 +107,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     GetRootNode()->AddChild(sRGBWindowSurface);
     sRGBWindowSurface->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -143,7 +143,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     GetRootNode()->AddChild(sRGBWindowSurface);
     sRGBWindowSurface->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -179,7 +179,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     GetRootNode()->AddChild(sRGBWindowSurface);
     sRGBWindowSurface->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -215,7 +215,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     GetRootNode()->AddChild(sRGBWindowSurface);
     sRGBWindowSurface->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -251,7 +251,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     GetRootNode()->AddChild(sRGBWindowSurface);
     sRGBWindowSurface->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -287,7 +287,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     GetRootNode()->AddChild(sRGBWindowSurface);
     sRGBWindowSurface->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -591,7 +591,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
     int totalSize = columnCount * rowCount;
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -617,7 +617,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
     int totalSize = columnCount * rowCount;
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -643,7 +643,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
     int totalSize = columnCount * rowCount;
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -669,7 +669,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetWideColorGamut_
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
     int totalSize = columnCount * rowCount;
-    for (size_t i = 0; i < pathList.size() && i < totalSize; i++) {
+    for (int i = 0; i < static_cast<int>(pathList.size()) && i < totalSize; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNode = SetUpNodeBgImage(pathList[i], { x, y, sizeX - 10, sizeY - 10 });
@@ -989,7 +989,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_Screen_Test_02)
         textModifier->SetText(errorMsg);
         testNode->AddModifier(textModifier);
     } else {
-        for (size_t i = 0; i < colorSpaces.size(); i++) {
+        for (int i = 0; i < static_cast<int>(colorSpaces.size()); i++) {
             auto textModifier = std::make_shared<TextCustomModifier>();
             textModifier->SetFontSize(fontSize);
             textModifier->SetPosition({ 0, (i + 1) * fontSize });

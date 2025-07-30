@@ -460,23 +460,6 @@ HWTEST_F(RSNodeCommandTest, SetUITokenTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetEnableHDREffectTest
- * @tc.desc: SetEnableHDREffect test
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, SetEnableHDREffectTest, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = static_cast<NodeId>(1);
-    RSNodeCommandHelper::SetEnableHDREffect(context, nodeId, true);
-    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    context.nodeMap.renderNodeMap_[ExtractPid(nodeId)][nodeId] = node;
-    RSNodeCommandHelper::SetEnableHDREffect(context, nodeId, true);
-    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->enableHdrEffect_);
-}
-
-/**
  * @tc.name: SetNeedUseCmdlistDrawRegion
  * @tc.desc: SetNeedUseCmdlistDrawRegion test
  * @tc.type: FUNC

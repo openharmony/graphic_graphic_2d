@@ -147,6 +147,11 @@ public:
 
     virtual void OnPurge() {};
 
+    virtual bool GetEnableEDR() const
+    {
+        return false;
+    }
+
     // static generate & update helper methods
     // Step 1, calculate dirtySlots based on dirty modifiers
     static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(

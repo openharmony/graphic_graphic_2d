@@ -3373,20 +3373,6 @@ HWTEST_F(RSRenderNodeTest, SetUIContextTokenTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RepaintBoundary
- * @tc.desc: Test function MarkRepaintBoundary and IsRepaintBoundary
- * @tc.type: FUNC
- * @tc.require: issuesIC50OX
- */
-HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSRenderNode>(1);
-    ASSERT_NE(renderNode, nullptr);
-    renderNode->MarkRepaintBoundary(true);
-    ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
-}
-
-/**
  * @tc.name: UpdateFilterCacheForceClearWithBackgroundAndAlphaDirtyTest
  * @tc.desc: Test function UpdateFilterCacheWithBackgroundDirty
  * @tc.type: FUNC
@@ -3579,6 +3565,21 @@ HWTEST_F(RSRenderNodeTest, GetNeedUseCmdlistDrawRegion, TestSize.Level1)
 }
 
 /*
+ * @tc.name: RepaintBoundary
+ * @tc.desc: Test function RepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->MarkRepaintBoundary(true);
+    ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
+}
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+/*
  * @tc.name: UpdateSubTreeParallelNodes
  * @tc.desc: Test function UpdateSubTreeParallelNodes
  * @tc.type: FUNC
@@ -3617,5 +3618,6 @@ HWTEST_F(RSRenderNodeTest, UpdateSubTreeParallelNodesTest, TestSize.Level1)
     renderNode->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
     renderNode->UpdateSubTreeParallelNodes();
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

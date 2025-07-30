@@ -263,6 +263,8 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
+// subtree parallel feature Interface
+// quick draw thread use this Interface to acquire draw state, such as clip .etc
 void RSRenderNodeDrawableAdapter::DrawQuickImpl(
     Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {

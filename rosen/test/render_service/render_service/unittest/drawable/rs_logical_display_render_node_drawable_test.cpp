@@ -25,6 +25,9 @@
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/common/rs_system_properties.h"
 #include "screen_manager/rs_screen.h"
+#include "policy/rs_parallel_rb_policy.h"
+#include "rs_parallel_manager.h"
+
 #include "render/rs_pixel_map_util.h"
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
@@ -468,6 +471,39 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     ASSERT_TRUE(displayDrawable_->ShouldPaint());
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
     ASSERT_NE(displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second, nullptr);
+}
+
+/**
+ * @tc.name: OnDrawTest010
+ * @tc.desc: Test OnDraw When GetRotateOffScreenScreenNodeEnable is true
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest010, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    renderParams->shouldPaint_ = true;
+    renderParams->contentEmpty_ = false;
+    renderParams->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
+    mirroredDisplayDrawable_->renderParams_ = nullptr;
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(true);
+    displayDrawable_->OnDraw(*drawingFilterCanvas_);
+
+    RSParallelManager::Singleton().state_ = RSParallelManager::FrameType::PARALLEL;
+    RSParallelManager::Singleton().workingPolicy_ = std::make_shared<RSPolicy::RSParallelRBPolicy>();
+    displayDrawable_->OnDraw(*drawingFilterCanvas_);
+    ASSERT_TRUE(displayDrawable_->ShouldPaint());
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    ASSERT_NE(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    ASSERT_NE(displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second, nullptr);
+    ASSERT_EQ(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
+    ASSERT_TRUE(RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable());
 }
 
 /**

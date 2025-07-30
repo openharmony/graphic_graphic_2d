@@ -234,11 +234,15 @@ void GPUContext::ResetContext()
     impl_->ResetContext();
 }
 
+// subtree parallel feature interface
+// generate submit information
 void GPUContext::GenerateSubmitInfo(int seq)
 {
     impl_->GenerateSubmitInfo(seq);
 }
 
+// subtree parallel feature interface
+// generate draw op
 void GPUContext::FlushCommands()
 {
     impl_->FlushCommands();

@@ -335,8 +335,12 @@ void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo&
     auto originSrcRect = srcRect;
 
     RectI dstRectI(dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_);
-    int32_t screenWidth = static_cast<int32_t>(screenInfo.width);
-    int32_t screenHeight = static_cast<int32_t>(screenInfo.height);
+    int32_t screenWidth = static_cast<int32_t>(screenInfo.phyWidth);
+    int32_t screenHeight = static_cast<int32_t>(screenInfo.phyHeight);
+    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        screenWidth = static_cast<int32_t>(screenInfo.width);
+        screenHeight = static_cast<int32_t>(screenInfo.height);
+    }
     RectI screenRectI(0, 0, screenWidth, screenHeight);
     RectI resDstRect = dstRectI.IntersectRect(screenRectI);
     if (resDstRect == dstRectI) {

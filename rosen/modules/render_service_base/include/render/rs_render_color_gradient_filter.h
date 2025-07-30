@@ -51,11 +51,6 @@ public:
     bool ParseFilterValues() override;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 
-    void SetDisplayHeadroom(float headroom) override
-    {
-        maxHeadroom_ = headroom;
-    }
-
     const std::vector<float> GetColors() const;
     const std::vector<float> GetPositions() const;
     const std::vector<float> GetStrengths() const;
@@ -63,16 +58,12 @@ public:
 
 private:
     void CalculateHash();
-    std::vector<float> CalcColorsIfHdrEffect();
 
     std::vector<float> colors_;
     std::vector<float> positions_;
     std::vector<float> strengths_;
     std::shared_ptr<RSShaderMask> mask_ = nullptr;
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
-
-    // HDR settings
-    float maxHeadroom_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS
