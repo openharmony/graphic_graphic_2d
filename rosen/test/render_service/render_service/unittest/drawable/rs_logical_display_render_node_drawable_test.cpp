@@ -1123,22 +1123,22 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawSecurityMaskTest002, TestSi
     // when imagePtr is not nullptr, the image must be not nullptr
     // image is not nullptr and width is 0
     auto securityMask1 = std::make_shared<Media::PixelMap>();
-    securityMask1->ImageInfo_.size.width = 0;
-    securityMask1->ImageInfo_.size.height = 1;
+    securityMask1->imageInfo_.size.width = 0;
+    securityMask1->imageInfo_.size.height = 1;
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask1);
     displayDrawable_->DrawSecurityMask();
 
     // image width is 1, height is 0
     auto securityMask2 = std::make_shared<Media::PixelMap>();
-    securityMask2->ImageInfo_.size.width = 1;
-    securityMask2->ImageInfo_.size.height = 0;
+    securityMask2->imageInfo_.size.width = 1;
+    securityMask2->imageInfo_.size.height = 0;
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask2);
     displayDrawable_->DrawSecurityMask();
 
     // image width and height are both 1
     auto securityMask3 = std::make_shared<Media::PixelMap>();
-    securityMask3->ImageInfo_.size.width = 1;
-    securityMask3->ImageInfo_.size.height = 1;
+    securityMask3->imageInfo_.size.width = 1;
+    securityMask3->imageInfo_.size.height = 1;
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask3);
     displayDrawable_->DrawSecurityMask();
 
@@ -1465,7 +1465,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest001, Tes
 
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
     mirroredDisplayDrawable_->renderParams_ = nullptr;
-    auto params = std::make_shared<RSLogicalDisplayRenderParams>(0);
+    auto params = std::make_unique<RSLogicalDisplayRenderParams>(0);
     displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params.get());
     EXPECT_EQ(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
 }
@@ -1481,7 +1481,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest002, Tes
     ASSERT_NE(displayDrawable_, nullptr);
 
     mirroredScreenDrawable_ = nullptr;
-    auto params = std::make_shared<RSLogicalDisplayRenderParams>(0);
+    auto params = std::make_unique<RSLogicalDisplayRenderParams>(0);
     displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params.get());
 }
 
@@ -1495,7 +1495,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest003, Tes
 {
     ASSERT_NE(displayDrawable_, nullptr);
 
-    auto params = std::make_shared<RSLogicalDisplayRenderParams>(0);
+    auto params = std::make_unique<RSLogicalDisplayRenderParams>(0);
     mirroredScreenDrawable_->cacheImgForCapture_ = std::make_shared<Drawing::Image>();
     displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params.get());
     EXPECT_NE(mirroredScreenDrawable_->GetCacheImgForCapture(), nullptr);
@@ -1520,7 +1520,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest003, Tes
 HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest004, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
-    auto params = std::make_shared<RSLogicalDisplayRenderParams>(0);
+    auto params = std::make_unique<RSLogicalDisplayRenderParams>(0);
 
     // enableVisibleRect is false
     displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params.get());
