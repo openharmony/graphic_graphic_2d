@@ -126,6 +126,7 @@ void RSRenderAnimation::Detach(bool forceDetach)
     }
     target_ = nullptr;
     targetId_ = 0;
+    targetName_ = "";
 }
 
 NodeId RSRenderAnimation::GetTargetId() const

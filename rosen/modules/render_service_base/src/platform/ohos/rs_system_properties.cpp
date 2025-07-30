@@ -222,8 +222,9 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 bool RSSystemProperties::GetAnimationTraceEnabled()
 {
-    static bool isNeedTrace = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
-    return isNeedTrace;
+    bool isAnimationTraceDebugEnabled = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug;
 }
 
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
