@@ -829,12 +829,12 @@ HWTEST_F(RSInterfacesTest, SetScreenFreezeImmediatelyTest001, TestSize.Level1)
     RSSurfaceCaptureConfig captureConfig;
     bool isFreeze = true;
     bool ret = instance.SetScreenFreezeImmediately(displayNode, isFreeze, callback, captureConfig);
-    EXPECT_EQ(res, false);
+    EXPECT_EQ(ret, false);
 
     RSDisplayNodeConfig config;
     displayNode = RSDisplayNode::Create(config);
     callback = std::make_shared<TestSurfaceCapture>();
     ret = instance.SetScreenFreezeImmediately(displayNode, isFreeze, callback, captureConfig);
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(ret, true);
 }
 } // namespace OHOS::Rosen
