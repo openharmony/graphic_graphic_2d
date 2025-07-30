@@ -36,6 +36,7 @@ public:
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
     static constexpr RSModifierType MODIFIER_TYPE = RSModifierType::BOUNDS;
+    static constexpr ModifierNG::RSPropertyType MODIFIER_NG_TYPE = ModifierNG::RSPropertyType::INVALID;
     static constexpr ImplicitAnimationParamType ANIMATION_TYPE = ImplicitAnimationParamType::CURVE;
     const std::string NODE_NAME = "test";
     const std::string INTERFACE_NAME = "test_name";
@@ -63,7 +64,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace001, TestSize.Level
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
     int repeatCount = 1;
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-        renderNode.get(), ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, repeatCount);
+        renderNode.get(), NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, repeatCount);
     RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
     EXPECT_TRUE(renderNode->GetNodeName().empty());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest AnimationDebugTrace001 end";
@@ -85,7 +86,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace002, TestSize.Level
     auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-        renderNode.get(), ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, 1);
+        renderNode.get(), NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, 1);
     RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
     system("param set persist.rosen.animationtrace.enabled 0");
     EXPECT_TRUE(renderNode->GetNodeName().empty());
@@ -108,9 +109,10 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace003, TestSize.Level
     auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-        renderNode.get(), ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, 1);
+        renderNode.get(), NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, 1);
     RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
     EXPECT_TRUE(renderNode->GetNodeName().empty());
+    RSAnimationTraceUtils::isDebugEnabled_ = false;
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest AnimationDebugTrace003 end";
 }
 
@@ -144,24 +146,24 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationFrameTrace, TestSize.Level
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
     renderNode->SetNodeName(NODE_NAME);
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-        renderNode.get(), ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
+        renderNode.get(), NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
     EXPECT_FALSE(renderNode->GetNodeName().empty());
 
     // renderNode is nullptr
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-        nullptr, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
+        nullptr, NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
 
     RSAnimationTraceUtils::isDebugEnabled_ = false;
     OHOS::Rosen::RSSystemProperties::SetDebugFmtTraceEnabled(true);
     EXPECT_TRUE(OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled());
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-        renderNode.get(), ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
+        renderNode.get(), NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
 
     // isOnTheTree is true
     RSAnimationTraceUtils::isDebugEnabled_ = true;
     renderNode->isOnTheTree_ = true;
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-        renderNode.get(), ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
+        renderNode.get(), NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, -1);
 }
 
 /**
@@ -228,9 +230,29 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationCallFinishTrace, TestSize.
     EXPECT_TRUE(renderNode.GetNodeName().empty());
 
     RSAnimationTraceUtils::isDebugEnabled_ = false;
-    OHOS::Rosen::RSSystemProperties::SetDebugFmtTraceEnabled(true);
-    EXPECT_TRUE(OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled());
     RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_TYPE, false);
+    EXPECT_TRUE(renderNode.GetNodeName().empty());
+}
+
+/**
+ * @tc.name: AddAnimationCallFinishTrace01
+ * @tc.desc: Verify the AddAnimationCallFinishTrace01
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationCallFinishTrace01, TestSize.Level1)
+{
+    RSAnimationTraceUtils::isDebugEnabled_ = true;
+    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_NG_TYPE, false);
+    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_NG_TYPE, true);
+
+    RSAnimationTraceUtils::isDebugEnabled_ = false;
+    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_NG_TYPE, false);
+    RSRenderNode renderNode(NODE_ID);
+    EXPECT_TRUE(renderNode.GetNodeName().empty());
+
+    RSAnimationTraceUtils::isDebugEnabled_ = false;
+    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_NG_TYPE, false);
+    EXPECT_TRUE(renderNode.GetNodeName().empty());
 }
 
 /**
@@ -268,6 +290,46 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationCreateTrace, TestSize.Leve
     RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID,
         ANIMATION_TYPE, MODIFIER_TYPE, startValue, endValue, 0, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME,
         NODE_TYPE);
+    RSRenderNode renderNode(NODE_ID);
+    RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
+    EXPECT_TRUE(renderNode.GetNodeName().empty());
+}
+
+/**
+ * @tc.name: AddAnimationCreateTrace01
+ * @tc.desc: Verify the AddAnimationCreateTrace01
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationCreateTrace01, TestSize.Level1)
+{
+    RSAnimationTraceUtils::GetInstance().isDebugEnabled_ = true;
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
+    int repeatCount = 1;
+    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID,
+        ANIMATION_TYPE, MODIFIER_NG_TYPE, startValue, endValue, 0, 0, repeatCount, INTERFACE_NAME, NODE_ID,
+        INTERFACE_NAME, NODE_TYPE);
+
+    // nodeName empty
+    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
+        MODIFIER_NG_TYPE, startValue, endValue, 0, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME, NODE_TYPE);
+    // animationDelay != 0
+    int animationDelay = 1; // test animationDelay = 1
+    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
+        MODIFIER_NG_TYPE, startValue, endValue, animationDelay, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME,
+        NODE_TYPE);
+    repeatCount = -1; // test repeatCount = -1
+    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
+        MODIFIER_NG_TYPE, startValue, endValue, animationDelay, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME,
+        NODE_TYPE);
+    // interfaceName empty
+    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
+        MODIFIER_NG_TYPE, startValue, endValue, animationDelay, 0, repeatCount, "", NODE_ID, INTERFACE_NAME, NODE_TYPE);
+
+    RSAnimationTraceUtils::GetInstance().isDebugEnabled_ = false;
+    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID,
+        ANIMATION_TYPE, MODIFIER_NG_TYPE, startValue, endValue, 0, 0, repeatCount, INTERFACE_NAME, NODE_ID,
+        INTERFACE_NAME, NODE_TYPE);
     RSRenderNode renderNode(NODE_ID);
     RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
     EXPECT_TRUE(renderNode.GetNodeName().empty());
@@ -331,11 +393,16 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, OnAnimationTraceEnabledChangedCallback
     RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key, value, nullptr);
     EXPECT_FALSE(RSAnimationTraceUtils::isDebugEnabled_);
 
+    system("param set persist.rosen.animationtrace.enabled 1");
     // "persist.rosen.animationtrace.enabled" is animation debug trace switch
     const char* key1 = "persist.rosen.animationtrace.enabled";
     const char* value1 = "1";
     RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key1, value1, nullptr);
     EXPECT_TRUE(RSAnimationTraceUtils::isDebugEnabled_);
+
+    system("param set persist.rosen.animationtrace.enabled 0");
+    RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key1, value1, nullptr);
+    EXPECT_FALSE(RSAnimationTraceUtils::isDebugEnabled_);
 }
 
 /**

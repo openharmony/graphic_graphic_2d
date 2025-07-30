@@ -1174,6 +1174,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText004, TestS
     typographyDefaultCreate->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
     ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
 
     SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
     ASSERT_NE(defaultParagraph, nullptr);

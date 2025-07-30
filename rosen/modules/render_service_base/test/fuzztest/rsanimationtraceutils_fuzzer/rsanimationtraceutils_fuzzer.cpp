@@ -105,7 +105,7 @@ namespace OHOS {
             animationType, modifierType, startValue, endValue, animationDelay, animationDur, repeat, interfaceName,
             frameNodeId, frameNodeTag, nodeType);
         RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-            node.get(), animationId, propertyId, fraction, value, time, animationDur, repeat);
+            node.get(), nodeId, nodeName, animationId, propertyId, fraction, value, time, animationDur, repeat);
         RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(
             propertyId, animationId, initialVelocity, value);
         RSAnimationTraceUtils::GetInstance().AddAnimationCancelTrace(nodeId, propertyId);
