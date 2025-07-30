@@ -6066,4 +6066,18 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
     ret = mainThread->NeedConsumeDVSyncCommand(endIndex, trans);
     ASSERT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: NotifyPackageEvent001
+ * @tc.desc: NotifyPackageEvent001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, NotifyPackageEvent001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<std::string> packageList = {};
+    mainThread->NotifyPackageEvent(packageList);
+}
 } // namespace OHOS::Rosen

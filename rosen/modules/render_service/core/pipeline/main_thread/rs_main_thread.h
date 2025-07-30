@@ -432,7 +432,6 @@ public:
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     void GetFrontBufferDesiredPresentTimeStamp(
         const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
-    void SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();

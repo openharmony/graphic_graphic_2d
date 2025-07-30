@@ -972,7 +972,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
 }
 
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, uint64_t parentNodeId, bool deleteCacheDisable)
+    bool dropFrameByPidEnable, uint64_t parentNodeId, bool deleteCacheDisable)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -986,8 +986,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     // check presentWhen conversion validation range
     bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     bool acqiureWithPTSEnable =
-        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled() &&
-            !adaptiveDVSyncEnable;
+        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     uint64_t acquireTimeStamp = presentWhen;
     if (!presentWhenValid || !acqiureWithPTSEnable) {
         acquireTimeStamp = CONSUME_DIRECTLY;
