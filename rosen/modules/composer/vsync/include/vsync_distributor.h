@@ -178,7 +178,7 @@ public:
     bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount);
     void SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
     // forcefully enable DVsync in RS
-    void ForceRsDVsync();
+    void ForceRsDVsync(const std::string &sceneId);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);

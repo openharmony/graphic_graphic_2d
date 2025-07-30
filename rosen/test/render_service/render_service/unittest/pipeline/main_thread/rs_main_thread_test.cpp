@@ -6066,4 +6066,23 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
     ret = mainThread->NeedConsumeDVSyncCommand(endIndex, trans);
     ASSERT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: SetForceRsDVsync001
+ * @tc.desc: SetForceRsDVsync001
+ * @tc.type: FUNC
+ * @tc.require: issueICPQPM
+ */
+HWTEST_F(RSMainThreadTest, SetForceRsDVsync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::string sceneId = "APP_SWIPER_FLING";
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    }
+    mainThread->SetForceRsDVsync(sceneId);
+}
 } // namespace OHOS::Rosen

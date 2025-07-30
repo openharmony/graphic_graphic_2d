@@ -2873,10 +2873,7 @@ ErrCode RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
         if (connection == nullptr || connection->mainThread_ == nullptr) {
             return;
         }
-        std::unordered_map<std::string, std::string> forceRsDVsyncConfig_ = DVSyncParam::GetForceRsDVsyncConfig();
-        if (!forceRsDVsyncConfig_.empty() && forceRsDVsyncConfig_.find(info.sceneId) != forceRsDVsyncConfig_.end()) {
-            connection->mainThread_->SetForceRsDVsync();
-        }
+        connection->mainThread_->SetForceRsDVsync(info.sceneId);
     };
 #ifdef RS_ENABLE_GPU
     renderThread_.PostTask(task);
