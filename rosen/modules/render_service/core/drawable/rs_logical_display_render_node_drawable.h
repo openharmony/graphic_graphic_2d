@@ -71,7 +71,7 @@ private:
     void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
     void DrawWiredMirrorCopy(
-        RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogcialDisplayRenderParams& params);
+        RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogicalDisplayRenderParams& params);
     void DrawWiredMirrorOnDraw(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable,
         RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);

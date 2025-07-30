@@ -643,7 +643,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSLogicalDisplayRen
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorCopy mirroredScreenDrawable is null");
         return;
     }
-    auto [curScreenDrawable, curScreenParams] = GetScreenParams(Params);
+    auto [curScreenDrawable, curScreenParams] = GetScreenParams(params);
     if (!curScreenDrawable || !curScreenParams) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorCopy curScreen is null");
         return;
@@ -651,7 +651,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSLogicalDisplayRen
     curCanvas_->Save();
     ScaleAndRotateMirrorForWiredScreen(mirroredDrawable);
     RSDirtyRectsDfx rsDirtyRectsDfx(*curScreenDrawable);
-    auto matrix = isMirrorSLRCopy_ ? scaleManager_->GetScaleMatrix : curCanvas_->GetTotalMatrix();
+    auto matrix = isMirrorSLRCopy_ ? scaleManager_->GetScaleMatrix() : curCanvas_->GetTotalMatrix();
     matrix.PreTranslate(-mirroredParams->GetOffsetX(), -mirroredParams->GetOffsetY());
     std::vector<RectI> damageRegionRects = CalculateVirtualDirtyForWiredScreen(*curScreenDrawable, matrix);
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, curScreenParams->GetScreenInfo());
