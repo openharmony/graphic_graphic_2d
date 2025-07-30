@@ -77,7 +77,7 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(xmlNode& node)
                 RS_LOGD("Mipmapmode use default value.");
             }
         } else {
-            RS_LOGD("MultiScreenParamParse unknown feature name.");
+            RS_LOGW("MultiScreenParamParse unknown feature name.");
         }
     }
     return PARSE_EXEC_SUCCESS;

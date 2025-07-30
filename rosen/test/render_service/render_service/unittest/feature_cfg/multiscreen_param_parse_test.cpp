@@ -82,5 +82,16 @@ HWTEST_F(MultiScreenParamParseTest, ParseFeatureParamTest, TestSize.Level1)
     xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("0"));
     res = paramParse.ParseFeatureParam(paramMapType, node);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("MipmapMode"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("Test"));
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    name = "FeatureParam0";
+    nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    node.xmlChildrenNode->next = &nextNode;
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
 }
