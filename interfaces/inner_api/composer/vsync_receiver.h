@@ -48,7 +48,8 @@ public:
         VSyncCallbackWithId callbackWithId_;
     };
     VSyncCallBackListener()
-        : vsyncCallbacks_(nullptr), vsyncCallbacksWithId_(nullptr), userData_(nullptr)
+        : vsyncCallbacks_(nullptr), vsyncCallbacksWithId_(nullptr),
+        userData_(nullptr), requestCount_(0)
     {}
 
     ~VSyncCallBackListener()
@@ -116,6 +117,7 @@ public:
 private:
     void OnReadable(int32_t fileDescriptor) override;
     void OnShutdown(int32_t fileDescriptor) override;
+    void PrintRequestTs(int64_t fromRsTs);
     int64_t CalculateExpectedEndLocked(int64_t now);
     void HandleVsyncCallbacks(int64_t data[], ssize_t dataCount, int32_t fileDescriptor);
     VsyncError ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount);
@@ -134,6 +136,7 @@ private:
     FdShutDownCallback fdShutDownCallback_ = nullptr;
     ReadableCallback readableCallback_ = nullptr;
     std::mutex cbMutex_;
+    int requestCount_;
 };
 
 #ifdef __OHOS__
