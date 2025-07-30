@@ -1148,6 +1148,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawSecurityMaskTest002, TestSi
     opts4.size.height = 1;
     std::shared_ptr<Media::PixelMap> securityMask4 = Media::PixelMap::Create(opts4);
     screenManager->SetScreenSecurityMask(renderParams->GetScreenId(), securityMask4);
+    displayDrawable_->DrawSecurityMask();
     auto myWatermark = std::make_shared<Drawing::Image>();
     ASSERT_NE(myWatermark, nullptr);
     auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
