@@ -547,7 +547,7 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
     lastRect_ = rect;
     bgShaderNeedUpdate_ = true;
-    if (fgNGRenderFilter_) {
+    if (fgNGRenderFilter_ && fgNGRenderFilter_->ContainsType(RSNGEffectType::CONTENT_LIGHT)) {
         filterNeedUpdate_ = true;
     }
     return dirtyFlag;
@@ -3744,8 +3744,10 @@ void RSProperties::ComposeNGRenderFilter(
     originDrawingFilter->SetNGRenderFilter(filter);
     if (filter) {
         originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
-        Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
-        RSUIFilterHelper::SetRotationAngle(filter, rotationAngle);
+        if (filter->ContainsType(RSNGEffectType::CONTENT_LIGHT)) {
+            Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
+            RSUIFilterHelper::SetRotationAngle(filter, rotationAngle);
+        }
     }
     originFilter = originDrawingFilter;
 }
@@ -5062,7 +5064,7 @@ void RSProperties::UpdateBackgroundShader()
         }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
     }
-    if (bgNGRenderShader_) {
+    if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::BORDER_LIGHT)) {
         Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
         float cornerRadius = GetCornerRadius().x_;
         RSNGRenderShaderHelper::SetRotationAngle(bgNGRenderShader_, rotationAngle);
