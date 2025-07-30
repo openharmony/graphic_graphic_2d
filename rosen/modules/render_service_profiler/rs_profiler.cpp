@@ -431,8 +431,14 @@ void RSProfiler::OnWorkModeChanged()
     } else {
         HRPD("RSProfiler: Stop recording. Stop network.");
         StopBetaRecord();
-        RecordStop(ArgList());
         Network::Stop();
+        RecordStop(ArgList());
+        PlaybackStop(ArgList());
+
+        ImageCache::Reset();
+        g_recordFile.Close();
+        g_playbackFile.Close();
+        Utils::FileDelete(RSFile::GetDefaultPath());
     }
 }
 

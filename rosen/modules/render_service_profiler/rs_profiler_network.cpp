@@ -359,10 +359,8 @@ void Network::Shutdown(Socket*& socket)
     ResetSendQueue();
     ResetCommandQueue();
 
-    PushCommand({ "reset" });
-    AwakeRenderServiceThread();
-
-    HRPE("Network: Shutdown");
+    RSSystemProperties::SetProfilerDisabled();
+    HRPE("Network: Shutdown: persist.graphic.profiler.enabled 0");
 }
 
 void Network::Receive(Socket& socket)

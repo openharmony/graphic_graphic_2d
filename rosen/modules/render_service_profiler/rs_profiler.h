@@ -708,7 +708,6 @@ private:
     static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)));
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
-    static void Reset(const ArgList& args);
     static void DumpSystemParameters(const ArgList& args);
     static void DumpNodeModifiers(const ArgList& args);
     static void DumpConnections(const ArgList& args);
