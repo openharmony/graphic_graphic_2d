@@ -43,6 +43,7 @@ public:
 private:
     FrameRateRange rsCurrRange_;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
+    uint64_t currVsyncId_;
     uint64_t lastForceUpdateVsyncId_;
 };
 } // namespace OHOS

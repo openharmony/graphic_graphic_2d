@@ -38,9 +38,9 @@ void HgmContext::InitHgmTaskHandleThread(
         RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
             RS_TRACE_NAME_FMT("HgmContext::TimerExpiredCallback Run idleTimerExpiredFlag: %s forceUpdateFlag: %s",
                 idleTimerExpired ? "True" : "False", forceUpdate ? "True" : "False");
-            if(lastForceUpdateVsyncId_ != RSMainThread::Instance()->GetVsyncId())
+            if(lastForceUpdateVsyncId_ != currVsyncId_)
             {
-                lastForceUpdateVsyncId_ = RSMainThread::Instance()->GetVsyncId();
+                lastForceUpdateVsyncId_ = currVsyncId_;
                 RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
                 RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
             }
@@ -71,6 +71,7 @@ int32_t HgmContext::FrameRateGetFunc(
 void HgmContext::ProcessHgmFrameRate(
     uint64_t timestamp, sptr<VSyncDistributor> rsVSyncDistributor, uint64_t vsyncId)
 {
+    currVsyncId_ = vsyncId;
     int changed = 0;
     if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
