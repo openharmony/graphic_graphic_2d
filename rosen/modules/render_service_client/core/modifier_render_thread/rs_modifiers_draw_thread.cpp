@@ -22,6 +22,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_command.h"
 #include "ffrt_inner.h"
+#include "modifier_render_thread/rs_modifiers_draw.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -34,16 +35,12 @@ namespace Rosen {
 std::atomic<bool> RSModifiersDrawThread::isStarted_ = false;
 std::recursive_mutex RSModifiersDrawThread::transactionDataMutex_;
 bool RSModifiersDrawThread::isFirstFrame_ = true;
-std::mutex RSModifiersDrawThread::ffrtMutex_;
-std::condition_variable RSModifiersDrawThread::cv_;
-std::atomic<uint32_t> RSModifiersDrawThread::ffrtTaskNum_ = 0;
 
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr uint32_t HYBRID_MAX_PIXELMAP_WIDTH = 8192;  // max width value from PhysicalDeviceProperties
 constexpr uint32_t HYBRID_MAX_PIXELMAP_HEIGHT = 8192;  // max height value from PhysicalDeviceProperties
 constexpr uint32_t HYBRID_MAX_ENABLE_OP_CNT = 11;  // max value for enable hybrid op
 constexpr uint32_t HYBRID_MAX_TEXT_ENABLE_OP_CNT = 1;  // max value for enable text hybrid op
-constexpr int64_t FFRT_WAIT_TIMEOUT = 30; // ms
 RSModifiersDrawThread::RSModifiersDrawThread()
 {
     ::atexit(&RSModifiersDrawThread::Destroy);
@@ -241,9 +238,41 @@ bool RSModifiersDrawThread::TargetCommand(
     return targetCmd;
 }
 
+bool RSModifiersDrawThread::LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData)
+{
+    int enableHybridOpCnt = 0;
+    int enableTextHybridOpCnt = 0;
+    for (const auto& [nodeId, followType, command] : transactionData->GetPayload()) {
+        auto drawCmdList = command == nullptr ? nullptr : command->GetDrawCmdList();
+        if (drawCmdList == nullptr) {
+            continue;
+        }
+        auto hybridRenderType = drawCmdList->GetHybridRenderType();
+        // CanvasDrawingNode does not use FFRT, so exclude it
+        bool enableType = hybridRenderType >= Drawing::DrawCmdList::HybridRenderType::TEXT &&
+            hybridRenderType <= Drawing::DrawCmdList::HybridRenderType::HMSYMBOL;
+        if (!enableType ||
+            !TargetCommand(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty()) ||
+            !drawCmdList->IsHybridRenderEnabled(HYBRID_MAX_PIXELMAP_WIDTH, HYBRID_MAX_PIXELMAP_HEIGHT)) {
+            continue;
+        }
+        enableHybridOpCnt++;
+        if (hybridRenderType == Drawing::DrawCmdList::HybridRenderType::TEXT) {
+            enableTextHybridOpCnt++;
+        }
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("LimitEnableHybridOpCnt opCnt=%d, textOpCnt=%d",
+        enableHybridOpCnt, enableTextHybridOpCnt);
+    return (enableHybridOpCnt <= HYBRID_MAX_ENABLE_OP_CNT) &&
+        (enableTextHybridOpCnt <= HYBRID_MAX_TEXT_ENABLE_OP_CNT);
+}
+
 bool RSModifiersDrawThread::GetIsFirstFrame()
 {
-    return isFirstFrame_;
+    if (!isFirstFrame_) {
+        return false;
+    }
+    return true;
 }
 
 void RSModifiersDrawThread::SetIsFirstFrame(bool isFirstFrame)
@@ -251,64 +280,22 @@ void RSModifiersDrawThread::SetIsFirstFrame(bool isFirstFrame)
     isFirstFrame_ = isFirstFrame;
 }
 
-void RSModifiersDrawThread::SeperateHybridRenderCmdList(std::unique_ptr<RSTransactionData>& transactionData,
-    std::vector<DrawOpInfo>& targetCmds, uint32_t& enableTextHybridOpCnt)
+std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
+    std::unique_ptr<RSTransactionData>& transactionData,
+    std::shared_ptr<RSIRenderClient> renderServiceClient,
+    bool& isNeedCommit)
 {
-    for (const auto& [_, __, command] : transactionData->GetPayload()) {
-        auto drawCmdList = command == nullptr ? nullptr : command->GetDrawCmdList();
-        if (drawCmdList == nullptr) {
-            continue;
-        }
-        auto hybridRenderType = drawCmdList->GetHybridRenderType();
-        if (!TargetCommand(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty()) ||
-            !drawCmdList->IsHybridRenderEnabled(HYBRID_MAX_PIXELMAP_WIDTH, HYBRID_MAX_PIXELMAP_HEIGHT)) {
-            continue;
-        }
-        switch (hybridRenderType) {
-            case Drawing::DrawCmdList::HybridRenderType::TEXT: {
-                enableTextHybridOpCnt++;
-                DrawOpInfo textOpInfo {.nodeId = command->GetNodeId(), .cmdList = drawCmdList};
-                targetCmds.push_back(textOpInfo);
-                break;
-            }
-            case Drawing::DrawCmdList::HybridRenderType::SVG:
-            case Drawing::DrawCmdList::HybridRenderType::HMSYMBOL: {
-                DrawOpInfo targetCmd {.nodeId = command->GetNodeId(), .cmdList = drawCmdList};
-                targetCmds.push_back(targetCmd);
-                break;
-            }
-            default:
-                break;
-        }
+    bool isEnableHybridByOpCnt = LimitEnableHybridOpCnt(transactionData);
+    if (!isEnableHybridByOpCnt && RSModifiersDrawThread::GetIsFirstFrame()) {
+        renderServiceClient->CommitTransaction(transactionData);
+        // still need playback when firstFrame is true
+        isNeedCommit = false;
+    } else if (!isEnableHybridByOpCnt) {
+        return transactionData;
     }
-}
-
-void RSModifiersDrawThread::TraverseDrawOpInfo(std::vector<DrawOpInfo>& targetCmds, std::atomic<size_t>& cmdIndex)
-{
-    bool needSubmit = false;
-    for (auto index = cmdIndex.fetch_add(1); index < targetCmds.size(); index = cmdIndex.fetch_add(1)) {
-        auto& targetCmd = targetCmds[index];
-        RSModifiersDraw::ConvertCmdList(targetCmd);
-        if (targetCmd.pixelMap != nullptr) {
-            needSubmit = true;
-        }
-    }
-    if (!needSubmit) {
-        return;
-    }
-    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext();
-    gpuContext->Submit();
-    RSModifiersDraw::PurgeContextResource();
-    if (RSSystemProperties::GetHybridRenderParallelConvertEnabled()) {
-        uint32_t taskNum = ffrtTaskNum_.fetch_add(-1);
-        if (taskNum - 1 == 0) {
-            cv_.notify_one();
-        }
-    }
-}
-
-void RSModifiersDrawThread::ConvertTransactionForCanvas(std::unique_ptr<RSTransactionData>& transactionData)
-{
+    static std::unique_ptr<ffrt::queue> queue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "ModifiersDraw",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM));
+    std::vector<ffrt::task_handle> handles;
     bool hasCanvasCmdList = false;
     for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
         auto drawCmdList = command == nullptr ? nullptr : command->GetDrawCmdList();
@@ -323,104 +310,37 @@ void RSModifiersDrawThread::ConvertTransactionForCanvas(std::unique_ptr<RSTransa
 
         RS_OPTIONAL_TRACE_NAME_FMT("RSModifiersDrawThread hybridRenderType=%d, width=%d, height=%d, nodeId=%" PRId64,
             hybridRenderType, drawCmdList->GetWidth(), drawCmdList->GetHeight(), command->GetNodeId());
-        if (hybridRenderType == Drawing::DrawCmdList::HybridRenderType::CANVAS) {
-            RSModifiersDraw::ConvertCmdListForCanvas(drawCmdList, command->GetNodeId());
-            hasCanvasCmdList = true;
+        RSModifiersDraw::MergeOffTreeNodeSet();
+        switch (hybridRenderType) {
+            case Drawing::DrawCmdList::HybridRenderType::CANVAS:
+                RSModifiersDraw::ConvertCmdListForCanvas(drawCmdList, command->GetNodeId());
+                hasCanvasCmdList = true;
+                break;
+            case Drawing::DrawCmdList::HybridRenderType::TEXT:
+            case Drawing::DrawCmdList::HybridRenderType::SVG:
+            case Drawing::DrawCmdList::HybridRenderType::HMSYMBOL:
+                if (RSSystemProperties::GetHybridRenderParallelConvertEnabled()) {
+                    handles.emplace_back(queue->submit_h(
+                        [cmdList = std::move(drawCmdList), nodeId = command->GetNodeId()]() {
+                        RSModifiersDraw::ConvertCmdList(cmdList, nodeId);
+                        RSModifiersDraw::PurgeContextResource();
+                    }));
+                } else {
+                    RSModifiersDraw::ConvertCmdList(drawCmdList, command->GetNodeId());
+                }
+                break;
+            default:
+                break;
         }
     }
     if (hasCanvasCmdList) {
         RSModifiersDrawThread::Instance().ScheduleTask([] { RSModifiersDraw::CreateNextFrameSurface(); });
     }
-}
-
-void RSModifiersDrawThread::ConvertTransactionWithFFRT(std::unique_ptr<RSTransactionData>& transactionData,
-    std::shared_ptr<RSIRenderClient>& renderServiceClient, bool& isNeedCommit, std::vector<DrawOpInfo>& targetCmds)
-{
-    static std::unique_ptr<ffrt::queue> queue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "ModifiersDraw",
-        ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM));
-    std::vector<ffrt::task_handle> handles;
-    std::atomic<size_t> cmdIndex = 0;
-
-    // send ffrt task
-    auto ffrtTask = [&targetCmds, &cmdIndex]() {
-        TraverseDrawOpInfo(targetCmds, cmdIndex);
-    };
-
-    uint32_t totalPostTask =
-        std::min(DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM, static_cast<uint32_t>(targetCmds.size()));
-    ffrtTaskNum_.store(totalPostTask);
-    for (uint32_t i = 0; i < totalPostTask; i++) {
-        handles.emplace_back(queue->submit_h(ffrtTask));
-    }
-
-    // MD Thread convert CDN
-    ConvertTransactionForCanvas(transactionData);
-
-    // check ffrt timeout
-    std::unique_lock<std::mutex> lock(ffrtMutex_);
-    bool ffrtTimeout = !cv_.wait_for(lock, std::chrono::milliseconds(FFRT_WAIT_TIMEOUT),
-        [] { return ffrtTaskNum_.load() == 0; });
-    if (ffrtTimeout && isNeedCommit) {
-        RS_LOGD("ffrt task execution timeout, commit original transactionData");
-        renderServiceClient->CommitTransaction(transactionData);
-        isNeedCommit = false;
-    }
-    // wait ffrt task
     for (auto& handle : handles) {
         queue->wait(handle);
     }
-}
+    RSModifiersDraw::PurgeContextResource();
 
-void RSModifiersDrawThread::ConvertTransactionWithoutFFRT(
-    std::unique_ptr<RSTransactionData>& transactionData, std::vector<DrawOpInfo>& targetCmds)
-{
-    std::atomic<size_t> cmdIndex = 0;
-    TraverseDrawOpInfo(targetCmds, cmdIndex);
-    ConvertTransactionForCanvas(transactionData);
-}
-
-std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
-    std::unique_ptr<RSTransactionData>& transactionData,
-    std::shared_ptr<RSIRenderClient> renderServiceClient,
-    bool& isNeedCommit)
-{
-    // 1. extract the drawCmdList that enable hybrid render
-    std::vector<DrawOpInfo> targetCmds;
-    uint32_t enableHybridTextOpCnt = 0;
-    // canvasDrawingNode does not use FFRT, so when collecting targetCmds, it needs to be excluded
-    SeperateHybridRenderCmdList(transactionData, targetCmds, enableHybridTextOpCnt);
-    if (targetCmds.empty()) {
-        return transactionData;
-    }
-
-    // 2. check if the number of op exceeds the limit
-    bool isEnableHybridByOpCnt = (targetCmds.size() <= HYBRID_MAX_ENABLE_OP_CNT) &&
-        (enableHybridTextOpCnt <= HYBRID_MAX_TEXT_ENABLE_OP_CNT);
-    bool isFirstFrame = RSModifiersDrawThread::GetIsFirstFrame();
-    if (!isEnableHybridByOpCnt) {
-        if (isFirstFrame) {
-            RS_LOGD("the first frame's op exceeds the limit, commit original transactionData:\
-                opCnt[%zu], textOpCnt[%" PRIu32 "]", targetCmds.size(), enableHybridTextOpCnt);
-            renderServiceClient->CommitTransaction(transactionData);
-            // still need playback when firstFrame is true
-            isNeedCommit = false;
-        } else {
-            return transactionData;
-        }
-    }
-
-    // 3. convert drawCmdList
-    RS_TRACE_NAME_FMT("%s opCnt=%zu, textOpCnt=%" PRIu32 ", isFirstFrame=%d",
-        __func__, targetCmds.size(), enableHybridTextOpCnt, isFirstFrame);
-    RSModifiersDraw::MergeOffTreeNodeSet();
-    if (RSSystemProperties::GetHybridRenderParallelConvertEnabled()) {
-        ConvertTransactionWithFFRT(transactionData, renderServiceClient, isNeedCommit, targetCmds);
-    } else {
-        ConvertTransactionWithoutFFRT(transactionData, targetCmds);
-    }
-
-    // 4. get fence from semaphore and add pixelMap to drawOp
-    RSModifiersDraw::GetFenceAndAddDrawOp(targetCmds);
     return transactionData;
 }
 } // namespace Rosen

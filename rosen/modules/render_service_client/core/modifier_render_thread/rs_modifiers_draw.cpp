@@ -47,11 +47,6 @@ void RSModifiersDraw::PurgeContextResource()
     return;
 }
 
-void RSModifiersDraw::GetFenceAndAddDrawOp(std::vector<DrawOpInfo>& targetCmds)
-{
-    return;
-}
-
 sptr<SurfaceBuffer> RSModifiersDraw::CreateSurfaceBuffer(
     const std::unique_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height)
 {
@@ -96,13 +91,13 @@ RSModifiersDraw::SurfaceEntry RSModifiersDraw::GetSurfaceEntryByNodeId(NodeId no
 }
 
 bool RSModifiersDraw::Playback(const std::shared_ptr<Drawing::Surface>& surface,
-    const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, VkSemaphore& semaphore)
+    const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, int32_t& fence)
 {
     return false;
 }
 
 static void FlushSurfaceWithFence(const std::shared_ptr<Drawing::Surface>& surface,
-    VkSemaphore& semaphore)
+    VkSemaphore& semaphore, int32_t& fence)
 {
     return;
 }
@@ -136,7 +131,7 @@ void RSModifiersDraw::UpdateSize(const std::shared_ptr<Drawing::DrawCmdList>& cm
     return;
 }
 
-void RSModifiersDraw::ConvertCmdList(DrawOpInfo& targetCmd)
+void RSModifiersDraw::ConvertCmdList(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId)
 {
     return;
 }
