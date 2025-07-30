@@ -450,7 +450,7 @@ bool RSRenderServiceClient::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
 
     auto ret = renderService->SetScreenFreezeImmediately(id, isFreeze, surfaceCaptureCbDirector_, captureConfig);
     if (ret != ERR_OK) {
-        ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__);
+        ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);
         std::lock_guard<std::mutex> lock(mutex_);
         surfaceCaptureCbMap_.erase(key);
         return false;
