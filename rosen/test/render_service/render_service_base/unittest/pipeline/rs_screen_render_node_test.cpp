@@ -978,7 +978,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetForceFreeze, TestSize.Level1)
     screenNode->SetForceFreeze(false);
     ASSERT_FALSE(screenNode->GetForceFreeze());
 
-    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
     ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
     screenNode->stagingRenderParams_->needSync_ = false;
     screenNode->SetForceFreeze(true);
