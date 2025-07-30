@@ -886,8 +886,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     return config;
 }
 
-GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool adaptiveDVSyncEnable)
+GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
     const auto surfaceConsumer = surfaceHandler.GetConsumer();
@@ -899,10 +898,6 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uin
 
     // maxDirtyListSize should minus one buffer used for displaying, and another one that has just been acquried.
     int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1 - 1;
-    if (adaptiveDVSyncEnable) {
-        // adaptiveDVSync need more buffer
-        maxDirtyListSize++;
-    }
     // maxDirtyListSize > 1 means QueueSize >3 too
     if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {

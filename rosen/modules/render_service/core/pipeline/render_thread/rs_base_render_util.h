@@ -151,8 +151,7 @@ public:
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,
         const Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL);
 
-    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0,
-        bool adaptiveDVSyncEnable = false);
+    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
         bool dropFrameByPidEnable = false, uint64_t parentNodeId = 0, bool deleteCacheDisable = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
