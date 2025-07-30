@@ -1646,9 +1646,9 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     bool isNeedAssignToSubThread = false;
     bool isScale = node.IsScale();
     bool hasFilter = node.HasFilter();
-    bool isRotate = RSUifirstManager::Instance().rotationChanged_;
-    bool isRecentScene = RSUifirstManager::Instance().IsRecentTaskScene() &&
+    bool isRotate = RSUifirstManager::Instance().rotationChanged_ &&
         !RSUifirstManager::Instance().IsSnapshotRotationScene();
+    bool isRecentScene = RSUifirstManager::Instance().IsRecentTaskScene();
     if (isRecentScene) {
         isNeedAssignToSubThread = isScale && LeashWindowContainMainWindow(node);
     } else {
