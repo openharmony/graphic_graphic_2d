@@ -6069,7 +6069,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
 
     ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
     screenNode->SetForceFreeze(true);
-    auto ret = mainThread->DoDirectComposition(rootNode, false);
+    ret = mainThread->DoDirectComposition(rootNode, false);
     ASSERT_TRUE(ret);
 }
 } // namespace OHOS::Rosen
