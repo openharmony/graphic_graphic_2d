@@ -201,42 +201,6 @@ HWTEST_F(RSModifiersDrawThreadTest, ScheduleTask001, TestSize.Level1)
 }
 
 /**
- * @tc.name: TargetCommand001
- * @tc.desc: test results of TargetCommand as (type,subtype) is (rsnode,updatexxx)
- * @tc.type: FUNC
- * @tc.require: issueIC1FSX
- */
-HWTEST_F(RSModifiersDrawThreadTest, TargetCommand001, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
-    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::CANVAS);
-    uint64_t propertyId = 1;
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-    ASSERT_TRUE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::SVG, cmd->GetType(),
-        cmd->GetSubType(), false));
-}
-
-/**
- * @tc.name: TargetCommand002
- * @tc.desc: test results of TargetCommand invalid
- * @tc.type: FUNC
- * @tc.require: issueIC1FSX
- */
-HWTEST_F(RSModifiersDrawThreadTest, TargetCommand002, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
-    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::NONE);
-    uint64_t propertyId = 1;
-    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
-    ASSERT_FALSE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
-        cmd->GetSubType(), false));
-    ASSERT_FALSE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
-        cmd->GetSubType(), true));
-}
-
-/**
  * @tc.name: ConvertTransactionTest001
  * @tc.desc: test results of ConvertTransaction of canvas drawing node
  * @tc.type: FUNC
