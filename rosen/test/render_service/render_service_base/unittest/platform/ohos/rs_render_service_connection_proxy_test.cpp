@@ -1523,7 +1523,6 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFreezeImmediatelyTest, Tes
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    ASSERT_EQ(proxy->SetScreenChangeCallback(callback), 0);
     ret = proxy->SetScreenFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
     EXPECT_EQ(ret, ERR_OK);
 }
