@@ -16,6 +16,7 @@ import("//build/ohos.gni")
 group("ani_packages") {
   deps = [
     "color_manager:ani_color_space_manager",
+    "drawing:ani_drawing",
     "effect_kit:effectKit_ani",
     "effect_kit:effectKit_etc",
     "hdr_capability:ani_hdr_capability",
