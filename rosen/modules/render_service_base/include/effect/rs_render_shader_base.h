@@ -41,6 +41,7 @@ public:
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShaderBase>& val);
     void Dump(std::string& out) const;
 
+private:
     friend class RSNGRenderShaderHelper;
 };
 
