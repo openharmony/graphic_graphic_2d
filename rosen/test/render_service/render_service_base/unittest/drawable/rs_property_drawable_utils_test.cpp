@@ -502,6 +502,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest015, testing
     EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 2);
     rsPropertyDrawableUtilsTest1->BeginBlender(paintFilterCanvasTest1, blender, 2, true);
     EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 3);
+    rsPropertyDrawableUtilsTest1->BeginBlender(paintFilterCanvasTest1, blender, 3, true);
+    EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 4);
 
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest2, nullptr);
