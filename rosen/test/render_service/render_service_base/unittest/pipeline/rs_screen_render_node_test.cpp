@@ -966,7 +966,7 @@ HWTEST_F(RSScreenRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
  * @tc.name: SetForceFreeze
  * @tc.desc: test results of Set/GetForceFreeze
  * @tc.type: FUNC
- * @tc.require: issuesICPMFO
+ * @tc.require: issuesICQ74B
  */
 HWTEST_F(RSScreenRenderNodeTest, SetForceFreeze, TestSize.Level1)
 {

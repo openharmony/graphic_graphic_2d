@@ -2906,7 +2906,7 @@ HWTEST_F(RSUifirstManagerTest, ProcessMarkedNodeSubThreadCacheTest, TestSize.Lev
  * @tc.name: SnapshotRotation
  * @tc.desc: Test SnapshotRotation
  * @tc.type: FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSUifirstManagerTest, SnapshotRotation, TestSize.Level2)
 {

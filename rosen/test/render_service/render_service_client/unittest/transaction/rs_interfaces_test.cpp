@@ -811,7 +811,7 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
  * @tc.name: SetScreenFreezeImmediately
  * @tc.desc: Test SetScreenFreezeImmediately
  * @tc.type: FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSInterfacesTest, SetScreenFreezeImmediatelyTest001, TestSize.Level1)
 {

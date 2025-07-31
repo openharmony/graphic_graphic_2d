@@ -1226,7 +1226,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, GetScreenHDRStatus003, TestSize.Leve
  * @tc.name: SetScreenFreezeImmediatelyTest001
  * @tc.desc: Test SetScreenFreezeImmediately
  * @tc.type: FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest001, TestSize.Level2)
 {
@@ -1249,7 +1249,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest001, T
  * @tc.name: SetScreenFreezeImmediatelyTest002
  * @tc.desc: Test SetScreenFreezeImmediately
  * @tc.type: FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest002, TestSize.Level2)
 {
@@ -1317,7 +1317,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest002, T
  * @tc.name: SetScreenFreezeImmediatelyTest003
  * @tc.desc: Test SetScreenFreezeImmediately
  * @tc.type: FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest003, TestSize.Level2)
 {

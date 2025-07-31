@@ -1503,7 +1503,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ClearUifirstCacheTest, TestSize.Lev
  * @tc.name: SetScreenFreezeImmediately Test
  * @tc.desc: SetScreenFreezeImmediately Test
  * @tc.type:FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
 {

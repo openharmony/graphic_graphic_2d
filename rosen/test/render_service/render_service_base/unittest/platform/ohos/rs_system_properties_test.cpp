@@ -1190,7 +1190,7 @@ HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Leve
  * @tc.name: GetSupportScreenFreezeEnabled
  * @tc.desc: GetSupportScreenFreezeEnabled
  * @tc.type:FUNC
- * @tc.require: issuesICPMFO
+ * @tc.require: issuesICQ74B
  */
 HWTEST_F(RSSystemPropertiesTest, GetSupportScreenFreezeEnabledTest, TestSize.Level1)
 {

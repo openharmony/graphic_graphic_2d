@@ -6045,7 +6045,7 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
  * @tc.name: DoDirectComposition
  * @tc.desc: DoDirectComposition
  * @tc.type: FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
 {

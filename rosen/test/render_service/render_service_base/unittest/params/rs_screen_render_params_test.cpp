@@ -230,7 +230,7 @@ HWTEST_F(RSScreenRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
  * @tc.name: SetForceFreeze
  * @tc.desc: test result of SetForceFreeze
  * @tc.type: FUNC
- * @tc.require: issueICPMFO
+ * @tc.require: issueICQ74B
  */
 HWTEST_F(RSScreenRenderParamsTest, SetForceFreeze, TestSize.Level1)
 {

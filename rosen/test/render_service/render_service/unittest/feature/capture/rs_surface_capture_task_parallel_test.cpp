@@ -562,7 +562,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestSurfaceCaputreIt, TestSize.Level2
  * @tc.name: CaptureDisplayNode
  * @tc.desc: Test CaptureDisplayNode
  * @tc.type: FUNC
- * @tc.require: #ICPMFO
+ * @tc.require: #ICQ74B
 */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
 {

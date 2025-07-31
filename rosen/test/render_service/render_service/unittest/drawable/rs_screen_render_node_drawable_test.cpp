@@ -721,7 +721,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest014, TestSize.Level1)
  * @tc.name: OnDrawTest015
  * @tc.desc: Test OnDraw when screen freeze
  * @tc.type: FUNC
- * @tc.require: #ICPMFO
+ * @tc.require: #ICQ74B
  */
 HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest015, TestSize.Level1)
 {
@@ -744,7 +744,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest015, TestSize.Level1)
  * @tc.name: CheckScreenFreezeSkip
  * @tc.desc: Test CheckScreenFreezeSkip
  * @tc.type: FUNC
- * @tc.require: #ICPMFO
+ * @tc.require: #ICQ74B
  */
 HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenFreezeSkip, TestSize.Level1)
 {
