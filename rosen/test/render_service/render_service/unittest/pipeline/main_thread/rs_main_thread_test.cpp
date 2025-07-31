@@ -5891,6 +5891,17 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
     ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
     ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
+
+    mainThread->hgmContext_.currVsyncId_ = mainThread->hgmContext_.currVsyncId_ + 100;
+    EXPECT_NE(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
+    mainThread->hgmContext_.ForceUpdateRenderService(false, true);
+    EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
+    mainThread->hgmContext_.ForceUpdateRenderService(false, true);
+    EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
+    if (frameRateMgr != nullptr && frameRateMgr->forceUpdateCallback_) {
+        frameRateMgr->forceUpdateCallback_(false, true);
+    }
+    sleep(1);
 }
 
 /**

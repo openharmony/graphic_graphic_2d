@@ -41,6 +41,8 @@ public:
         return rsFrameRateLinker_;
     }
 private:
+    void ForceUpdateRenderService(bool idleTimerExpired, bool forceUpdate);
+
     FrameRateRange rsCurrRange_;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
     uint64_t currVsyncId_;
