@@ -2899,7 +2899,7 @@ HWTEST_F(RSUifirstManagerTest, ProcessMarkedNodeSubThreadCacheTest, TestSize.Lev
     // clear cachesurface
     uifirstManager_.ProcessMarkedNodeSubThreadCache();
     ASSERT_TRUE(rsSubThreadCache.cacheSurface_ == nullptr);
-    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);}
+    ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
 }
 
 /**
@@ -2922,4 +2922,5 @@ HWTEST_F(RSUifirstManagerTest, SnapshotRotation, TestSize.Level2)
     EXPECT_FALSE(uifirstManager_.IsSnapshotRotationScene());
 
     uifirstManager_.isSnapshotRotationScene_ = isSnapshotRotationScene;
+}
 }
