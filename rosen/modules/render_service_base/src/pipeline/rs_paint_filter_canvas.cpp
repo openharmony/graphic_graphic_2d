@@ -1287,9 +1287,9 @@ void RSPaintFilterCanvas::SetBlender(std::shared_ptr<Drawing::Blender> blender)
     envStack_.top().blender_ = blender;
 }
 
-void RSPaintFilterCanvas::SetBlenderType(bool BlenderType)
+void RSPaintFilterCanvas::SetIsShadowBlender(bool isShadowBlender)
 {
-    blenderType_ = BlenderType;
+    isShadowBlender_ = isShadowBlender;
 }
 
 int RSPaintFilterCanvas::SaveEnv()
