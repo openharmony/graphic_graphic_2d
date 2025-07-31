@@ -101,7 +101,8 @@ const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 47;
 const uint8_t DO_SET_COLOR_FOLLOW = 48;
 const uint8_t DO_SET_FORCE_REFRESH = 49;
 const uint8_t DO_CLEAR_UIFIRST_CACHE = 50;
-const uint8_t TARGET_SIZE = 51;
+const uint8_t DO_CREATE_VSYNC_CONNECTION_BY_REMOTE_ID = 51;
+const uint8_t TARGET_SIZE = 52;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -615,6 +616,28 @@ void DoCreateVSyncConnection()
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = iface_cast<VSyncIConnectionToken>(remoteObject);
     uint64_t id = GetData<uint64_t>();
+    NodeId windowNodeID = GetData<NodeId>();
+    std::string name = GetData<std::string>();
+    dataParcel.WriteString(name);
+    dataParcel.WriteRemoteObject(vsyncIConnectionToken_->AsObject());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint64(windowNodeID);
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoCreateVSyncConnectionByRemoteId()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = iface_cast<VSyncIConnectionToken>(remoteObject);
+    uint64_t id = g_pid;
     NodeId windowNodeID = GetData<NodeId>();
     std::string name = GetData<std::string>();
     dataParcel.WriteString(name);
@@ -1201,6 +1224,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_CREATE_VSYNC_CONNECTION:
             OHOS::Rosen::DoCreateVSyncConnection();
+            break;
+        case OHOS::Rosen::DO_CREATE_VSYNC_CONNECTION_BY_REMOTE_ID:
+            OHOS::Rosen::DoCreateVSyncConnectionByRemoteId();
             break;
         case OHOS::Rosen::DO_REGISTER_OCCLUSION_CHANGE_CALLBACK:
             OHOS::Rosen::DoRegisterOcclusionChangeCallback();
