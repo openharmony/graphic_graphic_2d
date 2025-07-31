@@ -4512,7 +4512,6 @@ HWTEST_F(RSMainThreadUnitTest, ProcessHgmFrameRate, TestSize.Level2)
 
     mainThread->rsVSyncDistributor_ = nullptr;
     mainThread->ProcessHgmFrameRate(timestamp);
-    mainThread->Init();
     sleep(1);
 }
 
