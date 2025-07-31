@@ -124,9 +124,8 @@ private:
     int64_t pendingPeriod_ = 0;
     std::atomic<bool> enableVsyncSample_ = true;
     uint64_t vsyncEnabledScreenId_ = UINT64_MAX;
-    std::atomic<bool> isAdaptive_ = false;
-    std::atomic<int64_t> lastAdaptiveTime_ = 0;
-    int64_t preAdaptiveSampleTime_ = 0;
+    bool isAdaptive_ = false;
+    int64_t lastAdaptiveTime_ = 0;
 };
 } // impl
 } // namespace Rosen
