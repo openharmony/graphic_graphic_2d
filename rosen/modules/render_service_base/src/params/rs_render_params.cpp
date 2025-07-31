@@ -422,7 +422,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
-    target->isNodeGroupHasChildInBlackList_ = isNodeGroupHasChildInBlackList_;
+    target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;

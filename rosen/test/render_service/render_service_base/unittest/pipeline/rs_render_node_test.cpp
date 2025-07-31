@@ -1675,6 +1675,11 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest001, TestSize.Level1)
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, false));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, true));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, false));
+
+    // restore SubTreePrepareCheckType to default
+    system::SetParameter("persist.sys.graphic.SubTreePrepareCheckType.type", "2");
+    checkType = RSSystemProperties::GetSubTreePrepareCheckType();
+    EXPECT_EQ(checkType, SubTreePrepareCheckType::ENABLED);
 }
 
 /**
@@ -1733,6 +1738,11 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest002, TestSize.Level1)
     parent->SetTreeStateChangeDirty(false);
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, isOccluded));
+
+    // restore SubTreePrepareCheckType to default
+    system::SetParameter("persist.sys.graphic.SubTreePrepareCheckType.type", "2");
+    checkType = RSSystemProperties::GetSubTreePrepareCheckType();
+    EXPECT_EQ(checkType, SubTreePrepareCheckType::ENABLED);
 }
 
 /**
