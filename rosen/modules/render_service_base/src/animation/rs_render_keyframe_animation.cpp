@@ -29,13 +29,13 @@ RSRenderKeyframeAnimation::RSRenderKeyframeAnimation(AnimationId id, const Prope
 
 void RSRenderKeyframeAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderKeyframeAnimation";
+    out.append("Type:RSRenderKeyframeAnimation");
     RSRenderPropertyType type = RSRenderPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
-        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
+        out.append(", ModifierType: ").append(std::to_string(static_cast<int16_t>(property_->GetModifierType())));
     } else {
-        out += ", ModifierType: INVALID";
+        out.append(", ModifierType: INVALID");
     }
 }
 
