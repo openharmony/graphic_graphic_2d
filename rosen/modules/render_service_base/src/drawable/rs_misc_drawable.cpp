@@ -386,13 +386,13 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
         // map blendMode to Drawing::BlendMode and convert to Blender
         stagingBlender_ = Drawing::Blender::CreateWithBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1));
         stagingIsDangerous_ = RSPropertyDrawableUtils::IsDangerousBlendMode(blendMode - 1, stagingBlendApplyType_);
-        stagingBlenderType_ = true; // use this flag to mark the shadowblender
     } else if (properties.IsShadowBlenderValid()) {
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
             stagingPropertyDescription_ = properties.GetShadowBlenderDescription();
         }
         stagingBlender_ = RSPropertyDrawableUtils::MakeShadowBlender(properties.GetShadowBlenderParams().value());
         stagingIsDangerous_ = false;
+        stagingBlenderType_ = true; // use this flag to mark the shadowblender
     } else {
         return false;
     }
