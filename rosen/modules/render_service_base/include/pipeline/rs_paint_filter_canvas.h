@@ -215,7 +215,7 @@ public:
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
     void SetBlender(std::shared_ptr<Drawing::Blender>);
-    void SetBlenderType(bool BlenderType);
+    void SetIsShadowBlender(bool isShadowBlender);
     bool HasOffscreenLayer() const;
 
     // save/restore utils
@@ -446,7 +446,7 @@ protected:
             brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
         }
 
-        if (blenderType_ && envStack_.top().blender_) {
+        if (isShadowBlender_ && envStack_.top().blender_) {
             brush.SetBlender(envStack_.top().blender_);
         }
 
@@ -474,7 +474,7 @@ private:
     bool recordDrawable_ = false;
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
-    bool blenderType_ = false; // true indicates the shadow blender
+    bool isShadowBlender_ = false; // true indicates the shadow blender
     bool isWindowFreezeCapture_ = false;
     // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;
