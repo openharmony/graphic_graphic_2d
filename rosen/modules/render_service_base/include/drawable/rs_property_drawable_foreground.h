@@ -31,7 +31,6 @@ namespace Drawing {
 class GEShader;
 class RuntimeEffect;
 class RuntimeShaderBuilder;
-class GEVisualEffectContainer;
 } // namespace Drawing
 
 namespace DrawableV2 {
@@ -181,8 +180,8 @@ private:
 
     bool needSync_ = false;
     bool enableEDREffect_ = false;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
     std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
 };
 
 class RSPointLightDrawable : public RSDrawable {

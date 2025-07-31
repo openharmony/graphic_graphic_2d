@@ -255,8 +255,10 @@ bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 void RSForegroundShaderDrawable::OnSync()
 {
     if (needSync_ && stagingShader_) {
-        visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingShader_->AppendToGEContainer(visualEffectContainer_);
+        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingShader_->AppendToGEContainer(visualEffectContainer);
+        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
+        visualEffectContainer_ = visualEffectContainer;
         needSync_ = false;
     }
 }
