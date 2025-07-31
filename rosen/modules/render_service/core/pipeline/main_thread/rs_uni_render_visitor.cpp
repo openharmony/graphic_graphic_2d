@@ -940,6 +940,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     auto dirtyManager = curScreenDirtyManager_;
     if (!dirtyManager) {
         RS_LOGE("QuickPrepareLogicalDisplayRenderNode dirtyManager is nullptr");
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     UpdateVirtualDisplayInfo(node);
