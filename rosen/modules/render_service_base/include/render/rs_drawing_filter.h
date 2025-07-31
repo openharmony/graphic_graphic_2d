@@ -77,10 +77,8 @@ public:
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter> other) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<Drawing::ImageFilter> other, uint32_t hash) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSRenderFilterParaBase> other) const;
-    inline void SetNGRenderFilter(std::shared_ptr<RSNGRenderFilterBase> filter)
-    {
-        renderFilter_ = filter;
-    }
+    void SetNGRenderFilter(std::shared_ptr<RSNGRenderFilterBase> filter);
+
     inline std::shared_ptr<RSNGRenderFilterBase> GetNGRenderFilter() const
     {
         return renderFilter_;
@@ -181,6 +179,7 @@ private:
     std::shared_ptr<RSNGRenderFilterBase> renderFilter_ = nullptr;
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
     uint32_t imageFilterHash_ = 0;
+    uint32_t renderFilterHash_ = 0;
     bool canSkipFrame_ = false;
     bool canSkipMaskColor_ = false;
     float saturationForHPS_ = 1.f;

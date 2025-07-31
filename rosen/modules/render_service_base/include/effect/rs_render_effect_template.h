@@ -17,6 +17,12 @@
 #include <tuple>
 #include <type_traits>
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 #include "effect/rs_render_property_tag.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -31,6 +37,109 @@ class GEVisualEffect;
 
 class RSNGRenderMaskBase;
 
+class RSB_EXPORT RSNGRenderEffectHelper {
+public:
+    template<typename Tag>
+    static void UpdateVisualEffectParam(std::shared_ptr<Drawing::GEVisualEffect> geFilter, const Tag& propTag)
+    {
+        if (!geFilter) {
+            return;
+        }
+        UpdateVisualEffectParamImpl(*geFilter, Tag::NAME, propTag.value_->Get());
+    }
+
+    template<typename Tag>
+    static void CalculatePropTagHash(uint32_t& hash, const Tag& propTag)
+    {
+        CalculatePropTagHashImpl(hash, propTag.value_->Get());
+    }
+
+    static std::string GetEffectTypeString(RSNGEffectType type)
+    {
+        switch (type) {
+            case RSNGEffectType::INVALID: return "Invalid";
+            case RSNGEffectType::NONE: return "None";
+            case RSNGEffectType::BLUR: return "Blur";
+            case RSNGEffectType::DISPLACEMENT_DISTORT: return "DispDistort";
+            case RSNGEffectType::SOUND_WAVE: return "SoundWave";
+            case RSNGEffectType::EDGE_LIGHT: return "EdgeLight";
+            case RSNGEffectType::DISPERSION: return "Dispersion";
+            case RSNGEffectType::DIRECTION_LIGHT: return "DirectionLight";
+            case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
+            case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
+            case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
+            case RSNGEffectType::DOUBLE_RIPPLE_MASK: return "DoubleRippleMask";
+            case RSNGEffectType::PIXEL_MAP_MASK: return "PixelMapMask";
+            case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
+            case RSNGEffectType::WAVY_RIPPLE_LIGHT: return "WavyRippleLight";
+            case RSNGEffectType::AURORA_NOISE: return "AuroraNoise";
+            case RSNGEffectType::PARTICLE_CIRCULAR_HALO: return "ParticleCircularHalo";
+            case RSNGEffectType::RADIAL_GRADIENT_MASK: return "RadialGradientMask";
+            case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
+            case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
+            case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    static std::shared_ptr<Drawing::GEVisualEffect> CreateGEVisualEffect(RSNGEffectType type);
+    static void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge,
+        std::shared_ptr<Drawing::GEVisualEffect> geShader);
+
+private:
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, float value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, bool value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const Vector4f& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const Vector3f& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const Vector2f& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const VectorVector2F& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, std::shared_ptr<Media::PixelMap> value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const std::vector<float>& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, float value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, bool value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const Vector4f& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const Vector3f& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const Vector2f& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSNGRenderMaskBase> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const VectorVector2F& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Media::PixelMap> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<float>& value);
+
+    #ifdef USE_M133_SKIA
+    static constexpr auto hashFunc_ = SkChecksum::Hash32;
+#else
+    static constexpr auto hashFunc_ = SkOpts::hash;
+#endif
+};
+
 template <typename Derived, size_t EffectCountLimit = 1000>
 class RSNGRenderEffectBase : public std::enable_shared_from_this<Derived> {
 public:
@@ -43,7 +152,8 @@ public:
     virtual void Detach() = 0;
     virtual void SetModifierType(RSModifierType inType) = 0;
     virtual void Dump(std::string& out) const = 0;
-
+    virtual uint32_t CalculateHash() = 0;
+    virtual void CalculateHashInner(uint32_t& hash) = 0;
 protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
 
@@ -186,6 +296,26 @@ public:
 
     void Dump(std::string& out) const override;
 
+    uint32_t CalculateHash() override
+    {
+        uint32_t hash_ = 0;
+        CalculateHashInner(hash_);
+        return hash_;
+    }
+    
+    void CalculateHashInner(uint32_t& hash) override
+    {
+        std::apply(
+            [&hash](const auto&... props) {
+                (RSNGRenderEffectHelper::CalculatePropTagHash(hash, props), ...);
+            },
+            properties_);
+
+        if (Base::nextEffect_) {
+            Base::nextEffect_->CalculateHashInner(hash);
+        }
+    }
+
 protected:
     [[nodiscard]] bool OnUnmarshalling(Parcel& parcel) override
     {
@@ -226,79 +356,6 @@ protected:
 
     template <typename U, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;
-};
-
-class RSB_EXPORT RSNGRenderEffectHelper {
-public:
-    template<typename Tag>
-    static void UpdateVisualEffectParam(std::shared_ptr<Drawing::GEVisualEffect> geFilter, const Tag& propTag)
-    {
-        if (!geFilter) {
-            return;
-        }
-        UpdateVisualEffectParamImpl(*geFilter, Tag::NAME, propTag.value_->Get());
-    }
-
-    static std::string GetEffectTypeString(RSNGEffectType type)
-    {
-        switch (type) {
-            case RSNGEffectType::INVALID: return "Invalid";
-            case RSNGEffectType::NONE: return "None";
-            case RSNGEffectType::BLUR: return "Blur";
-            case RSNGEffectType::DISPLACEMENT_DISTORT: return "DispDistort";
-            case RSNGEffectType::SOUND_WAVE: return "SoundWave";
-            case RSNGEffectType::EDGE_LIGHT: return "EdgeLight";
-            case RSNGEffectType::DISPERSION: return "Dispersion";
-            case RSNGEffectType::DIRECTION_LIGHT: return "DirectionLight";
-            case RSNGEffectType::BEZIER_WARP: return "BezierWarp";
-            case RSNGEffectType::COLOR_GRADIENT: return "ColorGradient";
-            case RSNGEffectType::RIPPLE_MASK: return "RippleMask";
-            case RSNGEffectType::DOUBLE_RIPPLE_MASK: return "DoubleRippleMask";
-            case RSNGEffectType::PIXEL_MAP_MASK: return "PixelMapMask";
-            case RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT: return "ContourDiagonalFlowLight";
-            case RSNGEffectType::WAVY_RIPPLE_LIGHT: return "WavyRippleLight";
-            case RSNGEffectType::AURORA_NOISE: return "AuroraNoise";
-            case RSNGEffectType::PARTICLE_CIRCULAR_HALO: return "ParticleCircularHalo";
-            case RSNGEffectType::RADIAL_GRADIENT_MASK: return "RadialGradientMask";
-            case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
-            case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
-            case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
-            default:
-                return "UNKNOWN";
-        }
-    }
-
-    static std::shared_ptr<Drawing::GEVisualEffect> CreateGEVisualEffect(RSNGEffectType type);
-    static void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge,
-        std::shared_ptr<Drawing::GEVisualEffect> geShader);
-
-private:
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, float value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, bool value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, const Vector4f& value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, const Vector3f& value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, const Vector2f& value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, const VectorVector2F& value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, std::shared_ptr<Media::PixelMap> value);
-
-    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, const std::vector<float>& value);
 };
 
 template <typename Base, RSNGEffectType Type, typename... PropertyTags>
