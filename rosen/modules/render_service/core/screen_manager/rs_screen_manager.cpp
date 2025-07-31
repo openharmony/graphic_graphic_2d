@@ -2295,7 +2295,7 @@ int32_t RSScreenManager::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFr
     }
     screen->SetScreenSkipFrameInterval(skipFrameInterval);
     screen->SetEqualVsyncPeriod(skipFrameInterval == 1);
-    RS_LOGI("%{public}s: screen(id %" PRIu64 "), skipFrameInterval(%d).",
+    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), skipFrameInterval(%d).",
         __func__, id, skipFrameInterval);
     return StatusCode::SUCCESS;
 }
@@ -2319,7 +2319,7 @@ int32_t RSScreenManager::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRe
         maxRefreshRate = MAX_VIRTUAL_SCREEN_REFRESH_RATE;
     }
     screen->SetScreenExpectedRefreshRate(maxRefreshRate);
-    RS_LOGI("%{public}s: screen(id %" PRIu64 "), maxRefreshRate(%d).",
+    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), maxRefreshRate(%{public}d).",
         __func__, id, maxRefreshRate);
     actualRefreshRate = maxRefreshRate;
     return StatusCode::SUCCESS;
