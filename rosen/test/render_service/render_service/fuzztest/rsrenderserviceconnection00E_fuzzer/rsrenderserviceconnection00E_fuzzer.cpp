@@ -30,6 +30,7 @@
 #include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include <iservice_registry.h>
@@ -125,6 +126,8 @@ void DoRegisterTypeface()
     MessageOption option;
     uint64_t uniqueId = static_cast<NodeId>(g_pid) << 32;
     uint32_t hash = GetData<uint32_t>();
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    RSMarshallingHelper::Marshalling(dataParcel, typeface);
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(uniqueId);
