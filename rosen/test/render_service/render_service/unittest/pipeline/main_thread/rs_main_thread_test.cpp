@@ -6059,6 +6059,8 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
     ASSERT_NE(rsContext, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
     ASSERT_NE(screenNode, nullptr);
+    auto childNode = std::make_shared<RSRenderNode>(screenNodeId + 1, true);
+    screenNode->AddChild(childNode);
     screenNode->InitRenderParams();
     screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     screenNode->SetForceFreeze(false);

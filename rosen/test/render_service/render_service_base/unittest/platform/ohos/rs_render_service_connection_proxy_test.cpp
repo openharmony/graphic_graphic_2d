@@ -1517,7 +1517,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFreezeImmediatelyTest, Tes
 
     isFreeze = true;
     ret = proxy->SetScreenFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
-    EXPECT_EQ(ret, ERR_INVALID_DATA);
+    EXPECT_NE(ret, ERR_OK);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);

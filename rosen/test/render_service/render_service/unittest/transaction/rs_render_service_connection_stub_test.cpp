@@ -76,7 +76,8 @@ sptr<RSIConnectionToken> RSRenderServiceConnectionStubTest::token_ = new IRemote
 sptr<RSRenderServiceConnectionStub> RSRenderServiceConnectionStubTest::connectionStub_ = new RSRenderServiceConnection(
     0, nullptr, RSMainThread::Instance(), CreateOrGetScreenManager(), token_->AsObject(), nullptr);
 std::shared_ptr<RSSurfaceRenderNode> RSRenderServiceConnectionStubTest::surfaceNode_ =
-    std::make_shared<RSSurfaceRenderNode>(10003, std::make_shared<RSContext>(), true);
+    std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(10003, std::make_shared<RSContext>(), true),
+    RSRenderNodeGC::NodeDestructor);
 
 void RSRenderServiceConnectionStubTest::SetUpTestCase()
 {
@@ -1310,9 +1311,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest002, T
     ret = connection->SetScreenFreezeImmediately(displayNodeId, true, callback, captureConfig, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
-
-    delete callback;
-    callback = nullptr;
 }
 
 /**
@@ -1355,8 +1353,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest003, T
     data4.WriteRemoteObject(callback1->AsObject());
     res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
     ASSERT_EQ(res, ERR_NULL_OBJECT);
-    delete callback1;
-    callback1 = nullptr;
 
     MessageParcel data5;
     data5.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
@@ -1368,7 +1364,5 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest003, T
     data5.WriteBool(false);
     res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
-    delete callback2;
-    callback2 = nullptr;
 }
 } // namespace OHOS::Rosen
