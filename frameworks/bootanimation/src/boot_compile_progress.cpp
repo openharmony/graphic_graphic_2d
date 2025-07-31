@@ -350,7 +350,7 @@ void BootCompileProgress::SetFrame()
         case FOLD_2:
             rsCanvasNode_->SetFrame(0-windowHeight_ * FOLD_X_OFFSET, windowWidth_, windowHeight_,
                 windowWidth_ * HEIGHT_PERCENT);
-            fontSize_ = static_cast<int32_t>(std::ceil(windowWidth_ * HALF / RATIO_PHONE_HEIGHT) 
+            fontSize_ = static_cast<int32_t>(std::ceil(windowWidth_ * HALF / RATIO_PHONE_HEIGHT)
                 / HALF * FONT_SIZE_PHONE);
             currentRadius_ = static_cast<int32_t>(std::ceil(windowWidth_ * HALF
                 / RATIO_PHONE_HEIGHT) / HALF * RADIUS);
