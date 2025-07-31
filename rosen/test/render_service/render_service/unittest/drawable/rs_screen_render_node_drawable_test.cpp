@@ -718,6 +718,71 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest014, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDrawTest015
+ * @tc.desc: Test OnDraw when screen freeze
+ * @tc.type: FUNC
+ * @tc.require: #ICPMFO
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest015, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    ScreenInfo screenInfo;
+    screenInfo.state = ScreenState::HDI_OUTPUT_ENABLE;
+    params->screenInfo_ = screenInfo;
+    params->SetForceFreeze(false);
+    screenDrawable_->OnDraw(canvas);
+    params->SetForceFreeze(true);
+    screenDrawable_->OnDraw(canvas);
+    ASSERT_EQ(screenDrawable_->GetDrawSkipType(), DrawSkipType::SCREEN_FREEZE);
+}
+
+/**
+ * @tc.name: CheckScreenFreezeSkip
+ * @tc.desc: Test CheckScreenFreezeSkip
+ * @tc.type: FUNC
+ * @tc.require: #ICPMFO
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenFreezeSkip, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_SCREEN_ID, context);
+    ASSERT_NE(screenNode, nullptr);
+    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(
+        RSScreenRenderNodeDrawable::OnGenerate(screenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_shared<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->forceFreeze_ = true;
+    auto ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_TRUE(ret);
+
+    screenParams->forceFreeze_ = false;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_FALSE(ret);
+
+    auto mirrorScreenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID + 1, DEFAULT_SCREEN_ID + 1, context);
+    ASSERT_NE(mirrorScreenNode, nullptr);
+    auto adapter = RSRenderNodeDrawableAdapter::OnGenerate(mirrorScreenNode);
+    auto mirrorScreenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(adapter);
+    ASSERT_NE(mirrorScreenDrawable, nullptr);
+    RSScreenRenderNodeDrawable::InitRenderParams(mirrorScreenNode, adapter);
+    screenParams->mirrorSourceDrawable_ = adapter;
+    auto mirrorParams = static_cast<RSScreenRenderParams*>(mirrorScreenDrawable->GetRenderParams().get());
+    ASSERT_NE(mirrorParams, nullptr);
+    mirrorParams->forceFreeze_ = false;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_FALSE(ret);
+    mirrorParams->forceFreeze_ = true;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_TRUE(ret);
+}
+
+/**
  * @tc.name: CalculateVirtualDirty
  * @tc.desc: Test CalculateVirtualDirty
  * @tc.type: FUNC
@@ -1972,48 +2037,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkip_HDRStausChanged, Te
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     bool result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     EXPECT_FALSE(result);
-}
-
-/**
- * @tc.name: CheckScreenFreezeSkip
- * @tc.desc: Test CheckScreenFreezeSkip
- * @tc.type: FUNC
- * @tc.require: #ICPMFO
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenFreezeSkip, TestSize.Level1)
-{
-    auto context = std::make_shared<RSContext>();
-    ASSERT_NE(context, nullptr);
-    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_SCREEN_ID, context);
-    ASSERT_NE(screenNode, nullptr);
-    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(
-        RSScreenRenderNodeDrawable::OnGenerate(screenNode));
-    ASSERT_NE(screenDrawable, nullptr);
-    auto screenParams = std::make_shared<RSScreenRenderParams>(screenNode->GetId());
-    ASSERT_NE(screenParams, nullptr);
-    screenParams->forceFreeze_ = true;
-    auto ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
-    ASSERT_TRUE(ret);
-
-    screenParams->forceFreeze_ = false;
-    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
-    ASSERT_FALSE(ret);
-
-    auto mirrorScreenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID + 1, DEFAULT_SCREEN_ID + 1, context);
-    ASSERT_NE(mirrorScreenNode, nullptr);
-    auto adapter = RSRenderNodeDrawableAdapter::OnGenerate(mirrorScreenNode);
-    auto mirrorScreenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(adapter);
-    ASSERT_NE(mirrorScreenDrawable, nullptr);
-    RSScreenRenderNodeDrawable::InitRenderParams(mirrorScreenNode, adapter);
-    screenParams->mirrorSourceDrawable_ = adapter;
-    auto mirrorParams = static_cast<RSScreenRenderParams*>(mirrorScreenDrawable->GetRenderParams().get());
-    ASSERT_NE(mirrorParams, nullptr);
-    mirrorParams->forceFreeze_ = false;
-    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
-    ASSERT_FALSE(ret);
-    mirrorParams->forceFreeze_ = true;
-    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
-    ASSERT_TRUE(ret);
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE

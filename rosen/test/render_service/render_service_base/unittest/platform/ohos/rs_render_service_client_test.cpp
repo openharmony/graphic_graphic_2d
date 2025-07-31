@@ -1357,7 +1357,6 @@ HWTEST_F(RSClientTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
     ASSERT_EQ(ret, false);
 
     cb = std::make_shared<TestSurfaceCaptureCallback>();
-    ASSERT_EQ(cb, nullptr);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
     rsClient->surfaceCaptureCbMap_.emplace(std::make_pair(TEST_ID, captureConfig), callbackVector);
     ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
