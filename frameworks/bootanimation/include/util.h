@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H
 
@@ -40,6 +40,10 @@ static const int INVALID_VOLUME = -1;
 static const int MIN_VOLUME = 0;
 static const int MAX_VOLUME = 15;
 constexpr const float MAX_ZORDER = 100000.0f;
+constexpr const float HALF = 2.0f;
+constexpr const float RATIO_PHONE = 360.0f;
+constexpr const float RATIO_OTHER = 800.0f;
+constexpr const float RATIO_PHONE_HEIGHT = 780.0f;
 
 constexpr const char* FILE_PREFIX = "file:/";
 const std::string BOOT_PIC_CONFIG_FILE = "config.json";
