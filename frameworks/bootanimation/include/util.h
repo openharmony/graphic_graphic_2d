@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+1
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H
 
