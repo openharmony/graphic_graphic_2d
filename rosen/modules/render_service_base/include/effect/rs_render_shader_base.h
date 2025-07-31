@@ -16,8 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_EFFECT_RS_RENDER_SHADER_BASE_H
 #define RENDER_SERVICE_BASE_EFFECT_RS_RENDER_SHADER_BASE_H
 
-#include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_effect_template.h"
+#include "effect/rs_render_property_tag.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,6 +60,14 @@ public:
         if (ge == nullptr) {
             return;
         }
+#ifndef ROSEN_TRACE_DISABLE
+        if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
+            std::string paramStr;
+            EffectTemplateBase::Dump(paramStr);
+            RS_TRACE_NAME_FMT("RSNGRenderShaderTemplate::AppendToGEContainer, Type: %s paramStr: %s",
+                RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(), paramStr.c_str());
+        }
+#endif
         auto geShader = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         std::apply(
             [&geShader](const auto&... propTag) {

@@ -50,6 +50,8 @@ public:
 
     std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
     {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSNGRenderMaskTemplate::GenerateGEVisualEffect, Type: %s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         auto geMask = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geMask);
         std::apply([&geMask](const auto&... propTag) {

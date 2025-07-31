@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
 #define RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
 
-#include "rs_trace.h"
+#include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "securec.h"
 #ifndef ROSEN_TRACE_DISABLE
 #include "platform/common/rs_system_properties.h"
@@ -192,5 +192,5 @@ private:
     do {                                                  \
         (void)TRACE_LEVEL_TWO;                            \
     } while (0)
-#endif //ROSEN_TRACE_DISABLE
+#endif // ROSEN_TRACE_DISABLE
 #endif // RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
