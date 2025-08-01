@@ -21,6 +21,12 @@
 #include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
+struct AncoBufferInfo {
+    int32_t width_ = 0;
+    int32_t height_ = 0;
+    int32_t format_ = GRAPHIC_PIXEL_FMT_BUTT;
+};
+
 class RSAncoManager {
 public:
     static RSAncoManager* Instance();
@@ -32,19 +38,21 @@ public:
     virtual bool IsAncoOptimize(ScreenRotation rotation);
     // When the anco node is rendered in a unified way, ancoSrcCrop is effective
     static void UpdateCropRectForAnco(const uint32_t ancoFlags, const Rect& cropRect,
-        const sptr<SurfaceBuffer>& buffer, Drawing::Rect& outSrcRect);
+        const AncoBufferInfo& ancoInfo, Drawing::Rect& outSrcRect);
     // When the anco layer is redrawed in dss, ancoSrcCrop is effective
     static void UpdateCropRectForAnco(const uint32_t ancoFlags, const GraphicIRect& cropRect,
-        const sptr<SurfaceBuffer>& buffer, Drawing::Rect& outSrcRect);
+        const AncoBufferInfo& ancoInfo, Drawing::Rect& outSrcRect);
     // When the anco node generates a layer, ancoSrcCrop takes effect
     static void UpdateLayerSrcRectForAnco(const uint32_t ancoFlags, const GraphicIRect& cropRect,
-        const sptr<SurfaceBuffer>& buffer, GraphicIRect& outSrcRect);
+        GraphicIRect& outSrcRect);
     static bool IsAncoSfv(const uint32_t ancoFlags);
-    // If the cropRect is smaller than the buffer size, it needs to shrink inwards by a few pixels.
-    static void ShrinkAmountIfNeed(const sptr<SurfaceBuffer>& buffer,
-        const GraphicIRect& cropRect, Drawing::Rect& outSrcRect);
     // Check whether CropRect is valid.
     static bool ValidCropRect(const GraphicIRect& cropRect);
+    static void IntersectCrop(const GraphicIRect& cropRect, GraphicIRect& outSrcRect);
+    // If the cropRect is smaller than the buffer size, it needs to shrink inwards by a few pixels.
+    static float CalculateShrinkAmount(const int32_t format);
+    static void ShrinkAmountIfNeed(const AncoBufferInfo& ancoInfo, Drawing::Rect& outSrcRect);
+
 private:
     bool AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt);
     // anco screenNode use hebc
