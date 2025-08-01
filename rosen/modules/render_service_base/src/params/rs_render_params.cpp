@@ -410,6 +410,20 @@ void RSRenderParams::SetGlobalAlpha(float alpha)
     needSync_ = true;
 }
 
+void RSRenderParams::SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info)
+{
+    if (info == hasVirtualScreenWhiteList_) {
+        return;
+    }
+    hasVirtualScreenWhiteList_ = info;
+    needSync_ = true;
+}
+
+const std::unordered_map<ScreenId, bool>& RSRenderParams::GetVirtualScreenWhiteListInfo() const
+{
+    return hasVirtualScreenWhiteList_;
+}
+
 bool RSRenderParams::NeedSync() const
 {
     return needSync_;
@@ -522,7 +536,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
     target->needSwapBuffer_ = needSwapBuffer_;
     target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
-
+    target->hasVirtualScreenWhiteList_ = hasVirtualScreenWhiteList_;
     needSync_ = false;
 }
 

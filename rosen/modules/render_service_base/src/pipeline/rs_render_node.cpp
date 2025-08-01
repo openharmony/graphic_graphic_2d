@@ -4511,6 +4511,20 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
     return NodeGroupType::NONE;
 }
 
+void RSRenderNode::UpdateVirtualScreenWhiteListInfo()
+{
+    if (IsInstanceOf<RSSurfaceRenderNode>()) {
+        return;
+    }
+    auto nodeParent = GetParent().lock();
+    if (nodeParent == nullptr) {
+        return;
+    }
+    for (const auto& [screenId, ret] : hasVirtualScreenWhiteList_) {
+        nodeParent->SetHasWhiteListNode(screenId, ret);
+    }
+}
+
 void RSRenderNode::MarkNonGeometryChanged()
 {
     geometryChangeNotPerceived_ = true;
@@ -4576,6 +4590,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
     stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
+    stagingRenderParams_->SetVirtualScreenWhiteListInfo(hasVirtualScreenWhiteList_);
     auto cloneSourceNode = GetSourceCrossNode().lock();
     if (cloneSourceNode) {
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());

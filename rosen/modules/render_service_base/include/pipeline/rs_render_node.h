@@ -888,7 +888,12 @@ public:
 
     bool HasUnobscuredUEC() const;
     void SetHasUnobscuredUEC();
+    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    {
+        hasVirtualScreenWhiteList_[screenId] = (hasVirtualScreenWhiteList_[screenId] || hasWhiteListNode);
+    }
 
+    void UpdateVirtualScreenWhiteListInfo();
 protected:
     void ResetDirtyStatus();
 
@@ -1183,7 +1188,7 @@ private:
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
-
+    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
     // for blur effct count
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     // The angle at which the node rotates about the Z-axis

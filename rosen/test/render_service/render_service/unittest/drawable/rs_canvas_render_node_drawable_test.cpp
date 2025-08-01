@@ -128,6 +128,8 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
     drawable->isDrawingCacheEnabled_ = false;
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     ASSERT_TRUE(drawable->GetRenderParams());

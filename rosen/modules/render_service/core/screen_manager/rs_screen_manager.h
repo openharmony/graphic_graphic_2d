@@ -99,7 +99,7 @@ public:
 
     virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
 
-    virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
+    virtual std::unordered_set<uint64_t> GetAllWhiteList() = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
@@ -240,6 +240,8 @@ public:
 
     virtual int GetDisableRenderControlScreensCount() const = 0;
 
+    virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
+
     virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
         std::vector<uint8_t>& edidData) const = 0;
 
@@ -344,7 +346,7 @@ public:
 
     std::unordered_set<uint64_t> GetAllBlackList() const override;
 
-    std::unordered_set<uint64_t> GetAllWhiteList() const override;
+    std::unordered_set<uint64_t> GetAllWhiteList() override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
@@ -535,6 +537,8 @@ public:
     bool IsScreenSwitching() const override;
 
     int32_t SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix) override;
+    // Get all whiteList and their screenId
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
 
 private:
     RSScreenManager();
@@ -651,6 +655,7 @@ private:
         bool isPowerOn;
     };
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
 };
 } // namespace impl
 } // namespace Rosen

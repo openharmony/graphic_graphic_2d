@@ -30,6 +30,7 @@ struct CaptureParam {
     bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
+    uint64_t virtualScreenId_ = INVALID_SCREEN_ID;
     NodeId rootIdInWhiteList_ = INVALID_NODEID;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;

@@ -130,6 +130,9 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
     }
+    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+        return;
+    }
     if (LIKELY(isDrawingCacheEnabled_)) {
         if (canvas.GetUICapture() && !drawBlurForCache_) {
             GenerateCacheIfNeed(canvas, *params);

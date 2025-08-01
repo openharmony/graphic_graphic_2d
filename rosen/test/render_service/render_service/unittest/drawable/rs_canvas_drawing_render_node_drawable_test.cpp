@@ -354,6 +354,37 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ProcessCPURenderInBackgroundThre
 }
 
 /**
+ * @tc.name: OnCaptureTest
+ * @tc.desc: Test If OnCapture Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueICF7P6
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->OnCapture(canvas);
+
+    CaptureParam params;
+    drawable->renderParams_ = nullptr;
+    params.isMirror_ = true;
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    RSUniRenderThread::SetCaptureParam(params);
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+}
+
+/**
  * @tc.name: ResetSurface
  * @tc.desc: Test If ResetSurface Can Run
  * @tc.type: FUNC

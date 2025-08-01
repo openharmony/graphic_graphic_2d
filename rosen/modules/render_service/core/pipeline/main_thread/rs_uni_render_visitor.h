@@ -398,6 +398,8 @@ private:
     RectI screenRect_;
     std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
     std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
+    // The info of whitelist contains screenId
+    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
     Occlusion::Region accumulatedOcclusionRegion_;
     Occlusion::Region occlusionRegionWithoutSkipLayer_;
     // variable for occlusion
