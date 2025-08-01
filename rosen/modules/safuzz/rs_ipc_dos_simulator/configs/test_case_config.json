@@ -2341,8 +2341,8 @@
   {
     "testCaseDesc": "SET_SCREEN_FREEZE_IMMEDIATELY_TEST_001",
     "interfaceName": "SET_SCREEN_FREEZE_IMMEDIATELY",
-    "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt32",
+    "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUInt32",
     "writeInterfaceToken": true,
-    "messageOption": "TF_SYNC"
+    "messageOption": "TF_ASYNC"
   }
 ]
