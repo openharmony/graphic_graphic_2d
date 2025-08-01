@@ -6043,7 +6043,7 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
 
 /**
  * @tc.name: DoDirectComposition
- * @tc.desc: DoDirectComposition
+ * @tc.desc: DoDirectComposition when screen frozen
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
