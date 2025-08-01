@@ -2564,6 +2564,50 @@ HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessFirstFrameCache
+ * @tc.desc: Test main thread cache preprocess
+ * @tc.type: FUNC
+ * @tc.require: issueICPTT5
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessFirstFrameCache, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetSubThreadAssignable(false);
+    surfaceNode->SetSelfAndParentShouldPaint(true);
+    surfaceNode->SetSkipDraw(false);
+    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::ARKTS_CARD);
+    ASSERT_TRUE(surfaceNode->GetSubThreadAssignable());
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetSubThreadAssignable(false);
+    surfaceNode->SetSelfAndParentShouldPaint(true);
+    surfaceNode->SetSkipDraw(false);
+    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_TRUE(surfaceNode->GetSubThreadAssignable());
+
+    NodeId id = 0;
+    std::shared_ptr<RSCanvasRenderNode> parent = std::make_shared<RSCanvasRenderNode>(id);
+    parent->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    surfaceNode->SetParent(parent);
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetSubThreadAssignable(false);
+    surfaceNode->SetSelfAndParentShouldPaint(true);
+    surfaceNode->SetSkipDraw(false);
+    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_FALSE(parent->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE);
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetSubThreadAssignable(false);
+    surfaceNode->SetSelfAndParentShouldPaint(true);
+    surfaceNode->SetSkipDraw(false);
+    uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::ARKTS_CARD);
+    ASSERT_TRUE(parent->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
  * @tc.name: IsArkTsCardCache
  * @tc.desc: Test if ArkTsCard node should enable uifirst
  * @tc.type: FUNC
