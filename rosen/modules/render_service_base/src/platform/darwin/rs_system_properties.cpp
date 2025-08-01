@@ -53,6 +53,10 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
+void RSSystemProperties::SetProfilerPixelCheckMode(bool flag)
+{
+}
+
 bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;

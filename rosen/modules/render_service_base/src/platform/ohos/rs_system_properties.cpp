@@ -120,6 +120,11 @@ bool RSSystemProperties::GetProfilerPixelCheckMode()
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
+void RSSystemProperties::SetProfilerPixelCheckMode(bool flag)
+{
+    system::SetParameter("persist.graphic.profiler.pixelcheck", flag ? "1" : "0");
+}
+
 int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
