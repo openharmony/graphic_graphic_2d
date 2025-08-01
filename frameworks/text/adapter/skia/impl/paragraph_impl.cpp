@@ -547,6 +547,15 @@ void ParagraphImpl::SetSkipTextBlobDrawing(bool state)
     paragraph_->setSkipTextBlobDrawing(state);
 }
 
+bool ParagraphImpl::CanPaintAllText() const
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return false;
+    }
+    return paragraph_->canPaintAllText();
+}
+
 void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();

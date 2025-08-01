@@ -211,6 +211,7 @@ public:
     virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
     virtual bool HasSkipTextBlobDrawing() const = 0;
     virtual void SetSkipTextBlobDrawing(bool state) = 0;
+    virtual bool CanPaintAllText() const = 0;
 };
 } // namespace SPText
 } // namespace Rosen

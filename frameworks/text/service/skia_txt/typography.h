@@ -88,6 +88,7 @@ public:
     std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
     void SetTextEffectAssociation(bool association) override { textEffectAssociation_ = association; }
     bool GetTextEffectAssociation() const override { return textEffectAssociation_; }
+    bool CanPaintAllText() const override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;
