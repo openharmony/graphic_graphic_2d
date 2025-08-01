@@ -195,14 +195,14 @@ public:
         return globalAlpha_;
     }
 
-    inline bool NodeGroupHasChildInBlackList() const
+    inline bool NodeGroupHasChildInBlacklist() const
     {
-        return isNodeGroupHasChildInBlackList_;
+        return isNodeGroupHasChildInBlacklist_;
     }
 
-    inline void SetNodeGroupHasChildInBlackList(bool isInBlackList)
+    inline void SetNodeGroupHasChildInBlacklist(bool isInBlackList)
     {
-        isNodeGroupHasChildInBlackList_ = isInBlackList;
+        isNodeGroupHasChildInBlacklist_ = isInBlackList;
     }
     
     inline bool IsSnapshotSkipLayer() const
@@ -521,7 +521,7 @@ private:
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
-    bool isNodeGroupHasChildInBlackList_ = false;
+    bool isNodeGroupHasChildInBlacklist_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
