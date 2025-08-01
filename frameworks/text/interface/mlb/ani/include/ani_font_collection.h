@@ -33,6 +33,8 @@ public:
     static void Constructor(ani_env* env, ani_object object);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
     std::shared_ptr<OHOS::Rosen::FontCollection> GetFontCollection();
+    static ani_object NativeTransferStatic(ani_env* env, ani_class cls, ani_object input);
+    static ani_object NativeTransferDynamic(ani_env* env, ani_class cls, ani_long nativeObj);
 
 private:
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_{nullptr};

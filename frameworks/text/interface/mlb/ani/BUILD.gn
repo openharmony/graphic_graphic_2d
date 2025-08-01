@@ -81,6 +81,7 @@ ohos_shared_library("text_engine_ani") {
     "hilog:libhilog",
     "resource_management:global_resmgr",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
     "runtime_core:libarkruntime",
   ]
 

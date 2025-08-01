@@ -22,6 +22,9 @@ import { BusinessError } from '@ohos.base';
 import type drawing from '@ohos.graphics.drawing';
 import type common2D from '@ohos.graphics.common2D';
 import { Resource } from 'global.resource';
+import hilog from '@ohos.hilog';
+const TEXT_LOG_DOMAIN = 0xD001408
+const TEXT_LOG_TAG = "Text"
 
 namespace text {
   loadLibrary('text_engine_ani.z');
@@ -73,6 +76,25 @@ namespace text {
       });
     }
     native clearCaches(): void;
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      hilog.info(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `FontCollection transfer static, input: ${input}`);
+      let fontCollection: ESValue = ESValue.wrap(input);
+      if (fontCollection != ESValue.Undefined) {
+        return nativeTransferStatic(fontCollection);
+      } else {
+        return nativeTransferStatic(ESValue.wrap(input));
+      }
+    }
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      hilog.info(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `FontCollection transfer dynamic, input: ${input}`);
+      if (input instanceof FontCollection) {
+        return nativeTransferDynamic((input as FontCollection).nativeObj).unwrap();
+      } else {
+        return undefined;
+      }
+    }
   }
 
   export class ParagraphBuilder {
