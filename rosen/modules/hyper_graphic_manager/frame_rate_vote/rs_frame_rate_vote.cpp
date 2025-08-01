@@ -91,8 +91,8 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
         strLastVotedPid = "[" + std::to_string(lastVotedPid_) + ",";
         lastVotedPid = lastVotedPid_;
     }
-    if (sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO
-        || transactionFlags.find(strLastVotedPid) != std::string::npos) {
+    if (sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || 
+        transactionFlags.find(strLastVotedPid) != std::string::npos) {
         hasUiOrSurface = true;
     }
     // OH SURFACE SOURCE VIDEO AN UI VOTE
