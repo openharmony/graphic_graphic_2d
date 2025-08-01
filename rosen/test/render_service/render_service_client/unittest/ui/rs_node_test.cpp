@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
@@ -4590,6 +4591,7 @@ public:
     std::vector<PropertyId> GetModifierIds() const {
         return RSNode::GetModifierIds();
     }
+    MOCK_METHOD1(SetNeedUseCmdlistDrawRegion, void(bool needUseCmdlistDrawRegion));
 };
 
 /**
@@ -8696,4 +8698,18 @@ HWTEST_F(RSNodeTest, MarkRepaintBoundary002, TestSize.Level1)
     EXPECT_TRUE(rsNode->isRepaintBoundary_);
 }
 #endif
+
+/**
+ * @tc.name: SetNeedUseCmdlistDrawRegion
+ * @tc.desc: test results of SetNeedUseCmdlistDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSNodeTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
+{
+    auto rsNode = std::make_shared<MockRSNode>();
+    EXPECT_CALL(*rsNode, SetNeedUseCmdlistDrawRegion(_)).Times(2);
+    rsNode->SetNeedUseCmdlistDrawRegion(true);
+    rsNode->SetNeedUseCmdlistDrawRegion(false);
+}
 } // namespace OHOS::Rosen

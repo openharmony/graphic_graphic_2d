@@ -1331,8 +1331,6 @@ private:
     RectI innerAbsDrawRect_;
     // map parentMatrix by cmdlist draw region
     RectI absCmdlistDrawRect_;
-    RectF absCmdlistDrawRectF_;
-    RectI oldAbsCmdlistDrawRect_;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
     RectI childrenRect_;
