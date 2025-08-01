@@ -93,7 +93,7 @@ void RSDrawFrame::RenderFrame()
     UnblockMainThread();
     RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
     Render();
-    ReleaseSelfDrawingNodeBuffer();
+    ReleaseSpecialDrawingNodeBuffer();
     NotifyClearGpuCache();
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
@@ -150,9 +150,10 @@ void RSDrawFrame::NotifyClearGpuCache()
     }
 }
 
-void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
+void RSDrawFrame::ReleaseSpecialDrawingNodeBuffer()
 {
     unirenderInstance_.ReleaseSelfDrawingNodeBuffer();
+    unirenderInstance_.ReleaseSurfaceBufferOpItemBuffer();
 }
 
 void RSDrawFrame::PostAndWait()

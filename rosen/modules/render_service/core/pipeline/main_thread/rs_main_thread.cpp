@@ -2763,7 +2763,6 @@ void RSMainThread::Render()
         CallbackDrawContextStatusToWMS();
         PerfForBlurIfNeeded();
     }
-    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     CheckSystemSceneStatus();
     UpdateLuminanceAndColorTemp();
     bool isPostUniRender = isUniRender_ && !doDirectComposition_ && needDrawFrame_;
