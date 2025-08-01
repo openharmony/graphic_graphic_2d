@@ -1339,7 +1339,7 @@ HWTEST_F(RSClientTest, ClearUifirstCacheTest, TestSize.Level1)
 
 /**
  * @tc.name: SetScreenFreezeImmediately Test
- * @tc.desc: SetScreenFreezeImmediately
+ * @tc.desc: SetScreenFreezeImmediately when screen frozen
  * @tc.type:FUNC
  * @tc.require: issueICQ74B
  */

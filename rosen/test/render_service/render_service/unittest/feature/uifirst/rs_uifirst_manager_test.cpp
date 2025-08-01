@@ -2903,12 +2903,12 @@ HWTEST_F(RSUifirstManagerTest, ProcessMarkedNodeSubThreadCacheTest, TestSize.Lev
 }
 
 /**
- * @tc.name: SnapshotRotation
- * @tc.desc: Test SnapshotRotation
+ * @tc.name: OnProcessAnimateScene002
+ * @tc.desc: Test OnProcessAnimateScene when tablet snapshot rotation scene
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSUifirstManagerTest, SnapshotRotation, TestSize.Level2)
+HWTEST_F(RSUifirstManagerTest, OnProcessAnimateSceneTest002, TestSize.Level2)
 {
     bool isSnapshotRotationScene = uifirstManager_.isSnapshotRotationScene_;
     EXPECT_FALSE(uifirstManager_.IsSnapshotRotationScene());

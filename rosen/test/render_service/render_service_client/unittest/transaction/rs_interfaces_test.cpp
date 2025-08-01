@@ -808,8 +808,8 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetScreenFreezeImmediately
- * @tc.desc: Test SetScreenFreezeImmediately
+ * @tc.name: SetScreenFreezeImmediatelyTest
+ * @tc.desc: Test SetScreenFreezeImmediately to freeze or unfreeze display
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
