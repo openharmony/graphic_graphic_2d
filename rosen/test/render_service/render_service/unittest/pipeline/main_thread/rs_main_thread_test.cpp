@@ -5327,6 +5327,44 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: DumpMem001
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "";
+    pid_t pid = 0;
+    mainThread->DumpMem(argSets, dumpString, type, pid);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem002
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "gpu";
+    pid_t pid = 0;
+    mainThread->DumpMem(argSets, dumpString, type, pid);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
  * @tc.name: CountMem
  * @tc.desc: test CountMem
  * @tc.type: FUNC
