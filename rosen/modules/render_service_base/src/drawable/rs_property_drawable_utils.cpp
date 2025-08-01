@@ -1143,7 +1143,7 @@ bool RSPropertyDrawableUtils::IsDangerousBlendMode(int blendMode, int blendApply
 }
 
 void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Blender> blender,
-    int blendModeApplyType, bool isDangerous)
+    int blendModeApplyType, bool isDangerous, bool isShadowBlender)
 {
     if (isDangerous && !canvas.HasOffscreenLayer()) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
@@ -1173,6 +1173,7 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
         saveLayerFlag = 1 << 1;
     }
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, saveLayerFlag);
+    canvas.SetIsShadowBlender(isShadowBlender);
     canvas.SaveLayer(maskLayerRec);
     canvas.SetBlender(nullptr);
     canvas.SaveAlpha();

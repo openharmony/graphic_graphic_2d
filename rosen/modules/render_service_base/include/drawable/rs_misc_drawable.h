@@ -230,11 +230,13 @@ private:
     std::shared_ptr<Drawing::Blender> blender_ = nullptr;
     int blendApplyType_ = 0;
     bool isDangerous_ = false;
+    bool isShadowBlender_ = false;
     std::string propertyDescription_;
 
     std::shared_ptr<Drawing::Blender> stagingBlender_ = nullptr;
     int stagingBlendApplyType_ = 0;
     bool stagingIsDangerous_ = false;
+    bool stagingIsShadowBlender_ = false;
     std::string stagingPropertyDescription_;
 };
 
