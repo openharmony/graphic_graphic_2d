@@ -782,8 +782,6 @@ public:
     // mark cross node in physical extended screen model
     bool IsCrossNode() const;
 
-    std::string QuickGetNodeDebugInfo();
-
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
 
