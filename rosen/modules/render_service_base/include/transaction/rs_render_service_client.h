@@ -36,6 +36,7 @@
 #endif
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -64,6 +65,7 @@ namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
+using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
 #endif
@@ -228,6 +230,8 @@ public:
 #endif
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
+
+    int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback& callback);
 
 #ifndef ROSEN_ARKUI_X
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
@@ -549,6 +553,7 @@ private:
     std::mutex mapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCb_ = nullptr;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
     std::unordered_map<std::pair<NodeId, RSSurfaceCaptureConfig>,
         std::vector<std::shared_ptr<SurfaceCaptureCallback>>, PairHash> surfaceCaptureCbMap_;

@@ -2033,6 +2033,14 @@ void RSScreenManager::RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallb
     RS_LOGI("%{public}s: remove a remote callback succeed.", __func__);
 }
 
+int32_t RSScreenManager::SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback)
+{
+    std::lock_guard<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
+    screenSwitchingNotifyCallback_ = callback;
+    RS_LOGI("%{public}s: set screen switching notify callback succeed.", __func__);
+    return SUCCESS;
+}
+
 void RSScreenManager::RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener)
 {
     if (listener == nullptr) {
@@ -2555,6 +2563,9 @@ void RSScreenManager::SetScreenSwitchStatus(bool flag)
 {
     RS_LOGI("%{public}s: set isScreenSwitching_ = %{public}d", __func__, flag);
     isScreenSwitching_ = flag;
+    if (!flag) {
+        NotifySwitchingCallback(flag);
+    }
 }
 
 bool RSScreenManager::IsScreenSwitching() const
@@ -2625,6 +2636,18 @@ void RSScreenManager::TriggerCallbacks(ScreenId id, ScreenEvent event, ScreenCha
     for (const auto& cb : screenChangeCallbacks_) {
         cb->OnScreenChanged(id, event, reason);
     }
+}
+
+void RSScreenManager::NotifySwitchingCallback(bool status) const
+{
+    std::shared_lock<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
+    if (screenSwitchingNotifyCallback_ == nullptr) {
+        RS_LOGE("%{public}s: screenSwitchingNotifyCallback_ is nullptr! status: %{public}d", __func__, status);
+        return;
+    }
+
+    RS_LOGI("%{public}s: status: %{public}d", __func__, status);
+    screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
 }
 
 std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) const

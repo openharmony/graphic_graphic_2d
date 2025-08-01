@@ -230,6 +230,11 @@ int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallbac
     return 0;
 }
 
+int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
+{
+    return 0;
+}
+
 void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
 }

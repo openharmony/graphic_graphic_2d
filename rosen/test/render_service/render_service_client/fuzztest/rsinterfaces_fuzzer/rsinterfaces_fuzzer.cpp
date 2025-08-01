@@ -205,7 +205,11 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
         errorReason = reason;
         callbacked = true;
     };
+    ScreenSwitchingNotifyCallback switchingCallback = [&status] (bool switchingStatus) {
+        status = switchingStatus;
+    };
     rsInterfaces.SetScreenChangeCallback(changeCallback);
+    rsInterfaces.SetScreenSwitchingNotifyCallback(switchingCallback);
     uint32_t screenRotation = GetData<uint32_t>();
     rsInterfaces.SetScreenCorrection(static_cast<ScreenId>(id), static_cast<ScreenRotation>(screenRotation));
     uint32_t systemAnimatedScenes = GetData<uint32_t>();

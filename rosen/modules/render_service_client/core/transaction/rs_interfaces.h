@@ -206,6 +206,14 @@ public:
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
     /**
+     * @brief Set screen switching status notify callback.
+     * on the screen switching status is changed.
+     * @param callback Callback of the screen switching status changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
+     */
+    int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback);
+
+    /**
      * @brief Set watermark for surfaceNode.
      * @param name Watermark name.
      * @param watermark Watermark pixelmap.

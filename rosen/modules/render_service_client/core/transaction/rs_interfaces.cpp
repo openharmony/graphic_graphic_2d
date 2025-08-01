@@ -210,6 +210,12 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
+int32_t RSInterfaces::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
+{
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
+    return renderServiceClient_->SetScreenSwitchingNotifyCallback(callback);
+}
+
 int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
     return renderServiceClient_->GetPixelMapByProcessId(pixelMapInfoVector, pid);

@@ -634,6 +634,22 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
     EXPECT_EQ(status, StatusCode::SUCCESS);
 }
 
+/**
+ * @tc.name: SetScreenSwitchingNotifyCallback Test
+ * @tc.desc: SetScreenSwitchingNotifyCallback Test
+ * @tc.type:FUNC
+ * @tc.require
+ */
+HWTEST_F(RSClientTest, SetScreenSwitchingNotifyCallback001, TestSize.Level1)
+{
+    bool status = false;
+    auto callback = [&status](bool switchingStatus) {
+        status = switchingStatus;
+    };
+    int32_t callbackStatus = rsClient->SetScreenSwitchingNotifyCallback(callback);
+    EXPECT_EQ(callbackStatus, StatusCode::SUCCESS);
+}
+
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 /**
  * @tc.name: SetPointerColorInversionConfig Test

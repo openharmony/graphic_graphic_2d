@@ -53,7 +53,8 @@ const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION = 3;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE = 4;
 const uint8_t DO_SET_GLOBAL_DARK_COLOR_MODE = 5;
 const uint8_t DO_DROP_FRAME_BY_PID = 6;
-const uint8_t TARGET_SIZE = 7;
+const uint8_t DO_SET_SCREEN_SWITCHING_NOTIFY_CALLBACK = 7;
+const uint8_t TARGET_SIZE = 8;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -252,6 +253,24 @@ void DoDropFrameByPid()
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     sleep(1);
 }
+
+void DoSetScreenSwitchingNotifyCallback()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIScreenSwitchingNotifyCallback> rsIScreenSwitchingNotifyCallback_ =
+        iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteRemoteObject(rsIScreenSwitchingNotifyCallback_->AsObject());
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -305,6 +324,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_DROP_FRAME_BY_PID:
             OHOS::Rosen::DoDropFrameByPid();
+            break;
+        case OHOS::Rosen::DO_SET_SCREEN_SWITCHING_NOTIFY_CALLBACK:
+            OHOS::Rosen::DoSetScreenSwitchingNotifyCallback();
             break;
         default:
             return -1;

@@ -33,6 +33,7 @@
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/screen_switching_notify_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
@@ -773,6 +774,39 @@ int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallbac
 
     screenChangeCb_ = new CustomScreenChangeCallback(callback);
     return renderService->SetScreenChangeCallback(screenChangeCb_);
+}
+
+class CustomScreenSwitchingNotifyCallback : public RSScreenSwitchingNotifyCallbackStub
+{
+public:
+    explicit CustomScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback) : cb_(callback) {}
+    ~CustomScreenSwitchingNotifyCallback() override {};
+
+    void OnScreenSwitchingNotify(bool status) override
+    {
+        if (cb_ != nullptr) {
+            cb_(status);
+        }
+    }
+
+private:
+    ScreenSwitchingNotifyCallback cb_;
+};
+
+int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s renderService is null", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+
+    sptr<CustomScreenSwitchingNotifyCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomScreenSwitchingNotifyCallback(callback);
+    }
+
+    return renderService->SetScreenSwitchingNotifyCallback(cb);
 }
 
 void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)

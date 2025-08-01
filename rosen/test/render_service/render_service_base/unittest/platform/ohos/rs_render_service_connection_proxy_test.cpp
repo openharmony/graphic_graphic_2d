@@ -384,6 +384,23 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenChangeCallback, TestSize.L
 }
 
 /**
+ * @tc.name: SetScreenSwitchingNotifyCallback Test
+ * @tc.desc: SetScreenSwitchingNotifyCallback Test
+ * @tc.type:FUNC
+ * @tc.require
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenSwitchingNotifyCallback, TestSize.Level1)
+{
+    sptr<RSIScreenSwitchingNotifyCallback> callback;
+    proxy->SetScreenSwitchingNotifyCallback(callback);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+    ASSERT_EQ(proxy->SetScreenSwitchingNotifyCallback(callback), 0);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC

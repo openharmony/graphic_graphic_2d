@@ -948,6 +948,18 @@ int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeC
     return status;
 }
 
+int32_t RSRenderServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
+{
+    if (screenManager_ == nullptr) {
+        RS_LOGE("%{public}s: screenManager_ is nullptr", __func__);
+        return SCREEN_NOT_FOUND;
+    }
+
+    // update
+    int32_t status = screenManager_->SetScreenSwitchingNotifyCallback(callback);
+    return status;
+}
+
 void RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     if (!screenManager_) {

@@ -1176,6 +1176,49 @@ int32_t RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenCh
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
+    sptr<RSIScreenSwitchingNotifyCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetScreenSwitchingNotifyCallback: WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("SetScreenSwitchingNotifyCallback: WriteBool[T] OR WriteRemoteObject[CB] err");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("SetScreenSwitchingNotifyCallback: WriteBool [false] err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenSwitchingNotifyCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE(
+            "RSRenderServiceConnectionProxy::SetScreenSwitchingNotifyCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     MessageParcel data;
