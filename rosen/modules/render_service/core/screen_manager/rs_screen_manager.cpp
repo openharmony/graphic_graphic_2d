@@ -1478,11 +1478,7 @@ bool RSScreenManager::CheckPSurfaceChanged(ScreenId id)
     if (!screen->IsVirtual()) {
         return false;
     }
-    if (screen->GetPSurfaceChange()) {
-        screen->SetPSurfaceChange(false);
-        return true;
-    }
-    return false;
+    return screen->GetAndResetPSurfaceChange();
 }
 bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const
 {

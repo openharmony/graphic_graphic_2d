@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_effect_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -127,6 +128,16 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
     drawable->OnCapture(canvas);
     ASSERT_FALSE(drawable->ShouldPaint());
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
+
+    CaptureParam params;
+    drawable->renderParams_ = nullptr;
+    params.isMirror_ = true;
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    RSUniRenderThread::SetCaptureParam(params);
     drawable->OnCapture(canvas);
     ASSERT_FALSE(drawable->ShouldPaint());
 }
