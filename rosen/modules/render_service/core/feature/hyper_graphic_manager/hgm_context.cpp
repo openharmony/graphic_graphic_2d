@@ -36,7 +36,13 @@ void HgmContext::InitHgmTaskHandleThread(
     RS_LOGI("HgmTaskHandleThread init");
     auto forceUpdateTask = [this](bool idleTimerExpired, bool forceUpdate) {
         RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
-            ForceUpdateRenderService(idleTimerExpired, forceUpdate);
+            RS_TRACE_NAME_FMT("HgmContext::TimerExpiredCallback Run idleTimerExpiredFlag: %s forceUpdateFlag: %s",
+                idleTimerExpired ? "True" : "False", forceUpdate ? "True" : "False");
+            if (lastForceUpdateVsyncId_ != currVsyncId_) {
+                lastForceUpdateVsyncId_ = currVsyncId_;
+                RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
+                RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+            }
         });
     };
     HgmTaskHandleThread::Instance().PostSyncTask([
@@ -49,17 +55,6 @@ void HgmContext::InitHgmTaskHandleThread(
             frameRateMgr->SetForceUpdateCallback(forceUpdateTask);
             frameRateMgr->Init(rsVSyncController, appVSyncController, vsyncGenerator, appVSyncDistributor);
         });
-}
-
-void HgmContext::ForceUpdateRenderService(bool idleTimerExpired, bool forceUpdate)
-{
-    RS_TRACE_NAME_FMT("HgmContext::TimerExpiredCallback Run idleTimerExpiredFlag: %s forceUpdateFlag: %s",
-        idleTimerExpired ? "True" : "False", forceUpdate ? "True" : "False");
-    if(lastForceUpdateVsyncId_ != currVsyncId_) {
-        lastForceUpdateVsyncId_ = currVsyncId_;
-        RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
-        RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
-    }
 }
 
 int32_t HgmContext::FrameRateGetFunc(

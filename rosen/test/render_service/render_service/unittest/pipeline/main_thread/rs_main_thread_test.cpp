@@ -5878,6 +5878,10 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = mainThread->runner_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = mainThread->handler_;
+    mainThread->runner_ = AppExecFwk::EventRunner::Create("RSMainThread");
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
     mainThread->hgmContext_.InitHgmTaskHandleThread(mainThread->rsVSyncController_, mainThread->appVSyncController_,
         mainThread->vsyncGenerator_, mainThread->appVSyncDistributor_);
     ASSERT_EQ(mainThread->forceUpdateUniRenderFlag_, true);
@@ -5892,16 +5896,20 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
     ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
 
-    mainThread->hgmContext_.currVsyncId_ = mainThread->hgmContext_.currVsyncId_ + 100;
-    EXPECT_NE(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
-    mainThread->hgmContext_.ForceUpdateRenderService(false, true);
-    EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
-    mainThread->hgmContext_.ForceUpdateRenderService(false, true);
-    EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
     if (frameRateMgr != nullptr && frameRateMgr->forceUpdateCallback_) {
+        mainThread->hgmContext_.currVsyncId_ = mainThread->hgmContext_.currVsyncId_ + 100;
+        EXPECT_NE(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
         frameRateMgr->forceUpdateCallback_(false, true);
+        usleep(100000);
+        EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
+        frameRateMgr->forceUpdateCallback_(false, true);
+        usleep(100000);
+        EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
     }
-    sleep(1);
+    usleep(200000);
+    mainThread->runner_ = runner_;
+    mainThread->handler_ = handler_;
+    usleep(200000);
 }
 
 /**
