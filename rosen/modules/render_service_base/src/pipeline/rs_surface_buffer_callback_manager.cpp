@@ -44,8 +44,8 @@ void RSSurfaceBufferCallbackManager::SetIsUniRender(bool isUniRender)
     isUniRender_ = isUniRender;
 }
 
-#ifdef RS_ENABLE_VK
-void RSSurfaceBufferCallbackManager::SetReleaseFenceForVulkan(
+#ifdef ROSEN_OHOS
+void RSSurfaceBufferCallbackManager::SetReleaseFence(
     int releaseFenceFd, NodeId rootNodeId)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
@@ -60,7 +60,7 @@ void RSSurfaceBufferCallbackManager::SetReleaseFenceForVulkan(
             if (data.isRenderedFlags[idx] && data.rootNodeIds[idx] == rootNodeId) {
                 fence = new (std::nothrow) SyncFence(::dup(releaseFenceFd));
                 if (!fence) {
-                    RS_LOGE("RSSurfaceBufferCallbackManager::SetReleaseFenceForVulkan"
+                    RS_LOGE("RSSurfaceBufferCallbackManager::SetReleaseFence"
                         " Err on creating SyncFence");
                 }
             }
@@ -231,39 +231,31 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
     if (GetSurfaceBufferCallbackSize() == 0) {
         return;
     }
-    runPolicy_([this]() {
-        std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
-        {
-            std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
-            surfaceBufferIds.swap(stagingSurfaceBufferIds_);
-        }
-        bool isNeedRequestNextVSync = false;
-        for (auto& [code, data] : surfaceBufferIds) {
-            auto [pid, uid] = code;
-            auto callback = GetSurfaceBufferCallback(pid, uid);
-            if (callback) {
-                if (!data.bufferIds.empty()) {
-                    isNeedRequestNextVSync = true;
-                } else {
-                    continue;
-                }
-                RS_TRACE_NAME_FMT("RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback"
-                    "Release Buffer %s", SerializeBufferIdVec(data.bufferIds).c_str());
-                callback->OnFinish({
-                    .uid = uid,
-                    .surfaceBufferIds = std::move(data.bufferIds),
-                    .isRenderedFlags = std::move(data.isRenderedFlags),
+    std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
+    {
+        std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
+        surfaceBufferIds.swap(stagingSurfaceBufferIds_);
+    }
+    for (auto& [code, data] : surfaceBufferIds) {
+        auto [pid, uid] = code;
+        auto callback = GetSurfaceBufferCallback(pid, uid);
+        if (callback) {
+            if (data.bufferIds.empty()) {
+                continue;
+            } 
+            RS_TRACE_NAME_FMT("RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback"
+                "Release Buffer %s", SerializeBufferIdVec(data.bufferIds).c_str());
+            callback->OnFinish({
+                .uid = uid,
+                .surfaceBufferIds = std::move(data.bufferIds),
+                .isRenderedFlags = std::move(data.isRenderedFlags),
 #ifdef ROSEN_OHOS
-                    .releaseFences = std::move(data.releaseFences),
+                .releaseFences = std::move(data.releaseFences),
 #endif
-                    .isUniRender = isUniRender_,
-                });
-            }
+                .isUniRender = isUniRender_,
+            });
         }
-        if (isNeedRequestNextVSync) {
-            RequestNextVSync();
-        }
-    });
+    }
 }
  
 #ifdef RS_ENABLE_VK
