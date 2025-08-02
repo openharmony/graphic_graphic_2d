@@ -19,6 +19,7 @@
 #include "command/rs_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
+#include "modifier_render_thread/rs_modifiers_draw.h"
 #include "recording/draw_cmd.h"
 #include "render_context/shader_cache.h"
 #include "command/rs_animation_command.h"
@@ -76,7 +77,10 @@ void RSModifiersDrawThreadTest::SetUpTestCase()
 }
 void RSModifiersDrawThreadTest::TearDownTestCase() {}
 void RSModifiersDrawThreadTest::SetUp() {}
-void RSModifiersDrawThreadTest::TearDown() {}
+void RSModifiersDrawThreadTest::TearDown()
+{
+    RSModifiersDraw::ClearCanvasDrawingNodeMemory();
+}
 
 /**
  * @tc.name: FlushImplicitTransaction001
