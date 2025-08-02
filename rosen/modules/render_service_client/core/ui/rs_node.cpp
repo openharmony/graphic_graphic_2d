@@ -647,9 +647,6 @@ bool RSNode::FallbackAnimationsToContext()
     }
     std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
-        if (animation && animation->GetRepeatCount() == -1) {
-            continue;
-        }
         rsUIContext->AddAnimationInner(std::move(animation));
     }
     animations_.clear();
@@ -665,9 +662,6 @@ void RSNode::FallbackAnimationsToRoot()
     }
     std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
-        if (animation && animation->GetRepeatCount() == -1) {
-            continue;
-        }
         RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_); // delete
         target->AddAnimationInner(std::move(animation));
     }
