@@ -127,7 +127,7 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descrip
 
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
-    return AniTextUtils::CreateAniObject(env, ANI_OBJECT, "D:V", val);
+    return AniTextUtils::CreateAniObject(env, ANI_DOUBLE, "D:V", val);
 }
 
 ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)

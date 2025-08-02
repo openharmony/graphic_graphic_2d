@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ constexpr const char* ANI_NAMESPACE_TEXT = "L@ohos/graphics/text/text;";
  * define ani
  */
 constexpr const char* NATIVE_OBJ = "nativeObj";
-constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
+constexpr const char* ANI_DOUBLE = "Lstd/core/Double;";
 constexpr const char* ANI_INT = "Lstd/core/Int;";
 constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
 constexpr const char* ANI_STRING = "Lstd/core/String;";
