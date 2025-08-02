@@ -160,4 +160,27 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw, TestSize.Level1)
     drawable_->renderParams_->contentEmpty_ = false;
     effectDrawable_->OnDraw(*drawingCanvas_);
 }
+
+/**
+ * @tc.name: GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue
+ * @tc.desc: generate effect when has no effect children and uiCapture is true
+ * @tc.type: FUNC
+ * @tc.require: issueICQL6P
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    canvas.SetUICapture(true);
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    drawable->drawCmdIndex_.childrenIndex_ = 0;
+    RSEffectRenderParams params(nodeId);
+    params.SetHasEffectChildren(false);
+    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, canvas, Drawing::Rect(), &paintFilterCanvas));
+}
 }
