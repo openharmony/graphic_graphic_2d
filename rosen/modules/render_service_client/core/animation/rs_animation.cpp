@@ -551,12 +551,12 @@ void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>&
 std::string RSAnimation::DumpAnimation() const
 {
     std::string dumpInfo;
-    dumpInfo += "[id:" + std::to_string(GetId());
-    dumpInfo += ", AnimationState:" + std::to_string(static_cast<int>(state_));
+    dumpInfo.append("[id:").append(std::to_string(GetId()));
+    dumpInfo.append(", AnimationState:").append(std::to_string(static_cast<int>(state_)));
     DumpAnimationInfo(dumpInfo);
-    dumpInfo += ", Duration:" + std::to_string(GetDuration());
-    dumpInfo += ", StartDelay:" + std::to_string(GetStartDelay());
-    dumpInfo += ", RepeatCount:" + std::to_string(GetRepeatCount()) + "]";
+    dumpInfo.append(", Duration:").append(std::to_string(GetDuration()));
+    dumpInfo.append(", StartDelay:").append(std::to_string(GetStartDelay()));
+    dumpInfo.append(", RepeatCount:").append(std::to_string(GetRepeatCount())).append("]");
     return dumpInfo;
 }
 

@@ -44,16 +44,18 @@ RSRenderSpringAnimation::RSRenderSpringAnimation(AnimationId id, const PropertyI
 
 void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderSpringAnimation";
+    out.append("Type:RSRenderSpringAnimation");
     RSRenderPropertyType type = RSRenderPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
-        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
+        out.append(", ModifierType: ").append(std::to_string(static_cast<int16_t>(property_->GetModifierType())));
     } else {
-        out += ", ModifierType: INVALID";
+        out.append(", ModifierType: INVALID");
     }
-    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(startValue_, type);
-    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
+    out.append(", StartValue: ").append(
+        RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(startValue_, type));
+    out.append(", EndValue: ").append(
+        RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type));
 }
 
 void RSRenderSpringAnimation::SetSpringParameters(

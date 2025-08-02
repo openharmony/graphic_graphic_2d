@@ -30,13 +30,13 @@ RSRenderPropertyAnimation::RSRenderPropertyAnimation(AnimationId id, const Prope
 
 void RSRenderPropertyAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderPropertyAnimation";
+    out.append("Type:RSRenderPropertyAnimation");
     RSRenderPropertyType type = RSRenderPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
-        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
+        out.append(", ModifierType: ").append(std::to_string(static_cast<int16_t>(property_->GetModifierType())));
     } else {
-        out += ", ModifierType: INVALID";
+        out.append(", ModifierType: INVALID");
     }
 }
 
