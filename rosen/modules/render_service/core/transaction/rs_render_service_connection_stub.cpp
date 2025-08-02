@@ -1447,13 +1447,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY): {
-            NodeId id{0};
+            NodeId id { 0 };
             if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY read id failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool isFreeze{false};
+            bool isFreeze { false };
             if (!data.ReadBool(isFreeze)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY read isFreeze failed!");
                 ret = ERR_INVALID_DATA;

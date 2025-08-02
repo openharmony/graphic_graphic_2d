@@ -205,6 +205,7 @@ public:
 
     bool GetForceFreeze() const;
     void SetForceFreeze(bool forceFreeze);
+
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;

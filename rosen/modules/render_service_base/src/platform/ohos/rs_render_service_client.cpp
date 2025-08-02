@@ -440,7 +440,7 @@ bool RSRenderServiceClient::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
             iter->second.emplace_back(callback);
             return true;
         }
-        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = { callback };
         surfaceCaptureCbMap_.emplace(key, callbackVector);
 
         if (surfaceCaptureCbDirector_ == nullptr) {
