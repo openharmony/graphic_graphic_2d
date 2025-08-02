@@ -606,18 +606,18 @@ void RSLogicalDisplayRenderNodeDrawable::WiredScreenProjection(
         return;
     }
 
+    auto cacheImage = mirroredScreenDrawable->GetCacheImgForCapture();
     bool isProcessSecLayer = !MultiScreenParam::IsExternalScreenSecure() &&
         mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-    auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
+    auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() || !cacheImage ||
         (RSSystemParameters::GetWiredScreenOndrawEnabled() && !enableVisibleRect_ &&
             (mirroredScreenParams->GetHDRPresent()  || isProcessSecLayer || !currentBlackList_.empty() ||
                 mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)));
     if (isRedraw) {
         isMirrorSLRCopy_ = false;
     } else {
-        auto cacheImage = mirroredScreenDrawable->GetCacheImgForCapture();
-        isMirrorSLRCopy_ = cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled() &&
-                           !enableVisibleRect_ && RSSystemProperties::GetSLRScaleEnabled();
+        // cacheImage must be valid when isMirrorSLRCopy_ is true
+        isMirrorSLRCopy_ = !enableVisibleRect_ && RSSystemProperties::GetSLRScaleEnabled();
     }
 
     curCanvas_->Save();

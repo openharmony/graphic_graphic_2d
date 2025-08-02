@@ -66,7 +66,6 @@ private:
     void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
     void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
     void WiredScreenProjection(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    using DrawFuncPtr = void(RSLogicalDisplayRenderNodeDrawable::*)(Drawing::Canvas&);
     void DrawMirror(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
         RSRenderThreadParams& uniParam);
     void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
