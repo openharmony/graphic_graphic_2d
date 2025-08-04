@@ -366,6 +366,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level
     typography1->Layout(maxWidth);
     Boundary range2 = typography1->GetEllipsisTextRange();
     ASSERT_EQ(range2, Boundary(5, 16));
+    EXPECT_FALSE(typography1->CanPaintAllText());
+    typography1->Layout(500);
+    EXPECT_TRUE(typography1->CanPaintAllText());
 
     // For branch coverage
     OHOS::Rosen::TypographyStyle typographyStyle2;
@@ -992,6 +995,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
     EXPECT_EQ(animationFunc, nullptr);
     typography->SetSkipTextBlobDrawing(true);
     EXPECT_FALSE(typography->HasSkipTextBlobDrawing());
+    EXPECT_FALSE(typography->CanPaintAllText());
 
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_NE(typography->GetTextBlobRecordInfo().size(), 0);
