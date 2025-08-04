@@ -176,11 +176,21 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUI
     int height = 1920;
     Drawing::Canvas canvas(width, height);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    canvas.SetUICapture(true);
+    paintFilterCanvas.SetUICapture(true);
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
     drawable->drawCmdIndex_.childrenIndex_ = 0;
+    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas == nullptr) {
+            return;
+        }
+        paintFilterCanvas->SetEffectData(std::make_shared<RSPaintFilterCanvas::CachedEffectData>());
+    };
+    drawable->drawCmdList_.emplace_back(drawFunc);
+
     RSEffectRenderParams params(nodeId);
     params.SetHasEffectChildren(false);
-    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, canvas, Drawing::Rect(), &paintFilterCanvas));
+    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));
+    EXPECT_NE(paintFilterCanvas.GetEffectData(), nullptr);
 }
 }
