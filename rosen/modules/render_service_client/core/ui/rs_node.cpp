@@ -122,6 +122,9 @@
 #define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
 #endif
 
+#undef LOG_TAG
+#define LOG_TAG "RSNode"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
