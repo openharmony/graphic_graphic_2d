@@ -392,7 +392,6 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
         }
         stagingBlender_ = RSPropertyDrawableUtils::MakeShadowBlender(properties.GetShadowBlenderParams().value());
         stagingIsDangerous_ = false;
-        stagingIsShadowBlender_ = true;
     } else {
         return false;
     }
@@ -411,7 +410,6 @@ void RSBeginBlenderDrawable::OnSync()
     blender_ = stagingBlender_;
     blendApplyType_ = stagingBlendApplyType_;
     propertyDescription_ = stagingPropertyDescription_;
-    isShadowBlender_ = stagingIsShadowBlender_;
     stagingPropertyDescription_.clear();
     needSync_ = false;
 }
@@ -431,7 +429,7 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
             ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_, ptr->blendApplyType_,
-            ptr->isDangerous_, ptr->isShadowBlender_);
+            ptr->isDangerous_);
     };
 }
 

@@ -91,7 +91,7 @@ public:
 
     static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
     static void BeginBlender(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Blender> blender,
-        int blendModeApplyType, bool isDangerous, bool isShadowBlender = false);
+        int blendModeApplyType, bool isDangerous);
     static void EndBlender(RSPaintFilterCanvas& canvas, int blendModeApplyType);
 
     static Color CalculateInvertColor(const Color& backgroundColor);
