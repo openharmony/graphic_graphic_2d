@@ -6071,7 +6071,7 @@ HWTEST_F(RSMainThreadTest, NeedConsumeDVSyncCommand001, TestSize.Level1)
  * @tc.name: NotifyPackageEvent001
  * @tc.desc: NotifyPackageEvent001
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICPQ8S
  */
 HWTEST_F(RSMainThreadTest, NotifyPackageEvent001, TestSize.Level1)
 {
