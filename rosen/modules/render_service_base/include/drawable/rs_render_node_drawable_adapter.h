@@ -198,11 +198,11 @@ public:
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
 
-    bool IsFilterCacheValidForOcclusion() const;
-    const RectI GetFilterCachedRegion() const;
-
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
     void SetChildInBlackList(bool hasChildInBlackList);
+
+    bool IsFilterCacheValidForOcclusion() const;
+    const RectI GetFilterCachedRegion() const;
 
     size_t GetFilterNodeSize() const
     {

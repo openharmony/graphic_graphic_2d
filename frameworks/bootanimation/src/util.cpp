@@ -22,9 +22,6 @@
 #include <parameters.h>
 
 namespace OHOS {
-constexpr const float HALF = 2.0;
-constexpr const float RATIO_PHONE = 360.0;
-constexpr const float RATIO_OTHER = 800.0;
 
 void PostTask(std::function<void()> func, uint32_t delayTime)
 {

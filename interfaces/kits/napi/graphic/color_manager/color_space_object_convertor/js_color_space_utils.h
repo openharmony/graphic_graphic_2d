@@ -70,7 +70,8 @@ enum class ApiColorSpaceType : uint32_t {
     DISPLAY_P3_PQ = P3_PQ,
     CUSTOM = 5,
     H_LOG = 26,
-    TYPE_END = 27
+    DISPLAY_BT2020_SRGB = 27,
+    TYPE_END = 28
 };
 
 const std::map<ColorSpaceName, ApiColorSpaceType> NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP {
@@ -106,6 +107,7 @@ const std::map<ColorSpaceName, ApiColorSpaceType> NATIVE_TO_JS_COLOR_SPACE_TYPE_
     { ColorSpaceName::DISPLAY_P3_PQ, ApiColorSpaceType::DISPLAY_P3_PQ },
     { ColorSpaceName::CUSTOM, ApiColorSpaceType::CUSTOM },
     { ColorSpaceName::H_LOG, ApiColorSpaceType::H_LOG },
+    { ColorSpaceName::DISPLAY_BT2020_SRGB, ApiColorSpaceType::DISPLAY_BT2020_SRGB },
 };
 
 const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_MAP {
@@ -141,6 +143,7 @@ const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_
     { ApiColorSpaceType::DISPLAY_P3_PQ, ColorSpaceName::DISPLAY_P3_PQ },
     { ApiColorSpaceType::CUSTOM, ColorSpaceName::CUSTOM },
     { ApiColorSpaceType::H_LOG, ColorSpaceName::H_LOG },
+    { ApiColorSpaceType::DISPLAY_BT2020_SRGB, ColorSpaceName::DISPLAY_BT2020_SRGB },
 };
 
 const std::map<std::string, ApiColorSpaceType> STRING_TO_JS_MAP = {
@@ -176,6 +179,7 @@ const std::map<std::string, ApiColorSpaceType> STRING_TO_JS_MAP = {
     { "DISPLAY_P3_PQ", ApiColorSpaceType::DISPLAY_P3_PQ },
     { "CUSTOM", ApiColorSpaceType::CUSTOM },
     { "H_LOG", ApiColorSpaceType::H_LOG },
+    { "DISPLAY_BT2020_SRGB", ApiColorSpaceType::DISPLAY_BT2020_SRGB },
 };
 
 template<class T>

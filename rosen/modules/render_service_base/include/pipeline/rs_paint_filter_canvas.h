@@ -215,6 +215,7 @@ public:
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void SetBlendMode(std::optional<int> blendMode);
     void SetBlender(std::shared_ptr<Drawing::Blender>);
+    void SetIsShadowBlender(bool isShadowBlender);
     bool HasOffscreenLayer() const;
 
     // save/restore utils
@@ -284,15 +285,15 @@ public:
 
     void RecordState(const RSPaintFilterCanvas& other);
     std::weak_ptr<Drawing::Surface> GetWeakSurface();
-    // just used in subtree, used for check whether a new surface need to be created in the subtree thread.
+    // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.
     void SetWeakSurface(std::shared_ptr<Drawing::Surface> surface);
-    inline void SetQuickDraw(bool isQuickDraw)
+    inline void SetQuickGetDrawState(bool isQuickGetDrawState)
     {
-        isQuickDraw_ = isQuickDraw;
+        isQuickGetDrawState_ = isQuickGetDrawState;
     }
-    inline bool IsQuickDraw()
+    inline bool IsQuickGetDrawState()
     {
-        return isQuickDraw_;
+        return isQuickGetDrawState_;
     }
 
     void SetDisableFilterCache(bool disable);
@@ -436,7 +437,7 @@ protected:
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
     {
-        if (isQuickDraw_) {
+        if (isQuickGetDrawState_) {
             return false;
         }
         float alpha = alphaStack_.top();
@@ -445,7 +446,7 @@ protected:
             brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
         }
 
-        if (envStack_.top().blender_) {
+        if (isShadowBlender_ && envStack_.top().blender_) {
             brush.SetBlender(envStack_.top().blender_);
         }
 
@@ -473,6 +474,7 @@ private:
     bool recordDrawable_ = false;
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
+    bool isShadowBlender_ = false; // true indicates the shadow blender
     bool isWindowFreezeCapture_ = false;
     // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;
@@ -507,11 +509,10 @@ private:
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
-
     Occlusion::Region drawnRegion_;
     uint32_t threadId_;
     std::weak_ptr<Drawing::Surface> weakSurface_;
-    bool isQuickDraw_= false;
+    bool isQuickGetDrawState_= false;
 };
 
 #ifdef RS_ENABLE_VK

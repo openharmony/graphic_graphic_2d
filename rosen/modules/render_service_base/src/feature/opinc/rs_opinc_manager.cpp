@@ -15,6 +15,8 @@
 
 #include "feature/opinc/rs_opinc_manager.h"
 
+#include "string_utils.h"
+
 namespace OHOS {
 namespace Rosen {
 
@@ -62,6 +64,50 @@ bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
         node.SetParentSubTreeDirty();
     }
     return subTreeDirty;
+}
+
+OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)
+{
+    if (!node.GetOpincCache().GetSubTreeSupportFlag()) {
+        return OpincUnsupportType::CHILD_NOT_SUPPORT;
+    }
+    if (node.GetSharedTransitionParam()) {
+        return OpincUnsupportType::SHARED_TRANSITION;
+    }
+    const auto& property = node.GetRenderProperties();
+    if (property.IsSpherizeValid()) {
+        return OpincUnsupportType::SPHERIZE;
+    }
+    if (property.IsAttractionValid()) {
+        return OpincUnsupportType::ATTRACTION;
+    }
+    if (property.NeedFilter()) {
+        return OpincUnsupportType::HAS_FILTER;
+    }
+    if (property.GetUseEffect()) {
+        return OpincUnsupportType::USE_EFFECT;
+    }
+    if (property.GetColorBlend().has_value()) {
+        return OpincUnsupportType::COLOR_BLEND;
+    }
+    if (node.ChildHasVisibleFilter()) {
+        return OpincUnsupportType::CHILD_HAS_FILTER;
+    }
+    if (node.ChildHasVisibleEffect()) {
+        return OpincUnsupportType::CHILD_HAS_EFFECT;
+    }
+    return OpincUnsupportType::NONE;
+}
+
+std::string RSOpincManager::QuickGetNodeDebugInfo(RSRenderNode& node)
+{
+    std::string ret("");
+    auto& opincCache = node.GetOpincCache();
+    AppendFormat(ret, "%" PRIu64 ", subD:%d conD:%d s:%d uc:%d suggest:%d support:%d rootF:%d not_sup_reason:%d",
+        node.GetId(), node.IsSubTreeDirty(), node.IsContentDirty(), opincCache.GetNodeCacheState(),
+        opincCache.GetUnchangeCount(), opincCache.IsSuggestOpincNode(), opincCache.GetCurNodeTreeSupportFlag(),
+        opincCache.OpincGetRootFlag(), GetUnsupportReason(node));
+    return ret;
 }
 }
 }

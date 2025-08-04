@@ -159,6 +159,7 @@ private:
     // Draw cloneNode
     bool DrawCloneNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
         RSSurfaceRenderParams& surfaceParams, bool isCapture = false);
+    void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     // Watermark
     void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
@@ -184,7 +185,7 @@ private:
     void SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas, const RSSurfaceRenderParams* surfaceParams);
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-    bool QuickDraw(Drawing::Canvas& canvas, Drawing::Region& curSurfaceDrawRegion,
+    bool QuickGetDrawState(Drawing::Canvas& canvas, Drawing::Region& curSurfaceDrawRegion,
         RSSurfaceRenderParams* surfaceParams);
 #endif
     std::string name_;

@@ -52,10 +52,10 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-bool RSCanvasRenderNodeDrawable::QuickDraw(Drawing::Canvas& canvas)
+bool RSCanvasRenderNodeDrawable::QuickGetDrawState(Drawing::Canvas& canvas)
 {
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (!rscanvas->IsQuickDraw()) {
+    if (!rscanvas->IsQuickGetDrawState()) {
         return false;
     }
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
@@ -110,7 +110,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-    if (QuickDraw(canvas)) {
+    if (QuickGetDrawState(canvas)) {
         return;
     }
 #endif

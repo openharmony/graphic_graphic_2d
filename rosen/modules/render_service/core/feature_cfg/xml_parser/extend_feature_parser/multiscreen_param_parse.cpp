@@ -38,10 +38,11 @@ int32_t MultiScreenParamParse::ParseFeatureParam([[maybe_unused]] FeatureParamMa
         }
     }
     RS_LOGI("MultiScreenParamParse end, isExternalScreenSecure: %{public}d, isSlrScaleEnabled: %{public}d,"
-        " isRsReportHwcDead: %{public}d, isRsSetScreenPowerStatus: %{public}d, isMirrorDisplayCloseP3: %{public}d",
+        " isRsReportHwcDead: %{public}d, isRsSetScreenPowerStatus: %{public}d, isMirrorDisplayCloseP3: %{public}d,"
+        " mipMapModeValue: %{public}d",
         MultiScreenParam::IsExternalScreenSecure(), MultiScreenParam::IsSlrScaleEnabled(),
         MultiScreenParam::IsRsReportHwcDead(), MultiScreenParam::IsRsSetScreenPowerStatus(),
-        MultiScreenParam::IsMirrorDisplayCloseP3());
+        MultiScreenParam::IsMirrorDisplayCloseP3(), MultiScreenParam::GetMipmapMode());
     return PARSE_EXEC_SUCCESS;
 }
 
@@ -65,6 +66,18 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(xmlNode& node)
             MultiScreenParam::SetRsSetScreenPowerStatus(isEnabled);
         } else if (name == "IsMirrorDisplayCloseP3") {
             MultiScreenParam::SetMirrorDisplayCloseP3(isEnabled);
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
+        if (name == "MipmapMode" && IsNumber(val)) {
+            int num = atoi(val.c_str());
+            if (num == 0) {
+                MultiScreenParam::SetMipmapMode(Drawing::MipmapMode::NONE);
+                RS_LOGI("Mipmapmode value %{public}d", MultiScreenParam::GetMipmapMode());
+            } else {
+                RS_LOGD("Mipmapmode use default value.");
+            }
+        } else {
+            RS_LOGW("MultiScreenParamParse unknown feature name.");
         }
     }
     return PARSE_EXEC_SUCCESS;

@@ -22,6 +22,7 @@
 #include "common/rs_common_tools.h"
 #endif
 #include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "memory/rs_tag_tracker.h"
@@ -317,8 +318,10 @@ bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
 void RSBackgroundNGShaderDrawable::OnSync()
 {
     if (needSync_ && stagingShader_) {
-        visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingShader_->AppendToGEContainer(visualEffectContainer_);
+        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingShader_->AppendToGEContainer(visualEffectContainer);
+        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
+        visualEffectContainer_ = visualEffectContainer;
         needSync_ = false;
     }
 }
@@ -573,6 +576,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
         needSync_ = true;
         stagingFilter_ = rsFilter;
         stagingNeedDrawBehindWindow_ = false;
+        PostUpdate(node);
         return true;
     }
     if (node.NeedDrawBehindWindow()) {
@@ -585,6 +589,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
         stagingFilter_ = behindWindowFilter;
         stagingNeedDrawBehindWindow_ = true;
         stagingDrawBehindWindowRegion_ = node.GetBehindWindowRegion();
+        PostUpdate(node);
         return true;
     }
     return false;

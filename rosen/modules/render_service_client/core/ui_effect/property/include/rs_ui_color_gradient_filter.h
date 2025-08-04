@@ -87,8 +87,6 @@ public:
 
     virtual std::vector<std::shared_ptr<RSPropertyBase>> GetLeafProperties() override;
 
-    virtual bool CheckEnableHdrEffect() override;
-
 private:
     static std::shared_ptr<RSUIMaskPara> CreateMask(RSUIFilterType type);
 };

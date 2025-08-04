@@ -148,7 +148,14 @@ public:
      */
     void Flush();
 
+    /**
+     * @brief   subtree parallel feature interface to generate draw op.
+     */
     void FlushCommands();
+
+    /**
+     * @brief   subtree parallel feature interface to generate submit information.
+     */
     void GenerateSubmitInfo(int seq);
     /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.

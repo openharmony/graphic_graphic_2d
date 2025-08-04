@@ -139,12 +139,6 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 };
 
 std::once_flag flag_;
-
-enum HdrEffectType : uint32_t {
-    HDR_EFFECT_NONE = 0,
-    HDR_EFFECT_FILTER = 1,
-    HDR_EFFECT_BRIGHTNESS_BLENDER = 2,
-};
 } // namespace
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
@@ -352,7 +346,9 @@ void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
     frameNodeTag_ = tag;
+#ifdef SUBTREE_PARALLEL_ENABLE
     MarkRepaintBoundary(tag);
+#endif
 }
 
 int32_t RSNode::GetFrameNodeId()
@@ -2044,7 +2040,6 @@ void RSNode::SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundF
         return;
     }
 
-    SetEnableHDREffect(HdrEffectType::HDR_EFFECT_FILTER, backgroundFilter->GetHdrEffectEnable());
     SetUIFilterPropertyNG<ModifierNG::RSBackgroundFilterModifier,
         &ModifierNG::RSBackgroundFilterModifier::SetUIFilter>(backgroundFilter);
 }
@@ -2198,10 +2193,6 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
             { brightnessBlender->GetNegativeCoeff().data_[0], brightnessBlender->GetNegativeCoeff().data_[1],
                 brightnessBlender->GetNegativeCoeff().data_[2] } });
     }
-    // Update blender hdr status
-    if (hasHdrBrightnessBlender) {
-        SetEnableHDREffect(HdrEffectType::HDR_EFFECT_BRIGHTNESS_BLENDER, true);
-    }
 }
 
 void RSNode::SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara)
@@ -2245,7 +2236,6 @@ void RSNode::SetBlender(const Blender* blender)
                     brightnessBlender->GetNegativeCoeff().z_ }});
             if (brightnessBlender->GetHdr()) {
                 SetFgBrightnessHdr(brightnessBlender->GetHdr());
-                SetEnableHDREffect(HdrEffectType::HDR_EFFECT_BRIGHTNESS_BLENDER, true);
             }
         }
     } else if (Blender::SHADOW_BLENDER == blender->GetBlenderType()) {
@@ -2659,23 +2649,6 @@ void RSNode::SetAlwaysSnapshot(bool enable)
 {
     SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetAlwaysSnapshot>(
         enable);
-}
-
-void RSNode::SetEnableHDREffect(uint32_t type, bool enableHdrEffect)
-{
-    bool old = hdrEffectType_ > HdrEffectType::HDR_EFFECT_NONE;
-    if (enableHdrEffect) {
-        hdrEffectType_ |= type;
-    } else {
-        hdrEffectType_ &= ~type;
-    }
-    bool enabled = hdrEffectType_ > HdrEffectType::HDR_EFFECT_NONE;
-    if (old == enabled) {
-        return;
-    }
-    ROSEN_LOGD("RSNode::SetEnableHDREffect hdrEffectType=%{public}d", static_cast<int>(hdrEffectType_));
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetEnableHDREffect>(GetId(), enabled);
-    AddCommand(command, IsRenderServiceNode());
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)

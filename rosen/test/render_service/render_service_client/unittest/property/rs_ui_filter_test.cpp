@@ -229,28 +229,4 @@ HWTEST_F(RSUIFilterTest, GetUIFilterTypes001, TestSize.Level1)
     auto rsUIFilterTypeVector = rsUIFilter->GetUIFilterTypes();
     EXPECT_NE(rsUIFilterTypeVector.size(), 0);
 }
-
-/**
- * @tc.name: GetHdrEffectEnable001
- * @tc.desc: Test func GetHdrEffectEnable
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIFilterTest, GetHdrEffectEnable001, TestSize.Level1)
-{
-    auto rsUIFilter = std::make_shared<RSUIFilter>();
-    rsUIFilter->propertyTypes_.push_back(RSUIFilterType::BLUR);
-    EXPECT_FALSE(rsUIFilter->GetHdrEffectEnable());
-
-    rsUIFilter->paras_[RSUIFilterType::BLUR] = nullptr;
-    EXPECT_FALSE(rsUIFilter->GetHdrEffectEnable());
-
-    auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
-    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
-    rsUIFilter->paras_[RSUIFilterType::BLUR] = rsUIFilterParaBase;
-    EXPECT_FALSE(rsUIFilter->GetHdrEffectEnable());
-
-    rsUIFilterParaBase->enableHdrEffect_ = true;
-    rsUIFilterParaBase->stagingEnableHdrEffect_ = true;
-    EXPECT_TRUE(rsUIFilter->GetHdrEffectEnable());
-}
 } // namespace OHOS::Rosen

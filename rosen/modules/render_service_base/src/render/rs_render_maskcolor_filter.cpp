@@ -51,6 +51,11 @@ RSColor RSMaskColorShaderFilter::GetMaskColor() const
     return maskColor_;
 }
 
+bool RSMaskColorShaderFilter::NeedForceSubmit() const
+{
+    return colorMode_ == AVERAGE;
+}
+
 Drawing::ColorQuad RSMaskColorShaderFilter::CalcAverageColor(std::shared_ptr<Drawing::Image> image)
 {
     // create a 1x1 SkPixmap

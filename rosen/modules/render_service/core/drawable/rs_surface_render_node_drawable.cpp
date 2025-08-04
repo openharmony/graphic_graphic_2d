@@ -65,8 +65,6 @@
 #include "metadata_helper.h"
 #endif
 
-#include "rs_profiler.h"
-
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
 #endif
@@ -127,11 +125,9 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
     return false;
 }
 
-void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
-    RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
+void RSSurfaceRenderNodeDrawable::ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas,
+    const RSSurfaceRenderParams& surfaceParams)
 {
-    auto bounds = surfaceParams.GetFrameRect();
-
     if (surfaceParams.GetGlobalPositionEnabled()) {
         auto matrix = surfaceParams.GetMatrix();
         Drawing::Matrix inverseMatrix;
@@ -152,7 +148,13 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     } else if (lastGlobalPositionEnabled_) {
         lastGlobalPositionEnabled_ = false;
     }
+}
 
+void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
+{
+    ApplyCrossScreenOffset(canvas, surfaceParams);
+    auto bounds = surfaceParams.GetFrameRect();
     // 1. draw background
     if (surfaceParams.IsLeashWindow()) {
         DrawLeashWindowBackground(canvas, bounds,
@@ -519,12 +521,12 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheImageForMultiScreenView(RSPaintFilter
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-bool RSSurfaceRenderNodeDrawable::QuickDraw(Drawing::Canvas& canvas, Drawing::Region& curSurfaceDrawRegion,
+bool RSSurfaceRenderNodeDrawable::QuickGetDrawState(Drawing::Canvas& canvas, Drawing::Region& curSurfaceDrawRegion,
     RSSurfaceRenderParams* surfaceParams)
 {
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
 
-    if (!rscanvas->IsQuickDraw()) {
+    if (!rscanvas->IsQuickGetDrawState()) {
         return false;
     }
 
@@ -553,7 +555,7 @@ bool RSSurfaceRenderNodeDrawable::QuickDraw(Drawing::Canvas& canvas, Drawing::Re
     rscanvas->SetDisableFilterCache(isDisableFilterCache);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     if (surfaceParams->IsOcclusionCullingOn()) {
-        // Clear the culled list in this thread
+        // clear the culled list in this thread
         rscanvas->SetCulledNodes(std::unordered_set<NodeId>());
         rscanvas->SetCulledEntireSubtree(std::unordered_set<NodeId>());
     }
@@ -658,7 +660,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (curDrawingCacheRoot_) {
         if (hasSkipCacheLayer_) {
             curDrawingCacheRoot_->SetSkipCacheLayer(true);
-        } else if (surfaceParams->NodeGroupHasChildInBlackList()) {
+        } else if (surfaceParams->NodeGroupHasChildInBlacklist()) {
             curDrawingCacheRoot_->SetChildInBlackList(true);
         }
     }
@@ -670,7 +672,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     Drawing::Region curSurfaceDrawRegion = GetSurfaceDrawRegion();
-
     if (!isUiFirstNode) {
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
@@ -684,7 +685,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-    if (QuickDraw(canvas, curSurfaceDrawRegion, surfaceParams)) {
+    if (QuickGetDrawState(canvas, curSurfaceDrawRegion, surfaceParams)) {
         return;
     }
 #endif
@@ -898,14 +899,14 @@ void RSSurfaceRenderNodeDrawable::UpdateSurfaceDirtyRegion(std::shared_ptr<RSPai
 
 Drawing::Region RSSurfaceRenderNodeDrawable::GetSurfaceDrawRegion() const
 {
-    std::lock_guard<std::mutex> lock(g_HDRHeterRenderContext.drawRegionMutex_);
-    return g_HDRHeterRenderContext.curSurfaceDrawRegion_;
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    return curSurfaceDrawRegion_;
 }
 
 void RSSurfaceRenderNodeDrawable::SetSurfaceDrawRegion(const Drawing::Region& region)
 {
-    std::lock_guard<std::mutex> lock(g_HDRHeterRenderContext.drawRegionMutex_);
-    g_HDRHeterRenderContext.curSurfaceDrawRegion_.Clone(region);
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    curSurfaceDrawRegion_.Clone(region);
 }
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
@@ -1158,6 +1159,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             "draw black with protected layer or screenshot security layer or virtual screen security layer",
             surfaceParams.GetId(), name_.c_str());
 
+        ApplyCrossScreenOffset(canvas, surfaceParams);
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
         canvas.AttachBrush(rectBrush);

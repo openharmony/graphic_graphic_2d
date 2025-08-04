@@ -26,6 +26,7 @@
 #include "ui/rs_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_root_node.h"
+#include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
 
 namespace OHOS {
@@ -357,7 +358,10 @@ void DoDumpNodeTreeProcessor(const uint8_t* data, size_t size)
     pid_t pid = GetData<pid_t>();
     uint32_t taskId = GetData<uint32_t>();
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->DumpNodeTreeProcessor(nodeId, pid, taskId);
+    director->Init(true, true);
+    auto uiContext = director->GetRSUIContext();
+    auto token = uiContext ? uiContext->GetToken() : GetData<uint64_t>();
+    director->DumpNodeTreeProcessor(nodeId, pid, token, taskId);
 }
 
 void DoPostDelayTask(const uint8_t* data, size_t size)

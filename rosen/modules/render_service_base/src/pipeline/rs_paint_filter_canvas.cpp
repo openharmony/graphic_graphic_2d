@@ -1202,7 +1202,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
 
 bool RSPaintFilterCanvas::OnFilter() const
 {
-    return alphaStack_.top() > 0.f && !isQuickDraw_;
+    return alphaStack_.top() > 0.f && !isQuickGetDrawState_;
 }
 
 Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
@@ -1285,6 +1285,11 @@ void RSPaintFilterCanvas::SetBlendMode(std::optional<int> blendMode)
 void RSPaintFilterCanvas::SetBlender(std::shared_ptr<Drawing::Blender> blender)
 {
     envStack_.top().blender_ = blender;
+}
+
+void RSPaintFilterCanvas::SetIsShadowBlender(bool isShadowBlender)
+{
+    isShadowBlender_ = isShadowBlender;
 }
 
 int RSPaintFilterCanvas::SaveEnv()

@@ -2052,7 +2052,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, UpdateSurfaceDrawRegionTest, TestSize.L
     ASSERT_NE(screenDrawable_, nullptr);
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
-    RSScreenRenderParams* param = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    RSScreenRenderParams* params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     screenDrawable_->UpdateSurfaceDrawRegion(canvas, params);
 
     params->allMainAndLeashSurfaceDrawables_.push_back(nullptr);

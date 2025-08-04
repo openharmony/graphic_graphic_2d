@@ -75,8 +75,8 @@ public:
 #ifdef RS_ENABLE_GPU
     virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
 #endif
-    virtual void RecordState(Canvas* canvas) = 0;
     virtual void InheriteState(Canvas* canvas) = 0;
+    virtual void RecordState(Canvas* canvas) = 0;
     virtual void SetParallelRender(bool parallelEnable) = 0;
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;

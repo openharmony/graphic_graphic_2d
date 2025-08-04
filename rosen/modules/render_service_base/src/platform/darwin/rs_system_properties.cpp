@@ -53,6 +53,10 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
+void RSSystemProperties::SetProfilerPixelCheckMode(bool flag)
+{
+}
+
 bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
@@ -774,6 +778,11 @@ bool RSSystemProperties::GetAIBarOptEnabled()
 bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 {
     return false;
+}
+
+bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
+{
+    return {};
 }
 } // namespace Rosen
 } // namespace OHOS

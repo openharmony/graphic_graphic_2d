@@ -1299,10 +1299,10 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 #endif
 }
 
-bool RSMainThread::NeedConsumeMultiCommand(uint32_t& dvsyncPid)
+bool RSMainThread::NeedConsumeMultiCommand(int32_t& dvsyncPid)
 {
     bool needUpdateDVSyncTime = rsVSyncDistributor_->NeedUpdateVSyncTime(dvsyncPid);
-    int64_t lastUpdateTime = rsVSyncDistributor_->GetLastUpdateTime();
+    uint64_t lastUpdateTime = static_cast<uint64_t>(rsVSyncDistributor_->GetLastUpdateTime());
     if (needUpdateDVSyncTime) {
         RS_TRACE_NAME("lastUpdateTime:" + std::to_string(lastUpdateTime));
         if (lastUpdateTime + static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) < timestamp_) {
@@ -1333,7 +1333,7 @@ bool RSMainThread::NeedConsumeDVSyncCommand(uint32_t& endIndex,
 void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
     std::string& transactionFlags)
 {
-    uint32_t dvsyncPid = 0;
+    int32_t dvsyncPid = 0;
     bool needConsume = NeedConsumeMultiCommand(dvsyncPid);
     for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
         auto pid = rsTransactionElem.first;
@@ -1932,17 +1932,17 @@ static bool CheckOverlayDisplayEnable()
 #endif
 }
 
-bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)
+bool RSMainThread::GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)
 {
-    auto screenList = rootNode->GetChildrenList();
-    uint32_t count = 0;
-    for (auto node : screenList) {
+    auto screenNodeList = rootNode->GetChildrenList();
+    uint32_t validCount = 0;
+    for (const auto& node : screenNodeList) {
         auto screenNode = node.lock();
         if (screenNode && screenNode->GetChildrenCount() > 0) {
-            count++;
+            validCount++;
         }
     }
-    return count > 1;
+    return validCount > 1;
 }
 
 void RSMainThread::CheckIfHardwareForcedDisabled()
@@ -2513,20 +2513,17 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
 bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT)
 {
-    auto children = rootNode->GetChildren();
-    if (children->empty()) {
+    auto children = rootNode->GetChildrenList();
+    if (children.empty()) {
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
     std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
-    {
-        auto screenNodeList = rootNode->GetChildrenList();
-        for (const auto& child : screenNodeList) {
-            auto node = child.lock();
-            if (node && node->GetChildrenCount() > 0) {
-                screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
-                break;
-            }
+    for (const auto& child : children) {
+        auto node = child.lock();
+        if (node && node->GetChildrenCount() > 0) {
+            screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
+            break;
         }
     }
     if (!screenNode ||
@@ -2770,7 +2767,6 @@ void RSMainThread::Render()
         CallbackDrawContextStatusToWMS();
         PerfForBlurIfNeeded();
     }
-    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     CheckSystemSceneStatus();
     UpdateLuminanceAndColorTemp();
     bool isPostUniRender = isUniRender_ && !doDirectComposition_ && needDrawFrame_;
@@ -2791,7 +2787,7 @@ void RSMainThread::OnUniRenderDraw()
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
-        RsFrameReport::GetInstance().PostAndWait();
+        RsFrameReport::GetInstance().CheckPostAndWaitPoint();
         drawFrame_.PostAndWait();
         RsFrameReport::GetInstance().RenderEnd();
         return;
@@ -4052,41 +4048,62 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
         return;
     }
 
-    std::unordered_map<pid_t, std::vector<NodeId>> topNodes;
+    std::unordered_map<pid_t, std::vector<std::pair<NodeId, uint64_t>>> topNodes;
     if (const auto& rootNode = context_->GetGlobalRootRenderNode()) {
         for (const auto& screenNode : *rootNode->GetSortedChildren()) {
             for (const auto& node : *screenNode->GetSortedChildren()) {
                 NodeId id = node->GetId();
-                topNodes[ExtractPid(id)].push_back(id);
+                const auto& tokenList = node->GetUIContextTokenList();
+                if (tokenList.empty()) {
+                    topNodes[ExtractPid(id)].emplace_back(id, node->GetUIContextToken());
+                } else {
+                    for (const auto& token : tokenList) {
+                        topNodes[ExtractPid(id)].emplace_back(id, token);
+                    }
+                }
             }
         }
     }
-    context_->GetNodeMap().TraversalNodes([this, &topNodes] (const std::shared_ptr<RSBaseRenderNode>& node) {
+    context_->GetNodeMap().TraversalNodes([this, &topNodes](const std::shared_ptr<RSBaseRenderNode>& node) {
         if (node->IsOnTheTree() && node->GetType() == RSRenderNodeType::ROOT_NODE) {
             if (auto parent = node->GetParent().lock()) {
                 NodeId id = parent->GetId();
-                topNodes[ExtractPid(id)].push_back(id);
+                const auto& tokenList = parent->GetUIContextTokenList();
+                if (tokenList.empty()) {
+                    topNodes[ExtractPid(id)].emplace_back(id, parent->GetUIContextToken());
+                } else {
+                    for (const auto& token : tokenList) {
+                        topNodes[ExtractPid(id)].emplace_back(id, token);
+                    }
+                }
             }
             NodeId id = node->GetId();
-            topNodes[ExtractPid(id)].push_back(id);
+            const auto& tokenList = node->GetUIContextTokenList();
+            if (tokenList.empty()) {
+                topNodes[ExtractPid(id)].emplace_back(id, node->GetUIContextToken());
+            } else {
+                for (const auto& token : tokenList) {
+                    topNodes[ExtractPid(id)].emplace_back(id, token);
+                }
+            }
         }
     });
 
     auto& task = nodeTreeDumpTasks_[taskId];
-    for (const auto& [pid, nodeIds] : topNodes) {
+    for (const auto& [pid, nodeInfoList] : topNodes) {
         auto iter = applicationAgentMap_.find(pid);
         if (iter == applicationAgentMap_.end() || !iter->second) {
             continue;
         }
         auto transactionData = std::make_shared<RSTransactionData>();
-        for (auto id : nodeIds) {
-            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId);
-            transactionData->AddCommand(std::move(command), id, FollowType::NONE);
+        for (const auto& [nodeId, token] : nodeInfoList) {
+            auto command = std::make_unique<RSDumpClientNodeTree>(nodeId, pid, token, taskId);
+            transactionData->AddCommand(std::move(command), nodeId, FollowType::NONE);
             task.count++;
-            RS_TRACE_NAME_FMT("DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "]",
-                taskId, pid, id);
-            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "]",
-                taskId, pid, id);
+            RS_TRACE_NAME_FMT(
+                "DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "] token[%lu]", taskId, pid, nodeId, token);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "] token[%{public}llu]",
+                taskId, pid, nodeId, token);
         }
         iter->second->OnTransaction(transactionData);
     }
@@ -4278,7 +4295,7 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
     } else {
         MemoryManager::DumpMemoryUsage(log, type);
     }
-    if (type.empty() || type == MEM_GPU_TYPE) {
+    if ((type.empty() || type == MEM_GPU_TYPE) && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
             subThreadManager->DumpMem(log);

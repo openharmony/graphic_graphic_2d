@@ -356,6 +356,14 @@ RSDrawable::Ptr RSBeginBlenderDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 }
 
+void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
+{
+    enableEDREffect_ = node.GetRenderProperties().GetFgBrightnessEnableEDR();
+    if (enableEDREffect_) {
+        screenNodeId_ = node.GetScreenNodeId();
+    }
+}
+
 bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
 {
     // the order of blender and blendMode cannot be considered currently
@@ -384,11 +392,13 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
         }
         stagingBlender_ = RSPropertyDrawableUtils::MakeShadowBlender(properties.GetShadowBlenderParams().value());
         stagingIsDangerous_ = false;
+        stagingIsShadowBlender_ = true;
     } else {
         return false;
     }
 
     needSync_ = true;
+    PostUpdate(node);
 
     return true;
 }
@@ -401,6 +411,7 @@ void RSBeginBlenderDrawable::OnSync()
     blender_ = stagingBlender_;
     blendApplyType_ = stagingBlendApplyType_;
     propertyDescription_ = stagingPropertyDescription_;
+    isShadowBlender_ = stagingIsShadowBlender_;
     stagingPropertyDescription_.clear();
     needSync_ = false;
 }
@@ -420,7 +431,7 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
             ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_, ptr->blendApplyType_,
-            ptr->isDangerous_);
+            ptr->isDangerous_, ptr->isShadowBlender_);
     };
 }
 

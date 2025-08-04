@@ -706,10 +706,10 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 {
     if (pixelMap_ && !pixelMap_->IsAstc()) {
         std::shared_ptr<Drawing::Image> imageCache = nullptr;
-#ifdef SUBTREE_PARALLEL_ENABLE
-        pid_t threadId = RSParallelMisc::GetThreadIndex(canvas);
-#else
         pid_t threadId = gettid();
+#ifdef SUBTREE_PARALLEL_ENABLE
+        // Adapt to the subtree feature to ensure the correct thread ID (TID) is set.
+        RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
         if (!pixelMap_->IsEditable()) {
             imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);

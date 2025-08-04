@@ -599,24 +599,46 @@ ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
 
     for (uint32_t i = 0; i < sfBufferInfoVector.size(); i++) {
         auto surfaceBuffer = std::get<0>(sfBufferInfoVector[i]);
+        const auto surfaceName = std::get<1>(sfBufferInfoVector[i]);
+        const auto& absRect = std::get<2>(sfBufferInfoVector[i]);
         if (surfaceBuffer) {
-            OHOS::Media::Rect rect = {0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight()};
+            OHOS::Media::Rect rect = { 0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight() };
             std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
             RSBackgroundThread::Instance().PostSyncTask([&surfaceBuffer, rect, &pixelmap]() {
                 pixelmap = Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, rect);
             });
-            PixelMapInfo info;
-            info.pixelMap = pixelmap;
-            RectI absRect = std::get<2>(sfBufferInfoVector[i]);
-            info.location = {absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight(), i};
-            info.nodeName = std::get<1>(sfBufferInfoVector[i]);
-            pixelMapInfoVector.push_back(info);
+            if (pixelmap) {
+                pixelMapInfoVector.emplace_back(PixelMapInfo { pixelmap,
+                    { absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight(), i },
+                    surfaceName,
+                    GetRotationInfoFromSurfaceBuffer(surfaceBuffer) });
+            } else {
+                RS_LOGE("CreatePixelMapFromSurfaceBuffer pixelmap is null, nodeName:%{public}s", surfaceName.c_str());
+            }
         } else {
-            RS_LOGE("CreatePixelMapFromSurface surfaceBuffer is null");
+            RS_LOGE("CreatePixelMapFromSurface surfaceBuffer is null, nodeName:%{public}s, rect:%{public}s",
+                surfaceName.c_str(), absRect.ToString().c_str());
         }
     }
     repCode = SUCCESS;
     return ERR_OK;
+}
+
+float RSRenderServiceConnection::GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer)
+{
+    if (buffer == nullptr) {
+        RS_LOGE("GetRotationInfoFromSurfaceBuffer buffer is null");
+        return 0.0f;
+    }
+    auto transformType = buffer->GetSurfaceBufferTransform();
+    if (transformType == GRAPHIC_ROTATE_90) {
+        return 90.0f;
+    } else if (transformType == GRAPHIC_ROTATE_180) {
+        return 180.0f;
+    } else if (transformType == GRAPHIC_ROTATE_270) {
+        return 270.0f;
+    }
+    return 0.0f;
 }
 
 ErrCode RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
@@ -1518,7 +1540,12 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
 void RSRenderServiceConnection::TakeUICaptureInRange(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
+    std::function<void()> captureTask = [id, callback, captureConfig]() -> void {
+        RS_TRACE_NAME_FMT("RSRenderServiceConnection::TakeUICaptureInRange captureTask nodeId:[%" PRIu64 "]", id);
+        RS_LOGD("RSRenderServiceConnection::TakeUICaptureInRange captureTask nodeId:[%{public}" PRIu64 "]", id);
+        TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
+    };
+    RSMainThread::Instance()->PostTask(captureTask);
 }
 
 ErrCode RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
@@ -1612,7 +1639,7 @@ ErrCode RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& 
 
 ErrCode RSRenderServiceConnection::GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic)
 {
-    if (!mainThread_ || !mainThread_->GetContext().GetNodeMap().ContainPid(pid)) {
+    if (pid == 0) {
         return ERR_INVALID_VALUE;
     }
     bool enable;

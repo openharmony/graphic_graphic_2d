@@ -290,16 +290,11 @@ void RSRenderEdgeLightFilterPara::GenerateGEVisualEffect(
         return;
     }
 
-    Vector4f color = color_;
-    if (ROSEN_GNE(color.x_, 1.0f) || ROSEN_GNE(color.y_, 1.0f) || ROSEN_GNE(color.z_, 1.0f)) {
-        color = RSEffectLuminanceManager::GetBrightnessMapping(maxHeadroom_, color);
-    }
-
     auto edgeLightShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
         Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_ALPHA, alpha_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_BLOOM, bloom_);
-    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_COLOR, color);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_COLOR, color_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_USE_RAW_COLOR, useRawColor_);
     edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_MASK,
         mask_ != nullptr ? mask_->GenerateGEShaderMask() : nullptr);

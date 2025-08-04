@@ -179,32 +179,6 @@ void RSDirtyRegionManager::ClipDirtyRectWithinSurface()
     }
 }
 
-const RectI& RSDirtyRegionManager::GetCurrentFrameDirtyRegion()
-{
-    return currentFrameDirtyRegion_;
-}
-
-const RectI& RSDirtyRegionManager::GetDirtyRegion() const
-{
-    return dirtyRegion_;
-}
-
-void RSDirtyRegionManager::SetCurrentFrameDirtyRect(const RectI& dirtyRect)
-{
-    currentFrameAdvancedDirtyRegion_ = { dirtyRect };
-    currentFrameDirtyRegion_ = dirtyRect;
-}
-
-const RectI& RSDirtyRegionManager::GetUifirstFrameDirtyRegion()
-{
-    return uifirstFrameDirtyRegion_;
-}
-
-void RSDirtyRegionManager::SetUifirstFrameDirtyRect(const RectI& dirtyRect)
-{
-    uifirstFrameDirtyRegion_ = dirtyRect;
-}
-
 void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetManager)
 {
     if (!targetManager) {
@@ -366,10 +340,6 @@ void RSDirtyRegionManager::GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
     }
 }
 
-bool RSDirtyRegionManager::HasOffset()
-{
-    return hasOffset_;
-}
 void RSDirtyRegionManager::SetOffset(int offsetX, int offsetY)
 {
     offsetX_ = offsetX;

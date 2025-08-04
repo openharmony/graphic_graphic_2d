@@ -116,7 +116,10 @@ enum class RSColorBlendApplyType : int16_t {
     SAVE_LAYER_ALPHA,   // Similar to SAVE_LAYER, but when drawing back to the screen, it will be multiplied by the
                         // alpha of the screen twice. We add this type to avoid incompatibility changes. Don't use
                         // it in the future unless you have a clear understanding of what will happen!
-    MAX = SAVE_LAYER_ALPHA
+    // init with a copy of the background for advanced use.
+    //  Do NOT use this unless you have a clear understanding of what will happen!
+    SAVE_LAYER_INIT_WITH_PREVIOUS_CONTENT,
+    MAX = SAVE_LAYER_INIT_WITH_PREVIOUS_CONTENT
 };
 
 struct RSDynamicBrightnessPara {

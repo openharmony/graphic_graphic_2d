@@ -1055,7 +1055,9 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
         node->SetPriority(priority);
         node->nodeGroupType_ = nodeGroupType;
+#ifdef SUBTREE_PARALLEL_ENABLE
         node->MarkRepaintBoundary(isRepaintBoundary);
+#endif
         return UnmarshalNodeModifiers(*node, data, fileVersion);
     }
     return "";

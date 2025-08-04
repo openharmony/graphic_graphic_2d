@@ -32,7 +32,6 @@
 // dfx
 #include "drawable/dfx/rs_refresh_rate_dfx.h"
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
-
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
 #endif
@@ -283,14 +282,17 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (specialLayerType != NO_SPECIAL_LAYER || UNLIKELY(noBuffer) || screenParam->GetScreenInfo().isSamplingOn ||
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) || screenDrawable->IsRenderSkipIfScreenOff() ||
         !currentBlackList.empty()) {
+        offsetX_ = screenParam->GetScreenOffsetX();
+        offsetY_ = screenParam->GetScreenOffsetY();
         RS_LOGD("RSLogicalDisplayRenderNodeDrawable::OnCapture: \
             process RSLogicalDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
             params->GetId());
         RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNode::%s screenId: [%" PRIu64 "]"
             " Not using UniRender buffer. specialLayer: %d, noBuffer: %d, "
-            "isSamplingOn: %d, isRenderSkipIfScreenOff: %d, blackList: %lu", __func__, params->GetScreenId(),
+            "isSamplingOn: %d, isRenderSkipIfScreenOff: %d, blackList: %lu, "
+            "offsetX: %d, offsetY: %d", __func__, params->GetScreenId(),
             specialLayerType != NO_SPECIAL_LAYER, noBuffer, screenParam->GetScreenInfo().isSamplingOn,
-            screenDrawable->IsRenderSkipIfScreenOff(), currentBlackList.size());
+            screenDrawable->IsRenderSkipIfScreenOff(), currentBlackList.size(), offsetX_, offsetY_);
 
         if (!UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
             params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
@@ -604,18 +606,18 @@ void RSLogicalDisplayRenderNodeDrawable::WiredScreenProjection(
         return;
     }
 
+    auto cacheImage = mirroredScreenDrawable->GetCacheImgForCapture();
     bool isProcessSecLayer = !MultiScreenParam::IsExternalScreenSecure() &&
         mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-    auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
+    auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() || !cacheImage ||
         (RSSystemParameters::GetWiredScreenOndrawEnabled() && !enableVisibleRect_ &&
             (mirroredScreenParams->GetHDRPresent()  || isProcessSecLayer || !currentBlackList_.empty() ||
                 mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)));
     if (isRedraw) {
         isMirrorSLRCopy_ = false;
     } else {
-        auto cacheImage = mirroredScreenDrawable->GetCacheImgForCapture();
-        isMirrorSLRCopy_ = cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled() &&
-                           !enableVisibleRect_ && RSSystemProperties::GetSLRScaleEnabled();
+        // cacheImage must be valid when isMirrorSLRCopy_ is true
+        isMirrorSLRCopy_ = !enableVisibleRect_ && RSSystemProperties::GetSLRScaleEnabled();
     }
 
     curCanvas_->Save();
@@ -1079,7 +1081,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
 #ifdef RS_PROFILER_ENABLED
     RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::ON_CAPTURE);
 #endif
-    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST),
+    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, MultiScreenParam::GetMipmapMode()),
         mirroredScreenInfo.isSamplingOn);
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);

@@ -365,7 +365,8 @@ HWTEST_F(HgmCommandTest, AddParamWatcher001, Function | SmallTest | Level0)
 {
     auto& hgmCore = HgmCore::Instance();
     auto ret = hgmCore.AddParamWatcher();
-    EXPECT_EQ(ret, 0);
+    // 110 means already added in HgmCore::Instance()
+    EXPECT_EQ(ret, 110);
 }
 
 /**

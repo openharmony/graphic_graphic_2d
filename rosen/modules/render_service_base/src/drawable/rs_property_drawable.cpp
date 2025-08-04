@@ -19,6 +19,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "ge_visual_effect_container.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "memory/rs_tag_tracker.h"
@@ -26,8 +27,10 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_filter_cache_manager.h"
+#include "property/rs_properties.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_effect_luminance_manager.h"
+#include "render/rs_filter_cache_manager.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 
 namespace OHOS::Rosen {
@@ -181,6 +184,18 @@ RSFilterDrawable::RSFilterDrawable()
     }
 }
 
+void RSFilterDrawable::PostUpdate(const RSRenderNode& node)
+{
+    if (!stagingFilter_ || !stagingFilter_->IsDrawingFilter()) {
+        return;
+    }
+    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(stagingFilter_);
+    enableEDREffect_ = RSUIFilterHelper::CheckEnableEDR(drawingFilter->GetNGRenderFilter());
+    if (enableEDREffect_) {
+        screenNodeId_ = node.GetScreenNodeId();
+    }
+}
+
 void RSFilterDrawable::OnSync()
 {
     if (needSync_) {
@@ -209,6 +224,12 @@ void RSFilterDrawable::OnSync()
         return;
     }
     stagingCacheManager_->SwapDataAndInitStagingFlags(cacheManager_);
+
+    if (filter_ && filter_->IsDrawingFilter() && enableEDREffect_) {
+        float displayHeadroom = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenNodeId_);
+        auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
+        filter->SetDisplayHeadroom(displayHeadroom);
+    }
 }
 
 bool RSFilterDrawable::WouldDrawLargeAreaBlur()
@@ -505,5 +526,6 @@ void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)
 {
     stagingDrawBehindWindowRegion_ = region;
 }
+
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

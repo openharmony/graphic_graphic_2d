@@ -1146,7 +1146,7 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
     if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "Input parameter0 should be single character.");
     }
     std::vector<char> strBuffer(len + 1);
@@ -1160,7 +1160,7 @@ napi_value JsCanvas::OnDrawSingleCharacterWithFeatures(napi_env env, napi_callba
     int32_t unicode = SkUTF::NextUTF8(&currentPtr, endPtr);
     size_t byteLen = currentPtr - strBuffer.data();
     if (byteLen != len) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "Parameter verification failed. Input parameter0 should be single character.");
     }
 

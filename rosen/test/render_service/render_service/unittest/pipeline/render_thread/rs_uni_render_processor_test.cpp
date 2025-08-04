@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameters.h>
+
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
@@ -34,6 +36,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
+}
 class RSUniRenderProcessorTest : public testing::Test {
 public:
     static inline BufferRequestConfig requestConfig = {
@@ -41,7 +46,7 @@ public:
         .height = 200,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
@@ -53,14 +58,6 @@ public:
         .top = 0,
         .right = 100,
         .bottom = 100,
-    };
-
-    static inline BlobDataType defaultBlobDataType = {
-        .offset = 0,
-        .length = 0,
-        .capacity = 0,
-        .vaddr = 0,
-        .cacheop = CacheOption::CACHE_NOOP,
     };
 
     static void SetUpTestCase();
@@ -658,21 +655,16 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
     auto buffer = SurfaceBuffer::Create();
     auto ret = buffer->Alloc(RSUniRenderProcessorTest::requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData data = RSUniRenderProcessorTest::defaultSelfDrawingRect;
-    BufferSelfDrawingData *src = &data;
-    BlobDataType test = RSUniRenderProcessorTest::defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
-
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-
+ 
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    (*src) = RSUniRenderProcessorTest::defaultSelfDrawingRect;
+ 
     EXPECT_EQ(params.GetTunnelLayerId(), 1);
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**
@@ -742,5 +734,58 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     sptr<SyncFence> acquireFence = nullptr;
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: GetLayerInfo006
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
+{
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->screenInfo_ = screenInfo;
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    params.SetHwcGlobalPositionEnabled(true);
+    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: ScaleLayerIfNeeded001
+ * @tc.desc: Test RSUniRenderProcessorTest.ScaleLayerIfNeeded
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, ScaleLayerIfNeeded001, TestSize.Level1)
+{
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->screenInfo_ = screenInfo;
+
+    RSLayerInfo layerInfo;
+    layerInfo.dstRect.x = 1;
+
+    renderProcessor->ScaleLayerIfNeeded(layerInfo);
+    EXPECT_EQ(layerInfo.dstRect.x, 1);
+
+    screenInfo.isSamplingOn = true;
+    screenInfo.samplingTranslateX = 1.0;
+    screenInfo.samplingTranslateY = 1.0;
+    renderProcessor->screenInfo_ = screenInfo;
+    renderProcessor->ScaleLayerIfNeeded(layerInfo);
+    EXPECT_EQ(layerInfo.dstRect.x, 2);
 }
 }

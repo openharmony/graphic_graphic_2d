@@ -82,8 +82,8 @@ rs_effect_feature_sources = [
 ]
 rs_framework_sources = []
 rs_func_feature_sources = [
-  "rs_func_feature/component_capture/demo.cpp",
   "rs_func_feature/color_space_and_hdr/color_space_test.cpp",
+  "rs_func_feature/component_capture/demo.cpp",
   "rs_func_feature/multi_screen/logical_display_node_test.cpp",
   "rs_func_feature/multi_screen/multi_screen_test.cpp",
   "rs_func_feature/screen_capture/display_node_capture_test.cpp",
@@ -93,15 +93,18 @@ rs_func_feature_sources = [
   "rs_func_feature/accessibility/curtain_screen_test.cpp",
 ]
 rs_perform_feature_sources = [
+  "rs_perform_feature/dirty_region/filter_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_history_test.cpp",
   "rs_perform_feature/dirty_region/update_self_draw_rect_test.cpp",
+  "rs_perform_feature/hybrid_render/hybrid_render_test.cpp",
 ]
 
 group("test") {
   testonly = true
   deps = [
     ":RSGraphicTest",
+    ":RenderServiceRenderProfilerTest",
   ]
 }
 
@@ -147,4 +150,39 @@ ohos_unittest("RSGraphicTest") {
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
+}
+
+## Build RenderServiceRenderProfilerTest
+ohos_unittest("RenderServiceRenderProfilerTest") {
+  module_out_path = module_output_path
+  sources = [
+    "render_service_render_profiler_test.cpp"
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
+  ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "window_manager:libdm",
+    "window_manager:sms",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }

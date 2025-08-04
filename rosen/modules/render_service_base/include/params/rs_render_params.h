@@ -69,41 +69,65 @@ public:
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
     void SetAlpha(float alpha);
-    float GetAlpha() const;
+    float GetAlpha() const
+    {
+        return alpha_;
+    }
 
     void SetAlphaOffScreen(bool alphaOffScreen);
     bool GetAlphaOffScreen() const;
 
     void SetMatrix(const Drawing::Matrix& matrix);
-    const Drawing::Matrix& GetMatrix() const;
+    const Drawing::Matrix& GetMatrix() const
+    {
+        return matrix_;
+    }
 
     void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix = true) const;
 
     void SetBoundsRect(const Drawing::RectF& boundsRect);
-    const Drawing::Rect& GetBounds() const;
+    const Drawing::Rect& GetBounds() const
+    {
+        return boundsRect_;
+    }
 
     void SetFrameRect(const Drawing::RectF& frameRect);
-    const Drawing::Rect& GetFrameRect() const;
+    const Drawing::Rect& GetFrameRect() const
+    {
+        return frameRect_;
+    }
 
     // return to add some dirtynode does not mark pending
     bool SetLocalDrawRect(const RectF& localDrawRect);
-    const RectF& GetLocalDrawRect() const;
+    const RectF& GetLocalDrawRect() const
+    {
+        return localDrawRect_;
+    }
 
     void SetHasSandBox(bool hasSandBox);
-    bool HasSandBox() const;
+    bool HasSandBox() const
+    {
+        return hasSandBox_;
+    }
 
-    bool GetShouldPaint() const;
+    bool GetShouldPaint() const
+    {
+        return shouldPaint_ && !contentEmpty_;
+    }
     void SetShouldPaint(bool shouldPaint);
     void SetContentEmpty(bool empty);
 
-    bool NeedSync() const;
+    bool NeedSync() const
+    {
+        return needSync_;
+    }
     void SetNeedSync(bool needSync);
 
-    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
+    const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const
+    {
+        return foregroundFilterCache_;
+    }
     void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
-
-    const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
-    void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
 
     inline NodeId GetId() const
     {
@@ -171,14 +195,14 @@ public:
         return globalAlpha_;
     }
 
-    inline bool NodeGroupHasChildInBlackList() const
+    inline bool NodeGroupHasChildInBlacklist() const
     {
-        return isNodeGroupHasChildInBlackList_;
+        return isNodeGroupHasChildInBlacklist_;
     }
 
-    inline void SetNodeGroupHasChildInBlackList(bool isInBlackList)
+    inline void SetNodeGroupHasChildInBlacklist(bool isInBlackList)
     {
-        isNodeGroupHasChildInBlackList_ = isInBlackList;
+        isNodeGroupHasChildInBlacklist_ = isInBlackList;
     }
     
     inline bool IsSnapshotSkipLayer() const
@@ -197,9 +221,15 @@ public:
     }
 
     void SetChildHasVisibleFilter(bool val);
-    bool ChildHasVisibleFilter() const;
+    bool ChildHasVisibleFilter() const
+    {
+        return childHasVisibleFilter_;
+    }
     void SetChildHasVisibleEffect(bool val);
-    bool ChildHasVisibleEffect() const;
+    bool ChildHasVisibleEffect() const
+    {
+        return childHasVisibleEffect_;
+    }
 
     void SetCacheSize(Vector2f size);
     inline Vector2f GetCacheSize() const
@@ -208,36 +238,76 @@ public:
     }
 
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
-    bool GetDrawingCacheChanged() const;
-
-    void SetNeedUpdateCache(bool needUpdateCache);
-    bool GetNeedUpdateCache() const;
+    bool GetDrawingCacheChanged() const
+    {
+        return isDrawingCacheChanged_;
+    }
+    void SetNeedUpdateCache(bool needUpdateCache)
+    {
+        isNeedUpdateCache_ = needUpdateCache;
+    }
+    bool GetNeedUpdateCache() const
+    {
+        return isNeedUpdateCache_;
+    }
 
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
-    RSDrawingCacheType GetDrawingCacheType() const;
+    RSDrawingCacheType GetDrawingCacheType() const
+    {
+        return drawingCacheType_;
+    }
 
     void OpincSetIsSuggest(bool isSuggest);
-    bool OpincIsSuggest() const;
+    bool OpincIsSuggest() const
+    {
+        return isOpincSuggestFlag_;
+    }
     void OpincUpdateSupportFlag(bool supportFlag);
-    bool OpincGetSupportFlag() const;
+    bool OpincGetSupportFlag() const
+    {
+        return isOpincSupportFlag_;
+    }
     void OpincUpdateRootFlag(bool suggestFlag);
-    bool OpincGetRootFlag() const;
+    bool OpincGetRootFlag() const
+    {
+        return isOpincRootFlag_;
+    }
     void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
-    bool OpincGetCacheChangeState();
+    bool OpincGetCacheChangeState()
+    {
+        bool state = isOpincStateChanged_;
+        isOpincStateChanged_ = false;
+        return state;
+    }
 
     void SetDrawingCacheIncludeProperty(bool includeProperty);
-    bool GetDrawingCacheIncludeProperty() const;
+    bool GetDrawingCacheIncludeProperty() const
+    {
+        return drawingCacheIncludeProperty_;
+    }
 
     void SetRSFreezeFlag(bool freezeFlag);
-    bool GetRSFreezeFlag() const;
+    bool GetRSFreezeFlag() const
+    {
+        return freezeFlag_;
+    }
     void SetShadowRect(Drawing::Rect rect);
-    Drawing::Rect GetShadowRect() const;
+    Drawing::Rect GetShadowRect() const
+    {
+        return shadowRect_;
+    }
 
     // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
     void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
-    bool GetCanvasDrawingSurfaceChanged() const;
+    bool GetCanvasDrawingSurfaceChanged() const
+    {
+        return canvasDrawingNodeSurfaceChanged_;
+    }
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
-    SurfaceParam GetCanvasDrawingSurfaceParams();
+    SurfaceParam GetCanvasDrawingSurfaceParams()
+    {
+        return surfaceParams_;
+    }
     void SetCanvasDrawingSurfaceParams(int width, int height,
         GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
@@ -259,9 +329,15 @@ public:
     void MarkRepaintBoundary(bool isRepaintBoundary);
 
     bool SetFirstLevelNode(NodeId firstLevelNodeId);
-    NodeId GetFirstLevelNodeId() const;
+    NodeId GetFirstLevelNodeId() const
+    {
+        return firstLevelNodeId_;
+    }
     bool SetUiFirstRootNode(NodeId uifirstRootNodeId);
-    NodeId GetUifirstRootNodeId() const;
+    NodeId GetUifirstRootNodeId() const
+    {
+        return uifirstRootNodeId_;
+    }
 
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
@@ -345,7 +421,10 @@ public:
     virtual void SetFingerprint(bool hasFingerprint) {}
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const
+    {
+        return cloneSourceDrawable_;
+    }
     void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
@@ -371,21 +450,46 @@ public:
         return absRotation_;
     }
 
-    bool HasUnobscuredUEC() const;
-    void SetHasUnobscuredUEC(bool flag);
+    bool HasUnobscuredUEC() const
+    {
+        return hasUnobscuredUEC_;
+    }
+    void SetHasUnobscuredUEC(bool flag)
+    {
+        hasUnobscuredUEC_ = flag;
+    }
 
     void SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info);
-    const std::unordered_map<ScreenId, bool>& GetVirtualScreenWhiteListInfo() const;
+    const std::unordered_map<ScreenId, bool>& GetVirtualScreenWhiteListInfo() const
+    {
+        return hasVirtualScreenWhiteList_;
+    }
 
     // [Attention] Only used in PC window resize scene now
     void EnableWindowKeyFrame(bool enable);
-    bool IsWindowKeyFrameEnabled() const;
+    // [Attention] Only used in PC window resize scene now
+    bool IsWindowKeyFrameEnabled() const
+    {
+        return windowKeyframeEnabled_;
+    }
     void SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetLinkedRootNodeDrawable();
+    // [Attention] Only used in PC window resize scene now
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetLinkedRootNodeDrawable()
+    {
+        return linkedRootNodeDrawable_;
+    }
     void SetNeedSwapBuffer(bool needSwapBuffer);
-    bool GetNeedSwapBuffer() const;
+    // [Attention] Only used in PC window resize scene now
+    bool GetNeedSwapBuffer() const
+    {
+        return needSwapBuffer_;
+    }
     void SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect);
-    const Drawing::RectF& GetCacheNodeFrameRect() const;
+    // [Attention] Only used in PC window resize scene now
+    const Drawing::RectF& GetCacheNodeFrameRect() const
+    {
+        return cacheNodeFrameRect_;
+    }
 
     void SetIsOnTheTree(bool isOnTheTree);
     bool GetIsOnTheTree() const;
@@ -417,7 +521,7 @@ private:
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
-    bool isNodeGroupHasChildInBlackList_ = false;
+    bool isNodeGroupHasChildInBlacklist_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
@@ -427,7 +531,6 @@ private:
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
-    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     bool isOpincSuggestFlag_ = false;
     bool isOpincSupportFlag_ = false;
     bool isOpincRootFlag_ = false;

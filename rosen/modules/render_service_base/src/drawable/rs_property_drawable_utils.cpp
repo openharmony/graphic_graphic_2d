@@ -1143,7 +1143,7 @@ bool RSPropertyDrawableUtils::IsDangerousBlendMode(int blendMode, int blendApply
 }
 
 void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Blender> blender,
-    int blendModeApplyType, bool isDangerous)
+    int blendModeApplyType, bool isDangerous, bool isShadowBlender)
 {
     if (isDangerous && !canvas.HasOffscreenLayer()) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
@@ -1167,7 +1167,13 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
         blendBrush_.SetAlphaF(canvas.GetAlpha());
     }
     blendBrush_.SetBlender(blender);
-    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
+    uint32_t saveLayerFlag = 0;
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_INIT_WITH_PREVIOUS_CONTENT)) {
+        // currently we only support DDGR backend, we thus use 1 << 1 as indicated in their code.
+        saveLayerFlag = 1 << 1;
+    }
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, saveLayerFlag);
+    canvas.SetIsShadowBlender(isShadowBlender);
     canvas.SaveLayer(maskLayerRec);
     canvas.SetBlender(nullptr);
     canvas.SaveAlpha();

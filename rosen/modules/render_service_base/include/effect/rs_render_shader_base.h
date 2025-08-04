@@ -40,6 +40,9 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShaderBase>& val);
     void Dump(std::string& out) const;
+
+private:
+    friend class RSNGRenderShaderHelper;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
@@ -72,6 +75,11 @@ public:
 
 protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
+};
+
+class RSB_EXPORT RSNGRenderShaderHelper {
+public:
+    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase> shader);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

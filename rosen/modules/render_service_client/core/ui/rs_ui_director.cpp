@@ -567,7 +567,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
 {
     if (rsUIContext_) {
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "multi-intance SendCommands With Callback");
-        RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
+        RS_TRACE_NAME_FMT("SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr && !transaction->IsEmpty()) {
             if (callback != nullptr) {
@@ -625,43 +625,30 @@ void RSUIDirector::RecvMessages()
     RecvMessages(transactionDataPtr);
 }
 
-void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance)
+void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
 {
     if (cmds == nullptr || cmds->IsEmpty()) {
         ROSEN_LOGD("RSUIDirector::RecvMessages cmd empty");
         return;
     }
     ROSEN_LOGD("ProcessMessages begin");
-    RSUIDirector::ProcessMessages(cmds, useMultiInstance);
+    RSUIDirector::ProcessMessages(cmds);
 }
 
-void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
+void RSUIDirector::ProcessInstanceMessages(
+    std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId)
 {
-    // message ID for correspondence UI thread and IPC thread
-    static uint32_t messageId = 0;
-    std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
-    for (auto &[id, _, cmd] : cmds->GetPayload()) {
-        NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
-        int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
-        if (instanceId == INSTANCE_ID_UNDEFINED) {
-            instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
-        }
-        m[instanceId].push_back(std::move(cmd));
-    }
-    auto msgId = ++messageId;
-    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Post [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]",
-        msgId, cmds->GetIndex(), cmds->GetCommandCount());
-    auto counter = std::make_shared<std::atomic_size_t>(m.size());
-    for (auto &[instanceId, commands] : m) {
-        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", msgId,
+    auto counter = std::make_shared<std::atomic_size_t>(cmdMap.size());
+    for (auto& [instanceId, commands] : cmdMap) {
+        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", messageId,
             static_cast<unsigned long>(commands.size()), instanceId);
         PostTask(
-            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
-                counter, msgId, tempInstanceId = instanceId] {
-                RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Process messageId:%lu", msgId);
-                ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d",
-                    msgId, static_cast<unsigned long>(cmds->size()), tempInstanceId);
-                for (auto &cmd : *cmds) {
+            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter, messageId,
+                tempInstanceId = instanceId] {
+                RS_TRACE_NAME_FMT("RSUIDirector::ProcessInstanceMessages Process messageId:%lu", messageId);
+                ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", messageId,
+                    static_cast<unsigned long>(cmds->size()), tempInstanceId);
+                for (auto& cmd : *cmds) {
                     RSContext context; // RSCommand->process() needs it
                     cmd->Process(context);
                 }
@@ -672,40 +659,30 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
                     } else {
                         RSTransaction::FlushImplicitTransaction();
                     }
-                    ROSEN_LOGD("ProcessMessages end");
+                    ROSEN_LOGD("ProcessInstanceMessages end");
                 }
-            }, instanceId);
+            },
+            instanceId);
     }
 }
 
-void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance)
+void RSUIDirector::ProcessUIContextMessages(
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId)
 {
-    if (!useMultiInstance) {
-        ProcessMessages(cmds);
-        return;
-    }
-    static uint32_t messageId = 0;
-    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
-    for (auto& [id, _, cmd] : cmds->GetPayload()) {
-        uint64_t token = cmd->GetToken();
-        cmdMap[token].push_back(std::move(cmd));
-    }
-    auto msgId = ++messageId;
-    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Post [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]",
-        msgId, cmds->GetIndex(), cmds->GetCommandCount());
     auto counter = std::make_shared<std::atomic_size_t>(cmdMap.size());
     for (auto& [token, commands] : cmdMap) {
-        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, msgId,
+        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, messageId,
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
-            ROSEN_LOGI("RSUIDirector::ProcessMessages, can not get rsUIContext with token:%{public}" PRIu64 "", token);
-            return;
+            ROSEN_LOGI(
+                "RSUIDirector::ProcessUIContextMessages, can not get rsUIContext with token:%{public}" PRIu64, token);
+            continue;
         }
         rsUICtx->PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
-                              counter, msgId, tempToken = token, rsUICtx] {
-            RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Process messageId:%lu", msgId);
-            ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, msgId,
+                              counter, messageId, tempToken = token, rsUICtx] {
+            RS_TRACE_NAME_FMT("RSUIDirector::ProcessUIContextMessages Process messageId:%lu", messageId);
+            ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, messageId,
                 static_cast<unsigned long>(cmds->size()), tempToken);
             for (auto& cmd : *cmds) {
                 RSContext context; // RSCommand->process() needs it
@@ -721,10 +698,36 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
                         rsTransaction->FlushImplicitTransaction();
                     }
                 }
-                ROSEN_LOGD("ProcessMessages end");
+                ROSEN_LOGD("ProcessUIContextMessages end");
             }
         });
     }
+}
+
+void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
+{
+    // message ID for correspondence UI thread and IPC thread
+    static uint32_t messageId = 0;
+    std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> instanceCmdMap;
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> uiContextCmdMap;
+    for (auto& [id, _, cmd] : cmds->GetPayload()) {
+        uint64_t token = cmd->GetToken();
+        if (token == 0) {
+            NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
+            int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+            if (instanceId == INSTANCE_ID_UNDEFINED) {
+                instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
+            }
+            instanceCmdMap[instanceId].push_back(std::move(cmd));
+        } else {
+            uiContextCmdMap[token].push_back(std::move(cmd));
+        }
+    }
+    auto msgId = ++messageId;
+    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Post [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]", msgId,
+        cmds->GetIndex(), cmds->GetCommandCount());
+    ProcessInstanceMessages(instanceCmdMap, msgId);
+    ProcessUIContextMessages(uiContextCmdMap, msgId);
 }
 
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
@@ -760,13 +763,17 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     }
 }
 
-void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId)
+void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;
     // use for dump transactionFlags [pid,index] in client tree dump
+    if (auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token)) {
+        rsUICtx->DumpNodeTreeProcessor(out, nodeId, pid, taskId);
+        return;
+    }
     int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);
     {
         std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex_);

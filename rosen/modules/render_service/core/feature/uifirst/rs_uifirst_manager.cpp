@@ -1535,6 +1535,11 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
         if (node.GetSelfAndParentShouldPaint() && !node.GetSkipDraw()) {
             node.SetSubThreadAssignable(true); // mark as assignable to uifirst next frame
             node.SetNeedCacheSurface(true); // mark as that needs cache win in RT
+            auto parent = node.GetParent().lock();
+            if (parent != nullptr && cacheType == MultiThreadCacheType::ARKTS_CARD) {
+                // disable render group for card
+                parent->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+            }
             node.SetHwcChildrenDisabledState();
             RS_OPTIONAL_TRACE_FMT("name:%s id:%" PRIu64 " children disabled by uifirst first frame",
                 node.GetName().c_str(), node.GetId());

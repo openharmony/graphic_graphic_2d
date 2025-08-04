@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
@@ -4590,6 +4591,7 @@ public:
     std::vector<PropertyId> GetModifierIds() const {
         return RSNode::GetModifierIds();
     }
+    MOCK_METHOD1(SetNeedUseCmdlistDrawRegion, void(bool needUseCmdlistDrawRegion));
 };
 
 /**
@@ -5669,9 +5671,6 @@ HWTEST_F(RSNodeTest, SetBlender, TestSize.Level1)
     BrightnessBlender brightnessBlender;
     rsNode->SetBlender(&brightnessBlender);
     EXPECT_NE(rsNode, nullptr);
-    brightnessBlender.SetHdr(true);
-    rsNode->SetBlender(&brightnessBlender);
-    EXPECT_TRUE(rsNode->hdrEffectType_ > 0);
     ShadowBlender shadowBlender;
     rsNode->SetBlender(&shadowBlender);
     EXPECT_NE(rsNode, nullptr);
@@ -7871,24 +7870,6 @@ HWTEST_F(RSNodeTest, UpdateOcclusionCullingStatus001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetEnableHDREffect
- * @tc.desc: test results of SetEnableHDREffect
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, SetEnableHDREffect, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-
-    rsNode->SetEnableHDREffect(1, true);
-    EXPECT_EQ(rsNode->hdrEffectType_, 1);
-
-    rsNode->SetEnableHDREffect(1, false);
-    rsNode->SetEnableHDREffect(2, false); // different branch if call again
-    EXPECT_EQ(rsNode->hdrEffectType_, 0);
-}
-
-/**
  * @tc.name: AddCompositeNodeChildTest
  * @tc.desc: test AddCompositeNodeChild
  * @tc.type: FUNC
@@ -8717,4 +8698,18 @@ HWTEST_F(RSNodeTest, MarkRepaintBoundary002, TestSize.Level1)
     EXPECT_TRUE(rsNode->isRepaintBoundary_);
 }
 #endif
+
+/**
+ * @tc.name: SetNeedUseCmdlistDrawRegion
+ * @tc.desc: test results of SetNeedUseCmdlistDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueICI6YB
+ */
+HWTEST_F(RSNodeTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
+{
+    auto rsNode = std::make_shared<MockRSNode>();
+    EXPECT_CALL(*rsNode, SetNeedUseCmdlistDrawRegion(_)).Times(2);
+    rsNode->SetNeedUseCmdlistDrawRegion(true);
+    rsNode->SetNeedUseCmdlistDrawRegion(false);
+}
 } // namespace OHOS::Rosen

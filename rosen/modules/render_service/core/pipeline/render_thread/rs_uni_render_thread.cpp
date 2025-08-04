@@ -58,7 +58,7 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "system/rs_system_parameters.h"
-
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include <iservice_registry.h>
 #include "if_system_ability_manager.h"
@@ -444,6 +444,20 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
             }
         }
     }
+}
+
+void RSUniRenderThread::ReleaseSurfaceBufferOpItemBuffer()
+{
+    auto fence = GetAcquireFence();
+    int32_t fenceFd = fence->Dup();
+    RSSurfaceBufferCallbackManager::Instance().SetReleaseFence(fenceFd);
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
+    ::close(fenceFd);
+}
+
+sptr<SyncFence> RSUniRenderThread::GetAcquireFence()
+{
+    return acquireFence_;
 }
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()

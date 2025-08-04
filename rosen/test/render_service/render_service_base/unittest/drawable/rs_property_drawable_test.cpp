@@ -281,6 +281,9 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest010, TestSize.Level1)
     EXPECT_NE(drawable->filter_, nullptr);
     drawable->CreateDrawFunc()(&canvas, &rect);
     EXPECT_TRUE(true);
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    drawable->CreateDrawFunc()(filterCanvas.get(), &rect);
+    EXPECT_NE(drawable->filter_, nullptr);
 }
 
 /**

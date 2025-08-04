@@ -109,24 +109,9 @@ void RSScreenRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, No
         logicalDisplayNodeId);
 }
 
-CompositeType RSScreenRenderNode::GetCompositeType() const
-{
-    return compositeType_;
-}
-
-void RSScreenRenderNode::SetCompositeType(CompositeType type)
-{
-    compositeType_ = type;
-}
-
 void RSScreenRenderNode::SetForceSoftComposite(bool flag)
 {
     forceSoftComposite_ = flag;
-}
-
-bool RSScreenRenderNode::IsForceSoftComposite() const
-{
-    return forceSoftComposite_;
 }
 
 void RSScreenRenderNode::SetMirrorSource(SharedPtr node)
@@ -144,11 +129,6 @@ void RSScreenRenderNode::ResetMirrorSource()
         mirrorSource->SetHasMirrorScreen(false);
     }
     mirrorSource_.reset();
-}
-
-bool RSScreenRenderNode::IsMirrorScreen() const
-{
-    return isMirroredScreen_;
 }
 
 void RSScreenRenderNode::SetIsMirrorScreen(bool isMirror)
@@ -216,11 +196,6 @@ void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
     topSurfaceOpaqueRects_.clear();
 }
 
-void RSScreenRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
-{
-    curMainAndLeashSurfaceNodes_.push_back(surface);
-}
-
 Occlusion::Region RSScreenRenderNode::GetTopSurfaceOpaqueRegion() const
 {
     Occlusion::Region topSurfaceOpaqueRegion;
@@ -228,11 +203,6 @@ Occlusion::Region RSScreenRenderNode::GetTopSurfaceOpaqueRegion() const
         topSurfaceOpaqueRegion.OrSelf(rect);
     }
     return topSurfaceOpaqueRegion;
-}
-
-void RSScreenRenderNode::RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
-{
-    topSurfaceOpaqueRects_.push_back(rect);
 }
 
 void RSScreenRenderNode::UpdateRenderParams()
@@ -535,11 +505,6 @@ void RSScreenRenderNode::SelectBestGamut(const std::vector<ScreenColorGamut>& mo
     SetColorSpace(finalGamut);
 }
 
-GraphicColorGamut RSScreenRenderNode::GetColorSpace() const
-{
-    return colorSpace_;
-}
-
 void RSScreenRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
 {
     isForceCloseHdr_ = isForceCloseHdr;
@@ -572,11 +537,6 @@ Occlusion::Region RSScreenRenderNode::GetDisappearedSurfaceRegionBelowCurrent(No
         result.OrSelf(disappearedSurface);
     }
     return result;
-}
-
-bool RSScreenRenderNode::IsZoomStateChange() const
-{
-    return preZoomState_ != curZoomState_;
 }
 
 void RSScreenRenderNode::SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)

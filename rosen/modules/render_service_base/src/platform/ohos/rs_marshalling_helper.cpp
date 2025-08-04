@@ -2776,14 +2776,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const PixelMapInfo& val)
     marshallingSucc &= parcel.WriteInt32(val.location.width);
     marshallingSucc &= parcel.WriteInt32(val.location.height);
     marshallingSucc &= parcel.WriteInt32(val.location.z);
-
     if (!marshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteLocation failed");
         return false;
     }
+
     marshallingSucc &= parcel.WriteString(val.nodeName);
     if (!marshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteString failed");
+        return false;
+    }
+
+    marshallingSucc &= parcel.WriteFloat(val.rotation);
+    if (!marshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteFloat failed");
         return false;
     }
     return marshallingSucc;
@@ -2802,14 +2808,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, PixelMapInfo& val)
     unMarshallingSucc &= parcel.ReadInt32(val.location.width);
     unMarshallingSucc &= parcel.ReadInt32(val.location.height);
     unMarshallingSucc &= parcel.ReadInt32(val.location.z);
-
     if (!unMarshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadLocation failed");
         return false;
     }
+
     unMarshallingSucc &= parcel.ReadString(val.nodeName);
     if (!unMarshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadString failed");
+        return false;
+    }
+
+    unMarshallingSucc &= parcel.ReadFloat(val.rotation);
+    if (!unMarshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadFloat failed");
         return false;
     }
     return unMarshallingSucc;

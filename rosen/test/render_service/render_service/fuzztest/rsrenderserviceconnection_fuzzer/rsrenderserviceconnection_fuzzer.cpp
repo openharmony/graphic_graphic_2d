@@ -1501,28 +1501,6 @@ bool DoRegisterFirstFrameCommitCallback()
     return true;
 }
 
-bool DoSetWindowExpectedRefreshRate()
-{
-    if (rsConn_ == nullptr) {
-        return false;
-    }
-    std::unordered_map<uint64_t, EventInfo> eventInfos;
-    uint64_t winId = GetData<uint64_t>();
-    EventInfo eventInfo;
-    eventInfo.eventName = GetData<std::string>();
-    eventInfo.eventStatus = GetData<bool>();
-    eventInfo.minRefreshRate = GetData<uint32_t>();
-    eventInfo.maxRefreshRate = GetData<uint32_t>();
-    eventInfo.description = GetData<std::string>();
-    eventInfos[winId] = eventInfo;
-    rsConn_->SetWindowExpectedRefreshRate(eventInfos);
-    std::unordered_map<std::string, EventInfo> stringEventInfos;
-    std::string name = GetData<std::string>();
-    stringEventInfos[name] = eventInfo;
-    rsConn_->SetWindowExpectedRefreshRate(stringEventInfos);
-    return true;
-}
-
 bool DoClearUifirstCache()
 {
     if (rsConn_ == nullptr) {
@@ -1666,7 +1644,6 @@ void DoFuzzerTest3()
     DoSetBehindWindowFilterEnabled();
     DoGetBehindWindowFilterEnabled();
     DoSetVirtualScreenAutoRotation();
-    DoSetWindowExpectedRefreshRate();
     DoProfilerServiceOpenFile();
     DoProfilerServicePopulateFiles();
     DoProfilerIsSecureScreen();

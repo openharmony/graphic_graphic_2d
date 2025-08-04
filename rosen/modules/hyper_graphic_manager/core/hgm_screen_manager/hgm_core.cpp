@@ -56,15 +56,12 @@ std::map<uint32_t, int64_t> IDEAL_PERIOD = {
 void HgmCore::SysModeChangeProcess(const char* key, const char* value, void* context)
 {
     std::string mode(value);
-    HGM_LOGI("System mode change, mode is %{public}s", value);
     HgmTaskHandleThread::Instance().PostTask([mode] () {
         auto curMode = HgmCore::Instance().GetCurrentRefreshRateMode();
         HgmCore::Instance().GetPolicyConfigData()->UpdateRefreshRateForSettings(mode);
-        auto setResult = HgmCore::Instance().SetRefreshRateMode(curMode);
+        HgmCore::Instance().SetRefreshRateMode(curMode);
         RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(curMode));
-        if (setResult != 0) {
-            HGM_LOGE("SetRefreshRateMode mode %{public}d is not supported", curMode);
-        }
+        HGM_LOGI("System mode changed to %{public}s, cur refresh mode is %{public}d", mode.c_str(), curMode);
     });
 }
 

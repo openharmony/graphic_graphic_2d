@@ -38,11 +38,12 @@ struct PixelMapInfo {
     std::shared_ptr<Media::PixelMap> pixelMap;
     Location location;
     std::string nodeName;
+    float rotation = 0.0f;
 
     bool operator==(const PixelMapInfo& pixelMapInfo) const
     {
         return pixelMap == pixelMapInfo.pixelMap && location == pixelMapInfo.location &&
-               nodeName == pixelMapInfo.nodeName;
+               nodeName == pixelMapInfo.nodeName && rotation == pixelMapInfo.rotation;
     }
 };
 } // namespace Rosen

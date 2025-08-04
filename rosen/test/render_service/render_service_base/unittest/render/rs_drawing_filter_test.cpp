@@ -472,6 +472,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     auto image = std::make_shared<Drawing::Image>();
     Drawing::Rect src;
     Drawing::Rect dst;
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
     EXPECT_TRUE(image != nullptr);
 
@@ -479,6 +480,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     EXPECT_TRUE(image != nullptr);
 
     filterPtr->type_ = RSUIFilterType::NONE;
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
     EXPECT_TRUE(image != nullptr);
 
@@ -488,6 +490,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     auto colorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(0, RSColor());
     colorShaderFilter->maskColor_.SetAlpha(102);
     drawingFilter.InsertShaderFilter(colorShaderFilter);
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
     EXPECT_TRUE(image != nullptr);
 
@@ -800,5 +803,38 @@ HWTEST_F(RSDrawingFilterTest, DrawKawaseEffect, TestSize.Level1)
     drawingFilter.DrawKawaseEffect(canvas, outImage, attr, brush, kawaseShaderFilter);
 
     EXPECT_FALSE(kawaseShaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: SetGeometryTest001
+ * @tc.desc: test results of SetGeometry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, SetGeometryTest001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto filter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(filter);
+    drawingFilter.SetGeometry(canvas, 0, 0);
+    EXPECT_EQ(drawingFilter.visualEffectContainer_, nullptr);
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
+    drawingFilter.SetGeometry(canvas, 0, 0);
+    EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayHeadroom001
+ * @tc.desc: test results of SetDisplayHeadroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, SetDisplayHeadroom001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(filter);
+    drawingFilter.SetDisplayHeadroom(2.0f);
+    EXPECT_EQ(drawingFilter.visualEffectContainer_, nullptr);
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
+    drawingFilter.SetDisplayHeadroom(2.0f);
+    EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
 }
 } // namespace OHOS::Rosen

@@ -53,10 +53,6 @@ public:
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 
-    virtual void SetDisplayHeadroom(float headroom) override
-    {
-        maxHeadroom_ = headroom;
-    }
 private:
     float alpha_{ 0.f };
     bool bloom_{ true };
@@ -67,9 +63,6 @@ private:
     void CalculateHash();
 
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
-
-    // HDR settings
-    float maxHeadroom_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

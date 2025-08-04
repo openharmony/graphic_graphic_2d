@@ -63,6 +63,7 @@ public:
     bool IsIdle() const;
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
+    void ReleaseSurfaceBufferOpItemBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyScreenNodeBufferReleased();
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
@@ -74,7 +75,7 @@ public:
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
     uint64_t GetFastComposeTimeStampDiff() const;
-
+    sptr<SyncFence> GetAcquireFence();
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();

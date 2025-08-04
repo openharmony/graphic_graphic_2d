@@ -270,27 +270,4 @@ HWTEST_F(RSUIEdgeLightFilterTest, GetLeafProperties001, TestSize.Level1)
     auto rsPropertyBaseVector = rsUIEdgeLightFilterPara->GetLeafProperties();
     EXPECT_NE(rsPropertyBaseVector.size(), 0);
 }
-
-/**
- * @tc.name: CheckEnableHdrEffect001
- * @tc.desc: test func CheckEnableHdrEffect
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIEdgeLightFilterTest, CheckEnableHdrEffect001, TestSize.Level1)
-{
-    auto edgeLightPara = std::make_shared<EdgeLightPara>();
-
-    auto maskPara = std::make_shared<MaskPara>();
-    maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
-    edgeLightPara->SetMask(maskPara);
-    edgeLightPara->SetAlpha(0.5f);
-    edgeLightPara->SetBloom(true);
-    Vector4f color = Vector4f(1.5f, 1.5f, 1.5f, 0.5f);
-    edgeLightPara->SetColor(color);
-
-    auto rsUIEdgeLightFilterPara = std::make_shared<RSUIEdgeLightFilterPara>();
-    EXPECT_FALSE(rsUIEdgeLightFilterPara->CheckEnableHdrEffect());
-    rsUIEdgeLightFilterPara->SetEdgeLight(edgeLightPara);
-    EXPECT_TRUE(rsUIEdgeLightFilterPara->CheckEnableHdrEffect());
-}
 } // namespace OHOS::Rosen

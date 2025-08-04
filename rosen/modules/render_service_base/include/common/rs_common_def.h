@@ -92,8 +92,8 @@ enum class FollowType : uint8_t {
 
 /**
  * Bitmask enumeration for hierarchical type identification
- * Descendant types must include all ancestor bits following the rules:
- * childFlags = ParentFlags | AdditionalBits
+ * Descendant types must include all ancestor bits following the rule:
+ *   ChildFlags = ParentFlags | AdditionalBits
  */
 enum class RSRenderNodeType : uint32_t {
     UNKNOW                 = 0x0000u,

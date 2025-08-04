@@ -40,10 +40,7 @@ public:
 
     virtual void GenerateGEVisualEffect() {};
 
-    virtual void OnSync()
-    {
-        GenerateGEVisualEffect();
-    }
+    virtual void OnSync() {}
 
 protected:
     std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
@@ -95,12 +92,13 @@ public:
         return std::make_shared<RSNGRenderFilterTemplate<Type, PropertyTags...>>(properties);
     }
 
-    static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
-        std::shared_ptr<Drawing::GEVisualEffectContainer> container);
+    static void GenerateGEVisualEffect(std::shared_ptr<RSNGRenderFilterBase>& filter);
 
-    static void SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
-        const Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+    static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>& filter,
+        std::shared_ptr<Drawing::GEVisualEffectContainer>& container);
 
+    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filter);
+    
     static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
                                 std::shared_ptr<Drawing::GEVisualEffect> target);
 };

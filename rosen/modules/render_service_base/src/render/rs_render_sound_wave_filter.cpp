@@ -263,19 +263,6 @@ namespace Rosen {
     void RSRenderSoundWaveFilterPara::GenerateGEVisualEffect(
         std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
     {
-        auto colorA = colorA_;
-        if (ROSEN_GNE(colorA.redF_, 1.0f) || ROSEN_GNE(colorA.greenF_, 1.0f) || ROSEN_GNE(colorA.blueF_, 1.0f)) {
-            colorA = RSEffectLuminanceManager::GetBrightnessMapping(maxHeadroom_, colorA);
-        }
-        auto colorB = colorB_;
-        if (ROSEN_GNE(colorB.redF_, 1.0f) || ROSEN_GNE(colorB.greenF_, 1.0f) || ROSEN_GNE(colorB.blueF_, 1.0f)) {
-            colorB = RSEffectLuminanceManager::GetBrightnessMapping(maxHeadroom_, colorB);
-        }
-        auto colorC = colorC_;
-        if (ROSEN_GNE(colorC.redF_, 1.0f) || ROSEN_GNE(colorC.greenF_, 1.0f) || ROSEN_GNE(colorC.blueF_, 1.0f)) {
-            colorC = RSEffectLuminanceManager::GetBrightnessMapping(maxHeadroom_, colorC);
-        }
-
         auto soundWaveFilter = std::make_shared<Drawing::GEVisualEffect>(
             "SOUND_WAVE", Drawing::DrawingPaintType::BRUSH, GetFilterCanvasInfo());
         soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLOR_A, colorA_);

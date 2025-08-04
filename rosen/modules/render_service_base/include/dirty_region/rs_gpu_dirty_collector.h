@@ -32,26 +32,26 @@ enum CacheOption : int32_t {
 };
 
 struct BlobDataType {
+    unsigned long vaddr;         // vitual address, direct accessed w/o copy
     unsigned int offset;         // field offset in dmabuf, support dma access
     unsigned int length;         // data length set by previous SetMetadate(), default to 0
     unsigned int capacity;       // reserved data size
-    unsigned long vaddr;         // vitual address, direct accessed w/o copy
     CacheOption cacheop;         // effective in SetMetadate()
 };
 
 struct BufferSelfDrawingData {
-    bool gpuDirtyEnable;        // the result of APS
-    bool curFrameDirtyEnable;   // current frame dirty region
     unsigned int left;
     unsigned int top;
     unsigned int right;
     unsigned int bottom;
+    bool gpuDirtyEnable;        // the result of APS
+    bool curFrameDirtyEnable;   // current frame dirty region
 };
 
 class RSB_EXPORT RSGpuDirtyCollector {
 public:
 #ifndef ROSEN_CROSS_PLATFORM
-    static BufferSelfDrawingData *GpuDirtyRegionCompute(const sptr<SurfaceBuffer> &buffer);
+    static BufferSelfDrawingData *GetBufferSelfDrawingData(const sptr<SurfaceBuffer> &buffer);
     static bool DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, Rect &rect);
 #endif
 };

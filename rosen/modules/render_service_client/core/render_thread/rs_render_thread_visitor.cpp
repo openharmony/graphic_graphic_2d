@@ -592,7 +592,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         fdsan_exchange_owner_tag(fenceFd, 0, LOG_DOMAIN);
         auto rootId = GetActiveSubtreeRootId();
         if (rootId != INVALID_NODEID) {
-            RSSurfaceBufferCallbackManager::Instance().SetReleaseFenceForVulkan(fenceFd, rootId);
+            RSSurfaceBufferCallbackManager::Instance().SetReleaseFence(fenceFd, rootId);
             RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferSubCallbackForVulkan(rootId);
         }
         fdsan_close_with_tag(fenceFd, LOG_DOMAIN);

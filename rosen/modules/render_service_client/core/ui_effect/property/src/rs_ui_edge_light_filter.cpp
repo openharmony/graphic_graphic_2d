@@ -90,7 +90,6 @@ void RSUIEdgeLightFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBa
             other == nullptr ? -1 : static_cast<int>(other->GetType()));
         return;
     }
-    SetStagingEnableHdrEffect(other->GetEnableHdrEffect());
 
     auto edgeLightProperty = std::static_pointer_cast<RSUIEdgeLightFilterPara>(other);
     auto alpha = edgeLightProperty->GetPropertyWithFilterType<RSAnimatableProperty<float>>(
@@ -317,20 +316,6 @@ std::vector<std::shared_ptr<RSPropertyBase>> RSUIEdgeLightFilterPara::GetLeafPro
     }
 
     return out;
-}
-
-bool RSUIEdgeLightFilterPara::CheckEnableHdrEffect()
-{
-    auto color = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
-        GetRSProperty(RSUIFilterType::EDGE_LIGHT_COLOR));
-    if (color == nullptr) {
-        return false;
-    }
-
-    Vector4f c = color->Get();
-    enableHdrEffect_ =
-        ROSEN_GNE(c.x_, 1.0f) || ROSEN_GNE(c.y_, 1.0f) || ROSEN_GNE(c.z_, 1.0f) || ROSEN_GNE(c.w_, 1.0f);
-    return enableHdrEffect_ || stagingEnableHdrEffect_;
 }
 
 std::shared_ptr<RSUIMaskPara> RSUIEdgeLightFilterPara::CreateMask(RSUIFilterType type)

@@ -209,7 +209,7 @@ int32_t XMLParser::ParseParams(xmlNode& node)
 int32_t XMLParser::ParseRefreshRate4Settings(xmlNode& node)
 {
     int32_t setResult = EXEC_SUCCESS;
-    std::string deviceMode = ExtractPropertyValue("deviceMode", node);
+    std::string deviceMode = ExtractPropertyValue("type", node);
     std::unordered_map<std::string, std::string> refreshRateForSettingsTemp;
     std::vector<std::pair<int32_t, int32_t>> refreshRateForSettings;
     setResult = ParseSimplex(node, refreshRateForSettingsTemp);

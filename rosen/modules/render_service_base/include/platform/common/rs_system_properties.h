@@ -160,6 +160,7 @@ public:
     static void SetProfilerDisabled();
     static bool GetInstantRecording();
     static bool GetProfilerPixelCheckMode();
+    static void SetProfilerPixelCheckMode(bool flag);
     static void SetInstantRecording(bool flag);
     static uint32_t GetBetaRecordingMode();
     static void SetBetaRecordingMode(uint32_t param);
@@ -274,8 +275,7 @@ public:
     static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSubtreeParallelEnable();
-    static bool GetSubtreeLogEnabled();
-    static bool GetSubtreeDeviceControl();
+    static int GetSubtreeDebugOption();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
@@ -380,6 +380,7 @@ public:
     static bool GetEarlyZEnable();
     static bool GetAIBarOptEnabled();
     static bool GetRSMemoryInfoManagerParam();
+    static bool GetSelfDrawingDirtyRegionEnabled();
 
     static bool GetSupportScreenFreezeEnabled();
 

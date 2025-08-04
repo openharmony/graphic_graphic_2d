@@ -55,23 +55,12 @@ AniFilter* AniEffectKitUtils::GetFilterFromEnv([[maybe_unused]] ani_env* env, [[
         EFFECT_LOG_E("Object_GetField_Long fetch failed, %{public}d", ret);
         return nullptr;
     }
-
-    return reinterpret_cast<AniFilter*>(nativeObj);
-}
-
-Media::PixelMap* AniEffectKitUtils::GetPixelMapFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
-{
-    ani_long nativeObj {};
-    if ((env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
-        EFFECT_LOG_E("Object_GetField_Long fetch failed");
+    AniFilter* aniFilter = reinterpret_cast<AniFilter*>(nativeObj);
+    if (!aniFilter) {
+        EFFECT_LOG_E("filter is null");
         return nullptr;
     }
-    Media::PixelMapAni* pixelMapAni = reinterpret_cast<Media::PixelMapAni*>(nativeObj);
-    if (!pixelMapAni) {
-        EFFECT_LOG_E("pixelMapAni is null");
-        return nullptr;
-    }
-    return (pixelMapAni->nativePixelMap_).get();
+    return aniFilter;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <parameters.h>
 
 #if defined(MODIFIER_NG)
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
@@ -51,6 +52,7 @@ const Rect DEFAULT_RECT = { 0, 0, 200, 200 };
 const RectF DEFAULT_SELF_DRAW_RECT = { 0, 0, 200, 200 };
 
 const int DEFAULT_NODE_ID = 1;
+const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 class RSRenderNodeTest2 : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -65,7 +67,7 @@ public:
         .height = 200,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
@@ -79,13 +81,6 @@ public:
         .bottom = 100,
     };
 
-    static inline BlobDataType defaultBlobDataType = {
-        .offset = 0,
-        .length = 0,
-        .capacity = 0,
-        .vaddr = 0,
-        .cacheop = CacheOption::CACHE_NOOP,
-    };
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -338,22 +333,19 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     auto ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
  
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData data = defaultSelfDrawingRect;
-    BufferSelfDrawingData *src = &data;
-    BlobDataType test = defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    (*src) = defaultSelfDrawingRect;
  
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
     surfaceNode->UpdateBufferDirtyRegion();
     ASSERT_EQ(surfaceNode->selfDrawingNodeDirtyRect_.width_, 100);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**
@@ -1289,12 +1281,12 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
 }
 
 /**
- * @tc.name: IsSubTreeNeedPrepareTest034
- * @tc.desc: Prepare QuickPrepare IsSubTreeNeedPrepare IsUifirstArkTsCardNode test
+ * @tc.name: IsUifirstArkTsCardNodeTest034
+ * @tc.desc: Prepare QuickPrepare IsUifirstArkTsCardNode test
  * @tc.type: FUNC
  * @tc.require: issueIA5Y41
  */
-HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest034, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, IsUifirstArkTsCardNodeTest034, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
@@ -1302,19 +1294,6 @@ HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest034, TestSize.Level1)
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     nodeTest->Prepare(visitor);
     nodeTest->QuickPrepare(visitor);
-
-    nodeTest->shouldPaint_ = false;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->shouldPaint_ = true;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, true));
-    nodeTest->isSubTreeDirty_ = true;
-    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->isSubTreeDirty_ = false;
-    nodeTest->childHasSharedTransition_ = true;
-    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->childHasSharedTransition_ = false;
-    nodeTest->childHasVisibleFilter_ = true;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
 
     nodeTest->nodeGroupType_ = RSRenderNode::NONE;
     EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
