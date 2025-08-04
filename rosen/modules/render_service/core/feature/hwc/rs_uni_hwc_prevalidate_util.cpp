@@ -27,7 +27,6 @@
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_screen_render_node_drawable.h"
-#include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -67,7 +66,6 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess_ = true;
-    isPrevalidateHwcNodeEnable_ = PrevalidateParam::IsPrevalidateEnable();
     arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
     isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
 }
@@ -105,7 +103,7 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
 
 bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()
 {
-    return loadSuccess_ && isPrevalidateHwcNodeEnable_;
+    return loadSuccess_;
 }
 
 bool RSUniHwcPrevalidateUtil::PreValidate(
