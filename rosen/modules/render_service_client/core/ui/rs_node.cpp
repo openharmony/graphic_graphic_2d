@@ -3849,7 +3849,7 @@ void RSNode::RemoveCrossScreenChild(SharedPtr child)
 void RSNode::RemoveChildByNode(SharedPtr child)
 {
     if (child == nullptr) {
-        RS_LOGE("RSNode::RemoveChildByNode %{public}" PRIu64 " failed:nullptr", GetId());
+        RS_LOGE("RemoveChildByNode %{public}" PRIu64 " failed:nullptr", GetId());
         return;
     }
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -3857,11 +3857,11 @@ void RSNode::RemoveChildByNode(SharedPtr child)
         children_.begin(), children_.end(), [&](WeakPtr &ptr) -> bool {return ROSEN_EQ<RSNode>(ptr, child);});
     if (itr != children_.end()) {
         RS_OPTIONAL_TRACE_NAME_FMT(
-            "RSNode::RemoveChildByNode parent:%" PRIu64 ", child:%" PRIu64 "", GetId(), child->GetId());
+            "RSNode::RemoveChildByNode parent:%" PRIu64 ", child:%" PRIu64, GetId(), child->GetId());
         children_.erase(itr);
     } else {
         RS_TRACE_NAME_FMT(
-            "RSNode::RemoveChildByNode failed:%" PRIu64 " not children of %" PRIu64 "", child->GetId(), GetId());
+            "RSNode::RemoveChildByNode failed:%" PRIu64 " not children of %" PRIu64, child->GetId(), GetId());
     }
 }
 
