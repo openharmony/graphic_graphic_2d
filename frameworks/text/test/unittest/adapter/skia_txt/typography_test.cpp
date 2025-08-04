@@ -1230,5 +1230,41 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText005, TestS
     EXPECT_EQ(defaultRuns.size(), 1);
     EXPECT_EQ(runs.size(), paragraph->GetLineCount());
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
+ * @tc.desc: test for rtl's text adjusting textRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyRtlClusterIndexOffset001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for normal English characters situation
+    style.fontSize = 11;
+    std::u16string text = u"لآؗۘئ";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 10 for rtl situation
+    double maxWidth = 10;
+    typography->Layout(maxWidth);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph =
+        static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
+    ASSERT_NE(skiaParagraph, nullptr);
+    // The byte value of لآؗۘئ is 11
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit.size(), 11);
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[0], 0);
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[1], 0);
+}
 } // namespace Rosen
 } // namespace OHOS
