@@ -1278,6 +1278,7 @@ void RSRenderNode::DumpModifiers(std::string& out) const
             if (modifier->IsCustom()) {
                 continue;
             }
+            propertyDesc = propertyDesc + "pid:" + std::to_string(ExtractPid(modifier->GetId())) + "->";
             modifier->Dump(propertyDesc, splitStr);
         }
     }
