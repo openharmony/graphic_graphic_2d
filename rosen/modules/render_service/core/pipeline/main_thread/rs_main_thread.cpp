@@ -1652,13 +1652,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
             }
             surfaceHandler->ResetCurrentFrameBufferConsumed();
-            bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
-                surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount());
             auto parentNode = surfaceNode->GetParent().lock();
             bool needSkip = IsSurfaceConsumerNeedSkip(surfaceHandler->GetConsumer());
             LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
-            if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-                IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive,
+            if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(
+                *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
                 parentNode ? parentNode->GetId() : 0)) {
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!isUniRender_) {
@@ -3696,7 +3694,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
     if (!rsTransactionData) {
         return;
     }
-    int64_t timestamp = rsTransactionData->GetTimestamp();
+    int64_t timestamp = static_cast<int64_t>(rsTransactionData->GetTimestamp());
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
@@ -5350,11 +5348,6 @@ void RSMainThread::MultiDisplayChange(bool isMultiDisplay)
     isMultiDisplayPre_ = isMultiDisplay;
 }
 
-void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageList)
-{
-    rsVSyncDistributor_->NotifyPackageEvent(packageList);
-}
-
 void RSMainThread::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     rsVSyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
@@ -5366,9 +5359,9 @@ void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t 
     rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, isUrgent);
 }
 
-void RSMainThread::SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageList)
 {
-    rsVSyncDistributor_->SetBufferQueueInfo(name, bufferCount, lastFlushedTimeStamp);
+    rsVSyncDistributor_->NotifyPackageEvent(packageList);
 }
 
 void RSMainThread::SetTaskEndWithTime(int64_t time)

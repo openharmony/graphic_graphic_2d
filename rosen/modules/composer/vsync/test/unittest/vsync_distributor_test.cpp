@@ -1220,20 +1220,6 @@ HWTEST_F(VSyncDistributorTest, HandleTouchEvent001, Function | MediumTest| Level
 }
 
 /*
-* Function: AdaptiveDVSyncEnableTest001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. test AdaptiveDVSyncEnable
- */
-HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTest| Level3)
-{
-    std::string nodeName = "test";
-    vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0);
-    ASSERT_EQ(nodeName, "test");
-}
-
-/*
 * Function: SetVsyncRateDiscountLTPSTest001
 * Type: Function
 * Rank: Important(2)

@@ -6388,4 +6388,18 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
     ret = mainThread->DoDirectComposition(rootNode, false);
     ASSERT_TRUE(ret);
 }
+
+/**
+ * @tc.name: NotifyPackageEvent001
+ * @tc.desc: NotifyPackageEvent001
+ * @tc.type: FUNC
+ * @tc.require: issueICPQ8S
+ */
+HWTEST_F(RSMainThreadTest, NotifyPackageEvent001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::vector<std::string> packageList = {};
+    mainThread->NotifyPackageEvent(packageList);
+}
 } // namespace OHOS::Rosen
