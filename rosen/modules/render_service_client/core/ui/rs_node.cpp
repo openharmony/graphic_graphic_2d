@@ -933,13 +933,11 @@ template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetPropertyNG(T value)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto type = static_cast<uint16_t>(ModifierType::Type);
-    auto& modifier = modifiersNGCreatedBySetter_[type];
+    auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierType::Type)];
     // Create corresponding modifier if not exist
     if (modifier == nullptr) {
         modifier = std::make_shared<ModifierType>();
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
-        modifiersNGCreatedBySetter_[type] = modifier;
         AddModifier(modifier);
     } else {
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
@@ -951,13 +949,11 @@ template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetPropertyNG(T value, bool animatable)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto type = static_cast<uint16_t>(ModifierType::Type);
-    auto& modifier = modifiersNGCreatedBySetter_[type];
+    auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierType::Type)];
     // Create corresponding modifier if not exist
     if (modifier == nullptr) {
         modifier = std::make_shared<ModifierType>();
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
-        modifiersNGCreatedBySetter_[type] = modifier;
         AddModifier(modifier);
     } else {
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
@@ -969,12 +965,10 @@ template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetUIFilterPropertyNG(T value)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto type = static_cast<uint16_t>(ModifierType::Type);
-    auto& modifier = modifiersNGCreatedBySetter_[type];
+    auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierType::Type)];
     // Create corresponding modifier if not exist
     if (modifier == nullptr) {
         modifier = std::make_shared<ModifierType>();
-        modifiersNGCreatedBySetter_[type] = modifier;
         AddModifier(modifier);
     }
     (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
@@ -4160,35 +4154,36 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
         if (modifier == nullptr) {
-            RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, GetId());
+            RS_LOGE("RSNode::AddModifier: null modifier, nodeId=%{public}" PRIu64, id_);
             return;
         }
         if (modifiersNG_.count(modifier->GetId())) {
             return;
         }
+        modifier->SetAddModifierFlag(true);
         modifier->OnAttach(*this); // Attach properties of modifier here
-        if (modifier->GetType() == ModifierNG::RSModifierType::NODE_MODIFIER) {
+        auto modifierType = modifier->GetType();
+        if (modifierType == ModifierNG::RSModifierType::NODE_MODIFIER) {
             return;
         }
-        if (modifier->GetType() != ModifierNG::RSModifierType::BOUNDS &&
-            modifier->GetType() != ModifierNG::RSModifierType::FRAME &&
-            modifier->GetType() != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
-            modifier->GetType() != ModifierNG::RSModifierType::ALPHA) {
+        if (modifierType != ModifierNG::RSModifierType::BOUNDS && modifierType != ModifierNG::RSModifierType::FRAME &&
+            modifierType != ModifierNG::RSModifierType::BACKGROUND_COLOR &&
+            modifierType != ModifierNG::RSModifierType::ALPHA) {
             SetDrawNode();
             SetDrawNodeType(DrawNodeType::DrawPropertyType);
-            if (modifier->GetType() == ModifierNG::RSModifierType::TRANSFORM) {
+            if (modifierType == ModifierNG::RSModifierType::TRANSFORM) {
                 SetDrawNodeType(DrawNodeType::GeometryPropertyType);
             }
         }
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
-    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedForcedSendToRemote()) {
         std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
-        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+            std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+        AddCommand(cmdForRemote, true, GetFollowType(), id_);
     }
 }
 
@@ -4206,12 +4201,12 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
     modifier->OnDetach(); // Detach properties of modifier here
     DetachUIFilterProperties(modifier);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSRemoveModifierNG>(GetId(), modifier->GetType(), modifier->GetId());
-    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        std::make_unique<RSRemoveModifierNG>(id_, modifier->GetType(), modifier->GetId());
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedForcedSendToRemote()) {
         std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSRemoveModifierNG>(GetId(), modifier->GetType(), modifier->GetId());
-        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+            std::make_unique<RSRemoveModifierNG>(id_, modifier->GetType(), modifier->GetId());
+        AddCommand(cmdForRemote, true, GetFollowType(), id_);
     }
 }
 
