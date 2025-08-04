@@ -437,9 +437,10 @@ void RSScreenRenderNodeDrawable::SetScreenNodeSkipFlag(RSRenderThreadParams& uni
 void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect)
 {
     surfaceParams.SetFilterCacheFullyCovered(false);
-    if (!surfaceParams.IsTransparent() || surfaceParams.GetIsRotating()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], isOpaque: %d, isRotating: %d",
-            surfaceParams.GetId(), !surfaceParams.IsTransparent(), surfaceParams.GetIsRotating());
+    if (!surfaceParams.IsTransparent() || surfaceParams.GetIsRotating() || surfaceParams.GetAttractionAnimation()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], isOpaque: %d, "
+            "isRotating: %d, isAttractionAnimation: %d", surfaceParams.GetId(), !surfaceParams.IsTransparent(),
+            surfaceParams.GetIsRotating(), surfaceParams.GetAttractionAnimation());
         return;
     }
     bool dirtyBelowContainsFilterNode = false;
