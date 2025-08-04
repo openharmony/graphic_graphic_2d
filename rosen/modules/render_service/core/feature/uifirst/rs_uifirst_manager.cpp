@@ -1859,10 +1859,14 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
-        if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE && HasStartingWindow(node)) {
-            UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        if (RSSystemParameters::GetUIFirstStartingWindowCacheEnabled()) {
+            if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE && HasStartingWindow(node)) {
+                UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+            } else {
+                ProcessFirstFrameCache(node, MultiThreadCacheType::LEASH_WINDOW);
+            }
         } else {
-            ProcessFirstFrameCache(node, MultiThreadCacheType::LEASH_WINDOW);
+            UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
         }
         return;
     }

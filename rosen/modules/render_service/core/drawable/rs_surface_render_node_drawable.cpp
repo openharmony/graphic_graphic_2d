@@ -1196,7 +1196,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             surfaceParams.GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
             return;
         }
-        if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
+        if (RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
+            subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
             }
