@@ -5473,11 +5473,11 @@ void RSMainThread::DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime)
     rsVSyncDistributor_->DVSyncUpdate(dvsyncTime, vsyncTime);
 }
 
-void RSMainThread::SetForceRsDVsync()
+void RSMainThread::SetForceRsDVsync(const std::string& sceneId)
 {
     if (rsVSyncDistributor_ != nullptr) {
         RS_TRACE_NAME("RSMainThread::SetForceRsDVsync");
-        rsVSyncDistributor_->ForceRsDVsync();
+        rsVSyncDistributor_->ForceRsDVsync(sceneId);
     }
 }
 } // namespace Rosen
