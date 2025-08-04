@@ -265,7 +265,7 @@ HWTEST_F(SkiaSurfaceTest, Flush001, TestSize.Level1)
 {
     auto surface = std::make_unique<SkiaSurface>();
     ASSERT_TRUE(surface != nullptr);
-    surface->Flush(nullptr);
+    EXPECT_EQ(surface->Flush(nullptr), SemaphoresSubmited::DRAWING_SUBMIT_NO);
 }
 
 /**
@@ -292,9 +292,59 @@ HWTEST_F(SkiaSurfaceTest, Flush002, TestSize.Level1)
         (*count)++;
         ASSERT_TRUE(success == false);
     };
-    surface->Flush(&drawingFlushInfo);
+    EXPECT_EQ(surface->Flush(&drawingFlushInfo), SemaphoresSubmited::DRAWING_SUBMIT_YES);
     ASSERT_EQ(count1, 1); // finishedProc excute 1 time
     ASSERT_EQ(count2, 1); // submittedProc excute 1 time
+}
+
+/**
+ * @tc.name: Flush003
+ * @tc.desc: Test Flush
+ * @tc.type: FUNC
+ * @tc.require:ICQM91
+ */
+HWTEST_F(SkiaSurfaceTest, Flush003, TestSize.Level1)
+{
+    auto surface = std::make_unique<SkiaSurface>();
+    EXPECT_TRUE(surface != nullptr);
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bitmap.Build(10, 10, bitmapFormat); // 10: width, height
+    EXPECT_TRUE(surface->Bind(bitmap));
+    FlushInfo drawingFlushInfo = { 0 };
+    int count1 = 0;
+    int count2 = 0;
+    drawingFlushInfo.finishedContext = &count1;
+    drawingFlushInfo.finishedProc = [](void *context) {
+        int* count = reinterpret_cast<int *>(context);
+        (*count)++;
+    };
+    drawingFlushInfo.submittedContext = &count2;
+    drawingFlushInfo.submittedProc = [](void *context, bool success) {
+        int* count = reinterpret_cast<int *>(context);
+        (*count)++;
+        EXPECT_TRUE(success == false);
+    };
+    EXPECT_EQ(surface->Flush(&drawingFlushInfo), SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_YES);
+    EXPECT_EQ(count1, 1); // finishedProc excute 1 time
+    EXPECT_EQ(count2, 1); // submittedProc excute 1 time
+}
+
+/**
+ * @tc.name: Flush004
+ * @tc.desc: Test Flush
+ * @tc.type: FUNC
+ * @tc.require:ICQM91
+ */
+HWTEST_F(SkiaSurfaceTest, Flush004, TestSize.Level1)
+{
+    auto surface = std::make_unique<SkiaSurface>();
+    EXPECT_TRUE(surface != nullptr);
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
+    bitmap.Build(10, 10, bitmapFormat); // 10: width, height
+    EXPECT_TRUE(surface->Bind(bitmap));
+    EXPECT_EQ(surface->Flush(nullptr), SemaphoresSubmited::DRAWING_ENGINE_YES);
 }
 
 /**
