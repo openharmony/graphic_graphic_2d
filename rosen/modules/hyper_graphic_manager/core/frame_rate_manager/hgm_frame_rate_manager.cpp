@@ -530,7 +530,7 @@ void HgmFrameRateManager::FrameRateReport()
     schedulePreferredFpsChange_ = false;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool isNeedDvsyncDelay)
 {
     std::lock_guard<std::mutex> lock(pendingMutex_);
     auto& hgmCore = HgmCore::Instance();
@@ -561,7 +561,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     // Start of DVSync
     auto controllerRate = softVSyncManager_.GetControllerRate();
     int64_t delayTime = 0;
-    if (frameRateChange) {
+    if (isNeedDvsyncDelay) {
         delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate, lastRefreshRate);
     }
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = softVSyncManager_.GetSoftAppChangeData();
@@ -1578,7 +1578,8 @@ void HgmFrameRateManager::CheckRefreshRateChange(
 {
     // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
     auto controllerRate = softVSyncManager_.GetControllerRate();
-    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate, frameRateChanged);
+    bool isNeedDvsyncDelay = CreateVSyncGenerator()->DVSyncRateChanged(controllerRate,
+        frameRateChanged, needChangeDssRefreshRate);
     bool appOffsetChange = false;
     if (controller_ != nullptr) {
         CheckNeedUpdateAppOffset(refreshRate, controllerRate);
@@ -1586,7 +1587,7 @@ void HgmFrameRateManager::CheckRefreshRateChange(
     }
     if (HgmCore::Instance().GetLtpoEnabled() &&
         (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn()))) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs, frameRateChanged);
+        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs, isNeedDvsyncDelay);
         if (needChangeDssRefreshRate && forceUpdateCallback_ != nullptr) {
             forceUpdateCallback_(false, true);
         }

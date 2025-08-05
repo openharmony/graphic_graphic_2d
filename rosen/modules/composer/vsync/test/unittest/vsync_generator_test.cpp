@@ -1086,8 +1086,12 @@ HWTEST_F(VSyncGeneratorTest, DVSyncRateChangedTest001, Function | MediumTest| Le
 {
     uint32_t currRefreshRate = 60;
     bool frameRateChanged = false;
-    VSyncGeneratorTest::vsyncGenerator_->DVSyncRateChanged(currRefreshRate, frameRateChanged);
+    bool isNeedDvsyncDelay = false;
+    bool needChangeDssRefreshRate = false;
+    VSyncGeneratorTest::vsyncGenerator_->DVSyncRateChanged(currRefreshRate,
+        frameRateChanged, needChangeDssRefreshRate);
     ASSERT_EQ(frameRateChanged, false);
+    ASSERT_EQ(isNeedDvsyncDelay, false);
 }
 
 /*

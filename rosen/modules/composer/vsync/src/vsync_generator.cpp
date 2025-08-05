@@ -377,15 +377,23 @@ int64_t VSyncGenerator::SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t
     return delayTime;
 }
 
-void VSyncGenerator::DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged)
+bool VSyncGenerator::DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged,
+    bool needChangeDssRefreshRate)
 {
+    bool isNeedDvsyncDelay = false;
 #if defined(RS_ENABLE_DVSYNC_2)
     uint32_t dvsyncRate = 0;
     bool dvsyncRateChanged = DVSync::Instance().DVSyncRateChanged(currRefreshRate, dvsyncRate);
-    if (dvsyncRate != 0) {
+    if (dvsyncRate == 0) {
+        isNeedDvsyncDelay = needChangeDssRefreshRate;
+    } else {
         frameRateChanged = dvsyncRateChanged;
+        isNeedDvsyncDelay = dvsyncRateChanged;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("isNeedDvsyncDelay: %d, frameRateChanged: %d, needChangeDssRefreshRate: %d.",
+        isNeedDvsyncDelay, frameRateChanged, needChangeDssRefreshRate);
 #endif
+    return isNeedDvsyncDelay;
 }
 
 int64_t VSyncGenerator::CollectDVSyncListener(const Listener &listener, int64_t now,
