@@ -188,7 +188,7 @@ void DoSetRefreshRateMode()
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
-void DoCreateVSyncConnection(uint64_t id)
+void CreateVSyncConnection(uint64_t id)
 {
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
@@ -205,7 +205,19 @@ void DoCreateVSyncConnection(uint64_t id)
     dataParcel.WriteRemoteObject(vsyncIConnectionToken_->AsObject());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint64(windowNodeID);
-    dataParcel.WriteBool(0);
+    dataParcel.WriteBool(false);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void UnregisterFrameRateLinker(uint64_t id)
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -217,7 +229,7 @@ void DoSyncFrameRateRange()
     MessageParcel replyParcel;
 
     uint32_t linkId = GetData<uint32_t>();
-    uint64_t id = (static_cast<NodeId>(g_pid) << 32) + linkId;
+    uint64_t id = (static_cast<NodeId>(OHOS::Rosen::g_pid) << 32) + linkId;
     uint32_t min = GetData<uint32_t>();
     uint32_t max = GetData<uint32_t>();
     uint32_t preferred = GetData<uint32_t>();
@@ -236,7 +248,7 @@ void DoSyncFrameRateRange()
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 
     usleep(10000);
-    DoCreateVSyncConnection(id);
+    CreateVSyncConnection(id);
 
     usleep(10000);
     MessageOption option2;
@@ -252,9 +264,12 @@ void DoSyncFrameRateRange()
     dataParcel2.WriteInt32(animatorExpectedFrameRate);
 
     connectionStub_->OnRemoteRequest(code, dataParcel2, replyParcel2, option2);
+
+    usleep(10000);
+    UnregisterFrameRateLinker(id);
 }
 
-void DoUnregisterFrameRateLinker()
+void UnregisterFrameRateLinker()
 {
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
     MessageOption option;
@@ -262,7 +277,7 @@ void DoUnregisterFrameRateLinker()
     MessageParcel replyParcel;
 
     uint32_t linkId = GetData<uint32_t>();
-    uint64_t id = (static_cast<NodeId>(g_pid) << 32) + linkId;
+    uint64_t id = (static_cast<NodeId>(OHOS::Rosen::g_pid) << 32) + linkId;
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(id);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
@@ -439,11 +454,11 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto generator = OHOS::Rosen::CreateVSyncGenerator();
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
-    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::sptr<OHOS::Rosen::RSRenderServiceConnectionStub> connectionStub_ =
+    OHOS::Rosen::connectionStub_ =
         new OHOS::Rosen::RSRenderServiceConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
-            OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+            OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor);
     return 0;
 }
 
