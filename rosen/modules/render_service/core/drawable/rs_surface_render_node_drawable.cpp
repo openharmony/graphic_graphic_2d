@@ -751,10 +751,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(),
         RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceParams->GetName());
 
-    pid_t realTid = rscanvas->GetParallelThreadId();
+    uint32_t realTid = rscanvas->GetParallelThreadId();
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kAll);
-    bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
+    bool needOffscreen = (static_cast<pid_t>(realTid) == RSUniRenderThread::Instance().GetTid()) &&
         RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable() &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
@@ -1271,7 +1271,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             RS_TRACE_NAME_FMT("DealWithSelfDrawingNodeBuffer Id:%" PRIu64 "", surfaceParams.GetId());
             RSAutoCanvasRestore arc(&canvas);
             surfaceParams.SetGlobalAlpha(1.0f);
-            pid_t threadId = canvas.GetParallelThreadId();
+            uint32_t threadId = canvas.GetParallelThreadId();
             auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
 
             Drawing::Matrix rotateMatrix = canvas.GetTotalMatrix();
@@ -1310,7 +1310,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 
     RSAutoCanvasRestore arc(&canvas);
     surfaceParams.SetGlobalAlpha(1.0f);
-    pid_t threadId = canvas.GetParallelThreadId();
+    uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -1406,7 +1406,7 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
         RS_LOGE("DrawBufferForRotationFixed failed to get invert matrix");
     }
     canvas.ConcatMatrix(inverse);
-    pid_t threadId = canvas.GetParallelThreadId();
+    uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams,
         static_cast<uint32_t>(threadId));
     RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, *this, params);
