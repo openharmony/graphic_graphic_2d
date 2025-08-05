@@ -689,91 +689,97 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest004, Function | MediumTest| Lev
 }
 
 /**
- * Function: OnVSyncTriggerTest006
+ * Function: CollectConnections001
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
  * CaseDescription: 1. create different conn(rate = 1) and add them to the VSyncDistributor
- *                  2. call OnVSyncTrigger with different parameters
- *                  3. check if the connections are removed correctly
+ *                  2. call CollectConnections001 with different parameters
+ *                  3. check if the result is correct
  */
-HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest006, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, CollectConnections001, Function | MediumTest| Level3)
 {
     std::vector<sptr<VSyncConnection>> conns;
-    int count = 8;
+    std::vector<sptr<VSyncConnection>> rsConns;
+    int64_t now = 1000000000, period = 8333333;
+    uint32_t refreshRate = 120, vsyncMaxRefreshRate = 360;
     int64_t timestamp = 100;
+    bool waitForVSync = false;
 
     conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
     conns[0]->rate_ = 1;
     conns[0]->triggerThisTime_ = true;
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[0], 1), VSYNC_ERROR_OK);
 
     conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
     conns[1]->rate_ = 1;
     conns[1]->triggerThisTime_ = false;
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[1], 1), VSYNC_ERROR_OK);
 
     conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
     conns[2]->rate_ = 1;
     conns[2]->triggerThisTime_ = true;
     conns[2]->AddRequestVsyncTimestamp(timestamp);
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[2], 1), VSYNC_ERROR_OK);
 
     conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
     conns[3]->rate_ = 1;
     conns[3]->triggerThisTime_ = false;
     conns[3]->AddRequestVsyncTimestamp(timestamp);
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[3], 1), VSYNC_ERROR_OK);
 
-    int64_t now = 1000000000, period = 8333333;
-    uint32_t refreshRate = 120, vsyncMaxRefreshRate = 360;
-    vsyncDistributor->OnVSyncTrigger(now, period, refreshRate, VSYNC_MODE_LTPS, vsyncMaxRefreshRate);
-    for (size_t i = 0; i < conns.size(); ++i) {
+    for (size_t i = 0; i < conns.size(); i++) {
+        waitForVSync = false;
+        rsConns.clear();
+
+        ASSERT_EQ(vsyncDistributor->AddConnection(conns[i], 1), VSYNC_ERROR_OK);
+        vsyncDistributor->CollectConnections(waitForVSync, now, rsConns, 0, false);
+        EXPECT_TRUE(rsConns.size(), 1);
+        EXPECT_TRUE(waitForVSync, true);
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
 }
 
 /**
- * Function: OnVSyncTriggerTest007
+ * Function: CollectConnections002
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. create different conn(rate = 0) and add them to the VSyncDistributor
- *                  2. call OnVSyncTrigger with different parameters
- *                  3. check if the connections are removed correctly
+ * CaseDescription: 1. create different conn(rate = -1) and add them to the VSyncDistributor
+ *                  2. call CollectConnections001 with different parameters
+ *                  3. check if the result is correct
  */
-HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest007, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, CollectConnections002, Function | MediumTest| Level3)
 {
     std::vector<sptr<VSyncConnection>> conns;
-    int count = 8;
-    int64_t timestamp = 100;
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
-    conns[0]->rate_ = 0;
-    conns[0]->triggerThisTime_ = true;
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[0], 1), VSYNC_ERROR_OK);
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
-    conns[1]->rate_ = 0;
-    conns[1]->triggerThisTime_ = false;
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[1], 1), VSYNC_ERROR_OK);
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
-    conns[2]->rate_ = 0;
-    conns[2]->triggerThisTime_ = true;
-    conns[2]->AddRequestVsyncTimestamp(timestamp);
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[2], 1), VSYNC_ERROR_OK);
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
-    conns[3]->rate_ = 0;
-    conns[3]->triggerThisTime_ = false;
-    conns[3]->AddRequestVsyncTimestamp(timestamp);
-    ASSERT_EQ(vsyncDistributor->AddConnection(conns[3], 1), VSYNC_ERROR_OK);
-
+    std::vector<sptr<VSyncConnection>> rsConns;
     int64_t now = 1000000000, period = 8333333;
     uint32_t refreshRate = 120, vsyncMaxRefreshRate = 360;
-    vsyncDistributor->OnVSyncTrigger(now, period, refreshRate, VSYNC_MODE_LTPS, vsyncMaxRefreshRate);
-    for (size_t i = 0; i < conns.size(); ++i) {
+    int64_t timestamp = 100;
+    bool waitForVSync = false;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
+    conns[0]->rate_ = -1;
+    conns[0]->triggerThisTime_ = true;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
+    conns[1]->rate_ = -1;
+    conns[1]->triggerThisTime_ = false;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
+    conns[2]->rate_ = -1;
+    conns[2]->triggerThisTime_ = true;
+    conns[2]->AddRequestVsyncTimestamp(timestamp);
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
+    conns[3]->rate_ = -1;
+    conns[3]->triggerThisTime_ = false;
+    conns[3]->AddRequestVsyncTimestamp(timestamp);
+
+    for (size_t i = 0; i < conns.size(); i++) {
+        waitForVSync = false;
+        rsConns.clear();
+
+        ASSERT_EQ(vsyncDistributor->AddConnection(conns[i], 1), VSYNC_ERROR_OK);
+        vsyncDistributor->CollectConnections(waitForVSync, now, rsConns, 0, false);
+        EXPECT_TRUE(rsConns.size(), 0);
+        EXPECT_TRUE(waitForVSync, !conns[i]->IsRequestVsyncTimestampEmpty());
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
 }
