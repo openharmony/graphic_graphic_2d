@@ -961,4 +961,31 @@ HWTEST_F(RSScreenRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
     screenNode->SetTargetSurfaceRenderNodeId(targetSurfaceRenderNodeId);
     ASSERT_EQ(screenNode->GetTargetSurfaceRenderNodeId(), targetSurfaceRenderNodeId);
 }
+
+/**
+ * @tc.name: SetForceFreeze
+ * @tc.desc: test results of Set/GetForceFreeze
+ * @tc.type: FUNC
+ * @tc.require: issuesICQ74B
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetForceFreeze, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    ASSERT_FALSE(screenNode->GetForceFreeze());
+
+    screenNode->SetForceFreeze(false);
+    ASSERT_FALSE(screenNode->GetForceFreeze());
+
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    screenNode->stagingRenderParams_->needSync_ = false;
+    screenNode->SetForceFreeze(true);
+    ASSERT_TRUE(screenNode->GetForceFreeze());
+
+    screenNode->stagingRenderParams_->needSync_ = true;
+    screenNode->SetForceFreeze(true);
+    ASSERT_TRUE(screenNode->GetForceFreeze());
+}
 } // namespace OHOS::Rosen

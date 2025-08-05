@@ -1867,15 +1867,6 @@ void VSyncDistributor::NotifyPackageEvent(const std::vector<std::string>& packag
 #endif
 }
 
-bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount)
-{
-#if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName, timeStamp, bufferCount);
-#else
-    return false;
-#endif
-}
-
 void VSyncDistributor::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
 #if defined(RS_ENABLE_DVSYNC)
@@ -1916,13 +1907,6 @@ void VSyncDistributor::SetBufferInfo(uint64_t id, const std::string &name, uint3
     if (needPreexecute) {
         ConnPostEvent(connection, timestamp, period, vsyncCount);
     }
-#endif
-}
-
-void VSyncDistributor::SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
-{
-#if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().SetBufferQueueInfo(name, bufferCount, lastFlushedTimeStamp);
 #endif
 }
 
@@ -1998,11 +1982,11 @@ void VSyncDistributor::DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime)
 #endif
 }
 
-void VSyncDistributor::ForceRsDVsync()
+void VSyncDistributor::ForceRsDVsync(const std::string &sceneId)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
     RS_TRACE_NAME("VSyncDistributor::ForceRsDVsync");
-    DVSync::Instance().ForceRsDVsync();
+    DVSync::Instance().ForceRsDVsync(sceneId);
 #endif
 }
 }

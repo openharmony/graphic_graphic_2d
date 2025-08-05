@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameters.h>
+
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
@@ -34,6 +36,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
+}
 class RSUniRenderProcessorTest : public testing::Test {
 public:
     static inline BufferRequestConfig requestConfig = {
@@ -41,7 +46,7 @@ public:
         .height = 200,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
@@ -53,14 +58,6 @@ public:
         .top = 0,
         .right = 100,
         .bottom = 100,
-    };
-
-    static inline BlobDataType defaultBlobDataType = {
-        .offset = 0,
-        .length = 0,
-        .capacity = 0,
-        .vaddr = 0,
-        .cacheop = CacheOption::CACHE_NOOP,
     };
 
     static void SetUpTestCase();
@@ -391,26 +388,6 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestSiz
 }
 
 /**
- * @tc.name: ProcessSurfaceForRenderThread001
- * @tc.desc: Test RSUniRenderProcessorTest.ProcessSurfaceForRenderThread with not nullptr
- * @tc.type:FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST(RSUniRenderProcessorTest, ProcessSurfaceForRenderThread001, TestSize.Level1)
-{
-    if (RSUniRenderJudgement::IsUniRender()) {
-        NodeId id = 0;
-        auto node = std::make_shared<RSSurfaceRenderNode>(id);
-        ASSERT_NE(node, nullptr);
-        auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-        ASSERT_NE(surfaceDrawable, nullptr);
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-        ASSERT_NE(renderProcessor, nullptr);
-        renderProcessor->ProcessSurfaceForRenderThread(*surfaceDrawable);
-    }
-}
-
-/**
  * @tc.name: CreateLayerForRenderThread001
  * @tc.desc: Test RSUniRenderProcessorTest.CreateLayerForRenderThread with nullptr
  * @tc.type:FUNC
@@ -658,21 +635,16 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
     auto buffer = SurfaceBuffer::Create();
     auto ret = buffer->Alloc(RSUniRenderProcessorTest::requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData data = RSUniRenderProcessorTest::defaultSelfDrawingRect;
-    BufferSelfDrawingData *src = &data;
-    BlobDataType test = RSUniRenderProcessorTest::defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
-
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-
+ 
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    (*src) = RSUniRenderProcessorTest::defaultSelfDrawingRect;
+ 
     EXPECT_EQ(params.GetTunnelLayerId(), 1);
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**

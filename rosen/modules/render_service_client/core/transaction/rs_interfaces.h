@@ -318,7 +318,18 @@ public:
     bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
         float blurRadius = 1E-6);
-    
+
+    /**
+     * @brief Take snapshot of displayNode, and freeze display.
+     * @param node Indicates a display node to be captured and freeze or unfreeze.
+     * @param isFreeze Indicates freeze or unfreeze the specified display node.
+     * @param callback Indicates callback to be triggered when trying to freeze display and snapshot is compeleted.
+     * @param captureConfig Indicates the configrutation items required for snapshot.
+     * @return return true if snaphot success or display unfreezed, else return false.
+     */
+    bool SetScreenFreezeImmediately(std::shared_ptr<RSDisplayNode> node, bool isFreeze,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+
     /**
      * @brief Get component snapshot Within the given node range.
      * @param beginNode Indicates first child of snapshot.

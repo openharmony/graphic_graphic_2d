@@ -34,7 +34,7 @@ constexpr int RGB_NUM = 3;
 constexpr float SHADOW_BLENDER_LOWER_LIMIT = -100.f;
 constexpr float SHADOW_BLENDER_UPPER_LIMIT = 100.f;
 
-enum class Gravity {
+enum class Gravity : int32_t {
     CENTER = 0,
     TOP,
     BOTTOM,

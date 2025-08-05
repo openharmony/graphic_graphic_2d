@@ -46,10 +46,19 @@ void RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged(flo
     }
     uint32_t code = static_cast<uint32_t>(
         RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged error = %d", err);
     }
+}
+
+int32_t RSSurfaceOcclusionChangeCallbackProxy::SendRequest(
+    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+{
+    if (!Remote()) {
+        return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
+    }
+    return Remote()->SendRequest(code, data, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -125,11 +125,9 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
     return false;
 }
 
-void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
-    RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
+void RSSurfaceRenderNodeDrawable::ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas,
+    const RSSurfaceRenderParams& surfaceParams)
 {
-    auto bounds = surfaceParams.GetFrameRect();
-
     if (surfaceParams.GetGlobalPositionEnabled()) {
         auto matrix = surfaceParams.GetMatrix();
         Drawing::Matrix inverseMatrix;
@@ -150,7 +148,13 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     } else if (lastGlobalPositionEnabled_) {
         lastGlobalPositionEnabled_ = false;
     }
+}
 
+void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
+{
+    ApplyCrossScreenOffset(canvas, surfaceParams);
+    auto bounds = surfaceParams.GetFrameRect();
     // 1. draw background
     if (surfaceParams.IsLeashWindow()) {
         DrawLeashWindowBackground(canvas, bounds,
@@ -656,7 +660,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (curDrawingCacheRoot_) {
         if (hasSkipCacheLayer_) {
             curDrawingCacheRoot_->SetSkipCacheLayer(true);
-        } else if (surfaceParams->NodeGroupHasChildInBlackList()) {
+        } else if (surfaceParams->NodeGroupHasChildInBlacklist()) {
             curDrawingCacheRoot_->SetChildInBlackList(true);
         }
     }
@@ -1155,6 +1159,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             "draw black with protected layer or screenshot security layer or virtual screen security layer",
             surfaceParams.GetId(), name_.c_str());
 
+        ApplyCrossScreenOffset(canvas, surfaceParams);
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
         canvas.AttachBrush(rectBrush);
@@ -1191,7 +1196,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             surfaceParams.GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
             return;
         }
-        if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
+        if (RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
+            subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
             }

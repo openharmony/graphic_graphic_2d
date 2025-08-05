@@ -796,8 +796,8 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo002, TestSize.Le
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     NodeId id = 0;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = std::make_shared<RSLogicalDisplayRenderNode>(id, displayNodeConfig);
     rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
     rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
 
@@ -826,8 +826,8 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo003, TestSize.Le
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     NodeId id = 0;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = std::make_shared<RSLogicalDisplayRenderNode>(id, displayNodeConfig);
     rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
     rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
     constexpr int defaultRegionSize{100};
@@ -882,8 +882,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo004, TestSize.Le
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     NodeId id = 0;
-    ScreenId screenId = 1;
-    auto rsContext = std::make_shared<RSContext>();
     rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
     rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
     constexpr int defaultRegionSize{100};
@@ -902,10 +900,11 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo004, TestSize.Le
     surfaceNode->GetOpaqueRegion() = defaultRegion;
     surfaceNode->SetFirstLevelCrossNode(true);
 
-    rsUniRenderVisitor->curScreenNode_ = nullptr;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = nullptr;
     rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, true);
 
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    RSDisplayNodeConfig displayNodeConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = std::make_shared<RSLogicalDisplayRenderNode>(id, displayNodeConfig);
     rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, true);
     EXPECT_EQ(parentSurfaceNode->stencilVal_, DEFAULT_OCCLUSION_SURFACE_ORDER);
 }
@@ -2704,6 +2703,26 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareScreenRenderNode004, TestSize.Level
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsDisplayRenderNode);
     ASSERT_FALSE(rsUniRenderVisitor->ancestorNodeHasAnimation_);
     screenManager->RemoveVirtualScreen(screenId);
+}
+
+/**
+ * @tc.name: InitLogicalDisplayInfo001
+ * @tc.desc: Test InitLogicalDisplayInfo
+ * @tc.type: FUNC
+ * @tc.require: issueICPT5N
+ */
+HWTEST_F(RSUniRenderVisitorTest, InitLogicalDisplayInfo001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+
+    rsUniRenderVisitor->InitLogicalDisplayInfo(*displayNode);
+    EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, TOP_OCCLUSION_SURFACES_NUM);
 }
 
 /**

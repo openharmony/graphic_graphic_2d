@@ -712,7 +712,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
         return;
     }
     auto absBound = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    if (hwcNode->GetAncoForceDoDirect() || !isIntersectWithRoundCorner) {
+    if (!isIntersectWithRoundCorner) {
         hwcRects.emplace_back(absBound);
         return;
     }

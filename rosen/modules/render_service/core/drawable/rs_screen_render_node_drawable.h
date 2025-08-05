@@ -128,8 +128,6 @@ public:
 private:
     explicit RSScreenRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckScreenNodeSkip(RSScreenRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void ClearCanvasStencil(RSPaintFilterCanvas& canvas, RSScreenRenderParams& params,
-         RSRenderThreadParams& uniParam);
     std::unique_ptr<RSRenderFrame> RequestFrame(RSScreenRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
@@ -148,6 +146,8 @@ private:
     static void UpdateSlrScale(ScreenInfo& screenInfo);
 
     void CheckHpaeBlurRun(bool isHdrOn);
+
+    bool CheckScreenFreezeSkip(RSScreenRenderParams& params);
     
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();

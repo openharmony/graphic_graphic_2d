@@ -52,6 +52,10 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
+void RSSystemProperties::SetProfilerPixelCheckMode(bool flag)
+{
+}
+
 bool RSSystemProperties::GetUniRenderEnabled()
 {
     return isUniRenderEnabled_;
@@ -768,6 +772,16 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
+{
+    return {};
 }
 } // namespace Rosen
 } // namespace OHOS

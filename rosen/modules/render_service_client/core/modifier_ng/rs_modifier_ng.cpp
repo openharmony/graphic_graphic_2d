@@ -186,6 +186,13 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::CHILDREN, ThresholdType::DEFAULT }
 };
 
+void RSModifier::AddProperty(RSPropertyType type, std::shared_ptr<RSPropertyBase> property)
+{
+    property->SetPropertyTypeNG(type);
+    properties_[type] = property;
+    SetPropertyThresholdType(type, property);
+}
+
 ModifierId RSModifier::GenerateModifierId()
 {
     static pid_t pid_ = GetRealPid();
@@ -287,12 +294,13 @@ void RSModifier::DetachProperty(RSPropertyType type)
 
 void RSModifier::SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property)
 {
-    if (!g_propertyTypeToThresholdTypeMap.count(type)) {
+    auto it = g_propertyTypeToThresholdTypeMap.find(type);
+    if (it == g_propertyTypeToThresholdTypeMap.end()) {
         RS_LOGE("RSPropertyType is not exist! type: %{public}d", static_cast<int32_t>(type));
         return;
     }
-    if (g_propertyTypeToThresholdTypeMap.at(type) != ThresholdType::DEFAULT) {
-        property->SetThresholdType(g_propertyTypeToThresholdTypeMap.at(type));
+    if (it->second != ThresholdType::DEFAULT) {
+        property->SetThresholdType(it->second);
     }
 }
 

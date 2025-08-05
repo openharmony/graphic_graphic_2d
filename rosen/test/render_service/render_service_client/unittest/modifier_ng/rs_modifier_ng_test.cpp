@@ -23,6 +23,7 @@
 #include "message_parcel.h"
 
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
 #include "modifier_ng/overlay/rs_overlay_style_modifier.h"
 #include "recording/draw_cmd_list.h"
 #include "ui/rs_canvas_node.h"
@@ -51,6 +52,52 @@ void RSModifierNGTest::TearDown() {}
 HWTEST_F(RSModifierNGTest, RSDisplayListModifierUpdaterTest, TestSize.Level1)
 {
     EXPECT_NE(1, 0);
+}
+
+/**
+ * @tc.name: AddPropertyTest
+ * @tc.desc: AddProperty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierNGTest, AddPropertyTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    auto property = std::make_shared<RSProperty<float>>(0.5f);
+    modifier->AddProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    EXPECT_EQ(property->GetPropertyTypeNG(), ModifierNG::RSPropertyType::ALPHA);
+}
+
+
+/**
+ * @tc.name: SetAddModifierFlagTest
+ * @tc.desc: SetAddModifierFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierNGTest, SetAddModifierFlagTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    modifier->SetAddModifierFlag(true);
+    ASSERT_TRUE(modifier->isModifierAdded_);
+
+    modifier->SetAddModifierFlag(false);
+    ASSERT_TRUE(!modifier->isModifierAdded_);
+}
+
+/**
+ * @tc.name: SetPropertyThresholdTypeTest
+ * @tc.desc: SetPropertyThresholdType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierNGTest, SetPropertyThresholdTypeTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    auto rrect = std::make_shared<RRect>();
+    auto property = std::make_shared<RSAnimatableProperty<RRect>>(*rrect);
+    modifier->SetPropertyThresholdType(ModifierNG::RSPropertyType::FOREGROUND_NG_FILTER, property);
+    ASSERT_EQ(property->thresholdType_, ThresholdType::DEFAULT);
+
+    modifier->SetPropertyThresholdType(ModifierNG::RSPropertyType::CLIP_RRECT, property);
+    ASSERT_EQ(property->thresholdType_, ThresholdType::MEDIUM);
 }
 
 /**

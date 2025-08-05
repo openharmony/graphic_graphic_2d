@@ -71,5 +71,19 @@ HWTEST_F(RSSurfaceOcclusionChangeCallbackProxyTest, OnSurfaceOcclusionVisibleCha
     ASSERT_EQ(remoteMocker->receivedCode_,
         static_cast<uint32_t>(RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED));
 }
+
+/**
+ * @tc.name: OnSurfaceOcclusionVisibleChanged003
+ * @tc.desc: test OnSurfaceOcclusionVisibleChanged with empty remote object
+ * @tc.type:FUNC
+ * @tc.require: issueICPT5N
+ */
+HWTEST_F(RSSurfaceOcclusionChangeCallbackProxyTest, OnSurfaceOcclusionVisibleChanged003, TestSize.Level1)
+{
+    auto rsSurfaceOcclusionChangeCallbackProxy = std::make_shared<RSSurfaceOcclusionChangeCallbackProxy>(nullptr);
+    constexpr float visibleAreaRatio{1.f};
+    rsSurfaceOcclusionChangeCallbackProxy->OnSurfaceOcclusionVisibleChanged(visibleAreaRatio);
+    EXPECT_EQ(rsSurfaceOcclusionChangeCallbackProxy->Remote(), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

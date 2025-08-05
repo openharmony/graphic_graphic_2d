@@ -110,6 +110,11 @@ bool RSSurfaceRenderParams::GetFilterCacheFullyCovered() const
     return isFilterCacheFullyCovered_;
 }
 
+bool RSSurfaceRenderParams::GetAttractionAnimation() const
+{
+    return isAttractionAnimation_;
+}
+
 const std::vector<NodeId>& RSSurfaceRenderParams::GetVisibleFilterChild() const
 {
     return visibleFilterChild_;
@@ -575,6 +580,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
+    targetSurfaceParams->isAttractionAnimation_ = isAttractionAnimation_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
     targetSurfaceParams->isCrossNode_ = isCrossNode_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;

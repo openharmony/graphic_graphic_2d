@@ -43,7 +43,7 @@ struct RSLayerInfo {
     int32_t gravity = 0;
     int32_t zOrder = 0;
     float alpha = 1.f;
-    GraphicBlendType blendType;
+    GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     GraphicLayerType layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     int32_t layerSource;
@@ -325,6 +325,7 @@ public:
 
     void SetFilterCacheFullyCovered(bool val);
     bool GetFilterCacheFullyCovered() const;
+    bool GetAttractionAnimation() const;
 
     const std::vector<NodeId>& GetVisibleFilterChild() const;
     bool IsTransparent() const;
@@ -790,6 +791,7 @@ private:
     bool isOccludedByFilterCache_ = false;
     // if current surfaceNode has filter cache to occlude the back surfaceNode
     bool isFilterCacheFullyCovered_ = false;
+    bool isAttractionAnimation_ = false;
     std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
 #ifndef ROSEN_CROSS_PLATFORM

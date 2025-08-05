@@ -782,8 +782,6 @@ public:
     // mark cross node in physical extended screen model
     bool IsCrossNode() const;
 
-    std::string QuickGetNodeDebugInfo();
-
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
 
@@ -1333,8 +1331,6 @@ private:
     RectI innerAbsDrawRect_;
     // map parentMatrix by cmdlist draw region
     RectI absCmdlistDrawRect_;
-    RectF absCmdlistDrawRectF_;
-    RectI oldAbsCmdlistDrawRect_;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
     RectI childrenRect_;

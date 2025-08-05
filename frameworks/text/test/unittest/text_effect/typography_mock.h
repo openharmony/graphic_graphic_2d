@@ -82,6 +82,7 @@ public:
     MOCK_METHOD(void, SetTextEffectAssociation, (bool association), (override));
     MOCK_METHOD(bool, GetTextEffectAssociation, (), (const, override));
     MOCK_METHOD(std::vector<TextBlobRecordInfo>, GetTextBlobRecordInfo, (), (const, override));
+    MOCK_METHOD(bool, CanPaintAllText, (), (const, override));
 };
 } // namespace OHOS::Rosen
 #endif

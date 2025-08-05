@@ -175,10 +175,8 @@ public:
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
-    bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount);
-    void SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
     // forcefully enable DVsync in RS
-    void ForceRsDVsync();
+    void ForceRsDVsync(const std::string &sceneId);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);

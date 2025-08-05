@@ -79,6 +79,7 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
         return;
     }
     logicalDisplayRenderParam->screenId_ = screenId_;
+    logicalDisplayRenderParam->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
     logicalDisplayRenderParam->screenRotation_ = GetScreenRotation();
     logicalDisplayRenderParam->nodeRotation_ = GetRotation();
     logicalDisplayRenderParam->isMirrorDisplay_ = IsMirrorDisplay();
@@ -106,6 +107,15 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
         logicalDisplayRenderParam->offsetY_ = boundGeo->GetY();
     }
     RSRenderNode::UpdateRenderParams();
+}
+
+Occlusion::Region RSLogicalDisplayRenderNode::GetTopSurfaceOpaqueRegion() const
+{
+    Occlusion::Region topSurfaceOpaqueRegion;
+    for (const auto& rect : topSurfaceOpaqueRects_) {
+        topSurfaceOpaqueRegion.OrSelf(rect);
+    }
+    return topSurfaceOpaqueRegion;
 }
 
 RSRenderNode::ChildrenListSharedPtr RSLogicalDisplayRenderNode::GetSortedChildren() const

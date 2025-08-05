@@ -16,8 +16,10 @@
 #ifndef RS_MODIFIERS_DRAW_THREAD_H
 #define RS_MODIFIERS_DRAW_THREAD_H
 
+#include <algorithm>
 #include <future>
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "event_handler.h"
@@ -138,11 +140,8 @@ private:
     RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
-    void ClearEventResource();
-    static bool LimitEnableHybridOpCnt(std::unique_ptr<RSTransactionData>& transactionData);
 
-    static bool TargetCommand(
-        Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty);
+    void ClearEventResource();
 #ifdef ACCESSIBILITY_ENABLE
     void SubscribeHighContrastChange();
     void UnsubscribeHighContrastChange();

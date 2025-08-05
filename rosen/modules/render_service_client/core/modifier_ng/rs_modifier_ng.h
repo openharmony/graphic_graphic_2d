@@ -85,6 +85,11 @@ protected:
     virtual void UpdateToRender() {}
     virtual void MarkNodeDirty() {}
 
+    void SetAddModifierFlag(bool isModifierAdded)
+    {
+        isModifierAdded_ = isModifierAdded;
+    }
+
     template<typename T>
     inline T Getter(RSPropertyType type, const T& defaultValue) const
     {
@@ -109,6 +114,9 @@ protected:
         if (it != properties_.end()) {
             auto property = std::static_pointer_cast<PropertyType<T>>(it->second);
             property->Set(value);
+        } else if (!isModifierAdded_) {
+            std::shared_ptr<RSPropertyBase> property = std::make_shared<PropertyType<T>>(value);
+            AddProperty(type, property);
         } else {
             std::shared_ptr<RSPropertyBase> property = std::make_shared<PropertyType<T>>(value);
             AttachProperty(type, property);
@@ -137,6 +145,9 @@ protected:
         if (it != properties_.end()) {
             auto property = std::static_pointer_cast<PropertyType<T>>(it->second);
             property->Set(value.value());
+        } else if (!isModifierAdded_) {
+            std::shared_ptr<RSPropertyBase> property = std::make_shared<PropertyType<T>>(value.value());
+            AddProperty(type, property);
         } else {
             std::shared_ptr<RSPropertyBase> property = std::make_shared<PropertyType<T>>(value.value());
             AttachProperty(type, property);
@@ -148,8 +159,10 @@ protected:
 private:
     static ModifierId GenerateModifierId();
     void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
+    void AddProperty(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
     static std::array<Constructor, MODIFIER_TYPE_COUNT> ConstructorLUT_;
     bool isDirty_ { false };
+    bool isModifierAdded_ { false };
 
     friend class OHOS::Rosen::RSModifierExtractor;
     friend class OHOS::Rosen::RSModifierManager;

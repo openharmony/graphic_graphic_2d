@@ -14,19 +14,37 @@ rosen/modules/2d_graphics/drawing_ndk/ @wanyanglan
 interfaces/kits/napi/graphic/drawing/ @wanyanglan
 
 [display-effect]
-rosen/modules/render_service_client/core/modifier/ @xiaojianfeng_jeffery
 rosen/modules/render_service_client/core/ui/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/src/drawable/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/include/modifier/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/src/modifier/ @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/ui/rs_ui_context_manager.cpp @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_ui_context_manager.h @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_ui_context.h @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_ui_context.cpp @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_ui_director.cpp @gaoshuai3011
+rosen/modules/render_service_client/core/ui/rs_ui_director.h @gaoshuai3011
+
 rosen/modules/render_service_base/include/pipeline/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/pipeline/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/include/property/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/src/property/ @xiaojianfeng_jeffery
 rosen/modules/render_service/core/drawable/ @xiaojianfeng_jeffery
+
+rosen/modules/render_service_client/core/modifier/ @hanamaru
+rosen/modules/render_service_client/core/modifier_ng/ @hanamaru
+rosen/modules/render_service_base/include/drawable/ @hanamaru
+rosen/modules/render_service_base/src/drawable/ @hanamaru
+rosen/modules/render_service_base/include/modifier/ @hanamaru
+rosen/modules/render_service_base/include/modifier_ng/ @hanamaru
+rosen/modules/render_service_base/src/modifier_ng/ @hanamaru
+rosen/modules/render_service_base/include/property/ @hanamaru
+rosen/modules/render_service_base/src/property/ @hanamaru
+
 rosen/modules/render_service_base/include/render/ @lyt1024
 rosen/modules/render_service_base/src/render/ @lyt1024
+
+rosen/modules/render_service_base/src/render/rs_image_base.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/render/rs_image_cache.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/render/rs_image.cpp @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/render/rs_image_base.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/render/rs_image_cache.h @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/render/rs_image.h @xiaojianfeng_jeffery
 
 [IPC]
 rosen/modules/render_service/core/transaction/ @white-dragon-tiger

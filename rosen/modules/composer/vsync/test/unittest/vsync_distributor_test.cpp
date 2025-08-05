@@ -1220,20 +1220,6 @@ HWTEST_F(VSyncDistributorTest, HandleTouchEvent001, Function | MediumTest| Level
 }
 
 /*
-* Function: AdaptiveDVSyncEnableTest001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. test AdaptiveDVSyncEnable
- */
-HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTest| Level3)
-{
-    std::string nodeName = "test";
-    vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0);
-    ASSERT_EQ(nodeName, "test");
-}
-
-/*
 * Function: SetVsyncRateDiscountLTPSTest001
 * Type: Function
 * Rank: Important(2)
@@ -1676,6 +1662,20 @@ HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest023, Function | MediumTest| Le
     uint32_t pid = 0;
     ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: ForceRsDVsync001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test ForceRsDVsync
+ */
+HWTEST_F(VSyncDistributorTest, ForceRsDVsync001, Function | MediumTest| Level3)
+{
+    std::string sceneId = "APP_SWIPER_FLING";
+    vsyncDistributor->ForceRsDVsync(sceneId);
+    ASSERT_EQ(sceneId, "APP_SWIPER_FLING");
 }
 } // namespace
 } // namespace Rosen

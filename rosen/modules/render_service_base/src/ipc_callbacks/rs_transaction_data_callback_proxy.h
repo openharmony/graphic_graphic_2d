@@ -29,6 +29,7 @@ public:
     virtual ~RSTransactionDataCallbackProxy() noexcept = default;
 
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override;
+    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSTransactionDataCallbackProxy> delegator_;

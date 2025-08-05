@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_effect_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -129,6 +130,16 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->OnCapture(canvas);
     ASSERT_FALSE(drawable->ShouldPaint());
+
+    CaptureParam params;
+    drawable->renderParams_ = nullptr;
+    params.isMirror_ = true;
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    RSUniRenderThread::SetCaptureParam(params);
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
 }
 
 /**
@@ -148,5 +159,38 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw, TestSize.Level1)
     drawable_->renderParams_->shouldPaint_ = true;
     drawable_->renderParams_->contentEmpty_ = false;
     effectDrawable_->OnDraw(*drawingCanvas_);
+}
+
+/**
+ * @tc.name: GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue
+ * @tc.desc: generate effect when has no effect children and uiCapture is true
+ * @tc.type: FUNC
+ * @tc.require: issueICQL6P
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    paintFilterCanvas.SetUICapture(true);
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    drawable->drawCmdIndex_.childrenIndex_ = 0;
+    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas == nullptr) {
+            return;
+        }
+        paintFilterCanvas->SetEffectData(std::make_shared<RSPaintFilterCanvas::CachedEffectData>());
+    };
+    drawable->drawCmdList_.emplace_back(drawFunc);
+
+    RSEffectRenderParams params(nodeId);
+    params.SetHasEffectChildren(false);
+    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));
+    EXPECT_NE(paintFilterCanvas.GetEffectData(), nullptr);
 }
 }

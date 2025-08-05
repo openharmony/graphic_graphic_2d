@@ -121,7 +121,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    void SetForceRsDVsync();
+    void SetForceRsDVsync(const std::string& sceneId);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -432,7 +432,6 @@ public:
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     void GetFrontBufferDesiredPresentTimeStamp(
         const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
-    void SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();

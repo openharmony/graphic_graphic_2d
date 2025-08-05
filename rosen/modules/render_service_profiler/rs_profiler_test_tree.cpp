@@ -227,8 +227,13 @@ void TestTreeBuilder::CreateNode05(RSContext& context, std::vector<std::shared_p
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmds->AddDrawOp(drawRoundRect);
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
+#endif
 
     auto boundsPropertyV120 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0, 0, width13, height));
     auto boundsModifierV120 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV120);
@@ -261,8 +266,13 @@ void TestTreeBuilder::CreateNode06(RSContext& context, std::vector<std::shared_p
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
+#endif
 
     BaseNodeCommandHelper::AddChild(context, currentId - three, currentId, zero);
 
@@ -288,9 +298,13 @@ void TestTreeBuilder::CreateNode07(RSContext& context, std::vector<std::shared_p
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::BACKGROUND_STYLE));
+#endif
     BaseNodeCommandHelper::AddChild(context, currentId - four, currentId, zero);
 
     auto node = RSProfiler::GetRenderNode(currentId);
@@ -331,12 +345,21 @@ void TestTreeBuilder::CreateNode08(RSContext& context, std::vector<std::shared_p
     auto clipAdaptiveRoundRectOpItemPtr =
         std::make_shared<Drawing::ClipAdaptiveRoundRectOpItem>(clipAdaptiveRoundRectOpItem);
     drawCmds->AddDrawOp(clipAdaptiveRoundRectOpItemPtr);
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
+
+    RSCanvasNodeCommandHelper::UpdateRecording(context, currentId,
+        std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED),
+        static_cast<uint16_t>(ModifierNG::RSModifierType::OVERLAY_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
 
     RSCanvasNodeCommandHelper::UpdateRecording(context, currentId,
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED),
         static_cast<uint16_t>(RSModifierType::OVERLAY_STYLE));
+#endif
 
     BaseNodeCommandHelper::AddChild(context, currentId - five, currentId, zero);
 

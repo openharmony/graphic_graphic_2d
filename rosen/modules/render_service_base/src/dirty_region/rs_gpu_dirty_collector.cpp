@@ -16,11 +16,12 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 
 #include "common/rs_rect.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
 #ifndef ROSEN_CROSS_PLATFORM
-BufferSelfDrawingData* RSGpuDirtyCollector::GpuDirtyRegionCompute(const sptr<SurfaceBuffer> &buffer)
+BufferSelfDrawingData* RSGpuDirtyCollector::GetBufferSelfDrawingData(const sptr<SurfaceBuffer> &buffer)
 {
     if (buffer == nullptr) {
         return nullptr;
@@ -38,10 +39,14 @@ BufferSelfDrawingData* RSGpuDirtyCollector::GpuDirtyRegionCompute(const sptr<Sur
 
 bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, Rect &rect)
 {
+    if (!RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()) {
+        return false;
+    }
+
     if (buffer == nullptr) {
         return false;
     }
-    auto src = RSGpuDirtyCollector::GpuDirtyRegionCompute(buffer);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     if (src == nullptr || !src->curFrameDirtyEnable) {
         return false;
     }

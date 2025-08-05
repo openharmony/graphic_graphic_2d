@@ -718,6 +718,72 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest014, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDrawTest015
+ * @tc.desc: Test OnDraw when screen freeze
+ * @tc.type: FUNC
+ * @tc.require: #ICQ74B
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest015, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    ScreenInfo screenInfo;
+    screenInfo.state = ScreenState::HDI_OUTPUT_ENABLE;
+    params->screenInfo_ = screenInfo;
+    params->SetForceFreeze(false);
+    screenDrawable_->OnDraw(canvas);
+    params->SetForceFreeze(true);
+    screenDrawable_->OnDraw(canvas);
+    ASSERT_EQ(screenDrawable_->GetDrawSkipType(), DrawSkipType::SCREEN_FREEZE);
+}
+
+/**
+ * @tc.name: CheckScreenFreezeSkip
+ * @tc.desc: Test CheckScreenFreezeSkip
+ * @tc.type: FUNC
+ * @tc.require: #ICQ74B
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenFreezeSkip, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_SCREEN_ID, context);
+    ASSERT_NE(screenNode, nullptr);
+    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(
+        RSScreenRenderNodeDrawable::OnGenerate(screenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_shared<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->forceFreeze_ = true;
+    auto ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_TRUE(ret);
+
+    screenParams->forceFreeze_ = false;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_FALSE(ret);
+
+    auto mirrorScreenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID + 1, DEFAULT_SCREEN_ID + 1, context);
+    ASSERT_NE(mirrorScreenNode, nullptr);
+    auto adapter = RSRenderNodeDrawableAdapter::OnGenerate(mirrorScreenNode);
+    auto mirrorScreenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(adapter);
+    ASSERT_NE(mirrorScreenDrawable, nullptr);
+    screenParams->mirrorSourceDrawable_ = adapter;
+    screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    RSScreenRenderNodeDrawable::InitRenderParams(mirrorScreenNode, adapter);
+    auto mirrorParams = static_cast<RSScreenRenderParams*>(mirrorScreenDrawable->GetRenderParams().get());
+    ASSERT_NE(mirrorParams, nullptr);
+    mirrorParams->forceFreeze_ = false;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_FALSE(ret);
+    mirrorParams->forceFreeze_ = true;
+    ret = screenDrawable->CheckScreenFreezeSkip(*screenParams);
+    ASSERT_TRUE(ret);
+}
+
+/**
  * @tc.name: CalculateVirtualDirty
  * @tc.desc: Test CalculateVirtualDirty
  * @tc.type: FUNC
@@ -743,41 +809,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Lev
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;
     sleep(1);
-}
-/**
- * @tc.name: ClearCanvasStencilTest001
- * @tc.desc: Test ClearCanvasStencilTest
- * @tc.type: FUNC
- * @tc.require: #IBO35Y
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, ClearCanvasStencilTest001, TestSize.Level1)
-{
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    ASSERT_NE(uniParam, nullptr);
-
-    ASSERT_NE(screenDrawable_, nullptr);
-    screenDrawable_->ClearCanvasStencil(canvas, *params, *uniParam);
-
-    screenDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>(false);
-    ASSERT_NE(screenDrawable_->syncDirtyManager_, nullptr);
-    auto dirtyManager = screenDrawable_->GetSyncDirtyManager();
-    ASSERT_NE(dirtyManager, nullptr);
-    Occlusion::Region allDirtyRegion { Occlusion::Rect { dirtyManager->GetDirtyRegion() } };
-    auto alignedRegion = allDirtyRegion.GetAlignedRegion(128);
-    ASSERT_TRUE(alignedRegion.IsEmpty());
-
-    uniParam->isStencilPixelOcclusionCullingEnabled_ = true;
-    screenDrawable_->ClearCanvasStencil(canvas, *params, *uniParam);
-    ASSERT_TRUE(params->topSurfaceOpaqueRects_.empty());
-    params->topSurfaceOpaqueRects_.emplace_back(Occlusion::Rect { dirtyManager->GetDirtyRegion() });
-    screenDrawable_->ClearCanvasStencil(canvas, *params, *uniParam);
-    ASSERT_FALSE(params->topSurfaceOpaqueRects_.empty());
 }
 
 /**
@@ -1621,6 +1652,30 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SetScreenNodeSkipFlag_False, TestSize.L
     ASSERT_NE(screenDrawable_, nullptr);
     RSRenderThreadParams params;
     screenDrawable_->SetScreenNodeSkipFlag(params, false);
+}
+
+/**
+ * @tc.name: CheckFilterCacheFullyCovered_IsAttractionAnimation
+ * @tc.desc: Test CheckFilterCacheFullyCovered with attraction animation
+ * @tc.type: FUNC
+ * @tc.require: issueICQJZW
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckFilterCacheFullyCovered_IsAttractionAnimation, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    RSSurfaceRenderParams surfaceParams(DEFAULT_SURFACE_NODE_ID);
+    surfaceParams.isTransparent_ = true;
+    surfaceParams.isRotating_ = false;
+    surfaceParams.isAttractionAnimation_ = true;
+    int width = 100;
+    int height = 100;
+    RectI screenRect(0, 0, width, height);
+    RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(surfaceParams, screenRect);
+    EXPECT_FALSE(surfaceParams.GetFilterCacheFullyCovered());
+
+    surfaceParams.isAttractionAnimation_ = false;
+    RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(surfaceParams, screenRect);
+    EXPECT_FALSE(surfaceParams.GetFilterCacheFullyCovered());
 }
 
 /**

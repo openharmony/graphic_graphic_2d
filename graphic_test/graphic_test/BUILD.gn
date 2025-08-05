@@ -93,6 +93,7 @@ rs_func_feature_sources = [
   "rs_func_feature/accessibility/curtain_screen_test.cpp",
 ]
 rs_perform_feature_sources = [
+  "rs_perform_feature/dirty_region/filter_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_history_test.cpp",
   "rs_perform_feature/dirty_region/update_self_draw_rect_test.cpp",

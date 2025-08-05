@@ -150,4 +150,77 @@ HWTEST_F(RSOpincManagerTest, IsOpincSubTreeDirty, Function | SmallTest | Level1)
     rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = false;
     ASSERT_FALSE(opincManager_.IsOpincSubTreeDirty(*rsCanvasRenderNode, true));
 }
+
+/**
+ * @tc.name: GetUnsupportReason
+ * @tc.desc: Verify the GetUnsupportReason function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, GetUnsupportReason, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+
+    rsCanvasRenderNode->opincCache_.subTreeSupportFlag_ = false;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::CHILD_NOT_SUPPORT);
+    rsCanvasRenderNode->opincCache_.subTreeSupportFlag_ = true;
+
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
+    rsCanvasRenderNode->SetSharedTransitionParam(sharedTransitionParam);
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::SHARED_TRANSITION);
+    rsCanvasRenderNode->SetSharedTransitionParam(nullptr);
+
+    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
+
+    property.isSpherizeValid_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::SPHERIZE);
+    property.isSpherizeValid_ = false;
+
+    property.isAttractionValid_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::ATTRACTION);
+    property.isAttractionValid_ = false;
+
+    property.needFilter_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::HAS_FILTER);
+    property.needFilter_ = false;
+
+    property.useEffect_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::USE_EFFECT);
+    property.useEffect_ = false;
+
+    Color color(255, 0, 0);
+    std::optional<Color> colorBlend = color;
+    property.SetColorBlend(colorBlend);
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::COLOR_BLEND);
+    std::optional<Color> colorBlendEmpty;
+    property.SetColorBlend(colorBlendEmpty);
+
+    rsCanvasRenderNode->childHasVisibleFilter_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::CHILD_HAS_FILTER);
+    rsCanvasRenderNode->childHasVisibleFilter_ = false;
+
+    rsCanvasRenderNode->childHasVisibleEffect_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::CHILD_HAS_EFFECT);
+    rsCanvasRenderNode->childHasVisibleEffect_ = false;
+
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::NONE);
+}
+
+/**
+ * @tc.name: QuickGetNodeDebugInfo
+ * @tc.desc: Verify the QuickGetNodeDebugInfo function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, QuickGetNodeDebugInfo, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    ASSERT_NE(opincManager_.QuickGetNodeDebugInfo(*rsCanvasRenderNode), "");
+}
 }

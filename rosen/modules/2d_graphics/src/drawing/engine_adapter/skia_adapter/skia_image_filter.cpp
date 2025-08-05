@@ -75,7 +75,7 @@ void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, 
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -94,7 +94,7 @@ void SkiaImageFilter::InitWithColor(const ColorFilter& colorFilter,
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -116,7 +116,7 @@ void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy,
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -133,7 +133,7 @@ void SkiaImageFilter::InitWithColorBlur(const ColorFilter& colorFilter, scalar s
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -164,7 +164,7 @@ void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -269,7 +269,7 @@ void SkiaImageFilter::InitWithBlend(BlendMode mode, const Rect& cropRect,
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -287,7 +287,7 @@ void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader, const
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};

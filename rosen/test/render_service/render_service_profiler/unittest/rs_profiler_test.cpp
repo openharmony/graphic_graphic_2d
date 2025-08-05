@@ -49,7 +49,7 @@ RSRenderService* GetAndInitRenderService()
 {
     auto renderService(new RSRenderService());
     if (renderService) {
-        renderService->mainThread_ = RSMainThread::Instance();
+        renderService->mainThread_ = new RSMainThread();
     }
     if (renderService->mainThread_) {
         renderService->mainThread_->context_ = std::make_shared<RSContext>();

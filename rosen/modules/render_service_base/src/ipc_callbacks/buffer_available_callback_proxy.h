@@ -29,6 +29,7 @@ public:
     virtual ~RSBufferAvailableCallbackProxy() noexcept = default;
 
     void OnBufferAvailable() override;
+    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSBufferAvailableCallbackProxy> delegator_;

@@ -29,6 +29,8 @@ std::vector<std::pair<RSIRenderServiceConnectionInterfaceCodeAccessVerifier::Cod
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SHOW_WATERMARK,
             PermissionType::UPDATE_CONFIGURATION },
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::CREATE_VIRTUAL_SCREEN,
+            PermissionType::CAPTURE_SCREEN },
+        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SCREEN_FREEZE_IMMEDIATELY,
             PermissionType::CAPTURE_SCREEN }
 };
 
@@ -593,6 +595,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_HDR_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_HDR_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_FREEZE_IMMEDIATELY): {
+            hasPermission = CheckPermission(code);
             break;
         }
         default: {

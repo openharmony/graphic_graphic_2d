@@ -153,7 +153,8 @@ public:
     virtual void Detach() = 0;
     virtual void SetModifierType(RSModifierType inType) = 0;
     virtual void Dump(std::string& out) const = 0;
-
+    virtual uint32_t CalculateHash() = 0;
+    virtual void CalculateHashInner(uint32_t& hash) = 0;
 protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
 
@@ -309,6 +310,26 @@ public:
         if (Base::nextEffect_) {
             out += splitStr;
             Base::nextEffect_->Dump(out);
+        }
+    }
+
+    uint32_t CalculateHash() override
+    {
+        uint32_t hash_ = 0;
+        CalculateHashInner(hash_);
+        return hash_;
+    }
+    
+    void CalculateHashInner(uint32_t& hash) override
+    {
+        std::apply(
+            [&hash](const auto&... props) {
+                (RSNGRenderEffectHelper::CalculatePropTagHash(hash, props), ...);
+            },
+            properties_);
+
+        if (Base::nextEffect_) {
+            Base::nextEffect_->CalculateHashInner(hash);
         }
     }
 

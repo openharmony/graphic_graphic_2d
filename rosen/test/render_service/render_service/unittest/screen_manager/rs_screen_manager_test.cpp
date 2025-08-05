@@ -40,6 +40,7 @@ public:
     static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
     static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
+    static constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 
@@ -2128,6 +2129,43 @@ HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: DisablePowerOffRenderControl001
+ * @tc.desc: Test disable power off render, input invalid screen id.
+ * @tc.type: FUNC
+ * @tc.require: issueICON9P
+ */
+HWTEST_F(RSScreenManagerTest, DisablePowerOffRenderControl001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    screenManagerImpl.DisablePowerOffRenderControl(id);
+    ASSERT_EQ(screenManagerImpl.GetDisableRenderControlScreensCount(), 0);
+}
+
+/*
+ * @tc.name: DisablePowerOffRenderControl002
+ * @tc.desc: Test disable power off render, input valid screen id.
+ * @tc.type: FUNC
+ * @tc.require: issueICON9P
+ */
+HWTEST_F(RSScreenManagerTest, DisablePowerOffRenderControl002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.DisablePowerOffRenderControl(id);
+    ASSERT_NE(screenManagerImpl.GetDisableRenderControlScreensCount(), 0);
+}
+
+/*
  * @tc.name: SetVirtualScreenBlackList001
  * @tc.desc: Test SetVirtualScreenBlackList, input invalid id
  * @tc.type: FUNC
@@ -2269,6 +2307,11 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList001, TestSize.Level1)
     ScreenId id = INVALID_SCREEN_ID;
     std::vector<uint64_t> blackList = {};
     ASSERT_EQ(screenManager->AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+
+    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+        blackList.push_back(nodeId);
+    }
+    ASSERT_EQ(screenManager->AddVirtualScreenBlackList(id, blackList), StatusCode::INVALID_ARGUMENTS);
 }
 
 /*
@@ -2344,8 +2387,12 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList004, TestSize.Level1)
     screenManagerImpl.screens_[mainId] = std::make_shared<impl::RSScreen>(mainId, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[mainId], nullptr);
     std::vector<uint64_t> blackList = {};
-
     ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+
+    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+        blackList.push_back(nodeId);
+    }
+    ASSERT_EQ(screenManager->AddVirtualScreenBlackList(id, blackList), StatusCode::INVALID_ARGUMENTS);
 }
 
 /*

@@ -67,7 +67,8 @@ public:
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
     bool RunHDR(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
-    bool DrawHDRSurfaceContent(std::shared_ptr<Drawing::Surface> surface, bool isOnHDR);
+    bool DrawHDRSurfaceContent(
+        std::shared_ptr<Drawing::Surface> surface, bool isOnHDR, const RSSurfaceCaptureParam& captureParam);
     bool UseScreenShotWithHDR() const
     {
         return useScreenShotWithHDR_;
@@ -96,6 +97,9 @@ private:
     void SetupGpuContext();
 
     int32_t CalPixelMapRotation();
+
+    void CaptureDisplayNode(DrawableV2::RSRenderNodeDrawable& displayNodeDrawable, RSPaintFilterCanvas& canvas,
+        const RSSurfaceCaptureParam& captureParam, RSPaintFilterCanvas::ScreenshotType type);
 
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::unique_ptr<Media::PixelMap> pixelMapHDR_ = nullptr;
