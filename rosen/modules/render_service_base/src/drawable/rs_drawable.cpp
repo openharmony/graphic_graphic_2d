@@ -558,9 +558,9 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
 {
     // Step 1.1: calculate dirty slots by looking up g_propertyToDrawableLut
     std::unordered_set<RSDrawableSlot> dirtySlots;
-    for (const auto& dirtySlotIt : g_propertyToDrawableLut) {
-        if (dirtyTypes.test(static_cast<size_t>(dirtySlotIt.first)) && dirtySlotIt.second != RSDrawableSlot::INVALID) {
-            dirtySlots.emplace(dirtySlotIt.second);
+    for (const auto& [modifierType, drawableSlot] : g_propertyToDrawableLut) {
+        if (dirtyTypes.test(static_cast<size_t>(modifierType)) && drawableSlot != RSDrawableSlot::INVALID) {
+            dirtySlots.emplace(drawableSlot);
         }
     }
 
