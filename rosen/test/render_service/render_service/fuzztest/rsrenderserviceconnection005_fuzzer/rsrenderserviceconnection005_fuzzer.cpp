@@ -269,7 +269,7 @@ void DoSyncFrameRateRange()
     UnregisterFrameRateLinker(id);
 }
 
-void UnregisterFrameRateLinker()
+void DoUnregisterFrameRateLinker()
 {
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
     MessageOption option;
