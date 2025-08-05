@@ -255,30 +255,13 @@ void RSRenderNodeGC::ReleaseOffTreeNodeBucket()
             "recover below low threshold, cur[%{public}u]", size);
         return;
     };
-    std::vector<std::shared_ptr<RSBaseRenderNode>> toRemove;
-    if (offTreeBucket_.empty()) {
-        return;
-    }
-    toRemove.swap(offTreeBucket_.front());
-    offTreeBucket_.pop();
-    uint32_t remainBucketSize = offTreeBucket_.size();
-    offTreeBucketThrDetector_.Detect(remainBucketSize, callback);
-    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeBucket %d, remain offTree buckets %u", toRemove.size(), remainBucketSize);
-    for (const auto& node : toRemove) {
-        if (!node) {
-            continue;
-        }
-        auto parent = node->GetParent().lock();
-        if (parent) {
-            parent->RemoveChildFromFulllist(node->GetId());
-        }
-        node->RemoveFromTree(false);
-    }
+    ReleaseOffTreeNodeForBucket(callback);
+    ReleaseOffTreeNodeForBucketMap(callback);
 }
 
 void RSRenderNodeGC::ReleaseFromTree()
 {
-    if (offTreeBucket_.empty()) {
+    if (offTreeBucket_.empty() && offTreeBucketMap_.empty()) {
         return;
     }
     if (mainTask_) {
@@ -308,5 +291,76 @@ GCLevel RSRenderNodeGC::JudgeGCLevel(uint32_t remainBucketSize)
     }
 }
 
+void RSRenderNodeGC::AddToOffTreeNodeBucket(pid_t pid,
+    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>& renderNodeMap)
+{
+    renderNodeNumsInBucketMap_ += renderNodeMap.size();
+    RS_TRACE_NAME_FMT("AddToOffTreeNodeBucket, size=%u, nodes=%llu",
+        offTreeBucketMap_.size(), renderNodeNumsInBucketMap_);
+    offTreeBucketMap_.push(
+        std::pair<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>(
+            pid, std::move(renderNodeMap)));
+}
+
+void RSRenderNodeGC::ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint32_t>::DetectCallBack &callBack)
+{
+    std::vector<std::shared_ptr<RSBaseRenderNode>> toRemove;
+    if (offTreeBucket_.empty()) {
+        return;
+    }
+    toRemove.swap(offTreeBucket_.front());
+    offTreeBucket_.pop();
+    uint32_t remainBucketSize = offTreeBucket_.size();
+    offTreeBucketThrDetector_.Detect(remainBucketSize, callBack);
+    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucket %d, remain offTree buckets %u", toRemove.size(), remainBucketSize);
+    for (const auto& node : toRemove) {
+        if (!node) {
+            continue;
+        }
+        auto parent = node->GetParent().lock();
+        if (parent) {
+            parent->RemoveChildFromFulllist(node->GetId());
+        }
+        node->RemoveFromTree(false);
+    }
+}
+
+void RSRenderNodeGC::ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<uint32_t>::DetectCallBack &callBack)
+{
+    if (offTreeBucketMap_.empty()) {
+        return;
+    }
+    auto& toRemove = offTreeBucketMap_.front();
+    pid_t pid = toRemove.first;
+    auto& subMap = toRemove.second;
+    uint32_t count = 0;
+    const size_t subMapSize = subMap.size();
+    uint64_t remainBucketSize = renderNodeNumsInBucketMap_ / OFF_TREE_BUCKET_MAX_SIZE +
+        (renderNodeNumsInBucketMap_ % OFF_TREE_BUCKET_MAX_SIZE == 0 ? 0 : 1);
+    offTreeBucketThrDetector_.Detect(remainBucketSize, callBack);
+    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucketMap %d, remain offTree buckets %u",
+        OFF_TREE_BUCKET_MAX_SIZE, subMapSize);
+    for (auto subIter = subMap.begin(); subIter != subMap.end();) {
+        if (count++ >= OFF_TREE_BUCKET_MAX_SIZE) {
+            break;
+        }
+        auto renderNode = subIter->second;
+        if (renderNode == nullptr) {
+            subIter = subMap.erase(subIter);
+            continue;
+        }
+        if (auto parent = renderNode->GetParent().lock()) {
+            parent->RemoveChildFromFulllist(renderNode->GetId());
+        }
+        renderNode->RemoveFromTree(false);
+        renderNode->GetAnimationManager().FilterAnimationByPid(pid);
+        subIter = subMap.erase(subIter);
+    }
+    renderNodeNumsInBucketMap_ -= (subMapSize - subMap.size());
+    if (subMap.empty()) {
+        offTreeBucketMap_.pop();
+        RS_TRACE_NAME_FMT("offTreeBucketMap size=%u", offTreeBucketMap_.size());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

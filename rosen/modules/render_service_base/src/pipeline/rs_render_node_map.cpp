@@ -249,6 +249,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         (unsigned long long)pid);
     bool useBatchRemoving = !immediate &&
         RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
+    bool optMode = RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     auto iter = renderNodeMap_.find(pid);
     if (iter != renderNodeMap_.end()) {
@@ -257,6 +258,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
             if (subIter->second == nullptr) {
                 subIter = subMap.erase(subIter);
                 continue;
+            }
+            if (optMode && useBatchRemoving) {
+                RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(iter->first, iter->second);
+                break;
             }
             if (useBatchRemoving) {
                 RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(subIter->second);

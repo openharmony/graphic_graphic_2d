@@ -30,17 +30,65 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+private:
+    void AddNodes(uint32_t nums, pid_t pid, NodeId startId,
+        bool needInvalidNode, std::shared_ptr<RSBaseRenderNode> parent);
+    void AddNodes(uint32_t nums, NodeId startId);
+    void ClearOffTreeBucket();
+    void ClearOffTreeBucketMap();
 };
+
+void RSRenderNodeGCTest::ClearOffTreeBucket()
+{
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    while (!nodeGC.offTreeBucket_.empty()) {
+        nodeGC.offTreeBucket_.pop();
+    }
+}
+
+void RSRenderNodeGCTest::ClearOffTreeBucketMap()
+{
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    while (!nodeGC.offTreeBucketMap_.empty()) {
+        nodeGC.offTreeBucketMap_.pop();
+    }
+}
+
+void RSRenderNodeGCTest::AddNodes(uint32_t nums, pid_t pid, NodeId startId,
+    bool needInvalidNode, std::shared_ptr<RSBaseRenderNode> parent)
+{
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    NodeId id;
+    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap;
+    for (int i = 0; i < nums; i++) {
+        id = startId + i;
+        if (needInvalidNode && i % 2 == 0) { // 2 means half renderNode is invalid
+            renderNodeMap[id] = nullptr;
+        } else {
+            renderNodeMap[id] = std::make_shared<RSBaseRenderNode>(id);
+        }
+        if (parent) {
+            parent->AddChild(renderNodeMap[id]);
+        }
+    }
+    nodeGC.AddToOffTreeNodeBucket(pid, renderNodeMap);
+}
+
+void RSRenderNodeGCTest::AddNodes(uint32_t nums, NodeId startId)
+{
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    for (int i = 0; i < nums; i++) {
+        nodeGC.AddToOffTreeNodeBucket(std::make_shared<RSBaseRenderNode>(startId + i));
+    }
+}
 
 void RSRenderNodeGCTest::SetUpTestCase() {}
 void RSRenderNodeGCTest::TearDownTestCase() {}
 void RSRenderNodeGCTest::SetUp() {}
 void RSRenderNodeGCTest::TearDown()
 {
-    auto& nodeGC = RSRenderNodeGC::Instance();
-    while (nodeGC.offTreeBucket_.size() > 0) {
-        nodeGC.offTreeBucket_.pop();
-    }
+    ClearOffTreeBucket();
+    ClearOffTreeBucketMap();
 }
 
 /**
@@ -172,12 +220,12 @@ HWTEST_F(RSRenderNodeGCTest, AddToOffTreeNodeBucket002, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReleaseOffTreeNodeBucket
- * @tc.desc: test results of ReleaseOffTreeNodeBucket, expect node off tree and queue is empty
+ * @tc.name: ReleaseOffTreeNodeBucket001
+ * @tc.desc: test results of ReleaseOffTreeNodeBucket001, expect node off tree and queue is empty
  * @tc.type: FUNC
  * @tc.require: issueIAF9XV
  */
-HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket, TestSize.Level1)
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket001, TestSize.Level1)
 {
     RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
     NodeId id = 1;
@@ -193,6 +241,131 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket, TestSize.Level1)
     nodeGC.ReleaseOffTreeNodeBucket();
     ASSERT_EQ(parent->fullChildrenList_->size(), 0);
     ASSERT_EQ(child->GetParent().lock(), nullptr);
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeBucket002
+ * @tc.desc: test results of ReleaseOffTreeNodeBucket002, expect node off tree and queue is empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket002, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucket();
+    ClearOffTreeBucketMap();
+    nodeGC.ReleaseOffTreeNodeBucket();
+    EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeBucket003
+ * @tc.desc: test results of ReleaseOffTreeNodeBucket003, expect node off tree and queue is empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket003, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    {
+        ClearOffTreeBucketMap();
+        auto parent = std::make_shared<RSBaseRenderNode>(1);
+        AddNodes(OFF_TREE_BUCKET_MAX_SIZE - 1, 1, 10000, false, parent);
+        nodeGC.ReleaseOffTreeNodeBucket();
+        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+    }
+    {
+        ClearOffTreeBucketMap();
+        AddNodes(OFF_TREE_BUCKET_MAX_SIZE, 1, 10000, false, nullptr);
+        nodeGC.ReleaseOffTreeNodeBucket();
+        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+    }
+    {
+        ClearOffTreeBucketMap();
+        AddNodes(OFF_TREE_BUCKET_MAX_SIZE + 100, 1, 10000, false, nullptr);
+        nodeGC.ReleaseOffTreeNodeBucket();
+        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 1);
+        EXPECT_EQ(nodeGC.offTreeBucketMap_.front().second.size(), 100);
+    }
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeBucket004
+ * @tc.desc: test results of ReleaseOffTreeNodeBucket004, expect node off tree and queue is empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket004, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucketMap();
+    AddNodes(OFF_TREE_BUCKET_MAX_SIZE, 1, 10000, true, nullptr);
+    nodeGC.ReleaseOffTreeNodeBucket();
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeBucket005
+ * @tc.desc: test results of ReleaseOffTreeNodeBucket005, expect node off tree and queue is empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket005, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    int32_t nodeNums =  OFF_TREE_BUCKET_MAX_SIZE;
+    ClearOffTreeBucketMap();
+    auto parent = std::make_shared<RSBaseRenderNode>(100);
+    for (int i = 0; i < nodeNums; i++) {
+        NodeId nodeId = 10000 + i;
+        if (i % 2 == 0) {
+            auto node = std::make_shared<RSBaseRenderNode>(nodeId);
+            nodeGC.AddToOffTreeNodeBucket(node);
+            if (i % 4 == 0) {
+                parent->AddChild(node);
+            }
+        } else {
+            nodeGC.AddToOffTreeNodeBucket(nullptr);
+        }
+    }
+    nodeGC.ReleaseOffTreeNodeBucket();
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+}
+
+/**
+ * @tc.name: ReleaseFromTree
+ * @tc.desc: test results of ReleaseFromTree, expect node off tree and queue is empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseFromTree, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    {
+        ClearOffTreeBucket();
+        AddNodes(OFF_TREE_BUCKET_MAX_SIZE, 10000);
+        nodeGC.ReleaseFromTree();
+        EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
+    }
+    {
+        ClearOffTreeBucketMap();
+        AddNodes(OFF_TREE_BUCKET_MAX_SIZE, 1, 10000, false, nullptr);
+        nodeGC.ReleaseFromTree();
+        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+    }
+    {
+        ClearOffTreeBucket();
+        ClearOffTreeBucketMap();
+        AddNodes(OFF_TREE_BUCKET_MAX_SIZE, 1, 10000, false, nullptr);
+        AddNodes(OFF_TREE_BUCKET_MAX_SIZE, 20000);
+        nodeGC.ReleaseFromTree();
+        EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+        EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
+    }
+    EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0);
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
+    nodeGC.ReleaseFromTree();
 }
 } // namespace Rosen
 } // namespace OHOS
