@@ -1262,6 +1262,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (status > static_cast<uint32_t>(ScreenPowerStatus::INVALID_POWER_STATUS)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_POWER_STATUS status is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
             break;
         }
@@ -1843,9 +1848,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP): {
             ScreenId id{INVALID_SCREEN_ID};
-            int32_t mode{0};
-            if (!data.ReadUint64(id) || !data.ReadInt32(mode)) {
+            uint32_t mode{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(mode)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (mode > static_cast<uint32_t>(ScreenGamutMap::GAMUT_MAP_HDR_EXTENSION)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP mode is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -1858,9 +1868,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION): {
             ScreenId id{INVALID_SCREEN_ID};
-            int32_t screenRotation{0};
-            if (!data.ReadUint64(id) || !data.ReadInt32(screenRotation)) {
+            uint32_t screenRotation{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(screenRotation)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CORRECTION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (screenRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CORRECTION screenRotation is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2560,6 +2575,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             int32_t gravity = 0;
             if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
