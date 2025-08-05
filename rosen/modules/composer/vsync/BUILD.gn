@@ -23,8 +23,6 @@ config("vsync_config") {
     "-Wall",
     "-Werror",
     "-g3",
-    "-Dprivate=public",
-    "-Dprotected=public",
   ]
 
   if (graphic_2d_feature_enable_dvsync) {
