@@ -51,6 +51,8 @@ ohos_unittest("feature_cfg_test") {
     "rotateoffscreen_param_test.cpp",
     "socperf_param_test.cpp",
     "speciallayer_param_test.cpp",
+    "subtree_parallel_param_parse_test.cpp",
+    "subtree_parallel_param_test.cpp",
     "surface_capture_param_test.cpp",
     "ui_capture_param_test.cpp",
     "uifirst_param_parse_test.cpp",
