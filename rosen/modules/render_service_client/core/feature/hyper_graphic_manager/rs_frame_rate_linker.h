@@ -43,6 +43,7 @@ public:
 private:
     void InitUniRenderEnabled();
     static FrameRateLinkerId GenerateId();
+    void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand);
     const FrameRateLinkerId id_;
     FrameRateRange currentRange_;
     int32_t currAnimatorExpectedFrameRate_ = -1;

@@ -62,7 +62,7 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange001, TestSize.Level1)
     std::shared_ptr<RSUIContext> rsUIContext = std::make_shared<RSUIContext>();
     frameRateLinker->UpdateFrameRateRange(initialRange, -1);
     frameRateLinker->UpdateFrameRateRange({30, 144, 60}, -1, rsUIContext);
-    frameRateLinker->UpdateFrameRateRange(newRange, -1);
+    frameRateLinker->UpdateFrameRateRange(newRange, -1, rsUIContext);
 }
 
 /**
