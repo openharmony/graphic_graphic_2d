@@ -44,6 +44,7 @@ auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 
+sptr<VSyncConnection> connServerApp_ = nullptr;
 DVSyncFeatureParam dvsyncParam;
 auto generator = CreateVSyncGenerator();
 auto appVSyncController = new VSyncController(generator, 0);
@@ -305,6 +306,23 @@ void DoNotifySoftVsyncRateDiscountEvent()
     dataParcel.WriteString(name);
     dataParcel.WriteUint32(rateDiscount);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+
+    if (!connServerApp_) {
+        uint64_t pidApp = static_cast<uint64_t>(getpid());
+        uint64_t id = pidApp << 32U;
+        connServerApp_ = new VSyncConnection(appVSyncDistributor_, "TestVsync", nullptr, id);
+        appVSyncDistributor_->AddConnection(connServerApp_);
+    }
+
+    MessageParcel dataP;
+    pid = getpid();
+    name = "TestVsync";
+    rateDiscount = 2U;
+    dataP.WriteInterfaceToken(GetDescriptor());
+    dataP.WriteUint32(pid);
+    dataP.WriteString(name);
+    dataP.WriteUint32(rateDiscount);
+    connectionStub_->OnRemoteRequest(code, dataP, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
