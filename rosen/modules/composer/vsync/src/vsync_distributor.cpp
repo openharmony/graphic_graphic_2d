@@ -1005,6 +1005,12 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
 #endif
         int32_t rate = connections_[i]->highPriorityState_ ? connections_[i]->highPriorityRate_ :
                                                              connections_[i]->rate_;
+        SCOPED_DEBUG_TRACE_FMT("CollectConnections, i:%d, name:%s, rate:%d, triggerThisTime_:%d, waitForVSync:%d", i,
+            connections_[i]->info_.name_.c_str(), rate, connections_[i]->triggerThisTime_, waitForVSync);
+        if (rate <= 0 && (!connections_[i]->triggerThisTime_ && !connections_[i]->NeedTriggeredVsync(timestamp))) {
+            waitForVSync = (waitForVSync || !connections_[i]->IsRequestVsyncTimestampEmpty());
+            continue;
+        }
 
         if (rate < 0) {
             continue;
