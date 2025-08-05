@@ -95,7 +95,11 @@ inline HgmEvent::~HgmEvent()
 
 inline sptr<HgmEventDistributor> HgmEventDistributor::Instance()
 {
-    static sptr<HgmEventDistributor> instance = sptr<HgmEventDistributor>::MakeSptr();
+    static std::once_flag createFlag;
+    static sptr<HgmEventDistributor> instance;
+    std::call_once(createFlag, [&] {
+        instance = sptr<HgmEventDistributor>::MakeSptr();
+    });
     return instance;
 }
 

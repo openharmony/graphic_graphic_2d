@@ -19,6 +19,8 @@
 
 #include "hgm_command.h"
 #include "hgm_test_base.h"
+#include "parameters.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -35,7 +37,6 @@ public:
     void SetUp();
     void TearDown() {}
     void LoadXmlContent1();
-
     std::shared_ptr<PolicyConfigVisitorImpl> visitor_;
 };
 
@@ -121,7 +122,6 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level0)
     hgmCore.mPolicyConfigVisitor_ = configVisitor;
     configData->xmlCompatibleMode_ = false;
     frameRateMgr->Init(nullptr, nullptr, nullptr, nullptr);
-
     // recovery
     hgmCore.mPolicyConfigData_ = configData;
     hgmCore.mPolicyConfigVisitor_ = configVisitor;
@@ -314,7 +314,6 @@ HWTEST_F(HgmCommandTest, SetRefreshRateMode, Function | SmallTest | Level0)
         EXPECT_EQ(configVisitorImpl->xmlModeId_, xmlModeId);
     }
 }
-
 
 /**
  * @tc.name: UpdateRefreshRateForSettings

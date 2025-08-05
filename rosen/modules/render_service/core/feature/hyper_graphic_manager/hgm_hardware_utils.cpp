@@ -55,13 +55,13 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(
     }
     ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
+    bool shouldSetRefreshRate = (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) ||
+                                 lastCurScreenId != curScreenId);
     bool needRetrySetRate = false;
     auto retryIter = setRateRetryMap_.find(id);
     if (retryIter != setRateRetryMap_.end()) {
         needRetrySetRate = retryIter->second.first;
     }
-    bool shouldSetRefreshRate = (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) ||
-                                 lastCurScreenId != curScreenId);
     if (shouldSetRefreshRate || needRetrySetRate) {
         RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
             needRetrySetRate %{public}d", static_cast<int>(id), refreshRate, needRetrySetRate);

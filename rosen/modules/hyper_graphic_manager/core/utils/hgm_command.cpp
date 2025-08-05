@@ -16,6 +16,7 @@
 #include "hgm_command.h"
 #include "hgm_log.h"
 
+
 namespace OHOS::Rosen {
 namespace {
 const PolicyConfigData::ScreenSetting NULL_SCREEN_SETTING{};

@@ -256,4 +256,3 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
     xcomponentExpectedFrameRate_.erase(pid);
 }
 } // namespace OHOS::Rosen
-

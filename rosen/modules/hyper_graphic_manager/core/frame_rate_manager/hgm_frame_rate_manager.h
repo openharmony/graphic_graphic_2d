@@ -74,8 +74,8 @@ enum CleanPidCallbackType : uint32_t {
     TOUCH_EVENT,
     POINTER_EVENT,
     GAMES,
-    APP_STRATEGY_CONFIG_EVENT,
     PAGE_URL,
+    APP_STRATEGY_CONFIG_EVENT,
 };
 
 enum LightFactorStatus : int32_t {
@@ -126,7 +126,7 @@ public:
     void HandleRsFrame();
     bool IsLtpo() const { return isLtpo_; };
     int32_t AdaptiveStatus() const { return isAdaptive_.load(); };
-    // called by RSMainThread
+    // called by RSHardwareThread
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
@@ -166,6 +166,7 @@ public:
     bool HandleGameNode(const RSRenderNodeMap& nodeMap);
 
     HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; };
+
     void ProcessPageUrlVote(pid_t pid, std::string strategy, const bool isAddVoter);
     void CleanPageUrlVote(pid_t pid);
     void HandlePageUrlEvent();
@@ -194,7 +195,7 @@ private:
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
-    int32_t GetPreferredFps(const std::string& type, float velocityMM, float areaMM, float lengthMM) const;
+    int32_t GetPreferredFps(const std::string& type, float velocityMM, float areaSqrMM, float lengthMM) const;
     template<typename T>
     static float PixelToMM(T pixel);
     template<typename T>
@@ -229,14 +230,14 @@ private:
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor);
+    void CheckRefreshRateChange(
+        bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate);
     uint32_t UpdateFrameRateWithDelay(uint32_t refreshRate);
     std::string GetGameNodeName() const
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
         return curGameNodeName_;
     }
-    void CheckRefreshRateChange(
-        bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate);
     void SetGameNodeName(std::string nodeName)
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -286,11 +287,11 @@ private:
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     std::string curScreenDefaultStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
+    int32_t idleFps_ = OLED_60_HZ;
     std::unordered_map<std::string, std::pair<int32_t, bool>> screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     int32_t isAmbientStatus_ = 0;
     bool isAmbientEffect_ = false;
     bool isStylusWakeUp_ = false;
-    int32_t idleFps_ = OLED_60_HZ;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;

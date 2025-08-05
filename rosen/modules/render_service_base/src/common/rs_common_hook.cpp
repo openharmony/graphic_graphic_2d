@@ -98,6 +98,17 @@ void RsCommonHook::GetComponentPowerFps(FrameRateRange& range)
     }
 }
 
+// DISPLAY ENGINE
+void RsCommonHook::SetCurrentPkgName(const std::string& pkgName)
+{
+    pkgName_ = pkgName;
+}
+
+std::string RsCommonHook::GetCurrentPkgName() const
+{
+    return pkgName_;
+}
+
 void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
 {
     tvPlayerBundleName_ = bundleName;

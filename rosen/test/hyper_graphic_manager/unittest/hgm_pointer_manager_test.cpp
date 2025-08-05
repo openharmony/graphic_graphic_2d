@@ -113,14 +113,14 @@ HWTEST_F(HgmPointerManagerTest, Active2IdleState, Function | SmallTest | Level0)
             usleep(handleRsFrameUs);
             ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_IDLE_STATE);
         }
-        STEP("State2String") {
+        STEP("2. State2String") {
             pointerManager.State2String(undefinedState);
         }
-        STEP("CheckChangeStateValid") {
+        STEP("3. CheckChangeStateValid") {
             pointerManager.CheckChangeStateValid(PointerState::POINTER_IDLE_STATE, undefinedState);
             pointerManager.CheckChangeStateValid(undefinedState, PointerState::POINTER_IDLE_STATE);
         }
-        STEP("ExecuteCallback") {
+        STEP("4. ExecuteCallback") {
             pointerManager.ExecuteCallback(nullptr);
             pointerManager.ExecuteCallback([]() { usleep(1); });
             pointerManager.ExecuteCallback(nullptr);
@@ -209,22 +209,22 @@ HWTEST_F(HgmPointerManagerTest, HgmSetAxisActiveFPS, Function | SmallTest | Leve
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_BEGIN, touchCount);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
- 
+
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_UPDATE, touchCount);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
- 
+
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_END, touchCount);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
- 
+
     frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_UPDATE, touchCount);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_1100Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
- 
+
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_200Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_IDLE_STATE);
- 
+
     frameRateMgr.pointerManager_.ChangeState(PointerState::POINTER_IDLE_STATE);
     sleep(1); // wait for handler task finished
 }

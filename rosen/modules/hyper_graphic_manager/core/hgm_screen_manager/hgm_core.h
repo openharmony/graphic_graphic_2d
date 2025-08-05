@@ -324,7 +324,6 @@ public:
     {
         return hfbcConfig_;
     }
-
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
 private:
     HgmCore();

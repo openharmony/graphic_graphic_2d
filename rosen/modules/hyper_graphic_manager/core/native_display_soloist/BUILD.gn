@@ -59,10 +59,7 @@ ohos_shared_library("libnative_display_soloist") {
 
   innerapi_tags = [ "ndk" ]
 
-  external_deps = [
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-  ]
+  external_deps = [ "hilog:libhilog" ]
   public_external_deps = [ "c_utils:utils" ]
 
   part_name = "graphic_2d"
