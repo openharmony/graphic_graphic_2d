@@ -223,6 +223,9 @@ void RSDrawingFilter::GenerateAndUpdateGEVisualEffect()
 {
     visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     for (const auto& filter : shaderFilters_) {
+        if (filter->GetType() == RSUIFilterType::KAWASE) {
+            continue;
+        }
         filter->GenerateGEVisualEffect(visualEffectContainer_);
     }
     if (!renderFilter_) {
