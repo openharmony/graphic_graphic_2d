@@ -388,26 +388,6 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestSiz
 }
 
 /**
- * @tc.name: ProcessSurfaceForRenderThread001
- * @tc.desc: Test RSUniRenderProcessorTest.ProcessSurfaceForRenderThread with not nullptr
- * @tc.type:FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST(RSUniRenderProcessorTest, ProcessSurfaceForRenderThread001, TestSize.Level1)
-{
-    if (RSUniRenderJudgement::IsUniRender()) {
-        NodeId id = 0;
-        auto node = std::make_shared<RSSurfaceRenderNode>(id);
-        ASSERT_NE(node, nullptr);
-        auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-        ASSERT_NE(surfaceDrawable, nullptr);
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-        ASSERT_NE(renderProcessor, nullptr);
-        renderProcessor->ProcessSurfaceForRenderThread(*surfaceDrawable);
-    }
-}
-
-/**
  * @tc.name: CreateLayerForRenderThread001
  * @tc.desc: Test RSUniRenderProcessorTest.CreateLayerForRenderThread with nullptr
  * @tc.type:FUNC

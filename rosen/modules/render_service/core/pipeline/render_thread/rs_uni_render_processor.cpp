@@ -426,17 +426,6 @@ void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     RS_LOGE("It is update to DrawableV2 to process node now!!");
 }
 
-void RSUniRenderProcessor::ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
-{
-    auto layer = uniComposerAdapter_->CreateLayer(surfaceDrawable);
-    if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
-            surfaceDrawable.GetId());
-        return;
-    }
-    layers_.emplace_back(layer);
-}
-
 void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
 {
     auto layer = uniComposerAdapter_->CreateLayer(node);
