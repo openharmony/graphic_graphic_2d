@@ -1187,6 +1187,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             node.SetContentDirty(); // HDR content is dirty on Dimming status.
         }
     }
+#ifdef SUBTREE_PARALLEL_ENABLE
+    const bool isInFocusSurface = isInFocusSurface_;
+    isInFocusSurface_ = node.IsFocusedNode(currentFocusedNodeId_)
+        || node.IsFocusedNode(focusedLeashWindowId_) || isInFocusSurface_;
+#endif
     CollectSelfDrawingNodeRectInfo(node);
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     // Initialize the handler of control-level occlusion culling.
@@ -1232,10 +1237,10 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     PrepareForUIFirstNode(node);
     PrepareForCrossNode(node);
 #ifdef SUBTREE_PARALLEL_ENABLE
-    if (node.GetSubThreadAssignable() || (!node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) &&
-        !node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()))) {
+    if (node.GetSubThreadAssignable() || !isInFocusSurface_) {
         node.ClearSubtreeParallelNodes();
     }
+    isInFocusSurface_ = isInFocusSurface;
 #endif
     node.UpdateInfoForClonedNode(clonedSourceNodeId_);
     node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);

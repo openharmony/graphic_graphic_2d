@@ -428,6 +428,9 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool needRequestNextVsync_ = true;
     bool isTargetUIFirstDfxEnabled_ = false;
+#ifdef SUBTREE_PARALLEL_ENABLE
+    bool isInFocusSurface_ = false;
+#endif
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     DirtyRegionDebugType dirtyRegionDebugType_;
     AdvancedDirtyRegionType advancedDirtyType_;
