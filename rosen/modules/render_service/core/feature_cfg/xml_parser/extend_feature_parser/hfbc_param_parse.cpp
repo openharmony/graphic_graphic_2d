@@ -80,15 +80,15 @@ int32_t HFBCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string 
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-        auto appName = ExtractPropertyValue("name", *currNode);
+        auto key = ExtractPropertyValue("name", *currNode);
         auto val = ExtractPropertyValue("value", *currNode);
         if (!IsNumber(val)) {
             return PARSE_ERROR;
         }
-        RS_LOGI("HFBCParamParse %{public}s: appName:%{public}s, value:%{public}s",
-            __func__, appName.c_str(), val.c_str());
+        RS_LOGI("HFBCParamParse %{public}s: key:%{public}s, value:%{public}s",
+            __func__, key.c_str(), val.c_str());
         if (name == "HfbcDisable") {
-            HFBCParam::SetHfbcConfigForApp(appName, val);
+            HFBCParam::SetHfbcConfigForApp(key, val);
         } else {
             RS_LOGE("HFBCParamParse ParseFeatureMultiParam cannot find name:%s", name.c_str());
             return PARSE_NO_PARAM;
