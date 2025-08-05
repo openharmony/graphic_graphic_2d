@@ -31,7 +31,7 @@ class NClass {
 public:
     NClass(const NClass &) = delete;
     NClass &operator = (const NClass &) = delete;
-    ~NClass() {};
+	~NClass();
     static NClass &GetInstance();
 
     static std::tuple<bool, napi_value> DefineClass(napi_env env, std::string className, napi_callback constructor,
@@ -71,6 +71,7 @@ public:
 private:
     NClass() = default;
     std::map<std::string, napi_ref> exClassMap;
+	static napi_env environment;
     std::mutex exClassMapLock;
 };
 } // namespace Rosen

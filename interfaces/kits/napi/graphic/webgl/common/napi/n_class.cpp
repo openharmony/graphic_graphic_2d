@@ -18,10 +18,23 @@
 namespace OHOS {
 namespace Rosen {
 using namespace std;
+napi_env NClass::environment = nullptr;
 NClass &NClass::GetInstance()
 {
     static NClass nClass;
     return nClass;
+}
+void NClass::~NClass()
+{
+	lock_guard(exClassMapLock);
+	auto env=NClass::environment;
+	if(env && !exClassMap.empty()){
+		for(auto it=exClassMap.begin();it!=exClassMap.end();it++){
+			auto ref = it->second;
+			exClassMap.erase(it);
+			napi_delete_reference(env,ref);
+		}
+	}
 }
 
 tuple<bool, napi_value> NClass::DefineClass(napi_env env, string className, napi_callback constructor,
@@ -45,6 +58,7 @@ bool NClass::SaveClass(napi_env env, string className, napi_value exClass)
     napi_ref constructor;
     napi_status res = napi_create_reference(env, exClass, 2, &constructor);
     if (res == napi_ok) {
+		NClass::environment=env;
         nClass.exClassMap.insert({ className, constructor });
     }
     return res == napi_ok;
