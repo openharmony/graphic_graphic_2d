@@ -30,7 +30,7 @@ group("unittest") {
 }
 
 action("CompileCheck") {
-  script = "$graphic_2d_ext_root/subtree/test/unittest/CompileCheck.py"
+  script = "CompileCheck.py"
   outputs = [ "$target_out_dir/CompileCheckResult.txt" ]
 }
 
