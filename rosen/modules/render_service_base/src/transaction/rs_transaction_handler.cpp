@@ -74,7 +74,7 @@ void RSTransactionHandler::AddCommand(
         "RSTransactionHandler::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu",
         nodeId, isRenderServiceCommand, followType);
-    if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
+    if (renderServiceClient_ != nullptr && isRenderServiceCommand) {
         AddRemoteCommand(command, nodeId, followType);
         return;
     }

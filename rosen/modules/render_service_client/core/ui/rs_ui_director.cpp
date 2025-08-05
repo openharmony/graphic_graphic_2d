@@ -223,13 +223,13 @@ uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
     return RSSystemProperties::GetHybridRenderTextBlobLenCount();
 }
 
-void RSUIDirector::StartTextureExport()
+void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
 {
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (isUniRenderEnabled_) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
-        if (rsUIContext_) {
-            auto transaction = rsUIContext_->GetRSTransaction();
+        if (rsUIContext) {
+            auto transaction = rsUIContext->GetRSTransaction();
             if (transaction != nullptr) {
                 transaction->SetRenderThreadClient(renderThreadClient);
             }

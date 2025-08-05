@@ -96,8 +96,9 @@ public:
 
     /**
      * @brief Initiates the process of exporting texture data.
+     * @param rsUIContext A shared pointer to the rsUIContext object to be set.
      */
-    void StartTextureExport();
+    void StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Destroy RSUIDirector instance.
