@@ -308,6 +308,7 @@ private:
 
     bool IsHardwareComposerEnabled();
     void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
+    void DealWithSpecialLayer(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSDisplayRenderNode& node);
 
     bool ForcePrepareSubTree()

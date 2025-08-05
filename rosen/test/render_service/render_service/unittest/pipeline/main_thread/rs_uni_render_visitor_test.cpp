@@ -1519,6 +1519,36 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCrossNodeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DealWithSpecialLayer
+ * @tc.desc: Test DealWithSpecialLayer
+ * @tc.type: FUNC
+ * @tc.require: issueICPGYK
+ */
+HWTEST_F(RSUniRenderVisitorTest, DealWithSpecialLayer, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    node->SetSecurityLayer(true);
+    rsUniRenderVisitor->DealWithSpecialLayer(*node);
+    node->isCloneCrossNode_ = true;
+    ASSERT_EQ(node->IsCrossNode(), true);
+    rsUniRenderVisitor->DealWithSpecialLayer(*node);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY), false);
+
+    auto sourceNode = RSTestUtil::CreateSurfaceNode();
+    node->sourceCrossNode_ = sourceNode;
+    ASSERT_NE(node->GetSourceCrossNode().lock(), nullptr);
+    rsUniRenderVisitor->DealWithSpecialLayer(*node);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY), false);
+}
+
+/**
  * @tc.name: CheckSkipCrossNodeTest
  * @tc.desc: Test CheckSkipCrossNode
  * @tc.type: FUNC
