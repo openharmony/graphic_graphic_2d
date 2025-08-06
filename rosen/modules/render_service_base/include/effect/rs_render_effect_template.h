@@ -42,10 +42,10 @@ namespace {
     std::string GetLastSegment(const std::string& str, char delimiter)
     {
         size_t pos = str.rfind(delimiter);
-        if (pos != std::string::npos && pos + 1 < str.size()) {
+        if (pos != std::string::npos) {
             return str.substr(pos + 1);
         }
-        return "";
+        return str;
     }
 }
 
