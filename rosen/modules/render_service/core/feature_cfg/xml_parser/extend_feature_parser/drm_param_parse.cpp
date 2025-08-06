@@ -54,6 +54,41 @@ int32_t DRMParamParse::ParseDrmInternal(xmlNode &node)
             DRMParam::SetDrmEnable(isEnabled);
             RS_LOGI("DRMParamParse parse DrmEnabled %{public}d", DRMParam::IsDrmEnable());
         }
+        if (name == "DrmMaskBlurEnabled") {
+            DRMParam::SetDrmMarkBlurEnable(isEnabled);
+            RS_LOGI("DRMParamParse parse DrmMaskBlurEnabled %{public}d", DRMParam::IsDrmMarkBlurEnable());
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+        if (ParseFeatureMultiParam(*currNode, name) != PARSE_EXEC_SUCCESS) {
+            RS_LOGD("parse MultiParam fail");
+        }
+    }
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t DRMParamParse::ParseFeatureMultiParam(xmlNode &node, std::string &name)
+{
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        RS_LOGE("DRMParamParse stop parsing, no children nodes");
+        return PARSE_GET_CHILD_FAIL;
+    }
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto paramName = ExtractPropertyValue("name", *currNode);
+        auto val = ExtractPropertyValue("value", *currNode);
+        if (!IsNumber(val)) {
+            return PARSE_ERROR;
+        }
+        if (val == "1") {
+            DRMParam::AddWhiteList(paramName);
+        }
+        if (val == "0") {
+            DRMParam::AddBlackList(paramName);
+        }
     }
     return PARSE_EXEC_SUCCESS;
 }
