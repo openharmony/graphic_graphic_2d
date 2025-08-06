@@ -92,7 +92,7 @@ void HgmTaskHandleThread::DetectMultiThreadingCalls()
     if (auto newTid = gettid(); curThreadId_ != newTid) {
         // -1 means default curThreadId
         if (curThreadId_ != -1) {
-            HGM_LOGE("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId_, newTid);
+            HGM_LOGD("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId_, newTid);
         }
         curThreadId_ = newTid;
     }
