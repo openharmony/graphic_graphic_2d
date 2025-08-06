@@ -50,7 +50,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     }
 
     if (ANI_OK != AniColorSpaceManager::AniColorSpaceManagerInit(env)) {
-        ACMLOGI("AniColorSpaceManager init fail");
+        ACMLOGE("AniColorSpaceManager init fail");
         return ANI_ERROR;
     }
 

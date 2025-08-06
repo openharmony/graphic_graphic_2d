@@ -30,8 +30,6 @@ ohos_shared_library("window_animation") {
 
   public_configs = [ ":window_animation_config" ]
 
-  branch_protector_ret = "pac_ret"
-
   cflags_cc = [ "-std=c++17" ]
 
   deps = [

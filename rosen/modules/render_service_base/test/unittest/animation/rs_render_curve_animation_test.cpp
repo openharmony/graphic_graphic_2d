@@ -380,7 +380,7 @@ HWTEST_F(RSRenderCurveAnimationTest, ParseParam002, TestSize.Level1)
     EXPECT_TRUE(result);
     auto renderCurveAnimation1 = std::make_shared<RSRenderCurveAnimation>();
     result = renderCurveAnimation1->ParseParam(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**

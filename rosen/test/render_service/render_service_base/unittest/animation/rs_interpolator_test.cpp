@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "include/animation/rs_interpolator.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -119,6 +120,67 @@ HWTEST_F(RSCustomInterpolatorTest, UnmarshallingTest, TestSize.Level1)
     rsCustom = rsCustomInterpolator.Unmarshalling(parcel);
     EXPECT_EQ(rsCustom, nullptr);
 }
+
+/**
+ * @tc.name: UnmarshallingTest001
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomInterpolatorTest, UnmarshallingTest001, TestSize.Level1)
+{
+    std::function<float(float)> func;
+    int duration = 0;
+    RSCustomInterpolator rsCustomInterpolator(func, duration);
+    Parcel parcel;
+    parcel.WriteUint64(1);
+    RSCustomInterpolator* rsCustom;
+    rsCustom = rsCustomInterpolator.Unmarshalling(parcel);
+    EXPECT_EQ(rsCustom, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingTest002
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomInterpolatorTest, UnmarshallingTest002, TestSize.Level1)
+{
+    std::function<float(float)> func;
+    int duration = 0;
+    RSCustomInterpolator rsCustomInterpolator(func, duration);
+    Parcel parcel;
+    parcel.WriteUint64(1);
+    std::vector<float> times = {1.0f, 1.0f};
+    auto ret = RSMarshallingHelper::Marshalling(parcel, times);
+    EXPECT_TRUE(ret);
+    RSCustomInterpolator* rsCustom;
+    rsCustom = rsCustomInterpolator.Unmarshalling(parcel);
+    EXPECT_EQ(rsCustom, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingTest003
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomInterpolatorTest, UnmarshallingTest003, TestSize.Level1)
+{
+    std::function<float(float)> func;
+    int duration = 0;
+    RSCustomInterpolator rsCustomInterpolator(func, duration);
+    Parcel parcel;
+    parcel.WriteUint64(1);
+    std::vector<float> times = {1.0f, 1.0f};
+    auto ret = RSMarshallingHelper::Marshalling(parcel, times);
+    EXPECT_TRUE(ret);
+    std::vector<float> values = {1.0f, 1.0f};
+    ret = RSMarshallingHelper::Marshalling(parcel, values);
+    EXPECT_TRUE(ret);
+    RSCustomInterpolator* rsCustom;
+    rsCustom = rsCustomInterpolator.Unmarshalling(parcel);
+    EXPECT_EQ(rsCustom, nullptr);
+}
+
 
 /**
  * @tc.name: ConvertTest

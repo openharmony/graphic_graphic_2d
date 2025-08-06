@@ -16,8 +16,8 @@
 #ifndef OHOS_ANI_COLOR_SPACE_MANAGER_H
 #define OHOS_ANI_COLOR_SPACE_MANAGER_H
 
-#include "color_space.h"
 #include "ani.h"
+#include "color_space.h"
 
 namespace OHOS {
 namespace ColorManager {

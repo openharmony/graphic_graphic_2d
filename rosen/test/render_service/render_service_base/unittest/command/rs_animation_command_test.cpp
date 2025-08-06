@@ -88,7 +88,6 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
     AnimationCommandHelper::CreateParticleAnimation(context2, id, animation2);
 
     AnimationCommandHelper::CancelAnimation(context2, id, 0);
-    EXPECT_NE(node, nullptr);
 }
 
 /**

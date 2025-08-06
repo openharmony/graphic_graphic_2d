@@ -31,17 +31,18 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr size_t MATRIX_SIZE = 9;
-static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 const std::vector<uint8_t> HDR_VIVID_METADATA = {
     1, 0, 23, 93, 111, 186, 221, 240, 26, 189, 83, 29, 128, 0, 82, 142, 25, 156, 3,
     198, 204, 179, 47, 236, 32, 190, 143, 163, 252, 16, 93, 185, 106, 159, 0, 10,
     81, 199, 178, 80, 255, 217, 150, 101, 201, 144, 114, 73, 65, 127, 160, 0, 0
 };
+}
 static std::shared_ptr<Drawing::RuntimeEffect> hdrHeadroomShaderEffect_;
 std::unordered_set<uint8_t> aihdrMetadataTypeSet = {
     HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR,
@@ -69,12 +70,14 @@ HdrStatus RSHdrUtil::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBu
         RS_LOGD("RSHdrUtil::CheckIsHdrSurfaceBuffer HDRVideoEnabled false");
         return HdrStatus::NO_HDR;
     }
+    #ifdef USE_VIDEO_PROCESSING_ENGINE
     std::vector<uint8_t> metadataType{};
     if ((surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType)
         == GSERROR_OK) && (metadataType.size() > 0) &&
         (aihdrMetadataTypeSet.find(metadataType[0]) != aihdrMetadataTypeSet.end())) {
         return HdrStatus::AI_HDR_VIDEO;
     }
+    #endif
     if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
         surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
         surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
@@ -174,11 +177,10 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit screenNode is null");
         return;
     }
-
     float brightnessFactor = screenNode->GetRenderProperties().GetHDRBrightnessFactor();
     if (ROSEN_NE(surfaceNode.GetHDRBrightnessFactor(), brightnessFactor)) {
         RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit GetHDRBrightnessFactor: %{public}f, "
-            "displayNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
+            "screenNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
             surfaceNode.GetHDRBrightnessFactor(), brightnessFactor, surfaceNode.GetId());
         surfaceNode.SetHDRBrightnessFactor(brightnessFactor);
         surfaceNode.SetContentDirty();
@@ -255,24 +257,19 @@ void RSHdrUtil::UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node)
             RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc selfDrawingNode is nullptr");
             continue;
         }
-        auto ancestorPtr = selfDrawingNode->GetAncestorScreenNode().lock();
-        if (!ancestorPtr) {
-            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc ancestor is nullptr");
-            continue;
-        }
-        auto ancestor = ancestorPtr->ReinterpretCastTo<RSScreenRenderNode>();
+        auto ancestor = selfDrawingNode->GetAncestorScreenNode().lock();
         if (!ancestor) {
-            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc ancestor is not screen node");
+            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc ancestor is nullptr");
             continue;
         }
         if (node.GetId() == ancestor->GetId()) {
             CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, node);
-        }
-        bool needSetExistHWCNode = !ancestor->GetExistHWCNode() && selfDrawingNode->IsOnTheTree() &&
-            !selfDrawingNode->IsHardwareForcedDisabled() && node.GetId() == ancestor->GetId();
-        if (needSetExistHWCNode) {
-            RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc there exist HWCNode");
-            ancestor->SetExistHWCNode(true);
+            bool needSetExistHWCNode = !node.GetExistHWCNode() && selfDrawingNode->IsOnTheTree() &&
+                !selfDrawingNode->IsHardwareForcedDisabled();
+            if (needSetExistHWCNode) {
+                RS_LOGD("RSHdrUtil::UpdatePixelFormatAfterHwcCalc there exist HWCNode");
+                node.SetExistHWCNode(true);
+            }
         }
     }
 }
@@ -304,7 +301,7 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
     }
     if (surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
         SetHDRParam(screenNode, surfaceNode, true);
-        if (screenNode.GetIsLuminanceStatusChange() && !screenNode.GetForceCloseHdr()) {
+        if (screenNode.GetIsLuminanceStatusChange()) {
             surfaceNode.SetContentDirty();
         }
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode HDRService surfaceNode %{public}s is HDR",
@@ -329,6 +326,8 @@ void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode&
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
     if (firstLevelNode != nullptr && node.GetFirstLevelNodeId() != node.GetId()) {
         firstLevelNode->SetHDRPresent(flag);
+        RS_LOGD("RSHrdUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 "",
+            node.GetFirstLevelNodeId());
     }
     node.SetHDRPresent(flag);
 }
@@ -349,7 +348,8 @@ bool RSHdrUtil::NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& su
         RS_LOGE("RSHdrUtil::NeedUseF16Capture surfaceNode is nullptr.");
         return false;
     }
-    auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
+    auto screenNode =
+        RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
     if (!screenNode) {
         RS_LOGE("RSHdrUtil::NeedUseF16Capture surfaceNode get ancestor screenNode failed.");
         return false;
@@ -510,7 +510,7 @@ bool RSHdrUtil::SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing
     using namespace HDI::Display::Graphic::Common::V1_0;
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     if (!image) {
-        RS_LOGE("RSHdrUtil::SetHDRCastShader image is nullptr");
+        RS_LOGE("RSHdrUtil::SetHDRCastShader image is nullptr.");
         return false;
     }
     auto inputShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
@@ -527,7 +527,7 @@ bool RSHdrUtil::SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
     auto colorSpaceConverterDisplay = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
     if (!colorSpaceConverterDisplay) {
-        RS_LOGE("RSHDRUtil::SetHDRCastShader VPE create failed");
+        RS_LOGE("RSHdrUtil::SetHDRCastShader VPE create failed");
         return false;
     }
     auto convRet = colorSpaceConverterDisplay->Process(inputShader, outputShader, parameter);
@@ -544,7 +544,7 @@ bool RSHdrUtil::SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing
     return true;
 }
 
-GSError RSHdrUtil::SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
+GSError RSHdrUtil::SetMetadata(const Media::VideoProcessingEngine::CM_ColorSpaceInfo& colorspaceInfo,
     std::unique_ptr<RSRenderFrame>& renderFrame)
 {
     if (renderFrame == nullptr) {
@@ -586,7 +586,8 @@ GSError RSHdrUtil::SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_Col
 }
 
 GSError RSHdrUtil::SetMetadata(SurfaceBuffer* buffer,
-    const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo, uint32_t value)
+    const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
+    const HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type& value)
 {
     if (buffer == nullptr) {
         RS_LOGE("RSHdrUtil::SetMetadata failed buffer nullptr");

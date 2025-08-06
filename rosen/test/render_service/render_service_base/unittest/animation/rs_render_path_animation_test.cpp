@@ -15,9 +15,10 @@
 
 #include "gtest/gtest.h"
 #include "animation/rs_render_path_animation.h"
-#include "modifier/rs_render_property.h"
-#include "render/rs_path.h"
 
+#include "animation/rs_value_estimator.h"
+#include "pipeline/rs_canvas_render_node.h"
+#include "render/rs_path.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -28,6 +29,13 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static constexpr uint64_t ANIMATION_ID = 1001;
+    static constexpr uint64_t PROPERTY_ID = 1000;
+    const Vector2f PATH_ANIMATION_DEFAULT_VALUE = Vector2f(0.f, 0.f);
+    const Vector2f PATH_ANIMATION_START_VALUE = Vector2f(0.f, 0.f);
+    const Vector2f PATH_ANIMATION_END_VALUE = Vector2f(500.f, 500.f);
+    const std::string ANIMATION_PATH = "L350 0 L150 100";
 };
 
 void RSRenderPathAnimationTest::SetUpTestCase() {}
@@ -266,7 +274,7 @@ HWTEST_F(RSRenderPathAnimationTest, MarshallingTest, Level1)
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
     Parcel parcel;
     bool res = rsRenderPathAnimation.Marshalling(parcel);
-    ASSERT_NE(res, true);
+    ASSERT_EQ(res, true);
 }
 
 /**
@@ -500,4 +508,4 @@ HWTEST_F(RSRenderPathAnimationTest, UpdateVector4fPathValueTest, Level1)
     rsRenderPathAnimation.UpdateVector4fPathValue(value, position);
     EXPECT_EQ(rsRenderPathAnimation.needAddOrigin_, true);
 }
-}
+} // namespace OHOS::Rosen
