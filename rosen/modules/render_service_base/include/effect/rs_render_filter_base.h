@@ -40,11 +40,7 @@ public:
 
     virtual void GenerateGEVisualEffect() {};
 
-    virtual void OnSync()
-    {
-        RS_OPTIONAL_TRACE_FMT("RSNGRenderFilterBase::OnSync effectCount = %d", GetEffectCount());
-        GenerateGEVisualEffect();
-    }
+    virtual void OnSync() {}
 
 protected:
     std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
