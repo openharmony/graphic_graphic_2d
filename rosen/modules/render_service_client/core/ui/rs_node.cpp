@@ -4160,7 +4160,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         if (modifiersNG_.count(modifier->GetId())) {
             return;
         }
-        modifier->SetAddModifierFlag(true);
         modifier->OnAttach(*this); // Attach properties of modifier here
         auto modifierType = modifier->GetType();
         if (modifierType == ModifierNG::RSModifierType::NODE_MODIFIER) {
