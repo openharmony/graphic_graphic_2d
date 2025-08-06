@@ -3272,6 +3272,7 @@ void RSSurfaceRenderNode::UpdatePropertyFromConsumer()
     consumer->GetFrameGravity(gravity);
     if (gravity >= 0) {
         GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
+        SetFrameGravityNewVersionEnabled(true);
         RS_LOGD("RSSurfaceRenderNode, update frame gravity to = %{public}d", gravity);
     }
 
