@@ -24,16 +24,16 @@ NClass &NClass::GetInstance()
     static NClass nClass;
     return nClass;
 }
-void NClass::~NClass()
+NClass::~NClass()
 {
-    lock_guard(exClassMapLock);
+    lock_guard<std::mutex> lock(exClassMapLock);
     auto env = NClass::environment;
     if (env && !exClassMap.empty()) {
-        for (auto it = exClassMap.begin(); it != exClassMap.end(); it++) {
-            auto ref = it->second;
-            exClassMap.erase(it);
-            napi_delete_reference(env, ref);
-	    }
+        auto it = exClassMap.begin();
+        while (it != exClassMap.end()) {
+            napi_delete_reference(env, it->second);
+            it = exClassMap.erase(it);
+        }
     }
 }
 
