@@ -178,7 +178,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
         RS_TRACE_NAME_FMT("HybridRender transactionFlag:[%d,%" PRIu64 "]", GetRealPid(), transactionDataIndex_ + 1);
         RSTransactionHandler::commitTransactionCallback_(renderServiceClient_,
-            std::move(transactionData), transactionDataIndex_);
+            std::move(transactionData), transactionDataIndex_, shared_from_this());
         return;
     }
     renderServiceClient_->CommitTransaction(transactionData);
@@ -188,6 +188,28 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
 uint32_t RSTransactionHandler::GetTransactionDataIndex() const
 {
     return transactionDataIndex_;
+}
+
+void RSTransactionHandler::PostTask(const std::function<void()>& task)
+{
+    PostDelayTask(task, 0);
+}
+
+void RSTransactionHandler::PostDelayTask(const std::function<void()>& task, uint32_t delay)
+{
+    if (taskRunner_ == nullptr) {
+        ROSEN_LOGW(
+            "multi-instance RSTransactionHandler::PostDelayTask failed, taskRunner is empty, "
+            "token=%{public}" PRIu64, token_);
+        return;
+    }
+    taskRunner_(task, delay);
+    ROSEN_LOGD("multi-instance RSTransactionHandler::PostDelayTask success token=%{public}" PRIu64, token_);
+}
+
+void RSTransactionHandler::SetUITaskRunner(const TaskRunner& uiTaskRunner)
+{
+    taskRunner_ = uiTaskRunner;
 }
 
 bool RSTransactionHandler::IsEmpty() const

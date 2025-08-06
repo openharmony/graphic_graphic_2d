@@ -31,11 +31,14 @@
 
 namespace OHOS {
 namespace Rosen {
+using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
+class RSTransactionHandler;
 class RSSyncTask;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
-class RSB_EXPORT RSTransactionHandler final {
+    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
+class RSB_EXPORT RSTransactionHandler : public std::enable_shared_from_this<RSTransactionHandler> {
 public:
     RSTransactionHandler() = default;
     RSTransactionHandler(uint64_t token) : token_(token) {}
@@ -84,6 +87,12 @@ public:
 
     void StartCloseSyncTransactionFallbackTask(std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen);
 
+    void PostTask(const std::function<void()>& task);
+
+    void PostDelayTask(const std::function<void()>& task, uint32_t delay);
+
+    void SetUITaskRunner(const TaskRunner& uiTaskRunner);
+
 private:
     RSTransactionHandler(const RSTransactionHandler&) = delete;
     RSTransactionHandler(const RSTransactionHandler&&) = delete;
@@ -116,6 +125,7 @@ private:
     static CommitTransactionCallback commitTransactionCallback_;
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};
+    TaskRunner taskRunner_ = TaskRunner();
 };
 
 } // namespace Rosen

@@ -113,6 +113,9 @@ void RSUIContext::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& anima
 void RSUIContext::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 {
     taskRunner_ = uiTaskRunner;
+    if (rsTransactionHandler_) {
+        rsTransactionHandler_->SetUITaskRunner(uiTaskRunner);
+    }
 }
 
 void RSUIContext::PostTask(const std::function<void()>& task)

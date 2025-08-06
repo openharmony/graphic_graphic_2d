@@ -93,7 +93,8 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender002, Test
     transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
     CommitTransactionCallback callback =
         [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
-        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {};
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
+        std::shared_ptr<RSTransactionHandler>) {};
     RSTransactionHandler::SetCommitTransactionCallback(callback);
     transaction->FlushImplicitTransaction(timestamp);
 }
@@ -1224,6 +1225,30 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionFromRT004, TestSize.L
     transaction->AddRemoteCommand(command, 1, FollowType::NONE);
     ASSERT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
     ASSERT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+}
+
+/**
+ * @tc.name: TestPostTask
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, TestPostTask, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
+    transaction->PostTask(task);
+    transaction->PostDelayTask(task, 0);
+    transaction->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
+    ASSERT_NE(transaction->taskRunner_, nullptr);
+    transaction->PostDelayTask(task, 0);
+
+    transaction->taskRunner_ = nullptr;
+    ASSERT_EQ(transaction->taskRunner_, nullptr);
+    transaction->PostDelayTask(task, 0);
 }
 
 /**

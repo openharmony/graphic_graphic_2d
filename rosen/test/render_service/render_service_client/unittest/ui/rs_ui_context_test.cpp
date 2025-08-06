@@ -71,6 +71,9 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
     uint32_t delay = 0;
     uiContext1->PostDelayTask(task, delay);
     ASSERT_TRUE(flag);
+    uiContext2->rsTransactionHandler_ = nullptr;
+    ASSERT_EQ(uiContext2->rsTransactionHandler_, nullptr);
+    uiContext2->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
 }
 
 /**
