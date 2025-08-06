@@ -143,12 +143,9 @@ protected:
         }
     }
 
-    using Constructor = std::function<RSModifier*()>;
-
 private:
     static ModifierId GenerateModifierId();
     void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
-    static std::array<Constructor, MODIFIER_TYPE_COUNT> ConstructorLUT_;
     bool isDirty_ { false };
 
     friend class OHOS::Rosen::RSModifierExtractor;
