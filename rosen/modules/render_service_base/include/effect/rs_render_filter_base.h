@@ -42,7 +42,7 @@ public:
 
     virtual void OnSync()
     {
-        RS_TRACE_NAME_FMT("RSNGRenderFilterBase::OnSync effectCount = %d", GetEffectCount());
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderFilterBase::OnSync effectCount = %d", GetEffectCount());
         GenerateGEVisualEffect();
     }
 
@@ -69,14 +69,8 @@ public:
 
     void GenerateGEVisualEffect() override
     {
-#ifndef ROSEN_TRACE_DISABLE
-        if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
-            std::string paramStr;
-            EffectTemplateBase::Dump(paramStr);
-            RS_TRACE_NAME_FMT("RSNGRenderFilterTemplate::GenerateGEVisualEffect, Type: %s paramStr: %s",
-                RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(), paramStr.c_str());
-        }
-#endif
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderFilterTemplate::GenerateGEVisualEffect, Type: %s paramStr: %s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(), EffectTemplateBase::DumpProperties().c_str());
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geFilter);
         std::apply([&geFilter](const auto&... propTag) {
