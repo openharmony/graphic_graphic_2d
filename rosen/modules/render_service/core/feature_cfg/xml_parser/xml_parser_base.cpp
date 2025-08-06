@@ -19,7 +19,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
+constexpr uint32_t XML_STRING_MAX_LENGTH = 20;
 }
 
 void XMLParserBase::Destroy()
