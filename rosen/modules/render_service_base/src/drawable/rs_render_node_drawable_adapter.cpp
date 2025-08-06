@@ -654,7 +654,7 @@ void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
     }
     vec.clear();
     if (toClearCmdListVec_.size() >= CMD_LIST_COUNT_WARNING_LIMIT) {
-        ROSEN_LOGW("%{public}s, cmdList count(%{public}lu) out of limit", __func__, toClearCmdListVec_.size());
+        ROSEN_LOGW("%{public}s, cmdList count(%{public}zu) out of limit", __func__, toClearCmdListVec_.size());
     }
 }
 
